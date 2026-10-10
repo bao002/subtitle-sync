@@ -194,11 +194,15 @@ assert(
   "index.tsx must initialize targetLanguages from getUserLearningLanguages()",
 );
 assert(
-  !indexRouteContent.includes('return ["he", "it"];'),
-  "index.tsx must NOT fall back to ['he', 'it'] default subtitle language",
+  indexRouteContent.includes("if (saved && saved.length > 0) return saved;"),
+  "index.tsx must prioritize saved learning languages over Android defaults",
+);
+assert(
+  indexRouteContent.includes('if (isAndroidEnv) return ["he", "it"];'),
+  "index.tsx must keep the Android-only Hebrew and Italian defaults for native subtitle verification",
 );
 console.log(
-  "✅ PASS: Verified no default subtitles language is hardcoded (clean unconstrained language configuration)",
+  "✅ PASS: Saved languages override Android defaults; web app settings remain empty by default",
 );
 
 console.log("====================================================");
