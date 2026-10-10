@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert";
+import { execFileSync } from "node:child_process";
 
 console.log("====================================================");
 console.log("🧪 Starting Android Local Assets & Offline Mandate Test");
@@ -62,14 +63,28 @@ assert(
 );
 console.log("✅ PASS: shouldOverrideUrlLoading preserves local assets in WebView");
 
-// 2. Verify Android assets bundling
+// 2. Verify the Android asset synchronization script replaces stale bundles
 const assetsDir = path.join(rootDir, "android-shell/app/src/main/assets");
-assert(fs.existsSync(assetsDir), "android-shell assets directory must exist");
-assert(fs.existsSync(path.join(assetsDir, "index.html")), "assets/index.html must exist");
-console.log("✅ PASS: Local assets directory contains bundled production index.html");
+const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf8"));
+assert(
+  pkg.scripts["build:android-assets"]?.includes("node scripts/sync-android-assets.mjs"),
+  "package.json must contain build:android-assets script",
+);
+const syncScriptPath = path.join(rootDir, "scripts/sync-android-assets.mjs");
+assert(fs.existsSync(syncScriptPath), "Android asset synchronization script must exist");
+assert(fs.existsSync(path.join(rootDir, "dist/index.html")), "Run npm run build before checking Android assets");
+fs.mkdirSync(assetsDir, { recursive: true });
+const staleAssetPath = path.join(assetsDir, "stale-build-marker.txt");
+fs.writeFileSync(staleAssetPath, "stale");
+execFileSync(process.execPath, [syncScriptPath], { cwd: rootDir, stdio: "pipe" });
+assert(!fs.existsSync(staleAssetPath), "Android asset synchronization must remove stale files");
+console.log("✅ PASS: Android bundle replaces stale files with the production web build");
 
-// WebViewAssetLoader serves exact files only, so bundled HTML must use relative asset paths
-const bundledHtml = fs.readFileSync(path.join(assetsDir, "index.html"), "utf8");
+// 3. Verify Android assets bundle all current relative references
+assert(fs.existsSync(assetsDir), "android-shell assets directory must exist");
+const assetsIndex = path.join(assetsDir, "index.html");
+assert(fs.existsSync(assetsIndex), "assets/index.html must exist");
+const bundledHtml = fs.readFileSync(assetsIndex, "utf8");
 assert(
   !/(src|href)="\/(assets|src)\//.test(bundledHtml),
   "bundled index.html must not use absolute /assets or /src paths",
@@ -80,23 +95,16 @@ for (const ref of bundledHtml.matchAll(/"\.\/(assets\/[^"]+)"/g)) {
 }
 console.log("✅ PASS: Bundled index.html references existing relative ./assets/ files");
 
-// 3. Verify build scripts ensure assets are always packaged
-const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf8"));
-assert(
-  pkg.scripts["build:android-assets"]?.includes("cp -r dist/* android-shell/app/src/main/assets/"),
-  "package.json must contain build:android-assets script",
-);
-console.log("✅ PASS: package.json provides build:android-assets bundling command");
-
 // 4. Verify build.gradle.kts integrates asset build on preBuild
 const buildGradlePath = path.join(rootDir, "android-shell/app/build.gradle.kts");
 const buildGradleContent = fs.readFileSync(buildGradlePath, "utf8");
 assert(
   buildGradleContent.includes("prepareWebAssets") &&
-    buildGradleContent.includes("build:android-assets"),
-  "build.gradle.kts must prepare web assets before assembling APK",
+    buildGradleContent.includes("build:android-assets") &&
+    !buildGradleContent.includes("onlyIf"),
+  "build.gradle.kts must refresh web assets unconditionally before assembling APK",
 );
-console.log("✅ PASS: build.gradle.kts attaches web assets preparation to preBuild");
+console.log("✅ PASS: build.gradle.kts always attaches current web assets to preBuild");
 
 console.log("====================================================");
 console.log("📊 ANDROID LOCAL ASSETS TEST: All tests passed!");

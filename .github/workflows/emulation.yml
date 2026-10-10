@@ -31,7 +31,6 @@ jobs:
     runs-on: macos-14
     timeout-minutes: 15
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
-    continue-on-error: true
 
     steps:
       - name: Checkout Code

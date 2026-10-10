@@ -5,13 +5,10 @@ plugins {
 
 val webAssetsIndex = file("src/main/assets/index.html")
 val prepareWebAssets by tasks.registering(Exec::class) {
-    description = "Build the web app when the Android bundle has no generated assets."
+    description = "Build and bundle the current web app before assembling Android."
     group = "build"
     workingDir(rootProject.projectDir.parentFile)
     commandLine("npm", "run", "build:android-assets")
-    onlyIf {
-        !webAssetsIndex.isFile
-    }
 }
 
 tasks.named("preBuild") {
