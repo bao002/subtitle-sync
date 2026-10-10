@@ -2,6 +2,9 @@ describe("YouTube Video Viewer - Android Emulation Subtitle Tests", () => {
   beforeEach(() => {
     cy.log("Step 0: Navigating to YouTube Video Viewer");
     cy.visit("./?reset_all=true");
+    cy.get("[data-testid='router-error-component']").should("not.exist");
+    cy.contains("This page didn't load").should("not.exist");
+    cy.contains("Something went wrong on our end").should("not.exist");
     cy.title().should("match", /YouTube|Parallel Subtitles/i);
     cy.get("header").should("be.visible");
   });

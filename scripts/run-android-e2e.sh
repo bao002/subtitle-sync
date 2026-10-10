@@ -153,6 +153,13 @@ EOF
     echo "--> Waiting for WebView & Caption Interceptor initialization (8s)..."
     sleep 8
 
+    # Assert early that error screen was not rendered
+    EARLY_LOG=$(adb_cmd logcat -d 2>/dev/null || true)
+    if echo "${EARLY_LOG}" | grep -qE "This page didn't load|Something went wrong on our end|tanstack_root_error_component|APP_PAGE_ERROR|router-error-component"; then
+      echo "❌ Android app showed error page (This page didn't load) during launch"
+      exit 1
+    fi
+
     echo "--> Enabling captions in WebView..."
     # Tap relative to screen resolution
     adb_cmd shell input tap "${ADAPTIVE_TAP_X}" "${ADAPTIVE_TAP_Y}" 2>/dev/null || true

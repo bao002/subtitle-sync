@@ -112,3 +112,17 @@
   - Validate that all UI features added in commit group `420d2bd-b92be574` (compact accordion headers, pin toggles, TTS voice selections) initialize safely without browser/WebView runtime errors.
   - Create dedicated verification test `scripts/verify-android-app-run-parity.ts` and register `npm run test:android-run-parity` in `package.json`.
   - Verify app compilation, linting, run tests, and perform git commit.
+
+## Task 62: Fix Android App "This page didn't load" Error & Enforce Emulator E2E Failure
+
+- [x] **Subtask 62.1: Enforce Emulator E2E Failure on Android Error Pages ("This page didn't load")**:
+  - Update Android emulator E2E assertion scripts (`scripts/android-e2e-assert.sh`, `scripts/run-android-e2e.sh`, `e2e/emulation.spec.ts`, `cypress/e2e/emulation.cy.ts`) to explicitly check for error texts such as "This page didn't load", "Something went wrong on our end", and "Try again".
+  - Ensure the E2E test fails immediately if the webview or emulator screen shows this error screen or fails to load the real application root.
+  - Create dedicated verification test `scripts/verify-emulator-error-detection.ts`, register in `package.json`, and update `docs/files.md`.
+  - Verify tests, compilation, linting, and perform dedicated git commit.
+
+- [ ] **Subtask 62.2: Identify Root Cause in Commit Range 420d2bd..b92be574 & Fix Android App Loading**:
+  - Analyze commit diffs across `420d2bd..b92be574` to identify why the Android app loads the error page ("This page didn't load").
+  - Fix `MainActivity.kt`, URL loading, routing, or asset loading to ensure the Android app successfully loads the local web assets.
+  - Verify with dedicated verification test, run compilation, linting, and perform dedicated git commit and push.
+

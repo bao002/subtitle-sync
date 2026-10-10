@@ -1,5 +1,16 @@
 # Done tasks
 
+## Task 62: Fix Android App "This page didn't load" Error & Enforce Emulator E2E Failure
+
+### Subtask 62.1: Enforce Emulator E2E Failure on Android Error Pages ("This page didn't load")
+
+- Updated Android emulator E2E assertion scripts (`scripts/android-e2e-assert.sh`, `scripts/run-android-e2e.sh`, `e2e/emulation.spec.ts`, `cypress/e2e/emulation.cy.ts`) to explicitly check for error markers including "This page didn't load", "Something went wrong on our end", `router-error-component`, and `APP_PAGE_ERROR`.
+- Updated `src/routes/__root.tsx` ErrorComponent to include unambiguous diagnostic tags (`data-testid="router-error-component"`, `data-testid="router-error-title"`, `[APP_BOOT_ERROR]`, `[APP_PAGE_ERROR]`).
+- Updated `src/client.tsx` to detect router error boundary rendering and halt `[APP_READY]` signaling so emulator tests fail immediately.
+- Implemented periodic `uiautomator dump` in `scripts/android-e2e-assert.sh` to ensure the on-device UI display fails tests if the error screen is visible.
+- Created dedicated verification test `scripts/verify-emulator-error-detection.ts` (`npm run test:emulator-error-detection`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified clean build (`compile_applet`) and zero ESLint errors (`lint_applet`).
+
 ## Task 61: Resolve Android App Runtime Failure After Commit Group 420d2bd-b92be574
 
 ### Subtask 61.1: Ensure Clean Asset Synchronization, Gradle Asset Build Integrity & Android Shell Runtime Stability

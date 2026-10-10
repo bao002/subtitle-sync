@@ -85,6 +85,7 @@
     "test:language-boxes": "tsx scripts/verify-language-boxes-selection.ts",
     "test:language-player-accordion": "tsx scripts/verify-language-video-player-accordion.ts",
     "test:autospeak-init": "tsx scripts/verify-autospeak-initialization-order.ts",
+    "test:emulator-error-detection": "tsx scripts/verify-emulator-error-detection.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

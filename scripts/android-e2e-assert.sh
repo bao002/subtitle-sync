@@ -39,7 +39,7 @@ fail() {
   adb_cmd shell screencap -p /sdcard/screen.png 2>/dev/null || true
   adb_cmd pull /sdcard/screen.png ./android-emulator-screenshot.png 2>/dev/null || true
   adb_cmd logcat -d > "${LOGCAT_OUT}" 2>/dev/null || true
-  grep -E "APP_READY|APP_BOOT_ERROR|FATAL EXCEPTION|WebView error|Asset not found|WebViewConsole|YT_CAPTION_INTERCEPTOR|SUBTITLE_FETCH|SHARED_LINK_DISPATCH" "${LOGCAT_OUT}" | tail -n 60 || true
+  grep -E "APP_READY|APP_BOOT_ERROR|APP_PAGE_ERROR|This page didn't load|FATAL EXCEPTION|WebView error|Asset not found|WebViewConsole|YT_CAPTION_INTERCEPTOR|SUBTITLE_FETCH|SHARED_LINK_DISPATCH" "${LOGCAT_OUT}" | tail -n 60 || true
   exit 1
 }
 
@@ -63,10 +63,22 @@ echo "--> [Phase 1] Waiting for [APP_READY] and verified live subtitle fetches..
 for ((i = 0; i < TIMEOUT_S + SUBTITLE_FETCH_TIMEOUT_S; i++)); do
   LOG=$(adb_cmd logcat -d 2>/dev/null || true)
   if echo "${LOG}" | grep -q "FATAL EXCEPTION"; then fail "app crashed (FATAL EXCEPTION)"; fi
+  if echo "${LOG}" | grep -qE "This page didn't load|Something went wrong on our end|tanstack_root_error_component|APP_PAGE_ERROR|router-error-component"; then
+    fail "Android app rendered error screen (This page didn't load)"
+  fi
   if echo "${LOG}" | grep -q "APP_BOOT_ERROR"; then fail "web app threw during startup"; fi
   if echo "${LOG}" | grep -qE "WebView error loading https://appassets|Asset not found"; then
     fail "bundled web files could not be loaded"
   fi
+
+  # Periodically verify UI screen hierarchy doesn't show the error page
+  if (( i % 5 == 0 )); then
+    UI_DUMP=$(adb_cmd shell "uiautomator dump /sdcard/window_dump.xml >/dev/null 2>&1 && cat /sdcard/window_dump.xml" 2>/dev/null || true)
+    if echo "${UI_DUMP}" | grep -qiE "This page didn't load|Something went wrong on our end"; then
+      fail "Android app UI display shows error page (This page didn't load)"
+    fi
+  fi
+
   if ! echo "${LOG}" | grep -q "APP_READY"; then
     if (( i >= TIMEOUT_S )); then fail "UI never rendered within ${TIMEOUT_S}s (no [APP_READY] in logcat)"; fi
     sleep 1

@@ -1,9 +1,9 @@
 # Current Subtask
 
-## Subtask 59.1: Compact per-language settings (rate/voice) and fix voice selection
+## Subtask 62.2: Identify Root Cause in Commit Range 420d2bd..b92be574 & Fix Android App Loading
 
-- Verify compact per-language settings layout in Favorites panel (rate slider with numeric display, ratio preset selector, accessible label).
-- Ensure voice selection dropdown persists selected voices to localStorage (`yt_tts_voice_selections_v1`) and correctly applies chosen voice URI during speech playback.
-- Ensure device default voice fallback works properly when no custom voice is selected or when voices are unavailable on Android.
-- Create dedicated verification test for compact per-language settings and voice selection.
-- Run verification tests, compile applet, lint applet, and perform git commit.
+- Deeply analyze commits across `420d2bd..b92be574` to identify what causes "This page didn't load" on the Android app.
+- Check route validation, search params, YouTube iframe/player initialization, local asset paths, and window globals in `src/routes/index.tsx` and `MainActivity.kt`.
+- Fix the root cause so that the Android app and WebView load smoothly without crashing or throwing route error boundaries.
+- Add dedicated test `scripts/verify-android-page-load-fix.ts`, register in `package.json`, update `docs/files.md`.
+- Verify tests, compile applet, lint, commit and push.

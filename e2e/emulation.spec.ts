@@ -65,8 +65,18 @@ test.describe("Android native subtitle emulation", () => {
     }, observedUrl);
 
     await page.goto("./");
+    await expect(page.locator("[data-testid='router-error-component']")).toHaveCount(0);
+    await expect(page.locator("text=This page didn't load")).toHaveCount(0);
+    await expect(page.locator("text=Something went wrong on our end")).toHaveCount(0);
     await expect(page).toHaveTitle(/Parallel Subtitles/i);
     await expect(page.locator("header")).toBeVisible();
+  });
+
+  test("asserts Android app never renders 'This page didn't load' error boundary", async ({ page }) => {
+    await expect(page.locator("[data-testid='router-error-component']")).toHaveCount(0);
+    await expect(page.locator("text=This page didn't load")).toHaveCount(0);
+    await expect(page.locator("text=Something went wrong on our end")).toHaveCount(0);
+    await expect(page.locator("#root")).not.toContainText("This page didn't load");
   });
 
   test("replays the observed timedtext URL with original lang preserved and favorite langs applied via tlang", async ({

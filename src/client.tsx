@@ -22,6 +22,13 @@ if (rootElement) {
   );
   let tries = 0;
   const checkReady = () => {
+    const errorComponent =
+      rootElement.querySelector("[data-testid='router-error-component']") ||
+      (rootElement.textContent && rootElement.textContent.includes("This page didn't load"));
+    if (errorComponent) {
+      console.error("[APP_BOOT_ERROR] Application rendered error boundary: This page didn't load");
+      return;
+    }
     if (rootElement.childElementCount > 0) console.log("[APP_READY]", location.href);
     else if (++tries < 100) setTimeout(checkReady, 100);
     else console.error("[APP_BOOT_ERROR] root stayed empty");

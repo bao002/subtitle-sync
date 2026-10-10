@@ -36,6 +36,11 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  console.error(
+    "[APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load",
+    error?.message || String(error),
+  );
+  console.error("[APP_PAGE_ERROR] This page didn't load:", error?.message || String(error));
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -43,16 +48,23 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div
+      data-testid="router-error-component"
+      className="flex min-h-screen items-center justify-center bg-background px-4"
+    >
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1
+          data-testid="router-error-title"
+          className="text-xl font-semibold tracking-tight text-foreground"
+        >
           This page didn't load
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p data-testid="router-error-description" className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
+            data-testid="router-error-retry-button"
             onClick={() => {
               router.invalidate();
               reset();
@@ -62,6 +74,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             Try again
           </button>
           <a
+            data-testid="router-error-home-link"
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
