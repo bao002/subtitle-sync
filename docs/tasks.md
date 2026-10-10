@@ -121,8 +121,10 @@
   - Create dedicated verification test `scripts/verify-emulator-error-detection.ts`, register in `package.json`, and update `docs/files.md`.
   - Verify tests, compilation, linting, and perform dedicated git commit.
 
-- [ ] **Subtask 62.2: Identify Root Cause in Commit Range 420d2bd..b92be574 & Fix Android App Loading**:
-  - Analyze commit diffs across `420d2bd..b92be574` to identify why the Android app loads the error page ("This page didn't load").
-  - Fix `MainActivity.kt`, URL loading, routing, or asset loading to ensure the Android app successfully loads the local web assets.
-  - Verify with dedicated verification test, run compilation, linting, and perform dedicated git commit and push.
+- [ ] **Subtask 62.2: Build and verify Android app launch and native subtitle flow**:
+  - Diagnose the current Android build and local WebView asset configuration.
+  - Fix build, asset synchronization, launch, WebView loading, or native bridge defects that prevent a usable Android app.
+  - Add or update dedicated checks for Android APK build and the app's core launch/native subtitle behavior.
+  - Run Gradle compilation and emulator/device E2E when the required SDK/device is available; record any environment limitation.
+  - Commit the completed changes and attempt to push without rewriting published history.
 
