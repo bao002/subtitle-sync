@@ -121,10 +121,11 @@
   - Create dedicated verification test `scripts/verify-emulator-error-detection.ts`, register in `package.json`, and update `docs/files.md`.
   - Verify tests, compilation, linting, and perform dedicated git commit.
 
-- [ ] **Subtask 62.2: Build and verify Android app launch and native subtitle flow**:
+- [x] **Subtask 62.2: Build and verify Android app launch and native subtitle flow**:
   - Diagnose the current Android build and local WebView asset configuration.
   - Fix build, asset synchronization, launch, WebView loading, or native bridge defects that prevent a usable Android app.
   - Add or update dedicated checks for Android APK build and the app's core launch/native subtitle behavior.
-  - Run Gradle compilation and emulator/device E2E when the required SDK/device is available; record any environment limitation.
-  - Commit the completed changes and attempt to push without rewriting published history.
+  - Verified the Android debug APK builds with fresh web assets; Android loading, asset parity, native caption bridge, YouTube share intents, and lint checks pass.
+  - Local emulator E2E remains unverified: sdkmanager could not unpack the API 34 Google APIs x86_64 system image because the workspace disk quota was exceeded.
+  - Committed the changes and attempted to push; GitHub rejected the workspace credentials, so the commits remain local.
 
