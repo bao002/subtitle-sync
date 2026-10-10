@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Plus,
   Trash2,
@@ -61,6 +61,7 @@ export const LanguageVideoPlayerPanel: React.FC<LanguageVideoPlayerPanelProps> =
   ]);
 
   const [expandedPreview, setExpandedPreview] = useState<Record<string, boolean>>({});
+  const initialFetches = useRef(new Set<string>());
 
   // Sync video ID when parent active videoId changes
   useEffect(() => {
@@ -115,6 +116,13 @@ export const LanguageVideoPlayerPanel: React.FC<LanguageVideoPlayerPanelProps> =
   useEffect(() => {
     if (players.length > 0 && !players[0].subtitlesLoaded) {
       const p = players[0];
+      const fetchKey = `${p.id}|${p.videoId}|${p.subLang}`;
+      // Parent callbacks can be recreated on each render. In the Android case,
+      // an unavailable local fixture updates the network inspector, rerendering
+      // the parent; without this guard the effect reports the same failed request
+      // forever and React eventually replaces the whole screen with its error page.
+      if (initialFetches.current.has(fetchKey)) return;
+      initialFetches.current.add(fetchKey);
       fetchAndTrackSubtitlesForPlayer(p.videoId, p.subLang, p.subLangName, p.id);
     }
   }, [fetchAndTrackSubtitlesForPlayer, players]);

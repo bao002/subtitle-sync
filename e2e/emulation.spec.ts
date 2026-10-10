@@ -72,10 +72,21 @@ test.describe("Android native subtitle emulation", () => {
     await expect(page.locator("header")).toBeVisible();
   });
 
-  test("asserts Android app never renders 'This page didn't load' error boundary", async ({ page }) => {
+  test("asserts Android app never renders 'This page didn't load' error boundary", async ({
+    page,
+  }) => {
     await expect(page.locator("[data-testid='router-error-component']")).toHaveCount(0);
     await expect(page.locator("text=This page didn't load")).toHaveCount(0);
     await expect(page.locator("text=Something went wrong on our end")).toHaveCount(0);
+    await expect(page.locator("#root")).not.toContainText("This page didn't load");
+  });
+
+  test("keeps Android startup alive when the secondary player has no local demo captions", async ({
+    page,
+  }) => {
+    await page.goto("./?android=true&v=vBURridJXZ0");
+    await expect(page.locator("[data-testid='router-error-component']")).toHaveCount(0);
+    await expect(page.locator("header")).toBeVisible();
     await expect(page.locator("#root")).not.toContainText("This page didn't load");
   });
 
