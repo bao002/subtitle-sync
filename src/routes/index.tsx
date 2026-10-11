@@ -58,7 +58,6 @@ import {
   setAutoSpeakOnFetchSetting,
 } from "@/utils/appSettings";
 import { LanguageBoxesSelector } from "@/components/LanguageBoxesSelector";
-import { LanguageVideoPlayerPanel } from "@/components/LanguageVideoPlayerPanel";
 import {
   getAudioTrackMode,
   setAudioTrackMode,
@@ -548,10 +547,6 @@ function Index() {
                 : `${mode}: empty caption response`,
             );
           }
-          if (!json && JSON3_RAW_MAP[code]) {
-            json = parseJson3(JSON3_RAW_MAP[code]);
-            raw = JSON3_RAW_MAP[code];
-          }
           if (json) {
             tracker?.complete(200, raw);
             const loaded = json;
@@ -701,7 +696,6 @@ function Index() {
     playback: false,
     parser: false,
     languages: false,
-    "language-player": false,
     subtitles: false,
     library: false,
   });
@@ -1481,7 +1475,7 @@ function Index() {
   };
 
   const cols = useMemo(() => {
-    if (isAndroid && videoId !== DEMO_VIDEO && (!tracks || Object.keys(tracks).length === 0)) {
+    if (isAndroid && (!tracks || Object.keys(tracks).length === 0)) {
       return [];
     }
     const list: { code: string; name: string; tts: string }[] = [];
@@ -1516,7 +1510,7 @@ function Index() {
     }
 
     return list;
-  }, [isAndroid, videoId, tracks, baseLanguage, orderedLangs, shown, targetLanguages]);
+  }, [isAndroid, tracks, baseLanguage, orderedLangs, shown, targetLanguages]);
 
   const missingFavoriteLanguages = useMemo(() => {
     return targetLanguages.filter((code) => !tracks?.[code]);
@@ -1696,13 +1690,14 @@ function Index() {
               key={panelId}
               id={panelId}
               title={panel.title}
+              videoId={videoId}
               open={openPanels[panelId]}
               onOpenChange={(open) => setOpenPanels((current) => ({ ...current, [panelId]: open }))}
               onMoveUp={() => movePanel(panelId, -1)}
               onMoveDown={() => movePanel(panelId, 1)}
               canMoveUp={panelIndex > 0}
               canMoveDown={panelIndex < panelOrder.length - 1}
-              wide={panelId === "subtitles" || panelId === "language-player"}
+              wide={panelId === "subtitles"}
             >
               {panelId === "player" && (
                 <div>
@@ -2660,37 +2655,10 @@ function Index() {
                 </>
               )}
 
-              {panelId === "language-player" && (
-                <LanguageVideoPlayerPanel
-                  currentVideoId={videoId}
-                  availableLanguages={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
-                  onOpenNetworkInspector={() => {
-                    setDebugModeState(true);
-                    setDebugModeSetting(true);
-                    setNetworkInspectorOpen(true);
-                  }}
-                  onSubtitlesLoaded={(lang, json) => {
-                    startSubtitlesTransition(() => {
-                      setTracks((prev) => ({ ...prev, [lang]: json }));
-                      setShown((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
-                    });
-                    if (autoSpeakOnFetch) {
-                      setSpoken((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
-                    }
-                  }}
-                  autoSpeakEnabled={autoSpeakOnFetch}
-                  onSpeakLanguage={(langCode) => {
-                    if (autoSpeakOnFetch) {
-                      setSpoken((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
-                    }
-                  }}
-                />
-              )}
-
               {panelId === "subtitles" &&
-                (!tracks || (isAndroid && videoId !== DEMO_VIDEO && cols.length === 0) ? (
+                (!tracks || cols.length === 0 ? (
                   <p className="p-2 text-muted-foreground">
-                    {isAndroid && videoId !== DEMO_VIDEO
+                    {isAndroid
                       ? "Waiting for subtitles… Play the video and ensure captions are enabled."
                       : "Loading subtitles…"}
                   </p>
@@ -3074,6 +3042,7 @@ const ACCORDION_AUTO_FOLD_MS = 30_000;
 function AccordionSection({
   id,
   title,
+  videoId,
   children,
   open,
   onOpenChange,
@@ -3085,6 +3054,7 @@ function AccordionSection({
 }: {
   id: PanelId;
   title: string;
+  videoId?: string;
   children: React.ReactNode;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -3135,6 +3105,7 @@ function AccordionSection({
       data-panel-id={id}
       data-accordion-type={id}
       data-accordion-color={theme.tagColor}
+      data-video-id={videoId}
       open={open}
       onPointerDown={markActivity}
       onKeyDown={markActivity}

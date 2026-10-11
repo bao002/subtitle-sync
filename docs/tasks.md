@@ -138,4 +138,23 @@
   - Implement a dedicated verification test `scripts/verify-android-commit-25131f0-parity.ts` and register `npm run test:commit-25131f0-parity` in `package.json`.
   - Validate with `compile_applet`, `npm run lint`, execute test suites, commit changes, and attempt push.
 
+## Task 65: Remove Language Video Player Accordion, Harmonize Accordion VideoIDs & Remove Android Subtitle Fixtures
+
+- [x] **Subtask 65.1: Remove the Language Video Player Accordion Element**:
+  - Remove `language-player` from `PANELS`, `PanelId`, and `ACCORDION_THEMES` in `src/config/accordionThemes.ts`.
+  - Remove `language-player` from `openPanels`, `panelOrder`, and accordion section rendering in `src/routes/index.tsx`.
+  - Remove `LanguageVideoPlayerPanel` import and accordion rendering in `src/routes/index.tsx`.
+  - Update `scripts/verify-language-video-player-accordion.ts` to assert that the language video player accordion element is completely removed from accordion panels and the UI.
+  - Run dedicated tests, verify app compilation (`compile_applet`), linting (`lint_applet`), and perform dedicated git commit.
+
+- [x] **Subtask 65.2: Enforce Consistent VideoID Across All Accordion Elements & Remove Subtitle Fixtures from Android App**:
+  - Ensure all accordion elements (`player`, `playback`, `parser`, `languages`, `subtitles`, `library`) strictly use and synchronize with the current active `videoId`.
+  - Eliminate mismatched video ID fallbacks (such as hardcoded `L2Ryrr6txwA` / `DEMO_VIDEO` checks in `subtitles` panel or `fetchFavoriteLanguageSubtitles`).
+  - Eliminate subtitle fixtures from the Android application:
+    - In `MainActivity.kt`, remove asset fixture loading (`fixtures/$videoId/en.json`, `fixtures/L2Ryrr6txwA/en.json`) and synthetic fallback JSON generation (`generateTranslatedFallbackJson`). Keep clean network timedtext request execution matching `mostuf2556/Youtubenet6`.
+    - In `src/routes/index.tsx`, ensure `fetchFavoriteLanguageSubtitles` on Android does not fall back to `JSON3_RAW_MAP` (fixtures).
+    - Ensure subtitles belong strictly to the current active `videoId`.
+  - Create dedicated verification test `scripts/verify-accordion-video-id-and-no-android-fixtures.ts`, register `npm run test:accordion-video-id-and-no-android-fixtures` in `package.json`, and document in `docs/files.md`.
+  - Test thoroughly with dedicated tests, verify app compilation and linting, and perform dedicated git commit.
+
 

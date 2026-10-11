@@ -37,17 +37,17 @@ assert(
 );
 console.log("✅ PASS: querySuffix guarantees default video ID and android=true on launch");
 
-// Assert proactiveDetectSubtitles has bundled fixture fallback for offline / emulator parity
+// Assert proactiveDetectSubtitles queries genuine timedtext test URLs without fixture fallback
 assert(
-  activityContent.includes("fixtures/$videoId/en.json") ||
-    activityContent.includes("fixtures/L2Ryrr6txwA/en.json"),
-  "proactiveDetectSubtitles must include offline asset fixture fallback",
+  activityContent.includes("https://www.youtube.com/api/timedtext?v=$videoId&fmt=json3"),
+  "proactiveDetectSubtitles must query authentic YouTube timedtext URLs",
 );
 assert(
-  activityContent.includes("SUBTITLE_FETCH kind=default http=200"),
-  "proactiveDetectSubtitles must log SUBTITLE_FETCH kind=default http=200 upon resolution",
+  !activityContent.includes("fixtures/$videoId/en.json") &&
+    !activityContent.includes("fixtures/L2Ryrr6txwA/en.json"),
+  "proactiveDetectSubtitles must not use offline asset fixture fallback",
 );
-console.log("✅ PASS: proactiveDetectSubtitles includes offline asset fixture resolution and default log");
+console.log("✅ PASS: proactiveDetectSubtitles queries authentic timedtext without fixture fallback");
 
 // Assert executeTimedTextRepetition preserves lang parameter
 assert(
@@ -56,27 +56,22 @@ assert(
 );
 console.log("✅ PASS: executeTimedTextRepetition ensures originalLang is always set");
 
-// 2. Verify bundled assets have fixtures available
+// 2. Verify bundled assets have web application resources
 const assetsDir = path.join(rootDir, "android-shell/app/src/main/assets");
-const enFixturePath = path.join(assetsDir, "fixtures/L2Ryrr6txwA/en.json");
-const heFixturePath = path.join(assetsDir, "fixtures/L2Ryrr6txwA/he.json");
-const itFixturePath = path.join(assetsDir, "fixtures/L2Ryrr6txwA/it.json");
+const indexHtmlPath = path.join(assetsDir, "index.html");
+assert(fs.existsSync(indexHtmlPath), "index.html must exist in Android assets");
+console.log("✅ PASS: Production web application bundled in Android assets");
 
-assert(fs.existsSync(enFixturePath), "en.json fixture must exist in Android assets");
-assert(fs.existsSync(heFixturePath), "he.json fixture must exist in Android assets");
-assert(fs.existsSync(itFixturePath), "it.json fixture must exist in Android assets");
-console.log("✅ PASS: Multilingual JSON3 fixtures physically present in bundled Android assets");
-
-// 3. Verify src/routes/index.tsx subtitle fetching fallback
+// 3. Verify src/routes/index.tsx authentic subtitle fetching
 const indexPath = path.join(rootDir, "src/routes/index.tsx");
 assert(fs.existsSync(indexPath), "src/routes/index.tsx must exist");
 const indexContent = fs.readFileSync(indexPath, "utf8");
 
 assert(
-  indexContent.includes("JSON3_RAW_MAP[code]"),
-  "src/routes/index.tsx must include fallback recovery to JSON3_RAW_MAP[code]",
+  !indexContent.includes("JSON3_RAW_MAP[code]"),
+  "src/routes/index.tsx must not fall back to JSON3_RAW_MAP[code] fixtures for live languages",
 );
-console.log("✅ PASS: React web application integrates resilient fallback for favorite language subtitles");
+console.log("✅ PASS: React application uses authentic native bridge and network subtitles without fixture fallbacks");
 
 console.log("==================================================================");
 console.log("🎉 ALL ANDROID COMMIT 25131f0 PARITY CHECKS PASSED SUCCESSFULLY!");

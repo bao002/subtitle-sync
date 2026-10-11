@@ -25,7 +25,6 @@ const expectedTypes = [
   "playback",
   "parser",
   "languages",
-  "language-player",
   "subtitles",
   "library",
 ];

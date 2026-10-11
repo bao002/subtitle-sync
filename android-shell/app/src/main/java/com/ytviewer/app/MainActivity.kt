@@ -352,6 +352,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             Log.i(TAG, "Navigating to shared URL via local asset domain: https://$LOCAL_ASSET_DOMAIN/index.html$querySuffix")
             val target = extractYouTubeVideoId(sharedText) ?: sharedText
             val targetVideoId = extractYouTubeVideoId(sharedText) ?: "vBURridJXZ0"
+            lastObservedTimedTextUrl = null
+            lastObservedHeaders.clear()
             proactiveDetectSubtitles(targetVideoId)
             val jsCode = """
                 (function() {
@@ -570,92 +572,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun generateDefaultSubtitlesJson(videoId: String): String {
-        return JSONObject().apply {
-            put("wireMagic", "pb3")
-            put("events", org.json.JSONArray().apply {
-                put(JSONObject().apply {
-                    put("tStartMs", 0)
-                    put("dDurationMs", 4000)
-                    put("segs", org.json.JSONArray().apply {
-                        put(JSONObject().apply { put("utf8", "שלום וברוכים הבאים. היום נדבר על התוכנית החדשה של ארצות הברית.") })
-                    })
-                })
-                put(JSONObject().apply {
-                    put("tStartMs", 4200)
-                    put("dDurationMs", 4500)
-                    put("segs", org.json.JSONArray().apply {
-                        put(JSONObject().apply { put("utf8", "התוכנית כוללת מספר סעיפים מרכזיים וחשובים ביותר.") })
-                    })
-                })
-                put(JSONObject().apply {
-                    put("tStartMs", 9000)
-                    put("dDurationMs", 4200)
-                    put("segs", org.json.JSONArray().apply {
-                        put(JSONObject().apply { put("utf8", "בואו נבחן את המשמעויות הכלכליות והמדיניות של מהלך זה.") })
-                    })
-                })
-                put(JSONObject().apply {
-                    put("tStartMs", 13500)
-                    put("dDurationMs", 4800)
-                    put("segs", org.json.JSONArray().apply {
-                        put(JSONObject().apply { put("utf8", "תודה רבה על ההקשבה והמשך צפייה מהנה.") })
-                    })
-                })
-            })
-        }.toString()
-    }
-
-    private fun generateTranslatedFallbackJson(targetLang: String): String {
-        val lines = when (targetLang.lowercase()) {
-            "he" -> listOf(
-                "שלום וברוכים הבאים. היום נדבר על התוכנית החדשה של ארצות הברית.",
-                "התוכנית כוללת מספר סעיפים מרכזיים וחשובים ביותר.",
-                "בואו נבחן את המשמעויות הכלכליות והמדיניות של מהלך זה.",
-                "תודה רבה על ההקשבה והמשך צפייה מהנה."
-            )
-            "it" -> listOf(
-                "Ciao e benvenuti. Oggi parleremo del nuovo piano degli Stati Uniti.",
-                "Il piano include diverse sezioni chiave e molto importanti.",
-                "Esaminiamo le implicazioni economiche e politiche di questa mossa.",
-                "Grazie mille per l'attenzione e buona visione."
-            )
-            "es" -> listOf(
-                "Hola y bienvenidos. Hoy hablaremos sobre el nuevo plan de Estados Unidos.",
-                "El plan incluye varias secciones clave y muy importantes.",
-                "Examinemos las implicaciones económicas y políticas de esta medida.",
-                "Muchas gracias por su atención y disfruten del video."
-            )
-            else -> listOf(
-                "Welcome to the video. Let us explore the dialogue and themes.",
-                "Key segments and vocabulary provide valuable immersion.",
-                "Observe how each sentence aligns accurately across languages.",
-                "Thank you for watching and following along with the transcript."
-            )
-        }
-        val timings = listOf(
-            Pair(0L, 4000L),
-            Pair(4200L, 4500L),
-            Pair(9000L, 4200L),
-            Pair(13500L, 4800L)
-        )
-        val events = org.json.JSONArray()
-        for (i in lines.indices) {
-            val timing = timings.getOrElse(i) { Pair(i * 4000L, 4000L) }
-            events.put(JSONObject().apply {
-                put("tStartMs", timing.first)
-                put("dDurationMs", timing.second)
-                put("segs", org.json.JSONArray().apply {
-                    put(JSONObject().apply { put("utf8", lines[i]) })
-                })
-            })
-        }
-        return JSONObject().apply {
-            put("wireMagic", "pb3")
-            put("events", events)
-        }.toString()
-    }
-
     private fun proactiveDetectSubtitles(videoId: String) {
         if (videoId.isBlank()) return
         Thread {
@@ -691,32 +607,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             }
                         }
                     } catch (ignored: Exception) {}
-                }
-
-                if (lastObservedTimedTextUrl == null) {
-                    val candidatePaths = listOf(
-                        "fixtures/$videoId/en.json",
-                        "fixtures/L2Ryrr6txwA/en.json"
-                    )
-                    var fallbackJson: String? = null
-                    for (path in candidatePaths) {
-                        try {
-                            val stream = assets.open(path)
-                            val text = stream.bufferedReader().use { it.readText() }
-                            if (isValidJsonSubtitle(text)) {
-                                fallbackJson = text
-                                break
-                            }
-                        } catch (ignored: Exception) {}
-                    }
-                    if (fallbackJson != null) {
-                        val url = "https://www.youtube.com/api/timedtext?v=$videoId&lang=en&fmt=json3"
-                        val bytes = fallbackJson.toByteArray(StandardCharsets.UTF_8)
-                        lastObservedTimedTextUrl = url
-                        Log.i(TAG, "SUBTITLE_FETCH kind=default http=200 bytes=${bytes.size} cues=${countCaptionCues(fallbackJson)}")
-                        saveCaptionToFile(url, bytes)
-                        dispatchToJavaScript(url, fallbackJson, "application/json", 200)
-                    }
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "proactiveDetectSubtitles failed: ${e.message}")
@@ -970,24 +860,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         Log.w(TAG, "Timedtext request error for mode=$mode: ${netErr.message}. Falling back...")
                     }
                 }
-                Log.w(TAG, "SUBTITLE_FETCH kind=translated lang=$targetLang network timedtext unavailable, generating real-time translation...")
-                val fallbackJson = generateTranslatedFallbackJson(targetLang)
-                if (fallbackJson.isNotEmpty()) {
-                    val bytesSize = fallbackJson.toByteArray(StandardCharsets.UTF_8).size
-                    val cuesCount = countCaptionCues(fallbackJson)
-                    Log.i(TAG, "SUBTITLE_FETCH kind=translated lang=$targetLang mode=tlang http=200 bytes=$bytesSize cues=$cuesCount")
-                    return fallbackJson
-                }
                 ""
             } catch (e: Exception) {
                 Log.e(TAG, "Error fetching native translated captions: ${e.message}", e)
-                val fallbackJson = generateTranslatedFallbackJson(targetLang)
-                if (fallbackJson.isNotEmpty()) {
-                    val bytesSize = fallbackJson.toByteArray(StandardCharsets.UTF_8).size
-                    val cuesCount = countCaptionCues(fallbackJson)
-                    Log.i(TAG, "SUBTITLE_FETCH kind=translated lang=$targetLang mode=tlang http=200 bytes=$bytesSize cues=$cuesCount")
-                    return fallbackJson
-                }
                 ""
             }
         }
