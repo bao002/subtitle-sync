@@ -78,6 +78,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `docs/designs/DESIGN_STATE_COORDINATOR.md` | State Coordinator Contract        | Specifies finite state machine, lifecycle transitions, active cue resolution, and state flow.        |
 | `docs/specifications/SCHEMA_TIMEDTEXT.md`  | Timed-Text Schema Contract        | Specifies YouTube JSON3 format, segment timing, entity decoding, and BiDi normalization.             |
 | `docs/operations/DEBUG.md`                 | Diagnostics & Logging Contract    | Details internal logging ring buffer, network request tracker, and troubleshooting prompt generator. |
+| `parser.md` (and `docs/parser.md`)         | Subtitle Splitting & Timing Spec  | Details JSON3 schema, punctuation-based splitting algorithms, edge cases, and acoustic timing math.  |
 
 ## Testing & Quality Assurance (`e2e/`, `cypress/`, `scripts/`)
 
@@ -156,5 +157,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `scripts/verify-subtitles-table-legitimate-json3-only.ts` | Subtitles Table View Legitimate JSON3 Only Test | Asserts subtitles table view only renders on legitimate JSON3 subtitles, no loading/error placeholders wasting space, and cols strictly non-empty. |
 | `scripts/verify-code-modularity-standards.ts`     | Code Architecture & Modularity Standards Test      | Asserts AGENTS.md codifies code modularity standards, forbids monolithic single-file overload, and mandates component and hook extraction.             |
 | `scripts/verify-index-route-decomposition.ts`     | Index Route Decomposition & Modularity Test        | Asserts extraction of AccordionSection, SubtitleRow, HighlightedSubtitle, SubtitlesTablePanel, and ApkReleasesFooter from index.tsx.                   |
+| `scripts/verify-parser-docs.ts`                   | Parser Specification Verification Test             | Validates comprehensive documentation of JSON3 schema, punctuation splitting rules, edge cases, and acoustic timing calculation math in parser.md.    |
+| `scripts/verify-default-punctuation-splitting.ts` | Default Punctuation Splitting Verification Test    | Asserts pure sentence punctuation default criteria, abbreviation guard exclusion, multilingual stop handling, and intra-cue segment punctuation splitting. |
 | `scripts/verify-md-links.ts`                      | Markdown Links Checker                             | Validates that all documentation cross-references and links resolve properly.                                                                          |
 | `scripts/normalize-web-assets.mjs`                | Build Asset Normalizer                             | Adjusts asset paths for GitHub Pages sub-path hosting.                                                                                                 |

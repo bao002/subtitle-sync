@@ -75,6 +75,7 @@ import { NetworkRequestsInspector } from "@/components/NetworkRequestsInspector"
 import { AccordionSection } from "@/components/AccordionSection";
 import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 import { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
+import { ParserTimingLab } from "@/components/ParserTimingLab";
 import {
   getSectionOrder,
   getSubtitleRequestMode,
@@ -338,7 +339,7 @@ function Index() {
         // ignore storage error
       }
     }
-    return ["sentence", "pause"];
+    return ["sentence"];
   });
 
   const handleToggleCriterion = (id: CriteriaId) => {
@@ -1974,6 +1975,16 @@ function Index() {
 
               {panelId === "parser" && (
                 <div className="space-y-4">
+                  {/* Interactive Timing & Punctuation Splitting Lab */}
+                  <ParserTimingLab
+                    tracks={tracks}
+                    baseLanguage={baseLanguage}
+                    selectedCriteria={selectedCriteria}
+                    criteriaSettings={criteriaSettings}
+                    onApplyCriteria={handleApplyPreset}
+                    onUpdateGroupSettings={handleUpdateGroupSettings}
+                  />
+
                   {/* Presets Header */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
@@ -2139,6 +2150,21 @@ function Index() {
                                       />
                                       <span className="text-[11px]">
                                         Split on secondary clauses (commas, semicolons, colons)
+                                      </span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={criteriaSettings.sentence.splitIntraCue}
+                                        onChange={(e) =>
+                                          handleUpdateGroupSettings("sentence", {
+                                            splitIntraCue: e.target.checked,
+                                          })
+                                        }
+                                        className="rounded border-border text-primary h-3.5 w-3.5"
+                                      />
+                                      <span className="text-[11px]">
+                                        Split inside word-timed cues (intra-cue segments)
                                       </span>
                                     </label>
                                     <div className="flex items-center justify-between gap-2">
