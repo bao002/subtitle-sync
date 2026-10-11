@@ -78,9 +78,9 @@ console.log("✅ PASS: deploy-demo.yml preserves existing gh-pages artifacts");
 // 6. Assert web demo presents all 6 demo languages for Playwright web E2E tests
 const indexRouteContent = fs.readFileSync(path.join(rootDir, "src/routes/index.tsx"), "utf8");
 assert(
-  indexRouteContent.includes(
-    "if (!isAndroid) {\n      return languageOrder\n        .filter((code) => LANGS.some((l) => l.code === code))",
-  ),
+  indexRouteContent.includes("if (!isAndroid) {") &&
+    indexRouteContent.includes("list = languageOrder") &&
+    indexRouteContent.includes(".filter((code) => LANGS.some((l) => l.code === code))"),
   "src/routes/index.tsx must supply all 6 demo languages on web (!isAndroid) so e2e/web.spec.ts can assert 6 rows",
 );
 assert(

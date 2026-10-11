@@ -2,7 +2,7 @@ name: Publish Web Demo to GitHub Pages
 
 on:
   workflow_run:
-    workflows: ["Build & Release Android APK"]
+    workflows: ["Build & Release Android APK", "Android Emulator E2E Tests"]
     types:
       - completed
   push:

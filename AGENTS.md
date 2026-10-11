@@ -13,18 +13,29 @@
 
 ## Work tracking
 
-- Enforce updating .md tracking files first before action: BEFORE jumping to any code edits, actions, or test implementations on a prompt, the agent MUST update `docs/tasks.md` and `docs/todo.md`. The workflow of updating tracking Markdown files prior to taking action is mandatory and takes absolute precedence over jumping directly into source changes.
-- Break every new prompt into clear tasks and smaller subtasks in `docs/tasks.md`: immediately record the new task and subtasks in `docs/tasks.md` before writing code.
-- Keep `docs/todo.md` strictly focused: it must always contain only the single active sub-task currently being executed, staged in `docs/todo.md` before executing work on that sub-task.
-- Follow prompt steps: break every prompt into clear numbered steps and execute them sequentially step after step.
-- For each sub-task in `docs/todo.md`:
-  1. Ensure the sub-task is explicitly staged in `docs/todo.md` first.
-  2. Implement the sub-task's changes.
+- **Mandatory token economy flow on every prompt (`tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `tokens.md`. Big tasks fail and waste immense token budgets when executed monolithically; splitting prompts into atomic sub-tasks and staging them step-by-step eliminates context bloat and prevents tasks from failing due to an inefficient token economy.
+- **Task management protocol with `current-sub-task.md` & `temp.md`**:
+  - Always break every prompt into clear numbered tasks and smaller sub-tasks in `docs/tasks.md` before performing actions.
+  - Maintain `current-sub-task.md` (and `docs/todo.md`): before executing any step, stage the single active sub-task in `current-sub-task.md`. Updating `current-sub-task.md` at each step lowers the risk of wasting tokens by ensuring each tool action and thought cycle is laser-focused on a single verifiable objective.
+  - Use `temp.md` as an ephemeral scratchpad for draft diffs, checklists, or intermediate calculations, keeping permanent files clean.
+  - Follow prompt steps sequentially step after step, using this efficient workflow even if it refines or updates previous naming conventions.
+- Enforce updating .md tracking files first before action: BEFORE jumping to any code edits, actions, or test implementations on a prompt, the agent MUST update `tokens.md`, `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`. The workflow of updating tracking Markdown files prior to taking action is mandatory and takes absolute precedence over jumping directly into source changes.
+- For each sub-task in `current-sub-task.md` / `docs/todo.md`:
+  1. Ensure the sub-task is explicitly staged in `current-sub-task.md` (and `docs/todo.md`) first.
+  2. Implement the sub-task's changes with minimal, targeted file edits.
   3. Add or update dedicated tests covering the specific feature requirements.
   4. Test the changes thoroughly with the dedicated tests, verify app compilation (`compile_applet` / `npm run build`), and run code verification (`lint_applet` / `npm run lint`).
-  5. Perform a dedicated Git commit after completing each step (`git commit`) to keep progress incremental and transparent.
-  6. After git commit, try using git push: after performing each git commit, attempt `git push` (handling failure gracefully if no remote or push credentials are configured) to keep remote branches and editor synchronized.
-  7. Move completed sub-task from `docs/todo.md` to `docs/done.md` and update `docs/tasks.md` to mark it complete `[x]`.
+  5. Perform a dedicated Git commit after completing each step (`git commit`) to checkpoint progress and preserve spent tokens.
+  6. After git commit, try using git push: attempt `git push` (handling failure gracefully if no remote or credentials) to keep editor and remote synchronized.
+  7. **Mandatory migration to `docs/done.md`**: Move completed sub-task from `current-sub-task.md` and `docs/todo.md` to `docs/done.md`, documenting the completed changes, dedicated test command, and verification outcome, and mark complete `[x]` in `docs/tasks.md`.
+- **Prompt task completion audit**: Before concluding any prompt or turn, the agent MUST audit and verify that EVERY task and subtask planned for the prompt in `docs/tasks.md` has been fully accomplished, thoroughly tested with its dedicated automated test, committed, and logged in `docs/done.md`. Never leave prompt tasks abandoned or half-implemented.
+- **Hotfix workflow with task suspension (holding pattern)**:
+  - When an unexpected defect, broken build, regression, or failing CI flow arises during active development:
+    1. **Suspend current task**: Place the active task/sub-task in `current-sub-task.md` **ON HOLD** (marked `[ON HOLD]`), saving its current state and resumption notes.
+    2. **Stage hotfix**: Stage a dedicated `Hotfix: <issue>` subtask in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+    3. **Execute in isolation**: Implement minimal targeted fix, verify with dedicated automated test, compile (`compile_applet`), and lint (`lint_applet`).
+    4. **Commit and document**: Perform a dedicated git commit (`fix(hotfix): <description>`), move the hotfix to `docs/done.md` under `### Hotfix: <issue>`, and mark `[x]` in `docs/tasks.md`.
+    5. **Resume held task**: Only after the hotfix is verified and accomplished, restore the suspended task back to active status in `current-sub-task.md` and `docs/todo.md`, and resume work from where it was paused.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
 - Check the last GitHub Actions result and fix failed flows: continuously monitor and verify GitHub Actions workflow outcomes (such as `web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, and `integrity.yml`), diagnose the root cause of any broken or failing CI steps, and fix failed workflows promptly.
 
@@ -55,8 +66,31 @@
 - For every issue, bug, or configuration discrepancy encountered, inspect and compare against the corresponding solution implemented in `https://github.com/mostuf2556/Youtubenet6`.
 - Preserve the existing application stack and repository structure.
 - Keep GitHub Actions, GitHub Pages reports, the web demo, and Android emulator coverage working together.
-- GitHub Pages report: should produce a video of the e2e test running on android emulator and present it on github pages along the e2e reports for web and emulator/device and the demo web app (the video and other build outputs should not exist on the main branch).
 - Do not add credentials or invent external service values; document and request anything required.
+
+### Android app E2E validation, screencast video & GitHub Pages reporting
+
+- **Mandatory E2E verification on real Android runtimes**:
+  - Whenever Android shell components, WebView bridges, native caption interception, web build asset bundling, or video player integrations are modified, the changes MUST be validated through end-to-end (E2E) execution on an Android device or emulator (API 34 Google APIs).
+  - The E2E suite (`scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, `e2e/emulation.spec.ts`) verifies real application startup, clean local asset hydration without error screens ("This page didn't load"), authentic timedtext caption interception without fixtures, target language fallback (`tlang` vs `lang`), and intent handling (`ACTION_VIEW` and `ACTION_SEND`).
+- **Screencast video recording protocol**:
+  - An authentic MP4 video screencast of the E2E test execution on the Android emulator/device must be recorded using native `adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4`.
+  - The recording MUST be started before launching the target activity to capture the initial application boot and subtitle discovery phases.
+  - Video finalization MUST send a graceful SIGINT (`adb shell pkill -2 -f screenrecord`) allowing the container `moov` header to be cleanly written before pulling via `adb pull`.
+- **Strict repository hygiene for video & build outputs**:
+  - Video recordings (`android-emulator-video.mp4`), device screenshots, full logcat dumps, and build binaries (`dist/`, APKs) MUST NEVER exist or be committed on the `main` branch.
+  - Build outputs and video artifacts are stored ephemerally as GitHub Actions workflow artifacts (`actions/upload-artifact@v4`) and staged to the orphaned `gh-pages` branch.
+- **GitHub Pages report presentation**:
+  - The GitHub Pages deployment (`gh-pages` branch) hosts the integrated test presentation at `/android/` and `/android-emulator-report.html`.
+  - The report must feature:
+    1. Execution outcome badge (Verified vs Failed).
+    2. Live device hardware and system telemetry card (model, manufacturer, Android SDK, ABI, resolution, density, connectivity).
+    3. 5-step E2E milestone workflow cards with captured screenshots.
+    4. An embedded HTML5 video player (`<video controls autoplay muted loop playsinline>`) streaming the MP4 screencast.
+    5. Primary full-resolution screen capture.
+    6. Filtered logcat telemetry showing chronological `SUBTITLE_FETCH` lines.
+    7. Cross-links to Mochawesome E2E report, Playwright report, and the live web demo.
+  - Detailed operational instructions and schemas are maintained in `android.md` (and `docs/android.md`).
 
 ## Subtitles fetch, anti-bot, validation, and caching architecture
 
