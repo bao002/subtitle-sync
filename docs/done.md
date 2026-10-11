@@ -1,5 +1,25 @@
 # Done tasks
 
+## Task 65: Remove Language Video Player Accordion, Harmonize Accordion VideoIDs & Remove Android Subtitle Fixtures
+
+### Subtask 65.1: Remove the Language Video Player Accordion Element
+
+- Removed `language-player` from `PanelId`, `PANELS`, and `ACCORDION_THEMES` in `src/config/accordionThemes.ts`.
+- Removed `language-player` from `openPanels` and `wide` prop check in `src/routes/index.tsx`.
+- Removed `<LanguageVideoPlayerPanel />` accordion block and import from `src/routes/index.tsx`.
+- Updated `scripts/verify-language-video-player-accordion.ts` and `scripts/verify-accordion-colors.ts` to assert that the language video player accordion is removed from PANELS, themes, and UI.
+- Verified with `npm run test:language-player-accordion`, `npm run test:accordion-colors`, `compile_applet`, and `lint_applet` passing with 0 errors.
+
+### Subtask 65.2: Enforce Consistent VideoID Across All Accordion Elements & Remove Subtitle Fixtures from Android App
+
+- Bound `videoId={videoId}` explicitly across all accordion sections, stamping `data-video-id={videoId}` on every accordion `<details>` element to guarantee uniform synchronization.
+- Removed hardcoded `videoId !== DEMO_VIDEO` constraints from the parallel subtitles empty state and column rendering in `src/routes/index.tsx`, ensuring all video IDs are handled uniformly.
+- Completely removed synthetic fake subtitle generators (`generateDefaultSubtitlesJson` and `generateTranslatedFallbackJson`) from `MainActivity.kt`.
+- Removed offline asset fixture fallback (`assets.open("fixtures/...")`) from `proactiveDetectSubtitles` in `MainActivity.kt` and removed `JSON3_RAW_MAP` fallback from `fetchFavoriteLanguageSubtitles` in `src/routes/index.tsx`, guaranteeing the Android application only uses authentic network and bridge captions.
+- Added state reset on `onNewIntent` in `MainActivity.kt` (`lastObservedTimedTextUrl = null`, `lastObservedHeaders.clear()`) to prevent stale timedtext URLs from leaking across videos.
+- Created dedicated verification test `scripts/verify-accordion-video-id-and-no-android-fixtures.ts` (`npm run test:accordion-video-id-and-no-android-fixtures`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified compilation (`compile_applet`), linting (`lint_applet`), executed test suites, committed changes, and gracefully attempted git push.
+
 ## Task 64: Restore Android App Working State to Parity with Commit 25131f042373c80ea22b51740a4dd03a358691e0
 
 ### Subtask 64.1: Inspect commit 25131f042373c80ea22b51740a4dd03a358691e0, diagnose Android regressions, restore working Android runtime & asset loading, verify with dedicated test, and commit

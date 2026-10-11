@@ -1,5 +1,5 @@
 export type PanelId =
-  "player" | "playback" | "parser" | "languages" | "language-player" | "subtitles" | "library";
+  "player" | "playback" | "parser" | "languages" | "subtitles" | "library";
 
 export interface PanelConfig {
   id: PanelId;
@@ -11,7 +11,6 @@ export const PANELS: PanelConfig[] = [
   { id: "playback", title: "Playback" },
   { id: "parser", title: "Parser" },
   { id: "languages", title: "Languages" },
-  { id: "language-player", title: "Language video player" },
   { id: "subtitles", title: "Parallel subtitles" },
   { id: "library", title: "Video library" },
 ];
@@ -55,14 +54,6 @@ export const ACCORDION_THEMES: Record<PanelId, AccordionTheme> = {
     badgeBg: "bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30",
     dotBg: "bg-purple-500",
     tagColor: "purple",
-  },
-  "language-player": {
-    borderLeft: "border-l-4 border-l-indigo-500",
-    summaryBg:
-      "bg-indigo-50/70 hover:bg-indigo-100/70 dark:bg-indigo-950/30 dark:hover:bg-indigo-950/50",
-    badgeBg: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30",
-    dotBg: "bg-indigo-500",
-    tagColor: "indigo",
   },
   subtitles: {
     borderLeft: "border-l-4 border-l-teal-500",
