@@ -17,10 +17,20 @@ assert(fs.existsSync(indexTsxPath), "src/routes/index.tsx must exist");
 const inspectorContent = fs.readFileSync(inspectorPath, "utf8");
 const indexContent = fs.readFileSync(indexTsxPath, "utf8");
 
-// 1. Verify performance memoization in index.tsx
+// 1. Verify performance memoization in SubtitleRow
+const subtitleRowPath = path.join(rootDir, "src/components/SubtitleRow.tsx");
+const subtitleRowContent = fs.existsSync(subtitleRowPath)
+  ? fs.readFileSync(subtitleRowPath, "utf8")
+  : indexContent;
+const subtitlesTablePath = path.join(rootDir, "src/components/SubtitlesTablePanel.tsx");
+const subtitlesTableContent = fs.existsSync(subtitlesTablePath)
+  ? fs.readFileSync(subtitlesTablePath, "utf8")
+  : indexContent;
+
 assert(
-  indexContent.includes("const SubtitleRow = memo(") && indexContent.includes("<SubtitleRow"),
-  "src/routes/index.tsx must define and render memoized SubtitleRow to optimize table performance",
+  subtitleRowContent.includes("const SubtitleRow = memo(") &&
+    (indexContent.includes("<SubtitleRow") || subtitlesTableContent.includes("<SubtitleRow")),
+  "SubtitleRow must define and render memoized SubtitleRow to optimize table performance",
 );
 console.log("✅ PASS: SubtitleRow memoization verified for UI acceleration");
 

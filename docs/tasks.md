@@ -190,10 +190,58 @@
 
 ## Task 69: Subtitles Table View Only Rendered on Legitimate JSON3 Subtitles Response Without Wasting Space on Loading or Error States
 
-- [ ] **Subtask 69.1: Hide Subtitles Table View During Loading/Error States and Render Only When Legitimate JSON3 Subtitles Are Fetched**:
+- [x] **Subtask 69.1: Hide Subtitles Table View During Loading/Error States and Render Only When Legitimate JSON3 Subtitles Are Fetched**:
   - Update `src/routes/index.tsx` so the subtitles table view (`panelId === "subtitles"`) does not waste space rendering loading placeholders ("Loading subtitles…", "Waiting for subtitles…") or error states.
   - Enforce `hasLegitimateSubtitles` so the subtitles table view accordion section is only rendered when legitimate JSON3 subtitles are fetched with non-empty cues (`rows.length > 0` and `cols.length > 0`).
   - Update `cols` calculation and individual cell rendering in `SubtitleRow` so no column or cell wastes space with loading or error placeholders.
   - Create dedicated verification test `scripts/verify-subtitles-table-legitimate-json3-only.ts` and register `npm run test:subtitles-table-legitimate-only` in `package.json`.
   - Document in `docs/files.md`, run verification tests, compile applet (`compile_applet`), lint applet (`lint_applet`), commit changes, and attempt push.
+
+## Task 70: Code Standards & Modularity Enforcement: Decompose Overloaded Files into Modular Components & Hooks, and Codify Architecture Standards in AGENTS.md
+
+- [x] **Subtask 70.1: Codify Code Architecture Standards in AGENTS.md and Create Architectural Verification Test**:
+  - Expand `## Code architecture and modularity` in `AGENTS.md` with explicit, strict code standards:
+    - Strict avoidance of monolithic/overloaded files (`index.tsx`, `index.ts`, etc.).
+    - Component decomposition: extracting subcomponents (`SubtitleRow`, `HighlightedSubtitle`, `AccordionSection`, footer, dialogs, panels) into separate files in `src/components/`.
+    - Dedicated custom hooks: isolating complex state management, speech synthesis/TTS, subtitle streaming, and synchronization logic into dedicated custom hooks in `src/hooks/` or `src/utils/`.
+    - Single responsibility and file inventory synchronization in `docs/files.md`.
+  - Create dedicated verification test `scripts/verify-code-modularity-standards.ts` and register `npm run test:code-modularity` in `package.json`.
+  - Document in `docs/files.md`, run tests, verify app compilation (`compile_applet`), lint applet (`lint_applet`), commit changes, and attempt push.
+
+- [x] **Subtask 70.2: Extract Embedded UI Components from src/routes/index.tsx into Dedicated Modular Component Files**:
+  - Extract `AccordionSection` to `src/components/AccordionSection.tsx`.
+  - Extract `SubtitleRow` and `HighlightedSubtitle` to `src/components/SubtitleRow.tsx` and `src/components/HighlightedSubtitle.tsx`.
+  - Extract `ApkReleasesFooter` to `src/components/ApkReleasesFooter.tsx`.
+  - Extract Subtitles Table panel rendering to `src/components/SubtitlesTablePanel.tsx`.
+  - Update `src/routes/index.tsx` to import and use the modular components, significantly reducing file overload.
+  - Document new modular component files in `docs/files.md`.
+  - Test thoroughly with dedicated tests, compile applet, lint applet, commit changes, and attempt push.
+
+## Task 71: Subtitle Parser Documentation, Default Punctuation Splitting, and Interactive Timing-Assisted Experimentation
+
+- [x] **Subtask 71.1: Create parser.md Explaining JSON3 Subtitles Splitting and Timing Calculations**:
+  - Create comprehensive `parser.md` (and `docs/parser.md`) documenting:
+    - JSON3 subtitle data schema (`events`, `tStartMs`, `dDurationMs`, `segs`, `utf8`, `tOffsetMs`).
+    - Punctuation-based sentence splitting algorithms and multi-language punctuation rules.
+    - Splitting pitfalls and edge cases (unpunctuated ASR tracks, abbreviations, run-ons, multilingual drift).
+    - Timing calculation benefits: word acoustic gap detection (`tOffsetMs`), duration clamping, and cross-track alignment consensus.
+  - Create dedicated verification test `scripts/verify-parser-docs.ts` and register `npm run test:parser-docs` in `package.json`.
+  - Document in `docs/files.md`, verify tests pass, compile applet, lint applet, and perform git commit.
+
+- [x] **Subtask 71.2: Fix Parser Implementation to Split by Default Using Punctuation Characters**:
+  - Update default criteria in `src/lib/subtitles.ts` (`criteriaSections`, `align`) to `["sentence"]` (pure sentence punctuation).
+  - Enhance punctuation splitting to detect intra-cue segment punctuation (`segs` word tokens) and guard abbreviations.
+  - Update `src/routes/index.tsx` `selectedCriteria` initial state to default to `["sentence"]`.
+  - Create dedicated verification test `scripts/verify-default-punctuation-splitting.ts` and register `npm run test:default-punctuation` in `package.json`.
+  - Document in `docs/files.md`, run verification tests, compile applet, lint applet, and commit.
+
+- [ ] **Subtask 71.3: Provide Interactive Timing vs Punctuation Splitting Lab & Learning Interface**:
+  - Build modular component `src/components/ParserTimingLab.tsx` and integrate into the Parser accordion panel.
+  - Provide live visual metrics comparing pure punctuation vs timing-enhanced splitting (sentence counts, average duration, run-on prevention).
+  - Allow users to toggle and experiment with timing features live to see immediate effect on subtitle splitting.
+  - Expose an interactive educational "Learn How Timing Eliminates Splitting Issues" modal/guide directly in the UI.
+  - Create dedicated verification test `scripts/verify-parser-timing-lab.ts` and register `npm run test:parser-timing-lab` in `package.json`.
+  - Document in `docs/files.md`, run full test suite, compile applet, lint applet, commit changes, and push.
+
+
 

@@ -1,5 +1,61 @@
 # Done tasks
 
+## Task 71: Subtitle Parser Documentation, Default Punctuation Splitting, and Interactive Timing-Assisted Experimentation
+
+### Subtask 71.2: Fix Parser Implementation to Split by Default Using Punctuation Characters
+
+- Updated default criteria in `src/lib/subtitles.ts` (`criteriaSections`, `align`) to `["sentence"]` (pure sentence punctuation instead of legacy combo).
+- Reordered `PARSER_PRESETS` so that `"sentencesOnly"` (`["sentence"]`) is the primary default preset.
+- Enhanced punctuation splitting with `isSentenceEnding()` supporting multilingual sentence-ending punctuation (`.`, `?`, `!`, `…`, `。`, `؟`, quotes, brackets) while guarding against false cuts on decimal numbers (`3.14`).
+- Implemented robust abbreviation detector `isAbbreviation()` guarding against false sentence cuts on titles (`Dr.`, `Mr.`, `Ms.`, `Prof.`), Latin abbreviations (`e.g.`, `i.e.`, `vs.`, `etc.`), initials (`A.`, `B.`), and country acronyms (`U.S.`, `U.K.`).
+- Implemented intra-cue segment punctuation cutting inside word-timed events with intra-cue offsets (`base + segs[s+1].tOffsetMs`) controlled by `splitIntraCue` setting in `SentenceInnerSettings`.
+- Updated `src/routes/index.tsx` `selectedCriteria` initial state to default to `["sentence"]` and exposed `splitIntraCue` toggle in the sentence criteria inner settings UI.
+- Created dedicated verification test `scripts/verify-default-punctuation-splitting.ts` (`npm run test:default-punctuation`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified clean build (`compile_applet`), zero ESLint errors (`lint_applet`), and 100% test pass rate.
+
+### Subtask 71.1: Create parser.md Explaining JSON3 Subtitles Splitting and Timing Calculations
+
+- Created comprehensive `parser.md` (and `docs/parser.md`) documenting YouTube JSON3 subtitle data schema (`events`, `tStartMs`, `dDurationMs`, `segs`, `utf8`, `tOffsetMs`).
+- Detailed sentence splitting algorithms using punctuation characters (`.`, `?`, `!`, `…`, `。`, `؟`, commas, semicolons).
+- Analyzed common punctuation splitting edge cases and pitfalls (unpunctuated ASR streams, abbreviations like `Dr.` / `e.g.`, monologue run-ons, multi-lingual syntax drift).
+- Detailed acoustic timing calculation benefits: word silence detection (`pauseTimes` where $\Delta t \ge 500\text{ ms}$), duration clamping (`fromCuts`), multi-track cluster consensus, and punctuation voting.
+- Created dedicated verification test `scripts/verify-parser-docs.ts` (`npm run test:parser-docs`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified clean build (`compile_applet`), zero lint errors (`lint_applet`), and 100% test pass rate across test suites.
+
+## Task 70: Code Standards & Modularity Enforcement: Decompose Overloaded Files into Modular Components & Hooks, and Codify Architecture Standards in AGENTS.md
+
+### Subtask 70.2: Extract Embedded UI Components from src/routes/index.tsx into Dedicated Modular Component Files
+
+- Extracted `AccordionSection` from `src/routes/index.tsx` into dedicated component file `src/components/AccordionSection.tsx`.
+- Extracted `HighlightedSubtitle` and memoized `SubtitleRow` into dedicated component files `src/components/HighlightedSubtitle.tsx` and `src/components/SubtitleRow.tsx`.
+- Extracted Subtitles Table panel rendering into dedicated component file `src/components/SubtitlesTablePanel.tsx`.
+- Extracted `ApkReleasesFooter` into dedicated component file `src/components/ApkReleasesFooter.tsx`.
+- Replaced over 300 lines of inline markup and monolithic component declarations in `src/routes/index.tsx` with clean modular component imports.
+- Created dedicated verification suite `scripts/verify-index-route-decomposition.ts` (`npm run test:index-decomposition`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified 100% test pass rate across all suites, clean app compilation (`compile_applet`), and zero lint errors (`lint_applet`).
+
+### Subtask 70.1: Codify Code Architecture Standards in AGENTS.md and Create Architectural Verification Test
+
+- Expanded `## Code architecture, modularity, and standards` in `AGENTS.md` with explicit, strict code standards:
+  - Strict avoidance of single-file overload: prohibited concentrating hundreds or thousands of lines into central files like `index.tsx` or `index.ts`.
+  - Component decomposition discipline: mandated extracting multi-element or structurally distinct UI components into dedicated files in `src/components/`.
+  - Custom hooks & logic isolation: mandated isolating state machines, complex effects, speech synthesis, and network coordination into `src/hooks/` or `src/utils/`.
+  - Synchronized file naming and documented inventory rules in `docs/files.md`.
+- Created dedicated verification test `scripts/verify-code-modularity-standards.ts` (`npm run test:code-modularity`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified 100% test passing, clean app compilation (`compile_applet`), and zero lint errors (`lint_applet`).
+
+## Task 69: Subtitles Table View Only Rendered on Legitimate JSON3 Subtitles Response Without Wasting Space on Loading or Error States
+
+### Subtask 69.1: Hide Subtitles Table View During Loading/Error States and Render Only When Legitimate JSON3 Subtitles Are Fetched
+
+- Updated `src/routes/index.tsx` so the subtitles table view (`panelId === "subtitles"`) accordion section is completely omitted and returns `null` unless `hasLegitimateSubtitles` is true.
+- Enforced `hasLegitimateSubtitles` checking that tracks exist, at least one authentic track has non-empty cues (`cues.length > 0`), aligned rows exist (`rows.length > 0`), and columns exist (`cols.length > 0`).
+- Removed progressive loading indicators ("Loading subtitles smoothly…", spinner) and error retry buttons ("Fetch again") from the subtitles table pagination bar and table view so no space is wasted on loading or error placeholders.
+- Placed failed languages manual fetch retry in the Languages panel (`panelId === "languages"`) to keep error recovery available without polluting the subtitles table view.
+- Ensured `cols` calculation and `SubtitleRow` cell rendering strictly require tracks with cues (`length > 0`), displaying clean sentence containers without empty placeholders.
+- Created dedicated verification test `scripts/verify-subtitles-table-legitimate-json3-only.ts` (`npm run test:subtitles-table-legitimate-only`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified clean build (`compile_applet`), zero ESLint errors (`lint_applet`), and 100% test pass rate across all verification suites.
+
 ## Task 68: Enforce Strict JSON3-Only Response Validation Across Parsers, Network Handlers, and Caches
 
 ### Subtask 68.1: Reject All Non-JSON3 Subtitle Responses as Bad/Errored Responses and Prohibit Non-JSON3 Caching Across Application

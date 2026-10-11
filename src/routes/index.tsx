@@ -5,7 +5,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  Download,
   ExternalLink,
   Loader2,
   Moon,
@@ -15,8 +14,6 @@ import {
   Smartphone,
   Subtitles,
   Sun,
-  Pin,
-  PinOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +72,10 @@ import { VideoInstancesSwiper } from "@/components/VideoInstancesSwiper";
 import { FloatingDraggablePauseButton } from "@/components/FloatingDraggablePauseButton";
 import { trackNetworkRequest, useNetworkRequests } from "@/utils/networkTracker";
 import { NetworkRequestsInspector } from "@/components/NetworkRequestsInspector";
+import { AccordionSection } from "@/components/AccordionSection";
+import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
+import { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
+import { ParserTimingLab } from "@/components/ParserTimingLab";
 import {
   getSectionOrder,
   getSubtitleRequestMode,
@@ -338,7 +339,7 @@ function Index() {
         // ignore storage error
       }
     }
-    return ["sentence", "pause"];
+    return ["sentence"];
   });
 
   const handleToggleCriterion = (id: CriteriaId) => {
@@ -555,7 +556,7 @@ function Index() {
             const loaded = json;
             next[code] = loaded;
             startSubtitlesTransition(() => {
-              setTracks((prev) => ({ ...prev, [code]: loaded }));
+              setTracks((prev) => ({ ...prev, [code]: json! }));
               setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
             });
           } else {
@@ -1493,14 +1494,19 @@ function Index() {
   };
 
   const cols = useMemo(() => {
-    if (isAndroid && (!tracks || Object.keys(tracks).length === 0)) {
+    if (!tracks || Object.keys(tracks).length === 0) {
       return [];
     }
     const list: { code: string; name: string; tts: string }[] = [];
     const addedCodes = new Set<string>();
 
     // 1. If baseLanguage from video captions exists in tracks and is shown, display it first
-    if (baseLanguage && tracks?.[baseLanguage] && shown.includes(baseLanguage)) {
+    if (
+      baseLanguage &&
+      tracks?.[baseLanguage] &&
+      tracks[baseLanguage].length > 0 &&
+      shown.includes(baseLanguage)
+    ) {
       list.push(getLanguageMeta(baseLanguage));
       addedCodes.add(baseLanguage);
     }
@@ -1510,6 +1516,7 @@ function Index() {
       if (
         !addedCodes.has(l.code) &&
         shown.includes(l.code) &&
+        (targetLanguages.includes(l.code) || (tracks ? Boolean(tracks[l.code]) : true)) &&
         Boolean(tracks?.[l.code] && tracks[l.code].length > 0)
       ) {
         list.push(l);
@@ -1528,7 +1535,7 @@ function Index() {
     }
 
     return list;
-  }, [tracks, baseLanguage, orderedLangs, shown]);
+  }, [tracks, baseLanguage, orderedLangs, shown, targetLanguages]);
 
   const hasLegitimateSubtitles = useMemo(() => {
     if (!tracks) return false;
@@ -1968,6 +1975,16 @@ function Index() {
 
               {panelId === "parser" && (
                 <div className="space-y-4">
+                  {/* Interactive Timing & Punctuation Splitting Lab */}
+                  <ParserTimingLab
+                    tracks={tracks}
+                    baseLanguage={baseLanguage}
+                    selectedCriteria={selectedCriteria}
+                    criteriaSettings={criteriaSettings}
+                    onApplyCriteria={handleApplyPreset}
+                    onUpdateGroupSettings={handleUpdateGroupSettings}
+                  />
+
                   {/* Presets Header */}
                   <div>
                     <div className="flex items-center justify-between mb-2">
@@ -2133,6 +2150,21 @@ function Index() {
                                       />
                                       <span className="text-[11px]">
                                         Split on secondary clauses (commas, semicolons, colons)
+                                      </span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={criteriaSettings.sentence.splitIntraCue}
+                                        onChange={(e) =>
+                                          handleUpdateGroupSettings("sentence", {
+                                            splitIntraCue: e.target.checked,
+                                          })
+                                        }
+                                        className="rounded border-border text-primary h-3.5 w-3.5"
+                                      />
+                                      <span className="text-[11px]">
+                                        Split inside word-timed cues (intra-cue segments)
                                       </span>
                                     </label>
                                     <div className="flex items-center justify-between gap-2">
@@ -2456,6 +2488,22 @@ function Index() {
                       onSelectionChange={handleTargetLanguagesChange}
                       isAndroid={isAndroid}
                     />
+                    {failedLangs.length > 0 && (
+                      <div className="flex items-center justify-between p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-xs">
+                        <span className="text-destructive font-medium">
+                          Failed to fetch subtitles: {failedLangs.join(", ")}
+                        </span>
+                        <button
+                          type="button"
+                          data-testid="subtitles-manual-fetch"
+                          onClick={manualFetchFailed}
+                          className="inline-flex items-center gap-1 rounded bg-destructive/20 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/30"
+                        >
+                          <RefreshCw className="h-3 w-3" />
+                          Fetch again ({failedLangs.join(", ")})
+                        </button>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
                       <div className="space-y-0.5">
                         <label
@@ -2684,223 +2732,34 @@ function Index() {
 
               {panelId === "subtitles" &&
                 (!hasLegitimateSubtitles ? null : (
-                  <div
-                    id="subtitles-table-panel"
-                    data-testid="subtitles-table-panel"
-                    className="max-h-[calc(100vh-8rem)] overflow-auto"
-                  >
-                    {isAndroid && rows.length > 0 && (
-                      <div
-                        data-testid="android-subtitles-pagination-bar"
-                        className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/40 px-3 py-2 text-xs"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-foreground">
-                            Lines{" "}
-                            {subtitlesLimit > 0
-                              ? `${(subtitlesPage - 1) * subtitlesLimit + 1}–${Math.min(
-                                  subtitlesPage * subtitlesLimit,
-                                  rows.length,
-                                )}`
-                              : `1–${rows.length}`}{" "}
-                            of {rows.length}
-                          </span>
-                          <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-normal text-primary">
-                            First 10 lines of favorite languages
-                          </span>
-                          {isSubtitlesPending && (
-                            <span
-                              data-testid="subtitles-progressive-indicator"
-                              className="inline-flex items-center gap-1 text-xs text-muted-foreground animate-pulse"
-                            >
-                              <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                              Loading subtitles smoothly…
-                            </span>
-                          )}
-                          {allFavoritesAligned && targetLanguages.length > 0 && (
-                            <span
-                              data-testid="subtitles-sync-aligned"
-                              className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400"
-                            >
-                              <Check className="h-3 w-3" />
-                              Favorites Aligned ({targetLanguages.length})
-                            </span>
-                          )}
-                          {isAndroid && failedLangs.length > 0 && (
-                            <button
-                              type="button"
-                              data-testid="subtitles-manual-fetch"
-                              onClick={manualFetchFailed}
-                              className="inline-flex items-center gap-1 rounded bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive hover:bg-destructive/20"
-                            >
-                              <RefreshCw className="h-3 w-3" />
-                              Fetch again ({failedLangs.join(", ")})
-                            </button>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1.5">
-                            <label
-                              htmlFor="subtitles-limit-select"
-                              className="text-muted-foreground"
-                            >
-                              Lines per view:
-                            </label>
-                            <select
-                              id="subtitles-limit-select"
-                              value={subtitlesLimit}
-                              onChange={(e) => {
-                                setSubtitlesLimit(Number(e.target.value));
-                                setSubtitlesPage(1);
-                              }}
-                              className="rounded border border-input bg-background px-2 py-1 text-xs"
-                            >
-                              <option value={10}>10 (Default)</option>
-                              <option value={25}>25</option>
-                              <option value={50}>50</option>
-                              <option value={0}>All ({rows.length})</option>
-                            </select>
-                          </div>
-                          {subtitlesLimit > 0 && Math.ceil(rows.length / subtitlesLimit) > 1 && (
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                disabled={subtitlesPage <= 1}
-                                onClick={() => setSubtitlesPage((p) => Math.max(1, p - 1))}
-                                className="rounded border border-border px-2 py-0.5 hover:bg-muted disabled:opacity-40"
-                              >
-                                Prev
-                              </button>
-                              <span className="px-1 tabular-nums">
-                                {subtitlesPage} / {Math.ceil(rows.length / subtitlesLimit)}
-                              </span>
-                              <button
-                                type="button"
-                                disabled={subtitlesPage >= Math.ceil(rows.length / subtitlesLimit)}
-                                onClick={() =>
-                                  setSubtitlesPage((p) =>
-                                    Math.min(Math.ceil(rows.length / subtitlesLimit), p + 1),
-                                  )
-                                }
-                                className="rounded border border-border px-2 py-0.5 hover:bg-muted disabled:opacity-40"
-                              >
-                                Next
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    <table className="w-full border-collapse text-sm">
-                      <thead className="sticky top-0 z-10 bg-secondary">
-                        <tr>
-                          <th className="w-24 px-3 py-2 text-left font-medium">Time</th>
-                          {cols.map((l) => (
-                            <th key={l.code} className="px-3 py-2 text-left font-medium">
-                              {l.name}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {displayedRows.map((r, i) => {
-                          const actualIndex =
-                            isAndroid && subtitlesLimit > 0
-                              ? (subtitlesPage - 1) * subtitlesLimit + i
-                              : i;
-                          return (
-                            <SubtitleRow
-                              key={actualIndex}
-                              r={r}
-                              actualIndex={actualIndex}
-                              isActive={actualIndex === active}
-                              cols={cols}
-                              speechProgress={speechProgress}
-                              tracks={tracks}
-                              onSeek={seek}
-                              spokenLangs={spoken}
-                              ttsRatios={ttsRatios}
-                            />
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                  <SubtitlesTablePanel
+                    isAndroid={isAndroid}
+                    rows={rows}
+                    displayedRows={displayedRows}
+                    cols={cols}
+                    subtitlesLimit={subtitlesLimit}
+                    setSubtitlesLimit={setSubtitlesLimit}
+                    subtitlesPage={subtitlesPage}
+                    setSubtitlesPage={setSubtitlesPage}
+                    active={active}
+                    allFavoritesAligned={allFavoritesAligned}
+                    targetLanguages={targetLanguages}
+                    speechProgress={speechProgress}
+                    tracks={tracks}
+                    onSeek={seek}
+                    spokenLangs={spoken}
+                    ttsRatios={ttsRatios}
+                  />
                 ))}
             </AccordionSection>
           );
         })}
       </div>
 
-      {/* Latest APK Release Footer Banner with Links for both repo owners */}
-      <footer
-        id="apk-releases-footer"
-        data-testid="apk-releases-footer"
-        className="mt-8 border-t border-border px-6 py-4 bg-muted/20 text-xs"
-      >
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Smartphone className="h-4 w-4 text-emerald-500 shrink-0" />
-            <span className="font-semibold text-foreground">Latest Android APK Releases:</span>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            {apkReleaseLinks.map((link) => (
-              <div
-                key={link.owner}
-                data-testid={`apk-footer-link-group-${link.owner}`}
-                className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1 shadow-sm"
-              >
-                <span className="font-mono font-bold text-foreground">{link.owner}</span>
-                <span className="text-muted-foreground">·</span>
-                <a
-                  href={link.downloadUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-testid={`apk-footer-download-${link.owner}`}
-                  className="font-semibold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-                  title={`Direct APK download from ${link.owner}`}
-                >
-                  <Download className="h-3 w-3" />
-                  <span>APK</span>
-                </a>
-                <span className="text-muted-foreground">·</span>
-                <a
-                  href={link.releaseUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-testid={`apk-footer-release-${link.owner}`}
-                  className="text-muted-foreground hover:text-foreground flex items-center gap-1"
-                  title={`Latest GitHub release page for ${link.owner}`}
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  <span>Release</span>
-                </a>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setApkModalOpen(true)}
-              className="text-xs h-8 px-2.5 gap-1.5 border-emerald-500/40 text-emerald-700 dark:text-emerald-300"
-            >
-              <Smartphone className="h-3.5 w-3.5 text-emerald-500" />
-              <span>All Options & CLI</span>
-            </Button>
-            <a
-              href={ALL_RELEASES_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-testid="footer-all-releases-link"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline px-1 py-1"
-              title="Browse All GitHub Releases & Versions"
-            >
-              <span>All Releases (v{APP_VERSION})</span>
-              <ExternalLink className="h-3 w-3" />
-            </a>
-          </div>
-        </div>
-      </footer>
+      <ApkReleasesFooter
+        apkReleaseLinks={apkReleaseLinks}
+        onOpenApkModal={() => setApkModalOpen(true)}
+      />
 
       {debugMode && (
         <NetworkRequestsInspector
@@ -2928,276 +2787,8 @@ function Index() {
   );
 }
 
-interface SubtitleRowProps {
-  r: Row;
-  actualIndex: number;
-  isActive: boolean;
-  cols: { code: string; name: string; tts: string }[];
-  speechProgress: SpeechProgress;
-  tracks: Record<string, Json3> | null;
-  onSeek: (r: Row, index: number) => void;
-  spokenLangs?: string[];
-  ttsRatios?: Record<string, number>;
-}
-
-const SubtitleRow = memo(function SubtitleRow({
-  r,
-  actualIndex,
-  isActive,
-  cols,
-  speechProgress,
-  tracks,
-  onSeek,
-  spokenLangs,
-  ttsRatios,
-}: SubtitleRowProps) {
-  return (
-    <tr
-      key={actualIndex}
-      id={`subtitle-cue-row-${actualIndex}`}
-      data-testid={`subtitle-cue-row-${actualIndex}`}
-      data-row={actualIndex}
-      onClick={() => onSeek(r, actualIndex)}
-      className={`cursor-pointer border-t border-border align-top ${isActive ? "bg-accent" : "hover:bg-muted"}`}
-    >
-      <td className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">
-        {fmt(r.start)}–{fmt(r.end)}
-      </td>
-      {cols.map((l) => {
-        const isSpoken = Boolean(spokenLangs?.includes(l.code));
-        const ratio = ttsRatios?.[l.code] ?? 1;
-        const isEligible = isSubtitleInstanceEligibleForTTS(actualIndex, ratio);
-        const isPronouncedHighlight = shouldHighlightSentenceForTTS(actualIndex, ratio, isSpoken);
-        return (
-          <td
-            key={l.code}
-            dir={RTL.has(l.code) ? "rtl" : "ltr"}
-            data-testid={`subtitle-cell-${actualIndex}-${l.code}`}
-            data-tts-pronounced={isPronouncedHighlight ? "true" : undefined}
-            className={`px-3 py-2 leading-relaxed transition-colors ${
-              isPronouncedHighlight
-                ? "bg-primary/10 border-s-2 border-primary/60 dark:bg-primary/15 dark:border-primary/80"
-                : ""
-            }`}
-          >
-            {tracks && !tracks[l.code] ? null : (
-              <div
-                data-testid={`sentence-container-${actualIndex}-${l.code}`}
-                data-tts-pronounced-highlight={isPronouncedHighlight ? "true" : "false"}
-                className={`flex items-start justify-between gap-1.5 p-1 rounded transition-colors ${
-                  isPronouncedHighlight
-                    ? "bg-primary/15 text-foreground font-medium ring-1 ring-primary/25 shadow-xs dark:bg-primary/20 dark:ring-primary/40"
-                    : ""
-                }`}
-              >
-                <div className="flex-1">
-                  <HighlightedSubtitle
-                    text={r.texts[l.code] ?? ""}
-                    progress={
-                      speechProgress?.row === actualIndex && speechProgress.lang === l.code
-                        ? speechProgress
-                        : null
-                    }
-                    isPronouncedHighlighted={isPronouncedHighlight}
-                  />
-                </div>
-                {isSpoken && ratio > 1 && (
-                  <span
-                    data-testid={`row-${actualIndex}-tts-status-${l.code}`}
-                    className={`shrink-0 inline-flex items-center px-1 py-0.2 rounded text-[9px] font-mono select-none ${
-                      isEligible
-                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                        : "opacity-35 text-muted-foreground line-through"
-                    }`}
-                    title={
-                      isEligible
-                        ? `TTS will play this sentence (1:${ratio} ratio)`
-                        : `TTS skipped for this sentence (1:${ratio} ratio)`
-                    }
-                  >
-                    TTS
-                  </span>
-                )}
-              </div>
-            )}
-          </td>
-        );
-      })}
-    </tr>
-  );
-});
-
-function HighlightedSubtitle({
-  text,
-  progress,
-  isPronouncedHighlighted,
-}: {
-  text: string;
-  progress: Exclude<SpeechProgress, null> | null;
-  isPronouncedHighlighted?: boolean;
-}) {
-  if (!progress) {
-    if (isPronouncedHighlighted) {
-      return (
-        <span
-          data-testid="pronounced-sentence-text"
-          className="bg-primary/10 dark:bg-primary/20 px-1 py-0.5 rounded-sm"
-        >
-          {text}
-        </span>
-      );
-    }
-    return text;
-  }
-  return (
-    <>
-      {text.slice(0, progress.start)}
-      <mark className="rounded-sm bg-highlight px-0.5 text-highlight-foreground">
-        {text.slice(progress.start, progress.end)}
-      </mark>
-      {text.slice(progress.end)}
-    </>
-  );
-}
-
-const ACCORDION_AUTO_FOLD_MS = 30_000;
-
-function AccordionSection({
-  id,
-  title,
-  videoId,
-  children,
-  open,
-  onOpenChange,
-  onMoveUp,
-  onMoveDown,
-  canMoveUp,
-  canMoveDown,
-  wide = false,
-}: {
-  id: PanelId;
-  title: string;
-  videoId?: string;
-  children: React.ReactNode;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  canMoveUp: boolean;
-  canMoveDown: boolean;
-  wide?: boolean;
-}) {
-  const theme = ACCORDION_THEMES[id] || {
-    borderLeft: "border-l-4 border-l-neutral-500",
-    summaryBg: "bg-muted/30 hover:bg-muted/50",
-    badgeBg: "bg-neutral-500/20 text-neutral-600 dark:text-neutral-300 border-neutral-500/30",
-    dotBg: "bg-neutral-500",
-    tagColor: "neutral",
-  };
-  // Auto-fold: an open, unpinned section folds after a period without interaction inside it.
-  const pinKey = `yt_accordion_pinned_${id}`;
-  const [pinned, setPinned] = useState(false);
-  useEffect(() => {
-    try {
-      setPinned(localStorage.getItem(pinKey) === "1");
-    } catch {
-      // ignore storage errors
-    }
-  }, [pinKey]);
-  const [activityTick, setActivityTick] = useState(0);
-  useEffect(() => {
-    if (!open || pinned) return;
-    const timer = window.setTimeout(() => onOpenChange(false), ACCORDION_AUTO_FOLD_MS);
-    return () => window.clearTimeout(timer);
-  }, [open, pinned, activityTick, onOpenChange]);
-  const markActivity = () => setActivityTick((t) => t + 1);
-  const togglePinned = () => {
-    setPinned((p) => {
-      try {
-        localStorage.setItem(pinKey, p ? "0" : "1");
-      } catch {
-        // ignore storage errors
-      }
-      return !p;
-    });
-  };
-
-  return (
-    <details
-      data-panel={title.toLowerCase().replace(/\s+/g, "-")}
-      data-panel-id={id}
-      data-accordion-type={id}
-      data-accordion-color={theme.tagColor}
-      data-video-id={videoId}
-      open={open}
-      onPointerDown={markActivity}
-      onKeyDown={markActivity}
-      onFocus={markActivity}
-      onToggle={(event) => onOpenChange(event.currentTarget.open)}
-      className={`overflow-hidden rounded-lg border border-border bg-card text-sm ${theme.borderLeft} ${wide ? "lg:col-span-2" : ""}`}
-    >
-      <summary
-        data-testid={`accordion-bar-${id}`}
-        className={`flex cursor-pointer list-none items-center gap-1 px-3 py-1 marker:hidden transition-colors ${theme.summaryBg}`}
-      >
-        <ChevronDown
-          aria-hidden="true"
-          className={`size-4 transition-transform ${open ? "rotate-180" : ""}`}
-        />
-        <h2 className="mr-auto text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-2">
-          <span>{title}</span>
-          <span
-            data-testid={`accordion-color-badge-${id}`}
-            className={`inline-block size-2 rounded-full ${theme.dotBg}`}
-            aria-hidden="true"
-          />
-        </h2>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          data-testid={`accordion-pin-${id}`}
-          aria-pressed={pinned}
-          onClick={(event) => {
-            event.preventDefault();
-            togglePinned();
-          }}
-          aria-label={pinned ? `Unpin ${title} (allow auto-fold)` : `Pin ${title} open`}
-          title={pinned ? "Pinned: stays open" : "Pin to keep open (otherwise folds automatically)"}
-          className={pinned ? "text-primary" : "text-muted-foreground"}
-        >
-          {pinned ? <Pin aria-hidden="true" /> : <PinOff aria-hidden="true" />}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          disabled={!canMoveUp}
-          onClick={(event) => {
-            event.preventDefault();
-            onMoveUp();
-          }}
-          aria-label={`Move ${title} earlier`}
-          title={`Move ${title} earlier`}
-        >
-          <ChevronUp aria-hidden="true" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          disabled={!canMoveDown}
-          onClick={(event) => {
-            event.preventDefault();
-            onMoveDown();
-          }}
-          aria-label={`Move ${title} later`}
-          title={`Move ${title} later`}
-        >
-          <ChevronDown aria-hidden="true" />
-        </Button>
-      </summary>
-      <div className="border-t border-border p-2 sm:p-3">{children}</div>
-    </details>
-  );
-}
+export { AccordionSection } from "@/components/AccordionSection";
+export { SubtitleRow } from "@/components/SubtitleRow";
+export { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
+export { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
+export { ApkReleasesFooter } from "@/components/ApkReleasesFooter";

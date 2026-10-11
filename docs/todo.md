@@ -1,9 +1,10 @@
 # Current Subtask
 
-## Subtask 69.1: Hide Subtitles Table View During Loading/Error States and Render Only When Legitimate JSON3 Subtitles Are Fetched
+## Subtask 71.3: Provide Interactive Timing vs Punctuation Splitting Lab & Learning Interface
 
-- Update `src/routes/index.tsx` so the subtitles table view (`panelId === "subtitles"`) does not waste space rendering loading placeholders ("Loading subtitles…", "Waiting for subtitles…") or error states.
-- Enforce `hasLegitimateSubtitles` so the subtitles table view accordion section is only rendered when legitimate JSON3 subtitles are fetched with non-empty cues (`rows.length > 0` and `cols.length > 0`).
-- Update `cols` calculation and individual cell rendering in `SubtitleRow` so no column or cell wastes space with loading or error placeholders.
-- Create dedicated verification test `scripts/verify-subtitles-table-legitimate-json3-only.ts` and register `npm run test:subtitles-table-legitimate-only` in `package.json`.
-- Document in `docs/files.md`, run verification tests, compile applet (`compile_applet`), lint applet (`lint_applet`), commit changes, and attempt push.
+- Build modular component `src/components/ParserTimingLab.tsx` and integrate into the Parser accordion panel in `src/routes/index.tsx`.
+- Provide live visual metrics comparing pure punctuation vs timing-enhanced splitting (sentence counts, average duration, run-on prevention count, parallel sync ratio).
+- Allow users to toggle and experiment with timing features live (speech pauses, majority consensus, context windows) to observe immediate effect on subtitle splitting.
+- Expose an interactive educational "Learn How Timing Eliminates Splitting Issues" modal/guide directly in the UI with interactive explanations and diagrams from `parser.md`.
+- Create dedicated verification test `scripts/verify-parser-timing-lab.ts` and register `npm run test:parser-timing-lab` in `package.json`.
+- Document in `docs/files.md`, run verification tests, compile applet (`compile_applet`), lint applet (`lint_applet`), and commit.

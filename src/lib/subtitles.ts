@@ -142,6 +142,7 @@ export const PARSER_CRITERIA: ParserCriteriaOption[] = [
 export interface SentenceInnerSettings {
   includeCommas: boolean;
   minWords: number;
+  splitIntraCue: boolean;
 }
 
 export interface PauseInnerSettings {
@@ -189,6 +190,7 @@ export const DEFAULT_CRITERIA_SETTINGS: CriteriaGroupSettings = {
   sentence: {
     includeCommas: false,
     minWords: 1,
+    splitIntraCue: false,
   },
   pause: {
     minPauseMs: 500,
@@ -226,6 +228,12 @@ export interface ParserPreset {
 
 export const PARSER_PRESETS: ParserPreset[] = [
   {
+    id: "sentencesOnly",
+    name: "Pure Sentences",
+    desc: "Sentence ends only (. ? !)",
+    criteria: ["sentence"],
+  },
+  {
     id: "balanced",
     name: "Context & Sentences",
     desc: "Sentence punctuation + natural speech pauses (balanced translatable units)",
@@ -236,12 +244,6 @@ export const PARSER_PRESETS: ParserPreset[] = [
     name: "Multi-Language Consensus",
     desc: "Punctuation vote + timing consensus + sentence ends (best for parallel alignment)",
     criteria: ["sentence", "consensus", "punctVote"],
-  },
-  {
-    id: "sentencesOnly",
-    name: "Pure Sentences",
-    desc: "Sentence ends only (. ? !)",
-    criteria: ["sentence"],
   },
   {
     id: "fineGrained",
@@ -309,7 +311,72 @@ export const STRATEGIES: { id: Strategy; name: string; desc: string; parallel?: 
   },
 ];
 
-const SENT_END = /[.?!…。؟]["'»)”]*$/;
+export const COMMON_ABBREVIATIONS = new Set([
+  "mr.",
+  "mrs.",
+  "ms.",
+  "dr.",
+  "prof.",
+  "sr.",
+  "jr.",
+  "vs.",
+  "etc.",
+  "eg.",
+  "e.g.",
+  "ie.",
+  "i.e.",
+  "u.s.",
+  "u.k.",
+  "usa.",
+  "u.s.a.",
+  "dept.",
+  "est.",
+  "approx.",
+  "fig.",
+  "inc.",
+  "ltd.",
+  "corp.",
+  "co.",
+  "st.",
+  "ave.",
+  "blvd.",
+  "gen.",
+  "gov.",
+  "sgt.",
+  "col.",
+  "capt.",
+  "lieut.",
+  "rev.",
+]);
+
+export function isAbbreviation(word: string): boolean {
+  const clean = word.toLowerCase().trim();
+  if (COMMON_ABBREVIATIONS.has(clean)) return true;
+  // Single letter initial with period: "A.", "B.", "J."
+  if (/^[a-z]\.$/i.test(clean)) return true;
+  // Multi-initial acronyms: "U.S.", "Ph.D.", "B.C."
+  if (/^([a-z]\.){2,}$/i.test(clean)) return true;
+  return false;
+}
+
+export const SENT_END = /[.?!…。؟]["'»)”]*$/;
+
+export function isSentenceEnding(text: string, includeCommas = false): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+
+  // Guard decimal numbers like 3.14 or 10.5
+  if (/\b\d+\.\d+$/.test(trimmed)) return false;
+
+  // Guard abbreviations if ending with period
+  const matchLastWord = trimmed.match(/([A-Za-z0-9.]+)[.,?!…。؟،;:]*["'»)”]*$/);
+  if (matchLastWord && matchLastWord[1]) {
+    if (isAbbreviation(matchLastWord[1])) return false;
+  }
+
+  const regex = includeCommas ? /[.?!…。؟،;:,]["'»)”]*$/ : SENT_END;
+  return regex.test(trimmed);
+}
 
 /** Group sorted boundary candidates into clusters within tol; return cluster centers with vote counts. */
 function cluster(points: { t: number; lang: string }[], tol: number) {
@@ -453,7 +520,7 @@ export function criteriaSections(
   criteria: CriteriaId[],
   groupSettings?: Partial<CriteriaGroupSettings>,
 ): Sec[] {
-  const activeCriteria = criteria.length > 0 ? criteria : (["sentence", "pause"] as CriteriaId[]);
+  const activeCriteria = criteria.length > 0 ? criteria : (["sentence"] as CriteriaId[]);
   const cfg: CriteriaGroupSettings = {
     sentence: { ...DEFAULT_CRITERIA_SETTINGS.sentence, ...(groupSettings?.sentence ?? {}) },
     pause: { ...DEFAULT_CRITERIA_SETTINGS.pause, ...(groupSettings?.pause ?? {}) },
@@ -475,14 +542,46 @@ export function criteriaSections(
 
   const candidateCuts: number[] = [];
 
-  // 1. Sentence ending punctuation in timing base track
+  // 1. Sentence ending punctuation in timing base track (inter-cue & intra-cue)
   if (activeCriteria.includes("sentence")) {
-    const punctRegex = cfg.sentence.includeCommas ? /[.?!…。،;:,]["'»)”]*$/ : SENT_END;
-    const sentenceCuts = pv.flatMap((c, i) => {
+    const sentenceCuts: number[] = [];
+
+    // 1a. Inter-cue sentence boundary cuts
+    for (let i = 0; i < pv.length - 1; i++) {
+      const c = pv[i]!;
       const words = c.text.trim().split(/\s+/).length;
-      if (words < cfg.sentence.minWords) return [];
-      return punctRegex.test(c.text) && pv[i + 1] ? [pv[i + 1]!.start] : [];
-    });
+      if (words >= cfg.sentence.minWords && isSentenceEnding(c.text, cfg.sentence.includeCommas)) {
+        sentenceCuts.push(pv[i + 1]!.start);
+      }
+    }
+
+    // 1b. Intra-cue segment punctuation cuts (detecting punctuation inside word-timed events)
+    if (cfg.sentence.splitIntraCue) {
+      const pivotTrack = tracks[pivot] ?? Object.values(tracks)[0];
+      if (pivotTrack?.events) {
+        for (const e of pivotTrack.events) {
+          if (!e.segs || e.segs.length < 2) continue;
+          const base = e.tStartMs ?? 0;
+          let runningText = "";
+          for (let s = 0; s < e.segs.length - 1; s++) {
+            const segText = e.segs[s]!.utf8 ?? "";
+            runningText += segText;
+            const words = runningText.trim().split(/\s+/).length;
+            const nextOffset = e.segs[s + 1]?.tOffsetMs;
+            if (
+              words >= cfg.sentence.minWords &&
+              nextOffset != null &&
+              nextOffset > 0 &&
+              isSentenceEnding(runningText, cfg.sentence.includeCommas)
+            ) {
+              sentenceCuts.push(base + nextOffset);
+              runningText = "";
+            }
+          }
+        }
+      }
+    }
+
     candidateCuts.push(...sentenceCuts);
   }
 
@@ -600,7 +699,7 @@ export function sections(pivot: Cue[], strategy: Strategy): Sec[] {
 export function align(
   tracks: Record<string, Json3>,
   pivot: string,
-  strategyOrCriteria: Strategy | CriteriaId[] = ["sentence", "pause"],
+  strategyOrCriteria: Strategy | CriteriaId[] = ["sentence"],
   groupSettings?: Partial<CriteriaGroupSettings>,
 ): Row[] {
   let secs: Sec[];
@@ -612,7 +711,7 @@ export function align(
   ) {
     secs = parallelSections(tracks, pivot, strategyOrCriteria as Strategy);
   } else {
-    secs = criteriaSections(tracks, pivot, ["sentence", "pause"], groupSettings);
+    secs = criteriaSections(tracks, pivot, ["sentence"], groupSettings);
   }
 
   const rows: Row[] = secs.map((s) => ({ ...s, texts: {} }));

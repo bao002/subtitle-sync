@@ -253,17 +253,21 @@ async function runOtaUpdaterVerification() {
 
   // Verify UI integration in src/routes/index.tsx and src/components/ApkReleaseModal.tsx
   const indexFile = fs.readFileSync(path.resolve(process.cwd(), "src/routes/index.tsx"), "utf8");
+  const footerFile = fs.existsSync(path.resolve(process.cwd(), "src/components/ApkReleasesFooter.tsx"))
+    ? fs.readFileSync(path.resolve(process.cwd(), "src/components/ApkReleasesFooter.tsx"), "utf8")
+    : indexFile;
+
   assert(
     indexFile.includes("open-apk-release-button"),
     "src/routes/index.tsx has 'open-apk-release-button' in header",
   );
   assert(
-    indexFile.includes("apk-releases-footer"),
-    "src/routes/index.tsx has 'apk-releases-footer' with links for both owners",
+    indexFile.includes("ApkReleasesFooter") || indexFile.includes("apk-releases-footer"),
+    "src/routes/index.tsx integrates 'apk-releases-footer'",
   );
   assert(
-    indexFile.includes("apk-footer-download-") && indexFile.includes("apkReleaseLinks.map"),
-    "src/routes/index.tsx renders APK download links dynamically for each repo owner",
+    footerFile.includes("apk-footer-download-") && footerFile.includes("apkReleaseLinks.map"),
+    "APK footer renders APK download links dynamically for each repo owner",
   );
 
   const modalFile = fs.readFileSync(

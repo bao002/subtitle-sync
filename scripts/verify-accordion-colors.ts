@@ -65,21 +65,26 @@ assert.strictEqual(
 );
 console.log("✅ PASS: All accordion types use distinct, dedicated constant colors");
 
-// 2. Verify AccordionSection in src/routes/index.tsx sets data attributes and theme classes
+// 2. Verify AccordionSection sets data attributes and theme classes
+const accordionComponentPath = path.join(rootDir, "src/components/AccordionSection.tsx");
+const accordionContent = fs.existsSync(accordionComponentPath)
+  ? fs.readFileSync(accordionComponentPath, "utf8")
+  : indexContent;
+
 assert(
-  indexContent.includes('data-accordion-type={id}'),
+  accordionContent.includes('data-accordion-type={id}'),
   "AccordionSection must set data-accordion-type attribute",
 );
 assert(
-  indexContent.includes('data-accordion-color={theme.tagColor}'),
+  accordionContent.includes('data-accordion-color={theme.tagColor}'),
   "AccordionSection must set data-accordion-color attribute",
 );
 assert(
-  indexContent.includes('data-testid={`accordion-bar-${id}`}'),
+  accordionContent.includes('data-testid={`accordion-bar-${id}`}'),
   "AccordionSection must expose accordion-bar testid",
 );
 assert(
-  indexContent.includes('data-testid={`accordion-color-badge-${id}`}'),
+  accordionContent.includes('data-testid={`accordion-color-badge-${id}`}'),
   "AccordionSection must expose accordion-color-badge testid",
 );
 // Assert that textual color names (e.g. "{theme.tagColor}") are NOT rendered in header
