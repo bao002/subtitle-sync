@@ -28,11 +28,19 @@
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
 - Check the last GitHub Actions result and fix failed flows: continuously monitor and verify GitHub Actions workflow outcomes (such as `web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, and `integrity.yml`), diagnose the root cause of any broken or failing CI steps, and fix failed workflows promptly.
 
-## Code architecture and modularity
+## Code architecture, modularity, and standards
 
-- Maintain a documented inventory of files (e.g. in `docs/files.md`), detailing each file's specific role and feature scope.
-- Name every code file descriptively according to its exact function and feature responsibility.
-- Do not edit or concentrate code exclusively within a single main source file; decompose features, UI components, state management, and business logic into dedicated, modular files.
+- **Avoid single-file overload**:
+  - Never concentrate or overload code into a single monolithic file (such as `index.tsx`, `index.ts`, or central entry points). Monolithic files must not become "catch-all" accumulation drawers for multiple components, sprawling state hooks, and inline utilities.
+  - Proactively decompose large files into modular, focused files with single, clear responsibilities. Keep individual code files clean, concise, and focused.
+- **Component decomposition discipline**:
+  - Every structurally distinct or reusable UI component (e.g., accordion sections, table rows, subtitle highlight renderers, pagination bars, footers, modal dialogs, and feature panels) must be defined in its own dedicated component file under `src/components/`.
+  - Do not define multiple complex UI components in the same file alongside page or route definitions.
+- **Custom hooks and state isolation**:
+  - Complex state management, reactive side-effects, speech synthesis/TTS management, and multi-player coordination must be extracted into dedicated custom hooks under `src/hooks/` or state managers under `src/utils/`.
+- **Naming and file inventory**:
+  - Maintain a documented inventory of files in `docs/files.md`, detailing each file's specific role, dependencies, and feature scope.
+  - Name every code file descriptively according to its exact function and feature responsibility (e.g., `AccordionSection.tsx`, `SubtitleRow.tsx`, `HighlightedSubtitle.tsx`, `ApkReleasesFooter.tsx`).
 
 ## Clean repository hygiene and authentic testing
 

@@ -28,6 +28,11 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `src/components/VideoLibraryPanel.tsx`            | Video Library / Watch History UI | Collapsible panel presenting watched video history cards, search filter, thumbnail previews, active badge, and quick reload.       |
 | `src/components/LanguageBoxesSelector.tsx`        | Language Boxes & List Mode Selector | Presents language catalog with button toggle between touch-friendly boxes (min-h-[48px]) and compact list, keeping clicked on top. |
 | `src/components/LanguageVideoPlayerPanel.tsx`     | Language Video Player Panel UI   | Allows adding another video player configured per language, controlling subtitles via iframe URL (hl=en, cc_load_policy=1, cc_lang_pref), and network tracking. |
+| `src/components/AccordionSection.tsx`             | Accordion Section Wrapper        | Encapsulates collapsible accordion container, constant header color themes, auto-fold timer, and pin toggle.                        |
+| `src/components/HighlightedSubtitle.tsx`          | Highlighted Subtitle Renderer    | Renders subtitle text with active TTS word highlight mark ranges and pronounced sentence indicators.                                |
+| `src/components/SubtitleRow.tsx`                  | Memoized Subtitle Row Component  | Displays parallel time and language cue cells, RTL directional formatting, and per-language TTS badges.                              |
+| `src/components/SubtitlesTablePanel.tsx`          | Subtitles Table View Panel       | Encapsulates the entire parallel subtitles table layout, lines pagination bar, and alignment indicators.                           |
+| `src/components/ApkReleasesFooter.tsx`            | APK Releases Footer Component    | Modular bottom footer presenting dynamic APK release download and release page links for both repo owners.                          |
 
 ## Feature Utilities (`src/utils/`)
 
@@ -148,5 +153,8 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `scripts/verify-android-commit-25131f0-parity.ts`    | Android Commit 25131f0 Parity Test                 | Validates proactive subtitle detection in onCreate and onNewIntent, query suffix fallback, offline fixture resolution, and native subtitle sync parity. |
 | `scripts/verify-emulator-error-detection.ts`      | Emulator E2E Error Screen Detection Verification   | Asserts that Android emulator E2E tests, client startup signals, and assertion scripts strictly fail if the app renders "This page didn't load".       |
 | `scripts/verify-apk-installable.ts`               | APK Installability & Build Verification            | Asserts synchronized web assets, Android build Gradle configuration, Android manifest intent filters, cross-platform installation scripts, and release workflow packaging. |
+| `scripts/verify-subtitles-table-legitimate-json3-only.ts` | Subtitles Table View Legitimate JSON3 Only Test | Asserts subtitles table view only renders on legitimate JSON3 subtitles, no loading/error placeholders wasting space, and cols strictly non-empty. |
+| `scripts/verify-code-modularity-standards.ts`     | Code Architecture & Modularity Standards Test      | Asserts AGENTS.md codifies code modularity standards, forbids monolithic single-file overload, and mandates component and hook extraction.             |
+| `scripts/verify-index-route-decomposition.ts`     | Index Route Decomposition & Modularity Test        | Asserts extraction of AccordionSection, SubtitleRow, HighlightedSubtitle, SubtitlesTablePanel, and ApkReleasesFooter from index.tsx.                   |
 | `scripts/verify-md-links.ts`                      | Markdown Links Checker                             | Validates that all documentation cross-references and links resolve properly.                                                                          |
 | `scripts/normalize-web-assets.mjs`                | Build Asset Normalizer                             | Adjusts asset paths for GitHub Pages sub-path hosting.                                                                                                 |
