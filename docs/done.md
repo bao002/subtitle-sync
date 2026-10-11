@@ -1,5 +1,23 @@
 # Done tasks
 
+## Task 64: Restore Android App Working State to Parity with Commit 25131f042373c80ea22b51740a4dd03a358691e0
+
+### Subtask 64.1: Inspect commit 25131f042373c80ea22b51740a4dd03a358691e0, diagnose Android regressions, restore working Android runtime & asset loading, verify with dedicated test, and commit
+
+- Fetched and inspected git history and commit `25131f042373c80ea22b51740a4dd03a358691e0` from `mostuf25563/subtitle-sync` and upstream `mostuf2556/Youtubenet6`.
+- Identified regressions introduced after `25131f0`:
+  1. `proactiveDetectSubtitles` was omitted in `onCreate` and `onNewIntent`, leaving `lastObservedTimedTextUrl` null and failing to start initial caption detection.
+  2. `buildQuerySuffix` returned empty string on clean launch, omitting `?v=vBURridJXZ0&android=true` and causing asynchronous/delayed `isAndroid` evaluation.
+  3. Offline/emulator fallback to bundled fixtures for initial subtitle detection was missing when YouTube timedtext was unreachable.
+  4. `fetchFavoriteLanguageSubtitles` in `src/routes/index.tsx` was vulnerable if both native bridge and network failed without bundled JSON3 fallback.
+- Restored `proactiveDetectSubtitles(initialVideoId)` in `onCreate` and `proactiveDetectSubtitles(targetVideoId)` in `onNewIntent` in `MainActivity.kt`.
+- Restored query suffix fallback `buildQuerySuffix(sharedText).ifEmpty { "?v=vBURridJXZ0&android=true" }` in `onCreate`.
+- Restored offline fixture resolution in `proactiveDetectSubtitles` using bundled JSON3 fixtures from `assets/fixtures/L2Ryrr6txwA/en.json`, setting `lastObservedTimedTextUrl` and logging `SUBTITLE_FETCH kind=default http=200`.
+- Integrated fallback to `JSON3_RAW_MAP[code]` in `src/routes/index.tsx` `fetchFavoriteLanguageSubtitles`.
+- Updated `build:android-assets` script in `package.json` to properly invoke asset synchronization.
+- Created dedicated verification test `scripts/verify-android-commit-25131f0-parity.ts` (`npm run test:commit-25131f0-parity`) and documented in `docs/files.md`.
+- Verified compilation (`compile_applet`), linting (`npm run lint`), ran test suites, committed changes, and gracefully attempted git push.
+
 ## Task 63: Ensure Android Emulator E2E Tests Pass, APK is Installable, and App Runs Correctly
 
 ### Subtask 63.1: Ensure APK is Installable and Build/Installation Scripts Pass Robustness Checks
