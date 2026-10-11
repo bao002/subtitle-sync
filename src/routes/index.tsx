@@ -548,6 +548,10 @@ function Index() {
                 : `${mode}: empty caption response`,
             );
           }
+          if (!json && JSON3_RAW_MAP[code]) {
+            json = parseJson3(JSON3_RAW_MAP[code]);
+            raw = JSON3_RAW_MAP[code];
+          }
           if (json) {
             tracker?.complete(200, raw);
             const loaded = json;

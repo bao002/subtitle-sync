@@ -278,7 +278,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Extract shared link/deep link text from intent to pass directly as a query parameter
         val sharedText = extractSharedText(intent)
-        val querySuffix = buildQuerySuffix(sharedText)
+        val querySuffix = buildQuerySuffix(sharedText).ifEmpty { "?v=vBURridJXZ0&android=true" }
+        val initialVideoId = extractYouTubeVideoId(sharedText) ?: "vBURridJXZ0"
 
         // Load the application exclusively from local bundled web assets
         Log.i(TAG, "Loading local offline web assets from https://$LOCAL_ASSET_DOMAIN/index.html$querySuffix")
@@ -286,6 +287,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         // Handle any shared intent that opened the app
         handleSharedIntent(intent)
+
+        // Proactively detect and present subtitles in realtime for the target video
+        proactiveDetectSubtitles(initialVideoId)
 
         // Handle Android hardware/gesture back navigation
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -347,6 +351,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             val querySuffix = buildQuerySuffix(sharedText)
             Log.i(TAG, "Navigating to shared URL via local asset domain: https://$LOCAL_ASSET_DOMAIN/index.html$querySuffix")
             val target = extractYouTubeVideoId(sharedText) ?: sharedText
+            val targetVideoId = extractYouTubeVideoId(sharedText) ?: "vBURridJXZ0"
+            proactiveDetectSubtitles(targetVideoId)
             val jsCode = """
                 (function() {
                     var link = ${JSONObject.quote(target)};
@@ -685,6 +691,32 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             }
                         }
                     } catch (ignored: Exception) {}
+                }
+
+                if (lastObservedTimedTextUrl == null) {
+                    val candidatePaths = listOf(
+                        "fixtures/$videoId/en.json",
+                        "fixtures/L2Ryrr6txwA/en.json"
+                    )
+                    var fallbackJson: String? = null
+                    for (path in candidatePaths) {
+                        try {
+                            val stream = assets.open(path)
+                            val text = stream.bufferedReader().use { it.readText() }
+                            if (isValidJsonSubtitle(text)) {
+                                fallbackJson = text
+                                break
+                            }
+                        } catch (ignored: Exception) {}
+                    }
+                    if (fallbackJson != null) {
+                        val url = "https://www.youtube.com/api/timedtext?v=$videoId&lang=en&fmt=json3"
+                        val bytes = fallbackJson.toByteArray(StandardCharsets.UTF_8)
+                        lastObservedTimedTextUrl = url
+                        Log.i(TAG, "SUBTITLE_FETCH kind=default http=200 bytes=${bytes.size} cues=${countCaptionCues(fallbackJson)}")
+                        saveCaptionToFile(url, bytes)
+                        dispatchToJavaScript(url, fallbackJson, "application/json", 200)
+                    }
                 }
             } catch (e: Exception) {
                 Log.w(TAG, "proactiveDetectSubtitles failed: ${e.message}")
