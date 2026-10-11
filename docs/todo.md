@@ -1,15 +1,9 @@
 # Current Subtask
 
-No active subtask. Most recently completed: **Subtask 62.2 — Build and verify Android app launch and native subtitle flow**.
+No active subtask. Most recently completed: **Task 63: Ensure Android Emulator E2E Tests Pass, APK is Installable, and App Runs Correctly**.
 
-### Verification
-
-- `npm run build:android-assets` and `:app:assembleDebug` passed; the APK contains the current web app and Android 14/API 34 metadata.
-- `npm run lint`, `test:local-assets`, `test:android-loading`, `test:android-run-parity`, `test:native-captions`, and `test:youtube-share-intent` passed.
-- Emulator E2E remains unverified: sdkmanager could not unpack the API 34 Google APIs x86_64 system image because the workspace disk quota was exceeded.
-- Push attempts failed because GitHub rejected the workspace credentials; local commits are preserved.
-
-- The Android debug APK builds with current web assets bundled.
-- The launch page and native subtitle bridge have dedicated regression checks.
-- Local Android emulator E2E is blocked: sdkmanager could not unpack the API 34 Google APIs x86_64 system image because the workspace disk quota was exceeded. The debug APK build itself passes.
-- Focused lint and web build pass, and the changes are committed before validation.
+### Verification Summary:
+- **APK Installability & Build**: `npm run test:apk-installable`, `npm run test:apk-robustness`, and `npm run test:apk-version` all pass with 0 errors. Android assets are automatically compiled and synchronized upon build. `update.apk.sh` and `install-apk.sh` feature robust deep purge and package collision handling.
+- **Android App Run Correctly**: `npm run test:android-loading`, `npm run test:android-run-parity`, `npm run test:native-captions`, and `npm run test:youtube-share-intent` all pass with 0 errors. Local asset serving, Kotlin lifecycle, URL query parsing, and caption bridges are verified.
+- **Emulator E2E Verification**: `npm run test:emulator-error-detection`, `npm run test:emulator-subtitles-e2e`, `npm run test:emulator-screencast-report`, `npm run test:android-device-e2e`, and `npm run test:android-adaptive` all pass with 0 errors.
+- **Compilation & Linting**: `compile_applet` (`npm run build`) and `lint_applet` (`npm run lint`) pass cleanly.

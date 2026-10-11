@@ -1,5 +1,35 @@
 # Done tasks
 
+## Task 63: Ensure Android Emulator E2E Tests Pass, APK is Installable, and App Runs Correctly
+
+### Subtask 63.1: Ensure APK is Installable and Build/Installation Scripts Pass Robustness Checks
+
+- Verified production web asset bundling into `android-shell/app/src/main/assets/` (`index.html`, JavaScript chunk bundle, and stylesheet).
+- Verified Android Gradle configuration (`compileSdk = 34`, `targetSdk = 34`, `applicationId = "com.ytviewer.app"`, debug signing for release build, and `preBuild.dependsOn(prepareWebAssets)`).
+- Verified Android Manifest intent filters for `ACTION_MAIN`, `ACTION_VIEW` (browser YouTube links), and `ACTION_SEND` (plain text shares).
+- Validated cross-platform installation scripts `update.apk.sh` and `install-apk.sh` with ADB detection on Linux/macOS/Windows, multi-user deep purge (`pm uninstall --user 0`, `pm clear`), package replace flags (`-r -d -t`), and direct push fallback.
+- Validated GitHub Actions release workflow `release-apk.yml` artifact packaging (`YouTube-Viewer-debug.apk`).
+- Implemented dedicated test `scripts/verify-apk-installable.ts` (`npm run test:apk-installable`), registered in `package.json`, and documented in `docs/files.md`.
+
+### Subtask 63.2: Ensure Android App Runs Correctly (Launch, WebView Assets, and Native Bridge)
+
+- Integrated automatic asset synchronization into the root `build` script (`vite build && node scripts/normalize-web-assets.mjs dist && node scripts/sync-android-assets.mjs`) to guarantee production build chunks and bundled Android assets never drift out of sync.
+- Verified Android shell Kotlin runtime lifecycle (`MainActivity.kt`) loads exclusively from the local asset domain (`https://appassets.androidplatform.net/index.html`) without premature errors or webview reload loops on `onNewIntent`.
+- Validated native caption bridge, `tlang` replacement, base64 payload interception, and video ID query extraction across all YouTube URL formats and share intents.
+- Validated app startup readiness signals, error boundary protection, and that no error screens ("This page didn't load") are rendered.
+- Verified all dedicated test suites passed: `test:android-loading`, `test:android-run-parity`, `test:native-captions`, and `test:youtube-share-intent`.
+
+### Subtask 63.3: Ensure Android Emulator E2E Tests Pass with Assertion Flow, Error Guarding, and Report Generation
+
+- Verified Android emulator runner scripts (`scripts/run-android-e2e.sh` and `scripts/android-e2e-assert.sh`), ensuring failure detection on error pages, accurate logcat analysis, video recording, and screenshot capture.
+- Validated error screen guarding (`uiautomator dump` checks, `APP_BOOT_ERROR` / `APP_PAGE_ERROR` rejection, and halted `[APP_READY]` on router error boundary).
+- Verified emulator screencast recording lifecycle, video container finalization, and artifact extraction without polluting git history.
+- Verified GitHub Actions emulator workflow (`.github/workflows/emulation.yml`) and HTML report (`public/android-emulator-report.html`) presentation with hardware telemetry and video player embedding.
+- Verified dedicated test suites passed: `test:emulator-error-detection`, `test:emulator-subtitles-e2e`, `test:emulator-screencast-report`, `test:android-device-e2e`, `test:android-adaptive`, and `test:emulation-gh-pages`.
+
+
+
+
 ## Task 62: Fix Android App "This page didn't load" Error & Enforce Emulator E2E Failure
 
 ### Subtask 62.1: Enforce Emulator E2E Failure on Android Error Pages ("This page didn't load")

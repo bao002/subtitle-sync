@@ -129,3 +129,24 @@
   - Local emulator E2E remains unverified: sdkmanager could not unpack the API 34 Google APIs x86_64 system image because the workspace disk quota was exceeded.
   - Committed the changes and attempted to push; GitHub rejected the workspace credentials, so the commits remain local.
 
+## Task 63: Ensure Android Emulator E2E Tests Pass, APK is Installable, and App Runs Correctly
+
+- [x] **Subtask 63.1: Ensure APK is Installable and Build/Installation Scripts Pass Robustness Checks**:
+  - Verify APK build pipeline and fresh bundled web assets in `android-shell/app/src/main/assets`.
+  - Validate installation robustness across `install-apk.sh` and `update.apk.sh` (ADB detection, multi-user purge, package overwrite flags `-r -d -t`, and error recovery).
+  - Verify GitHub Actions release workflow (`release-apk.yml`) APK packaging and artifact propagation.
+  - Create/update dedicated verification test `scripts/verify-apk-installable.ts` and register in `package.json`.
+
+- [x] **Subtask 63.2: Ensure Android App Runs Correctly (Launch, WebView Assets, and Native Bridge)**:
+  - Verify Android `MainActivity.kt` handles launch, local asset resolution via WebViewAssetLoader, and query parameters cleanly without reload loops.
+  - Verify native caption bridge, timedtext interception, and YouTube share intent routing (`ACTION_VIEW` & `ACTION_SEND`) without errors or stale state.
+  - Verify that the app displays no "This page didn't load" errors or boot failures.
+  - Run dedicated tests `test:android-loading`, `test:android-run-parity`, `test:native-captions`, and `test:youtube-share-intent`.
+
+- [x] **Subtask 63.3: Ensure Android Emulator E2E Tests Pass with Assertion Flow, Error Guarding, and Report Generation**:
+  - Verify `scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, `e2e/emulation.spec.ts`, and `.github/workflows/emulation.yml`.
+  - Validate that emulator assertions fail on error screens and succeed on correct chronological subtitle fetching and share intents.
+  - Verify emulator report generation, screencast video embedding, and GitHub Pages staging.
+  - Run dedicated tests `test:emulator-error-detection`, `test:emulator-subtitles-e2e`, and `test:emulator-screencast-report`.
+
+
