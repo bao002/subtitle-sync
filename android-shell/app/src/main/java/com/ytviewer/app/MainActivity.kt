@@ -146,17 +146,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         Log.i(TAG, "Received ${rawBodyBytes.size} bytes of raw caption data.")
                         Log.i(TAG, "SUBTITLE_FETCH kind=$requestKind$langSuffix http=${response.code} bytes=${rawBodyBytes.size} cues=${countCaptionCues(rawBodyString)}")
 
-                        // 1. Save raw caption to device storage ONLY if it is valid JSON
-                        if (isValidJsonSubtitle(rawBodyString)) {
+                        // 1. Save raw caption to device storage and dispatch to JS ONLY if HTTP 200 and valid JSON3
+                        if (response.isSuccessful && isValidJsonSubtitle(rawBodyString)) {
                             saveCaptionToFile(url, rawBodyBytes)
+                            dispatchToJavaScript(url, rawBodyString, contentType, response.code)
                         } else {
-                            Log.w(TAG, "Skipping cache for caption request because response is not valid JSON ($url)")
+                            Log.w(TAG, "Skipping cache and JS dispatch for caption request because response is invalid or HTTP error (code=${response.code}, url=$url)")
                         }
 
-                        // 2. Dispatch captured data back into the WebView JavaScript runtime
-                        dispatchToJavaScript(url, rawBodyString, contentType, response.code)
-
-                        // 3. Return response stream to WebView so YouTube player displays it smoothly
+                        // 2. Return response stream to WebView so YouTube player displays it smoothly
                         return WebResourceResponse(
                             contentType.split(";")[0].trim(),
                             "UTF-8",
@@ -488,21 +486,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun countCaptionCues(rawData: String): Int {
-        try {
-            val events = JSONObject(rawData).optJSONArray("events")
-            if (events != null) {
-                return (0 until events.length()).count { eventIndex ->
-                    val segments = events.optJSONObject(eventIndex)?.optJSONArray("segs") ?: return@count false
-                    (0 until segments.length()).any { segmentIndex ->
-                        !segments.optJSONObject(segmentIndex)?.optString("utf8").isNullOrBlank()
-                    }
+        if (rawData.isBlank()) return 0
+        val trimmed = rawData.trim()
+        if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return 0
+        return try {
+            val events = JSONObject(trimmed).optJSONArray("events") ?: return 0
+            (0 until events.length()).count { eventIndex ->
+                val segments = events.optJSONObject(eventIndex)?.optJSONArray("segs") ?: return@count false
+                (0 until segments.length()).any { segmentIndex ->
+                    !segments.optJSONObject(segmentIndex)?.optString("utf8").isNullOrBlank()
                 }
             }
         } catch (ignored: Exception) {
+            0
         }
-        return Regex("<text\\b[^>]*>(.*?)</text>", RegexOption.DOT_MATCHES_ALL)
-            .findAll(rawData)
-            .count { it.groupValues[1].replace(Regex("<[^>]*>"), "").isNotBlank() }
     }
 
     private fun dispatchToJavaScript(url: String, rawData: String, contentType: String, status: Int) {
@@ -533,45 +530,6 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
-    private fun convertXmlToJson3(xml: String): String {
-        return try {
-            val textMatches = Regex("<text\\b([^>]*)>(.*?)</text>", RegexOption.DOT_MATCHES_ALL).findAll(xml).toList()
-            if (textMatches.isEmpty()) return ""
-            val events = org.json.JSONArray()
-            for (match in textMatches) {
-                val attrs = match.groupValues[1]
-                val content = match.groupValues[2]
-                    .replace(Regex("<[^>]*>"), "")
-                    .replace("&amp;", "&")
-                    .replace("&lt;", "<")
-                    .replace("&gt;", ">")
-                    .replace("&quot;", "\"")
-                    .replace("&#39;", "'")
-                    .trim()
-                if (content.isEmpty()) continue
-                val startMatch = Regex("start=[\"']([0-9.]+)[\"']").find(attrs)
-                val durMatch = Regex("dur=[\"']([0-9.]+)[\"']").find(attrs)
-                val startSec = startMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 0.0
-                val durSec = durMatch?.groupValues?.get(1)?.toDoubleOrNull() ?: 2.0
-                val eventObj = JSONObject().apply {
-                    put("tStartMs", (startSec * 1000).toLong())
-                    put("dDurationMs", (durSec * 1000).toLong())
-                    put("segs", org.json.JSONArray().apply {
-                        put(JSONObject().apply { put("utf8", content) })
-                    })
-                }
-                events.put(eventObj)
-            }
-            if (events.length() == 0) return ""
-            JSONObject().apply {
-                put("wireMagic", "pb3")
-                put("events", events)
-            }.toString()
-        } catch (ignored: Exception) {
-            ""
-        }
-    }
-
     private fun proactiveDetectSubtitles(videoId: String) {
         if (videoId.isBlank()) return
         Thread {
@@ -596,14 +554,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         val resp = okHttpClient.newCall(req).execute()
                         if (resp.isSuccessful) {
                             val body = resp.body?.string() ?: ""
-                            val json3 = if (body.trim().startsWith("{")) body else convertXmlToJson3(body)
-                            if (isValidJsonSubtitle(json3)) {
-                                val bytes = json3.toByteArray(StandardCharsets.UTF_8)
+                            if (isValidJsonSubtitle(body)) {
+                                val bytes = body.toByteArray(StandardCharsets.UTF_8)
                                 lastObservedTimedTextUrl = url
-                                Log.i(TAG, "SUBTITLE_FETCH kind=default http=200 bytes=${bytes.size} cues=${countCaptionCues(json3)}")
+                                Log.i(TAG, "SUBTITLE_FETCH kind=default http=200 bytes=${bytes.size} cues=${countCaptionCues(body)}")
                                 saveCaptionToFile(url, bytes)
-                                dispatchToJavaScript(url, json3, "application/json", 200)
+                                dispatchToJavaScript(url, body, "application/json", 200)
                                 break
+                            } else {
+                                Log.w(TAG, "Proactive detect response for $url was non-JSON3 or bad response (bytes=${body.length})")
                             }
                         }
                     } catch (ignored: Exception) {}

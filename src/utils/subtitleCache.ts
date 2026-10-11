@@ -36,7 +36,11 @@ export function isValidJsonSubtitleResponse(data: unknown): boolean {
   let parsed: unknown = data;
   if (typeof data === "string") {
     const trimmed = data.trim();
+    // Every non-JSON3 response (HTML, XML, plain text, etc.) is strictly rejected
     if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+      return false;
+    }
+    if (!trimmed.endsWith("}") && !trimmed.endsWith("]")) {
       return false;
     }
     try {
@@ -141,18 +145,30 @@ export function getCachedSubtitles(videoId: string): CaptionCue[] | null {
     try {
       const raw = localStorage.getItem(`${SUBTITLE_CACHE_PREFIX}${videoId}`);
       if (raw) {
-        const parsed = JSON.parse(raw);
-        const cuesList = Array.isArray(parsed) ? parsed : parsed.cues;
-        if (Array.isArray(cuesList) && cuesList.length > 0) {
-          const sanitized = sanitizeCues(cuesList);
-          if (sanitized.length > 0) {
-            memoryCache.set(videoId, sanitized);
-            return sanitized;
+        if (!isValidJsonSubtitleResponse(raw)) {
+          // Immediately evict invalid/corrupted cache item
+          localStorage.removeItem(`${SUBTITLE_CACHE_PREFIX}${videoId}`);
+        } else {
+          const parsed = JSON.parse(raw);
+          const cuesList = Array.isArray(parsed) ? parsed : parsed.cues;
+          if (Array.isArray(cuesList) && cuesList.length > 0) {
+            const sanitized = sanitizeCues(cuesList);
+            if (sanitized.length > 0) {
+              memoryCache.set(videoId, sanitized);
+              return sanitized;
+            } else {
+              localStorage.removeItem(`${SUBTITLE_CACHE_PREFIX}${videoId}`);
+            }
+          } else {
+            localStorage.removeItem(`${SUBTITLE_CACHE_PREFIX}${videoId}`);
           }
         }
       }
     } catch (err) {
       console.warn(`[SubtitleCache] Failed reading dedicated cache for ${videoId}:`, err);
+      try {
+        localStorage.removeItem(`${SUBTITLE_CACHE_PREFIX}${videoId}`);
+      } catch {}
     }
   }
 
@@ -402,15 +418,29 @@ export function getCachedTargetSubtitles(videoId: string, targetLang: string): C
     try {
       const raw = localStorage.getItem(targetKey);
       if (raw) {
-        const parsed = JSON.parse(raw);
-        const cuesList = Array.isArray(parsed) ? parsed : parsed.cues;
-        if (Array.isArray(cuesList) && cuesList.length > 0) {
-          const sanitized = sanitizeCues(cuesList);
-          memoryCache.set(targetKey, sanitized);
-          return sanitized;
+        if (!isValidJsonSubtitleResponse(raw)) {
+          localStorage.removeItem(targetKey);
+        } else {
+          const parsed = JSON.parse(raw);
+          const cuesList = Array.isArray(parsed) ? parsed : parsed.cues;
+          if (Array.isArray(cuesList) && cuesList.length > 0) {
+            const sanitized = sanitizeCues(cuesList);
+            if (sanitized.length > 0) {
+              memoryCache.set(targetKey, sanitized);
+              return sanitized;
+            } else {
+              localStorage.removeItem(targetKey);
+            }
+          } else {
+            localStorage.removeItem(targetKey);
+          }
         }
       }
-    } catch {}
+    } catch {
+      try {
+        localStorage.removeItem(targetKey);
+      } catch {}
+    }
   }
 
   return null;
@@ -454,10 +484,18 @@ export function saveCachedTargetSubtitles(
  * Returns true if saved, false if rejected due to invalid JSON.
  */
 export function saveCachedRawJson3(videoId: string, targetLang: string, rawJson3: string): boolean {
-  if (!videoId || !targetLang || !rawJson3) return false;
-  if (!isValidJsonSubtitleResponse(rawJson3)) {
+  if (!videoId || !targetLang || !rawJson3 || typeof rawJson3 !== "string") return false;
+  const trimmed = rawJson3.trim();
+  // Strictly enforce that raw response must be authentic JSON3 schema
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}") || !trimmed.includes('"events"')) {
     console.warn(
-      `[SubtitleCache] Refusing to cache invalid raw JSON3 response for ${videoId} (${targetLang})`,
+      `[SubtitleCache] Refusing to cache non-JSON3 / errored response for ${videoId} (${targetLang})`,
+    );
+    return false;
+  }
+  if (!isValidJsonSubtitleResponse(trimmed)) {
+    console.warn(
+      `[SubtitleCache] Refusing to cache invalid/empty JSON3 response for ${videoId} (${targetLang})`,
     );
     return false;
   }
@@ -465,13 +503,37 @@ export function saveCachedRawJson3(videoId: string, targetLang: string, rawJson3
   try {
     const cleanLang = targetLang.toLowerCase().split("-")[0];
     const targetKey = `${SUBTITLE_CACHE_PREFIX}raw_${videoId}_${cleanLang}`;
-    localStorage.setItem(
-      targetKey,
-      typeof rawJson3 === "string" ? rawJson3 : JSON.stringify(rawJson3),
-    );
+    localStorage.setItem(targetKey, trimmed);
     return true;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Gets cached raw JSON3 timedtext string from localStorage if valid.
+ * Evicts invalid, non-JSON3, or corrupted entries on read.
+ */
+export function getCachedRawJson3(videoId: string, targetLang: string): string | null {
+  if (!videoId || !targetLang || !isStorageAvailable()) return null;
+  try {
+    const cleanLang = targetLang.toLowerCase().split("-")[0];
+    const targetKey = `${SUBTITLE_CACHE_PREFIX}raw_${videoId}_${cleanLang}`;
+    const raw = localStorage.getItem(targetKey);
+    if (!raw) return null;
+    const trimmed = raw.trim();
+    if (
+      !trimmed.startsWith("{") ||
+      !trimmed.endsWith("}") ||
+      !trimmed.includes('"events"') ||
+      !isValidJsonSubtitleResponse(trimmed)
+    ) {
+      localStorage.removeItem(targetKey);
+      return null;
+    }
+    return trimmed;
+  } catch {
+    return null;
   }
 }
 

@@ -32,78 +32,22 @@ export function parseJson3(raw: string): Json3 | null {
   if (!raw || typeof raw !== "string") return null;
   const trimmed = raw.trim();
 
-  // 1. Try standard JSON3 parse
-  if (trimmed.startsWith("{")) {
-    try {
-      const data = JSON.parse(trimmed) as Json3;
-      if (
-        Array.isArray(data.events) &&
-        data.events.some((event) => event.segs?.some((s) => s.utf8?.trim()))
-      ) {
-        return data;
-      }
-    } catch {
-      // Continue to XML parser
-    }
+  // Every non-JSON3 response (HTML, XML, plain text, malformed JSON) is an errored / bad response
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+    return null;
   }
 
-  // 2. Resilient XML Fallback parser for timedtext XML / format 3 / transcript
   try {
-    const textMatches = Array.from(trimmed.matchAll(/<text\b([^>]*)>(.*?)<\/text>/gis));
-    if (textMatches.length > 0) {
-      const events: Json3["events"] = [];
-      for (const match of textMatches) {
-        const attrs = match[1];
-        const content = match[2]
-          .replace(/<[^>]*>/g, "")
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .trim();
-        if (!content) continue;
-        const startSec = parseFloat(attrs.match(/start=["']([0-9.]+)["']/i)?.[1] || "0");
-        const durSec = parseFloat(attrs.match(/dur=["']([0-9.]+)["']/i)?.[1] || "2");
-        events.push({
-          tStartMs: Math.round(startSec * 1000),
-          dDurationMs: Math.round(durSec * 1000),
-          segs: [{ utf8: content }],
-        });
-      }
-      if (events.length > 0) {
-        return { events };
-      }
-    }
-
-    const pMatches = Array.from(trimmed.matchAll(/<p\b([^>]*)>(.*?)<\/p>/gis));
-    if (pMatches.length > 0) {
-      const events: Json3["events"] = [];
-      for (const match of pMatches) {
-        const attrs = match[1];
-        const content = match[2]
-          .replace(/<[^>]*>/g, "")
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .trim();
-        if (!content) continue;
-        const startMs = parseInt(attrs.match(/t=["']([0-9]+)["']/i)?.[1] || "0", 10);
-        const durMs = parseInt(attrs.match(/d=["']([0-9]+)["']/i)?.[1] || "2000", 10);
-        events.push({
-          tStartMs: startMs,
-          dDurationMs: durMs,
-          segs: [{ utf8: content }],
-        });
-      }
-      if (events.length > 0) {
-        return { events };
-      }
+    const data = JSON.parse(trimmed) as Json3;
+    if (
+      Array.isArray(data.events) &&
+      data.events.length > 0 &&
+      data.events.some((event) => event.segs?.some((s) => s.utf8?.trim()))
+    ) {
+      return data;
     }
   } catch {
-    // Ignore XML parse errors
+    // Malformed JSON is an errored response
   }
 
   return null;

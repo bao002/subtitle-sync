@@ -1,5 +1,39 @@
 # Done tasks
 
+## Task 68: Enforce Strict JSON3-Only Response Validation Across Parsers, Network Handlers, and Caches
+
+### Subtask 68.1: Reject All Non-JSON3 Subtitle Responses as Bad/Errored Responses and Prohibit Non-JSON3 Caching Across Application
+
+- Enforced that every subtitle response that is not authentic JSON3 (including XML `<transcript>`, HTML error pages, VTT, plain text, and empty events) is strictly treated as an errored / bad response.
+- Updated `src/utils/captionParser.ts` (`parseRawCaptionData`) and `src/lib/native-captions.ts` (`parseJson3`) to reject non-JSON3 payloads, completely eliminating XML parsing and requiring authentic `json3` structural schema with valid events and utf8 segments.
+- Updated `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` to eliminate `convertXmlToJson3`, require `isValidJsonSubtitle(body)` across proactive subtitle detection, native OkHttp repetition, and caching, rejecting any non-JSON3 response and preventing it from being cached or dispatched.
+- Updated `src/routes/index.tsx` subtitle fetch and bridge handlers to treat non-JSON3 responses as errors and trigger mode fallback, caching only valid JSON3 responses via `saveCachedRawJson3`.
+- Updated `src/utils/subtitleCache.ts` (`saveCachedRawJson3`, `getCachedRawJson3`, `isValidJsonSubtitleResponse`) to prohibit caching non-JSON3 responses and perform read-time eviction of non-JSON3 or corrupted entries.
+- Created dedicated verification test `scripts/verify-strict-json3-only-validation.ts` (`npm run test:strict-json3-validation`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified 100% test pass rate across all suites, clean app compilation (`compile_applet`), and zero ESLint errors (`lint_applet`).
+
+## Task 67: Prevent HTML Parsing of Non-Validated Subtitle Requests and Enforce Strict Pre-Cache/Bridge Validation
+
+### Subtask 67.1: Enforce Strict Pre-Validation Against HTML Parsing and Ensure Unvalidated Responses Are Never Cached
+
+- Updated `src/lib/native-captions.ts` (`parseJson3`) and `src/utils/captionParser.ts` (`parseRawCaptionData`) with strict guards against HTML error responses (`<!DOCTYPE html>`, `<html>`, `<body>`, `<head>`), completely preventing HTML parsing on non-validated requests.
+- Updated `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` to enforce `response.isSuccessful && isValidJsonSubtitle(rawBodyString)` before file caching, XML-to-JSON3 conversion, cue counting, and WebView bridge dispatch, ensuring non-200 or HTML error responses are never cached or dispatched as captions.
+- Updated `src/routes/index.tsx` `onNativeCaptionsInterceptedBase64` and `fetchTranslatedCaptionsWithUrl` to validate raw subtitle payloads with `isValidJsonSubtitleResponse()` prior to parsing or updating track state.
+- Enhanced `src/utils/subtitleCache.ts` with read-time eviction for corrupted or malformed entries, strict pre-cache validation gates (`isValidJsonSubtitleResponse`), and added `saveCachedRawJson3` / `getCachedRawJson3`.
+- Created dedicated verification test `scripts/verify-html-response-guard-and-caching.ts` (`npm run test:html-guard-caching`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified clean build (`compile_applet`), zero lint errors (`lint_applet`), and 100% test pass rate across test suites.
+
+## Task 66: Document Subtitle Fetching Fallback Strategy, Anti-Bot Execution, JSON3 Validation, and Caching Mechanisms in AGENTS.md
+
+### Subtask 66.1: Update AGENTS.md with Subtitle Fetch Fallback, Anti-Bot Strategy, JSON3 Validation, and Cache Rules
+
+- Documented the subtitles fetch fallback strategy: `lang` replacement vs `tlang` parameterization, preserving authentic session signature query parameters, and user toggling between modes via device-saved preferences (`SubtitleRequestMode` in `src/lib/playback-preferences.ts`).
+- Documented anti-bot strategy for YouTube timedtext requests: capturing real WebView player session headers (`lastObservedHeaders`), stripping `; wv` from the User-Agent string to match genuine mobile Chrome, request pacing, and jitter to avoid 429/403 blocks.
+- Documented strict request validation standards: HTTP 200 status assertion, valid JSON parsing, YouTube `json3` structural schema verification (top-level `events` array, `tStartMs`, `dDurationMs`, and `segs` with non-empty `utf8` segments), and non-zero cue count.
+- Documented the caching integrity rules: pre-cache validation gate via `isValidJsonSubtitleResponse()`, never caching invalidated or error responses, read-time corrupted cue eviction, and explicit user cache controls.
+- Created dedicated verification test `scripts/verify-agents-subtitles-spec.ts` (`npm run test:agents-subtitles-spec`), registered in `package.json`, and documented in `docs/files.md`.
+- Verified 100% test pass rate across all suites, clean app compilation (`compile_applet`), and zero ESLint errors (`lint_applet`).
+
 ## Task 65: Remove Language Video Player Accordion, Harmonize Accordion VideoIDs & Remove Android Subtitle Fixtures
 
 ### Subtask 65.1: Remove the Language Video Player Accordion Element

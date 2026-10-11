@@ -94,7 +94,7 @@ import { VideoLibraryPanel } from "@/components/VideoLibraryPanel";
 import { recordVideoWatch } from "@/utils/videoLibraryManager";
 import { notifySubtitleFetch } from "@/utils/subtitleNotificationManager";
 import { getApkReleaseLinks } from "@/utils/apkUpdater";
-import { isValidJsonSubtitleResponse } from "@/utils/subtitleCache";
+import { isValidJsonSubtitleResponse, saveCachedRawJson3 } from "@/utils/subtitleCache";
 import { STORAGE_KEYS, APP_VERSION, ALL_RELEASES_URL, DEFAULT_VIDEO_ID } from "@/config/appConfig";
 import { JSON3_RAW_MAP } from "../../test/fixtures/L2Ryrr6txwA/jsonStrings";
 
@@ -549,6 +549,9 @@ function Index() {
           }
           if (json) {
             tracker?.complete(200, raw);
+            if (videoId) {
+              saveCachedRawJson3(videoId, code, raw);
+            }
             const loaded = json;
             next[code] = loaded;
             startSubtitlesTransition(() => {
@@ -586,7 +589,7 @@ function Index() {
         }
       }
     },
-    [isAndroid, autoSpeakOnFetch],
+    [isAndroid, autoSpeakOnFetch, videoId],
   );
 
   const manualFetchFailed = () => {
@@ -875,10 +878,15 @@ function Index() {
       if (defaultLang) {
         try {
           const raw = shell!.fetchTranslatedCaptionsWithUrl(captured, defaultLang, "json3");
-          const json = parseJson3(raw);
-          if (json) {
-            setTracks((prev) => ({ ...prev, [defaultLang]: json }));
-            setShown((prev) => (prev.includes(defaultLang) ? prev : [defaultLang, ...prev]));
+          if (raw && isValidJsonSubtitleResponse(raw)) {
+            const json = parseJson3(raw);
+            if (json) {
+              if (videoId) {
+                saveCachedRawJson3(videoId, defaultLang, raw);
+              }
+              setTracks((prev) => ({ ...prev, [defaultLang]: json }));
+              setShown((prev) => (prev.includes(defaultLang) ? prev : [defaultLang, ...prev]));
+            }
           }
         } catch (_e) {
           // ignore native bridge fetch error
@@ -890,6 +898,13 @@ function Index() {
       if (!payload) return;
       const urlVideoId = timedTextVideoId(payload.url);
       if (urlVideoId && urlVideoId !== videoId) return;
+
+      // Discard invalid, non-JSON3, error pages, or empty subtitle payloads
+      if (!isValidJsonSubtitleResponse(payload.rawData)) {
+        console.warn("[Interception] Discarded non-JSON3 / bad response payload:", payload.url);
+        return;
+      }
+
       const tracker = trackNetworkRequest(payload.url, "GET", "timedtext_interception");
       tracker.complete(200, payload.rawData);
       let requestUrl: URL | null = null;
@@ -907,6 +922,9 @@ function Index() {
         setDefaultCaptionsLoaded(true);
       }
       if (lang) {
+        if (videoId) {
+          saveCachedRawJson3(videoId, lang, payload.rawData);
+        }
         startSubtitlesTransition(() => {
           setTracks((prev) => ({ ...prev, [lang]: json }));
           setShown((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
@@ -1487,12 +1505,12 @@ function Index() {
       addedCodes.add(baseLanguage);
     }
 
-    // 2. Add all ordered languages that have tracks or are favorite languages, and are shown
+    // 2. Add all ordered languages that have valid tracks, and are shown
     for (const l of orderedLangs) {
       if (
         !addedCodes.has(l.code) &&
         shown.includes(l.code) &&
-        (targetLanguages.includes(l.code) || (tracks ? Boolean(tracks[l.code]) : true))
+        Boolean(tracks?.[l.code] && tracks[l.code].length > 0)
       ) {
         list.push(l);
         addedCodes.add(l.code);
@@ -1502,7 +1520,7 @@ function Index() {
     // 3. Fallback: add any remaining tracks present in shown
     if (tracks) {
       for (const code of Object.keys(tracks)) {
-        if (!addedCodes.has(code) && shown.includes(code)) {
+        if (!addedCodes.has(code) && shown.includes(code) && tracks[code]?.length > 0) {
           list.push(getLanguageMeta(code));
           addedCodes.add(code);
         }
@@ -1510,7 +1528,15 @@ function Index() {
     }
 
     return list;
-  }, [isAndroid, tracks, baseLanguage, orderedLangs, shown, targetLanguages]);
+  }, [tracks, baseLanguage, orderedLangs, shown]);
+
+  const hasLegitimateSubtitles = useMemo(() => {
+    if (!tracks) return false;
+    const hasValidTrack = Object.values(tracks).some(
+      (cues) => Array.isArray(cues) && cues.length > 0,
+    );
+    return Boolean(hasValidTrack && rows.length > 0 && cols.length > 0);
+  }, [tracks, rows.length, cols.length]);
 
   const missingFavoriteLanguages = useMemo(() => {
     return targetLanguages.filter((code) => !tracks?.[code]);
@@ -1685,6 +1711,7 @@ function Index() {
         {panelOrder.map((panelId, panelIndex) => {
           const panel = PANELS.find((candidate) => candidate.id === panelId);
           if (!panel) return null;
+          if (panelId === "subtitles" && !hasLegitimateSubtitles) return null;
           return (
             <AccordionSection
               key={panelId}
@@ -2656,14 +2683,12 @@ function Index() {
               )}
 
               {panelId === "subtitles" &&
-                (!tracks || cols.length === 0 ? (
-                  <p className="p-2 text-muted-foreground">
-                    {isAndroid
-                      ? "Waiting for subtitles… Play the video and ensure captions are enabled."
-                      : "Loading subtitles…"}
-                  </p>
-                ) : (
-                  <div className="max-h-[calc(100vh-8rem)] overflow-auto">
+                (!hasLegitimateSubtitles ? null : (
+                  <div
+                    id="subtitles-table-panel"
+                    data-testid="subtitles-table-panel"
+                    className="max-h-[calc(100vh-8rem)] overflow-auto"
+                  >
                     {isAndroid && rows.length > 0 && (
                       <div
                         data-testid="android-subtitles-pagination-bar"
@@ -2955,9 +2980,7 @@ const SubtitleRow = memo(function SubtitleRow({
                 : ""
             }`}
           >
-            {tracks && !tracks[l.code] ? (
-              <span className="text-xs text-muted-foreground italic">Loading subtitles…</span>
-            ) : (
+            {tracks && !tracks[l.code] ? null : (
               <div
                 data-testid={`sentence-container-${actualIndex}-${l.code}`}
                 data-tts-pronounced-highlight={isPronouncedHighlight ? "true" : "false"}

@@ -157,4 +157,43 @@
   - Create dedicated verification test `scripts/verify-accordion-video-id-and-no-android-fixtures.ts`, register `npm run test:accordion-video-id-and-no-android-fixtures` in `package.json`, and document in `docs/files.md`.
   - Test thoroughly with dedicated tests, verify app compilation and linting, and perform dedicated git commit.
 
+## Task 66: Document Subtitle Fetching Fallback Strategy, Anti-Bot Execution, JSON3 Validation, and Caching Mechanisms in AGENTS.md
+
+- [x] **Subtask 66.1: Update AGENTS.md with Subtitle Fetch Fallback, Anti-Bot Strategy, JSON3 Validation, and Cache Rules**:
+  - Incorporate the dual subtitle fetch fallback strategy (toggling between `tlang` parameter and replacing `lang` code while preserving base URL signatures) into `AGENTS.md`.
+  - Document the anti-bot strategy for YouTube timedtext requests (WebView session interception, User-Agent sanitization stripping `; wv`, mirroring authentic headers, request pacing, and avoiding automated bot blocking) in `AGENTS.md`.
+  - Document strict request validation standards (HTTP 200, valid JSON parse, YouTube `json3` schema with non-empty `events` containing `tStartMs`, `dDurationMs`, and `segs` with `utf8`, and non-zero cue count) in `AGENTS.md`.
+  - Document the caching integrity mandate (never cache invalidated responses, error payloads, HTML pages, or zero-cue records) in `AGENTS.md`.
+  - Create dedicated verification test `scripts/verify-agents-subtitles-spec.ts` and register `npm run test:agents-subtitles-spec` in `package.json`.
+  - Verify app compilation, linting, run tests, and perform git commit.
+
+## Task 67: Prevent HTML Parsing of Non-Validated Subtitle Requests and Enforce Strict Pre-Cache/Bridge Validation
+
+- [x] **Subtask 67.1: Enforce Strict Pre-Validation Against HTML Parsing and Ensure Unvalidated Responses Are Never Cached**:
+  - Update `src/lib/native-captions.ts` (`parseJson3`) and `src/utils/captionParser.ts` (`parseRawCaptionData`) to reject HTML error responses (`<!DOCTYPE html>`, `<html>`, `<body>`, `<head>`), preventing HTML parsing on non-validated requests.
+  - Update `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` to guard file caching, XML-to-JSON3 conversion, cue counting, and WebView bridge dispatch so non-200 or invalid/HTML responses are never cached or treated as captions.
+  - Update `src/routes/index.tsx` `onNativeCaptionsInterceptedBase64` and native bridge fetch to validate with `isValidJsonSubtitleResponse()` before parsing or updating track state.
+  - Update `src/utils/subtitleCache.ts` to implement read-time cache eviction for corrupted/empty records and add validated `getCachedRawJson3()`.
+  - Create dedicated verification test `scripts/verify-html-response-guard-and-caching.ts` and register `npm run test:html-guard-caching` in `package.json`.
+  - Verify app compilation, linting, run tests, and perform git commit.
+
+## Task 68: Enforce Strict JSON3-Only Response Validation Across Parsers, Network Handlers, and Caches
+
+- [x] **Subtask 68.1: Reject All Non-JSON3 Subtitle Responses as Bad/Errored Responses and Prohibit Non-JSON3 Caching Across Application**:
+  - Enforce that any response that is not authentic JSON3 (including XML `<transcript>`, HTML error pages, VTT, plain text, or empty events) is strictly treated as an errored / bad response.
+  - Update `src/utils/captionParser.ts` (`parseRawCaptionData`, `identifyCaptionFormat`) to reject non-JSON3 responses as invalid/bad responses rather than accepting XML or fallback formats for YouTube timedtext.
+  - Update `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` to eliminate XML-to-JSON3 acceptance and treat any non-JSON3 response as a failure (`!isValidJsonSubtitle`), never caching it or dispatching it as valid captions.
+  - Update `src/routes/index.tsx` subtitle fetch and bridge handlers to treat any non-JSON3 response as a fetch error and trigger fallback mode (`tlang` <-> `lang`).
+  - Update `src/utils/subtitleCache.ts` to strictly prohibit caching any non-JSON3 payload and evict any non-JSON3 entry.
+  - Create dedicated verification test `scripts/verify-strict-json3-only-validation.ts` and register `npm run test:strict-json3-validation` in `package.json`.
+  - Run all verification tests, compile applet, lint applet, commit changes, and attempt push.
+
+## Task 69: Subtitles Table View Only Rendered on Legitimate JSON3 Subtitles Response Without Wasting Space on Loading or Error States
+
+- [ ] **Subtask 69.1: Hide Subtitles Table View During Loading/Error States and Render Only When Legitimate JSON3 Subtitles Are Fetched**:
+  - Update `src/routes/index.tsx` so the subtitles table view (`panelId === "subtitles"`) does not waste space rendering loading placeholders ("Loading subtitles…", "Waiting for subtitles…") or error states.
+  - Enforce `hasLegitimateSubtitles` so the subtitles table view accordion section is only rendered when legitimate JSON3 subtitles are fetched with non-empty cues (`rows.length > 0` and `cols.length > 0`).
+  - Update `cols` calculation and individual cell rendering in `SubtitleRow` so no column or cell wastes space with loading or error placeholders.
+  - Create dedicated verification test `scripts/verify-subtitles-table-legitimate-json3-only.ts` and register `npm run test:subtitles-table-legitimate-only` in `package.json`.
+  - Document in `docs/files.md`, run verification tests, compile applet (`compile_applet`), lint applet (`lint_applet`), commit changes, and attempt push.
 

@@ -175,11 +175,13 @@ export function parseRawCaptionData(rawData: string): ParsedCaptionResult {
 
   const trimmed = rawData.trim();
 
-  // JSON3 detection: starts with { and contains "events"
-  if (trimmed.startsWith("{") && /"events"\s*:/.test(trimmed)) {
-    const cues = parseJson3(trimmed);
-    if (cues.length > 0) return { format: "json3", cues };
+  // Every non-JSON3 response (HTML, XML, plain text, malformed JSON) is strictly an errored / bad response
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}") || !/"events"\s*:/.test(trimmed)) {
+    return { format: "unknown", cues: [] };
   }
+
+  const cues = parseJson3(trimmed);
+  if (cues.length > 0) return { format: "json3", cues };
 
   return { format: "unknown", cues: [] };
 }
