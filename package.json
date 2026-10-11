@@ -98,6 +98,9 @@
     "test:parser-docs": "tsx scripts/verify-parser-docs.ts",
     "test:default-punctuation": "tsx scripts/verify-default-punctuation-splitting.ts",
     "test:parser-timing-lab": "tsx scripts/verify-parser-timing-lab.ts",
+    "test:tokens-economy": "tsx scripts/verify-tokens-economy.ts",
+    "test:android-e2e-spec": "tsx scripts/verify-android-e2e-spec.ts",
+    "test:hotfix-workflow": "tsx scripts/verify-hotfix-and-done-workflow.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

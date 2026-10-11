@@ -147,6 +147,38 @@ EOF
     # Clear logcat buffer
     adb_cmd logcat -c 2>/dev/null || true
 
+    # Start screencast recording in the background on the device before launch
+    RECORDING_PID=""
+    VIDEO_REMOTE="/sdcard/android-emulator-video.mp4"
+    VIDEO_OUT="${ROOT_DIR}/android-emulator-video.mp4"
+    echo "--> Starting Android screencast recording via screenrecord before app launch..."
+    adb_cmd shell rm -f "${VIDEO_REMOTE}" 2>/dev/null || true
+    adb_cmd shell screenrecord --time-limit 180 --bit-rate 4000000 "${VIDEO_REMOTE}" >/dev/null 2>&1 &
+    RECORDING_PID=$!
+    echo "  screenrecord started (runner background PID: ${RECORDING_PID})"
+
+    stop_recording_and_pull() {
+      echo "--> Stopping screencast recording and pulling video..."
+      if [[ -n "${RECORDING_PID}" ]] && kill -0 "${RECORDING_PID}" 2>/dev/null; then
+        # Send SIGINT inside device shell to cleanly finalize MP4 container
+        adb_cmd shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true"
+        wait "${RECORDING_PID}" 2>/dev/null || true
+        sleep 3
+      fi
+      adb_cmd pull "${VIDEO_REMOTE}" "${VIDEO_OUT}" 2>/dev/null || true
+      if [[ -f "${VIDEO_OUT}" && -s "${VIDEO_OUT}" ]]; then
+        FILE_SIZE=$(wc -c < "${VIDEO_OUT}" 2>/dev/null | tr -d ' ' || echo 0)
+        echo "✓ Video screencast pulled to: ${VIDEO_OUT} (${FILE_SIZE} bytes)"
+        mkdir -p "${ROOT_DIR}/public/screenshots" "${ROOT_DIR}/public/android/screenshots" "${ROOT_DIR}/public/android"
+        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/screenshots/android-emulator-video.mp4" 2>/dev/null || true
+        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/android/screenshots/android-emulator-video.mp4" 2>/dev/null || true
+        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/android/android-emulator-video.mp4" 2>/dev/null || true
+      else
+        echo "ℹ️ No video file retrieved from emulator/device."
+      fi
+    }
+    trap stop_recording_and_pull EXIT INT TERM ERR
+
     echo "--> Launching MainActivity with Target URL: ${TARGET_VIDEO_URL}..."
     adb_cmd shell am start -n "${MAIN_ACTIVITY}" -d "${TARGET_VIDEO_URL}" || true
 
@@ -172,36 +204,6 @@ EOF
 
     echo "--> Capturing foreground activity state..."
     adb_cmd shell dumpsys activity "${PACKAGE_NAME}" | grep -E "mResumed|topResumedActivity|ActivityRecord" | head -n 10 || true
-
-    # Start screencast recording in the background on the device
-    RECORDING_PID=""
-    VIDEO_REMOTE="/sdcard/android-emulator-video.mp4"
-    VIDEO_OUT="${ROOT_DIR}/android-emulator-video.mp4"
-    echo "--> Starting Android screencast recording via screenrecord..."
-    adb_cmd shell rm -f "${VIDEO_REMOTE}" 2>/dev/null || true
-    adb_cmd shell screenrecord --time-limit 180 --bit-rate 4000000 "${VIDEO_REMOTE}" >/dev/null 2>&1 &
-    RECORDING_PID=$!
-    echo "  screenrecord started (runner background PID: ${RECORDING_PID})"
-
-    stop_recording_and_pull() {
-      echo "--> Stopping screencast recording and pulling video..."
-      if [[ -n "${RECORDING_PID}" ]] && kill -0 "${RECORDING_PID}" 2>/dev/null; then
-        # Send SIGINT to adb screenrecord process so it finalizes MP4 container
-        adb_cmd shell pkill -2 -f "screenrecord" 2>/dev/null || true
-        wait "${RECORDING_PID}" 2>/dev/null || true
-        sleep 3
-      fi
-      adb_cmd pull "${VIDEO_REMOTE}" "${VIDEO_OUT}" 2>/dev/null || true
-      if [[ -f "${VIDEO_OUT}" && -s "${VIDEO_OUT}" ]]; then
-        echo "✓ Video screencast pulled to: ${VIDEO_OUT}"
-        mkdir -p "${ROOT_DIR}/public/screenshots" "${ROOT_DIR}/public/android/screenshots"
-        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/screenshots/android-emulator-video.mp4" 2>/dev/null || true
-        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/android/screenshots/android-emulator-video.mp4" 2>/dev/null || true
-      else
-        echo "ℹ️ No video file retrieved from emulator/device."
-      fi
-    }
-    trap stop_recording_and_pull EXIT INT TERM ERR
 
     echo "--> Capturing device screenshot..."
     adb_cmd shell screencap -p /sdcard/android_test_screen.png

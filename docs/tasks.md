@@ -235,13 +235,87 @@
   - Create dedicated verification test `scripts/verify-default-punctuation-splitting.ts` and register `npm run test:default-punctuation` in `package.json`.
   - Document in `docs/files.md`, run verification tests, compile applet, lint applet, and commit.
 
-- [ ] **Subtask 71.3: Provide Interactive Timing vs Punctuation Splitting Lab & Learning Interface**:
+- [x] **Subtask 71.3: Provide Interactive Timing vs Punctuation Splitting Lab & Learning Interface**:
   - Build modular component `src/components/ParserTimingLab.tsx` and integrate into the Parser accordion panel.
   - Provide live visual metrics comparing pure punctuation vs timing-enhanced splitting (sentence counts, average duration, run-on prevention).
   - Allow users to toggle and experiment with timing features live to see immediate effect on subtitle splitting.
   - Expose an interactive educational "Learn How Timing Eliminates Splitting Issues" modal/guide directly in the UI.
   - Create dedicated verification test `scripts/verify-parser-timing-lab.ts` and register `npm run test:parser-timing-lab` in `package.json`.
   - Document in `docs/files.md`, run full test suite, compile applet, lint applet, commit changes, and push.
+
+## Task 75: Task Completion Auditing, done.md Protocol Enforcement & Hotfix Workflow with Task Suspension/Resumption
+
+- [x] **Subtask 75.1: Update tokens.md & docs/tokens.md with Mandatory done.md Logging, Completion Auditing & Hotfix Holding Protocol**:
+  - Update `tokens.md` and `docs/tokens.md` to specify that every finished task/subtask must be migrated to `docs/done.md` with verification metrics and marked `[x]`.
+  - Add an Audit Verification Gate: require explicit confirmation that all tasks created for the prompt in `docs/tasks.md` are accomplished and tested.
+  - Specify the Hotfix Workflow: when an urgent regression or fix arises, place the active task ON HOLD, stage and execute the hotfix in isolation, commit and log in `docs/done.md`, and resume the held task.
+
+- [x] **Subtask 75.2: Update AGENTS.md with Mandatory done.md Flow, Task Completion Auditing & Hotfix Suspension Protocol**:
+  - Update `AGENTS.md` under Work Tracking to explicitly mandate moving every completed task to `docs/done.md`.
+  - Add prompt-level task audit rule: all tasks and subtasks for a prompt must be verified accomplished and tested before concluding.
+  - Codify the Hotfix Workflow: keep the current active task on hold in `current-sub-task.md` until the hotfix is accomplished, tested, and committed, then resume the original task.
+
+- [x] **Subtask 75.3: Create Dedicated Verification Test, Register in package.json & Verify**:
+  - Create dedicated verification test `scripts/verify-hotfix-and-done-workflow.ts`.
+  - Assert that `tokens.md`, `docs/tokens.md`, and `AGENTS.md` mandate moving tasks to `done.md`, audit verification of all prompt tasks, and the hotfix holding/resumption pattern.
+  - Register `test:hotfix-workflow` in `package.json` and document in `docs/files.md`.
+  - Run test suite, compile applet (`compile_applet`), lint applet (`lint_applet`), and perform git commit.
+
+## Task 74: Ensure Video Screencast Availability, Robust Capture Signals & Error-Tolerant Playback
+
+- [x] **Subtask 74.1: Fortify Screenrecord Capture Signals, Container Finalization, and Cross-Platform Byte Counting in Workflows and Scripts**:
+  - In `.github/workflows/emulation.yml`, replace host-level kill evaluation with in-shell `adb shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true"` to prevent CRLF corruption from breaking video finalization.
+  - Increase post-signal sleep buffer from 2s to 3s before `adb pull` to guarantee media muxer `moov` atom header completion.
+  - Replace macOS-incompatible `stat -c%s` with cross-platform `wc -c < ./android-emulator-video.mp4`.
+  - In `scripts/run-android-e2e.sh`, ensure identical robust in-shell termination and copy the pulled video to all relative subpaths (`public/screenshots/`, `public/android/screenshots/`, `public/android/`).
+  - In `public/android-emulator-report.html` and `public/android/index.html`, add multiple `<source>` fallback paths and event listeners on `<source>` tags to handle video lifecycle and pending states gracefully.
+  - Document the video availability lifecycle clearly in `android.md` (and `docs/android.md`).
+  - Update `scripts/verify-android-e2e-spec.ts`, run tests, compile applet (`compile_applet`), lint applet (`lint_applet`), and perform git commit.
+
+
+- [x] **Subtask 73.1: Create android.md Explaining Android E2E Validation, GitHub Pages Reports & Screencast Video Generation**:
+  - Create `android.md` (and `docs/android.md`) documenting the complete Android E2E validation architecture.
+  - Detail the GitHub Pages report structure: web report, Android emulator report, video presentation, logcat telemetry, and test artifacts.
+  - Detail how to capture and encode the E2E screencast video (`adb shell screenrecord`), pull artifacts, handle rotation, convert/stage for GitHub Pages, and keep build outputs off the `main` branch.
+  - Detail live test execution: real app launch, local WebView asset loading, native bridge interception, YouTube share intents, and failure detection on error screens.
+
+- [x] **Subtask 73.2: Update AGENTS.md with Detailed Android App E2E Validation and Screencast Workflow Requirements**:
+  - Update `AGENTS.md` to expand Android validation instructions with comprehensive requirements.
+  - Mandate Android E2E testing on emulator/device for any Android modifications.
+  - Mandate producing and presenting screencast videos on GitHub Pages without committing video files to `main`.
+  - Reference `android.md` as the definitive operational specification for Android E2E testing.
+
+- [x] **Subtask 73.3: Fix Android E2E Implementation, Screencast Capture Pipeline, and GitHub Pages Presentation**:
+  - Align `.github/workflows/emulation.yml` and `scripts/run-android-e2e.sh` to ensure screencast recording runs reliably during test scenarios.
+  - Ensure `public/android-emulator-report.html` renders the video screencast cleanly with fallback, controls, telemetry, and links.
+  - Ensure assertions in `scripts/android-e2e-assert.sh` check for error screens ("This page didn't load") and validate genuine application behavior.
+  - Ensure build outputs, videos, and test artifacts remain ignored on `main` branch.
+
+- [x] **Subtask 73.4: Create Dedicated Verification Test, Verify Build and Commit**:
+  - Create dedicated verification test `scripts/verify-android-e2e-spec.ts` asserting all documentation and implementation requirements.
+  - Register `test:android-e2e-spec` in `package.json` and document in `docs/files.md`.
+  - Verify with test execution, `compile_applet`, `lint_applet`, and git commit.
+
+
+- [x] **Subtask 72.1: Create tokens.md Explaining Token Usage Maximization, Task Decomposition, and Ephemeral Tracking Files (current-sub-task.md & temp.md)**:
+  - Create `tokens.md` (and `docs/tokens.md`) explaining the token economy workflow.
+  - Detail why unmanaged large tasks fail due to token exhaustion and context blowout.
+  - Document how breaking tasks into granular subtasks and updating `current-sub-task.md` and `temp.md` on every step maximizes token efficiency and minimizes waste.
+  - Define the prompt-level execution cycle: reading `tokens.md`, staging in `temp.md`/`current-sub-task.md`, executing isolated atomic changes, running dedicated tests, committing, and clearing ephemeral staging.
+  - Create dedicated verification test `scripts/verify-tokens-economy.ts` and register `npm run test:tokens-economy` in `package.json`.
+
+- [x] **Subtask 72.2: Update AGENTS.md to Mandate Processing of tokens.md on Every Prompt**:
+  - Update `AGENTS.md` under Work Tracking to explicitly require activating the `tokens.md` token economy workflow on every single prompt.
+  - Explain the concrete usage of `tokens.md`, `current-sub-task.md`, and `temp.md` in task management, establishing the high-efficiency token economy workflow.
+  - Ensure compatibility with previous tracking conventions while enforcing the new streamlined token-preserving flow.
+  - Update `scripts/verify-tokens-economy.ts` to assert `AGENTS.md` compliance.
+
+- [x] **Subtask 72.3: Verify and Consolidate parser.md, Default Punctuation Splitting (2.1), and Timing Experimentation Lab (2.2)**:
+  - Verify and consolidate `parser.md` (and `docs/parser.md`) documenting JSON3 subtitle splitting into short sentences and time calculation benefits.
+  - Ensure default splitting in `src/lib/subtitles.ts` and `src/routes/index.tsx` uses punctuation characters (`.`, `?`, `!`, `…`, `。`, `؟`) with abbreviation guards (`isAbbreviation`).
+  - Ensure user interface (`src/components/ParserTimingLab.tsx`) allows users to experiment with and learn how timing features eliminate splitting issues.
+  - Verify with dedicated verification tests `scripts/verify-parser-docs.ts`, `scripts/verify-default-punctuation-splitting.ts`, and `scripts/verify-parser-timing-lab.ts`.
+  - Document all files in `docs/files.md`, verify app compilation (`compile_applet`), linting (`lint_applet`), commit, and push.
 
 
 
