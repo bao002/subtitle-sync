@@ -18,7 +18,8 @@ assert(
 );
 const reportHtml = fs.readFileSync(staticReportPath, "utf8");
 assert(
-  reportHtml.includes("Android Emulator E2E Test Report"),
+  reportHtml.includes("Android Emulator E2E Test Report") ||
+    reportHtml.includes("Android Device & Emulator E2E Test Report"),
   "public/android-emulator-report.html must contain proper report title",
 );
 assert(
