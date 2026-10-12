@@ -411,6 +411,24 @@
   - Compile applet (`compile_applet`) and run linter (`lint_applet`).
   - Commit progress to git and migrate Task 80 to `docs/done.md`.
 
+## Task 81: Detect and Diagnose Failed GitHub Actions Workflows & Analyze Raw Action Logs
+
+- [ ] **Subtask 81.1: Stage Task 81 requirements in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `tokens.md`.
+  - Stage Subtask 81.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for diagnostic and implementation notes.
+
+- [ ] **Subtask 81.2: Implement Failed Workflows Detector & Log Analyzer Tool (`scripts/detect-failed-workflows.ts`)**:
+  - Implement log fetching and parsing for raw GitHub Actions job logs (including Azure blob log URLs and GitHub Actions API).
+  - Extract failed steps, error codes, stack traces, and provide automated diagnostic analysis and remediation suggestions.
+  - Support analyzing the user-provided log URL directly or falling back to local/cached logs.
+
+- [ ] **Subtask 81.3: Register Verification Command in package.json, Update docs/files.md, Run Tests, Commit and Migrate to docs/done.md**:
+  - Register `test:detect-failed-workflows` in `package.json`.
+  - Document `scripts/detect-failed-workflows.ts` in `docs/files.md`.
+  - Run verification tests, verify compilation (`compile_applet`) and linting (`lint_applet`).
+  - Perform dedicated git commit and migrate Task 81 to `docs/done.md`.
+
 
 
 
