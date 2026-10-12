@@ -33,6 +33,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `src/components/SubtitleRow.tsx`                  | Memoized Subtitle Row Component  | Displays parallel time and language cue cells, RTL directional formatting, and per-language TTS badges.                              |
 | `src/components/SubtitlesTablePanel.tsx`          | Subtitles Table View Panel       | Encapsulates the entire parallel subtitles table layout, lines pagination bar, and alignment indicators.                           |
 | `src/components/ParserTimingLab.tsx`              | Parser Timing & Splitting Lab    | Interactive educational laboratory and metrics visualizer comparing pure punctuation vs timing-assisted sentence splitting.         |
+| `src/components/AttemptOrderSettings.tsx`         | Subtitle Attempt Order Settings  | Renders 4 fetch attempts reordering (Up/Down), toggling enabled/disabled, promote winner to front, and reset order.  |
 | `src/components/ApkReleasesFooter.tsx`            | APK Releases Footer Component    | Modular bottom footer presenting dynamic APK release download and release page links for both repo owners.                          |
 
 ## Feature Utilities (`src/utils/`)
@@ -172,5 +173,6 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `scripts/verify-screencast-availability.ts`       | Screencast & Actions Availability Test             | Inspects README.md, GitHub Actions workflows, ensures Android E2E produces screencasts, verifies GitHub Pages report video embeds, and checks last commit. |
 | `scripts/verify-self-verification.ts`             | Self-Verification Protocol Verification Test       | Asserts existence and compliance of self-verification.md, command matrix, test suites, screencast README links, and 6 sanity checks. |
 | `scripts/verify-no-duplicate-md-files.ts`         | Zero Duplicate Markdown Files Verification Test    | Asserts zero duplicate .md files across repository and enforces AGENTS.md mandate that all .md files reside under docs/*.md.          |
+| `scripts/verify-reliable-subtitles-fetching.ts`   | Reliable Subtitles Fetching Verification Test      | Asserts 4 attempts order, reordering, promote winner to front, runFetchAttempts execution loop, nativeExactFetch, and UI action buttons. |
 | `scripts/verify-md-links.ts`                      | Markdown Links Checker                             | Validates that all documentation cross-references and links resolve properly.                                                                          |
 | `scripts/normalize-web-assets.mjs`                | Build Asset Normalizer                             | Adjusts asset paths for GitHub Pages sub-path hosting.                                                                                                 |

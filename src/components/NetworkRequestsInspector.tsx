@@ -17,6 +17,9 @@ import {
   AlertTriangle,
   Eye,
   EyeOff,
+  RefreshCw,
+  Send,
+  Download,
 } from "lucide-react";
 import {
   useNetworkRequests,
@@ -27,14 +30,26 @@ import {
   isSuccessfulFetch,
   type NetworkRequestRecord,
 } from "@/utils/networkTracker";
+import { isValidJsonSubtitleResponse } from "@/utils/subtitleCache";
 import { SUPPORTED_LANGUAGES_CATALOG } from "@/utils/appSettings";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onFetchAgainWithSession?: (url: string) => void;
+  onFetchAgainAnon?: (url: string) => void;
+  onUseTheseSubtitles?: (url: string, rawBody: string) => void;
+  isAndroid?: boolean;
 }
 
-export const NetworkRequestsInspector: React.FC<Props> = ({ isOpen, onClose }) => {
+export const NetworkRequestsInspector: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  onFetchAgainWithSession,
+  onFetchAgainAnon,
+  onUseTheseSubtitles,
+  isAndroid = true,
+}) => {
   const requests = useNetworkRequests();
   const [filterType, setFilterType] = useState<"all" | "timedtext" | "native">("all");
   const [hideFailed, setHideFailed] = useState(true); // By default filter out failed network requests
@@ -759,6 +774,62 @@ export const NetworkRequestsInspector: React.FC<Props> = ({ isOpen, onClose }) =
                   >
                     {renderHighlightedUrl(selectedRequest.url)}
                   </div>
+                </div>
+
+                {/* Subtitle Request Actions: Fetch again (session / link-only), Use these subtitles */}
+                <div
+                  data-testid="network-request-actions-bar"
+                  className="flex flex-wrap items-center gap-2 p-2.5 rounded-lg bg-neutral-950 border border-neutral-800"
+                >
+                  <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider mr-1">
+                    Actions:
+                  </div>
+                  {onFetchAgainWithSession && (
+                    <button
+                      type="button"
+                      data-testid="fetch-again-session-button"
+                      onClick={() => onFetchAgainWithSession(selectedRequest.url)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white font-medium text-xs transition shadow-sm"
+                      title="Send this exact request with player cookies and session headers"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Fetch again with session</span>
+                    </button>
+                  )}
+                  {onFetchAgainAnon && (
+                    <button
+                      type="button"
+                      data-testid="fetch-again-anon-button"
+                      onClick={() => onFetchAgainAnon(selectedRequest.url)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-neutral-200 border border-neutral-700 font-medium text-xs transition"
+                      title="Send this exact request as bare link only without cookies (like pasting in browser)"
+                    >
+                      <Send className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Fetch again (link only)</span>
+                    </button>
+                  )}
+                  {onUseTheseSubtitles &&
+                    isValidJsonSubtitleResponse(
+                      selectedRequest.fullResponseBody || selectedRequest.responseBodyPreview || "",
+                    ) && (
+                      <button
+                        type="button"
+                        data-testid="use-these-subtitles-button"
+                        onClick={() =>
+                          onUseTheseSubtitles(
+                            selectedRequest.url,
+                            selectedRequest.fullResponseBody ||
+                              selectedRequest.responseBodyPreview ||
+                              "",
+                          )
+                        }
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-semibold text-xs transition shadow-sm sm:ml-auto"
+                        title="Load this valid subtitle response into the viewer and cache it"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Use these subtitles</span>
+                      </button>
+                    )}
                 </div>
 
                 {selectedRequest.error && (

@@ -105,6 +105,7 @@
     "test:screencast-availability": "tsx scripts/verify-screencast-availability.ts",
     "test:self-verification": "tsx scripts/verify-self-verification.ts",
     "test:no-duplicate-md": "tsx scripts/verify-no-duplicate-md-files.ts",
+    "test:reliable-subtitles-fetching": "tsx scripts/verify-reliable-subtitles-fetching.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

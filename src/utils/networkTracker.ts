@@ -12,6 +12,8 @@ export interface NetworkRequestRecord {
   fullResponseBody?: string; // Complete raw or formatted response body
   error?: string;
   isPending?: boolean;
+  attemptMode?: "tlang" | "lang";
+  attemptSend?: "session" | "anon";
 }
 
 export const MAX_RESPONSE_BODY_PREVIEW_CHARS = 250;
@@ -47,6 +49,10 @@ export function trackNetworkRequest(
   url: string,
   method = "GET",
   type: "fetch" | "timedtext_interception" | "native_bridge" = "fetch",
+  options?: {
+    attemptMode?: "tlang" | "lang";
+    attemptSend?: "session" | "anon";
+  },
 ) {
   const id = `req-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   const startTime = Date.now();
@@ -59,6 +65,8 @@ export function trackNetworkRequest(
     startTime,
     status: 0,
     isPending: true,
+    attemptMode: options?.attemptMode,
+    attemptSend: options?.attemptSend,
   };
 
   requests = [record, ...requests.slice(0, 99)];
@@ -177,6 +185,8 @@ export function formatRequestForClipboard(req: NetworkRequestRecord): string {
     `Status: ${req.isPending ? "PENDING" : req.status === 200 && (!req.fullResponseBody || req.fullResponseBody.trim() === "") ? "200 OK (Empty response body — 0 chars)" : req.status}`,
     req.duration !== undefined ? `Duration: ${req.duration}ms` : null,
     tlang ? `Target Language (tlang): ${tlang}` : null,
+    req.attemptMode ? `Attempt Mode: ${req.attemptMode}` : null,
+    req.attemptSend ? `Sending Method: ${req.attemptSend}` : null,
     req.error ? `Error: ${req.error}` : null,
     `Response Body Length: ${req.fullResponseBody ? req.fullResponseBody.length : 0} characters`,
     `Response:`,

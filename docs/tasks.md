@@ -471,6 +471,50 @@
   - Register `test:subtitles-table-visibility` in `package.json` and document in `docs/files.md`.
   - Run all verification tests, compile applet (`compile_applet`), lint (`lint_applet`), commit, and migrate to `docs/done.md`.
 
+## Task 85: Architectural Evaluation and Guidelines for AGENTS.md Modularization vs Bloat
+
+- [x] **Subtask 85.1: Stage Task 85 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `docs/tokens.md`.
+  - Stage Subtask 85.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for diagnostic and structural assessment.
+
+- [x] **Subtask 85.2: Audit Current AGENTS.md, Token Economy Impact, and Verification Test Invariants**:
+  - Analyze current `AGENTS.md` structure against the principles of `docs/tokens.md`.
+  - Evaluate the advantages and risks of modular pointers vs monolithic inlining in agent prompts.
+  - Formulate clear architectural recommendations and boundaries for when rules belong in `AGENTS.md` vs specialized `docs/*.md` files.
+
+- [x] **Subtask 85.3: Document Evaluation in docs/done.md, Finalize Task 85, and Provide Comprehensive User Guidance**:
+  - Run verification suite to ensure repository and test integrity.
+  - Migrate Task 85 to `docs/done.md`.
+  - Deliver a detailed, structured answer to the user addressing modularity, context bloat, and pointer mechanics.
+
+## Task 86: Complete Reliable Subtitle Fetching Implementation (Attempt Order, Settings, Network Actions & Build Fix)
+
+- [x] **Subtask 86.1: Stage Task 86 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `docs/tokens.md`.
+  - Stage Subtask 86.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for diagnostic and structural assessment.
+
+- [x] **Subtask 86.2: Fix the 3 TypeScript build errors in src/routes/index.tsx**:
+  - Fix lines 1516, 1529, 1542 where `tracks[baseLanguage]` and `tracks[code]` are checked for `.length` when `tracks[x]` can be undefined.
+  - Verify `npx tsc --noEmit` and `compile_applet`.
+
+- [x] **Subtask 86.3: Connect Attempt Order Loop (runFetchAttempts) in src/routes/index.tsx**:
+  - Replace the single-request Android repetition with `runFetchAttempts` using stored attempt order.
+  - Track winner attempt and apply `promoteAttempt` when `promoteSuccessfulAttempt` is enabled.
+  - Report exact attempts (url, status, size, error, mode, send) to `networkTracker`.
+
+- [x] **Subtask 86.4: Add Attempt-Order Settings & Network Panel Actions**:
+  - Add attempt order reordering, toggling, and "move winner to front" settings to the UI (e.g. in Playback/Parser settings).
+  - Update `NetworkRequestsInspector` with real HTTP status, attempt badges, and the 3 action buttons: "Fetch again with session", "Fetch again (link only)", and "Use these subtitles".
+
+- [x] **Subtask 86.5: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md**:
+  - Author `scripts/verify-reliable-subtitles-fetching.ts` validating attempt order execution, network inspector buttons, error-free TypeScript build, and promote-on-success behavior.
+  - Register `test:reliable-subtitles-fetching` in `package.json` and document in `docs/files.md`.
+  - Compile (`compile_applet`), lint (`lint_applet`), and migrate Task 86 to `docs/done.md`.
+
+
+
 
 
 

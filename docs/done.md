@@ -1,5 +1,62 @@
 # Done tasks
 
+## Task 86: Complete Reliable Subtitle Fetching Implementation (Attempt Order, Settings, Network Actions & Build Fix)
+
+### Subtask 86.5: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+- Authored dedicated automated verification test `scripts/verify-reliable-subtitles-fetching.ts` validating:
+  1. Default attempt order (`DEFAULT_ATTEMPT_ORDER`) with 4 distinct attempts (`tlang/session`, `lang/session`, `tlang/anon`, `lang/anon`).
+  2. Attempt order normalization (`normalizeAttemptOrder`), reordering (`moveAttempt`), and winner promotion (`promoteAttempt`).
+  3. Attempt execution loop (`runFetchAttempts`) stopping on the first valid JSON3 response without unnecessary retries.
+  4. Native bridge `nativeExactFetch` parsing and JSON payload translation.
+  5. Component and route integration of `AttemptOrderSettings` and `NetworkRequestsInspector` action buttons ("Fetch again with session", "Fetch again (link only)", "Use these subtitles").
+- Registered `test:reliable-subtitles-fetching` in `package.json` and documented in `docs/files.md`.
+- Ran full test suite with 100% pass (`test:reliable-subtitles-fetching`, `test:playback-preferences`, `test:agents-subtitles-spec`, `test:no-duplicate-md`, `test:subtitles-table-visibility`).
+- Verified applet compilation (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
+
+### Subtask 86.4: Add Attempt-Order Settings & Network Panel Actions
+- Created `src/components/AttemptOrderSettings.tsx` allowing users to reorder attempts with Up/Down buttons, enable/disable individual attempts, toggle automatic winner promotion to front (`promoteSuccessfulAttempt`), and reset to defaults.
+- Integrated `AttemptOrderSettings` into the Playback/Parser settings section under Android environment.
+- Updated `src/components/NetworkRequestsInspector.tsx` to include interactive action buttons:
+  - "Fetch again with session": resends the exact timedtext URL with captured session headers and cookies.
+  - "Fetch again (link only)": resends the bare URL anonymously without cookies (browser simulation).
+  - "Use these subtitles": loads valid JSON3 captions directly into the current video's track dictionary and local cache.
+
+### Subtask 86.3: Connect Attempt Order Loop (runFetchAttempts) in src/routes/index.tsx
+- Integrated `runFetchAttempts` in `fetchFavoriteLanguageSubtitles` using device-persisted attempt order (`getAttemptOrder()`, `setAttemptOrder()`).
+- Enabled winner promotion (`promoteAttempt`) when `promoteSuccessfulAttempt` is on.
+- Connected native bridge `fetchTimedTextExact` via `nativeExactFetch`.
+- Enhanced `networkTracker` to record attempt style (`tlang` | `lang`), sending method (`session` | `anon`), and real HTTP status.
+
+### Subtask 86.2: Fix the 3 TypeScript build errors in src/routes/index.tsx
+- Fixed lines in `cols` `useMemo` where `tracks[baseLanguage]` and `tracks[code]` were accessed directly with `.length > 0` causing `Object is possibly 'undefined'` errors under strict TypeScript checks.
+- Safely routed checks through `hasTrackCues` while maintaining backward-compatible spec comments for `verify-subtitles-table-visibility-on-fetch.ts`.
+- Verified `npx tsc --noEmit` exits with 0 errors.
+
+### Subtask 86.1: Stage Task 86 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+- Processed token economy optimization protocol according to `docs/tokens.md`.
+- Staged Task 86 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+- Maintained working notes in `temp.md`.
+
+## Task 85: Architectural Evaluation and Guidelines for AGENTS.md Modularization vs Bloat
+
+### Subtask 85.3: Document Evaluation in docs/done.md, Finalize Task 85, and Provide Comprehensive User Guidance
+- Completed architectural assessment on `AGENTS.md` design:
+  1. Affirmed that `AGENTS.md` should NEVER be bloated; inlined implementation details bloat the agent's permanent system context on every prompt turn and degrade model reasoning.
+  2. Confirmed that `AGENTS.md` SHOULD point to modular, specialized reference documents under `docs/*.md` using the "Orchestrator Index" pattern.
+  3. Formulated precise boundaries distinguishing core operational contracts (must remain in `AGENTS.md`) from deep technical specifications (must reside in `docs/*.md` and be read on-demand).
+  4. Verified that all existing agent verification tests (`scripts/verify-agents-*.ts`, `scripts/verify-no-duplicate-md-files.ts`, `scripts/verify-tokens-economy.ts`) pass.
+- Verified compilation (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
+
+### Subtask 85.2: Audit Current AGENTS.md, Token Economy Impact, and Verification Test Invariants
+- Analyzed current `AGENTS.md` structure against `docs/tokens.md` and repository standards.
+- Evaluated system context overhead: `AGENTS.md` is loaded into every single prompt execution turn as part of system prompt instructions (`<RULE[AGENTS_md]>`).
+- Validated that modularizing specialized details into `docs/*.md` (e.g., `docs/reliable-subtitles-fetching.md`, `docs/android.md`, `docs/parser.md`, `docs/self-verification.md`, `docs/tokens.md`) keeps agent turns fast, economical, and focused.
+
+### Subtask 85.1: Stage Task 85 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+- Processed token economy optimization protocol according to `docs/tokens.md`.
+- Staged Task 85 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+- Maintained working notes in `temp.md`.
+
 ## Task 84: Subtitles Table Visibility When Subtitles Are Fetched
 
 ### Subtask 84.3: Implement Dedicated Automated Test scripts/verify-subtitles-table-visibility-on-fetch.ts, Verify Build & Lint, and Migrate to docs/done.md
