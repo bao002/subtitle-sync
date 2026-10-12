@@ -45,7 +45,9 @@
   - Update `scripts/verify-subtitle-api-fallback.ts` for the new order, single request per attempt, and the remembered order.
   - Add a new `scripts/verify-network-refetch-buttons.ts`.
   - Update the Android e2e log assertions for the new `send=` field.
-- **Docs:** update `docs/tasks.md`, `docs/todo.md`, `docs/done.md`, `docs/files.md`, and `docs/android.md`.
+- **Docs:**
+  - First step: create `docs/reliable-subtitles-fetching.md` and link it from `AGENTS.md`. Under the repository rule, docs live in `docs/`. It covers the ordered list of attempts, sending with the session versus link only, what counts as a good response, caching, the network panel's "fetch again" buttons, and how to diagnose a fetch that fails in the app but works in a browser.
+  - Update `roadmap.md`, `docs/tasks.md`, `docs/todo.md`, `docs/done.md`, `docs/files.md`, and `docs/android.md`.
 
 ## Out of scope
 
