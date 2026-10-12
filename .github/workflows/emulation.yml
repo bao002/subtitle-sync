@@ -247,6 +247,16 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      - name: Synchronize README with Latest Screencast Video Size & Link
+        if: always()
+        run: |
+          if [ -f "./android-emulator-video.mp4" ]; then
+            FILE_SIZE=$(wc -c < ./android-emulator-video.mp4 2>/dev/null | tr -d ' ' || echo 0)
+            VIDEO_SIZE_BYTES="$FILE_SIZE" node scripts/update-readme.mjs "${{ github.repository }}" || true
+          else
+            node scripts/update-readme.mjs "${{ github.repository }}" || true
+          fi
+
       - name: Stage Android Emulator Artifacts for GitHub Pages
         if: always()
         env:

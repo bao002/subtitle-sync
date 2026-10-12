@@ -1,5 +1,90 @@
 # Done tasks
 
+## Task 79: Automatically Update README.md with Video Size and Link on Every GitHub Actions Run
+
+### Subtask 79.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md
+
+- Validated full test matrix across `test:fork-readme-links`, `test:workflows`, `test:screencast-availability`, and `test:e2e-report-links` with 100% pass rate.
+- Verified zero errors on full application build (`compile_applet`) and zero ESLint errors (`lint_applet`).
+- Performed git progress checkpoint.
+
+### Subtask 79.2: Integrate Automated README Video Size & Link Synchronization into Workflows and update-readme.mjs
+
+- Enhanced `scripts/update-readme.mjs` to dynamically detect screencast video size (from `VIDEO_SIZE_BYTES`, local files, or GitHub Actions artifacts API) and update `README.md` with the exact size (`MB` and bytes) and correct link (`https://<owner>.github.io/<repo>/screenshots/android-emulator-video.mp4`).
+- Updated `.github/workflows/update-readme.yml` with `workflow_run` on `Android Emulator E2E Tests` completion so that whenever tests finish, `README.md` automatically updates.
+- Updated `.github/workflows/emulation.yml` with `Synchronize README with Latest Screencast Video Size & Link` right after pulling `android-emulator-video.mp4`.
+- Enhanced `scripts/verify-screencast-availability.ts` with checks asserting that `update-readme.yml` and `emulation.yml` maintain automated README updates on every run.
+
+### Subtask 79.1: Stage Task 79 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
+- Processed token economy optimization protocol according to `tokens.md`.
+- Staged Task 79 across tracking files and ephemeral notes.
+
+## Task 78: Keep README.md Synchronized with Screencast Video Size and Correct Link
+
+### Subtask 78.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md
+
+- Executed `npm run test:screencast-availability`, `npm run test:e2e-report-links`, and related test suites with 100% pass rate.
+- Verified zero errors on full application compilation (`compile_applet`) and ESLint checks (`lint_applet`).
+- Performed git commit checkpoint.
+
+### Subtask 78.2: Update README.md, update-readme.mjs and verify-screencast-availability.ts with Screencast Video Size and Link
+
+- Added dedicated row for `🎬 **Android Emulator Screencast Video**` to the GitHub Pages Links table in `README.md` containing the direct URL (`https://<owner>.github.io/<repo>/screenshots/android-emulator-video.mp4`), exact file size in bytes (`6,724,502 bytes`) and human-readable megabytes (`6.41 MB`).
+- Updated `scripts/verify-screencast-availability.ts` to assert the video link and size in `README.md`, and automatically keep `README.md` synchronized whenever executed against new artifact builds.
+- Updated `scripts/verify-e2e-report-links.ts` to validate the screencast video link and size.
+
+### Subtask 78.1: Stage Task 78 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
+- Processed token economy optimization protocol according to `tokens.md`.
+- Staged Task 78 across tracking files and ephemeral notes.
+
+## Task 77: Execute Screencast & Actions Verification with Live Remote & Local Validation
+
+### Subtask 77.3: Execute Verification Script, Validate Build & Lint, Commit & Migrate to docs/done.md
+
+- Executed `npm run test:screencast-availability` cleanly verifying all screencast and Actions requirements.
+- Confirmed that the GitHub Actions run for the latest commit (`f427b8b6`) produced artifact `android-emulator-artifacts` with size 6,724,502 bytes (6.41 MB).
+- Confirmed that the live GitHub Pages report endpoint (`https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html`) is active with HTTP 200 OK and contains the HTML5 video presentation player and screencast source.
+- Verified build compilation (`compile_applet`) and ESLint validation (`lint_applet`).
+- Performed git progress checkpoint.
+
+### Subtask 77.2: Enhance verify-screencast-availability.ts with Live Remote Commit, Artifact & Pages Inspection
+
+- Enhanced `scripts/verify-screencast-availability.ts` to perform live remote API and HTTP checks when online:
+  - Discovers the latest remote commit SHA on GitHub (`f427b8b6`).
+  - Fetches the latest `Android Emulator E2E Tests` workflow runs (`emulation.yml`) and checks its published workflow artifacts.
+  - Verifies presence of `android-emulator-artifacts` and verifies byte size (6,724,502 bytes).
+  - Fetches and inspects the live deployed GitHub Pages report at `https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html`, asserting HTTP 200 and verifying HTML5 video tags.
+
+### Subtask 77.1: Stage Task 77 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
+- Processed token economy optimization protocol according to `tokens.md`.
+- Staged Task 77 across tracking files and ephemeral notes.
+
+## Task 76: Inspect Repository README, GitHub Actions Workflows & Verify GitHub Pages Report Screencast Availability
+
+### Subtask 76.3: Register Verification Command in package.json, Update docs/files.md, Run Tests, Commit & Log in docs/done.md
+
+- Registered `test:screencast-availability` in `package.json` pointing to `tsx scripts/verify-screencast-availability.ts`.
+- Documented `scripts/verify-screencast-availability.ts` in `docs/files.md`.
+- Ran dedicated automated verification `npm run test:screencast-availability` verifying 100% pass across all validation steps.
+- Verified zero errors on full application build (`compile_applet`) and zero ESLint errors (`lint_applet`).
+- Performed progress checkpointing and git synchronization.
+
+### Subtask 76.2: Create Dedicated Script to Inspect README.md, GitHub Actions & Verify Screencast Availability on GitHub Pages Report
+
+- Created `scripts/verify-screencast-availability.ts` providing automated multi-tiered verification:
+  1. Inspects `README.md` to dynamically resolve repository identity (`<owner>/<repo>`), Actions dashboard URLs (`https://github.com/<owner>/subtitle-sync/actions`), workflow URLs (`emulation.yml`, `web.yml`, `release-apk.yml`, `deploy-demo.yml`), and GitHub Pages URLs (`android-emulator-report.html`, `screenshots/android-emulator-screenshot.png`).
+  2. Inspects `.github/workflows/emulation.yml` and `.github/workflows/deploy-demo.yml` to verify that E2E tests run on a real Android emulator (`reactivecircus/android-emulator-runner@v2` on API 34 Google APIs), install the debug APK, clear preferences, execute screenrecord (`adb shell screenrecord`), cleanly finalize with SIGINT (`kill -2`), pull `android-emulator-video.mp4`, upload to `android-emulator-artifacts`, and stage to `gh-pages-staging/screenshots/android-emulator-video.mp4` for publication on the `gh-pages` branch.
+  3. Verifies `public/android-emulator-report.html` and `public/android/index.html` report availability: embeds HTML5 `<video controls autoplay muted loop playsinline>`, multi-source fallbacks (`./screenshots/android-emulator-video.mp4`, etc.), direct MP4 download link, clear lifecycle notice, 5-step milestone screenshot cards, and live hardware telemetry.
+  4. Inspects git HEAD commit SHA, constructs the commit-specific Actions run query URL (`https://github.com/<owner>/subtitle-sync/actions?query=head_sha%3A<commitSha>`), queries the GitHub Actions API if online, and prints a comprehensive matrix summary.
+
+### Subtask 76.1: Define and stage Task 76 requirements in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, and temp.md)
+
+- Processed token optimization protocol according to `tokens.md`.
+- Staged Task 76 and subtasks in `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and initialized notes in `temp.md`.
+
 ## Task 75: Task Completion Auditing, done.md Protocol Enforcement & Hotfix Workflow with Task Suspension/Resumption
 
 ### Subtask 75.3: Create Dedicated Verification Test, Register in package.json & Verify

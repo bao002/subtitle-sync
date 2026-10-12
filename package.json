@@ -101,6 +101,7 @@
     "test:tokens-economy": "tsx scripts/verify-tokens-economy.ts",
     "test:android-e2e-spec": "tsx scripts/verify-android-e2e-spec.ts",
     "test:hotfix-workflow": "tsx scripts/verify-hotfix-and-done-workflow.ts",
+    "test:screencast-availability": "tsx scripts/verify-screencast-availability.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
