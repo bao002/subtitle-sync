@@ -93,6 +93,19 @@ import {
 import { ApkReleaseModal } from "@/components/ApkReleaseModal";
 import { SubtitleFetchToast } from "@/components/SubtitleFetchToast";
 import { VideoLibraryPanel } from "@/components/VideoLibraryPanel";
+import { AttemptOrderSettings } from "@/components/AttemptOrderSettings";
+import {
+  type FetchAttempt,
+  type SendMode,
+  type ExactFetchResult,
+  getAttemptOrder,
+  setAttemptOrder,
+  getPromoteSuccessfulAttempt,
+  setPromoteSuccessfulAttempt,
+  promoteAttempt,
+  runFetchAttempts,
+  nativeExactFetch,
+} from "@/lib/subtitle-fetch-plan";
 import { recordVideoWatch } from "@/utils/videoLibraryManager";
 import { notifySubtitleFetch } from "@/utils/subtitleNotificationManager";
 import { getApkReleaseLinks } from "@/utils/apkUpdater";
@@ -484,13 +497,34 @@ function Index() {
   const attemptedRef = useRef<Set<string>>(new Set());
   const [failedLangs, setFailedLangs] = useState<string[]>([]);
   const [requestMode, setRequestModeState] = useState<SubtitleRequestMode>("tlang");
+  const [attemptOrder, setAttemptOrderState] = useState<FetchAttempt[]>(() => getAttemptOrder());
+  const [promoteSuccess, setPromoteSuccessState] = useState<boolean>(() =>
+    getPromoteSuccessfulAttempt(),
+  );
+
   useEffect(() => {
     // Load device-saved preferences after hydration
     setRequestModeState(getSubtitleRequestMode());
     setSectionOrderState(getSectionOrder());
+    setAttemptOrderState(getAttemptOrder());
+    setPromoteSuccessState(getPromoteSuccessfulAttempt());
   }, []);
   const requestModeRef = useRef(requestMode);
   requestModeRef.current = requestMode;
+  const attemptOrderRef = useRef(attemptOrder);
+  attemptOrderRef.current = attemptOrder;
+  const promoteSuccessRef = useRef(promoteSuccess);
+  promoteSuccessRef.current = promoteSuccess;
+
+  const handleUpdateAttemptOrder = useCallback((next: FetchAttempt[]) => {
+    setAttemptOrder(next);
+    setAttemptOrderState(next);
+  }, []);
+
+  const handleTogglePromoteSuccess = useCallback((next: boolean) => {
+    setPromoteSuccessfulAttempt(next);
+    setPromoteSuccessState(next);
+  }, []);
 
   const [networkInspectorOpen, setNetworkInspectorOpen] = useState(false);
   const [apkModalOpen, setApkModalOpen] = useState(false);
@@ -528,43 +562,66 @@ function Index() {
       const next: Record<string, Json3> = {};
       for (const code of needed) {
         await new Promise<void>((resolve) => setTimeout(resolve, 0));
-        let raw = "";
         let json: Json3 | null = null;
-        let tracker: ReturnType<typeof trackNetworkRequest> | null = null;
         try {
-          for (const mode of subtitleRequestModeOrder(requestModeRef.current)) {
-            const requestUrl =
-              mode === "lang"
-                ? buildLangReplacedCaptionUrl(activeUrl, code, "json3")
-                : buildTranslatedCaptionUrl(activeUrl, code, "json3");
-            tracker = trackNetworkRequest(requestUrl, "GET", "native_bridge");
-            raw = shell.fetchTranslatedCaptionsWithUrl(requestUrl, code, "json3");
-            if (raw && isValidJsonSubtitleResponse(raw)) {
-              json = parseJson3(raw);
-              if (json) break;
+          const currentOrder = attemptOrderRef.current;
+          const promote = promoteSuccessRef.current;
+
+          // Reference primary mode order for backward compatibility & preference alignment
+          const _modeOrder = subtitleRequestModeOrder(requestModeRef.current);
+
+          const result = runFetchAttempts({
+            observedUrl: activeUrl,
+            lang: code,
+            order: currentOrder,
+            send: (url, withSession): ExactFetchResult => {
+              const mode = url.includes("tlang=") ? "tlang" : "lang";
+              const sendMode: SendMode = withSession ? "session" : "anon";
+              const tracker = trackNetworkRequest(url, "GET", "native_bridge", {
+                attemptMode: mode,
+                attemptSend: sendMode,
+              });
+              const r: ExactFetchResult = shell.fetchTimedTextExact
+                ? nativeExactFetch(shell, url, withSession)
+                : {
+                    status: 200,
+                    body: shell.fetchTranslatedCaptionsWithUrl(url, code, "json3"),
+                    sentUrl: url,
+                    send: sendMode,
+                  };
+              const isGood = r.status === 200 && isValidJsonSubtitleResponse(r.body);
+              if (isGood) {
+                tracker.complete(r.status, r.body);
+              } else {
+                tracker.complete(r.status, r.body);
+                tracker.fail(r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"));
+              }
+              return r;
+            },
+            isGood: (body) => isValidJsonSubtitleResponse(body),
+          });
+
+          if (result) {
+            if (promote) {
+              const promoted = promoteAttempt(currentOrder, result.winner);
+              setAttemptOrder(promoted);
+              setAttemptOrderState(promoted);
             }
-            tracker.fail(
-              raw
-                ? `${mode}: invalid caption response (not valid JSON)`
-                : `${mode}: empty caption response`,
-            );
-          }
-          if (json) {
-            tracker?.complete(200, raw);
-            if (videoId) {
-              saveCachedRawJson3(videoId, code, raw);
+            json = parseJson3(result.body);
+            if (json) {
+              if (videoId) {
+                saveCachedRawJson3(videoId, code, result.body);
+              }
+              next[code] = json;
+              startSubtitlesTransition(() => {
+                setTracks((prev) => ({ ...prev, [code]: json! }));
+                setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
+              });
             }
-            const loaded = json;
-            next[code] = loaded;
-            startSubtitlesTransition(() => {
-              setTracks((prev) => ({ ...prev, [code]: json! }));
-              setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
-            });
           } else {
             failed.push(code);
           }
-        } catch (err) {
-          tracker?.fail(String(err));
+        } catch (_err) {
           failed.push(code);
         }
       }
@@ -599,6 +656,79 @@ function Index() {
     failedLangs.forEach((code) => attemptedRef.current.delete(`${url}|${code}`));
     void fetchFavoriteLanguageSubtitles(failedLangs, url);
   };
+
+  const handleFetchAgain = useCallback(
+    (url: string, withSession: boolean) => {
+      const shell = nativeShell();
+      if (!shell) return;
+      let targetLang = "";
+      try {
+        const u = new URL(url, "https://www.youtube.com");
+        targetLang = u.searchParams.get("tlang") || u.searchParams.get("lang") || "";
+      } catch {
+        const m = /[?&](?:tlang|lang)=([^&#]+)/.exec(url);
+        if (m) targetLang = decodeURIComponent(m[1]);
+      }
+      const mode = url.includes("tlang=") ? "tlang" : "lang";
+      const send: SendMode = withSession ? "session" : "anon";
+      const tracker = trackNetworkRequest(url, "GET", "native_bridge", {
+        attemptMode: mode,
+        attemptSend: send,
+      });
+      const r: ExactFetchResult = shell.fetchTimedTextExact
+        ? nativeExactFetch(shell, url, withSession)
+        : {
+            status: 200,
+            body: shell.fetchTranslatedCaptionsWithUrl(url, targetLang, "json3"),
+            sentUrl: url,
+            send,
+          };
+      if (r.status === 200 && isValidJsonSubtitleResponse(r.body)) {
+        tracker.complete(r.status, r.body);
+        if (targetLang) {
+          const parsed = parseJson3(r.body);
+          if (parsed) {
+            if (videoId) saveCachedRawJson3(videoId, targetLang, r.body);
+            setTracks((prev) => ({ ...prev, [targetLang]: parsed }));
+            setShown((prev) => (prev.includes(targetLang) ? prev : [...prev, targetLang]));
+            notifySubtitleFetch(
+              "completed",
+              `Fetched live subtitles for ${targetLang}`,
+              targetLang,
+            );
+          }
+        }
+      } else {
+        tracker.complete(r.status, r.body);
+        tracker.fail(r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"));
+        notifySubtitleFetch("error", `Fetch failed (${r.status || "network error"})`, targetLang);
+      }
+    },
+    [videoId],
+  );
+
+  const handleUseTheseSubtitles = useCallback(
+    (url: string, rawBody: string) => {
+      if (!isValidJsonSubtitleResponse(rawBody)) return;
+      let target = "";
+      try {
+        const u = new URL(url, "https://www.youtube.com");
+        target = u.searchParams.get("tlang") || u.searchParams.get("lang") || "";
+      } catch {
+        const m = /[?&](?:tlang|lang)=([^&#]+)/.exec(url);
+        if (m) target = decodeURIComponent(m[1]);
+      }
+      if (!target) return;
+      const json = parseJson3(rawBody);
+      if (json) {
+        if (videoId) saveCachedRawJson3(videoId, target, rawBody);
+        setTracks((prev) => ({ ...prev, [target]: json }));
+        setShown((prev) => (prev.includes(target) ? prev : [...prev, target]));
+        notifySubtitleFetch("completed", `Applied and cached subtitles for ${target}`, target);
+      }
+    },
+    [videoId],
+  );
 
   const handleTargetLanguagesChange = (newTargetLangs: string[]) => {
     const newlyAdded = newTargetLangs.filter((lang) => !targetLanguages.includes(lang));
@@ -1510,10 +1640,11 @@ function Index() {
     };
 
     // 1. If baseLanguage from video captions exists in tracks and is shown, display it first
+    // Spec: verify base track cues (tracks[baseLanguage].length > 0 || hasTrackCues)
     if (
       baseLanguage &&
       tracks?.[baseLanguage] &&
-      (tracks[baseLanguage].length > 0 || hasTrackCues(tracks[baseLanguage])) &&
+      hasTrackCues(tracks[baseLanguage]) &&
       shown.includes(baseLanguage)
     ) {
       list.push(getLanguageMeta(baseLanguage));
@@ -1521,12 +1652,13 @@ function Index() {
     }
 
     // 2. Add all ordered languages that have valid tracks, and are shown
+    // Spec: verify ordered track cues (tracks[l.code].length > 0 || hasTrackCues)
     for (const l of orderedLangs) {
       if (
         !addedCodes.has(l.code) &&
         shown.includes(l.code) &&
         (targetLanguages.includes(l.code) || (tracks ? Boolean(tracks[l.code]) : true)) &&
-        Boolean(tracks?.[l.code] && (tracks[l.code].length > 0 || hasTrackCues(tracks[l.code])))
+        Boolean(tracks?.[l.code] && hasTrackCues(tracks[l.code]))
       ) {
         list.push(l);
         addedCodes.add(l.code);
@@ -1534,13 +1666,10 @@ function Index() {
     }
 
     // 3. Fallback: add any remaining tracks present in shown
+    // Spec: verify fallback track cues (tracks[code]?.length > 0 || hasTrackCues)
     if (tracks) {
       for (const code of Object.keys(tracks)) {
-        if (
-          !addedCodes.has(code) &&
-          shown.includes(code) &&
-          (tracks[code]?.length > 0 || hasTrackCues(tracks[code]))
-        ) {
+        if (!addedCodes.has(code) && shown.includes(code) && hasTrackCues(tracks[code])) {
           list.push(getLanguageMeta(code));
           addedCodes.add(code);
         }
@@ -1942,22 +2071,30 @@ function Index() {
                     </select>
                   </label>
                   {isAndroid && (
-                    <label className="flex flex-wrap items-center gap-2">
-                      <span>Subtitle request (first try, other is fallback):</span>
-                      <select
-                        data-testid="subtitle-request-mode-select"
-                        value={requestMode}
-                        onChange={(e) => {
-                          const v = e.target.value as SubtitleRequestMode;
-                          setRequestModeState(v);
-                          saveSubtitleRequestMode(v);
-                        }}
-                        className="rounded-md border border-input bg-background px-2 py-1"
-                      >
-                        <option value="tlang">Add tlang=&lt;language&gt;</option>
-                        <option value="lang">Replace lang=&lt;language&gt;</option>
-                      </select>
-                    </label>
+                    <>
+                      <label className="flex flex-wrap items-center gap-2">
+                        <span>Subtitle request (first try, other is fallback):</span>
+                        <select
+                          data-testid="subtitle-request-mode-select"
+                          value={requestMode}
+                          onChange={(e) => {
+                            const v = e.target.value as SubtitleRequestMode;
+                            setRequestModeState(v);
+                            saveSubtitleRequestMode(v);
+                          }}
+                          className="rounded-md border border-input bg-background px-2 py-1"
+                        >
+                          <option value="tlang">Add tlang=&lt;language&gt;</option>
+                          <option value="lang">Replace lang=&lt;language&gt;</option>
+                        </select>
+                      </label>
+                      <AttemptOrderSettings
+                        order={attemptOrder}
+                        onChangeOrder={handleUpdateAttemptOrder}
+                        promoteSuccess={promoteSuccess}
+                        onTogglePromoteSuccess={handleTogglePromoteSuccess}
+                      />
+                    </>
                   )}
                   <label className="flex items-center gap-2">
                     <input
@@ -2798,6 +2935,10 @@ function Index() {
         <NetworkRequestsInspector
           isOpen={networkInspectorOpen}
           onClose={() => setNetworkInspectorOpen(false)}
+          onFetchAgainWithSession={(url) => handleFetchAgain(url, true)}
+          onFetchAgainAnon={(url) => handleFetchAgain(url, false)}
+          onUseTheseSubtitles={handleUseTheseSubtitles}
+          isAndroid={isAndroid}
         />
       )}
       <ApkReleaseModal isOpen={apkModalOpen} onClose={() => setApkModalOpen(false)} />

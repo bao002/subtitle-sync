@@ -35,7 +35,10 @@ export function normalizeAttemptOrder(list: unknown): FetchAttempt[] {
   if (Array.isArray(list)) {
     for (const item of list) {
       const a = item as Partial<FetchAttempt>;
-      if ((a.mode === "tlang" || a.mode === "lang") && (a.send === "session" || a.send === "anon")) {
+      if (
+        (a.mode === "tlang" || a.mode === "lang") &&
+        (a.send === "session" || a.send === "anon")
+      ) {
         const k = key(a as FetchAttempt);
         if (seen.has(k)) continue;
         seen.add(k);
@@ -134,7 +137,13 @@ export function nativeExactFetch(
 ): ExactFetchResult {
   const send: SendMode = withSession ? "session" : "anon";
   if (!bridge.fetchTimedTextExact) {
-    return { status: 0, body: "", sentUrl: url, send, error: "App update required for exact fetch" };
+    return {
+      status: 0,
+      body: "",
+      sentUrl: url,
+      send,
+      error: "App update required for exact fetch",
+    };
   }
   try {
     const r = JSON.parse(bridge.fetchTimedTextExact(url, withSession) || "{}");
