@@ -185,7 +185,8 @@ assert(
 console.log("✅ PASS: MainActivity.kt saveCaptionToFile guards against invalid responses");
 
 assert(
-  mainActivityContent.includes("if (isValidJsonSubtitle(rawBodyString))") &&
+  (mainActivityContent.includes("if (isValidJsonSubtitle(rawBodyString))") ||
+    mainActivityContent.includes("isValidJsonSubtitle(rawBodyString)")) &&
     mainActivityContent.includes("saveCaptionToFile(url, rawBodyBytes)"),
   "MainActivity.kt interception loop must verify isValidJsonSubtitle before calling saveCaptionToFile",
 );

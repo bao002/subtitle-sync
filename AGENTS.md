@@ -13,13 +13,17 @@
 
 ## Work tracking
 
-- **Mandatory token economy flow on every prompt (`tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `tokens.md`. Big tasks fail and waste immense token budgets when executed monolithically; splitting prompts into atomic sub-tasks and staging them step-by-step eliminates context bloat and prevents tasks from failing due to an inefficient token economy.
+- **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**:
+  - ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md` (or its subdirectories `docs/designs/`, `docs/specifications/`, and `docs/operations/`).
+  - There must be ZERO duplicate `.md` files in the repository. No Markdown file located under `docs/*.md` may have a redundant copy in the root directory (e.g., `docs/tokens.md`, `docs/android.md`, `docs/parser.md`, `docs/self-verification.md`, and `docs/roadmap.md` reside exclusively in `docs/`).
+  - The only Markdown files permitted in the repository root are the primary entry point `README.md`, agent instructions `AGENTS.md`, and the active ephemeral scratchpads `current-sub-task.md` and `temp.md`.
+- **Mandatory token economy flow on every prompt (`docs/tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `docs/tokens.md`. Big tasks fail and waste immense token budgets when executed monolithically; splitting prompts into atomic sub-tasks and staging them step-by-step eliminates context bloat and prevents tasks from failing due to an inefficient token economy.
 - **Task management protocol with `current-sub-task.md` & `temp.md`**:
   - Always break every prompt into clear numbered tasks and smaller sub-tasks in `docs/tasks.md` before performing actions.
   - Maintain `current-sub-task.md` (and `docs/todo.md`): before executing any step, stage the single active sub-task in `current-sub-task.md`. Updating `current-sub-task.md` at each step lowers the risk of wasting tokens by ensuring each tool action and thought cycle is laser-focused on a single verifiable objective.
   - Use `temp.md` as an ephemeral scratchpad for draft diffs, checklists, or intermediate calculations, keeping permanent files clean.
   - Follow prompt steps sequentially step after step, using this efficient workflow even if it refines or updates previous naming conventions.
-- Enforce updating .md tracking files first before action: BEFORE jumping to any code edits, actions, or test implementations on a prompt, the agent MUST update `tokens.md`, `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`. The workflow of updating tracking Markdown files prior to taking action is mandatory and takes absolute precedence over jumping directly into source changes.
+- Enforce updating .md tracking files first before action: BEFORE jumping to any code edits, actions, or test implementations on a prompt, the agent MUST update `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`. The workflow of updating tracking Markdown files prior to taking action is mandatory and takes absolute precedence over jumping directly into source changes.
 - For each sub-task in `current-sub-task.md` / `docs/todo.md`:
   1. Ensure the sub-task is explicitly staged in `current-sub-task.md` (and `docs/todo.md`) first.
   2. Implement the sub-task's changes with minimal, targeted file edits.
@@ -90,7 +94,9 @@
     5. Primary full-resolution screen capture.
     6. Filtered logcat telemetry showing chronological `SUBTITLE_FETCH` lines.
     7. Cross-links to Mochawesome E2E report, Playwright report, and the live web demo.
-  - Detailed operational instructions and schemas are maintained in `android.md` (and `docs/android.md`).
+  - Detailed operational instructions and schemas are maintained in `docs/android.md`.
+  - Subtitle parsing specifications and timing rules are maintained in `docs/parser.md`.
+  - Self-verification protocol and sanity checks are maintained in `docs/self-verification.md`.
 
 ## Subtitles fetch, anti-bot, validation, and caching architecture
 

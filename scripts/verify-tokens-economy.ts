@@ -8,14 +8,14 @@ console.log("====================================================");
 
 const rootDir = process.cwd();
 
-// 1. Verify tokens.md and docs/tokens.md exist
-console.log("1. Verifying tokens.md and docs/tokens.md existence...");
+// 1. Verify docs/tokens.md exists and no duplicate root tokens.md exists
+console.log("1. Verifying docs/tokens.md existence and no duplicate in root...");
 const tokensPath = path.join(rootDir, "tokens.md");
 const docsTokensPath = path.join(rootDir, "docs/tokens.md");
-assert(fs.existsSync(tokensPath), "tokens.md must exist in root directory");
+assert(!fs.existsSync(tokensPath), "tokens.md must not be duplicated in root directory (canonical is docs/tokens.md)");
 assert(fs.existsSync(docsTokensPath), "docs/tokens.md must exist in docs directory");
 
-const tokensContent = fs.readFileSync(tokensPath, "utf8");
+const tokensContent = fs.readFileSync(docsTokensPath, "utf8");
 
 // 2. Verify core token economy principles in tokens.md
 console.log("2. Verifying token economy principles and terminology...");

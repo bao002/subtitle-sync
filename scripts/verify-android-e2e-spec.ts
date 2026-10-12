@@ -8,14 +8,14 @@ console.log("====================================================");
 
 const rootDir = process.cwd();
 
-// 1. Verify android.md and docs/android.md existence
-console.log("1. Verifying android.md and docs/android.md existence...");
+// 1. Verify docs/android.md existence and no root duplicate
+console.log("1. Verifying docs/android.md existence and no duplicate in root...");
 const androidMdPath = path.join(rootDir, "android.md");
 const docsAndroidMdPath = path.join(rootDir, "docs/android.md");
-assert(fs.existsSync(androidMdPath), "android.md must exist in root directory");
+assert(!fs.existsSync(androidMdPath), "android.md must not exist in root directory (canonical is docs/android.md)");
 assert(fs.existsSync(docsAndroidMdPath), "docs/android.md must exist in docs directory");
 
-const androidMdContent = fs.readFileSync(androidMdPath, "utf8");
+const androidMdContent = fs.readFileSync(docsAndroidMdPath, "utf8");
 
 // 2. Verify comprehensive contents in android.md
 console.log("2. Verifying android.md contents...");

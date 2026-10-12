@@ -32,13 +32,19 @@ assert(
 console.log("✅ PASS: Language video player accordion element is completely removed");
 
 // 2. Verify all accordion sections use the same active videoId
+const accordionSectionPath = path.resolve(rootDir, "src/components/AccordionSection.tsx");
+const accordionSectionContent = fs.existsSync(accordionSectionPath)
+  ? fs.readFileSync(accordionSectionPath, "utf8")
+  : "";
+
 assert(
   indexContent.includes("<AccordionSection") &&
     indexContent.includes("videoId={videoId}"),
   "AccordionSection must receive videoId={videoId} in index.tsx",
 );
 assert(
-  indexContent.includes("data-video-id={videoId}"),
+  indexContent.includes("data-video-id={videoId}") ||
+    accordionSectionContent.includes("data-video-id={videoId}"),
   "AccordionSection must set data-video-id attribute on the DOM details element",
 );
 console.log("✅ PASS: All accordion elements strictly bind and synchronize with active videoId");

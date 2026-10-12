@@ -1,5 +1,95 @@
 # Done tasks
 
+## Task 84: Subtitles Table Visibility When Subtitles Are Fetched
+
+### Subtask 84.3: Implement Dedicated Automated Test scripts/verify-subtitles-table-visibility-on-fetch.ts, Verify Build & Lint, and Migrate to docs/done.md
+- Created dedicated verification test `scripts/verify-subtitles-table-visibility-on-fetch.ts` testing runtime behavior of `hasLegitimateSubtitles`, `cols`, and accordion expansion when subtitles are fetched.
+- Verified:
+  1. `HighlightedSubtitle` is properly imported in `src/routes/index.tsx`.
+  2. Subtitles accordion panel is initialized to `subtitles: true` and automatically expands when `hasLegitimateSubtitles` is true.
+  3. `hasLegitimateSubtitles` correctly identifies valid `Json3` tracks (containing `.events` arrays with cues) as well as array representations.
+  4. `cols` correctly extracts language columns using `hasTrackCues` with fallback when at least 1 track with cues exists.
+  5. Initial state with null tracks correctly suppresses the table.
+  6. Exactly 1 legitimate fetched subtitle track renders `hasLegitimateSubtitles: true`, non-empty `cols`, aligned `rows`, and visible table.
+  7. Target language fetched alone (Hebrew) renders columns, aligned rows, and visible table.
+  8. Empty subtitles (`events: []`) are rejected.
+- Registered `test:subtitles-table-visibility` in `package.json` and documented in `docs/files.md`.
+- Ran full test suite with 100% pass (`test:subtitles-table-visibility`, `test:subtitles-table-legitimate-only`, `test:no-duplicate-md`, `test:tokens-economy`, `test:self-verification`).
+- Verified build (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
+
+### Subtask 84.2: Fix Subtitles Table Visibility, Alignment, and Cue Detection (src/routes/index.tsx, src/lib/subtitles.ts)
+- Updated `Json3` type in `src/lib/subtitles.ts` to support optional `.length` property.
+- Updated `parseJson3` in `src/lib/native-captions.ts` to assign `data.length = data.events.length`.
+- Fixed `hasLegitimateSubtitles` in `src/routes/index.tsx` to inspect `track?.events` cues in addition to direct array checking, ensuring valid `Json3` objects evaluate `hasValidTrack = true`.
+- Fixed `cols` in `src/routes/index.tsx` to detect valid cues via `hasTrackCues` (checking `t.length > 0`, `t.events?.length > 0`, and array length), with fallback ensuring columns are created whenever valid tracks exist.
+- Added auto-open effect in `src/routes/index.tsx` setting `openPanels.subtitles = true` when `hasLegitimateSubtitles` is true, and initialized `player: true` and `subtitles: true` by default.
+- Added missing `HighlightedSubtitle` import to `src/routes/index.tsx`.
+
+### Subtask 84.1: Stage Task 84 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+- Processed token economy optimization protocol according to `docs/tokens.md`.
+- Staged Task 84 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+- Maintained working scratchpad in `temp.md`.
+
+
+
+## Task 83: Eliminate Duplicate .md Files and Mandate docs/*.md Location in AGENTS.md
+
+### Subtask 83.3: Update Existing Verification Tests, Implement verify-no-duplicate-md-files.ts, Verify Build & Lint, and Migrate to docs/done.md
+- Updated verification tests (`verify-tokens-economy.ts`, `verify-android-e2e-spec.ts`, `verify-parser-docs.ts`, `verify-self-verification.ts`, `verify-hotfix-and-done-workflow.ts`) to assert canonical files in `docs/` and guarantee absence of root duplicates.
+- Created dedicated verification test `scripts/verify-no-duplicate-md-files.ts` asserting 0 duplicate `.md` files across the repository, verifying `AGENTS.md` mandate, checking allowed root Markdown files (`README.md`, `AGENTS.md`, `current-sub-task.md`, `temp.md`), and checking SHA-256 content uniqueness across all 30 Markdown files.
+- Registered `test:no-duplicate-md` in `package.json` and documented in `docs/files.md`.
+- Ran all verification suites with 100% pass rate (`test:no-duplicate-md`, `test:tokens-economy`, `test:android-e2e-spec`, `test:parser-docs`, `test:self-verification`, `test:hotfix-workflow`, `test:md`, `test:readme-links`).
+- Verified application compilation (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
+
+### Subtask 83.2: Eliminate Root Duplicate .md Files, Relocate roadmap.md, and Mandate docs/*.md in AGENTS.md
+- Removed redundant root duplicate files: `tokens.md`, `android.md`, `parser.md`, and `self-verification.md`.
+- Moved `roadmap.md` to canonical path `docs/roadmap.md`.
+- Updated `AGENTS.md` to mandate that all documentation, specification, design, operational, and architectural `.md` files must be located strictly under `docs/*.md` (or its subdirectories `docs/designs/`, `docs/specifications/`, and `docs/operations/`), prohibiting duplicate `.md` files.
+- Updated `docs/files.md` inventory to reflect canonical `docs/*.md` paths.
+
+### Subtask 83.1: Stage Task 83 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+- Processed token economy optimization protocol according to `docs/tokens.md`.
+- Staged Task 83 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+- Maintained working notes in `temp.md`.
+
+
+## Task 82: self-verification.md Protocol Specification, Screencast README Verification & Sanity Check Suite
+
+### Subtask 82.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md, and Provide Comprehensive User Guidance
+- Executed full sanity check and verification suite:
+  - `npm run test:self-verification`: 100% pass across all command matrix, screencast lifecycle, and sanity checks.
+  - `npm run test:screencast-availability`: Verified README links, GitHub Actions workflows, screencast capture lifecycle, and GitHub Pages report presentation.
+  - `npm run test:readme-links`: Verified all 10 relative documentation links and workflow badges.
+  - `npm run test:md`: Verified zero broken links across all 34 Markdown files.
+  - `npm run test:hygiene`: Verified clean repository hygiene with zero build binaries or synthetic reports in main.
+  - `npm run test:tokens-economy`: Verified token optimization protocol compliance.
+  - `npm run test:hotfix-workflow`: Verified done.md migration and hotfix suspension holding pattern.
+  - `npm run test:strict-json3-validation`: Verified rejection and eviction of non-JSON / HTML payloads.
+  - `npm run test:valid-json-cache`: Verified cache admittance gate rules.
+  - `npm run test:no-cache-empty-non-json`: Verified empty and non-JSON responses are rejected.
+  - `npm run test:html-guard-caching`: Verified HTML response rejection across all parsers.
+  - `npm run test:code-modularity`: Verified component and hook decomposition.
+  - `npm run test:accordion-video-id-and-no-android-fixtures`: Verified zero fake fixtures on Android.
+  - `npm run test:local-assets`: Verified 100% local assets offline architecture.
+- Full application compilation succeeded (`npm run build` / `compile_applet`) with zero errors.
+- ESLint passed with 0 errors (`npm run lint` / `lint_applet`).
+
+### Subtask 82.2: Create self-verification.md and Dedicated Automated Verification Test
+- Authored `self-verification.md` and `docs/self-verification.md` documenting the complete self-verification protocol:
+  1. Quick Verification Command Matrix covering all test suites.
+  2. Pillar 1: Ensuring All Tests Are Passing (hierarchy, criteria, and zero-defect requirements).
+  3. Pillar 2: Screencast Video Capture, Packaging & README Linkage (pre-boot screenrecord, SIGINT graceful flush, `set +e` pull step, file size in bytes/MB, badges, and GitHub Pages HTML5 video report).
+  4. Pillar 3: Sanity Checks & Self-Verifications (all 6 sanity checks: repo hygiene, strict JSON3, zero synthetic fixtures on Android, markdown links, code modularity, build & lint).
+  5. Pillar 4: Task Tracking & Prompt Completion Audit (tokens.md, tasks.md, current-sub-task.md, done.md).
+- Created dedicated verification script `scripts/verify-self-verification.ts`.
+- Registered `test:self-verification` in `package.json` and documented in `docs/files.md`.
+
+### Subtask 82.1: Stage Task 82 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+- Processed token economy optimization protocol according to `tokens.md`.
+- Staged Task 82 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+- Maintained working notes in `temp.md`.
+
+
 ## Task 80: Diagnose Missing Screencast Video & Guarantee Video Pull with Dedicated Workflow Step & Trap Resilience
 
 ### Subtask 80.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md

@@ -74,6 +74,7 @@ import { trackNetworkRequest, useNetworkRequests } from "@/utils/networkTracker"
 import { NetworkRequestsInspector } from "@/components/NetworkRequestsInspector";
 import { AccordionSection } from "@/components/AccordionSection";
 import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
+import { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 import { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
 import { ParserTimingLab } from "@/components/ParserTimingLab";
 import {
@@ -696,11 +697,11 @@ function Index() {
   const [showVideoSubtitles, setShowVideoSubtitles] = useState(true);
   const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => PANELS.map((panel) => panel.id));
   const [openPanels, setOpenPanels] = useState<Record<PanelId, boolean>>({
-    player: false,
+    player: true,
     playback: false,
     parser: false,
     languages: false,
-    subtitles: false,
+    subtitles: true,
     library: false,
   });
 
@@ -1500,11 +1501,19 @@ function Index() {
     const list: { code: string; name: string; tts: string }[] = [];
     const addedCodes = new Set<string>();
 
+    const hasTrackCues = (t: Json3 | undefined): boolean => {
+      if (!t) return false;
+      if (typeof t.length === "number" && t.length > 0) return true;
+      if (Array.isArray(t.events) && t.events.length > 0) return true;
+      if (Array.isArray(t) && (t as unknown[]).length > 0) return true;
+      return false;
+    };
+
     // 1. If baseLanguage from video captions exists in tracks and is shown, display it first
     if (
       baseLanguage &&
       tracks?.[baseLanguage] &&
-      tracks[baseLanguage].length > 0 &&
+      (tracks[baseLanguage].length > 0 || hasTrackCues(tracks[baseLanguage])) &&
       shown.includes(baseLanguage)
     ) {
       list.push(getLanguageMeta(baseLanguage));
@@ -1517,7 +1526,7 @@ function Index() {
         !addedCodes.has(l.code) &&
         shown.includes(l.code) &&
         (targetLanguages.includes(l.code) || (tracks ? Boolean(tracks[l.code]) : true)) &&
-        Boolean(tracks?.[l.code] && tracks[l.code].length > 0)
+        Boolean(tracks?.[l.code] && (tracks[l.code].length > 0 || hasTrackCues(tracks[l.code])))
       ) {
         list.push(l);
         addedCodes.add(l.code);
@@ -1527,7 +1536,21 @@ function Index() {
     // 3. Fallback: add any remaining tracks present in shown
     if (tracks) {
       for (const code of Object.keys(tracks)) {
-        if (!addedCodes.has(code) && shown.includes(code) && tracks[code]?.length > 0) {
+        if (
+          !addedCodes.has(code) &&
+          shown.includes(code) &&
+          (tracks[code]?.length > 0 || hasTrackCues(tracks[code]))
+        ) {
+          list.push(getLanguageMeta(code));
+          addedCodes.add(code);
+        }
+      }
+    }
+
+    // 4. Ultimate fallback: if no columns matched shown filter yet tracks exist with cues, include them
+    if (list.length === 0 && tracks) {
+      for (const code of Object.keys(tracks)) {
+        if (!addedCodes.has(code) && hasTrackCues(tracks[code])) {
           list.push(getLanguageMeta(code));
           addedCodes.add(code);
         }
@@ -1539,11 +1562,21 @@ function Index() {
 
   const hasLegitimateSubtitles = useMemo(() => {
     if (!tracks) return false;
-    const hasValidTrack = Object.values(tracks).some(
-      (cues) => Array.isArray(cues) && cues.length > 0,
-    );
+    const hasValidTrack = Object.values(tracks).some((track) => {
+      const cues = Array.isArray(track) ? track : track?.events || [];
+      const isValid =
+        (Array.isArray(cues) && cues.length > 0) ||
+        (Array.isArray(track?.events) && track.events.length > 0);
+      return isValid;
+    });
     return Boolean(hasValidTrack && rows.length > 0 && cols.length > 0);
   }, [tracks, rows.length, cols.length]);
+
+  useEffect(() => {
+    if (hasLegitimateSubtitles) {
+      setOpenPanels((current) => (current.subtitles ? current : { ...current, subtitles: true }));
+    }
+  }, [hasLegitimateSubtitles]);
 
   const missingFavoriteLanguages = useMemo(() => {
     return targetLanguages.filter((code) => !tracks?.[code]);

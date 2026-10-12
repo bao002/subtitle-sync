@@ -8,36 +8,33 @@ console.log("====================================================");
 
 const rootDir = process.cwd();
 
-// 1. Verify tokens.md and docs/tokens.md mandate moving to done.md and hotfix workflow
-console.log("1. Verifying tokens.md and docs/tokens.md...");
+// 1. Verify docs/tokens.md mandates moving to done.md and hotfix workflow, and no root duplicate exists
+console.log("1. Verifying docs/tokens.md and no root duplicate...");
 const tokensPath = path.join(rootDir, "tokens.md");
 const docsTokensPath = path.join(rootDir, "docs/tokens.md");
-assert(fs.existsSync(tokensPath), "tokens.md must exist");
+assert(!fs.existsSync(tokensPath), "tokens.md must not exist in root directory (canonical is docs/tokens.md)");
 assert(fs.existsSync(docsTokensPath), "docs/tokens.md must exist");
 
-const tokensContent = fs.readFileSync(tokensPath, "utf8");
 const docsTokensContent = fs.readFileSync(docsTokensPath, "utf8");
 
-for (const [name, content] of [["tokens.md", tokensContent], ["docs/tokens.md", docsTokensContent]]) {
-  assert(
-    content.includes("Move to done.md") &&
-      content.includes("docs/done.md"),
-    `${name} must mandate moving completed tasks to docs/done.md`,
-  );
-  assert(
-    content.includes("Prompt Completion Audit Gate") &&
-      content.includes("EVERY task and subtask"),
-    `${name} must enforce Prompt Completion Audit Gate to ensure all tasks are accomplished and tested`,
-  );
-  assert(
-    content.includes("Hotfix Workflow") &&
-      content.includes("SUSPEND ACTIVE TASK") &&
-      content.includes("ON HOLD") &&
-      content.includes("RESUME SUSPENDED TASK"),
-    `${name} must codify Hotfix Workflow with task holding and resumption pattern`,
-  );
-}
-console.log("✅ PASS: tokens.md and docs/tokens.md correctly define done.md audit and hotfix holding protocol");
+assert(
+  docsTokensContent.includes("Move to done.md") &&
+    docsTokensContent.includes("docs/done.md"),
+  "docs/tokens.md must mandate moving completed tasks to docs/done.md",
+);
+assert(
+  docsTokensContent.includes("Prompt Completion Audit Gate") &&
+    docsTokensContent.includes("EVERY task and subtask"),
+  "docs/tokens.md must enforce Prompt Completion Audit Gate to ensure all tasks are accomplished and tested",
+);
+assert(
+  docsTokensContent.includes("Hotfix Workflow") &&
+    docsTokensContent.includes("SUSPEND ACTIVE TASK") &&
+    docsTokensContent.includes("ON HOLD") &&
+    docsTokensContent.includes("RESUME SUSPENDED TASK"),
+  "docs/tokens.md must codify Hotfix Workflow with task holding and resumption pattern",
+);
+console.log("✅ PASS: docs/tokens.md correctly defines done.md audit and hotfix holding protocol");
 
 // 2. Verify AGENTS.md mandates done.md migration, audit gate, and hotfix workflow
 console.log("2. Verifying AGENTS.md work tracking specifications...");

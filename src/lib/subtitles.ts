@@ -6,6 +6,7 @@ export type Json3 = {
     dDurationMs?: number;
     segs?: { utf8?: string; tOffsetMs?: number }[];
   }[];
+  length?: number;
 };
 
 export type Cue = { start: number; end: number; text: string };

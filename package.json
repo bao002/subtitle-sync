@@ -93,6 +93,7 @@
     "test:emulator-error-detection": "tsx scripts/verify-emulator-error-detection.ts",
     "test:apk-installable": "tsx scripts/verify-apk-installable.ts",
     "test:subtitles-table-legitimate-only": "tsx scripts/verify-subtitles-table-legitimate-json3-only.ts",
+    "test:subtitles-table-visibility": "tsx scripts/verify-subtitles-table-visibility-on-fetch.ts",
     "test:code-modularity": "tsx scripts/verify-code-modularity-standards.ts",
     "test:index-decomposition": "tsx scripts/verify-index-route-decomposition.ts",
     "test:parser-docs": "tsx scripts/verify-parser-docs.ts",
@@ -102,6 +103,8 @@
     "test:android-e2e-spec": "tsx scripts/verify-android-e2e-spec.ts",
     "test:hotfix-workflow": "tsx scripts/verify-hotfix-and-done-workflow.ts",
     "test:screencast-availability": "tsx scripts/verify-screencast-availability.ts",
+    "test:self-verification": "tsx scripts/verify-self-verification.ts",
+    "test:no-duplicate-md": "tsx scripts/verify-no-duplicate-md-files.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
