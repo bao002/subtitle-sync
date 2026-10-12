@@ -11,6 +11,10 @@
 
 <!-- LOVABLE:END -->
 
+## Subtitles fetching (read first)
+
+- The subtitle fetch design (attempt order, session vs link-only sending, refetch buttons, web demo = local fixtures only) lives in [docs/reliable-subtitles-fetching.md](docs/reliable-subtitles-fetching.md). Follow it for any change to subtitle fetching.
+
 ## Work tracking
 
 - **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**:
