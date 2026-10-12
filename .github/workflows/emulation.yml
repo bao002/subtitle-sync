@@ -182,8 +182,9 @@ jobs:
             adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4 >/dev/null 2>&1 &
             RECORD_PID=$!
             cleanup_recording() {
+              set +e
               echo "Stopping adb screenrecord..."
-              adb shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true"
+              adb shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true" || true
               wait $RECORD_PID 2>/dev/null || true
               sleep 3
               adb pull /sdcard/android-emulator-video.mp4 ./android-emulator-video.mp4 2>/dev/null || true
@@ -199,6 +200,23 @@ jobs:
             adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png
             cleanup_recording
             trap - EXIT INT TERM ERR
+
+      - name: Finalize Screencast Recording and Pull Video
+        if: always()
+        run: |
+          set +e
+          echo "--> Ensuring screencast recording is finalized and video pulled from emulator..."
+          adb shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true" || true
+          sleep 3
+          if [ ! -f "./android-emulator-video.mp4" ] || [ ! -s "./android-emulator-video.mp4" ]; then
+            adb pull /sdcard/android-emulator-video.mp4 ./android-emulator-video.mp4 2>/dev/null || true
+          fi
+          if [ -f "./android-emulator-video.mp4" ]; then
+            FILE_SIZE=$(wc -c < ./android-emulator-video.mp4 2>/dev/null | tr -d ' ' || echo 0)
+            echo "✓ Video screencast verified: ./android-emulator-video.mp4 (${FILE_SIZE} bytes)"
+          else
+            echo "⚠️ /sdcard/android-emulator-video.mp4 could not be pulled from emulator."
+          fi
 
       - name: Publish Android E2E Result to Job Summary
         if: always()
@@ -269,10 +287,11 @@ jobs:
             echo "Staged android-emulator-screenshot.png to gh-pages-staging/screenshots/"
           fi
           if [ -f "./android-emulator-video.mp4" ]; then
+            cp ./android-emulator-video.mp4 gh-pages-staging/android-emulator-video.mp4
             cp ./android-emulator-video.mp4 gh-pages-staging/screenshots/android-emulator-video.mp4
             cp ./android-emulator-video.mp4 gh-pages-staging/android/android-emulator-video.mp4
             cp ./android-emulator-video.mp4 gh-pages-staging/android/screenshots/android-emulator-video.mp4
-            echo "Staged android-emulator-video.mp4 to gh-pages-staging/screenshots/ and gh-pages-staging/android/"
+            echo "Staged android-emulator-video.mp4 to gh-pages-staging root, screenshots/, and android/"
           fi
           if [ -f "./android-emulator-logcat.txt" ]; then
             cp ./android-emulator-logcat.txt gh-pages-staging/screenshots/android-emulator-logcat.txt

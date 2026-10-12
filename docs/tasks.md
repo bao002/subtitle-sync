@@ -393,6 +393,25 @@
   - Compile applet (`compile_applet`) and run linter (`lint_applet`).
   - Commit progress to git and migrate Task 79 to `docs/done.md`.
 
+## Task 80: Diagnose Missing Screencast Video & Guarantee Video Pull with Dedicated Workflow Step & Trap Resilience
+
+- [x] **Subtask 80.1: Stage Task 80 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `tokens.md`.
+  - Stage Subtask 80.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for diagnostic and implementation notes.
+
+- [x] **Subtask 80.2: Implement Dedicated Always-Run Video Pull Step & Trap set +e Resilience in CI and Local Scripts**:
+  - In `.github/workflows/emulation.yml`, add an explicit `if: always()` step `Finalize Screencast Recording and Pull Video` immediately following the test runner.
+  - In `cleanup_recording()` in `emulation.yml` and `stop_recording_and_pull()` in `scripts/run-android-e2e.sh`, inject `set +e` to ensure PID lookups and signals never abort the pull on test timeout or failure.
+  - Ensure pulled video is staged to both `gh-pages-staging/screenshots/android-emulator-video.mp4` and `gh-pages-staging/android/android-emulator-video.mp4`.
+  - Update `scripts/verify-screencast-availability.ts` to assert the presence and resilience of the dedicated pull step.
+
+- [x] **Subtask 80.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md**:
+  - Run all verification suites (`test:screencast-availability`, `test:android-e2e-spec`, `test:workflows`).
+  - Compile applet (`compile_applet`) and run linter (`lint_applet`).
+  - Commit progress to git and migrate Task 80 to `docs/done.md`.
+
+
 
 
 

@@ -207,7 +207,12 @@ assert(
   emulationYmlRaw.includes("wc -c") || emulationYmlRaw.includes("stat"),
   "emulation.yml must verify pulled video byte count",
 );
-console.log("   ✓ Screenrecord lifecycle verified (start, SIGINT flush, adb pull, byte count validation)");
+assert(
+  emulationYmlRaw.includes("Finalize Screencast Recording and Pull Video") &&
+  emulationYmlRaw.includes("set +e"),
+  "emulation.yml must contain dedicated 'Finalize Screencast Recording and Pull Video' step with set +e resilience",
+);
+console.log("   ✓ Screenrecord lifecycle verified (start, SIGINT flush, adb pull, byte count validation, dedicated pull step)");
 
 // 3.5 Verify Android E2E Assertion Execution
 assert(

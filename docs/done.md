@@ -1,6 +1,27 @@
 # Done tasks
 
-## Task 79: Automatically Update README.md with Video Size and Link on Every GitHub Actions Run
+## Task 80: Diagnose Missing Screencast Video & Guarantee Video Pull with Dedicated Workflow Step & Trap Resilience
+
+### Subtask 80.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md
+
+- Verified full test matrix across `test:screencast-availability`, `test:android-e2e-spec`, `test:tokens-economy`, `test:hotfix-workflow`, `test:workflows`, and `test:fork-readme-links` with 100% pass rate.
+- Verified compilation (`compile_applet`) and ESLint (`lint_applet`) clean execution with 0 errors.
+- Checked in progress and documented findings for screencast video availability.
+
+### Subtask 80.2: Implement Dedicated Always-Run Video Pull Step & Trap set +e Resilience in CI and Local Scripts
+
+- **Root Cause Identified**: Previous CI runs encountered an assertion timeout or failure (`Outcome: failure` displayed in deployed report). Due to `set -e` in GitHub Actions bash steps, when `pidof screenrecord` returned a non-zero exit code during the EXIT/ERR trap, the shell aborted before `adb pull /sdcard/android-emulator-video.mp4` could run. Consequently, `./android-emulator-video.mp4` was absent on the runner and was not staged into `gh-pages-staging/screenshots/` by peaceiris.
+- **Architectural Fix Implemented**:
+  1. In `.github/workflows/emulation.yml`, injected `set +e` inside `cleanup_recording()` so trap execution never exits prematurely.
+  2. Added a dedicated standalone GitHub Actions step: `Finalize Screencast Recording and Pull Video` with `if: always()` immediately following the E2E test step, guaranteeing `adb pull /sdcard/android-emulator-video.mp4` always executes regardless of test outcome.
+  3. Staged `./android-emulator-video.mp4` to all target locations in `gh-pages-staging/` (`gh-pages-staging/android-emulator-video.mp4`, `gh-pages-staging/screenshots/android-emulator-video.mp4`, and `gh-pages-staging/android/android-emulator-video.mp4`).
+  4. In `scripts/run-android-e2e.sh`, added `set +e` inside `stop_recording_and_pull()`.
+  5. Enhanced `scripts/verify-screencast-availability.ts` to assert that the dedicated `Finalize Screencast Recording and Pull Video` step exists with `if: always()` and `set +e` resilience.
+
+### Subtask 80.1: Stage Task 80 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
+- Diagnosed why `android-emulator-video.mp4` returned 404 on `https://mostuf25563.github.io/subtitle-sync/screenshots/android-emulator-video.mp4`.
+- Recorded diagnostic details in `temp.md` and staged tasks across tracking documents.
 
 ### Subtask 79.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md
 
