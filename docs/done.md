@@ -1,5 +1,39 @@
 # Done tasks
 
+## Task 87: Fix Anti-Bot HTTP 429 on Link-Only (Anon) Fetching by Matching Browser Profile
+
+### Subtask 87.4: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+- Authored dedicated automated verification test `scripts/verify-anti-bot-browser-profile.ts` validating:
+  1. Android Shell `MainActivity.kt` authentic browser profile (sanitizing `Version/X.X` and `; wv` from User-Agent).
+  2. Dynamic Chrome client hints (`sec-ch-ua`, `sec-ch-ua-mobile`, `sec-ch-ua-platform`, `sec-ch-ua-model`).
+  3. Browser navigation headers (`Accept`, `Accept-Language`, `Sec-Fetch-Dest`, `Sec-Fetch-Mode`, `Sec-Fetch-Site`, `Sec-Fetch-User`, `Upgrade-Insecure-Requests`).
+  4. Explicit HTTP 429 status reporting and tagging in `networkTracker` and clipboard formatting.
+  5. `NetworkRequestsInspector` UI bot detection card with "Open Link in Browser" and manual "Paste Subtitles JSON" fallback.
+  6. `429 BOT BLOCK` status badge in network request list.
+- Registered `test:anti-bot-browser-profile` in `package.json` and documented in `docs/files.md`.
+- Executed verification tests (`test:anti-bot-browser-profile`, `test:reliable-subtitles-fetching`, `test:tokens-economy`, `test:no-duplicate-md`).
+- Verified applet compilation (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
+
+### Subtask 87.3: Add Client-Side Navigation Fallback & Diagnostic Guidance in App UI
+- In `NetworkRequestsInspector.tsx`:
+  - Added `isBotDetected()` helper identifying HTTP 429 and "automated queries" HTML responses.
+  - Added dedicated `bot-detection-card` explaining why the link failed in direct native OkHttp (automated query detection) while working in a browser window.
+  - Added "Open Link in Browser" button leveraging `window.AndroidNativeShell.openInBrowser` or `window.open` to launch the user's external browser directly.
+  - Added interactive "Paste Subtitles JSON" panel with live JSON validation and "Apply to Video" action allowing users to copy-paste the response from their browser into the app.
+  - Added distinct `429 BOT BLOCK` status badge in the requests list.
+
+### Subtask 87.2: Enhance Android Shell (MainActivity.kt) Network Client with Authentic Browser Navigation Profile
+- Enhanced `getSanitizedBrowserUserAgent()` in `MainActivity.kt` to strip `Version/\d+\.\d+\s*` and `; wv`, eliminating the telltale embedded WebView signature that triggered Google's bot detection.
+- Added dynamic fallback User-Agent reflecting real Android release and device model (`Build.VERSION.RELEASE`, `Build.MODEL`).
+- Added full Chrome Client Hints in `fetchTimedTextExact` (`sec-ch-ua`, `sec-ch-ua-mobile`, `sec-ch-ua-platform`, `sec-ch-ua-model`) matching the Chrome version.
+- Replicated standard Chrome browser navigation headers (`Accept`, `Accept-Language`, `Sec-Fetch-Dest: document`, `Sec-Fetch-Mode: navigate`, `Sec-Fetch-Site: none`, `Sec-Fetch-User: ?1`, `Upgrade-Insecure-Requests: 1`).
+- Preserved HTTP 429 status code and error messages explicitly.
+
+### Subtask 87.1: Stage Task 87 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+- Processed token economy optimization protocol according to `docs/tokens.md`.
+- Staged Task 87 and subtasks in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+- Documented diagnosis and execution plan in `temp.md`.
+
 ## Task 86: Complete Reliable Subtitle Fetching Implementation (Attempt Order, Settings, Network Actions & Build Fix)
 
 ### Subtask 86.5: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md

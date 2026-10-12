@@ -513,6 +513,29 @@
   - Register `test:reliable-subtitles-fetching` in `package.json` and document in `docs/files.md`.
   - Compile (`compile_applet`), lint (`lint_applet`), and migrate Task 86 to `docs/done.md`.
 
+## Task 87: Fix Anti-Bot HTTP 429 on Link-Only (Anon) Fetching by Matching Browser Profile
+
+- [x] **Subtask 87.1: Stage Task 87 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `docs/tokens.md`.
+  - Stage Subtask 87.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for diagnostic analysis.
+
+- [x] **Subtask 87.2: Enhance Android Shell (MainActivity.kt) Network Client with Authentic Browser Navigation Profile**:
+  - Replace hardcoded `anonUserAgent` ("Android 14 Chrome 124") with dynamic sanitized WebView user-agent (`webView.settings.userAgentString`) so device model, OS version, and Chrome build match the signed timedtext URL query params (`cbrand`, `cmodel`, `cosver`, `cbrver`).
+  - Add authentic browser navigation headers to anon requests: `Accept`, `Accept-Language`, `Sec-Fetch-Dest: document`, `Sec-Fetch-Mode: navigate`, `Sec-Fetch-Site: none`, `Sec-Fetch-User: ?1`, `Upgrade-Insecure-Requests: 1`, and platform client hints.
+  - Ensure `withSession` mode supplements headers with `CookieManager.getInstance().getCookie(url)`.
+  - Handle HTTP 429 responses explicitly with status 429 rather than dropping to generic error.
+
+- [x] **Subtask 87.3: Add Client-Side Navigation Fallback / Diagnostic Guidance in App UI**:
+  - When link-only returns 429 or bot detection, provide direct "Open link in external browser" or "Copy direct link" action so user can fetch or view directly if IP rate-limited.
+  - In NetworkRequestsInspector, display human-readable diagnosis when HTTP 429 / bot detection occurs: "Google rate-limited this native request (bot detection). Link works in browser due to full browser fingerprint."
+
+- [x] **Subtask 87.4: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md**:
+  - Author `scripts/verify-anti-bot-browser-profile.ts` asserting dynamic user agent matching, browser navigation headers, cookie integration, and 429 diagnostics.
+  - Register in `package.json` and `docs/files.md`.
+  - Compile (`compile_applet`), lint (`lint_applet`), and present the comprehensive diagnosis and plan.
+
+
 
 
 

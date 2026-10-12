@@ -593,8 +593,11 @@ function Index() {
               if (isGood) {
                 tracker.complete(r.status, r.body);
               } else {
-                tracker.complete(r.status, r.body);
-                tracker.fail(r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"));
+                tracker.fail(
+                  r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"),
+                  r.status,
+                  r.body,
+                );
               }
               return r;
             },
@@ -699,8 +702,7 @@ function Index() {
           }
         }
       } else {
-        tracker.complete(r.status, r.body);
-        tracker.fail(r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"));
+        tracker.fail(r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"), r.status, r.body);
         notifySubtitleFetch("error", `Fetch failed (${r.status || "network error"})`, targetLang);
       }
     },

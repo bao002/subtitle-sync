@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Send,
   Download,
+  ExternalLink,
 } from "lucide-react";
 import {
   useNetworkRequests,
@@ -62,6 +63,34 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
   const [isMinimized, setIsMinimized] = useState(false);
   // Small screens (Android): show either the list or one request detail at a time
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
+  const [showPasteJson, setShowPasteJson] = useState(false);
+  const [pastedJson, setPastedJson] = useState("");
+
+  const isBotDetected = (req?: NetworkRequestRecord | null): boolean => {
+    if (!req) return false;
+    return (
+      req.status === 429 ||
+      Boolean(req.error && req.error.includes("429")) ||
+      Boolean(req.fullResponseBody && req.fullResponseBody.includes("automated queries")) ||
+      Boolean(req.responseBodyPreview && req.responseBodyPreview.includes("automated queries"))
+    );
+  };
+
+  const handleOpenInExternalBrowser = (url: string) => {
+    const shell =
+      typeof window !== "undefined"
+        ? (
+            window as unknown as {
+              AndroidNativeShell?: { openInBrowser?: (u: string) => boolean };
+            }
+          ).AndroidNativeShell
+        : undefined;
+    if (shell?.openInBrowser) {
+      shell.openInBrowser(url);
+    } else if (typeof window !== "undefined") {
+      window.open(url, "_blank");
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
@@ -501,10 +530,12 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
                               ? "bg-yellow-900/60 text-yellow-300"
                               : req.status === 200 && !isBodyEmpty
                                 ? "bg-emerald-900/60 text-emerald-300"
-                                : "bg-red-900/60 text-red-300"
+                                : isBotDetected(req)
+                                  ? "bg-amber-900/70 text-amber-300 border border-amber-600/60"
+                                  : "bg-red-900/60 text-red-300"
                           }`}
                         >
-                          {req.isPending ? "PENDING" : req.status}
+                          {req.isPending ? "PENDING" : isBotDetected(req) ? "429 BOT BLOCK" : req.status}
                         </span>
                         <span className="font-semibold text-neutral-300 font-mono text-[11px]">
                           {req.method}
@@ -831,6 +862,91 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
                       </button>
                     )}
                 </div>
+
+                {isBotDetected(selectedRequest) && (
+                  <div
+                    data-testid="bot-detection-card"
+                    className="p-3 rounded-lg bg-amber-950/40 border border-amber-600/70 text-amber-200 flex flex-col gap-2.5 animate-in fade-in duration-200"
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-amber-300 text-xs">
+                      <AlertTriangle className="w-4 h-4 shrink-0 text-amber-400" />
+                      <span>Google Anti-Bot Rate Limit (HTTP 429 Detected)</span>
+                    </div>
+                    <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                      Google flagged this direct connection with automated query detection. Real browser windows succeed because they carry an authentic browser environment.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                      <button
+                        type="button"
+                        data-testid="open-in-browser-button"
+                        onClick={() => handleOpenInExternalBrowser(selectedRequest.url)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 active:scale-95 text-neutral-950 font-bold text-xs transition shadow-sm"
+                        title="Open this timedtext URL in your external phone browser"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Open Link in Browser</span>
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="toggle-paste-json-button"
+                        onClick={() => setShowPasteJson((prev) => !prev)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-neutral-200 font-medium text-xs border border-neutral-700 transition"
+                        title="Paste json3 response copied from browser window"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-blue-400" />
+                        <span>{showPasteJson ? "Hide Paste Box" : "Paste Subtitles JSON"}</span>
+                      </button>
+                    </div>
+
+                    {showPasteJson && (
+                      <div className="mt-1 p-2.5 bg-neutral-900 border border-neutral-700 rounded-lg flex flex-col gap-2">
+                        <label className="text-[11px] text-neutral-300 font-medium">
+                          Paste the JSON response from your browser window:
+                        </label>
+                        <textarea
+                          data-testid="paste-subtitles-json-textarea"
+                          rows={4}
+                          value={pastedJson}
+                          onChange={(e) => setPastedJson(e.target.value)}
+                          placeholder='{"events":[{"tStartMs":0,"dDurationMs":2000,"segs":[{"utf8":"..."}]}]}'
+                          className="w-full p-2 bg-neutral-950 border border-neutral-800 rounded font-mono text-[11px] text-neutral-200 focus:outline-none focus:border-amber-500"
+                        />
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span className="text-[10px]">
+                            {pastedJson.trim() ? (
+                              isValidJsonSubtitleResponse(pastedJson) ? (
+                                <span className="text-emerald-400 font-medium">
+                                  ✅ Valid json3 subtitle response
+                                </span>
+                              ) : (
+                                <span className="text-amber-400">
+                                  ⚠️ Incomplete or invalid JSON subtitle format
+                                </span>
+                              )
+                            ) : (
+                              <span className="text-neutral-500">Awaiting pasted JSON…</span>
+                            )}
+                          </span>
+                          <button
+                            type="button"
+                            data-testid="apply-pasted-json-button"
+                            disabled={!isValidJsonSubtitleResponse(pastedJson)}
+                            onClick={() => {
+                              if (onUseTheseSubtitles && isValidJsonSubtitleResponse(pastedJson)) {
+                                onUseTheseSubtitles(selectedRequest.url, pastedJson);
+                                setPastedJson("");
+                                setShowPasteJson(false);
+                              }
+                            }}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:pointer-events-none text-white text-xs font-semibold rounded-lg transition shadow-sm"
+                          >
+                            Apply to Video
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {selectedRequest.error && (
                   <div className="p-2.5 rounded bg-red-950/40 border border-red-800/60 text-red-300 flex items-start gap-2">
