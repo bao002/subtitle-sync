@@ -18,6 +18,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.CookieManager
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.widget.Toast
@@ -53,6 +54,26 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     @Volatile
     private var lastObservedTimedTextUrl: String? = null
     private val lastObservedHeaders = java.util.concurrent.ConcurrentHashMap<String, String>()
+
+    private fun getSanitizedBrowserUserAgent(targetUrl: String? = null): String {
+        return try {
+            val ua = webView.settings.userAgentString
+            if (!ua.isNullOrBlank()) {
+                // Strip '; wv' and 'Version/X.X' so Google does not classify it as an embedded webview
+                ua.replace("; wv", "").replace(Regex("Version/\\d+\\.\\d+\\s*"), "")
+            } else {
+                buildFallbackBrowserUserAgent(targetUrl)
+            }
+        } catch (_: Exception) {
+            buildFallbackBrowserUserAgent(targetUrl)
+        }
+    }
+
+    private fun buildFallbackBrowserUserAgent(targetUrl: String? = null): String {
+        val model = android.os.Build.MODEL ?: "Pixel 8"
+        val osVer = android.os.Build.VERSION.RELEASE ?: "14"
+        return "Mozilla/5.0 (Linux; Android $osVer; $model) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36"
+    }
 
     companion object {
         private const val TAG = "YT_CAPTION_INTERCEPTOR"
@@ -760,18 +781,60 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             out.put("send", send)
             try {
                 val reqBuilder = Request.Builder().url(url)
+                val browserUa = getSanitizedBrowserUserAgent(url)
+
                 if (withSession) {
                     lastObservedHeaders.forEach { (k, v) ->
                         if (!k.equals("accept-encoding", ignoreCase = true)) reqBuilder.addHeader(k, v)
                     }
+                    // Ensure cookies are attached if missing from intercepted request headers
+                    try {
+                        val hasCookieHeader = lastObservedHeaders.keys.any { it.equals("cookie", ignoreCase = true) }
+                        if (!hasCookieHeader) {
+                            val cookies = CookieManager.getInstance().getCookie("https://www.youtube.com")
+                                ?: CookieManager.getInstance().getCookie(url)
+                            if (!cookies.isNullOrBlank()) {
+                                reqBuilder.header("Cookie", cookies)
+                            }
+                        }
+                    } catch (_: Exception) {}
+                    // Strip WebView flags from session User-Agent if present
+                    val sessionUa = lastObservedHeaders["user-agent"] ?: lastObservedHeaders["User-Agent"]
+                    if (sessionUa != null && (sessionUa.contains("; wv") || sessionUa.contains("Version/"))) {
+                        reqBuilder.header("User-Agent", sessionUa.replace("; wv", "").replace(Regex("Version/\\d+\\.\\d+\\s*"), ""))
+                    }
                 } else {
-                    reqBuilder.header("User-Agent", anonUserAgent)
+                    // Link-only anon mode: replicate real Chrome mobile navigation profile & client hints
+                    reqBuilder.header("User-Agent", browserUa)
+                    reqBuilder.header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+                    reqBuilder.header("Accept-Language", Locale.getDefault().toLanguageTag() + ",en;q=0.9")
+                    reqBuilder.header("Sec-Fetch-Dest", "document")
+                    reqBuilder.header("Sec-Fetch-Mode", "navigate")
+                    reqBuilder.header("Sec-Fetch-Site", "none")
+                    reqBuilder.header("Sec-Fetch-User", "?1")
+                    reqBuilder.header("Upgrade-Insecure-Requests", "1")
+
+                    val chromeMajorMatch = Regex("Chrome/(\\d+)").find(browserUa)
+                    val chromeMajor = chromeMajorMatch?.groupValues?.get(1) ?: "133"
+                    reqBuilder.header("sec-ch-ua", "\"Chromium\";v=\"$chromeMajor\", \"Google Chrome\";v=\"$chromeMajor\", \"Not=A?Brand\";v=\"24\"")
+                    reqBuilder.header("sec-ch-ua-mobile", "?1")
+                    reqBuilder.header("sec-ch-ua-platform", "\"Android\"")
+                    val model = android.os.Build.MODEL
+                    if (!model.isNullOrBlank()) {
+                        reqBuilder.header("sec-ch-ua-model", "\"$model\"")
+                    }
                 }
+
                 val client = if (withSession) okHttpClient else anonHttpClient
                 client.newCall(reqBuilder.build()).execute().use { resp ->
                     val body = resp.body?.string() ?: ""
                     out.put("status", resp.code)
                     out.put("body", body)
+                    if (resp.code == 429) {
+                        out.put("error", "HTTP 429 (Too Many Requests / Bot Detection)")
+                    } else if (resp.code !in 200..299) {
+                        out.put("error", "HTTP ${resp.code}")
+                    }
                     val lang = android.net.Uri.parse(url).getQueryParameter("tlang") ?: android.net.Uri.parse(url).getQueryParameter("lang")
                     val mode = if (android.net.Uri.parse(url).getQueryParameter("tlang").isNullOrBlank()) "lang" else "tlang"
                     Log.i(TAG, "SUBTITLE_FETCH kind=exact lang=$lang mode=$mode send=$send http=${resp.code} bytes=${body.toByteArray(StandardCharsets.UTF_8).size} cues=${countCaptionCues(body)}")
@@ -783,6 +846,19 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 Log.w(TAG, "SUBTITLE_FETCH kind=exact send=$send http=0 error=${e.message}")
             }
             return out.toString()
+        }
+
+        @JavascriptInterface
+        fun openInBrowser(url: String): Boolean {
+            return try {
+                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url))
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+                true
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open external browser: ${e.message}")
+                false
+            }
         }
 
         @JavascriptInterface

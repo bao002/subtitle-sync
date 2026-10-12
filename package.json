@@ -106,6 +106,7 @@
     "test:self-verification": "tsx scripts/verify-self-verification.ts",
     "test:no-duplicate-md": "tsx scripts/verify-no-duplicate-md-files.ts",
     "test:reliable-subtitles-fetching": "tsx scripts/verify-reliable-subtitles-fetching.ts",
+    "test:anti-bot-browser-profile": "tsx scripts/verify-anti-bot-browser-profile.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

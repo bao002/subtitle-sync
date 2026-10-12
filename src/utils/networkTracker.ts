@@ -97,8 +97,18 @@ export function trackNetworkRequest(
       );
       notify();
     },
-    fail: (error: string) => {
+    fail: (error: string, status?: number, responseBody?: unknown) => {
       const duration = Date.now() - startTime;
+      const fullStr =
+        responseBody === undefined || responseBody === null
+          ? undefined
+          : typeof responseBody === "string"
+            ? responseBody
+            : JSON.stringify(responseBody, null, 2);
+      const preview =
+        fullStr !== undefined
+          ? truncateResponseBody(fullStr, MAX_RESPONSE_BODY_PREVIEW_CHARS)
+          : undefined;
       requests = requests.map((req) =>
         req.id === id
           ? {
@@ -106,7 +116,10 @@ export function trackNetworkRequest(
               error,
               duration,
               isPending: false,
-              status: 0,
+              status: status !== undefined && status > 0 ? status : req.status || 0,
+              ...(fullStr !== undefined
+                ? { fullResponseBody: fullStr, responseBodyPreview: preview }
+                : {}),
             }
           : req,
       );
@@ -182,7 +195,7 @@ export function formatRequestForClipboard(req: NetworkRequestRecord): string {
     `URL: ${req.url}`,
     `Method: ${req.method}`,
     `Type: ${req.type}`,
-    `Status: ${req.isPending ? "PENDING" : req.status === 200 && (!req.fullResponseBody || req.fullResponseBody.trim() === "") ? "200 OK (Empty response body — 0 chars)" : req.status}`,
+    `Status: ${req.isPending ? "PENDING" : req.status === 200 && (!req.fullResponseBody || req.fullResponseBody.trim() === "") ? "200 OK (Empty response body — 0 chars)" : req.status === 429 ? "429 (Too Many Requests / Bot Detection)" : req.status}`,
     req.duration !== undefined ? `Duration: ${req.duration}ms` : null,
     tlang ? `Target Language (tlang): ${tlang}` : null,
     req.attemptMode ? `Attempt Mode: ${req.attemptMode}` : null,

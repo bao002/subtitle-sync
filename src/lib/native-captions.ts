@@ -7,6 +7,7 @@ export type NativeShell = {
   fetchTranslatedCaptionsWithUrl(url: string, language: string, format: string): string;
   fetchTranslatedCaptions?(language: string, format: string): string;
   fetchTimedTextExact?(url: string, withSession: boolean): string;
+  openInBrowser?(url: string): boolean;
 };
 
 export function nativeShell(): NativeShell | null {
