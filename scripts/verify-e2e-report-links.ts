@@ -60,6 +60,16 @@ assert(
 );
 console.log(`✅ PASS: Emulator screenshot link verified: ${screenshotMatch[1]}`);
 
+// 5b. Verify Android Emulator Screencast Video Link & Size
+const videoMatch = readme.match(
+  /\[\*\*View\/Download MP4 Screencast[^*]*\*\*\]\((https:\/\/[^/]+\.github\.io\/[^/]+\/screenshots\/android-emulator-video\.mp4)\)/,
+);
+assert(
+  videoMatch,
+  "README.md must contain [**View/Download MP4 Screencast...**] link pointing to android-emulator-video.mp4 with size",
+);
+console.log(`✅ PASS: Emulator screencast video link verified: ${videoMatch[1]}`);
+
 // 6. Verify CI Workflow Links
 assert(
   readme.includes("actions/workflows/web.yml"),

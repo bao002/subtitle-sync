@@ -158,6 +158,7 @@ EOF
     echo "  screenrecord started (runner background PID: ${RECORDING_PID})"
 
     stop_recording_and_pull() {
+      set +e
       echo "--> Stopping screencast recording and pulling video..."
       if [[ -n "${RECORDING_PID}" ]] && kill -0 "${RECORDING_PID}" 2>/dev/null; then
         # Send SIGINT inside device shell to cleanly finalize MP4 container

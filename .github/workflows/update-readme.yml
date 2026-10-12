@@ -5,6 +5,10 @@ on:
     branches:
       - main
       - master
+  workflow_run:
+    workflows: ["Android Emulator E2E Tests"]
+    types:
+      - completed
   workflow_dispatch:
 
 concurrency:

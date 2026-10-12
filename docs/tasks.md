@@ -317,5 +317,122 @@
   - Verify with dedicated verification tests `scripts/verify-parser-docs.ts`, `scripts/verify-default-punctuation-splitting.ts`, and `scripts/verify-parser-timing-lab.ts`.
   - Document all files in `docs/files.md`, verify app compilation (`compile_applet`), linting (`lint_applet`), commit, and push.
 
+## Task 76: Inspect Repository README, GitHub Actions Workflows & Verify GitHub Pages Report Screencast Availability
+
+- [x] **Subtask 76.1: Define and stage Task 76 requirements in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, and temp.md)**:
+  - Process token economy protocol in `tokens.md`.
+  - Stage Subtask 76.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for requirements analysis and implementation planning.
+
+- [x] **Subtask 76.2: Create Dedicated Script to Inspect README.md, GitHub Actions & Verify Screencast Availability on GitHub Pages Report**:
+  - Create `scripts/verify-screencast-availability.ts`.
+  - Look over `README.md` to parse repository identity, workflow links (`https://github.com/<owner>/subtitle-sync/actions`, `https://github.com/<owner>/subtitle-sync`), badge links, release links, and GitHub Pages URLs (`android-emulator-report.html`, `screenshots/android-emulator-screenshot.png`, etc.).
+  - Inspect GitHub Actions workflows (`.github/workflows/emulation.yml`, `deploy-demo.yml`, `web.yml`) to ensure Android E2E execution runs on Android (`reactivecircus/android-emulator-runner@v2`, API 34 Google APIs, arm64-v8a) and produces authentic screencasts via `adb shell screenrecord`.
+  - Verify container finalization signal (`kill -2`), video pull (`adb pull /sdcard/android-emulator-video.mp4`), artifact upload (`android-emulator-artifacts`), staging to `gh-pages-staging/screenshots/android-emulator-video.mp4`, and deployment to `gh-pages` branch.
+  - Verify GitHub Pages report screencast presentation in `public/android-emulator-report.html` and `public/android/index.html` (embedded HTML5 `<video controls autoplay muted loop playsinline>`, `<source>` fallbacks, download link, milestone step cards, and telemetry).
+  - Inspect the last git commit (HEAD SHA) and verify construction/accessibility of GitHub Actions run status for the last commit.
+
+- [x] **Subtask 76.3: Register Verification Command in package.json, Update docs/files.md, Run Tests, Commit & Log in docs/done.md**:
+  - Register `test:screencast-availability` in `package.json` scripts.
+  - Document the new script in `docs/files.md`.
+  - Run the dedicated test script `tsx scripts/verify-screencast-availability.ts` to ensure 100% pass rate.
+  - Run `compile_applet` and `lint_applet` to ensure zero compilation or lint errors.
+  - Perform git commit checkpoint and move completed subtasks to `docs/done.md`.
+
+## Task 77: Execute Screencast & Actions Verification with Live Remote & Local Validation
+
+- [x] **Subtask 77.1: Stage Task 77 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `tokens.md`.
+  - Stage Subtask 77.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for execution notes.
+
+- [x] **Subtask 77.2: Enhance verify-screencast-availability.ts with Live Remote Commit, Artifact & Pages Inspection**:
+  - Add query for remote repository commits on GitHub (`/commits`) to detect the latest pushed commit (e.g. `f427b8b6`).
+  - Add check for live GitHub Actions runs for both local HEAD and remote latest commit.
+  - Inspect workflow runs for `Android Emulator E2E Tests` and query its published artifacts endpoint (`/actions/runs/:id/artifacts`).
+  - Verify that `android-emulator-artifacts` exists, record its size (6.7MB / 6,724,502 bytes), and verify the screencast video contents.
+  - Perform live HTTP HEAD request to GitHub Pages report endpoint (`https://<owner>.github.io/<repo>/android-emulator-report.html`), confirming HTTP 200 and verifying HTML video elements.
+
+- [x] **Subtask 77.3: Execute Verification Script, Validate Build & Lint, Commit & Migrate to docs/done.md**:
+  - Execute `npm run test:screencast-availability` and verify live status output.
+  - Verify clean compilation (`compile_applet`) and linting (`lint_applet`).
+  - Checkpoint changes via git commit and migrate Task 77 to `docs/done.md`.
+
+## Task 78: Keep README.md Synchronized with Screencast Video Size and Correct Link
+
+- [x] **Subtask 78.1: Stage Task 78 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `tokens.md`.
+  - Stage Subtask 78.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for implementation steps.
+
+- [x] **Subtask 78.2: Update README.md, update-readme.mjs and verify-screencast-availability.ts with Screencast Video Size and Link**:
+  - Update `README.md` to feature the Android Emulator Screencast Video in the GitHub Pages table with verified byte size (6,724,502 bytes / 6.41 MB) and direct link (`https://<owner>.github.io/<repo>/screenshots/android-emulator-video.mp4`).
+  - Update `scripts/update-readme.mjs` to synchronize the video URL when repository owner/repo changes.
+  - Enhance `scripts/verify-screencast-availability.ts` to verify and automatically update `README.md` with the latest video size and link whenever run.
+
+- [x] **Subtask 78.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md**:
+  - Run `npm run test:screencast-availability`, `npm run test:e2e-report-links`, and other test suites.
+  - Compile applet (`compile_applet`) and run linter (`lint_applet`).
+  - Checkpoint changes in git and migrate Task 78 to `docs/done.md`.
+
+## Task 79: Automatically Update README.md with Video Size and Link on Every GitHub Actions Run
+
+- [x] **Subtask 79.1: Stage Task 79 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `tokens.md`.
+  - Stage Subtask 79.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for implementation steps.
+
+- [x] **Subtask 79.2: Integrate Automated README Video Size & Link Synchronization into Workflows and update-readme.mjs**:
+  - Enhance `scripts/update-readme.mjs` to dynamically detect screencast video size (from local file, environment variable `VIDEO_SIZE_BYTES`, or GitHub Actions artifact API) and update `README.md` with the exact size and URL.
+  - Update `.github/workflows/update-readme.yml` to trigger on `workflow_run` when `Android Emulator E2E Tests` completes (in addition to `push` on main/master and `workflow_dispatch`).
+  - Update `.github/workflows/emulation.yml` so that after pulling `android-emulator-video.mp4`, it runs `node scripts/update-readme.mjs` with the fresh video size and commits/pushes `README.md` on main/master if updated.
+  - Update `scripts/verify-screencast-availability.ts` to assert that workflows are configured to synchronize `README.md` on every run.
+
+- [x] **Subtask 79.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md**:
+  - Run all verification tests (`test:fork-readme-links`, `test:workflows`, `test:screencast-availability`, `test:e2e-report-links`).
+  - Compile applet (`compile_applet`) and run linter (`lint_applet`).
+  - Commit progress to git and migrate Task 79 to `docs/done.md`.
+
+## Task 80: Diagnose Missing Screencast Video & Guarantee Video Pull with Dedicated Workflow Step & Trap Resilience
+
+- [x] **Subtask 80.1: Stage Task 80 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `tokens.md`.
+  - Stage Subtask 80.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for diagnostic and implementation notes.
+
+- [x] **Subtask 80.2: Implement Dedicated Always-Run Video Pull Step & Trap set +e Resilience in CI and Local Scripts**:
+  - In `.github/workflows/emulation.yml`, add an explicit `if: always()` step `Finalize Screencast Recording and Pull Video` immediately following the test runner.
+  - In `cleanup_recording()` in `emulation.yml` and `stop_recording_and_pull()` in `scripts/run-android-e2e.sh`, inject `set +e` to ensure PID lookups and signals never abort the pull on test timeout or failure.
+  - Ensure pulled video is staged to both `gh-pages-staging/screenshots/android-emulator-video.mp4` and `gh-pages-staging/android/android-emulator-video.mp4`.
+  - Update `scripts/verify-screencast-availability.ts` to assert the presence and resilience of the dedicated pull step.
+
+- [x] **Subtask 80.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md**:
+  - Run all verification suites (`test:screencast-availability`, `test:android-e2e-spec`, `test:workflows`).
+  - Compile applet (`compile_applet`) and run linter (`lint_applet`).
+  - Commit progress to git and migrate Task 80 to `docs/done.md`.
+
+## Task 81: Detect and Diagnose Failed GitHub Actions Workflows & Analyze Raw Action Logs
+
+- [ ] **Subtask 81.1: Stage Task 81 requirements in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `tokens.md`.
+  - Stage Subtask 81.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for diagnostic and implementation notes.
+
+- [ ] **Subtask 81.2: Implement Failed Workflows Detector & Log Analyzer Tool (`scripts/detect-failed-workflows.ts`)**:
+  - Implement log fetching and parsing for raw GitHub Actions job logs (including Azure blob log URLs and GitHub Actions API).
+  - Extract failed steps, error codes, stack traces, and provide automated diagnostic analysis and remediation suggestions.
+  - Support analyzing the user-provided log URL directly or falling back to local/cached logs.
+
+- [ ] **Subtask 81.3: Register Verification Command in package.json, Update docs/files.md, Run Tests, Commit and Migrate to docs/done.md**:
+  - Register `test:detect-failed-workflows` in `package.json`.
+  - Document `scripts/detect-failed-workflows.ts` in `docs/files.md`.
+  - Run verification tests, verify compilation (`compile_applet`) and linting (`lint_applet`).
+  - Perform dedicated git commit and migrate Task 81 to `docs/done.md`.
+
+
+
+
+
+
 
 

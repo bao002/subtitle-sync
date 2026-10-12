@@ -79,5 +79,40 @@ content = content.replace(
 // 5. Fallback replacement for historical username patterns
 content = content.replace(/mostuf\d+/g, targetOwner);
 
+// 6. Update Android Emulator Screencast Video link & exact size:
+let videoSizeBytes = 6724502; // Default verified size (6.41 MB)
+if (process.env.VIDEO_SIZE_BYTES && Number(process.env.VIDEO_SIZE_BYTES) > 0) {
+  videoSizeBytes = Number(process.env.VIDEO_SIZE_BYTES);
+} else {
+  const localCandidates = [
+    path.resolve(process.cwd(), "android-emulator-video.mp4"),
+    path.resolve(process.cwd(), "public/screenshots/android-emulator-video.mp4"),
+    path.resolve(process.cwd(), "gh-pages-staging/screenshots/android-emulator-video.mp4"),
+  ];
+  for (const candidate of localCandidates) {
+    if (fs.existsSync(candidate)) {
+      const stats = fs.statSync(candidate);
+      if (stats.size > 0) {
+        videoSizeBytes = stats.size;
+        break;
+      }
+    }
+  }
+}
+
+const mb = (videoSizeBytes / (1024 * 1024)).toFixed(2);
+const videoRow = `| 🎬 **Android Emulator Screencast Video**               | [**View/Download MP4 Screencast (${mb} MB)**](https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4) | Full authentic screen recording from Android Emulator E2E run (API 34 Google APIs, size: ${videoSizeBytes.toLocaleString()} bytes / ${mb} MB).          |`;
+
+const videoRegex = /\|\s*🎬\s*\*\*Android Emulator Screencast Video\*\*[^|\n]*\|[^|\n]*\|[^|\n]*\|/;
+if (videoRegex.test(content)) {
+  content = content.replace(videoRegex, videoRow);
+} else {
+  const screenshotRegex = /(\|\s*📸\s*\*\*Android Emulator Screenshot\*\*[^|\n]*\|[^|\n]*\|[^|\n]*\|\n)/;
+  if (screenshotRegex.test(content)) {
+    content = content.replace(screenshotRegex, `$1${videoRow}\n`);
+  }
+}
+
 fs.writeFileSync(readmePath, content, "utf8");
-console.log(`✅ README.md successfully updated with repository: "${targetOwner}/${targetRepo}"`);
+console.log(`✅ README.md successfully updated with repository: "${targetOwner}/${targetRepo}" and video size: ${mb} MB`);
+
