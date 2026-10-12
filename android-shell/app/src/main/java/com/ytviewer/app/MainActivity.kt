@@ -44,6 +44,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private lateinit var webView: WebView
     private val okHttpClient = OkHttpClient.Builder().build()
+    // Link-only client: no cookie jar, no captured headers (like pasting the URL in a browser)
+    private val anonHttpClient = OkHttpClient.Builder().build()
+    private val anonUserAgent = "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
     private val mainHandler = Handler(Looper.getMainLooper())
     private var textToSpeech: TextToSpeech? = null
     private var isTtsReady: Boolean = false
@@ -742,6 +745,44 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         fun fetchTranslatedCaptions(targetLang: String, format: String): String {
             val base = lastObservedTimedTextUrl ?: return ""
             return executeTimedTextRepetition(base, targetLang, format)
+        }
+
+        /**
+         * Sends exactly one timedtext URL (no rebuilding, no internal fallback loop).
+         * withSession=true mirrors captured player headers/cookies; false sends the bare URL.
+         * Returns JSON: {status, body, sentUrl, send, error}.
+         */
+        @JavascriptInterface
+        fun fetchTimedTextExact(url: String, withSession: Boolean): String {
+            val send = if (withSession) "session" else "anon"
+            val out = org.json.JSONObject()
+            out.put("sentUrl", url)
+            out.put("send", send)
+            try {
+                val reqBuilder = Request.Builder().url(url)
+                if (withSession) {
+                    lastObservedHeaders.forEach { (k, v) ->
+                        if (!k.equals("accept-encoding", ignoreCase = true)) reqBuilder.addHeader(k, v)
+                    }
+                } else {
+                    reqBuilder.header("User-Agent", anonUserAgent)
+                }
+                val client = if (withSession) okHttpClient else anonHttpClient
+                client.newCall(reqBuilder.build()).execute().use { resp ->
+                    val body = resp.body?.string() ?: ""
+                    out.put("status", resp.code)
+                    out.put("body", body)
+                    val lang = android.net.Uri.parse(url).getQueryParameter("tlang") ?: android.net.Uri.parse(url).getQueryParameter("lang")
+                    val mode = if (android.net.Uri.parse(url).getQueryParameter("tlang").isNullOrBlank()) "lang" else "tlang"
+                    Log.i(TAG, "SUBTITLE_FETCH kind=exact lang=$lang mode=$mode send=$send http=${resp.code} bytes=${body.toByteArray(StandardCharsets.UTF_8).size} cues=${countCaptionCues(body)}")
+                }
+            } catch (e: Exception) {
+                out.put("status", 0)
+                out.put("body", "")
+                out.put("error", e.message ?: "network error")
+                Log.w(TAG, "SUBTITLE_FETCH kind=exact send=$send http=0 error=${e.message}")
+            }
+            return out.toString()
         }
 
         @JavascriptInterface
