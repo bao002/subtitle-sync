@@ -452,6 +452,26 @@
   - Register `test:no-duplicate-md` in `package.json` and document in `docs/files.md`.
   - Run all tests, compile applet (`compile_applet`), run linter (`lint_applet`), commit, and migrate to `docs/done.md`.
 
+## Task 84: Subtitles Table Visibility When Subtitles Are Fetched
+
+- [x] **Subtask 84.1: Stage Task 84 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `docs/tokens.md`.
+  - Stage Subtask 84.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for diagnostic and implementation notes.
+
+- [x] **Subtask 84.2: Fix Subtitles Table Visibility, Alignment, and Cue Detection (src/routes/index.tsx, src/lib/subtitles.ts)**:
+  - Ensure `Json3` type and instances support `.length` property reflecting cue count.
+  - Fix `hasLegitimateSubtitles` and `cols` so that valid `Json3` tracks (containing `.events` cues) are recognized correctly.
+  - Provide column fallback so that whenever authentic tracks with cues exist, they are displayed even if `shown` was pending synchronization.
+  - Ensure the subtitles accordion panel automatically expands (`openPanels.subtitles: true`) when legitimate subtitles are fetched/available.
+  - Fix missing `HighlightedSubtitle` import in `src/routes/index.tsx`.
+
+- [x] **Subtask 84.3: Implement Dedicated Automated Test scripts/verify-subtitles-table-visibility-on-fetch.ts, Verify Build & Lint, and Migrate to docs/done.md**:
+  - Author dedicated verification test `scripts/verify-subtitles-table-visibility-on-fetch.ts` testing runtime behavior of `hasLegitimateSubtitles`, `cols`, and accordion expansion when subtitles are fetched.
+  - Register `test:subtitles-table-visibility` in `package.json` and document in `docs/files.md`.
+  - Run all verification tests, compile applet (`compile_applet`), lint (`lint_applet`), commit, and migrate to `docs/done.md`.
+
+
 
 
 

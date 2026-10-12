@@ -1,5 +1,37 @@
 # Done tasks
 
+## Task 84: Subtitles Table Visibility When Subtitles Are Fetched
+
+### Subtask 84.3: Implement Dedicated Automated Test scripts/verify-subtitles-table-visibility-on-fetch.ts, Verify Build & Lint, and Migrate to docs/done.md
+- Created dedicated verification test `scripts/verify-subtitles-table-visibility-on-fetch.ts` testing runtime behavior of `hasLegitimateSubtitles`, `cols`, and accordion expansion when subtitles are fetched.
+- Verified:
+  1. `HighlightedSubtitle` is properly imported in `src/routes/index.tsx`.
+  2. Subtitles accordion panel is initialized to `subtitles: true` and automatically expands when `hasLegitimateSubtitles` is true.
+  3. `hasLegitimateSubtitles` correctly identifies valid `Json3` tracks (containing `.events` arrays with cues) as well as array representations.
+  4. `cols` correctly extracts language columns using `hasTrackCues` with fallback when at least 1 track with cues exists.
+  5. Initial state with null tracks correctly suppresses the table.
+  6. Exactly 1 legitimate fetched subtitle track renders `hasLegitimateSubtitles: true`, non-empty `cols`, aligned `rows`, and visible table.
+  7. Target language fetched alone (Hebrew) renders columns, aligned rows, and visible table.
+  8. Empty subtitles (`events: []`) are rejected.
+- Registered `test:subtitles-table-visibility` in `package.json` and documented in `docs/files.md`.
+- Ran full test suite with 100% pass (`test:subtitles-table-visibility`, `test:subtitles-table-legitimate-only`, `test:no-duplicate-md`, `test:tokens-economy`, `test:self-verification`).
+- Verified build (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
+
+### Subtask 84.2: Fix Subtitles Table Visibility, Alignment, and Cue Detection (src/routes/index.tsx, src/lib/subtitles.ts)
+- Updated `Json3` type in `src/lib/subtitles.ts` to support optional `.length` property.
+- Updated `parseJson3` in `src/lib/native-captions.ts` to assign `data.length = data.events.length`.
+- Fixed `hasLegitimateSubtitles` in `src/routes/index.tsx` to inspect `track?.events` cues in addition to direct array checking, ensuring valid `Json3` objects evaluate `hasValidTrack = true`.
+- Fixed `cols` in `src/routes/index.tsx` to detect valid cues via `hasTrackCues` (checking `t.length > 0`, `t.events?.length > 0`, and array length), with fallback ensuring columns are created whenever valid tracks exist.
+- Added auto-open effect in `src/routes/index.tsx` setting `openPanels.subtitles = true` when `hasLegitimateSubtitles` is true, and initialized `player: true` and `subtitles: true` by default.
+- Added missing `HighlightedSubtitle` import to `src/routes/index.tsx`.
+
+### Subtask 84.1: Stage Task 84 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+- Processed token economy optimization protocol according to `docs/tokens.md`.
+- Staged Task 84 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+- Maintained working scratchpad in `temp.md`.
+
+
+
 ## Task 83: Eliminate Duplicate .md Files and Mandate docs/*.md Location in AGENTS.md
 
 ### Subtask 83.3: Update Existing Verification Tests, Implement verify-no-duplicate-md-files.ts, Verify Build & Lint, and Migrate to docs/done.md

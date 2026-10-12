@@ -44,6 +44,7 @@ export function parseJson3(raw: string): Json3 | null {
       data.events.length > 0 &&
       data.events.some((event) => event.segs?.some((s) => s.utf8?.trim()))
     ) {
+      data.length = data.events.length;
       return data;
     }
   } catch {

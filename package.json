@@ -93,6 +93,7 @@
     "test:emulator-error-detection": "tsx scripts/verify-emulator-error-detection.ts",
     "test:apk-installable": "tsx scripts/verify-apk-installable.ts",
     "test:subtitles-table-legitimate-only": "tsx scripts/verify-subtitles-table-legitimate-json3-only.ts",
+    "test:subtitles-table-visibility": "tsx scripts/verify-subtitles-table-visibility-on-fetch.ts",
     "test:code-modularity": "tsx scripts/verify-code-modularity-standards.ts",
     "test:index-decomposition": "tsx scripts/verify-index-route-decomposition.ts",
     "test:parser-docs": "tsx scripts/verify-parser-docs.ts",
