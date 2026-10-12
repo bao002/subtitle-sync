@@ -25,7 +25,7 @@
    - "Fetch again (link only)": sends just the link, with no cookies or extra headers, like pasting it into a browser.
 
    Each result appears as a new entry in the panel. When a result contains valid subtitles, a "Use these subtitles" button loads them as that language's column for the current video and saves them.
-4. **Web demo:** both buttons still exist. In a browser, YouTube usually blocks these requests, so you'll see a clear "blocked by the browser" message instead of nothing.
+4. **Web demo stays as it is:** it shows only the sample subtitles stored with the app. It never fetches live subtitles, and the new buttons and attempt settings appear only in the Android app. On Android, the app watches the subtitle request the YouTube player makes, then sends it again with changes: `lang` swapped for a different subtitle language, or `tlang` added to get a translation.
 
 ## Technical details
 
@@ -34,11 +34,12 @@
   - Link-only requests use a separate OkHttp client with no cookie jar and a plain mobile Chrome User-Agent.
   - Keep `fetchTranslatedCaptionsWithUrl` for older builds, but the web side calls the new method when it exists.
   - Log `SUBTITLE_FETCH ... mode= send=session|anon http=` for the e2e reports.
-- **Web side:**
+- **App code (runs inside the Android app; the web demo is untouched):**
   - Add a new `src/lib/subtitle-fetch-plan.ts` that builds the ordered list of attempts from saved preferences.
-  - Add `src/hooks/useFavoriteSubtitleFetch.ts`, which holds the fetch loop moved out of `index.tsx`.
+  - Add `src/hooks/useFavoriteSubtitleFetch.ts`, which holds the fetch loop moved out of `index.tsx`. It runs only when the Android bridge is present.
   - Pass the final status and body to the network tracker, plus `sendMode` and `requestMode`.
   - Responses are cached only after `isValidJsonSubtitleResponse`, which already exists.
+  - The refetch buttons and attempt-order settings render only when the Android bridge exists. The web demo keeps loading local sample subtitles and never fetches live ones.
 - **Preferences:** extend `playback-preferences.ts` with `fetchAttemptOrder` and `promoteSuccessfulAttempt`. The existing `SubtitleRequestMode` setting moves into the new order.
 - **Network panel:** add the two buttons and the "Use these subtitles" action. The panel gets an `onRefetch(record, withSession)` callback and an `onUseSubtitles(lang, json)` callback.
 - **Tests:**
