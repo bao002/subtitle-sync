@@ -411,23 +411,49 @@
   - Compile applet (`compile_applet`) and run linter (`lint_applet`).
   - Commit progress to git and migrate Task 80 to `docs/done.md`.
 
-## Task 81: Detect and Diagnose Failed GitHub Actions Workflows & Analyze Raw Action Logs
+## Task 82: self-verification.md Protocol Specification, Screencast README Verification & Sanity Check Suite
 
-- [ ] **Subtask 81.1: Stage Task 81 requirements in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+- [x] **Subtask 82.1: Stage Task 82 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
   - Process token economy protocol in `tokens.md`.
-  - Stage Subtask 81.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Stage Subtask 82.1 in `current-sub-task.md` and `docs/todo.md`.
   - Use `temp.md` as ephemeral scratchpad for diagnostic and implementation notes.
 
-- [ ] **Subtask 81.2: Implement Failed Workflows Detector & Log Analyzer Tool (`scripts/detect-failed-workflows.ts`)**:
-  - Implement log fetching and parsing for raw GitHub Actions job logs (including Azure blob log URLs and GitHub Actions API).
-  - Extract failed steps, error codes, stack traces, and provide automated diagnostic analysis and remediation suggestions.
-  - Support analyzing the user-provided log URL directly or falling back to local/cached logs.
+- [x] **Subtask 82.2: Create self-verification.md and Dedicated Automated Verification Test**:
+  - Author comprehensive `self-verification.md` and `docs/self-verification.md` specifying:
+    1. Automated tests execution protocol (`npm test`, verification scripts, Playwright, Cypress, Android E2E).
+    2. Screencast artifact capture, verification, and README.md linking protocol (video URL, exact file size in bytes/MB, badges, and GitHub Pages reports).
+    3. Mandatory sanity checks (repository hygiene, strict JSON3 validation, zero synthetic fixtures on Android, compile `compile_applet`, lint `lint_applet`, Markdown link integrity).
+    4. Token economy and prompt task completion auditing.
+  - Implement dedicated verification script `scripts/verify-self-verification.ts` asserting all requirements of `self-verification.md`.
+  - Register `test:self-verification` in `package.json` and document in `docs/files.md`.
 
-- [ ] **Subtask 81.3: Register Verification Command in package.json, Update docs/files.md, Run Tests, Commit and Migrate to docs/done.md**:
-  - Register `test:detect-failed-workflows` in `package.json`.
-  - Document `scripts/detect-failed-workflows.ts` in `docs/files.md`.
-  - Run verification tests, verify compilation (`compile_applet`) and linting (`lint_applet`).
-  - Perform dedicated git commit and migrate Task 81 to `docs/done.md`.
+- [x] **Subtask 82.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md, and Provide Comprehensive User Guidance**:
+  - Run verification tests (`test:self-verification`, `test:screencast-availability`, `test:readme-links`, `test:hygiene`, `test:tokens-economy`).
+  - Compile applet (`compile_applet`) and run linter (`lint_applet`).
+  - Commit progress to git and migrate Task 82 to `docs/done.md`.
+  - Provide a clear, thorough explanation of how to use `self-verification.md` to guarantee passing tests, linked screencasts in README, and passing sanity checks.
+
+## Task 83: Eliminate Duplicate .md Files and Mandate docs/*.md Location in AGENTS.md
+
+- [x] **Subtask 83.1: Stage Task 83 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)**:
+  - Process token economy protocol in `docs/tokens.md`.
+  - Stage Subtask 83.1 in `current-sub-task.md` and `docs/todo.md`.
+  - Use `temp.md` as ephemeral scratchpad for diagnostic and implementation notes.
+
+- [x] **Subtask 83.2: Eliminate Root Duplicate .md Files, Relocate roadmap.md, and Mandate docs/*.md in AGENTS.md**:
+  - Remove redundant root copies: `tokens.md`, `android.md`, `parser.md`, `self-verification.md`.
+  - Move `roadmap.md` to `docs/roadmap.md`.
+  - Update `AGENTS.md` to instruct that all documentation, specifications, and architecture `.md` files are located strictly under `docs/*.md`, and that no duplicated `.md` files may exist in the repository.
+  - Update `docs/files.md` and internal cross-references to use `docs/*.md`.
+
+- [x] **Subtask 83.3: Update Existing Verification Tests, Implement verify-no-duplicate-md-files.ts, Verify Build & Lint, and Migrate to docs/done.md**:
+  - Update `verify-tokens-economy.ts`, `verify-android-e2e-spec.ts`, `verify-parser-docs.ts`, `verify-self-verification.ts`, and `verify-hotfix-and-done-workflow.ts` to assert that canonical files exist in `docs/` and root duplicates are absent.
+  - Create dedicated verification test `scripts/verify-no-duplicate-md-files.ts` asserting zero duplicate `.md` files across the repo and enforcing `docs/*.md` location mandated by `AGENTS.md`.
+  - Register `test:no-duplicate-md` in `package.json` and document in `docs/files.md`.
+  - Run all tests, compile applet (`compile_applet`), run linter (`lint_applet`), commit, and migrate to `docs/done.md`.
+
+
+
 
 
 

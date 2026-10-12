@@ -79,7 +79,11 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `docs/designs/DESIGN_STATE_COORDINATOR.md` | State Coordinator Contract        | Specifies finite state machine, lifecycle transitions, active cue resolution, and state flow.        |
 | `docs/specifications/SCHEMA_TIMEDTEXT.md`  | Timed-Text Schema Contract        | Specifies YouTube JSON3 format, segment timing, entity decoding, and BiDi normalization.             |
 | `docs/operations/DEBUG.md`                 | Diagnostics & Logging Contract    | Details internal logging ring buffer, network request tracker, and troubleshooting prompt generator. |
-| `parser.md` (and `docs/parser.md`)         | Subtitle Splitting & Timing Spec  | Details JSON3 schema, punctuation-based splitting algorithms, edge cases, and acoustic timing math.  |
+| `docs/parser.md`                           | Subtitle Splitting & Timing Spec  | Details JSON3 schema, punctuation-based splitting algorithms, edge cases, and acoustic timing math.  |
+| `docs/self-verification.md`                | Self-Verification Protocol        | Defines testing execution, screencast README linking, and full sanity check audits.                    |
+| `docs/tokens.md`                           | Token Economy Architecture        | Details token optimization protocol, task decomposition, and tracking files management.              |
+| `docs/android.md`                          | Android Architecture & E2E Spec   | Details native WebView bridge, TimedText interception, screencast video capture, and report schema.   |
+| `docs/roadmap.md`                          | Roadmap & Milestones Guide        | Details feature delivery milestones, roadmap phases, and architectural progress.                      |
 
 ## Testing & Quality Assurance (`e2e/`, `cypress/`, `scripts/`)
 
@@ -165,5 +169,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `scripts/verify-android-e2e-spec.ts`              | Android E2E Specification & Workflow Verification  | Asserts existence of android.md, AGENTS.md mandate, run-android-e2e.sh screencast timing, and public/android-emulator-report.html video elements.        |
 | `scripts/verify-hotfix-and-done-workflow.ts`      | Task Done & Hotfix Workflow Verification           | Asserts tokens.md and AGENTS.md mandate done.md logging, prompt task completion auditing, and hotfix holding pattern with task suspension and resumption.  |
 | `scripts/verify-screencast-availability.ts`       | Screencast & Actions Availability Test             | Inspects README.md, GitHub Actions workflows, ensures Android E2E produces screencasts, verifies GitHub Pages report video embeds, and checks last commit. |
+| `scripts/verify-self-verification.ts`             | Self-Verification Protocol Verification Test       | Asserts existence and compliance of self-verification.md, command matrix, test suites, screencast README links, and 6 sanity checks. |
+| `scripts/verify-no-duplicate-md-files.ts`         | Zero Duplicate Markdown Files Verification Test    | Asserts zero duplicate .md files across repository and enforces AGENTS.md mandate that all .md files reside under docs/*.md.          |
 | `scripts/verify-md-links.ts`                      | Markdown Links Checker                             | Validates that all documentation cross-references and links resolve properly.                                                                          |
 | `scripts/normalize-web-assets.mjs`                | Build Asset Normalizer                             | Adjusts asset paths for GitHub Pages sub-path hosting.                                                                                                 |

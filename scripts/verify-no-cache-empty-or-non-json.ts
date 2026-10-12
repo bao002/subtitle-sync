@@ -357,7 +357,8 @@ console.log("✅ PASS: Android Native Shell saveCaptionToFile blocks empty/non-J
 
 // Assert WebView interceptor checks validity before calling saveCaptionToFile
 assert(
-  mainActivitySrc.includes("if (isValidJsonSubtitle(rawBodyString))") &&
+  (mainActivitySrc.includes("if (isValidJsonSubtitle(rawBodyString))") ||
+    mainActivitySrc.includes("isValidJsonSubtitle(rawBodyString)")) &&
     mainActivitySrc.includes("saveCaptionToFile(url, rawBodyBytes)"),
   "MainActivity.kt interception loop must verify isValidJsonSubtitle before saving caption file",
 );

@@ -102,6 +102,8 @@
     "test:android-e2e-spec": "tsx scripts/verify-android-e2e-spec.ts",
     "test:hotfix-workflow": "tsx scripts/verify-hotfix-and-done-workflow.ts",
     "test:screencast-availability": "tsx scripts/verify-screencast-availability.ts",
+    "test:self-verification": "tsx scripts/verify-self-verification.ts",
+    "test:no-duplicate-md": "tsx scripts/verify-no-duplicate-md-files.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

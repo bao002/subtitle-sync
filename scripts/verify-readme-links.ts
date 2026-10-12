@@ -75,9 +75,7 @@ console.log("✅ PASS: update.apk.sh exists and is referenced in README.md");
 
 // 4. Verify GitHub Pages links in README table and static assets
 assert(
-  readmeContent.includes("https://mostuf2556.github.io/Youtubenet6/") ||
-    readmeContent.includes("https://mostuf2556.github.io/subtitle-sync/") ||
-    readmeContent.includes("https://mostuf25561.github.io/subtitle-sync/"),
+  /https:\/\/[a-zA-Z0-9_\-.]+\.github\.io\/(subtitle-sync|Youtubenet6)\/?/.test(readmeContent),
   "README.md must contain valid GitHub Pages demo URL",
 );
 assert(

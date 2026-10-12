@@ -33,12 +33,13 @@ To guarantee token economy, the agent must activate and maintain the following f
 
 | File | Purpose | Retention |
 | :--- | :--- | :--- |
-| `tokens.md` | Protocol specification defining the token economy and task decomposition rules. | Permanent specification |
+| `docs/tokens.md` | Protocol specification defining the token economy and task decomposition rules. | Permanent specification |
 | `docs/tasks.md` | Master breakdown of all numbered tasks and sub-tasks across the project. | Permanent record |
 | `current-sub-task.md` | **Strictly focused staging of the single sub-task currently being executed.** Updated on every single step. | Active state indicator |
 | `temp.md` | **Ephemeral scratchpad** for drafting file edits, temporary checklists, raw diffs, or intermediate calculations. Avoids cluttering permanent docs. | Ephemeral / Scratchpad |
 | `docs/todo.md` | High-level active sub-task synchronization mirror. | Single active task |
 | `docs/done.md` | Verified changelog of completed sub-tasks. | Permanent log |
+| `docs/self-verification.md` | Comprehensive self-verification protocol for automated test execution, screencast linking in README, and full sanity check audits. | Permanent specification |
 
 ---
 
