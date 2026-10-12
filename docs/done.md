@@ -204,6 +204,8 @@
 - Diagnosed why `android-emulator-video.mp4` returned 404 on `https://mostuf25563.github.io/subtitle-sync/screenshots/android-emulator-video.mp4`.
 - Recorded diagnostic details in `temp.md` and staged tasks across tracking documents.
 
+## Task 79: Automatically Update README.md with Video Size and Link on Every GitHub Actions Run
+
 ### Subtask 79.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md
 
 - Validated full test matrix across `test:fork-readme-links`, `test:workflows`, `test:screencast-availability`, and `test:e2e-report-links` with 100% pass rate.
@@ -1316,4 +1318,67 @@
 - Updated `package.json` scripts and registered the test in `docs/files.md`.
 - Verified clean build (`compile_applet`) and zero lint errors (`lint_applet`).
 
+## Task 88: Dynamic Favorite Languages Reordering & Order-Determined Fetch Again with Configurable Server Proxy Option
 
+### Subtask 88.1: Stage Task 88 in tracking documentation
+- Processed token economy architecture in `docs/tokens.md`.
+- Staged all 4 subtasks of Task 88 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+- Captured architecture and diagnostic decomposition in `temp.md`.
+
+### Subtask 88.2: Implement Dynamic Favorite Language Ordering & Order-Determined Fetch Again
+- In `LanguageBoxesSelector.tsx`, added a priority order bar displaying the sequential fetch order (`#1`, `#2`, etc.) and move earlier / move later buttons (`moveFavoriteLanguage`) for selected favorite languages, along with priority badges on selection boxes.
+- In `src/routes/index.tsx`, sorted `needed` languages in `fetchFavoriteLanguageSubtitles` strictly according to `targetLanguagesRef.current` order so sequential discovery executes in the exact user-defined order.
+- Dynamically derived `languagesToFetchNext` and `activeFailedToFetch` from active `targetLanguages` and loaded `tracks`.
+- In `handleTargetLanguagesChange`, dynamically pruned `failedLangs` so removed languages are purged, updated `targetLanguages`, and cleaned the attempted URL cache.
+- Synchronized `moveLanguage` in the languages table with `targetLanguages` and `setUserLearningLanguages`.
+- Updated the "Fetch again" button to dynamically reflect the updated favorite languages in their exact priority order (`Fetch again (${pendingFetchAgainLangs.join(", ")})`).
+
+### Subtask 88.3: Implement Option to Use a Server for Repeating Fetch Requests with Configurable Address
+- In `src/lib/subtitle-fetch-plan.ts`, implemented `getUseFetchServer()` (defaults to false / off), `setUseFetchServer()`, `getFetchServerUrl()`, `setFetchServerUrl()`, and `fetchViaServer()` supporting query parameters (`?url=...`) and `{url}` template interpolation.
+- In `src/components/AttemptOrderSettings.tsx`, added the "Use server for repeating fetch requests" toggle (off by default), an input field for the server address, and an update button.
+- In `src/components/NetworkRequestsInspector.tsx`, added a server proxy configuration bar and the "Fetch again (via server)" action button on request details.
+- In `src/routes/index.tsx`, wired server repeat options into `handleFetchAgain(url, withSession, viaServer)` and `handleFetchAgainViaServer`, as well as a server proxy repetition fallback in `fetchFavoriteLanguageSubtitles`.
+- Updated `docs/reliable-subtitles-fetching.md` with dynamic favorite language ordering rules and server repeat proxy documentation.
+
+### Subtask 88.4: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+- Authored `scripts/verify-dynamic-favorites-and-server-fetch.ts` testing priority reordering controls, fetch sorting, dynamic "Fetch again" updates upon favorites changes, server proxy toggle + address input, and functional simulation of URL building and ordering.
+- Registered `test:dynamic-favorites-and-server-fetch` in `package.json` and documented in `docs/files.md`.
+- Ran and passed dedicated tests, `compile_applet` (`npm run build`), and `lint_applet` (`npm run lint`).
+
+## Task 89: Best-Practice Task Management Workflow — Mandate Moving Completed Tasks from tasks.md to done.md
+
+### Subtask 89.4: Clean Up docs/tasks.md by Migrating Completed Tasks to docs/done.md & Final Verification
+- Pruned historical completed tasks (Tasks 53 through 88) out of `docs/tasks.md` into `docs/done.md`, reducing `docs/tasks.md` from 579 lines to a clean 25-line active backlog containing strictly pending work (Subtask 54.2 and Task 59).
+- Verified that all historical tasks are safely and completely archived in `docs/done.md`.
+- Ran full test verification suite (`test:task-management-workflow`, `test:tokens-economy`, `test:hotfix-workflow`, `test:no-duplicate-md`).
+- Verified zero errors on full application build (`compile_applet`) and ESLint checks (`lint_applet`).
+
+### Subtask 89.3: Create Dedicated Verification Test and Update Verification Scripts
+- Created dedicated verification test `scripts/verify-task-management-workflow.ts` asserting:
+  1. `AGENTS.md` explicitly mandates moving completed tasks completely out of `current-sub-task.md`, `docs/todo.md`, and `docs/tasks.md` directly into `docs/done.md`.
+  2. `AGENTS.md` specifies `docs/tasks.md` is strictly the active backlog of pending/upcoming tasks.
+  3. `docs/tokens.md` codifies the active backlog role of `docs/tasks.md` and complete migration to `docs/done.md`.
+  4. Historical completed tasks are omitted from `docs/tasks.md` and archived in `docs/done.md`.
+- Registered `test:task-management-workflow` in `package.json` and documented in `docs/files.md`.
+
+### Subtask 89.2: Update AGENTS.md and docs/tokens.md to Mandate Moving Completed Tasks from tasks.md to done.md
+- Updated Rule 7 and hotfix protocol in `AGENTS.md` to mandate moving completed tasks and subtasks completely out of `tasks.md` into `done.md`.
+- Updated `docs/tokens.md` table and workflow steps (Step 7 and Hotfix Step 4) to specify that `docs/tasks.md` is strictly the active backlog and that completed tasks move to `docs/done.md`.
+
+### Subtask 89.1: Stage Task 89 in Tracking Documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+- Activated token economy flow and staged Task 89 across tracking documents.
+
+## Task 90: Synchronize README.md Screencast Metrics and Validate GitHub Pages Documentation Links
+
+### Subtask 90.1: Synchronize README.md Screencast Video Metrics and Validate All Documentation Links
+- Updated `README.md` releases link to match active repo repository (`mostuf2556/subtitle-sync/releases`).
+- Synchronized Android Emulator Screencast Video exact file size and metric in `README.md` (`6,739,315 bytes / 6.43 MB`), matching the verified latest GitHub Actions workflow run artifact (`#38197468661`).
+- Verified all link and documentation tests:
+  - `npm run test:readme-links` (10 relative links and workflow badges verified)
+  - `npm run test:screencast-availability` (README links, GitHub Actions, and GitHub Pages screencast verified)
+  - `npm run test:e2e-report-links` (Mochawesome, Playwright, Android emulator report URLs verified)
+  - `npm run test:fork-readme-links` (static report and screenshot fallbacks verified)
+  - `npm run test:md` (all 32 Markdown files checked with 0 broken cross-references)
+  - `npm run test:task-management-workflow` & `npm run test:tokens-economy` & `npm run test:no-duplicate-md`
+- Confirmed zero build errors (`compile_applet`) and zero ESLint issues (`lint_applet`).
+- Committed changes (`ffae71b`).

@@ -21,6 +21,7 @@ import {
   Send,
   Download,
   ExternalLink,
+  Server,
 } from "lucide-react";
 import {
   useNetworkRequests,
@@ -33,14 +34,20 @@ import {
 } from "@/utils/networkTracker";
 import { isValidJsonSubtitleResponse } from "@/utils/subtitleCache";
 import { SUPPORTED_LANGUAGES_CATALOG } from "@/utils/appSettings";
+import { DEFAULT_FETCH_SERVER_URL } from "@/lib/subtitle-fetch-plan";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onFetchAgainWithSession?: (url: string) => void;
   onFetchAgainAnon?: (url: string) => void;
+  onFetchAgainViaServer?: (url: string) => void;
   onUseTheseSubtitles?: (url: string, rawBody: string) => void;
   isAndroid?: boolean;
+  useFetchServer?: boolean;
+  onToggleUseFetchServer?: (next: boolean) => void;
+  fetchServerUrl?: string;
+  onUpdateFetchServerUrl?: (url: string) => void;
 }
 
 export const NetworkRequestsInspector: React.FC<Props> = ({
@@ -48,8 +55,13 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
   onClose,
   onFetchAgainWithSession,
   onFetchAgainAnon,
+  onFetchAgainViaServer,
   onUseTheseSubtitles,
   isAndroid = true,
+  useFetchServer = false,
+  onToggleUseFetchServer,
+  fetchServerUrl = DEFAULT_FETCH_SERVER_URL,
+  onUpdateFetchServerUrl,
 }) => {
   const requests = useNetworkRequests();
   const [filterType, setFilterType] = useState<"all" | "timedtext" | "native">("all");
@@ -65,6 +77,11 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
   const [mobileView, setMobileView] = useState<"list" | "detail">("list");
   const [showPasteJson, setShowPasteJson] = useState(false);
   const [pastedJson, setPastedJson] = useState("");
+  const [serverUrlInput, setServerUrlInput] = useState(fetchServerUrl);
+
+  useEffect(() => {
+    setServerUrlInput(fetchServerUrl);
+  }, [fetchServerUrl]);
 
   const isBotDetected = (req?: NetworkRequestRecord | null): boolean => {
     if (!req) return false;
@@ -476,6 +493,44 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
           </div>
         </div>
 
+        {/* Server Proxy Repeating Configuration Bar */}
+        {onToggleUseFetchServer && (
+          <div
+            data-testid="network-inspector-server-config"
+            className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-2 bg-neutral-950/90 border-b border-neutral-800 text-xs shrink-0"
+          >
+            <label className="flex items-center gap-2 cursor-pointer text-neutral-300 font-medium text-xs select-none">
+              <input
+                type="checkbox"
+                data-testid="inspector-use-server-toggle"
+                checked={useFetchServer}
+                onChange={(e) => onToggleUseFetchServer(e.target.checked)}
+                className="rounded border-neutral-700 bg-neutral-900 text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+              />
+              <Server className="w-3.5 h-3.5 text-purple-400" />
+              <span>Use server for repeat</span>
+            </label>
+            <div className="flex items-center gap-1.5 flex-1 max-w-sm ml-auto">
+              <input
+                type="text"
+                data-testid="inspector-server-url-input"
+                value={serverUrlInput}
+                onChange={(e) => setServerUrlInput(e.target.value)}
+                placeholder="http://localhost:8080/fetch"
+                className="flex-1 rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-[11px] text-neutral-200 placeholder:text-neutral-500 font-mono focus:outline-none focus:border-purple-500"
+              />
+              <button
+                type="button"
+                data-testid="inspector-save-server-url-button"
+                onClick={() => onUpdateFetchServerUrl?.(serverUrlInput.trim())}
+                className="px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-neutral-200 border border-neutral-700 text-[11px] font-medium transition"
+              >
+                Update
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Body content: Split list & detail */}
         <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 md:divide-x divide-neutral-800 overflow-hidden">
           {/* Requests List */}
@@ -837,6 +892,18 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
                     >
                       <Send className="w-3.5 h-3.5 text-emerald-400" />
                       <span>Fetch again (link only)</span>
+                    </button>
+                  )}
+                  {onFetchAgainViaServer && (
+                    <button
+                      type="button"
+                      data-testid="fetch-again-server-button"
+                      onClick={() => onFetchAgainViaServer(selectedRequest.url)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-purple-200 border border-purple-800/80 font-medium text-xs transition"
+                      title="Send this exact request through configured server proxy"
+                    >
+                      <Server className="w-3.5 h-3.5 text-purple-400" />
+                      <span>Fetch again (via server)</span>
                     </button>
                   )}
                   {onUseTheseSubtitles &&

@@ -83,6 +83,92 @@ export function setPromoteSuccessfulAttempt(on: boolean) {
   }
 }
 
+const USE_SERVER_KEY = "yt_fetch_use_server_v1";
+const SERVER_URL_KEY = "yt_fetch_server_url_v1";
+export const DEFAULT_FETCH_SERVER_URL = "http://localhost:8080/fetch";
+
+export function getUseFetchServer(): boolean {
+  try {
+    return storage()?.getItem(USE_SERVER_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setUseFetchServer(enabled: boolean) {
+  try {
+    storage()?.setItem(USE_SERVER_KEY, enabled ? "1" : "0");
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function getFetchServerUrl(): string {
+  try {
+    return storage()?.getItem(SERVER_URL_KEY) || DEFAULT_FETCH_SERVER_URL;
+  } catch {
+    return DEFAULT_FETCH_SERVER_URL;
+  }
+}
+
+export function setFetchServerUrl(url: string) {
+  try {
+    storage()?.setItem(SERVER_URL_KEY, url);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+/**
+ * Sends a timedtext request through a configured repeating server proxy.
+ * If serverUrl contains {url}, replaces it; otherwise appends ?url=... (or &url=...).
+ */
+export async function fetchViaServer(
+  serverUrl: string,
+  targetUrl: string,
+): Promise<ExactFetchResult> {
+  const cleanServer = (serverUrl || "").trim();
+  if (!cleanServer) {
+    return {
+      status: 0,
+      body: "",
+      sentUrl: targetUrl,
+      send: "anon",
+      error: "Server address is not configured",
+    };
+  }
+  let requestUrl = cleanServer;
+  if (requestUrl.includes("{url}")) {
+    requestUrl = requestUrl.replace("{url}", encodeURIComponent(targetUrl));
+  } else {
+    const sep = requestUrl.includes("?") ? "&" : "?";
+    requestUrl = `${requestUrl}${sep}url=${encodeURIComponent(targetUrl)}`;
+  }
+
+  try {
+    const res = await fetch(requestUrl, {
+      method: "GET",
+      headers: { Accept: "application/json, text/plain, */*" },
+    });
+    const body = await res.text();
+    return {
+      status: res.status,
+      body,
+      sentUrl: requestUrl,
+      send: "anon",
+      error: res.ok ? undefined : `Server returned HTTP ${res.status}`,
+    };
+  } catch (err) {
+    return {
+      status: 0,
+      body: "",
+      sentUrl: requestUrl,
+      send: "anon",
+      error: String(err),
+    };
+  }
+}
+
 /** Moves the given attempt to the front (keeps everything else in order). */
 export function promoteAttempt(order: FetchAttempt[], winner: Pick<FetchAttempt, "mode" | "send">) {
   const k = key(winner);

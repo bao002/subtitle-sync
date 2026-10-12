@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { LayoutGrid, List, Check, Search } from "lucide-react";
+import { LayoutGrid, List, Check, Search, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   type LanguageDisplayMode,
@@ -63,6 +63,15 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
     onSelectionChange(next);
   };
 
+  const moveFavoriteLanguage = (code: string, direction: -1 | 1) => {
+    const index = selectedLanguages.indexOf(code);
+    const nextIdx = index + direction;
+    if (index < 0 || nextIdx < 0 || nextIdx >= selectedLanguages.length) return;
+    const next = [...selectedLanguages];
+    [next[index], next[nextIdx]] = [next[nextIdx]!, next[index]!];
+    onSelectionChange(next);
+  };
+
   return (
     <div className="space-y-3" data-testid="language-boxes-selector-wrapper">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -107,6 +116,69 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
         </div>
       </div>
 
+      {/* Selected languages fetch priority reordering bar */}
+      {selectedLanguages.length > 0 && (
+        <div
+          data-testid="selected-languages-order-bar"
+          className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-1.5"
+        >
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-semibold text-primary flex items-center gap-1.5">
+              <span>Fetch Priority Order</span>
+              <span className="text-[10px] text-muted-foreground font-normal">
+                (determines sequential fetch order)
+              </span>
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              {selectedLanguages.length} {selectedLanguages.length === 1 ? "track" : "tracks"}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {selectedLanguages.map((code, idx) => {
+              const langMeta = catalog.find((c) => c.code === code) || { code, name: code };
+              const isFirst = idx === 0;
+              const isLast = idx === selectedLanguages.length - 1;
+              return (
+                <div
+                  key={code}
+                  data-testid={`selected-lang-priority-${code}`}
+                  className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs shadow-xs"
+                >
+                  <span className="font-mono text-[10px] font-bold text-primary">
+                    #{idx + 1}
+                  </span>
+                  <span className="font-medium text-foreground">{langMeta.name}</span>
+                  <div className="flex items-center ml-0.5">
+                    <button
+                      type="button"
+                      disabled={isFirst}
+                      onClick={() => moveFavoriteLanguage(code, -1)}
+                      data-testid={`move-fav-earlier-${code}`}
+                      className="p-0.5 hover:text-primary disabled:opacity-20 text-muted-foreground transition"
+                      title={`Move ${langMeta.name} earlier in fetch priority`}
+                      aria-label={`Move ${langMeta.name} earlier`}
+                    >
+                      <ArrowUp className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isLast}
+                      onClick={() => moveFavoriteLanguage(code, 1)}
+                      data-testid={`move-fav-later-${code}`}
+                      className="p-0.5 hover:text-primary disabled:opacity-20 text-muted-foreground transition"
+                      title={`Move ${langMeta.name} later in fetch priority`}
+                      aria-label={`Move ${langMeta.name} later`}
+                    >
+                      <ArrowDown className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Optional search filter for large catalogs */}
       {catalog.length > 8 && (
         <div className="relative">
@@ -130,6 +202,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
         >
           {sortedCatalog.map((lang) => {
             const isSelected = selectedLanguages.includes(lang.code);
+            const priorityIdx = selectedLanguages.indexOf(lang.code);
             return (
               <button
                 key={lang.code}
@@ -143,9 +216,16 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                     ? "border-primary bg-primary/15 text-primary shadow-sm ring-1 ring-primary/40 font-semibold"
                     : "border-border bg-card hover:bg-accent/40 text-foreground"
                 }`}
-                title={isSelected ? `Unselect ${lang.name}` : `Select ${lang.name}`}
+                title={isSelected ? `Unselect ${lang.name} (Priority #${priorityIdx + 1})` : `Select ${lang.name}`}
               >
-                <span className="truncate pr-1 text-xs sm:text-sm">{lang.name}</span>
+                <div className="truncate pr-1 flex items-center gap-1.5 min-w-0">
+                  {isSelected && (
+                    <span className="shrink-0 font-mono text-[10px] font-bold text-primary bg-primary/20 rounded px-1">
+                      #{priorityIdx + 1}
+                    </span>
+                  )}
+                  <span className="truncate text-xs sm:text-sm">{lang.name}</span>
+                </div>
                 {isSelected ? (
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                     <Check className="h-3 w-3 stroke-[3]" />
@@ -180,17 +260,21 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           }}
           className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
         >
-          {sortedCatalog.map((lang) => (
-            <option key={lang.code} value={lang.code}>
-              {selectedLanguages.includes(lang.code) ? `✓ ${lang.name}` : lang.name}
-            </option>
-          ))}
+          {sortedCatalog.map((lang) => {
+            const isSel = selectedLanguages.includes(lang.code);
+            const pIdx = selectedLanguages.indexOf(lang.code);
+            return (
+              <option key={lang.code} value={lang.code}>
+                {isSel ? `✓ [#${pIdx + 1}] ${lang.name}` : lang.name}
+              </option>
+            );
+          })}
         </select>
       </div>
 
       <p className="text-xs text-muted-foreground">
         {isAndroid
-          ? "Tap any language box to add to favorites. Selected languages stay at the top and fetch live translation tracks."
+          ? "Tap any language box to add to favorites. Selected languages stay at the top and fetch in priority order."
           : "Tap language boxes to toggle favorites. Selected languages stay at the top."}
       </p>
     </div>

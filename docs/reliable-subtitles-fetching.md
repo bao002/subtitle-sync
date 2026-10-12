@@ -54,14 +54,28 @@ Every attempt is recorded with:
 - the response size
 - the error reason
 
-Each request record on Android has three actions:
+Each request record on Android has actions:
 
 - **Fetch again with session**
 - **Fetch again (link only)**
+- **Fetch again (via server)**: routes the request through a configurable external server/proxy endpoint.
 - **Use these subtitles**: appears when a result is good. It loads the result as that language's column for the current video and caches it.
+
+## Dynamic favorite languages ordering & fetches
+
+- The user's list of favorite languages (`targetLanguages`) determines the exact sequential order in which subtitle tracks are discovered and requested.
+- Reordering favorite languages (via priority `#1`, `#2` arrows in the selector or table chevrons) dynamically updates the fetch priority order.
+- The "Fetch again" button dynamically recalculates the exact list of missing/failed favorite languages in their prioritized order. Changing the favorite languages immediately updates the languages to be fetched next without requiring video restarts.
+
+## Server repetition for fetch requests
+
+- A configurable server proxy option (`useFetchServer`, off by default) allows repeating fetch requests through an external HTTP proxy or server.
+- The server address is configurable in advance via input fields in Attempt Order Settings and the Network Inspector, and can be updated anytime.
+- When enabled, repeated requests are sent to `${serverUrl}?url=${encodedTarget}` (or replacing `{url}` in custom templates).
 
 ## Diagnosing "fails in app, works in browser"
 
 1. Open the failed record and press **Fetch again (link only)**.
 2. If the link-only fetch succeeds, the captured session headers are the problem. Move the `anon` attempts to the front.
-3. If both fail, check the `expire` value. The signed URL may have expired, so play the video again to capture a fresh one.
+3. If both direct attempts hit rate limits (HTTP 429), enable **Use server for repeat** and specify your server endpoint to repeat the fetch via server proxy.
+4. If requests still fail, check the `expire` value. The signed URL may have expired, so play the video again to capture a fresh one.

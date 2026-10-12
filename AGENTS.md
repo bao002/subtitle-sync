@@ -35,14 +35,14 @@
   4. Test the changes thoroughly with the dedicated tests, verify app compilation (`compile_applet` / `npm run build`), and run code verification (`lint_applet` / `npm run lint`).
   5. Perform a dedicated Git commit after completing each step (`git commit`) to checkpoint progress and preserve spent tokens.
   6. After git commit, try using git push: attempt `git push` (handling failure gracefully if no remote or credentials) to keep editor and remote synchronized.
-  7. **Mandatory migration to `docs/done.md`**: Move completed sub-task from `current-sub-task.md` and `docs/todo.md` to `docs/done.md`, documenting the completed changes, dedicated test command, and verification outcome, and mark complete `[x]` in `docs/tasks.md`.
+  7. **Mandatory migration to `docs/done.md`**: Move completed tasks and sub-tasks completely out of `current-sub-task.md`, `docs/todo.md`, and `docs/tasks.md` directly into `docs/done.md`, documenting the completed changes, dedicated test command, and verification outcome. In accordance with Agile/Kanban best practice, `docs/tasks.md` is strictly an active backlog containing ONLY pending, active, and upcoming tasks. Completed items must never linger in `docs/tasks.md`.
 - **Prompt task completion audit**: Before concluding any prompt or turn, the agent MUST audit and verify that EVERY task and subtask planned for the prompt in `docs/tasks.md` has been fully accomplished, thoroughly tested with its dedicated automated test, committed, and logged in `docs/done.md`. Never leave prompt tasks abandoned or half-implemented.
 - **Hotfix workflow with task suspension (holding pattern)**:
   - When an unexpected defect, broken build, regression, or failing CI flow arises during active development:
     1. **Suspend current task**: Place the active task/sub-task in `current-sub-task.md` **ON HOLD** (marked `[ON HOLD]`), saving its current state and resumption notes.
     2. **Stage hotfix**: Stage a dedicated `Hotfix: <issue>` subtask in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
     3. **Execute in isolation**: Implement minimal targeted fix, verify with dedicated automated test, compile (`compile_applet`), and lint (`lint_applet`).
-    4. **Commit and document**: Perform a dedicated git commit (`fix(hotfix): <description>`), move the hotfix to `docs/done.md` under `### Hotfix: <issue>`, and mark `[x]` in `docs/tasks.md`.
+    4. **Commit and document**: Perform a dedicated git commit (`fix(hotfix): <description>`), move the hotfix directly out of `current-sub-task.md`, `docs/todo.md`, and `docs/tasks.md` into `docs/done.md` under `### Hotfix: <issue>`.
     5. **Resume held task**: Only after the hotfix is verified and accomplished, restore the suspended task back to active status in `current-sub-task.md` and `docs/todo.md`, and resume work from where it was paused.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
 - Check the last GitHub Actions result and fix failed flows: continuously monitor and verify GitHub Actions workflow outcomes (such as `web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, and `integrity.yml`), diagnose the root cause of any broken or failing CI steps, and fix failed workflows promptly.

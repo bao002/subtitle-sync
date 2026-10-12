@@ -34,11 +34,11 @@ To guarantee token economy, the agent must activate and maintain the following f
 | File | Purpose | Retention |
 | :--- | :--- | :--- |
 | `docs/tokens.md` | Protocol specification defining the token economy and task decomposition rules. | Permanent specification |
-| `docs/tasks.md` | Master breakdown of all numbered tasks and sub-tasks across the project. | Permanent record |
+| `docs/tasks.md` | Master backlog of active, pending, and upcoming numbered tasks and sub-tasks across the project. Completed items are migrated to `docs/done.md`. | Active backlog |
 | `current-sub-task.md` | **Strictly focused staging of the single sub-task currently being executed.** Updated on every single step. | Active state indicator |
 | `temp.md` | **Ephemeral scratchpad** for drafting file edits, temporary checklists, raw diffs, or intermediate calculations. Avoids cluttering permanent docs. | Ephemeral / Scratchpad |
 | `docs/todo.md` | High-level active sub-task synchronization mirror. | Single active task |
-| `docs/done.md` | Verified changelog of completed sub-tasks. | Permanent log |
+| `docs/done.md` | Permanent verified changelog and archive of all completed tasks and sub-tasks. | Permanent archive / log |
 | `docs/self-verification.md` | Comprehensive self-verification protocol for automated test execution, screencast linking in README, and full sanity check audits. | Permanent specification |
 
 ---
@@ -70,7 +70,7 @@ On **every prompt**, the agent MUST execute the following sequence:
 6. Git commit checkpoint (preserving token investments) & attempt git push
        │
        ▼
-7. Move sub-task to docs/done.md, mark [x] in docs/tasks.md
+7. Move completed tasks/sub-tasks to docs/done.md (clean tasks.md)
        │
        ▼
    More sub-tasks? ──► [YES] ──► Advance current-sub-task.md
@@ -99,9 +99,9 @@ On **every prompt**, the agent MUST execute the following sequence:
    - Run `git commit` to permanently preserve the work.
    - Attempt `git push` to synchronize remote branch and editor state.
 7. **Complete, Move to done.md and Cycle**:
-   - Move the subtask from `current-sub-task.md` and `docs/todo.md` to `docs/done.md`.
+   - Move the completed subtask/task completely out of `current-sub-task.md`, `docs/todo.md`, and `docs/tasks.md` into `docs/done.md`.
    - Ensure the entry in `docs/done.md` records the accomplished feature, dedicated test command, and file scope.
-   - Mark `[x]` in `docs/tasks.md`.
+   - Do not leave completed items lingering in `docs/tasks.md`; keep `docs/tasks.md` strictly as the active backlog of pending and upcoming items.
    - If further subtasks remain, advance `current-sub-task.md` to the next sub-task.
 8. **Prompt Completion Audit Gate**:
    - Before completing the prompt turn, verify that EVERY task and subtask broken down in `docs/tasks.md` for this prompt has been fully implemented, tested with a dedicated test, marked complete `[x]`, and recorded in `docs/done.md`.
@@ -135,8 +135,7 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
               ▼
 4. COMMIT & LOG HOTFIX:
    - Dedicated git commit: "fix(hotfix): <description>"
-   - Move hotfix to docs/done.md under ### Hotfix: <issue>
-   - Mark [x] in docs/tasks.md
+   - Move hotfix directly out of current-sub-task.md, docs/todo.md, and docs/tasks.md into docs/done.md under ### Hotfix: <issue>
               │
               ▼
 5. RESUME SUSPENDED TASK:

@@ -102,6 +102,11 @@ import {
   setAttemptOrder,
   getPromoteSuccessfulAttempt,
   setPromoteSuccessfulAttempt,
+  getUseFetchServer,
+  setUseFetchServer,
+  getFetchServerUrl,
+  setFetchServerUrl,
+  fetchViaServer,
   promoteAttempt,
   runFetchAttempts,
   nativeExactFetch,
@@ -501,6 +506,8 @@ function Index() {
   const [promoteSuccess, setPromoteSuccessState] = useState<boolean>(() =>
     getPromoteSuccessfulAttempt(),
   );
+  const [useFetchServer, setUseFetchServerState] = useState<boolean>(() => getUseFetchServer());
+  const [fetchServerUrl, setFetchServerUrlState] = useState<string>(() => getFetchServerUrl());
 
   useEffect(() => {
     // Load device-saved preferences after hydration
@@ -508,6 +515,8 @@ function Index() {
     setSectionOrderState(getSectionOrder());
     setAttemptOrderState(getAttemptOrder());
     setPromoteSuccessState(getPromoteSuccessfulAttempt());
+    setUseFetchServerState(getUseFetchServer());
+    setFetchServerUrlState(getFetchServerUrl());
   }, []);
   const requestModeRef = useRef(requestMode);
   requestModeRef.current = requestMode;
@@ -515,6 +524,12 @@ function Index() {
   attemptOrderRef.current = attemptOrder;
   const promoteSuccessRef = useRef(promoteSuccess);
   promoteSuccessRef.current = promoteSuccess;
+  const useFetchServerRef = useRef(useFetchServer);
+  useFetchServerRef.current = useFetchServer;
+  const fetchServerUrlRef = useRef(fetchServerUrl);
+  fetchServerUrlRef.current = fetchServerUrl;
+  const targetLanguagesRef = useRef(targetLanguages);
+  targetLanguagesRef.current = targetLanguages;
 
   const handleUpdateAttemptOrder = useCallback((next: FetchAttempt[]) => {
     setAttemptOrder(next);
@@ -524,6 +539,16 @@ function Index() {
   const handleTogglePromoteSuccess = useCallback((next: boolean) => {
     setPromoteSuccessfulAttempt(next);
     setPromoteSuccessState(next);
+  }, []);
+
+  const handleToggleUseFetchServer = useCallback((next: boolean) => {
+    setUseFetchServer(next);
+    setUseFetchServerState(next);
+  }, []);
+
+  const handleUpdateFetchServerUrl = useCallback((next: string) => {
+    setFetchServerUrl(next);
+    setFetchServerUrlState(next);
   }, []);
 
   const [networkInspectorOpen, setNetworkInspectorOpen] = useState(false);
@@ -551,6 +576,15 @@ function Index() {
           !attemptedRef.current.has(`${activeUrl}|${code}`),
       );
       if (needed.length === 0) return;
+
+      // Sort needed strictly according to targetLanguages order
+      const currentTargetOrder = targetLanguagesRef.current;
+      needed.sort((a, b) => {
+        const idxA = currentTargetOrder.indexOf(a);
+        const idxB = currentTargetOrder.indexOf(b);
+        return (idxA >= 0 ? idxA : 999) - (idxB >= 0 ? idxB : 999);
+      });
+
       needed.forEach((code) => attemptedRef.current.add(`${activeUrl}|${code}`));
       setFailedLangs((prev) => prev.filter((c) => !needed.includes(c)));
       const failed: string[] = [];
@@ -621,6 +655,35 @@ function Index() {
                 setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
               });
             }
+          } else if (useFetchServerRef.current && fetchServerUrlRef.current) {
+            // Server proxy fallback repetition if enabled
+            const fallbackUrl = buildTranslatedCaptionUrl(activeUrl, code, "json3");
+            const serverTracker = trackNetworkRequest(fallbackUrl, "GET", "server_proxy", {
+              attemptMode: "tlang",
+              attemptSend: "anon",
+            });
+            const serverRes = await fetchViaServer(fetchServerUrlRef.current, fallbackUrl);
+            if (serverRes.status === 200 && isValidJsonSubtitleResponse(serverRes.body)) {
+              serverTracker.complete(serverRes.status, serverRes.body);
+              json = parseJson3(serverRes.body);
+              if (json) {
+                if (videoId) {
+                  saveCachedRawJson3(videoId, code, serverRes.body);
+                }
+                next[code] = json;
+                startSubtitlesTransition(() => {
+                  setTracks((prev) => ({ ...prev, [code]: json! }));
+                  setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
+                });
+              }
+            } else {
+              serverTracker.fail(
+                serverRes.error || `HTTP ${serverRes.status}`,
+                serverRes.status,
+                serverRes.body,
+              );
+              failed.push(code);
+            }
           } else {
             failed.push(code);
           }
@@ -656,14 +719,23 @@ function Index() {
 
   const manualFetchFailed = () => {
     const url = observedUrlRef.current;
-    failedLangs.forEach((code) => attemptedRef.current.delete(`${url}|${code}`));
-    void fetchFavoriteLanguageSubtitles(failedLangs, url);
+    const currentTargetOrder = targetLanguagesRef.current;
+    // Determine the exact list of languages to be fetched next, strictly in the order of targetLanguages
+    const toFetch = currentTargetOrder.filter(
+      (code) =>
+        (!tracksRef.current?.[code] || failedLangs.includes(code)) &&
+        (!baseLanguage || code !== baseLanguage),
+    );
+    const finalLangs = toFetch.length > 0 ? toFetch : failedLangs;
+    finalLangs.forEach((code) => attemptedRef.current.delete(`${url}|${code}`));
+    void fetchFavoriteLanguageSubtitles(finalLangs, url);
   };
 
   const handleFetchAgain = useCallback(
-    (url: string, withSession: boolean) => {
+    async (url: string, withSession: boolean, viaServer: boolean = false) => {
       const shell = nativeShell();
-      if (!shell) return;
+      const shouldUseServer = viaServer || useFetchServerRef.current;
+      if (!shell && !shouldUseServer) return;
       let targetLang = "";
       try {
         const u = new URL(url, "https://www.youtube.com");
@@ -673,21 +745,49 @@ function Index() {
         if (m) targetLang = decodeURIComponent(m[1]);
       }
       const mode = url.includes("tlang=") ? "tlang" : "lang";
-      const send: SendMode = withSession ? "session" : "anon";
-      const tracker = trackNetworkRequest(url, "GET", "native_bridge", {
-        attemptMode: mode,
-        attemptSend: send,
-      });
-      const r: ExactFetchResult = shell.fetchTimedTextExact
-        ? nativeExactFetch(shell, url, withSession)
-        : {
-            status: 200,
-            body: shell.fetchTranslatedCaptionsWithUrl(url, targetLang, "json3"),
-            sentUrl: url,
-            send,
-          };
+
+      let r: ExactFetchResult;
+      if (shouldUseServer && fetchServerUrlRef.current) {
+        const tracker = trackNetworkRequest(url, "GET", "server_proxy", {
+          attemptMode: mode,
+          attemptSend: "anon",
+        });
+        r = await fetchViaServer(fetchServerUrlRef.current, url);
+        if (r.status === 200 && isValidJsonSubtitleResponse(r.body)) {
+          tracker.complete(r.status, r.body);
+        } else {
+          tracker.fail(
+            r.error || (r.status ? `HTTP ${r.status}` : "Server fetch failed"),
+            r.status,
+            r.body,
+          );
+        }
+      } else {
+        const send: SendMode = withSession ? "session" : "anon";
+        const tracker = trackNetworkRequest(url, "GET", "native_bridge", {
+          attemptMode: mode,
+          attemptSend: send,
+        });
+        r = shell?.fetchTimedTextExact
+          ? nativeExactFetch(shell, url, withSession)
+          : {
+              status: 200,
+              body: shell ? shell.fetchTranslatedCaptionsWithUrl(url, targetLang, "json3") : "",
+              sentUrl: url,
+              send,
+            };
+        if (r.status === 200 && isValidJsonSubtitleResponse(r.body)) {
+          tracker.complete(r.status, r.body);
+        } else {
+          tracker.fail(
+            r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"),
+            r.status,
+            r.body,
+          );
+        }
+      }
+
       if (r.status === 200 && isValidJsonSubtitleResponse(r.body)) {
-        tracker.complete(r.status, r.body);
         if (targetLang) {
           const parsed = parseJson3(r.body);
           if (parsed) {
@@ -702,11 +802,17 @@ function Index() {
           }
         }
       } else {
-        tracker.fail(r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"), r.status, r.body);
         notifySubtitleFetch("error", `Fetch failed (${r.status || "network error"})`, targetLang);
       }
     },
     [videoId],
+  );
+
+  const handleFetchAgainViaServer = useCallback(
+    (url: string) => {
+      void handleFetchAgain(url, false, true);
+    },
+    [handleFetchAgain],
   );
 
   const handleUseTheseSubtitles = useCallback(
@@ -733,6 +839,19 @@ function Index() {
   );
 
   const handleTargetLanguagesChange = (newTargetLangs: string[]) => {
+    // 1. Immediately prune failedLangs to only those still present in newTargetLangs
+    setFailedLangs((prev) => prev.filter((lang) => newTargetLangs.includes(lang)));
+
+    // 2. Clear attemptedRef cache for removed languages so re-adding allows fresh fetch
+    const currentUrl = observedUrlRef.current;
+    if (currentUrl) {
+      targetLanguages.forEach((prevLang) => {
+        if (!newTargetLangs.includes(prevLang)) {
+          attemptedRef.current.delete(`${currentUrl}|${prevLang}`);
+        }
+      });
+    }
+
     const newlyAdded = newTargetLangs.filter((lang) => !targetLanguages.includes(lang));
     setTargetLanguages(newTargetLangs);
     setUserLearningLanguages(newTargetLangs);
@@ -1257,9 +1376,9 @@ function Index() {
 
   useEffect(() => {
     setLanguageOrder((prev) => {
-      const existing = new Set(prev);
-      const toAdd = targetLanguages.filter((c) => !existing.has(c));
-      return toAdd.length ? [...prev, ...toAdd] : prev;
+      const targetSet = new Set(targetLanguages);
+      const remaining = prev.filter((c) => !targetSet.has(c));
+      return [...targetLanguages, ...remaining];
     });
   }, [targetLanguages]);
 
@@ -1610,6 +1729,17 @@ function Index() {
       [copy[index], copy[next]] = [copy[next]!, copy[index]!];
       return copy;
     });
+
+    setTargetLanguages((current) => {
+      if (!current.includes(code)) return current;
+      const index = current.indexOf(code);
+      const next = index + direction;
+      if (index < 0 || next < 0 || next >= current.length) return current;
+      const copy = [...current];
+      [copy[index], copy[next]] = [copy[next]!, copy[index]!];
+      setUserLearningLanguages(copy);
+      return copy;
+    });
   };
 
   const movePanel = (id: PanelId, direction: -1 | 1) => {
@@ -1716,6 +1846,17 @@ function Index() {
   const allFavoritesAligned = useMemo(() => {
     return targetLanguages.length > 0 && missingFavoriteLanguages.length === 0;
   }, [targetLanguages, missingFavoriteLanguages]);
+
+  const languagesToFetchNext = useMemo(() => {
+    return targetLanguages.filter(
+      (code) =>
+        (!tracks?.[code] || failedLangs.includes(code)) && (!baseLanguage || code !== baseLanguage),
+    );
+  }, [targetLanguages, tracks, failedLangs, baseLanguage]);
+
+  const activeFailedToFetch = useMemo(() => {
+    return targetLanguages.filter((code) => failedLangs.includes(code));
+  }, [targetLanguages, failedLangs]);
 
   const displayedRows = useMemo(() => {
     if (isAndroid && subtitlesLimit > 0) {
@@ -2095,6 +2236,10 @@ function Index() {
                         onChangeOrder={handleUpdateAttemptOrder}
                         promoteSuccess={promoteSuccess}
                         onTogglePromoteSuccess={handleTogglePromoteSuccess}
+                        useFetchServer={useFetchServer}
+                        onToggleUseFetchServer={handleToggleUseFetchServer}
+                        fetchServerUrl={fetchServerUrl}
+                        onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
                       />
                     </>
                   )}
@@ -2660,22 +2805,31 @@ function Index() {
                       onSelectionChange={handleTargetLanguagesChange}
                       isAndroid={isAndroid}
                     />
-                    {failedLangs.length > 0 && (
-                      <div className="flex items-center justify-between p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-xs">
-                        <span className="text-destructive font-medium">
-                          Failed to fetch subtitles: {failedLangs.join(", ")}
-                        </span>
-                        <button
-                          type="button"
-                          data-testid="subtitles-manual-fetch"
-                          onClick={manualFetchFailed}
-                          className="inline-flex items-center gap-1 rounded bg-destructive/20 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/30"
-                        >
-                          <RefreshCw className="h-3 w-3" />
-                          Fetch again ({failedLangs.join(", ")})
-                        </button>
-                      </div>
-                    )}
+                    {(() => {
+                      const pendingFetchAgainLangs =
+                        activeFailedToFetch.length > 0
+                          ? activeFailedToFetch
+                          : failedLangs.length > 0
+                            ? languagesToFetchNext
+                            : [];
+                      if (pendingFetchAgainLangs.length === 0) return null;
+                      return (
+                        <div className="flex items-center justify-between p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-xs">
+                          <span className="text-destructive font-medium">
+                            Failed to fetch subtitles: {pendingFetchAgainLangs.join(", ")}
+                          </span>
+                          <button
+                            type="button"
+                            data-testid="subtitles-manual-fetch"
+                            onClick={manualFetchFailed}
+                            className="inline-flex items-center gap-1 rounded bg-destructive/20 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/30"
+                          >
+                            <RefreshCw className="h-3 w-3" />
+                            Fetch again ({pendingFetchAgainLangs.join(", ")})
+                          </button>
+                        </div>
+                      );
+                    })()}
                     <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
                       <div className="space-y-0.5">
                         <label
@@ -2939,8 +3093,13 @@ function Index() {
           onClose={() => setNetworkInspectorOpen(false)}
           onFetchAgainWithSession={(url) => handleFetchAgain(url, true)}
           onFetchAgainAnon={(url) => handleFetchAgain(url, false)}
+          onFetchAgainViaServer={handleFetchAgainViaServer}
           onUseTheseSubtitles={handleUseTheseSubtitles}
           isAndroid={isAndroid}
+          useFetchServer={useFetchServer}
+          onToggleUseFetchServer={handleToggleUseFetchServer}
+          fetchServerUrl={fetchServerUrl}
+          onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
         />
       )}
       <ApkReleaseModal isOpen={apkModalOpen} onClose={() => setApkModalOpen(false)} />

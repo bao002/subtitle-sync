@@ -1,8 +1,9 @@
-import React from "react";
-import { ArrowUp, ArrowDown, RotateCcw, CheckCircle2, ShieldCheck, Globe } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ArrowUp, ArrowDown, RotateCcw, CheckCircle2, ShieldCheck, Globe, Server } from "lucide-react";
 import {
   type FetchAttempt,
   DEFAULT_ATTEMPT_ORDER,
+  DEFAULT_FETCH_SERVER_URL,
   moveAttempt,
 } from "@/lib/subtitle-fetch-plan";
 
@@ -11,6 +12,10 @@ interface Props {
   onChangeOrder: (next: FetchAttempt[]) => void;
   promoteSuccess: boolean;
   onTogglePromoteSuccess: (next: boolean) => void;
+  useFetchServer?: boolean;
+  onToggleUseFetchServer?: (next: boolean) => void;
+  fetchServerUrl?: string;
+  onUpdateFetchServerUrl?: (url: string) => void;
 }
 
 export const AttemptOrderSettings: React.FC<Props> = ({
@@ -18,7 +23,20 @@ export const AttemptOrderSettings: React.FC<Props> = ({
   onChangeOrder,
   promoteSuccess,
   onTogglePromoteSuccess,
+  useFetchServer = false,
+  onToggleUseFetchServer,
+  fetchServerUrl = DEFAULT_FETCH_SERVER_URL,
+  onUpdateFetchServerUrl,
 }) => {
+  const [inputServerUrl, setInputServerUrl] = useState(fetchServerUrl);
+
+  useEffect(() => {
+    setInputServerUrl(fetchServerUrl);
+  }, [fetchServerUrl]);
+
+  const handleSaveServerUrl = () => {
+    onUpdateFetchServerUrl?.(inputServerUrl.trim());
+  };
   const handleToggle = (index: number) => {
     const next = [...order];
     const current = next[index];
@@ -166,6 +184,54 @@ export const AttemptOrderSettings: React.FC<Props> = ({
         <p className="text-[10px] text-muted-foreground ml-6 mt-0.5">
           When enabled, the attempt style that yields a good response is remembered and prioritized first on subsequent subtitle fetches.
         </p>
+      </div>
+
+      <div className="pt-2 border-t border-border/60 space-y-2">
+        <label className="flex items-center gap-2 cursor-pointer select-none text-foreground font-medium text-[11px]">
+          <input
+            type="checkbox"
+            checked={useFetchServer}
+            onChange={(e) => onToggleUseFetchServer?.(e.target.checked)}
+            data-testid="use-fetch-server-toggle"
+            className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+          />
+          <Server className="w-3.5 h-3.5 text-primary" />
+          <span>Use server for repeating fetch requests (off by default)</span>
+        </label>
+        <p className="text-[10px] text-muted-foreground ml-6">
+          Routes repeated subtitle fetches through an external server/proxy to bypass device IP rate limits (e.g. YouTube bot detection HTTP 429).
+        </p>
+
+        <div className="ml-6 space-y-1 pt-1">
+          <label
+            htmlFor="fetch-server-url-input"
+            className="text-[11px] font-medium text-foreground block"
+          >
+            Server address:
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              id="fetch-server-url-input"
+              data-testid="fetch-server-url-input"
+              value={inputServerUrl}
+              onChange={(e) => setInputServerUrl(e.target.value)}
+              placeholder="http://localhost:8080/fetch"
+              className="flex-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+            />
+            <button
+              type="button"
+              onClick={handleSaveServerUrl}
+              data-testid="update-fetch-server-url-button"
+              className="px-2.5 py-1 rounded-md border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition active:scale-95"
+            >
+              Update
+            </button>
+          </div>
+          <p className="text-[10px] text-muted-foreground">
+            Enter server endpoint. URL will receive target via <code>?url=...</code> or replacing <code>{"{url}"}</code> placeholder.
+          </p>
+        </div>
       </div>
     </div>
   );

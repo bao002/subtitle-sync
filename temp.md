@@ -1,5 +1,3 @@
-# Ephemeral Working Notes (temp.md)
+# Ephemeral Scratchpad (`temp.md`)
 
-Idle. All subtasks in Task 87 completed, verified, and audited.
-
-
+No active drafts or intermediate computations.
