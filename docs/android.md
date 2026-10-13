@@ -165,6 +165,10 @@ To maintain clean repository hygiene:
 3. **Deployment to `gh-pages` Branch Only**:
    - Artifacts are copied to `gh-pages-staging/` during workflow execution.
    - The `peaceiris/actions-gh-pages@v4` action pushes the staged directory strictly to the orphaned `gh-pages` branch, keeping the `main` branch pristine.
+4. **Automated Status Reflection in `README.md`**:
+   - Once `emulation.yml` concludes, `.github/workflows/update-readme.yml` triggers via `workflow_run`.
+   - If tests pass and the screencast video artifact is verified on GitHub Pages, the README dynamically reflects the `ALL VERIFIED` status with verified links to the HTML report, MP4 screencast video, and screenshot.
+   - If tests fail, or if the report at `android-emulator-report.html` contains broken video links (e.g. `android-emulator-video.mp4` returns HTTP 404), the README automatically switches to `FAILED`, flags `Android Emulator Screencast & Report Video Flow`, marks the missing asset, and embeds a copy-pasteable AI fix prompt for 1-click reproduction. See [`docs/operations/ACTIONS.md`](./operations/ACTIONS.md) for complete details.
 
 ---
 

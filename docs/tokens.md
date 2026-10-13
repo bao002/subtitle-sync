@@ -159,14 +159,17 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 
 ---
 
-## 7. Active Prompt Execution Log: Task 103
+## 7. Active Prompt Execution Log: Task 106 Complete & Task 107 Staged
 
-- **Task 103**: Implement Versioning Discrepancy Architecture & Recovery Mechanisms According to `docs/versioning.md` [ACTIVE]
-  - Subtask 103.1: Stage Task 103 in Tracking Documentation (`tokens.md`, `tasks.md`, `current-sub-task.md`, `todo.md`, `temp.md`). [ACTIVE]
-  - Subtask 103.2: Implement native Android safeguards in `MainActivity.kt` (automatic OTA cache invalidation on APK upgrade via `last_run_version_code`, zero-cache headers for local assets, and `clearOtaCache` bridge method). [PENDING]
-  - Subtask 103.3: Implement web-side discrepancy architecture in `src/utils/apkUpdater.ts` & `src/types.ts` (`VersionComparison`, `checkVersionDiscrepancy()`, `clearOtaCacheAndReload()`, bridge typing). [PENDING]
-  - Subtask 103.4: Implement UI dual-version presentation and in-app cache reset controls in `ApkReleaseModal.tsx`. [PENDING]
-  - Subtask 103.5: Author dedicated automated test suite (`scripts/verify-versioning-discrepancy-implementation.ts`), run all suites, compile (`compile_applet`), lint (`lint_applet`), and migrate Task 103 to `docs/done.md`. [PENDING]
+- **Task 106**: Document GitHub Actions & GitHub Pages to README.md Summary Lifecycle for Broken Tests and Links [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 106.1: Update `docs/operations/ACTIONS.md` detailing how GitHub Actions and GitHub Pages pipelines feed into the automated README.md summary of broken tests and links. [DONE]
+  - Subtask 106.2: Cross-reference and enhance `docs/self-verification.md` and `docs/android.md` for the CI summary loop. [DONE]
+  - Subtask 106.3: Implement dedicated verification test, run tests, compile, lint, commit, push, and migrate to `docs/done.md`. [DONE]
+
+- **Task 107**: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync [ACTIVE]
+  - Subtask 107.1: Enhance `scripts/update-readme.mjs` and report link validation to detect broken video links in `android-emulator-report.html` and report them dynamically on `README.md`. [ACTIVE]
+  - Subtask 107.2: Update `android-emulator-report.html` & `android/index.html` player resilience and update `.github/workflows/update-readme.yml` / `integrity.yml` to run dedicated video link verification. [PENDING]
+  - Subtask 107.3: Add dedicated test `scripts/verify-report-video-links-and-readme-sync.ts`, update documentation in `docs/operations/ACTIONS.md` and `docs/files.md`, run verification, compile, lint, commit, push, and migrate to `docs/done.md`. [PENDING]
 
 
 

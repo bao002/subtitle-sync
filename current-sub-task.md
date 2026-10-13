@@ -1,11 +1,7 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Subtask 103.5**: Author dedicated automated test suite (`scripts/verify-versioning-discrepancy-implementation.ts`), run all suites, compile (`compile_applet`), lint (`lint_applet`), and migrate Task 103 to `docs/done.md`.
-  - **Status**: ACTIVE
-  - **Objective**: Author `scripts/verify-versioning-discrepancy-implementation.ts` validating:
-    1. `MainActivity.kt` contains `clearOtaCacheOnApkUpgrade`, zero-cache headers, and `clearOtaCache` bridge method.
-    2. `src/types.ts` contains `clearOtaCache` on `AndroidNativeShell`.
-    3. `src/utils/apkUpdater.ts` exports `VersionComparison`, `checkVersionDiscrepancy`, and `clearOtaCacheAndReload`.
-    4. `src/components/ApkReleaseModal.tsx` contains dual-version display, discrepancy warning banner, and `clear-ota-cache-btn`.
-    5. Register `test:versioning-discrepancy-implementation` in `package.json` and `docs/files.md`.
-    6. Verify all test suites, compile, lint, and migrate Task 103 to `docs/done.md`.
+## Subtask 107.1: Enhance `scripts/update-readme.mjs` and report link validation to detect broken video links in `android-emulator-report.html` and report them dynamically on `README.md`
+
+- Inspect report HTML files (`public/android-emulator-report.html` and `public/android/index.html`) for referenced video screencast assets.
+- Detect missing or broken video sources (e.g. `./screenshots/android-emulator-video.mp4` when no video artifact exists or remote video returns 404).
+- Ensure that if broken video links are detected, `scripts/update-readme.mjs` automatically sets CI status to `failure`, lists the broken video link in the failure breakdown, and formats a copy-pasteable AI fix prompt in `README.md`.

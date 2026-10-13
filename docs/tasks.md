@@ -2,10 +2,16 @@
 
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are moved to `docs/done.md`.
 
-## Task 103: Implement Versioning Discrepancy Architecture & Recovery Mechanisms According to `docs/versioning.md`
+## Task 107: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync
 
-- [x] **Subtask 103.1**: Stage Task 103 in Tracking Documentation (`tokens.md`, `tasks.md`, `current-sub-task.md`, `todo.md`, `temp.md`).
-- [x] **Subtask 103.2**: Implement native Android safeguards in `MainActivity.kt` (automatic OTA cache invalidation on APK upgrade via `last_run_version_code`, zero-cache headers for local assets, and `clearOtaCache` bridge method).
-- [x] **Subtask 103.3**: Implement web-side discrepancy architecture in `src/utils/apkUpdater.ts` & `src/types.ts` (`VersionComparison`, `checkVersionDiscrepancy()`, `clearOtaCacheAndReload()`, bridge typing).
-- [x] **Subtask 103.4**: Implement UI dual-version presentation and in-app cache reset controls in `ApkReleaseModal.tsx`.
-- [ ] **Subtask 103.5**: Author dedicated automated test suite (`scripts/verify-versioning-discrepancy-implementation.ts`), run all suites, compile (`compile_applet`), lint (`lint_applet`), and migrate Task 103 to `docs/done.md`.
+- [ ] **Subtask 107.1: Enhance `scripts/update-readme.mjs` and report link validation to detect broken video links in `android-emulator-report.html` and report them dynamically on `README.md`**:
+  - Scan `public/android-emulator-report.html` and `public/android/index.html` for `<source src="...">` video links and download buttons.
+  - Check local candidate locations and, when evaluating GitHub Pages URLs, detect broken or pending video screencast assets.
+  - Automatically flag broken video links in `scanReadmeBrokenLinks` / report diagnostics, setting CI status to `failure` and generating a copy-pasteable AI fix prompt in `README.md`.
+- [ ] **Subtask 107.2: Enhance `android-emulator-report.html` & `android/index.html` player resilience and update GitHub Actions workflows**:
+  - Add client-side video error handling with alert card linking to README.md diagnostic section.
+  - Update `.github/workflows/update-readme.yml` and `integrity.yml` to run dedicated report video and asset validation.
+- [ ] **Subtask 107.3: Add dedicated test script, update documentation, and perform verification**:
+  - Create `scripts/verify-report-video-links-and-readme-sync.ts` and add `npm run test:report-video-links`.
+  - Update `docs/operations/ACTIONS.md`, `docs/android.md`, `docs/self-verification.md`, and `docs/files.md`.
+  - Run all tests, lint, compile, git commit, push, and migrate Task 107 to `docs/done.md`.
