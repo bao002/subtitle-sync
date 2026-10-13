@@ -57,3 +57,6 @@ curl -fsSL https://raw.githubusercontent.com/mostuf2556/subtitle-sync/main/updat
 
 
 *(Legacy web reports like [mochawesome.html](https://mostuf2556.github.io/subtitle-sync/mochawesome.html) and [playwright](https://mostuf2556.github.io/subtitle-sync/playwright/index.html) are deprecated and quarantined in `quarentined/`.)*
+
+## Server config
+Default server settings live in `src/config/server.json` (`server_address`, `is_enabled` — off by default). Details: [docs/server.md](docs/server.md).

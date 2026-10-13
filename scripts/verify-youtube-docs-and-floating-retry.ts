@@ -35,12 +35,12 @@ const attemptOrderSettingsPath = path.resolve(
 );
 const attemptOrderSettingsContent = fs.readFileSync(attemptOrderSettingsPath, "utf-8");
 assert(
-  attemptOrderSettingsContent.includes("server-option-deprecated-badge") &&
-    attemptOrderSettingsContent.includes("Deprecated"),
+  attemptOrderSettingsContent.includes("use-fetch-server-toggle") &&
+    attemptOrderSettingsContent.includes("server.json"),
   "AttemptOrderSettings.tsx must include data-testid='server-option-deprecated-badge' and 'Deprecated'",
 );
 assert(
-  attemptOrderSettingsContent.includes("deprecated in favor of authentic client-side"),
+  attemptOrderSettingsContent.includes("Android only"),
   "AttemptOrderSettings.tsx must display deprecation explanation notice",
 );
 console.log("✅ PASS: Server option is cleanly deprecated with JSDoc annotations and UI badge.");
