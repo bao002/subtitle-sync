@@ -609,7 +609,31 @@ export function clearVideoSubtitleCache(videoId: string): void {
         keysToRemove.push(k);
       }
     }
-    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  } catch {}
+}
+
+/**
+ * Removes cached subtitle cues and raw JSON3 for a single target language on a specific video.
+ */
+export function removeCachedTargetSubtitles(videoId: string, targetLang: string): void {
+  if (!videoId || !targetLang) return;
+  let cleanLang = targetLang.toLowerCase().split("-")[0];
+  if (cleanLang === "iw" || cleanLang === "il") cleanLang = "he";
+
+  // 1. Clear memory cache
+  for (const key of Array.from(memoryCache.keys())) {
+    if (key.includes(videoId) && key.includes(cleanLang)) {
+      memoryCache.delete(key);
+    }
+  }
+
+  // 2. Clear localStorage
+  if (!isStorageAvailable()) return;
+  try {
+    const targetKey = `${SUBTITLE_CACHE_PREFIX}${videoId}_${cleanLang}`;
+    const rawKey = `${SUBTITLE_CACHE_PREFIX}raw_${videoId}_${cleanLang}`;
+    localStorage.removeItem(targetKey);
+    localStorage.removeItem(rawKey);
   } catch {}
 }
 

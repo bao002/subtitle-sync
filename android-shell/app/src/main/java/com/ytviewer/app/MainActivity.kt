@@ -78,11 +78,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     companion object {
         private const val TAG = "YT_CAPTION_INTERCEPTOR"
         private const val LOCAL_ASSET_DOMAIN = "appassets.androidplatform.net"
+
+        @Volatile
+        var instance: MainActivity? = null
+            private set
     }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        instance = this
 
         webView = WebView(this)
         setContentView(webView)
@@ -665,6 +670,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     override fun onDestroy() {
+        if (instance == this) {
+            instance = null
+        }
         try {
             textToSpeech?.stop()
             textToSpeech?.shutdown()
@@ -674,12 +682,56 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         super.onDestroy()
     }
 
+    fun dispatchMediaCommand(action: String, data: Long = 0L) {
+        mainHandler.post {
+            val js = "if (typeof window !== 'undefined' && window.onNativeMediaCommand) { window.onNativeMediaCommand('$action', $data); }"
+            webView.evaluateJavascript(js, null)
+        }
+    }
+
     /**
      * JS Interface exposed to window.AndroidNativeShell
      */
     inner class AndroidNativeBridge(private val context: Context) {
         @JavascriptInterface
         fun isNativeShell(): Boolean = true
+
+        @JavascriptInterface
+        fun setBackgroundAudioEnabled(enabled: Boolean): Boolean {
+            mainHandler.post {
+                if (enabled) {
+                    BackgroundAudioService.startService(this@MainActivity)
+                } else {
+                    BackgroundAudioService.stopService(this@MainActivity)
+                }
+            }
+            return true
+        }
+
+        @JavascriptInterface
+        fun updateMediaMetadata(title: String, artist: String, isPlaying: Boolean, positionMs: Long, durationMs: Long): Boolean {
+            mainHandler.post {
+                val service = BackgroundAudioService.currentService
+                if (service != null) {
+                    service.updateState(title, artist, isPlaying, positionMs, durationMs)
+                } else if (isPlaying) {
+                    val intent = Intent(this@MainActivity, BackgroundAudioService::class.java).apply {
+                        action = BackgroundAudioService.ACTION_UPDATE_STATE
+                        putExtra("title", title)
+                        putExtra("artist", artist)
+                        putExtra("isPlaying", isPlaying)
+                        putExtra("positionMs", positionMs)
+                        putExtra("durationMs", durationMs)
+                    }
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                        startForegroundService(intent)
+                    } else {
+                        startService(intent)
+                    }
+                }
+            }
+            return true
+        }
 
         @JavascriptInterface
         fun getAppVersionName(): String {

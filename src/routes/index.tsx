@@ -65,6 +65,7 @@ import {
   computeVideoInstances,
   multiVideoPlayerRegistry,
   executeMultiVideoSegmentSync,
+  removeVideoInstanceConfig,
   type VideoInstanceConfig,
   type YTPlayerLike,
 } from "@/utils/multiVideoPlayerManager";
@@ -95,9 +96,16 @@ import {
   setRetryPacingMinSec as saveRetryPacingMinSec,
   getRetryPacingMaxSec,
   setRetryPacingMaxSec as saveRetryPacingMaxSec,
+  getBackgroundAudioEnabled,
+  setBackgroundAudioEnabled as saveBackgroundAudioEnabled,
   type SectionOrder,
   type SubtitleRequestMode,
 } from "@/lib/playback-preferences";
+import {
+  initBackgroundMediaManager,
+  syncMediaMetadata,
+  setNativeBackgroundAudio,
+} from "@/utils/backgroundMediaManager";
 import { ApkReleaseModal } from "@/components/ApkReleaseModal";
 import { SubtitleFetchToast } from "@/components/SubtitleFetchToast";
 import { VideoLibraryPanel } from "@/components/VideoLibraryPanel";
@@ -126,6 +134,8 @@ import {
   isValidJsonSubtitleResponse,
   saveCachedRawJson3,
   getCachedRawJson3,
+  removeCachedTargetSubtitles,
+  clearVideoSubtitleCache,
 } from "@/utils/subtitleCache";
 import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
 import { STORAGE_KEYS, APP_VERSION, ALL_RELEASES_URL, DEFAULT_VIDEO_ID } from "@/config/appConfig";
@@ -234,9 +244,13 @@ function speak(
   return new Promise<void>((res) => {
     if (!text) return res();
 
+    const voices =
+      typeof window !== "undefined" && "speechSynthesis" in window
+        ? window.speechSynthesis.getVoices?.() || []
+        : [];
     const chosenVoice =
-      voiceURI && typeof window !== "undefined" && "speechSynthesis" in window
-        ? window.speechSynthesis.getVoices?.().find((x) => x.voiceURI === voiceURI)
+      voiceURI && voices.length > 0
+        ? voices.find((x) => x.voiceURI === voiceURI || x.name === voiceURI)
         : undefined;
     if (!chosenVoice && typeof window !== "undefined" && window.AndroidNativeShell?.speak) {
       try {
@@ -272,9 +286,9 @@ function speak(
       const u = new SpeechSynthesisUtterance(text);
       u.lang = lang;
       u.rate = rate;
-      const voices = window.speechSynthesis.getVoices?.() || [];
       const v =
-        voices.find((x) => x.voiceURI === voiceURI) ??
+        chosenVoice ??
+        voices.find((x) => x.voiceURI === voiceURI || x.name === voiceURI) ??
         voices.find((x) => x.lang?.replace("_", "-").startsWith(lang.slice(0, 2)));
       if (v) u.voice = v;
       u.onboundary = (event) => {
@@ -530,6 +544,9 @@ function Index() {
   const [retryPacingMaxSec, setRetryPacingMaxSecState] = useState<number>(() =>
     getRetryPacingMaxSec(),
   );
+  const [backgroundAudioEnabled, setBackgroundAudioEnabledState] = useState<boolean>(() =>
+    getBackgroundAudioEnabled(),
+  );
 
   useEffect(() => {
     // Load device-saved preferences after hydration
@@ -542,6 +559,7 @@ function Index() {
     setAutoRetrySubtitlesState(getAutoRetrySubtitles());
     setRetryPacingMinSecState(getRetryPacingMinSec());
     setRetryPacingMaxSecState(getRetryPacingMaxSec());
+    setBackgroundAudioEnabledState(getBackgroundAudioEnabled());
   }, []);
   const requestModeRef = useRef(requestMode);
   requestModeRef.current = requestMode;
@@ -592,6 +610,12 @@ function Index() {
     const val = Math.max(1, next);
     saveRetryPacingMaxSec(val);
     setRetryPacingMaxSecState(val);
+  }, []);
+
+  const handleToggleBackgroundAudio = useCallback((enabled: boolean) => {
+    setBackgroundAudioEnabledState(enabled);
+    saveBackgroundAudioEnabled(enabled);
+    setNativeBackgroundAudio(enabled);
   }, []);
 
   const [networkInspectorOpen, setNetworkInspectorOpen] = useState(false);
@@ -932,31 +956,49 @@ function Index() {
   );
 
   const handleTargetLanguagesChange = (newTargetLangs: string[]) => {
+    const removedLangs = targetLanguages.filter((l) => !newTargetLangs.includes(l));
+    const newlyAdded = newTargetLangs.filter((lang) => !targetLanguages.includes(lang));
+
     // 1. Immediately prune failedLangs to only those still present in newTargetLangs
     setFailedLangs((prev) => prev.filter((lang) => newTargetLangs.includes(lang)));
 
-    // 2. Clear attemptedRef cache for removed languages so re-adding allows fresh fetch
-    const currentUrl = observedUrlRef.current;
-    if (currentUrl) {
-      targetLanguages.forEach((prevLang) => {
-        if (!newTargetLangs.includes(prevLang)) {
-          attemptedRef.current.delete(`${currentUrl}|${prevLang}`);
-          subtitleRequestQueue.removeLanguage(prevLang);
-        }
+    // 2. When favorite languages are removed, remove all related instances:
+    // - columns shown
+    // - speech synthesis spoken list
+    // - parsed subtitle tracks
+    // - queue & attempted cache
+    // - player instance configs & active player registry
+    // - cached subtitle state
+    if (removedLangs.length > 0) {
+      setShown((prev) => prev.filter((code) => !removedLangs.includes(code)));
+      setSpoken((prev) => prev.filter((code) => !removedLangs.includes(code)));
+      setTracks((prev) => {
+        if (!prev) return prev;
+        const next = { ...prev };
+        removedLangs.forEach((code) => {
+          delete next[code];
+        });
+        return next;
       });
-    } else {
-      targetLanguages.forEach((prevLang) => {
-        if (!newTargetLangs.includes(prevLang)) {
-          subtitleRequestQueue.removeLanguage(prevLang);
+
+      const currentUrl = observedUrlRef.current;
+      removedLangs.forEach((prevLang) => {
+        subtitleRequestQueue.removeLanguage(prevLang);
+        if (currentUrl) {
+          attemptedRef.current.delete(`${currentUrl}|${prevLang}`);
         }
+        if (videoId) {
+          removeCachedTargetSubtitles(videoId, prevLang);
+          removeVideoInstanceConfig(videoId, `lang_${prevLang}`);
+        }
+        multiVideoPlayerRegistry.unregister(`lang_${prevLang}`);
       });
     }
 
-    const newlyAdded = newTargetLangs.filter((lang) => !targetLanguages.includes(lang));
     setTargetLanguages(newTargetLangs);
     setUserLearningLanguages(newTargetLangs);
-    setShown((prev) => Array.from(new Set([...prev, ...newTargetLangs])));
     if (newlyAdded.length > 0) {
+      setShown((prev) => Array.from(new Set([...prev, ...newlyAdded])));
       if (isAndroid) {
         setCaptionStatus(
           `Fetching live subtitles for added favorite language: ${newlyAdded.join(", ")}…`,
@@ -1409,6 +1451,71 @@ function Index() {
   }, []);
 
   useEffect(() => {
+    const cleanupMedia = initBackgroundMediaManager({
+      onPlay: () => {
+        try {
+          player.current?.playVideo?.();
+        } catch (_err) {
+          // ignore playback error
+        }
+      },
+      onPause: () => {
+        try {
+          player.current?.pauseVideo?.();
+        } catch (_err) {
+          // ignore pause error
+        }
+      },
+      onSeek: (seconds: number) => {
+        try {
+          player.current?.seekTo?.(seconds, true);
+        } catch (_err) {
+          // ignore seek error
+        }
+      },
+      onStop: () => {
+        try {
+          player.current?.stopVideo?.();
+        } catch (_err) {
+          // ignore stop error
+        }
+      },
+      onNextSection: () => {
+        try {
+          const p = player.current;
+          if (!p?.getCurrentTime) return;
+          const currentMs = p.getCurrentTime() * 1000;
+          const currentRows = st.current.rows;
+          const nextCue = currentRows.find((r) => r.start > currentMs + 500);
+          if (nextCue) {
+            p.seekTo?.(nextCue.start / 1000, true);
+          }
+        } catch (_err) {
+          // ignore section jump error
+        }
+      },
+      onPrevSection: () => {
+        try {
+          const p = player.current;
+          if (!p?.getCurrentTime) return;
+          const currentMs = p.getCurrentTime() * 1000;
+          const currentRows = st.current.rows;
+          const prevCues = currentRows.filter((r) => r.start < currentMs - 1500);
+          const prevCue = prevCues[prevCues.length - 1];
+          if (prevCue) {
+            p.seekTo?.(prevCue.start / 1000, true);
+          } else {
+            p.seekTo?.(0, true);
+          }
+        } catch (_err) {
+          // ignore section jump error
+        }
+      },
+    });
+    return cleanupMedia;
+  }, []);
+
+  useEffect(() => {
     if (
       typeof window === "undefined" ||
       !("speechSynthesis" in window) ||
@@ -1628,6 +1735,28 @@ function Index() {
         handledRow.current = -1;
       }
       lastMs.current = ms;
+
+      // Sync background media metadata & playback progress
+      try {
+        const title =
+          (p.getVideoData && p.getVideoData()?.title) ||
+          (videoId ? `YouTube (${videoId})` : "YouTube Video");
+        const isPlaying = p.getPlayerState ? p.getPlayerState() === 1 : true;
+        const curSec = ms / 1000;
+        const durSec = p.getDuration ? p.getDuration() : 0;
+        syncMediaMetadata({
+          title,
+          artist:
+            targetLanguagesRef.current && targetLanguagesRef.current.length > 0
+              ? `Subtitles: ${targetLanguagesRef.current.join(", ")}`
+              : "Parallel Subtitles",
+          isPlaying,
+          positionSec: curSec,
+          durationSec: durSec,
+        });
+      } catch (_err) {
+        // ignore media sync error
+      }
 
       const {
         rows,
@@ -2479,6 +2608,16 @@ function Index() {
                     />{" "}
                     Show spoken subtitle over video
                   </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      id="background-audio-toggle"
+                      data-testid="background-audio-toggle"
+                      type="checkbox"
+                      checked={backgroundAudioEnabled}
+                      onChange={(e) => handleToggleBackgroundAudio(e.target.checked)}
+                    />{" "}
+                    Background audio &amp; lockscreen playback controls
+                  </label>
                 </div>
               )}
 
@@ -2491,6 +2630,19 @@ function Index() {
                       setTracks(null);
                       setObservedUrl("");
                       subtitleRequestQueue.resetVideo(clearedId);
+                    }
+                  }}
+                  onFetchFromScratch={(scratchId, scratchUrl) => {
+                    clearVideoSubtitleCache(scratchId);
+                    subtitleRequestQueue.resetVideo(scratchId);
+                    if (scratchId === videoId) {
+                      setTracks(null);
+                      setObservedUrl("");
+                      if (isAndroid) {
+                        void fetchFavoriteLanguageSubtitles(targetLanguages);
+                      }
+                    } else {
+                      handleSelectLibraryVideo(scratchId, scratchUrl);
                     }
                   }}
                 />
@@ -3152,17 +3304,17 @@ function Index() {
                           <div
                             key={lang.code}
                             data-testid={`tts-settings-card-${lang.code}`}
-                            className="grid grid-cols-[4.5rem_1fr] items-center gap-x-2 gap-y-1 rounded-md border border-border/60 px-2 py-1.5 text-xs sm:grid-cols-[6rem_auto_1fr_minmax(0,12rem)]"
+                            className="flex flex-wrap sm:flex-nowrap items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-2 py-1 text-xs"
                           >
                             <span
-                              className="truncate font-semibold text-foreground"
+                              className="w-16 shrink-0 truncate font-semibold text-foreground"
                               title={lang.name}
                             >
                               {lang.name}
                             </span>
                             {/* Speech ratio: speak 1 of every N sections */}
                             <label
-                              className="flex items-center gap-1"
+                              className="flex items-center gap-1 shrink-0"
                               title="Speak 1 of every N sections (comprehension level)"
                             >
                               <span className="text-muted-foreground">Speak</span>
@@ -3177,7 +3329,7 @@ function Index() {
                                   if (videoId)
                                     saveVideoSettings(videoId, { ttsRatios: { [lang.code]: val } });
                                 }}
-                                className="rounded border border-input bg-background px-1 py-0.5"
+                                className="rounded border border-input bg-background px-1 py-0.5 text-xs"
                               >
                                 {[1, 2, 3, 4, 5, 7, 10].map((n) => (
                                   <option
@@ -3196,8 +3348,9 @@ function Index() {
                                 1:{ratio} ({Math.round(100 / ratio)}% of sentences)
                               </span>
                             </label>
-                            <label className="col-span-2 flex items-center gap-1.5 sm:col-span-1">
-                              <span className="text-muted-foreground">Rate</span>
+                            {/* Rate slider */}
+                            <label className="flex items-center gap-1.5 flex-1 min-w-[7rem]">
+                              <span className="text-muted-foreground shrink-0">Rate</span>
                               <input
                                 aria-label={`${lang.name} speech rate`}
                                 type="range"
@@ -3213,10 +3366,11 @@ function Index() {
                                 }
                                 className="h-1.5 min-w-0 flex-1 cursor-pointer accent-primary"
                               />
-                              <span className="w-8 text-right font-mono tabular-nums text-muted-foreground">
+                              <span className="w-7 text-right font-mono tabular-nums text-muted-foreground shrink-0">
                                 {(rates[lang.code] ?? 1).toFixed(1)}×
                               </span>
                             </label>
+                            {/* Voice selector */}
                             <select
                               aria-label={`${lang.name} voice`}
                               value={voiceSelections[lang.code] ?? ""}
@@ -3241,7 +3395,7 @@ function Index() {
                                   ? "No selectable voices on this device; the device default voice is used"
                                   : "Voice"
                               }
-                              className="col-span-2 min-w-0 rounded border border-input bg-background px-1 py-0.5 disabled:opacity-60 sm:col-span-1"
+                              className="w-full sm:w-44 shrink-0 truncate rounded border border-input bg-background px-1.5 py-0.5 text-xs disabled:opacity-60"
                             >
                               <option value="">
                                 {languageVoices.length === 0 ? "Device voice" : "Default voice"}
@@ -3249,7 +3403,7 @@ function Index() {
                               {languageVoices.map((voice, voiceIndex) => (
                                 <option
                                   key={getUniqueVoiceKey(voice, voiceIndex)}
-                                  value={voice.voiceURI}
+                                  value={voice.voiceURI || voice.name}
                                 >
                                   {voice.name}
                                 </option>

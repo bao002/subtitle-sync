@@ -159,11 +159,11 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 
 ---
 
-## 7. Active Prompt Execution Log: Task 95
+## 7. Active Prompt Execution Log: Task 96
 
-- **Task 95**: Winner Promotion Report Persistence & Subtitle Cache Architecture & Shared Video Library Fix [COMPLETED]
-  - Subtask 95.1: Tracking files staged in tokens.md, tasks.md, current-sub-task.md, and todo.md. [DONE]
-  - Subtask 95.2: Winner promotion tracking and persistence across all past videos implemented with stats aggregation and UI modal. [DONE]
-  - Subtask 95.3: Created docs/cache.md, fixed shared video library persistence, reactive event dispatch, and cache hydration. [DONE]
-  - Subtask 95.4: Automated test scripts/verify-cache-and-winner-promotion.ts verified 100%, compile_applet passed, lint_applet passed, migrated to docs/done.md. [DONE]
+- **Task 96**: Android Background Audio Playback & Lockscreen MediaSession Controls [COMPLETED & MIGRATED TO DONE.MD]
+  - Subtask 96.1: Stage Task 96 in Tracking Documentation (`tokens.md`, `tasks.md`, `current-sub-task.md`, `todo.md`). [DONE]
+  - Subtask 96.2: Android Shell Foreground Service & MediaSession Implementation (`AndroidManifest.xml`, `BackgroundAudioService.kt`, `MainActivity.kt`). [DONE]
+  - Subtask 96.3: Web Client MediaSession Bridge, Preferences & Settings UI (`playback-preferences.ts`, `backgroundMediaManager.ts`, `index.tsx`). [DONE]
+  - Subtask 96.4: Dedicated Automated Verification Test, Compilation, Linting & Migration to done.md. [DONE]
 

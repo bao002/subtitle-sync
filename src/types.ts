@@ -135,12 +135,21 @@ declare global {
       getAppVersionName?: () => string;
       getAppVersionCode?: () => number;
       getInstalledAppInfo?: () => string;
+      setBackgroundAudioEnabled?: (enabled: boolean) => boolean;
+      updateMediaMetadata?: (
+        title: string,
+        artist: string,
+        isPlaying: boolean,
+        positionMs: number,
+        durationMs: number,
+      ) => boolean;
     };
     onNativeCaptionsInterceptedBase64?: (base64Json: string) => void;
     onNativeTTSDone?: (utteranceId: string) => void;
     onNativeTTSBoundary?: (utteranceId: string, charIndex: number) => void;
     onNativeTTSError?: (utteranceId: string, errorMsg?: string) => void;
     onNativeSharedLinkReceived?: (sharedLink: string) => void;
+    onNativeMediaCommand?: (action: string, data?: number) => void;
     __pendingSharedLink?: string;
     YT?: any;
     onYouTubeIframeAPIReady?: () => void;

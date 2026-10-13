@@ -60,6 +60,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `src/utils/videoLibraryManager.ts`         | Video Library / History Store      | Manages persistent watch history, default library fallback, search indexing, deduplication, and thumbnail resolution.  |
 | `src/utils/subtitleRequestQueue.ts`        | Subtitle Request Queue Coordinator | Coordinates single-flight requests (concurrency = 1), randomized jitter pacing, selective failed-language retries, and backoff. |
 | `src/utils/winnerPromotionTracker.ts`      | Winner Promotion Strategy Tracker  | Persists and aggregates winning fetch attempt strategies across all past videos in localStorage.                       |
+| `src/utils/backgroundMediaManager.ts`      | Background Media & MediaSession Coordinator | Synchronizes playback state, lockscreen MediaSession controls, and Android BackgroundAudioService notifications.       |
 
 ## Configuration & Data Fixtures (`src/config/`)
 
@@ -154,6 +155,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `scripts/verify-emulator-screencast-report.ts`    | Emulator Screencast Video & Report Test            | Validates screenrecord lifecycle, video artifact pull/staging, public HTML report video presentation, and hygiene rules.                               |
 | `scripts/verify-android-device-e2e-suite.ts`      | Android Device & Emulator E2E Suite Verification   | Validates device serial targeting, keyguard dismissal, screen wakeup, hardware telemetry collection, report presentation, and workflow staging.        |
 | `scripts/verify-android-device-e2e-adaptive.ts`   | Android Device Adaptive E2E Test Suite             | Validates adaptive resolution coordinate scaling, live ACTION_VIEW/ACTION_SEND intent dispatch, gesture emulation, and screenshot captures.            |
+| `scripts/verify-android-background-audio-service.ts` | Android Background Audio & MediaSession Verification | Validates Foreground Service, MediaSessionCompat, MediaStyle notification, wake lock, bridge methods, Web MediaSession, and Playback settings toggle.  |
 | `scripts/verify-accordion-colors.ts`              | Accordion Bar Constant Colors Verification         | Asserts distinct constant theme colors per accordion type (player, playback, parser, languages, subtitles, library).                                   |
 | `scripts/verify-auto-speak-on-fetch.ts`           | Auto Speak Language Upon Fetching Test             | Validates persistent setting, auto-speak execution upon subtitle track fetching, and UI toggle element.                                                 |
 | `scripts/verify-language-boxes-selection.ts`      | Language Boxes & Selection Ordering Test           | Asserts button toggle between boxes and list mode, touch-friendly min-h-[48px] boxes, and keeping selected languages at the top.                       |
@@ -191,5 +193,6 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `scripts/verify-error-reporting-workflow.ts`      | Error Reporting Workflow & Log Test Suite          | Validates error report generation, error.log structure, reproduction steps, AI prompt blocks, and GitHub Actions workflow file.                        |
 | `scripts/verify-auto-retry-and-versioning.ts`     | Auto-Retry Pacing & Versioning Test Suite          | Asserts single-concurrency queueing, anti-abuse jitter, selective failed-language retries, native version bridge, and collision handling.             |
 | `scripts/verify-cache-and-winner-promotion.ts`     | Cache & Winner Promotion Verification Suite        | Asserts winner promotion tracking, statistical aggregation, shared video library persistence, event broadcast, validation gate, and cache hydration.  |
+| `scripts/verify-compact-ui-and-language-cleanup.ts` | Compact UI, Library Cache & Clean Language Test   | Validates compact per-language TTS controls, voice matching, pin toggles, active video scoping, library action buttons, and clean language removal.    |
 | `scripts/verify-md-links.ts`                      | Markdown Links Checker                             | Validates that all documentation cross-references and links resolve properly.                                                                          |
 | `scripts/normalize-web-assets.mjs`                | Build Asset Normalizer                             | Adjusts asset paths for GitHub Pages sub-path hosting.                                                                                                 |
