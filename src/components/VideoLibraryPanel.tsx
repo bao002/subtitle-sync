@@ -208,7 +208,9 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
                     >
                       {item.title}
                     </h4>
-                    <p className="font-mono text-[11px] text-muted-foreground mt-1">ID: {item.id}</p>
+                    <p className="font-mono text-[11px] text-muted-foreground mt-1">
+                      ID: {item.id}
+                    </p>
                   </div>
 
                   <div className="mt-2.5 flex items-center justify-between pt-1 border-t border-border/50 text-[11px]">

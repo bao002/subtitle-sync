@@ -78,7 +78,9 @@ export function recordVideoWatch(video: {
   const updatedItem: LibraryVideoItem = {
     id: videoId,
     originalUrl: video.originalUrl || `https://www.youtube.com/watch?v=${videoId}`,
-    title: video.title || (existingIndex >= 0 ? currentItems[existingIndex].title : `YouTube Video · ${videoId}`),
+    title:
+      video.title ||
+      (existingIndex >= 0 ? currentItems[existingIndex].title : `YouTube Video · ${videoId}`),
     cues: existingIndex >= 0 ? currentItems[existingIndex].cues : [],
     timestamp: Date.now(),
     targetLanguages: existingIndex >= 0 ? currentItems[existingIndex].targetLanguages : undefined,

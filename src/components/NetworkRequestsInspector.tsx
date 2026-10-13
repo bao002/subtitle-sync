@@ -590,7 +590,11 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
                                   : "bg-red-900/60 text-red-300"
                           }`}
                         >
-                          {req.isPending ? "PENDING" : isBotDetected(req) ? "429 BOT BLOCK" : req.status}
+                          {req.isPending
+                            ? "PENDING"
+                            : isBotDetected(req)
+                              ? "429 BOT BLOCK"
+                              : req.status}
                         </span>
                         <span className="font-semibold text-neutral-300 font-mono text-[11px]">
                           {req.method}
@@ -940,7 +944,8 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
                       <span>Google Anti-Bot Rate Limit (HTTP 429 Detected)</span>
                     </div>
                     <p className="text-[11px] text-amber-200/90 leading-relaxed">
-                      Google flagged this direct connection with automated query detection. Real browser windows succeed because they carry an authentic browser environment.
+                      Google flagged this direct connection with automated query detection. Real
+                      browser windows succeed because they carry an authentic browser environment.
                     </p>
                     <div className="flex flex-wrap items-center gap-2 pt-0.5">
                       <button

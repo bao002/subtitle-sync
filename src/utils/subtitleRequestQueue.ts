@@ -184,9 +184,7 @@ class SubtitleRequestQueue {
     }
 
     // Check if task is already in-flight or already queued
-    const alreadyQueued = this.queue.some(
-      (item) => item.videoId === videoId && item.lang === lang,
-    );
+    const alreadyQueued = this.queue.some((item) => item.videoId === videoId && item.lang === lang);
     if (alreadyQueued) {
       return Promise.resolve(false);
     }

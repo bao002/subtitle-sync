@@ -1,5 +1,4 @@
-export type PanelId =
-  "player" | "playback" | "parser" | "languages" | "subtitles" | "library";
+export type PanelId = "player" | "playback" | "parser" | "languages" | "subtitles" | "library";
 
 export interface PanelConfig {
   id: PanelId;

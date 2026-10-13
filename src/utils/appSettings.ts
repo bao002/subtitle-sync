@@ -40,6 +40,10 @@ export interface AppSettings {
   // Non-Native TTS Fallback (Audio Stream): DISABLED by default (only native hardware/WebSpeech is used)
   allowNonNativeTTSFallback: boolean;
 
+  // Alternative TTS Service (Google Translate TTS): OFF by default
+  useAlternativeTtsService: boolean;
+  alternativeTtsMode: "fallback_only" | "always";
+
   // TTS Debugger: Present TTS input and TTS queue by default for real-time debugging (toggleable in Settings)
   showTtsDebugQueue: boolean;
 
@@ -181,6 +185,10 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   // Non-Native TTS Fallback: enabled by default
   allowNonNativeTTSFallback: true,
 
+  // Alternative TTS Service: OFF by default
+  useAlternativeTtsService: false,
+  alternativeTtsMode: "fallback_only",
+
   // Present TTS input and TTS queue by default for real-time debugging
   showTtsDebugQueue: true,
 
@@ -310,6 +318,38 @@ export function setUserLearningLanguages(languages: string[]): void {
     ...current,
     learningLanguages: languages,
   });
+}
+
+export const FAVORITE_LANGUAGES_KEY = "yt_favorite_languages";
+
+/**
+ * Retrieves global favorite languages configured in settings, backed by localStorage.
+ */
+export function getFavoriteLanguages(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(FAVORITE_LANGUAGES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // fallback
+  }
+  return getUserLearningLanguages();
+}
+
+/**
+ * Saves global favorite languages in settings and localStorage.
+ */
+export function setFavoriteLanguages(languages: string[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(FAVORITE_LANGUAGES_KEY, JSON.stringify(languages));
+  } catch (err) {
+    console.warn("[AppSettings] Failed to save favorite languages:", err);
+  }
+  setUserLearningLanguages(languages);
 }
 
 export function getVideoTargetLang(videoId: string): string | null {
@@ -531,10 +571,7 @@ export function setAutoSpeakOnFetchSetting(enabled: boolean): void {
     return;
   }
   try {
-    window.localStorage.setItem(
-      AUTO_SPEAK_ON_FETCH_STORAGE_KEY,
-      enabled ? "true" : "false",
-    );
+    window.localStorage.setItem(AUTO_SPEAK_ON_FETCH_STORAGE_KEY, enabled ? "true" : "false");
   } catch {
     // Ignore storage errors in restricted contexts
   }

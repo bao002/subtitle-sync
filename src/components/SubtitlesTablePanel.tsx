@@ -78,10 +78,7 @@ export function SubtitlesTablePanel({
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <label
-                htmlFor="subtitles-limit-select"
-                className="text-muted-foreground"
-              >
+              <label htmlFor="subtitles-limit-select" className="text-muted-foreground">
                 Lines per view:
               </label>
               <select
@@ -143,9 +140,7 @@ export function SubtitlesTablePanel({
         <tbody>
           {displayedRows.map((r, i) => {
             const actualIndex =
-              isAndroid && subtitlesLimit > 0
-                ? (subtitlesPage - 1) * subtitlesLimit + i
-                : i;
+              isAndroid && subtitlesLimit > 0 ? (subtitlesPage - 1) * subtitlesLimit + i : i;
             return (
               <SubtitleRow
                 key={actualIndex}

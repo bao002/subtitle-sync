@@ -14,8 +14,11 @@ import {
   CURRENT_APK_VERSION,
   getActiveAppVersion,
   getApkReleaseLinks,
+  checkVersionDiscrepancy,
+  clearOtaCacheAndReload,
   type ApkReleaseLink,
 } from "../utils/apkUpdater";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface ApkReleaseModalProps {
   isOpen: boolean;
@@ -26,6 +29,7 @@ export const ApkReleaseModal: React.FC<ApkReleaseModalProps> = ({ isOpen, onClos
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const activeVersion = getActiveAppVersion();
   const releaseLinks: ApkReleaseLink[] = getApkReleaseLinks();
+  const versionComparison = checkVersionDiscrepancy();
 
   if (!isOpen) return null;
 
@@ -89,6 +93,71 @@ export const ApkReleaseModal: React.FC<ApkReleaseModalProps> = ({ isOpen, onClos
           >
             <X className="h-5 w-5" />
           </button>
+        </div>
+
+        {/* Dual-Version & Architecture Status Card */}
+        <div
+          data-testid="version-architecture-card"
+          className="rounded-xl border border-border bg-muted/30 p-3.5 space-y-2.5 text-xs"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">Installed Container Shell:</span>
+              <span
+                data-testid="installed-shell-version"
+                className="font-mono px-2 py-0.5 rounded bg-background border border-border font-medium text-foreground"
+              >
+                {versionComparison.apkVersion || "Browser Mode (Non-native)"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground">Active Web SPA Bundle:</span>
+              <span
+                data-testid="active-web-version"
+                className="font-mono px-2 py-0.5 rounded bg-background border border-border font-medium text-foreground"
+              >
+                {versionComparison.webVersion}
+              </span>
+              {versionComparison.isOtaActive && (
+                <span
+                  data-testid="ota-active-badge"
+                  className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
+                >
+                  OTA Hotfix Active
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Version Discrepancy Warning & In-App Resolution */}
+          {versionComparison.isDiscrepancy && (
+            <div
+              data-testid="version-discrepancy-banner"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 p-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200"
+            >
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="font-semibold">Version Discrepancy Detected</p>
+                  <p className="text-[11px] opacity-90">
+                    {versionComparison.isStaleOtaCache || versionComparison.isApkAhead
+                      ? "A newer native APK was installed, but older cached OTA web assets are active."
+                      : "The web application bundle version differs from the host Android shell."}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                data-testid="clear-ota-cache-btn"
+                onClick={() => clearOtaCacheAndReload()}
+                className="shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs shadow-sm transition active:scale-[0.98]"
+                title="Wipe stale OTA cache and reload freshly bundled APK assets"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>Reset to Bundled Assets</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Description Banner */}

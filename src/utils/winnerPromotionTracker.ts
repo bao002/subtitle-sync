@@ -103,7 +103,9 @@ export function recordWinnerPromotion(data: {
   const record: WinnerPromotionRecord = {
     id,
     videoId: String(data.videoId || "").trim(),
-    lang: String(data.lang || "").trim().toLowerCase(),
+    lang: String(data.lang || "")
+      .trim()
+      .toLowerCase(),
     mode: data.mode === "lang" ? "lang" : "tlang",
     send: data.send === "session" ? "session" : "anon",
     timestamp,
@@ -128,9 +130,7 @@ export function recordWinnerPromotion(data: {
   // Dispatch custom event for reactive UI updates
   if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
     try {
-      window.dispatchEvent(
-        new CustomEvent("winner-promotion-updated", { detail: record }),
-      );
+      window.dispatchEvent(new CustomEvent("winner-promotion-updated", { detail: record }));
     } catch {}
   }
 

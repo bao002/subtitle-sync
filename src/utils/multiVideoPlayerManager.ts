@@ -259,9 +259,7 @@ export interface MultiVideoSegmentSyncOptions {
  * - Streams progress updates for visual subtitle highlighting / status indicator.
  * - Once complete or cancelled, pauses the target player and restores unmuted state to primary.
  */
-export function executeMultiVideoSegmentSync(
-  options: MultiVideoSegmentSyncOptions,
-): Promise<void> {
+export function executeMultiVideoSegmentSync(options: MultiVideoSegmentSyncOptions): Promise<void> {
   const { registry, primaryPlayer, languageCode, startMs, endMs, checkCancelled, onProgress } =
     options;
 
@@ -345,4 +343,3 @@ export function executeMultiVideoSegmentSync(
     }
   });
 }
-

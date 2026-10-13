@@ -53,6 +53,8 @@ import {
   saveVideoSettings,
   getAutoSpeakOnFetchSetting,
   setAutoSpeakOnFetchSetting,
+  getFavoriteLanguages,
+  setFavoriteLanguages,
 } from "@/utils/appSettings";
 import { LanguageBoxesSelector } from "@/components/LanguageBoxesSelector";
 import {
@@ -60,7 +62,24 @@ import {
   setAudioTrackMode,
   repeatSegmentWithAudioTrack,
 } from "@/utils/audioTrackManager";
-import { deduplicateVoices, getLanguageVoices, getUniqueVoiceKey } from "@/utils/speechVoiceUtils";
+import {
+  deduplicateVoices,
+  getLanguageVoices,
+  getUniqueVoiceKey,
+  matchesLanguageCode,
+  setCachedVoices,
+  getCachedVoices,
+  findVoiceByUriOrName,
+} from "@/utils/speechVoiceUtils";
+import {
+  getUseAlternativeTts,
+  setUseAlternativeTts,
+  getAlternativeTtsMode,
+  setAlternativeTtsMode,
+  playAlternativeTtsAudio,
+  cancelAlternativeTtsAudio,
+  type AlternativeTtsMode,
+} from "@/lib/alternative-tts";
 import {
   computeVideoInstances,
   multiVideoPlayerRegistry,
@@ -194,6 +213,7 @@ type Theme = "light" | "dark" | "dark-blue";
 import { type PanelId, PANELS, ACCORDION_THEMES } from "@/config/accordionThemes";
 
 function cancelSpeech() {
+  cancelAlternativeTtsAudio();
   if (typeof window !== "undefined") {
     (window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null })._activeUtterance =
       null;
@@ -245,90 +265,174 @@ function speak(
   onProgress: (value: SpeechProgress) => void,
 ) {
   return new Promise<void>((res) => {
-    if (!text) return res();
+    void (async () => {
+      if (!text) return res();
 
-    const voices =
-      typeof window !== "undefined" && "speechSynthesis" in window
-        ? window.speechSynthesis.getVoices?.() || []
-        : [];
-    const chosenVoice =
-      voiceURI && voices.length > 0
-        ? voices.find((x) => x.voiceURI === voiceURI || x.name === voiceURI)
-        : undefined;
-    if (!chosenVoice && typeof window !== "undefined" && window.AndroidNativeShell?.speak) {
-      try {
-        const handled = window.AndroidNativeShell.speak(text, lang, rate, `row-${row}-${lang}`);
-        if (handled) {
+      const normalizedRate = Math.max(0.3, Math.min(1.5, rate || 0.5));
+      const useAltTts = typeof window !== "undefined" && getUseAlternativeTts();
+      const altTtsMode = typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only";
+
+      // 1. If alternative TTS service is enabled as preferred / always, speak with it directly
+      if (useAltTts && altTtsMode === "always") {
+        try {
           onProgress({
             lang: lang.slice(0, 2),
             row,
             start: 0,
             end: text.length,
           });
-          const estDurationMs = Math.max(800, (text.length / 10) * (1000 / (rate || 1)));
-          setTimeout(() => {
+          await playAlternativeTtsAudio(text, lang, normalizedRate, (pct) => {
+            onProgress({
+              lang: lang.slice(0, 2),
+              row,
+              start: 0,
+              end: Math.round((pct / 100) * text.length),
+            });
+          });
+          onProgress(null);
+          return res();
+        } catch (err) {
+          console.warn("Alternative TTS primary error, continuing to Web Speech:", err);
+        }
+      }
+
+      const cached = getCachedVoices<SpeechSynthesisVoice>();
+      const systemVoices =
+        typeof window !== "undefined" && "speechSynthesis" in window
+          ? window.speechSynthesis.getVoices?.() || []
+          : [];
+      const voices = cached.length > 0 ? cached : systemVoices;
+
+      const chosenVoice =
+        voiceURI && voices.length > 0 ? findVoiceByUriOrName(voices, voiceURI) : undefined;
+
+      if (!chosenVoice && typeof window !== "undefined" && window.AndroidNativeShell?.speak) {
+        try {
+          const handled = window.AndroidNativeShell.speak(
+            text,
+            lang,
+            normalizedRate,
+            `row-${row}-${lang}`,
+          );
+          if (handled) {
+            onProgress({
+              lang: lang.slice(0, 2),
+              row,
+              start: 0,
+              end: text.length,
+            });
+            const estDurationMs = Math.max(
+              800,
+              (text.length / 10) * (1000 / (normalizedRate || 0.5)),
+            );
+            setTimeout(() => {
+              onProgress(null);
+              res();
+            }, estDurationMs);
+            return;
+          }
+        } catch (e) {
+          console.warn("Android native TTS bridge failed, falling back to Web Speech", e);
+        }
+      }
+
+      const fallbackToAlternative = async () => {
+        if (useAltTts) {
+          try {
+            onProgress({
+              lang: lang.slice(0, 2),
+              row,
+              start: 0,
+              end: text.length,
+            });
+            await playAlternativeTtsAudio(text, lang, normalizedRate, (pct) => {
+              onProgress({
+                lang: lang.slice(0, 2),
+                row,
+                start: 0,
+                end: Math.round((pct / 100) * text.length),
+              });
+            });
             onProgress(null);
             res();
-          }, estDurationMs);
-          return;
+            return true;
+          } catch (altErr) {
+            console.warn("Alternative TTS fallback error:", altErr);
+          }
         }
-      } catch (e) {
-        console.warn("Android native TTS bridge failed, falling back to Web Speech", e);
-      }
-    }
-
-    if (
-      typeof window === "undefined" ||
-      !("speechSynthesis" in window) ||
-      !window.speechSynthesis
-    ) {
-      return res();
-    }
-
-    try {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = lang;
-      u.rate = rate;
-      const v =
-        chosenVoice ??
-        voices.find((x) => x.voiceURI === voiceURI || x.name === voiceURI) ??
-        voices.find((x) => x.lang?.replace("_", "-").startsWith(lang.slice(0, 2)));
-      if (v) u.voice = v;
-      u.onboundary = (event) => {
-        if (event.name !== "word") return;
-        const remainder = text.slice(event.charIndex);
-        const wordLength = event.charLength || remainder.match(/^\S+/)?.[0].length || 1;
-        onProgress({
-          lang: lang.slice(0, 2),
-          row,
-          start: event.charIndex,
-          end: event.charIndex + wordLength,
-        });
+        return false;
       };
-      let resolved = false;
-      const done = () => {
-        if (resolved) return;
-        resolved = true;
+
+      if (
+        typeof window === "undefined" ||
+        !("speechSynthesis" in window) ||
+        !window.speechSynthesis
+      ) {
+        if (await fallbackToAlternative()) return;
+        return res();
+      }
+
+      try {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        const u = new SpeechSynthesisUtterance(text);
+        u.rate = normalizedRate;
+
+        const v =
+          chosenVoice ??
+          voices.find((x) => x.voiceURI === voiceURI || x.name === voiceURI) ??
+          voices.find((x) => matchesLanguageCode(x.lang, lang));
+
+        if (v) {
+          u.voice = v;
+          // Align u.lang with chosen voice's lang to avoid voice override on Chromium/WebKit
+          u.lang = v.lang || lang;
+        } else {
+          u.lang = lang;
+        }
+
+        u.onboundary = (event) => {
+          if (event.name !== "word") return;
+          const remainder = text.slice(event.charIndex);
+          const wordLength = event.charLength || remainder.match(/^\S+/)?.[0].length || 1;
+          onProgress({
+            lang: lang.slice(0, 2),
+            row,
+            start: event.charIndex,
+            end: event.charIndex + wordLength,
+          });
+        };
+        let resolved = false;
+        const done = async (isError?: boolean) => {
+          if (resolved) return;
+          resolved = true;
+          if (typeof window !== "undefined") {
+            (
+              window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }
+            )._activeUtterance = null;
+          }
+          if (isError && (await fallbackToAlternative())) {
+            return;
+          }
+          onProgress(null);
+          res();
+        };
+        u.onend = () => done(false);
+        u.onerror = () => done(true);
         if (typeof window !== "undefined") {
           (
             window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }
-          )._activeUtterance = null;
+          )._activeUtterance = u;
         }
+        window.speechSynthesis.speak(u);
+      } catch (e) {
+        console.warn("Speech synthesis error:", e);
+        if (await fallbackToAlternative()) return;
         onProgress(null);
         res();
-      };
-      u.onend = u.onerror = done;
-      if (typeof window !== "undefined") {
-        (
-          window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }
-        )._activeUtterance = u;
       }
-      window.speechSynthesis.speak(u);
-    } catch (e) {
-      console.warn("Speech synthesis error:", e);
-      onProgress(null);
-      res();
-    }
+    })();
   });
 }
 
@@ -482,10 +586,10 @@ function Index() {
   };
   const [shown, setShown] = useState<string[]>([]);
   const [spoken, setSpoken] = useState<string[]>([]);
-  const [targetLanguages, setTargetLanguages] = useState<string[]>(() => {
+  const [favoriteLanguages, setFavoriteLanguagesState] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
-      const saved = getUserLearningLanguages();
-      if (saved && saved.length > 0) return saved;
+      const favs = getFavoriteLanguages();
+      if (favs && favs.length > 0) return favs;
       const isAndroidEnv =
         Boolean(nativeShell()) ||
         new URLSearchParams(window.location.search).get("android") === "true";
@@ -493,11 +597,55 @@ function Index() {
     }
     return [];
   });
+  const [targetLanguages, setTargetLanguages] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const urlVideo = parseVideoId(window.location.search) || DEMO_VIDEO;
+      const videoSaved = loadVideoSettings(urlVideo);
+      if (
+        videoSaved?.targetLanguages &&
+        Array.isArray(videoSaved.targetLanguages) &&
+        videoSaved.targetLanguages.length > 0
+      ) {
+        return videoSaved.targetLanguages.map((l: unknown) =>
+          typeof l === "string" ? l : (l as { code: string }).code,
+        );
+      }
+      const favs = getFavoriteLanguages();
+      if (favs && favs.length > 0) return favs;
+      const isAndroidEnv =
+        Boolean(nativeShell()) ||
+        new URLSearchParams(window.location.search).get("android") === "true";
+      if (isAndroidEnv) return ["he", "it"];
+    }
+    return [];
+  });
+
+  const handleUpdateFavoriteLanguages = (newFavs: string[]) => {
+    setFavoriteLanguagesState(newFavs);
+    setFavoriteLanguages(newFavs);
+  };
+
+  const handleResetVideoToFavorites = () => {
+    const favs = getFavoriteLanguages();
+    if (favs.length > 0) {
+      handleTargetLanguagesChange(favs);
+    }
+  };
+
+  const handleSaveCurrentAsFavorites = () => {
+    handleUpdateFavoriteLanguages(targetLanguages);
+  };
   const [autoSpeakOnFetch, setAutoSpeakOnFetch] = useState<boolean>(() =>
     getAutoSpeakOnFetchSetting(),
   );
   const [rates, setRates] = useState<Record<string, number>>(() =>
-    Object.fromEntries(LANGS.map((lang) => [lang.code, 1])),
+    Object.fromEntries(LANGS.map((lang) => [lang.code, 0.5])),
+  );
+  const [useAlternativeTtsState, setUseAlternativeTtsState] = useState<boolean>(() =>
+    typeof window !== "undefined" ? getUseAlternativeTts() : false,
+  );
+  const [alternativeTtsModeState, setAlternativeTtsModeState] = useState<AlternativeTtsMode>(() =>
+    typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only",
   );
   const [voiceSelections, setVoiceSelections] = useState<Record<string, string>>({});
   useEffect(() => {
@@ -1000,6 +1148,9 @@ function Index() {
 
     setTargetLanguages(newTargetLangs);
     setUserLearningLanguages(newTargetLangs);
+    if (videoId) {
+      saveVideoSettings(videoId, { targetLanguages: newTargetLangs });
+    }
     if (newlyAdded.length > 0) {
       setShown((prev) => Array.from(new Set([...prev, ...newlyAdded])));
       if (isAndroid) {
@@ -1025,10 +1176,31 @@ function Index() {
   useEffect(() => {
     if (!videoId) return;
     const settings = loadVideoSettings(videoId);
+    if (
+      settings?.targetLanguages &&
+      Array.isArray(settings.targetLanguages) &&
+      settings.targetLanguages.length > 0
+    ) {
+      const savedLangs = settings.targetLanguages.map((l: unknown) =>
+        typeof l === "string" ? l : (l as { code: string }).code,
+      );
+      setTargetLanguages(savedLangs);
+    } else {
+      const favs = getFavoriteLanguages();
+      if (favs.length > 0) {
+        setTargetLanguages(favs);
+      }
+    }
     if (settings?.ttsRatios) {
       setTtsRatios((curr) => ({
         ...curr,
         ...settings.ttsRatios,
+      }));
+    }
+    if (settings?.ttsRates) {
+      setRates((curr) => ({
+        ...curr,
+        ...settings.ttsRates,
       }));
     }
   }, [videoId]);
@@ -1528,24 +1700,47 @@ function Index() {
     }
     const refreshVoices = () => {
       try {
-        setVoices(deduplicateVoices(window.speechSynthesis.getVoices() || []));
+        const raw = window.speechSynthesis.getVoices() || [];
+        if (raw.length > 0) {
+          const deduped = deduplicateVoices(raw);
+          setCachedVoices(deduped);
+          setVoices(deduped);
+        }
       } catch (_e) {
         // Ignore getVoices errors
       }
     };
     refreshVoices();
     try {
-      window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
-      return () => {
-        try {
-          window.speechSynthesis.removeEventListener("voiceschanged", refreshVoices);
-        } catch (_e) {
-          // Ignore removeEventListener errors
-        }
-      };
+      window.speechSynthesis.onvoiceschanged = refreshVoices;
     } catch (_e) {
-      // Ignore addEventListener errors
+      // ignore
     }
+    try {
+      window.speechSynthesis.addEventListener("voiceschanged", refreshVoices);
+    } catch (_e) {
+      // ignore
+    }
+
+    const timer1 = setTimeout(refreshVoices, 250);
+    const timer2 = setTimeout(refreshVoices, 1000);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      try {
+        window.speechSynthesis.removeEventListener("voiceschanged", refreshVoices);
+      } catch (_e) {
+        // ignore
+      }
+      try {
+        if (window.speechSynthesis.onvoiceschanged === refreshVoices) {
+          window.speechSynthesis.onvoiceschanged = null;
+        }
+      } catch (_e) {
+        // ignore
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -1830,7 +2025,7 @@ function Index() {
             await speak(
               rows[rowIdx]?.texts[l.code] ?? "",
               l.tts,
-              rates[l.code] ?? 1,
+              rates[l.code] ?? 0.5,
               voiceSelections[l.code] ?? "",
               rowIdx,
               setSpeechProgress,
@@ -2621,6 +2816,205 @@ function Index() {
                     />{" "}
                     Background audio &amp; lockscreen playback controls
                   </label>
+
+                  {/* Alternative TTS Service (Google Translate TTS) */}
+                  <div
+                    className="pt-2 border-t border-border/60 space-y-2"
+                    data-testid="alternative-tts-settings-card"
+                  >
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        id="alternative-tts-toggle"
+                        data-testid="alternative-tts-toggle"
+                        type="checkbox"
+                        checked={useAlternativeTtsState}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setUseAlternativeTtsState(checked);
+                          setUseAlternativeTts(checked);
+                        }}
+                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                      />
+                      <span className="font-medium text-xs text-foreground">
+                        Alternative TTS Service (Google Translate TTS)
+                      </span>
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                        Off by default
+                      </span>
+                    </label>
+                    <p className="text-[11px] text-muted-foreground ml-6">
+                      Endpoint:{" "}
+                      <code className="bg-muted px-1 py-0.5 rounded text-[10px]">
+                        https://translate.google.com/translate_tts?ie=UTF-8&amp;client=gtx&amp;tl=en&amp;q=Hello%20world
+                      </code>
+                    </p>
+                    {useAlternativeTtsState && (
+                      <div className="ml-6 space-y-2 pt-1">
+                        <div className="flex flex-wrap items-center gap-4">
+                          <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                            <input
+                              type="radio"
+                              name="alternative-tts-mode"
+                              data-testid="alternative-tts-mode-fallback"
+                              value="fallback_only"
+                              checked={alternativeTtsModeState === "fallback_only"}
+                              onChange={() => {
+                                setAlternativeTtsModeState("fallback_only");
+                                setAlternativeTtsMode("fallback_only");
+                              }}
+                            />
+                            Use as fallback when Web Speech fails / errors
+                          </label>
+                          <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                            <input
+                              type="radio"
+                              name="alternative-tts-mode"
+                              data-testid="alternative-tts-mode-always"
+                              value="always"
+                              checked={alternativeTtsModeState === "always"}
+                              onChange={() => {
+                                setAlternativeTtsModeState("always");
+                                setAlternativeTtsMode("always");
+                              }}
+                            />
+                            Use as alternative primary TTS engine
+                          </label>
+                        </div>
+                        <button
+                          type="button"
+                          data-testid="test-alternative-tts-btn"
+                          onClick={() => {
+                            void playAlternativeTtsAudio("Hello world", "en", 0.5);
+                          }}
+                          className="px-2 py-0.5 rounded border border-input bg-background hover:bg-muted text-xs font-mono"
+                        >
+                          ▶ Test Alternative TTS ("Hello world")
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Favorite Languages (Settings & localStorage) and Video-Specific Selection */}
+                  <div
+                    className="pt-2 border-t border-border/60 space-y-2.5"
+                    data-testid="settings-favorites-languages-card"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <span className="font-semibold text-xs text-foreground flex items-center gap-1">
+                          <span>⭐ Favorite Languages (Settings &amp; localStorage)</span>
+                        </span>
+                        <p className="text-[11px] text-muted-foreground">
+                          Saved in localStorage. Applied automatically as default target languages
+                          for every new video.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          data-testid="settings-reset-video-to-favorites-btn"
+                          onClick={handleResetVideoToFavorites}
+                          className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-xs font-medium"
+                        >
+                          Apply Favorites to Active Video
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="settings-save-current-as-favorites-btn"
+                          onClick={handleSaveCurrentAsFavorites}
+                          className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-xs font-medium"
+                        >
+                          Save Active Selection as Favorites
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="rounded-md border border-border bg-background/50 p-2 space-y-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] font-medium text-muted-foreground mr-1">
+                          Global Favorites:
+                        </span>
+                        {favoriteLanguages.length === 0 ? (
+                          <span className="text-[11px] text-muted-foreground italic">
+                            No favorites selected yet
+                          </span>
+                        ) : (
+                          favoriteLanguages.map((code) => {
+                            const langMeta = SUPPORTED_LANGUAGES_CATALOG.find(
+                              (c) => c.code === code,
+                            ) || { code, name: code };
+                            return (
+                              <span
+                                key={code}
+                                data-testid={`settings-fav-chip-${code}`}
+                                className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium"
+                              >
+                                <span>{langMeta.name}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const nextFavs = favoriteLanguages.filter((c) => c !== code);
+                                    handleUpdateFavoriteLanguages(nextFavs);
+                                  }}
+                                  className="hover:text-destructive transition ml-0.5 text-xs"
+                                  title={`Remove ${langMeta.name} from favorites`}
+                                  aria-label={`Remove ${langMeta.name} from favorites`}
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/40 text-xs">
+                        <label
+                          htmlFor="add-favorite-language-select"
+                          className="text-muted-foreground"
+                        >
+                          Add favorite language:
+                        </label>
+                        <select
+                          id="add-favorite-language-select"
+                          data-testid="add-favorite-language-select"
+                          value=""
+                          onChange={(e) => {
+                            const code = e.target.value;
+                            if (code && !favoriteLanguages.includes(code)) {
+                              const nextFavs = [...favoriteLanguages, code];
+                              handleUpdateFavoriteLanguages(nextFavs);
+                            }
+                          }}
+                          className="rounded border border-input bg-background px-2 py-0.5 text-xs"
+                        >
+                          <option value="">Choose a language to add to favorites…</option>
+                          {SUPPORTED_LANGUAGES_CATALOG.filter(
+                            (c) => !favoriteLanguages.includes(c.code),
+                          ).map((c) => (
+                            <option key={c.code} value={c.code}>
+                              {c.name} ({c.code})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="pt-1.5 border-t border-border/40 text-[11px] space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-foreground">
+                            Enabled for this Video:
+                          </span>
+                          <span className="font-mono text-primary font-semibold">
+                            {targetLanguages.join(", ") || "None"}
+                          </span>
+                        </div>
+                        <p className="text-muted-foreground">
+                          Video-specific customizations are saved per video ID (
+                          {videoId || "active video"}) and remembered when reloaded.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -3160,11 +3554,126 @@ function Index() {
               {panelId === "languages" && (
                 <>
                   <div className="mb-4 space-y-3 border-b border-border pb-4">
+                    {/* Enabled Languages Status Card */}
+                    <div
+                      data-testid="enabled-languages-status-card"
+                      className="rounded-lg border border-border/80 bg-muted/20 p-2.5 text-xs space-y-2"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="font-semibold text-foreground flex items-center gap-1.5">
+                          <span>🎬 Enabled for this Video:</span>
+                          <span className="font-mono text-primary font-bold">
+                            {targetLanguages.length}{" "}
+                            {targetLanguages.length === 1 ? "language" : "languages"}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground font-normal">
+                            ({targetLanguages.filter((l) => favoriteLanguages.includes(l)).length}{" "}
+                            from favorites)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            data-testid="reset-video-to-favorites-btn"
+                            onClick={handleResetVideoToFavorites}
+                            className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium"
+                            title="Reset this video to your global favorite languages"
+                          >
+                            ↺ Reset to Favorites
+                          </button>
+                          <button
+                            type="button"
+                            data-testid="save-current-as-favorites-btn"
+                            onClick={handleSaveCurrentAsFavorites}
+                            className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-[11px] font-medium"
+                            title="Save this video's current languages as your global favorites"
+                          >
+                            ★ Save as Favorites
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5 items-center">
+                        <span className="text-muted-foreground text-[11px] mr-1">
+                          Current selection:
+                        </span>
+                        {targetLanguages.length === 0 ? (
+                          <span className="text-muted-foreground italic text-[11px]">
+                            None selected
+                          </span>
+                        ) : (
+                          targetLanguages.map((code) => {
+                            const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+                              (c) => c.code === code,
+                            ) || {
+                              code,
+                              name: code,
+                            };
+                            const isFav = favoriteLanguages.includes(code);
+                            return (
+                              <span
+                                key={code}
+                                data-testid={`enabled-lang-badge-${code}`}
+                                className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium border ${
+                                  isFav
+                                    ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                    : "border-border bg-background text-foreground"
+                                }`}
+                              >
+                                <span>{langMeta.name}</span>
+                                {isFav && <span title="Favorite language">⭐</span>}
+                              </span>
+                            );
+                          })
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5 items-center border-t border-border/50 pt-1.5">
+                        <span className="text-muted-foreground text-[11px] mr-1">
+                          ⭐ Global favorites:
+                        </span>
+                        {favoriteLanguages.length === 0 ? (
+                          <span className="text-muted-foreground italic text-[11px]">
+                            No favorites configured in settings
+                          </span>
+                        ) : (
+                          favoriteLanguages.map((code) => {
+                            const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+                              (c) => c.code === code,
+                            ) || {
+                              code,
+                              name: code,
+                            };
+                            const isCurrent = targetLanguages.includes(code);
+                            return (
+                              <span
+                                key={code}
+                                data-testid={`favorite-lang-badge-${code}`}
+                                className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border ${
+                                  isCurrent
+                                    ? "border-primary/40 bg-primary/10 text-primary"
+                                    : "border-muted bg-muted/40 text-muted-foreground line-through opacity-70"
+                                }`}
+                                title={
+                                  isCurrent
+                                    ? "Enabled for this video"
+                                    : "Not enabled for this video"
+                                }
+                              >
+                                <span>{langMeta.name}</span>
+                              </span>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+
                     <LanguageBoxesSelector
                       catalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
                       selectedLanguages={targetLanguages}
                       onSelectionChange={handleTargetLanguagesChange}
                       isAndroid={isAndroid}
+                      favoriteLanguages={favoriteLanguages}
                     />
                     {(() => {
                       const pendingFetchAgainLangs =
@@ -3301,7 +3810,7 @@ function Index() {
                     {orderedLangs
                       .filter((lang) => spoken.includes(lang.code))
                       .map((lang) => {
-                        const languageVoices = getLanguageVoices(voices, lang.tts);
+                        const languageVoices = getLanguageVoices(voices, lang.tts, true);
                         const ratio = ttsRatios[lang.code] ?? 1;
                         return (
                           <div
@@ -3351,26 +3860,30 @@ function Index() {
                                 1:{ratio} ({Math.round(100 / ratio)}% of sentences)
                               </span>
                             </label>
-                            {/* Rate slider */}
+                            {/* Rate slider: range 0.3 to 1.5, default 0.5 */}
                             <label className="flex items-center gap-1.5 flex-1 min-w-[7rem]">
                               <span className="text-muted-foreground shrink-0">Rate</span>
                               <input
                                 aria-label={`${lang.name} speech rate`}
                                 type="range"
-                                min={0.6}
-                                max={1.4}
+                                min={0.3}
+                                max={1.5}
                                 step={0.1}
-                                value={rates[lang.code] ?? 1}
-                                onChange={(e) =>
+                                value={rates[lang.code] ?? 0.5}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
                                   setRates((current) => ({
                                     ...current,
-                                    [lang.code]: Number(e.target.value),
-                                  }))
-                                }
+                                    [lang.code]: val,
+                                  }));
+                                  if (videoId) {
+                                    saveVideoSettings(videoId, { ttsRates: { [lang.code]: val } });
+                                  }
+                                }}
                                 className="h-1.5 min-w-0 flex-1 cursor-pointer accent-primary"
                               />
                               <span className="w-7 text-right font-mono tabular-nums text-muted-foreground shrink-0">
-                                {(rates[lang.code] ?? 1).toFixed(1)}×
+                                {(rates[lang.code] ?? 0.5).toFixed(1)}×
                               </span>
                             </label>
                             {/* Voice selector */}
@@ -3408,10 +3921,30 @@ function Index() {
                                   key={getUniqueVoiceKey(voice, voiceIndex)}
                                   value={voice.voiceURI || voice.name}
                                 >
-                                  {voice.name}
+                                  {voice.name} {voice.lang ? `(${voice.lang})` : ""}
                                 </option>
                               ))}
                             </select>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const voiceToTest = voiceSelections[lang.code] ?? "";
+                                const rateToTest = rates[lang.code] ?? 0.5;
+                                void speak(
+                                  lang.name,
+                                  lang.tts,
+                                  rateToTest,
+                                  voiceToTest,
+                                  -1,
+                                  () => {},
+                                );
+                              }}
+                              title={`Test ${lang.name} voice`}
+                              aria-label={`Test ${lang.name} voice`}
+                              className="shrink-0 rounded border border-input bg-background px-2 py-0.5 text-xs hover:bg-muted font-mono"
+                            >
+                              ▶ Test
+                            </button>
                           </div>
                         );
                       })}

@@ -12,6 +12,7 @@ export interface LanguageBoxesSelectorProps {
   selectedLanguages: string[];
   onSelectionChange: (next: string[]) => void;
   isAndroid?: boolean;
+  favoriteLanguages?: string[];
 }
 
 /**
@@ -25,6 +26,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
   selectedLanguages,
   onSelectionChange,
   isAndroid = false,
+  favoriteLanguages = [],
 }) => {
   const [displayMode, setDisplayMode] = useState<LanguageDisplayMode>(() =>
     getLanguageDisplayModeSetting(),
@@ -42,9 +44,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
     const query = searchFilter.trim().toLowerCase();
     const filtered = query
       ? catalog.filter(
-          (l) =>
-            l.name.toLowerCase().includes(query) ||
-            l.code.toLowerCase().includes(query),
+          (l) => l.name.toLowerCase().includes(query) || l.code.toLowerCase().includes(query),
         )
       : catalog;
 
@@ -76,10 +76,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
     <div className="space-y-3" data-testid="language-boxes-selector-wrapper">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <label
-            htmlFor="target-language-select"
-            className="text-sm font-medium text-foreground"
-          >
+          <label htmlFor="target-language-select" className="text-sm font-medium text-foreground">
             Favorite languages
           </label>
           <span
@@ -144,10 +141,17 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                   data-testid={`selected-lang-priority-${code}`}
                   className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs shadow-xs"
                 >
-                  <span className="font-mono text-[10px] font-bold text-primary">
-                    #{idx + 1}
-                  </span>
+                  <span className="font-mono text-[10px] font-bold text-primary">#{idx + 1}</span>
                   <span className="font-medium text-foreground">{langMeta.name}</span>
+                  {favoriteLanguages.includes(code) && (
+                    <span
+                      className="text-[10px] text-amber-500 font-bold"
+                      title="In Global Favorites"
+                      data-testid={`favorite-badge-${code}`}
+                    >
+                      ⭐
+                    </span>
+                  )}
                   <div className="flex items-center ml-0.5">
                     <button
                       type="button"
@@ -216,7 +220,11 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                     ? "border-primary bg-primary/15 text-primary shadow-sm ring-1 ring-primary/40 font-semibold"
                     : "border-border bg-card hover:bg-accent/40 text-foreground"
                 }`}
-                title={isSelected ? `Unselect ${lang.name} (Priority #${priorityIdx + 1})` : `Select ${lang.name}`}
+                title={
+                  isSelected
+                    ? `Unselect ${lang.name} (Priority #${priorityIdx + 1})`
+                    : `Select ${lang.name}`
+                }
               >
                 <div className="truncate pr-1 flex items-center gap-1.5 min-w-0">
                   {isSelected && (
@@ -225,6 +233,11 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                     </span>
                   )}
                   <span className="truncate text-xs sm:text-sm">{lang.name}</span>
+                  {favoriteLanguages.includes(lang.code) && (
+                    <span className="text-[10px] text-amber-500 shrink-0" title="Global Favorite">
+                      ⭐
+                    </span>
+                  )}
                 </div>
                 {isSelected ? (
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -252,10 +265,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           size={isAndroid ? Math.min(catalog.length, 6) : catalog.length}
           value={selectedLanguages}
           onChange={(event) => {
-            const next = Array.from(
-              event.target.selectedOptions,
-              (option) => option.value,
-            );
+            const next = Array.from(event.target.selectedOptions, (option) => option.value);
             onSelectionChange(next);
           }}
           className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"

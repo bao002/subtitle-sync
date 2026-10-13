@@ -14,10 +14,7 @@ export interface ApkReleasesFooterProps {
   onOpenApkModal: () => void;
 }
 
-export function ApkReleasesFooter({
-  apkReleaseLinks,
-  onOpenApkModal,
-}: ApkReleasesFooterProps) {
+export function ApkReleasesFooter({ apkReleaseLinks, onOpenApkModal }: ApkReleasesFooterProps) {
   return (
     <footer
       id="apk-releases-footer"

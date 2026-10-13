@@ -159,13 +159,15 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 
 ---
 
-## 7. Active Prompt Execution Log: Task 100
- 
-- **Task 100**: Enable Server Proxy Option, Robust Proxy URL Construction & Register `docs/server.md` [COMPLETED & MIGRATED TO DONE.MD]
-  - Subtask 100.1: Stage Task 100 in Tracking Documentation (`tokens.md`, `tasks.md`, `current-sub-task.md`, `todo.md`). [DONE]
-  - Subtask 100.2: Update `src/config/server.json` and robustly support `?url=` in `buildServerProxyUrl` in `src/lib/subtitle-fetch-plan.ts`. [DONE]
-  - Subtask 100.3: Register `docs/server.md` in `docs/files.md`. [DONE]
-  - Subtask 100.4: Automated Test Verification, Compilation, Linting & Migration to `docs/done.md`. [DONE]
+## 7. Active Prompt Execution Log: Task 103
+
+- **Task 103**: Implement Versioning Discrepancy Architecture & Recovery Mechanisms According to `docs/versioning.md` [ACTIVE]
+  - Subtask 103.1: Stage Task 103 in Tracking Documentation (`tokens.md`, `tasks.md`, `current-sub-task.md`, `todo.md`, `temp.md`). [ACTIVE]
+  - Subtask 103.2: Implement native Android safeguards in `MainActivity.kt` (automatic OTA cache invalidation on APK upgrade via `last_run_version_code`, zero-cache headers for local assets, and `clearOtaCache` bridge method). [PENDING]
+  - Subtask 103.3: Implement web-side discrepancy architecture in `src/utils/apkUpdater.ts` & `src/types.ts` (`VersionComparison`, `checkVersionDiscrepancy()`, `clearOtaCacheAndReload()`, bridge typing). [PENDING]
+  - Subtask 103.4: Implement UI dual-version presentation and in-app cache reset controls in `ApkReleaseModal.tsx`. [PENDING]
+  - Subtask 103.5: Author dedicated automated test suite (`scripts/verify-versioning-discrepancy-implementation.ts`), run all suites, compile (`compile_applet`), lint (`lint_applet`), and migrate Task 103 to `docs/done.md`. [PENDING]
+
 
 
 

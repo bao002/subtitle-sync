@@ -35,9 +35,7 @@ export function WinnerPromotionReportModal({
   const [history, setHistory] = useState<WinnerPromotionRecord[]>(() =>
     getWinnerPromotionHistory(),
   );
-  const [stats, setStats] = useState<WinnerPromotionStats>(() =>
-    getWinnerPromotionStats(),
-  );
+  const [stats, setStats] = useState<WinnerPromotionStats>(() => getWinnerPromotionStats());
   const [searchQuery, setSearchQuery] = useState("");
 
   const refreshData = () => {
@@ -85,22 +83,14 @@ export function WinnerPromotionReportModal({
   };
 
   const tlangPct =
-    stats.totalWins > 0
-      ? Math.round((stats.modeCounts.tlang / stats.totalWins) * 100)
-      : 50;
+    stats.totalWins > 0 ? Math.round((stats.modeCounts.tlang / stats.totalWins) * 100) : 50;
   const langPct =
-    stats.totalWins > 0
-      ? Math.round((stats.modeCounts.lang / stats.totalWins) * 100)
-      : 50;
+    stats.totalWins > 0 ? Math.round((stats.modeCounts.lang / stats.totalWins) * 100) : 50;
 
   const sessionPct =
-    stats.totalWins > 0
-      ? Math.round((stats.sendCounts.session / stats.totalWins) * 100)
-      : 50;
+    stats.totalWins > 0 ? Math.round((stats.sendCounts.session / stats.totalWins) * 100) : 50;
   const anonPct =
-    stats.totalWins > 0
-      ? Math.round((stats.sendCounts.anon / stats.totalWins) * 100)
-      : 50;
+    stats.totalWins > 0 ? Math.round((stats.sendCounts.anon / stats.totalWins) * 100) : 50;
 
   return (
     <div
@@ -145,10 +135,7 @@ export function WinnerPromotionReportModal({
         {/* Content */}
         <div className="p-5 space-y-5 max-h-[75vh] overflow-y-auto text-xs">
           {/* Summary Stats Grid */}
-          <div
-            data-testid="winner-stats-summary"
-            className="grid grid-cols-2 sm:grid-cols-4 gap-3"
-          >
+          <div data-testid="winner-stats-summary" className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="rounded-lg border border-border bg-background p-3">
               <span className="text-[11px] text-muted-foreground">Total Wins</span>
               <p className="text-xl font-bold text-foreground mt-0.5">{stats.totalWins}</p>
@@ -244,10 +231,7 @@ export function WinnerPromotionReportModal({
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table
-                  data-testid="winner-history-table"
-                  className="w-full text-left text-xs"
-                >
+                <table data-testid="winner-history-table" className="w-full text-left text-xs">
                   <thead className="bg-muted/50 text-[11px] font-semibold text-muted-foreground border-b border-border">
                     <tr>
                       <th className="py-2 px-3">Video</th>

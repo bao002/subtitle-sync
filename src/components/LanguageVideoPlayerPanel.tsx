@@ -43,8 +43,8 @@ export const LanguageVideoPlayerPanel: React.FC<LanguageVideoPlayerPanelProps> =
   autoSpeakEnabled = true,
   onSpeakLanguage,
 }) => {
-  const [selectedLang, setSelectedLang] = useState<string>(() =>
-    availableLanguages[0]?.code || "en",
+  const [selectedLang, setSelectedLang] = useState<string>(
+    () => availableLanguages[0]?.code || "en",
   );
   const [customVideoId, setCustomVideoId] = useState(currentVideoId || "L2Ryrr6txwA");
 
@@ -81,10 +81,16 @@ export const LanguageVideoPlayerPanel: React.FC<LanguageVideoPlayerPanelProps> =
 
       // Fixture subtitles exist only for the web demo video. Never inject them (or any
       // placeholder text) for other videos or on Android, where live captions are used.
-      const isNative = typeof window !== "undefined" && Boolean((window as { AndroidNativeShell?: unknown }).AndroidNativeShell);
+      const isNative =
+        typeof window !== "undefined" &&
+        Boolean((window as { AndroidNativeShell?: unknown }).AndroidNativeShell);
       const rawJson = !isNative && videoId === "L2Ryrr6txwA" ? JSON3_RAW_MAP[langCode] : "";
       if (!rawJson) {
-        tracker.fail(isNative ? "Live captions are fetched by the main subtitles view" : "No demo subtitles for this video");
+        tracker.fail(
+          isNative
+            ? "Live captions are fetched by the main subtitles view"
+            : "No demo subtitles for this video",
+        );
         return;
       }
       const parsed = parseJson3(rawJson);
@@ -183,12 +189,11 @@ export const LanguageVideoPlayerPanel: React.FC<LanguageVideoPlayerPanelProps> =
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2.5">
           <div className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-indigo-500" />
-            <h3 className="text-sm font-semibold text-foreground">
-              Add Language Video Player
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">Add Language Video Player</h3>
           </div>
           <span className="text-xs text-muted-foreground">
-            Menu kept in English (<code className="font-mono text-indigo-600 dark:text-indigo-400">hl=en</code>)
+            Menu kept in English (
+            <code className="font-mono text-indigo-600 dark:text-indigo-400">hl=en</code>)
           </span>
         </div>
 
@@ -250,8 +255,9 @@ export const LanguageVideoPlayerPanel: React.FC<LanguageVideoPlayerPanelProps> =
         <div className="rounded-md bg-indigo-500/10 p-2 text-xs text-indigo-900 dark:text-indigo-200">
           <strong>Iframe URL configuration:</strong> Sets{" "}
           <code className="font-mono font-semibold">hl=en</code> to preserve English menus,{" "}
-          <code className="font-mono font-semibold">cc_load_policy=1</code> to force closed captions, and{" "}
-          <code className="font-mono font-semibold">cc_lang_pref=&lt;lang&gt;</code> to set subtitles.
+          <code className="font-mono font-semibold">cc_load_policy=1</code> to force closed
+          captions, and <code className="font-mono font-semibold">cc_lang_pref=&lt;lang&gt;</code>{" "}
+          to set subtitles.
         </div>
       </div>
 
@@ -332,9 +338,7 @@ export const LanguageVideoPlayerPanel: React.FC<LanguageVideoPlayerPanelProps> =
               {/* Iframe URL controls & subtitle language controller */}
               <div className="space-y-2 pt-1 text-xs">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-medium text-muted-foreground">
-                    Iframe Source URL:
-                  </span>
+                  <span className="font-medium text-muted-foreground">Iframe Source URL:</span>
                   <div className="flex items-center gap-1.5">
                     <span className="text-muted-foreground">Switch subtitles:</span>
                     <select
@@ -371,9 +375,7 @@ export const LanguageVideoPlayerPanel: React.FC<LanguageVideoPlayerPanelProps> =
                     className="h-7 text-xs text-muted-foreground hover:text-foreground"
                   >
                     <Subtitles className="h-3 w-3 mr-1" />
-                    <span>
-                      {isPreviewOpen ? "Hide Subtitles Body" : "Inspect Subtitles Body"}
-                    </span>
+                    <span>{isPreviewOpen ? "Hide Subtitles Body" : "Inspect Subtitles Body"}</span>
                   </Button>
 
                   <Button
@@ -398,8 +400,8 @@ export const LanguageVideoPlayerPanel: React.FC<LanguageVideoPlayerPanelProps> =
                 {isPreviewOpen && (
                   <div className="mt-2 rounded border border-border bg-neutral-950 p-2.5 font-mono text-[11px] text-emerald-400 max-h-48 overflow-y-auto">
                     <div className="text-xs text-neutral-400 mb-1 font-sans">
-                      Captured Subtitle Track for {player.subLangName} (
-                      {player.cueCount || 0} cues):
+                      Captured Subtitle Track for {player.subLangName} ({player.cueCount || 0}{" "}
+                      cues):
                     </div>
                     <pre className="whitespace-pre-wrap break-all">
                       {JSON3_RAW_MAP[player.subLang] ||

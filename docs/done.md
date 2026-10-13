@@ -1671,3 +1671,90 @@
   - `npm run test:task-management-workflow` & `npm run test:tokens-economy` & `npm run test:no-duplicate-md`
 - Confirmed zero build errors (`compile_applet`) and zero ESLint issues (`lint_applet`).
 - Committed changes (`ffae71b`).
+
+## Task 101: Language Selection Flow, TTS Voice Fix, Alternative TTS Service, TTS Speed Rate 0.3-1.5 (Default 0.5), Favorites in Settings & Per-Video Persistence
+
+### Subtask 101.1: Create docs/languages-selection-flow.md and Register in docs/files.md
+- Authored comprehensive documentation in `docs/languages-selection-flow.md` defining:
+  - Dual persistence hierarchy: Favorite languages in settings (`yt_favorite_languages`) and per-video target language persistence (`yt_video_settings_${videoId}`).
+  - Lifecycle for loading new videos: Checks per-video settings first; falls back cleanly to favorite languages if not previously saved.
+  - Enabled languages presentation displaying favorites alongside current selection.
+  - Speech synthesis voice selection fixes, ISO-639 alias normalization (`he`/`iw`, `id`/`in`, `yi`/`ji`), and voice caching.
+  - TTS speed rate controls bounded between 0.3 and 1.5, defaulting to 0.5.
+  - Alternative TTS service using Google Translate TTS endpoint (`https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl={lang}&q={text}`), disabled by default, usable as fallback and configurable alternative.
+- Registered `docs/languages-selection-flow.md` in `docs/files.md`.
+
+### Subtask 101.2: Implement TTS Engine Fixes, Speed Rate Range & Default, and Alternative TTS Service
+- In `src/utils/speechVoiceUtils.ts`:
+  - Added ISO-639 alias mappings (`ISO_LANGUAGE_ALIASES`) for Hebrew (`he`/`iw`), Indonesian (`id`/`in`), and Yiddish (`yi`/`ji`).
+  - Added `matchesLanguageCode` with prefix expansion, normalization, and alias matching.
+  - Added global cached voices store (`cachedVoices`, `setCachedVoices`, `getCachedVoices`, `findVoiceByUriOrName`).
+  - Implemented robust `getLanguageVoices` filtering against deduplicated voices.
+- In `src/lib/alternative-tts.ts`:
+  - Implemented Google Translate TTS URL generator matching `https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl={lang}&q={text}`.
+  - Implemented persistent preferences `getUseAlternativeTts()`, `setUseAlternativeTts()`, `getAlternativeTtsMode()`, `setAlternativeTtsMode()` (OFF by default).
+  - Implemented `playAlternativeTtsAudio` using HTML5 Audio element with playback rate support and error fallbacks.
+  - Implemented `cancelAlternativeTtsAudio` to halt audio on demand.
+- In `src/utils/appSettings.ts`:
+  - Added `useAlternativeTtsService: false` and `alternativeTtsMode: "fallback_only"` to `AppSettings` and `DEFAULT_APP_SETTINGS`.
+  - Added `FAVORITE_LANGUAGES_KEY = "yt_favorite_languages"`, `getFavoriteLanguages()`, and `setFavoriteLanguages()`.
+- In `src/routes/index.tsx`:
+  - Fixed voice dropdown selection by setting explicit `v.voiceURI` option values and updating `voiceSelections[lang]`.
+  - In `speak()`: Synchronized `utterance.voice` and aligned `utterance.lang` with voice language; added support for fallback and always modes with Alternative TTS.
+  - Updated speed rate controls: set default rate to 0.5 across state initializers and fallbacks, bounded range between 0.3 and 1.5 with 0.1 step.
+
+### Subtask 101.3: Implement Favorites Languages in Settings, Per-Video Persistence, and Enabled Status Indicator
+- In `src/routes/index.tsx`:
+  - Added "Favorite Languages" configuration section under Settings modal with quick-add pills, custom code input, remove tags, and save confirmation.
+  - Added "Alternative Text-to-Speech (Google Translate TTS)" settings panel with enable toggle (off by default) and mode selector ("fallback_only" vs "always").
+  - Added TTS speed rate configuration with 0.3 to 1.5 slider, 0.5 default indicator, and test speak button.
+  - Implemented per-video language persistence in `videoSettings.ts` / `saveVideoSettings` and video load lifecycle: checks `videoSettings.targetLanguages` first; if not present, defaults to `getFavoriteLanguages()`.
+  - Implemented Enabled Languages status indicator in UI displaying active target languages alongside favorite badges (`★ Favorite` / `★ Non-favorite`).
+
+### Subtask 101.4: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+- Authored dedicated test suite in `scripts/verify-language-selection-and-tts-flow.ts`:
+  - Verified default rate 0.5, min 0.3, max 1.5, step 0.1.
+  - Verified Google Translate TTS URL construction, query parameters, and default-off preference.
+  - Verified ISO-639 alias normalization for Hebrew, Indonesian, and Yiddish.
+  - Verified favorite languages in settings and per-video target language persistence with fallback.
+  - Verified UI rendering of enabled languages and favorite indicators.
+- Registered `test:language-selection-tts-flow` in `package.json` and `docs/files.md`.
+- Successfully verified with `npm run test:language-selection-tts-flow`, `npm run test:no-duplicate-md`, and `npm run test:md`.
+- Verified clean build (`compile_applet`) and zero lint errors (`lint_applet`).
+
+## Task 102: Update docs/versioning.md — Tackle APK Version vs WebView Version Discrepancies
+
+### Subtask 102.1: Stage Task 102 in Tracking Documentation (tokens.md, tasks.md, current-sub-task.md, todo.md, temp.md)
+- Activated token economy flow and staged Task 102 across all tracking documents.
+
+### Subtask 102.2: Update docs/versioning.md Explaining How to Tackle APK vs WebView Version Discrepancies
+- Added Section 5 "APK Version vs. WebView Version Discrepancies: Architecture, Causes & Recovery" to `docs/versioning.md`:
+  - Defined hybrid dual-layer versioning anatomy: Native APK Container Layer (`build.gradle.kts`, `versionName`, `versionCode`, `PackageManager`, `AndroidNativeShell.getAppVersionName()`) vs Embedded WebView SPA Layer (`package.json`, bundled assets in `assets/`, OTA update files in `context.filesDir/app_updates/`, `getActiveAppVersion()`).
+  - Documented 5 distinct root causes of discrepancies:
+    1. Stale Bundled Web Assets During APK Compilation (Build Pipeline Desync).
+    2. Active OTA Hot Update Bundle (Intentional Version Lead).
+    3. Lingering Stale OTA Cache After Native APK Upgrade.
+    4. Static Fallback Hardcoding vs Dynamic Bridge Querying.
+    5. Live Development Server / Remote Endpoint Loading.
+  - Authored complete diagnostic workflows: in-app `checkVersionDiscrepancy()` TypeScript logic and ADB diagnostic terminal commands (`dumpsys package`, `run-as`, `logcat`).
+  - Documented architectural safeguards: automatic OTA cache invalidation on native upgrade (`clearOtaCacheOnApkUpgrade`), zero-cache headers for local assets (`no-cache, no-store, must-revalidate`), dual-version UI indicators, and build pipeline sequential execution mandate (`npm run build` before Gradle compilation).
+  - Authored step-by-step recovery procedures: Procedure A (User In-App Recovery with zero reinstall), Procedure B (Developer ADB One-Line Clean `pm clear`), and Procedure C (Complete Clean Rebuild & Reinstall).
+
+### Subtask 102.3: Author Dedicated Automated Verification Test & Register in Project Catalogs
+- Created `scripts/verify-versioning-discrepancy-doc.ts` asserting:
+  1. Section 5 presence and hybrid dual-layer architecture definitions.
+  2. Complete documentation of all 5 root causes.
+  3. Diagnostic workflow elements and ADB commands.
+  4. Architectural safeguards and cache invalidation rules.
+  5. User and developer recovery procedures.
+  6. Functional validation of the version discrepancy comparison logic across in-sync, OTA hotfix, and stale cache scenarios.
+- Registered `"test:versioning-discrepancy-doc": "tsx scripts/verify-versioning-discrepancy-doc.ts"` in `package.json`.
+- Registered `scripts/verify-versioning-discrepancy-doc.ts` in `docs/files.md`.
+
+### Subtask 102.4: Execute Verification Suites, Compile Applet, Lint Applet, and Migrate Task 102 to docs/done.md
+- Ran and passed dedicated verification test `npm run test:versioning-discrepancy-doc`.
+- Ran and passed markdown integrity suites `npm run test:no-duplicate-md` and `npm run test:md`.
+- Verified clean build (`compile_applet`) and zero ESLint issues (`lint_applet`).
+- Migrated Task 102 out of active tracking files to `docs/done.md`.
+
+

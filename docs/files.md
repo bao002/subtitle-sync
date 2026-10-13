@@ -19,6 +19,7 @@ This document serves as the master catalog and directory of all repository docum
 | `docs/cache.md` | Subtitle Caching Architecture | Invalidation gates, `isValidJsonSubtitleResponse` validation, local storage persistence, and cache eviction rules. |
 | `docs/youtube.md` | YouTube API & Player Guide | Embed player configuration, iframe lifecycle, deep link synchronization, and server fetch deprecation. |
 | `docs/server.md` | Server Proxy Specification | Documentation for Android-only Supabase proxy endpoint (/proxy?url=) and server.json configuration. |
+| `docs/languages-selection-flow.md` | Language & TTS Architecture | Specification for favorite languages in settings, per-video persistence, enabled languages UI, voice selection, 0.3-1.5 rate (0.5 default), and alternative Google Translate TTS. |
 | `docs/versioning.md` | Versioning & OTA Updates | Version incrementing conventions, native shell version bridge, and OTA hot updates. |
 
 | `docs/files.md` | Documentation & Code Inventory | Master inventory cataloging and explaining every documentation file and source code module (this document). |
@@ -78,6 +79,7 @@ This document serves as the master catalog and directory of all repository docum
 | `src/lib/native-captions.ts`                      | Native Android Bridge Interop    | Decodes intercepted base64 caption payloads and extracts timedtext URL parameters.                                                 |
 | `src/lib/lovable-error-reporting.ts`              | Lovable Studio Telemetry         | Dispatches runtime error reports to the Lovable integration layer.                                                                 |
 | `src/lib/utils.ts`                                | UI Utilities                     | Provides class name concatenation (`cn`) merging Tailwind classes and clsx.                                                        |
+| `src/lib/alternative-tts.ts`                     | Alternative TTS Engine           | Implements Google Translate TTS URL construction, preferences, HTML5 Audio playback, rate scaling, and fallback handling.        |
 | `src/components/NetworkRequestsInspector.tsx`     | Network Traffic Inspector UI     | Displays live captured network requests with URL, method, status, duration, and first 200 characters response body preview.        |
 | `src/components/ApkReleaseModal.tsx`              | Latest APK Release Modal         | Displays direct APK downloads, GitHub release links, web artifacts, and CLI install commands for both mostuf2556 and mostuf25561.  |
 | `src/components/SubtitleFetchToast.tsx`           | Subtitle Fetch Notification      | Popup indicator notifying when subtitle fetching begins and finishes, with quick link to table and mute option.                    |
@@ -255,5 +257,10 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-md-links.ts`                      | Markdown Links Checker                             | Validates that all documentation cross-references and links resolve properly.                                                                          |
 | `docs/fix-android-e2e-test-and-video-product.md`   | E2E Reboot & Video Product Strategy Specification  | Documents reasoning for minimal GitHub Pages report, YouTube video share feature, 3 products, and quarantine isolation roadmap.                         |
 | `scripts/verify-quarantine-and-minimal-share-e2e.ts` | Quarantine & Minimal Android Share E2E Test       | Dedicated automated verification asserting quarantine isolation, minimal Android share E2E spec, 3 authentic products, and streamlined README.md.     |
+| `scripts/verify-language-selection-and-tts-flow.ts` | Language Selection & TTS Architecture Verification | Validates default rate 0.5 and range 0.3-1.5, Google Translate TTS fallback and option, ISO alias normalization, per-video selection persistence, and enabled status indicators. |
+| `scripts/verify-versioning-discrepancy-doc.ts` | Version Discrepancy Doc Verification Suite | Validates Section 5 of docs/versioning.md covering APK vs WebView version discrepancies, 5 root causes, diagnostics, architectural safeguards, and recovery workflows. |
+| `scripts/verify-versioning-discrepancy-implementation.ts` | Version Discrepancy Implementation Verification Suite | Validates full implementation of MainActivity.kt safeguards, types, checkVersionDiscrepancy(), and UI reset controls. |
+
+
 
 

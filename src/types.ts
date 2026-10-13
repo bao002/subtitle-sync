@@ -131,6 +131,7 @@ declare global {
       fetchTranslatedCaptionsWithUrl?: (url: string, targetLang: string, format: string) => string;
       fetchTimedTextExact?: (url: string, withSession: boolean) => string;
       applyReleaseArtifact?: (downloadUrl: string, releaseTag: string) => boolean;
+      clearOtaCache?: () => boolean;
       getAppliedReleaseArtifactTag?: () => string;
       getAppVersionName?: () => string;
       getAppVersionCode?: () => number;

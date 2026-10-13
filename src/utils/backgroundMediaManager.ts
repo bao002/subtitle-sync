@@ -110,7 +110,14 @@ export function initBackgroundMediaManager(callbacks: MediaTransportCallbacks): 
  * Updates lockscreen notification and media metadata across native and web layers.
  */
 export function syncMediaMetadata(payload: MediaSyncPayload): void {
-  const { title, artist = "Parallel Subtitles", album = "YouTube Viewer", isPlaying, positionSec, durationSec } = payload;
+  const {
+    title,
+    artist = "Parallel Subtitles",
+    album = "YouTube Viewer",
+    isPlaying,
+    positionSec,
+    durationSec,
+  } = payload;
 
   const positionMs = Math.max(0, Math.round(positionSec * 1000));
   const durationMs = Math.max(0, Math.round(durationSec * 1000));
@@ -118,7 +125,13 @@ export function syncMediaMetadata(payload: MediaSyncPayload): void {
   // 1. Android Native Shell Bridge
   if (typeof window !== "undefined" && window.AndroidNativeShell?.updateMediaMetadata) {
     try {
-      window.AndroidNativeShell.updateMediaMetadata(title, artist, isPlaying, positionMs, durationMs);
+      window.AndroidNativeShell.updateMediaMetadata(
+        title,
+        artist,
+        isPlaying,
+        positionMs,
+        durationMs,
+      );
     } catch (e) {
       console.warn("Error updating native media metadata:", e);
     }
@@ -137,7 +150,11 @@ export function syncMediaMetadata(payload: MediaSyncPayload): void {
       navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
 
       // Set position state if supported
-      if ("setPositionState" in navigator.mediaSession && durationSec > 0 && positionSec <= durationSec) {
+      if (
+        "setPositionState" in navigator.mediaSession &&
+        durationSec > 0 &&
+        positionSec <= durationSec
+      ) {
         navigator.mediaSession.setPositionState({
           duration: Math.max(1, durationSec),
           playbackRate: 1.0,

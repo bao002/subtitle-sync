@@ -84,10 +84,39 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             private set
     }
 
+    private fun clearOtaCacheOnApkUpgrade() {
+        try {
+            val prefs = getSharedPreferences("app_version_tracking", Context.MODE_PRIVATE)
+            val lastRunVersionCode = prefs.getLong("last_run_version_code", -1L)
+            val pInfo = packageManager.getPackageInfo(packageName, 0)
+            val currentVersionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                pInfo.longVersionCode
+            } else {
+                @Suppress("DEPRECATION")
+                pInfo.versionCode.toLong()
+            }
+
+            if (currentVersionCode > lastRunVersionCode) {
+                Log.i(TAG, "Native APK upgraded ($lastRunVersionCode -> $currentVersionCode). Invalidating stale OTA cache.")
+                val otaDir = java.io.File(filesDir, "app_updates")
+                if (otaDir.exists()) {
+                    val deleted = otaDir.deleteRecursively()
+                    Log.i(TAG, "Successfully purged stale OTA cache directory: ${otaDir.absolutePath} (result=$deleted)")
+                }
+                prefs.edit().putLong("last_run_version_code", currentVersionCode).apply()
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Error checking or clearing OTA cache on upgrade: ${e.message}")
+        }
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         instance = this
+
+        // Automatic OTA cache invalidation on native upgrade
+        clearOtaCacheOnApkUpgrade()
 
         webView = WebView(this)
         setContentView(webView)
@@ -217,7 +246,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         val headers = mapOf(
                             "Access-Control-Allow-Origin" to "*",
                             "Access-Control-Allow-Methods" to "GET, OPTIONS",
-                            "Cache-Control" to "no-cache"
+                            "Cache-Control" to "no-cache, no-store, must-revalidate",
+                            "Pragma" to "no-cache",
+                            "Expires" to "0"
                         )
                         return WebResourceResponse(mimeType, "UTF-8", 200, "OK", headers, inputStream)
                     } catch (e: Exception) {
@@ -775,6 +806,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 obj.toString()
             } catch (e: Exception) {
                 "{}"
+            }
+        }
+
+        @JavascriptInterface
+        fun clearOtaCache(): Boolean {
+            return try {
+                val otaDir = java.io.File(context.filesDir, "app_updates")
+                if (otaDir.exists()) {
+                    val deleted = otaDir.deleteRecursively()
+                    Log.i(TAG, "Manual OTA cache clear requested via bridge: success=$deleted")
+                    deleted
+                } else {
+                    true
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error clearing OTA cache via bridge: ${e.message}", e)
+                false
             }
         }
 

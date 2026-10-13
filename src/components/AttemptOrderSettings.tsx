@@ -17,7 +17,6 @@ import {
 } from "@/lib/subtitle-fetch-plan";
 import { WinnerPromotionReportModal } from "./WinnerPromotionReportModal";
 
-
 interface Props {
   order: FetchAttempt[];
   onChangeOrder: (next: FetchAttempt[]) => void;
@@ -205,7 +204,9 @@ export const AttemptOrderSettings: React.FC<Props> = ({
           <div className="flex items-center gap-1.5 text-foreground">
             <Trophy className="h-4 w-4 text-amber-500 shrink-0" />
             <span className="font-medium">Winner Promotion History:</span>
-            <span className="text-muted-foreground hidden sm:inline">Persisted across all past videos</span>
+            <span className="text-muted-foreground hidden sm:inline">
+              Persisted across all past videos
+            </span>
           </div>
           <button
             type="button"
@@ -218,7 +219,6 @@ export const AttemptOrderSettings: React.FC<Props> = ({
           </button>
         </div>
       </div>
-
 
       <div className="pt-2 border-t border-border/60 space-y-2 opacity-85">
         <div className="flex items-center gap-2">
@@ -280,4 +280,3 @@ export const AttemptOrderSettings: React.FC<Props> = ({
     </div>
   );
 };
-

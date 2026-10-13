@@ -135,6 +135,95 @@ export function getInstalledApkVersionInfo(): {
   return { isNative: false, versionName: "", versionCode: null };
 }
 
+export interface VersionComparison {
+  isDiscrepancy: boolean;
+  apkVersion: string;
+  webVersion: string;
+  isOtaActive: boolean;
+  isStaleOtaCache: boolean;
+  isWebAhead: boolean;
+  isApkAhead: boolean;
+}
+
+/**
+ * Checks for a discrepancy between the native APK container version and the web bundle version.
+ */
+export function checkVersionDiscrepancy(): VersionComparison {
+  const installedInfo = getInstalledApkVersionInfo();
+  const rawApkVersion = installedInfo.versionName || "";
+  const rawWebVersion = getActiveAppVersion();
+  let otaTag: string | null = null;
+
+  if (typeof window !== "undefined" && window.AndroidNativeShell?.getAppliedReleaseArtifactTag) {
+    try {
+      otaTag = window.AndroidNativeShell.getAppliedReleaseArtifactTag() || null;
+    } catch {}
+  }
+  if (!otaTag && typeof localStorage !== "undefined") {
+    try {
+      otaTag = localStorage.getItem("active_release_artifact_tag");
+    } catch {}
+  }
+
+  const isOtaActive = Boolean(otaTag);
+  const cleanApk = rawApkVersion.replace(/^v/, "").trim();
+  const cleanWeb = rawWebVersion.replace(/^v/, "").trim();
+  const cleanOta = otaTag ? otaTag.replace(/^v/, "").trim() : null;
+
+  const compareVersions = (v1: string, v2: string): number => {
+    const parts1 = v1.split(".").map((p) => parseInt(p, 10) || 0);
+    const parts2 = v2.split(".").map((p) => parseInt(p, 10) || 0);
+    const maxLen = Math.max(parts1.length, parts2.length);
+    for (let i = 0; i < maxLen; i++) {
+      const num1 = parts1[i] ?? 0;
+      const num2 = parts2[i] ?? 0;
+      if (num1 > num2) return 1;
+      if (num1 < num2) return -1;
+    }
+    return 0;
+  };
+
+  const isDiscrepancy = Boolean(cleanApk && cleanWeb && cleanApk !== cleanWeb);
+  const comparison = cleanApk && cleanWeb ? compareVersions(cleanApk, cleanWeb) : 0;
+  const isApkAhead = comparison > 0;
+  const isWebAhead = comparison < 0;
+
+  const isStaleOtaCache = Boolean(
+    cleanApk && cleanOta && compareVersions(cleanApk, cleanOta) > 0
+  );
+
+  return {
+    isDiscrepancy,
+    apkVersion: rawApkVersion ? (rawApkVersion.startsWith("v") ? rawApkVersion : `v${rawApkVersion}`) : "",
+    webVersion: rawWebVersion.startsWith("v") ? rawWebVersion : `v${rawWebVersion}`,
+    isOtaActive,
+    isStaleOtaCache,
+    isWebAhead,
+    isApkAhead,
+  };
+}
+
+/**
+ * Clears any active OTA updates from localStorage and internal storage via bridge, then reloads app.
+ */
+export function clearOtaCacheAndReload(): boolean {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("active_release_artifact_tag");
+    }
+    if (typeof window !== "undefined" && window.AndroidNativeShell?.clearOtaCache) {
+      window.AndroidNativeShell.clearOtaCache();
+    }
+    logInfo("Cleared OTA cache and stored release tag. Reloading app...");
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
+    return true;
+  } catch (err) {
+    logError("Failed to clear OTA cache:", err);
+    return false;
+  }
+}
 
 /**
  * Format bytes to human readable format (MB/KB)
