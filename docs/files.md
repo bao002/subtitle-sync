@@ -35,6 +35,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `src/components/ParserTimingLab.tsx`              | Parser Timing & Splitting Lab    | Interactive educational laboratory and metrics visualizer comparing pure punctuation vs timing-assisted sentence splitting.         |
 | `src/components/AttemptOrderSettings.tsx`         | Subtitle Attempt Order Settings  | Renders 4 fetch attempts reordering (Up/Down), toggling enabled/disabled, promote winner to front, and reset order.  |
 | `src/components/FloatingSubtitleRetryIndicator.tsx` | Floating Subtitle Retry Indicator | Floating status badge with retry/pause toggle, pending unfetched language counts, and anti-bot pacing countdown.     |
+| `src/components/WinnerPromotionReportModal.tsx`   | Winner Promotion Report Modal    | Renders summary metric cards, strategy win rates, most effective approaches, and per-video winner history.           |
 | `src/components/ApkReleasesFooter.tsx`            | APK Releases Footer Component    | Modular bottom footer presenting dynamic APK release download and release page links for both repo owners.                          |
 
 ## Feature Utilities (`src/utils/`)
@@ -57,6 +58,8 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `src/utils/speechVoiceUtils.ts`            | Speech Synthesis Voice Utilities   | Provides voice deduplication, language filtering, and unique React option key generation to eliminate duplicate keys.  |
 | `src/utils/multiVideoPlayerManager.ts`     | Multi-Instance Player Manager      | Manages multiple video element instances, isolated audio-track state per instance, and player registry coordination.   |
 | `src/utils/videoLibraryManager.ts`         | Video Library / History Store      | Manages persistent watch history, default library fallback, search indexing, deduplication, and thumbnail resolution.  |
+| `src/utils/subtitleRequestQueue.ts`        | Subtitle Request Queue Coordinator | Coordinates single-flight requests (concurrency = 1), randomized jitter pacing, selective failed-language retries, and backoff. |
+| `src/utils/winnerPromotionTracker.ts`      | Winner Promotion Strategy Tracker  | Persists and aggregates winning fetch attempt strategies across all past videos in localStorage.                       |
 
 ## Configuration & Data Fixtures (`src/config/`)
 
@@ -86,6 +89,9 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `docs/tokens.md`                           | Token Economy Architecture        | Details token optimization protocol, task decomposition, and tracking files management.              |
 | `docs/android.md`                          | Android Architecture & E2E Spec   | Details native WebView bridge, TimedText interception, screencast video capture, and report schema.   |
 | `docs/youtube.md`                          | YouTube Subtitles & Rate-Limit Spec | Distinguishes tlang vs lang modes, evaluates client/server npm modules, and specifies rate-limit pacing. |
+| `docs/auto-retry.md`                       | Subtitle Auto-Retry & Anti-Abuse Spec | Documents strict concurrency = 1 queueing, jitter pacing, selective failed retries, and exponential backoff. |
+| `docs/versioning.md`                       | Android Versioning & Updates Spec  | Details versionName vs versionCode, 3 update channels, causes of same package collision, and recovery.   |
+| `docs/cache.md`                            | Subtitle Caching & Persistence Spec | Documents multi-tier caching (memory, raw JSON3, library, winner stats), validation gate, eviction rules, and hydration. |
 | `docs/roadmap.md`                          | Roadmap & Milestones Guide        | Details feature delivery milestones, roadmap phases, and architectural progress.                      |
 
 ## Testing & Quality Assurance (`e2e/`, `cypress/`, `scripts/`)
@@ -183,5 +189,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `scripts/verify-youtube-docs-and-floating-retry.ts` | YouTube Docs, Server Deprecation & Retry Test     | Asserts server deprecation badges and JSDoc, Settings accordion naming, pacing preferences, FloatingSubtitleRetryIndicator, and docs/youtube.md spec. |
 | `scripts/generate-error-report.ts`                | Automated Error Report & AI Fix Prompt Engine      | Captures failed commands, environment telemetry, stack traces, and generates error.log with reproduction and AI fix prompt.                             |
 | `scripts/verify-error-reporting-workflow.ts`      | Error Reporting Workflow & Log Test Suite          | Validates error report generation, error.log structure, reproduction steps, AI prompt blocks, and GitHub Actions workflow file.                        |
+| `scripts/verify-auto-retry-and-versioning.ts`     | Auto-Retry Pacing & Versioning Test Suite          | Asserts single-concurrency queueing, anti-abuse jitter, selective failed-language retries, native version bridge, and collision handling.             |
+| `scripts/verify-cache-and-winner-promotion.ts`     | Cache & Winner Promotion Verification Suite        | Asserts winner promotion tracking, statistical aggregation, shared video library persistence, event broadcast, validation gate, and cache hydration.  |
 | `scripts/verify-md-links.ts`                      | Markdown Links Checker                             | Validates that all documentation cross-references and links resolve properly.                                                                          |
 | `scripts/normalize-web-assets.mjs`                | Build Asset Normalizer                             | Adjusts asset paths for GitHub Pages sub-path hosting.                                                                                                 |

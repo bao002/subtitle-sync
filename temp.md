@@ -1,20 +1,9 @@
-# Scratchpad: Task 93 Error Reporting & AI Reproduction Fix Engine
+# Temporary Scratchpad (`temp.md`)
 
-## Goals:
-1. `scripts/generate-error-report.ts`:
-   - Runs a command (or reads a log file / error context).
-   - Generates `error.log`.
-   - Content of `error.log`:
-     - Executive summary of the failure.
-     - Environment metadata: Node version, OS, git commit, dirty working tree.
-     - Minimal Reproduction Steps (exact commands to run: e.g. `npm run test:xyz`).
-     - Error telemetry: Stderr, stdout tails, exit code, stack traces.
-     - Root-cause diagnosis & suggested fix heuristics (e.g. ESLint prettier format, missing dependency, failing assertion).
-     - Standardized AI Studio Prompt block (`### AI Studio Diagnostic Fix Prompt`) ready to be copy-pasted into the chat prompt to fix the issue.
-2. `.github/workflows/error-reporting.yml`:
-   - Runs on push, pull_request, workflow_dispatch, and workflow_run.
-   - Runs verification steps: lint, build, core tests.
-   - If any step fails:
-     - Automatically invokes `scripts/generate-error-report.ts`.
-     - Appends `error.log` to `$GITHUB_STEP_SUMMARY`.
-     - Uploads `error.log` as a build artifact via `actions/upload-artifact@v4`.
+- Task 95 Completed:
+  - Winner Promotion Report persistence across all past videos implemented in `src/utils/winnerPromotionTracker.ts` and `src/components/WinnerPromotionReportModal.tsx`.
+  - Subtitle caching architecture documented in `docs/cache.md`.
+  - Shared video persistence fixed in `openLink(link)` and `src/utils/videoLibraryManager.ts` with `video-library-updated` event dispatch.
+  - VideoLibraryPanel made reactive to storage, events, and `currentVideoId`, with per-card Clear cache buttons.
+  - Cache hydration implemented on video switch/load in `src/routes/index.tsx` via `getCachedRawJson3`.
+  - Verified with `npm run test:cache-and-winner-promotion`, `compile_applet`, and `lint_applet`.

@@ -19,15 +19,30 @@ android {
     namespace = "com.ytviewer.app"
     compileSdk = 34
 
+    val packageJsonFile = file("../../package.json")
+    val packageJsonVersion = if (packageJsonFile.exists()) {
+        val match = Regex("\"version\":\\s*\"([^\"]+)\"").find(packageJsonFile.readText())
+        match?.groupValues?.get(1) ?: "1.0.16"
+    } else {
+        "1.0.16"
+    }
+    val defaultDerivedCode = try {
+        val parts = packageJsonVersion.split(".").map { it.toIntOrNull() ?: 0 }
+        (parts.getOrElse(0) { 1 } * 10000) + (parts.getOrElse(1) { 0 } * 100) + parts.getOrElse(2) { 0 }
+    } catch (_: Exception) {
+        10016
+    }
+
     defaultConfig {
         applicationId = "com.ytviewer.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = (project.findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 1
-        versionName = (project.findProperty("appVersionName") as String?) ?: "1.0"
+        versionCode = (project.findProperty("appVersionCode") as String?)?.toIntOrNull() ?: defaultDerivedCode
+        versionName = (project.findProperty("appVersionName") as String?) ?: packageJsonVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
 
     signingConfigs {
         named("debug") {

@@ -48,10 +48,16 @@ export function loadVideoLibrary(): LibraryVideoItem[] {
  */
 export function saveVideoLibrary(items: LibraryVideoItem[]): void {
   if (!isStorageAvailable() || !Array.isArray(items)) return;
+  const sliced = items.slice(0, MAX_LIBRARY_ITEMS);
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items.slice(0, MAX_LIBRARY_ITEMS)));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sliced));
   } catch (err) {
     console.warn("[VideoLibraryManager] Failed to persist video library:", err);
+  }
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    try {
+      window.dispatchEvent(new CustomEvent("video-library-updated", { detail: sliced }));
+    } catch {}
   }
 }
 
@@ -104,6 +110,11 @@ export function clearVideoLibrary(): void {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
   } catch {
     // Ignore storage errors
+  }
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    try {
+      window.dispatchEvent(new CustomEvent("video-library-updated", { detail: [] }));
+    } catch {}
   }
 }
 

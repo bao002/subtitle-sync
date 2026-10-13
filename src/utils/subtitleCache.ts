@@ -554,10 +554,14 @@ export function getAllCachedTargetLanguages(videoId: string): string[] {
   if (isStorageAvailable()) {
     try {
       const prefix = `${SUBTITLE_CACHE_PREFIX}${videoId}_`;
+      const rawPrefix = `${SUBTITLE_CACHE_PREFIX}raw_${videoId}_`;
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
         if (k && k.startsWith(prefix)) {
           const lang = k.replace(prefix, "");
+          if (lang) set.add(lang.toLowerCase());
+        } else if (k && k.startsWith(rawPrefix)) {
+          const lang = k.replace(rawPrefix, "");
           if (lang) set.add(lang.toLowerCase());
         }
       }
@@ -567,13 +571,46 @@ export function getAllCachedTargetLanguages(videoId: string): string[] {
   // 3. Check memory cache
   for (const key of memoryCache.keys()) {
     const prefix = `${SUBTITLE_CACHE_PREFIX}${videoId}_`;
+    const rawPrefix = `${SUBTITLE_CACHE_PREFIX}raw_${videoId}_`;
     if (key.startsWith(prefix)) {
       const lang = key.replace(prefix, "");
+      if (lang) set.add(lang.toLowerCase());
+    } else if (key.startsWith(rawPrefix)) {
+      const lang = key.replace(rawPrefix, "");
       if (lang) set.add(lang.toLowerCase());
     }
   }
 
   return Array.from(set);
+}
+
+/**
+ * Selectively purges cached subtitles specifically for a single video ID
+ * from both memory cache and localStorage.
+ */
+export function clearVideoSubtitleCache(videoId: string): void {
+  if (!videoId) return;
+  // 1. Clear memory cache
+  for (const key of Array.from(memoryCache.keys())) {
+    if (key.includes(videoId)) {
+      memoryCache.delete(key);
+    }
+  }
+
+  // 2. Clear localStorage
+  if (!isStorageAvailable()) return;
+  try {
+    const prefix = `${SUBTITLE_CACHE_PREFIX}${videoId}`;
+    const rawPrefix = `${SUBTITLE_CACHE_PREFIX}raw_${videoId}`;
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && (k.startsWith(prefix) || k.startsWith(rawPrefix))) {
+        keysToRemove.push(k);
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  } catch {}
 }
 
 /**

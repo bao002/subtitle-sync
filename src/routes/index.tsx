@@ -78,6 +78,7 @@ import { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 import { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
 import { ParserTimingLab } from "@/components/ParserTimingLab";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
+import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
 import {
   getSectionOrder,
   getSubtitleRequestMode,
@@ -121,7 +122,12 @@ import {
 import { recordVideoWatch } from "@/utils/videoLibraryManager";
 import { notifySubtitleFetch } from "@/utils/subtitleNotificationManager";
 import { getApkReleaseLinks } from "@/utils/apkUpdater";
-import { isValidJsonSubtitleResponse, saveCachedRawJson3 } from "@/utils/subtitleCache";
+import {
+  isValidJsonSubtitleResponse,
+  saveCachedRawJson3,
+  getCachedRawJson3,
+} from "@/utils/subtitleCache";
+import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
 import { STORAGE_KEYS, APP_VERSION, ALL_RELEASES_URL, DEFAULT_VIDEO_ID } from "@/config/appConfig";
 import { JSON3_RAW_MAP } from "../../test/fixtures/L2Ryrr6txwA/jsonStrings";
 
@@ -573,6 +579,7 @@ function Index() {
   const handleToggleAutoRetry = useCallback((next: boolean) => {
     saveAutoRetrySubtitles(next);
     setAutoRetrySubtitlesState(next);
+    subtitleRequestQueue.setPaused(!next);
   }, []);
 
   const handleUpdatePacingMin = useCallback((next: number) => {
@@ -631,99 +638,137 @@ function Index() {
       );
       const next: Record<string, Json3> = {};
       for (const code of needed) {
-        await new Promise<void>((resolve) => setTimeout(resolve, 0));
         let json: Json3 | null = null;
-        try {
-          const currentOrder = attemptOrderRef.current;
-          const promote = promoteSuccessRef.current;
-
-          // Reference primary mode order for backward compatibility & preference alignment
-          const _modeOrder = subtitleRequestModeOrder(requestModeRef.current);
-
-          const result = runFetchAttempts({
-            observedUrl: activeUrl,
-            lang: code,
-            order: currentOrder,
-            send: (url, withSession): ExactFetchResult => {
-              const mode = url.includes("tlang=") ? "tlang" : "lang";
-              const sendMode: SendMode = withSession ? "session" : "anon";
-              const tracker = trackNetworkRequest(url, "GET", "native_bridge", {
-                attemptMode: mode,
-                attemptSend: sendMode,
-              });
-              const r: ExactFetchResult = shell.fetchTimedTextExact
-                ? nativeExactFetch(shell, url, withSession)
-                : {
-                    status: 200,
-                    body: shell.fetchTranslatedCaptionsWithUrl(url, code, "json3"),
-                    sentUrl: url,
-                    send: sendMode,
-                  };
-              const isGood = r.status === 200 && isValidJsonSubtitleResponse(r.body);
-              if (isGood) {
-                tracker.complete(r.status, r.body);
-              } else {
-                tracker.fail(
-                  r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"),
-                  r.status,
-                  r.body,
-                );
-              }
-              return r;
-            },
-            isGood: (body) => isValidJsonSubtitleResponse(body),
-          });
-
-          if (result) {
-            if (promote) {
-              const promoted = promoteAttempt(currentOrder, result.winner);
-              setAttemptOrder(promoted);
-              setAttemptOrderState(promoted);
-            }
-            json = parseJson3(result.body);
-            if (json) {
-              if (videoId) {
-                saveCachedRawJson3(videoId, code, result.body);
-              }
+        if (videoId) {
+          const cachedRaw = getCachedRawJson3(videoId, code);
+          if (cachedRaw) {
+            const parsed = parseJson3(cachedRaw);
+            if (parsed) {
+              json = parsed;
               next[code] = json;
               startSubtitlesTransition(() => {
                 setTracks((prev) => ({ ...prev, [code]: json! }));
                 setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
               });
+              subtitleRequestQueue.markSucceeded(videoId, code);
+              continue;
             }
-          } else if (useFetchServerRef.current && fetchServerUrlRef.current) {
-            // Server proxy fallback repetition if enabled
-            const fallbackUrl = buildTranslatedCaptionUrl(activeUrl, code, "json3");
-            const serverTracker = trackNetworkRequest(fallbackUrl, "GET", "server_proxy", {
-              attemptMode: "tlang",
-              attemptSend: "anon",
-            });
-            const serverRes = await fetchViaServer(fetchServerUrlRef.current, fallbackUrl);
-            if (serverRes.status === 200 && isValidJsonSubtitleResponse(serverRes.body)) {
-              serverTracker.complete(serverRes.status, serverRes.body);
-              json = parseJson3(serverRes.body);
-              if (json) {
-                if (videoId) {
-                  saveCachedRawJson3(videoId, code, serverRes.body);
-                }
-                next[code] = json;
-                startSubtitlesTransition(() => {
-                  setTracks((prev) => ({ ...prev, [code]: json! }));
-                  setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
-                });
-              }
-            } else {
-              serverTracker.fail(
-                serverRes.error || `HTTP ${serverRes.status}`,
-                serverRes.status,
-                serverRes.body,
-              );
-              failed.push(code);
-            }
-          } else {
-            failed.push(code);
           }
-        } catch (_err) {
+        }
+        await subtitleRequestQueue.enqueue({
+          videoId: videoId || "current",
+          lang: code,
+          execute: async () => {
+            try {
+              const currentOrder = attemptOrderRef.current;
+              const promote = promoteSuccessRef.current;
+
+              // Reference primary mode order for backward compatibility & preference alignment
+              const _modeOrder = subtitleRequestModeOrder(requestModeRef.current);
+
+              const result = runFetchAttempts({
+                observedUrl: activeUrl,
+                lang: code,
+                order: currentOrder,
+                send: (url, withSession): ExactFetchResult => {
+                  const mode = url.includes("tlang=") ? "tlang" : "lang";
+                  const sendMode: SendMode = withSession ? "session" : "anon";
+                  const tracker = trackNetworkRequest(url, "GET", "native_bridge", {
+                    attemptMode: mode,
+                    attemptSend: sendMode,
+                  });
+                  const r: ExactFetchResult = shell.fetchTimedTextExact
+                    ? nativeExactFetch(shell, url, withSession)
+                    : {
+                        status: 200,
+                        body: shell.fetchTranslatedCaptionsWithUrl(url, code, "json3"),
+                        sentUrl: url,
+                        send: sendMode,
+                      };
+                  const isGood = r.status === 200 && isValidJsonSubtitleResponse(r.body);
+                  if (isGood) {
+                    tracker.complete(r.status, r.body);
+                  } else {
+                    tracker.fail(
+                      r.error || (r.status ? `HTTP ${r.status}` : "Fetch failed"),
+                      r.status,
+                      r.body,
+                    );
+                  }
+                  return r;
+                },
+                isGood: (body) => isValidJsonSubtitleResponse(body),
+              });
+
+              if (result) {
+                if (promote) {
+                  const promoted = promoteAttempt(currentOrder, result.winner);
+                  setAttemptOrder(promoted);
+                  setAttemptOrderState(promoted);
+                }
+                json = parseJson3(result.body);
+                if (json) {
+                  if (videoId) {
+                    saveCachedRawJson3(videoId, code, result.body);
+                  }
+                  recordWinnerPromotion({
+                    videoId: videoId || "unknown",
+                    lang: code,
+                    mode: result.winner.mode,
+                    send: result.winner.send,
+                    cuesCount: json?.events?.length,
+                  });
+                  next[code] = json;
+                  startSubtitlesTransition(() => {
+                    setTracks((prev) => ({ ...prev, [code]: json! }));
+                    setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
+                  });
+                  return true;
+                }
+              } else if (useFetchServerRef.current && fetchServerUrlRef.current) {
+                // Server proxy fallback repetition if enabled
+                const fallbackUrl = buildTranslatedCaptionUrl(activeUrl, code, "json3");
+                const serverTracker = trackNetworkRequest(fallbackUrl, "GET", "server_proxy", {
+                  attemptMode: "tlang",
+                  attemptSend: "anon",
+                });
+                const serverRes = await fetchViaServer(fetchServerUrlRef.current, fallbackUrl);
+                if (serverRes.status === 200 && isValidJsonSubtitleResponse(serverRes.body)) {
+                  serverTracker.complete(serverRes.status, serverRes.body);
+                  json = parseJson3(serverRes.body);
+                  if (json) {
+                    if (videoId) {
+                      saveCachedRawJson3(videoId, code, serverRes.body);
+                    }
+                    recordWinnerPromotion({
+                      videoId: videoId || "unknown",
+                      lang: code,
+                      mode: "tlang",
+                      send: "anon",
+                      cuesCount: json?.events?.length,
+                    });
+                    next[code] = json;
+                    startSubtitlesTransition(() => {
+                      setTracks((prev) => ({ ...prev, [code]: json! }));
+                      setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
+                    });
+                    return true;
+                  }
+                } else {
+                  serverTracker.fail(
+                    serverRes.error || `HTTP ${serverRes.status}`,
+                    serverRes.status,
+                    serverRes.body,
+                  );
+                }
+              }
+              return false;
+            } catch (_err) {
+              return false;
+            }
+          },
+        });
+        if (!json) {
           failed.push(code);
         }
       }
@@ -896,6 +941,13 @@ function Index() {
       targetLanguages.forEach((prevLang) => {
         if (!newTargetLangs.includes(prevLang)) {
           attemptedRef.current.delete(`${currentUrl}|${prevLang}`);
+          subtitleRequestQueue.removeLanguage(prevLang);
+        }
+      });
+    } else {
+      targetLanguages.forEach((prevLang) => {
+        if (!newTargetLangs.includes(prevLang)) {
+          subtitleRequestQueue.removeLanguage(prevLang);
         }
       });
     }
@@ -1033,12 +1085,43 @@ function Index() {
 
   useEffect(() => {
     if (videoId) {
+      subtitleRequestQueue.setVideoContext(videoId);
       recordVideoWatch({
         id: videoId,
         originalUrl: `https://www.youtube.com/watch?v=${videoId}`,
       });
+
+      // Cache hydration: Load any previously cached raw JSON3 subtitle tracks for targetLanguages
+      const activeLangs = targetLanguagesRef.current;
+      const hydratedTracks: Record<string, Json3> = {};
+      activeLangs.forEach((lang) => {
+        const cachedRaw = getCachedRawJson3(videoId, lang);
+        if (cachedRaw) {
+          const parsed = parseJson3(cachedRaw);
+          if (parsed) {
+            hydratedTracks[lang] = parsed;
+            subtitleRequestQueue.markSucceeded(videoId, lang);
+          }
+        }
+      });
+      if (Object.keys(hydratedTracks).length > 0) {
+        startSubtitlesTransition(() => {
+          setTracks((prev) => ({ ...(prev || {}), ...hydratedTracks }));
+          setShown((prev) => Array.from(new Set([...prev, ...Object.keys(hydratedTracks)])));
+        });
+      }
     }
   }, [videoId]);
+
+  useEffect(() => {
+    if (tracks && videoId) {
+      Object.entries(tracks).forEach(([code, track]) => {
+        if (track?.events && track.events.length > 0) {
+          subtitleRequestQueue.markSucceeded(videoId, code);
+        }
+      });
+    }
+  }, [tracks, videoId]);
   const [active, setActive] = useState(-1);
   const [speakingLang, setSpeakingLang] = useState<string | null>(null);
   const [speakingRow, setSpeakingRow] = useState(-1);
@@ -1051,6 +1134,11 @@ function Index() {
       const id = parseVideoId(link);
       if (id) {
         console.log("[SHARED_LINK_DISPATCH]", id, link);
+        // Persist immediately to video library so shared video is remembered
+        recordVideoWatch({
+          id,
+          originalUrl: link.startsWith("http") ? link : `https://www.youtube.com/watch?v=${id}`,
+        });
         setVideoId((prevId) => {
           if (id !== prevId) {
             setTracks(null);
@@ -2288,6 +2376,7 @@ function Index() {
                         onToggleUseFetchServer={handleToggleUseFetchServer}
                         fetchServerUrl={fetchServerUrl}
                         onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
+                        onSelectVideo={handleSelectLibraryVideo}
                       />
                       <div className="pt-2 border-t border-border/60 space-y-2">
                         <label className="flex items-center gap-2 cursor-pointer">
@@ -2397,6 +2486,13 @@ function Index() {
                 <VideoLibraryPanel
                   currentVideoId={videoId}
                   onSelectVideo={handleSelectLibraryVideo}
+                  onClearVideoCache={(clearedId) => {
+                    if (clearedId === videoId) {
+                      setTracks(null);
+                      setObservedUrl("");
+                      subtitleRequestQueue.resetVideo(clearedId);
+                    }
+                  }}
                 />
               )}
 

@@ -113,11 +113,13 @@ assert(panelCode.includes("data-testid=\"library-clear-btn\""), "Must support cl
 assert(panelCode.includes("getVideoThumbnailUrl"), "Must render video thumbnail URLs");
 console.log("✅ PASS: VideoLibraryPanel component contains required testids and controls");
 
-// Test 9: Verify index.tsx integration
+// Test 9: Verify index.tsx & PANELS integration
 const indexCode = path.resolve(process.cwd(), "src/routes/index.tsx");
 const indexContent = fs.readFileSync(indexCode, "utf-8");
+const themesCode = path.resolve(process.cwd(), "src/config/accordionThemes.ts");
+const themesContent = fs.readFileSync(themesCode, "utf-8");
 assert(indexContent.includes('import { VideoLibraryPanel } from "@/components/VideoLibraryPanel"'));
-assert(indexContent.includes('id: "library", title: "Video library"'));
+assert(themesContent.includes('{ id: "library", title: "Video library" }'));
 assert(indexContent.includes('handleSelectLibraryVideo'));
 assert(indexContent.includes('{panelId === "library" && ('));
 console.log("✅ PASS: src/routes/index.tsx cleanly integrates VideoLibraryPanel in PANELS list");

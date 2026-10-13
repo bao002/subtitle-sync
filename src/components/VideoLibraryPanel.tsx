@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react";
-import { Play, Trash2, Clock, Search, RotateCcw, Video } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Play, Trash2, Clock, Search, RotateCcw, Video, Database } from "lucide-react";
 import { LibraryVideoItem } from "@/types";
 import {
   getVideoThumbnailUrl,
@@ -8,28 +8,59 @@ import {
   clearVideoLibrary,
   loadVideoLibrary,
 } from "@/utils/videoLibraryManager";
+import { clearVideoSubtitleCache } from "@/utils/subtitleCache";
 import { Button } from "@/components/ui/button";
 
 export interface VideoLibraryPanelProps {
   currentVideoId: string;
   onSelectVideo: (videoId: string, url?: string) => void;
+  onClearVideoCache?: (videoId: string) => void;
   className?: string;
 }
 
 export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
   currentVideoId,
   onSelectVideo,
+  onClearVideoCache,
   className = "",
 }) => {
   const [items, setItems] = useState<LibraryVideoItem[]>(() => loadVideoLibrary());
   const [searchQuery, setSearchQuery] = useState("");
+  const [clearedCaches, setClearedCaches] = useState<Record<string, boolean>>({});
 
   const refreshItems = () => {
     setItems(loadVideoLibrary());
   };
 
+  useEffect(() => {
+    refreshItems();
+  }, [currentVideoId]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      refreshItems();
+    };
+    window.addEventListener("video-library-updated", handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+    return () => {
+      window.removeEventListener("video-library-updated", handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, []);
+
+  const handleClearCache = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    clearVideoSubtitleCache(id);
+    onClearVideoCache?.(id);
+    setClearedCaches((prev) => ({ ...prev, [id]: true }));
+    setTimeout(() => {
+      setClearedCaches((prev) => ({ ...prev, [id]: false }));
+    }, 2000);
+  };
+
   const handleRemove = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    clearVideoSubtitleCache(id);
     const updated = removeVideoFromLibrary(id);
     setItems(updated);
   };
@@ -171,15 +202,32 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
                     <span className="text-muted-foreground">
                       {isActive ? "Currently loaded" : "Click to load"}
                     </span>
-                    <button
-                      type="button"
-                      aria-label={`Remove ${item.title} from history`}
-                      data-testid={`library-remove-btn-${item.id}`}
-                      onClick={(e) => handleRemove(e, item.id)}
-                      className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        aria-label={`Clear cached subtitles for ${item.title}`}
+                        data-testid={`library-clear-cache-btn-${item.id}`}
+                        title={clearedCaches[item.id] ? "Cache purged!" : "Clear cached subtitles"}
+                        onClick={(e) => handleClearCache(e, item.id)}
+                        className={`rounded px-1.5 py-0.5 text-[10px] flex items-center gap-1 border transition-colors ${
+                          clearedCaches[item.id]
+                            ? "bg-green-500/20 text-green-600 border-green-500/30"
+                            : "text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <Database className="h-3 w-3" />
+                        <span>{clearedCaches[item.id] ? "Cleared" : "Clear cache"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${item.title} from history`}
+                        data-testid={`library-remove-btn-${item.id}`}
+                        onClick={(e) => handleRemove(e, item.id)}
+                        className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
