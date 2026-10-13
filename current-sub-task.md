@@ -1,5 +1,7 @@
 # Current Subtask (`current-sub-task.md`)
 
-## Status: All Active Prompt Tasks Completed (Task 59 Done)
+## Status: Idle / All Staged Tasks Completed
 
-All prompt requirements for Task 59 (Compact UI per-language settings, robust voice selection resolution, Accordion auto-fold and pin toggles, video subtitle scoping, legacy iframe player removal, library "Fetch from scratch" cache controls, and clean language removal across columns, speech, tracks, cache, and player instances) have been completed, verified with dedicated test `test:compact-ui-language-cleanup`, compiled, linted, and migrated to `docs/done.md`.
+All subtasks for **Task 96 (Android Background Audio Playback & Lockscreen MediaSession Controls)** have been fully implemented, verified via `npm run test:android-background-audio`, built with zero errors (`compile_applet`), linted with zero warnings (`lint_applet`), and migrated to `docs/done.md`.
+
+Ready for next prompt instruction or next backlog task staging.

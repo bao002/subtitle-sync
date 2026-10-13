@@ -96,9 +96,16 @@ import {
   setRetryPacingMinSec as saveRetryPacingMinSec,
   getRetryPacingMaxSec,
   setRetryPacingMaxSec as saveRetryPacingMaxSec,
+  getBackgroundAudioEnabled,
+  setBackgroundAudioEnabled as saveBackgroundAudioEnabled,
   type SectionOrder,
   type SubtitleRequestMode,
 } from "@/lib/playback-preferences";
+import {
+  initBackgroundMediaManager,
+  syncMediaMetadata,
+  setNativeBackgroundAudio,
+} from "@/utils/backgroundMediaManager";
 import { ApkReleaseModal } from "@/components/ApkReleaseModal";
 import { SubtitleFetchToast } from "@/components/SubtitleFetchToast";
 import { VideoLibraryPanel } from "@/components/VideoLibraryPanel";
@@ -537,6 +544,9 @@ function Index() {
   const [retryPacingMaxSec, setRetryPacingMaxSecState] = useState<number>(() =>
     getRetryPacingMaxSec(),
   );
+  const [backgroundAudioEnabled, setBackgroundAudioEnabledState] = useState<boolean>(() =>
+    getBackgroundAudioEnabled(),
+  );
 
   useEffect(() => {
     // Load device-saved preferences after hydration
@@ -549,6 +559,7 @@ function Index() {
     setAutoRetrySubtitlesState(getAutoRetrySubtitles());
     setRetryPacingMinSecState(getRetryPacingMinSec());
     setRetryPacingMaxSecState(getRetryPacingMaxSec());
+    setBackgroundAudioEnabledState(getBackgroundAudioEnabled());
   }, []);
   const requestModeRef = useRef(requestMode);
   requestModeRef.current = requestMode;
@@ -599,6 +610,12 @@ function Index() {
     const val = Math.max(1, next);
     saveRetryPacingMaxSec(val);
     setRetryPacingMaxSecState(val);
+  }, []);
+
+  const handleToggleBackgroundAudio = useCallback((enabled: boolean) => {
+    setBackgroundAudioEnabledState(enabled);
+    saveBackgroundAudioEnabled(enabled);
+    setNativeBackgroundAudio(enabled);
   }, []);
 
   const [networkInspectorOpen, setNetworkInspectorOpen] = useState(false);
@@ -1434,6 +1451,71 @@ function Index() {
   }, []);
 
   useEffect(() => {
+    const cleanupMedia = initBackgroundMediaManager({
+      onPlay: () => {
+        try {
+          player.current?.playVideo?.();
+        } catch (_err) {
+          // ignore playback error
+        }
+      },
+      onPause: () => {
+        try {
+          player.current?.pauseVideo?.();
+        } catch (_err) {
+          // ignore pause error
+        }
+      },
+      onSeek: (seconds: number) => {
+        try {
+          player.current?.seekTo?.(seconds, true);
+        } catch (_err) {
+          // ignore seek error
+        }
+      },
+      onStop: () => {
+        try {
+          player.current?.stopVideo?.();
+        } catch (_err) {
+          // ignore stop error
+        }
+      },
+      onNextSection: () => {
+        try {
+          const p = player.current;
+          if (!p?.getCurrentTime) return;
+          const currentMs = p.getCurrentTime() * 1000;
+          const currentRows = st.current.rows;
+          const nextCue = currentRows.find((r) => r.start > currentMs + 500);
+          if (nextCue) {
+            p.seekTo?.(nextCue.start / 1000, true);
+          }
+        } catch (_err) {
+          // ignore section jump error
+        }
+      },
+      onPrevSection: () => {
+        try {
+          const p = player.current;
+          if (!p?.getCurrentTime) return;
+          const currentMs = p.getCurrentTime() * 1000;
+          const currentRows = st.current.rows;
+          const prevCues = currentRows.filter((r) => r.start < currentMs - 1500);
+          const prevCue = prevCues[prevCues.length - 1];
+          if (prevCue) {
+            p.seekTo?.(prevCue.start / 1000, true);
+          } else {
+            p.seekTo?.(0, true);
+          }
+        } catch (_err) {
+          // ignore section jump error
+        }
+      },
+    });
+    return cleanupMedia;
+  }, []);
+
+  useEffect(() => {
     if (
       typeof window === "undefined" ||
       !("speechSynthesis" in window) ||
@@ -1653,6 +1735,28 @@ function Index() {
         handledRow.current = -1;
       }
       lastMs.current = ms;
+
+      // Sync background media metadata & playback progress
+      try {
+        const title =
+          (p.getVideoData && p.getVideoData()?.title) ||
+          (videoId ? `YouTube (${videoId})` : "YouTube Video");
+        const isPlaying = p.getPlayerState ? p.getPlayerState() === 1 : true;
+        const curSec = ms / 1000;
+        const durSec = p.getDuration ? p.getDuration() : 0;
+        syncMediaMetadata({
+          title,
+          artist:
+            targetLanguagesRef.current && targetLanguagesRef.current.length > 0
+              ? `Subtitles: ${targetLanguagesRef.current.join(", ")}`
+              : "Parallel Subtitles",
+          isPlaying,
+          positionSec: curSec,
+          durationSec: durSec,
+        });
+      } catch (_err) {
+        // ignore media sync error
+      }
 
       const {
         rows,
@@ -2503,6 +2607,16 @@ function Index() {
                       onChange={(e) => setShowVideoSubtitles(e.target.checked)}
                     />{" "}
                     Show spoken subtitle over video
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input
+                      id="background-audio-toggle"
+                      data-testid="background-audio-toggle"
+                      type="checkbox"
+                      checked={backgroundAudioEnabled}
+                      onChange={(e) => handleToggleBackgroundAudio(e.target.checked)}
+                    />{" "}
+                    Background audio &amp; lockscreen playback controls
                   </label>
                 </div>
               )}

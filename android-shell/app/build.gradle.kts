@@ -75,6 +75,9 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.webkit:webkit:1.10.0")
 
+    // MediaSession and background playback notification
+    implementation("androidx.media:media:1.7.0")
+
     // OkHttp for fetching & intercepting requests directly
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

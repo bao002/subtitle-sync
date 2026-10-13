@@ -1,9 +1,12 @@
 # Temporary Scratchpad (`temp.md`)
 
-- Task 95 Completed:
-  - Winner Promotion Report persistence across all past videos implemented in `src/utils/winnerPromotionTracker.ts` and `src/components/WinnerPromotionReportModal.tsx`.
-  - Subtitle caching architecture documented in `docs/cache.md`.
-  - Shared video persistence fixed in `openLink(link)` and `src/utils/videoLibraryManager.ts` with `video-library-updated` event dispatch.
-  - VideoLibraryPanel made reactive to storage, events, and `currentVideoId`, with per-card Clear cache buttons.
-  - Cache hydration implemented on video switch/load in `src/routes/index.tsx` via `getCachedRawJson3`.
-  - Verified with `npm run test:cache-and-winner-promotion`, `compile_applet`, and `lint_applet`.
+- Task 96 Completed:
+  - Android Foreground Service `BackgroundAudioService.kt` with `MediaSessionCompat`, `NotificationCompat.MediaStyle`, and transport controls.
+  - `AndroidManifest.xml` permissions (`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `POST_NOTIFICATIONS`, `WAKE_LOCK`) and service declaration.
+  - `MainActivity.kt` bridge methods (`setBackgroundAudioEnabled`, `updateMediaMetadata`, and `window.onNativeMediaCommand` dispatch).
+  - Web client MediaSession integration in `src/utils/backgroundMediaManager.ts`.
+  - Background audio playback preferences in `src/lib/playback-preferences.ts`.
+  - UI toggle in Playback Settings accordion in `src/routes/index.tsx`.
+  - Dedicated automated verification test `scripts/verify-android-background-audio-service.ts` passing 7/7 checks.
+  - Verified with `npm run test:android-background-audio`, `compile_applet`, and `lint_applet`.
+  - Migrated to `docs/done.md`.

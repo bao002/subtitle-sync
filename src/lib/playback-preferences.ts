@@ -10,6 +10,7 @@ const KEYS = {
   autoRetrySubtitles: "yt_auto_retry_subtitles_v1",
   retryPacingMinSec: "yt_retry_pacing_min_sec_v1",
   retryPacingMaxSec: "yt_retry_pacing_max_sec_v1",
+  backgroundAudio: "yt_background_audio_enabled_v1",
 } as const;
 
 const memoryStorage = new Map<string, string>();
@@ -193,4 +194,19 @@ export const getRandomRetryDelayMs = (
   const diff = safeMax - safeMin;
   const randomSec = safeMin + Math.random() * diff;
   return Math.round(randomSec * 1000);
+};
+
+export const getBackgroundAudioEnabled = (): boolean => {
+  const s = getStorage();
+  if (!s) return true;
+  try {
+    const raw = s.getItem(KEYS.backgroundAudio);
+    return raw !== null ? raw === "1" || raw === "true" : true;
+  } catch {
+    return true;
+  }
+};
+
+export const setBackgroundAudioEnabled = (enabled: boolean) => {
+  write(KEYS.backgroundAudio, enabled ? "1" : "0");
 };

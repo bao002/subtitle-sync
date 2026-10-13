@@ -1,5 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Status: All Active Prompt Tasks Completed (Task 59 Done)
+## Status: Idle / All Staged Tasks Completed
 
-All prompt requirements for Task 59 (Compact UI per-language settings, robust voice selection resolution, Accordion auto-fold and pin toggles, video subtitle scoping, legacy iframe player removal, library "Fetch from scratch" cache controls, and clean language removal across columns, speech, tracks, cache, and player instances) have been completed, verified with dedicated test `test:compact-ui-language-cleanup`, compiled, linted, and migrated to `docs/done.md`.
+Task 96 migrated to `docs/done.md`.
+Ready for next task.

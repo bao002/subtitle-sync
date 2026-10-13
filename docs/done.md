@@ -74,6 +74,33 @@
 - Registered `"test:cache-and-winner-promotion"` in `package.json` and cataloged files in `docs/files.md`.
 - Verified 100% test pass (`npm run test:cache-and-winner-promotion`), clean build compilation (`compile_applet`), and zero lint errors (`lint_applet`).
 
+## Task 96: Android Background Audio Playback & Lockscreen MediaSession Controls
+
+### Subtask 96.1: Stage Task 96 in Tracking Documentation
+- Updated `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and `temp.md`.
+- Established atomic subtask plan for Android Foreground Service and Web Client MediaSession coordination.
+
+### Subtask 96.2: Android Shell Foreground Service & MediaSession Implementation
+- Added `androidx.media:media:1.7.0` to `android-shell/app/build.gradle.kts`.
+- Added `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, and `POST_NOTIFICATIONS` permissions to `AndroidManifest.xml`.
+- Registered `BackgroundAudioService` with `foregroundServiceType="mediaPlayback"` in `AndroidManifest.xml`.
+- Implemented `BackgroundAudioService.kt` with `MediaSessionCompat`, `NotificationCompat.MediaStyle`, audio transport action handlers (`ACTION_PLAY`, `ACTION_PAUSE`, `ACTION_NEXT`, `ACTION_PREV`, `ACTION_STOP`), notification channel creation, and wake lock acquisition.
+- Exposed native bridge methods in `MainActivity.kt` (`setBackgroundAudioEnabled`, `updateMediaMetadata`, and `dispatchMediaCommand` evaluating `window.onNativeMediaCommand`).
+
+### Subtask 96.3: Web Client MediaSession Bridge, Preferences & Settings UI
+- Added background audio preference in `src/lib/playback-preferences.ts` (`getBackgroundAudioEnabled`, `setBackgroundAudioEnabled`) using key `yt_background_audio_enabled_v1`.
+- Created `src/utils/backgroundMediaManager.ts` managing client playback state, lockscreen progress, and dispatching transport actions between native shell, Web MediaSession, and YouTube player.
+- Declared native types and Window callbacks in `src/types.ts` (`setBackgroundAudioEnabled`, `updateMediaMetadata`, `onNativeMediaCommand`).
+- Integrated `initBackgroundMediaManager` and `syncMediaMetadata` in `src/routes/index.tsx`.
+- Added UI toggle (`#background-audio-toggle` / `data-testid="background-audio-toggle"`) in Playback Settings accordion in `src/routes/index.tsx`.
+
+### Subtask 96.4: Dedicated Automated Verification Test, Compilation, Linting & Migration to done.md
+- Authored dedicated automated verification test `scripts/verify-android-background-audio-service.ts` validating all 7 architectural components across AndroidManifest, Kotlin service, MainActivity bridge, TypeScript types, preferences, media manager, and React route UI.
+- Registered `"test:android-background-audio"` in `package.json` and cataloged in `docs/files.md`.
+- Verified 100% test pass rate (`npm run test:android-background-audio`).
+- Verified clean build compilation (`compile_applet`) and zero ESLint errors or warnings (`lint_applet`).
+
+
 ## Task 94: Auto-Retry Pacing Architecture & Android Application Versioning and Updates
 
 ### Subtask 94.1: Stage Task 94 in Tracking Documentation

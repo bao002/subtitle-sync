@@ -86,6 +86,7 @@
     "test:emulator-screencast-report": "tsx scripts/verify-emulator-screencast-report.ts",
     "test:android-device-e2e": "tsx scripts/verify-android-device-e2e-suite.ts",
     "test:android-adaptive": "tsx scripts/verify-android-device-e2e-adaptive.ts",
+    "test:android-background-audio": "tsx scripts/verify-android-background-audio-service.ts",
     "test:accordion-colors": "tsx scripts/verify-accordion-colors.ts",
     "test:compact-ui-language-cleanup": "tsx scripts/verify-compact-ui-and-language-cleanup.ts",
     "test:auto-speak-on-fetch": "tsx scripts/verify-auto-speak-on-fetch.ts",
