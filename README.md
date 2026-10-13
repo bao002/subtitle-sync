@@ -43,6 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/mostuf25564/subtitle-sync/main/upda
 
 ## 📁 Repository Documentation & Quarantined Assets
 
+- **Master Documentation & Files Catalog**: [`docs/files.md`](./docs/files.md) (comprehensive directory explaining every doc in `docs/` and all codebase files)
 - **Strategy Specification**: [`docs/fix-android-e2e-test-and-video-product.md`](./docs/fix-android-e2e-test-and-video-product.md)
 - **Agent Instructions**: [`AGENTS.md`](./AGENTS.md)
 - **Android Architecture**: [`docs/android.md`](./docs/android.md)
@@ -51,7 +52,8 @@ curl -fsSL https://raw.githubusercontent.com/mostuf25564/subtitle-sync/main/upda
 - **Self Verification**: [`docs/self-verification.md`](./docs/self-verification.md)
 - **Task Backlog**: [`docs/tasks.md`](./docs/tasks.md)
 - **Completed Log**: [`docs/done.md`](./docs/done.md)
-- **File Inventory**: [`docs/files.md`](./docs/files.md)
 - **Project Roadmap**: [`docs/roadmap.md`](./docs/roadmap.md)
+
+
 
 *(Legacy web reports like [mochawesome.html](https://mostuf25564.github.io/subtitle-sync/mochawesome.html) and [playwright](https://mostuf25564.github.io/subtitle-sync/playwright/index.html) are deprecated and quarantined in `quarentined/`.)*

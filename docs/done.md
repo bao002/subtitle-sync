@@ -1,6 +1,34 @@
 # Done tasks
 
-## Task 97: Quarantine Failing/Deprecated E2E Tests, Minimize Report & Focus on Android YouTube Share E2E
+## Task 99: Consolidate Documentation Index into `docs/files.md` & Remove Redundant `docs/index.md`
+
+### Summary:
+- **Consolidated into `docs/files.md`**: Enhanced `docs/files.md` to serve as the single, authoritative master catalog of all documentation files under `docs/*.md` and the repository root, with detailed descriptions of their roles, features, and responsibilities across:
+  - Core Architectural & Operational Specifications (`tokens.md`, `android.md`, `parser.md`, `self-verification.md`, `fix-android-e2e-test-and-video-product.md`, `reliable-subtitles-fetching.md`, `auto-retry.md`, `cache.md`, `youtube.md`, `versioning.md`, `files.md`, `roadmap.md`).
+  - Active Backlog & Changelog Tracking (`tasks.md`, `todo.md`, `done.md`, `later.md`).
+  - Replaceable View Design Contracts (`docs/designs/*.md`).
+  - Technical Schemas & Operations (`docs/specifications/*.md`, `docs/operations/*.md`).
+  - Root Entry Points & Scratchpads (`README.md`, `AGENTS.md`, `current-sub-task.md`, `temp.md`).
+- **Eliminated Duplicate/Redundant File**: Deleted `docs/index.md` so that `docs/files.md` remains the sole, unified file and documentation directory.
+- **Updated `README.md`**: Linked `docs/files.md` directly as the Master Documentation & Files Catalog.
+- **Reverted Verification Check**: Updated `scripts/verify-no-duplicate-md-files.ts` to remove `docs/index.md`.
+- **Automated Verification**: Passed `npm run test:no-duplicate-md` (39 files, 0 duplicates), `npm run test:readme-links`, `npm run test:quarantine-minimal-share`, `compile_applet`, and `lint_applet`.
+
+
+
+### Summary:
+- **Created `docs/index.md`**: Comprehensive master index cataloging and explaining every documentation file in `docs/` across all categories:
+  - Core Architectural & Operational Specifications (`tokens.md`, `android.md`, `parser.md`, `self-verification.md`, `fix-android-e2e-test-and-video-product.md`, `reliable-subtitles-fetching.md`, `auto-retry.md`, `cache.md`, `youtube.md`, `versioning.md`, `files.md`, `roadmap.md`).
+  - Active Backlog & Changelog Tracking (`tasks.md`, `todo.md`, `done.md`, `later.md`).
+  - Replaceable View Design Contracts (`docs/designs/*.md`).
+  - Technical Schemas & Operations (`docs/specifications/*.md`, `docs/operations/*.md`).
+  - Root Entry Points (`README.md`, `AGENTS.md`, `current-sub-task.md`, `temp.md`).
+- **Updated `README.md`**: Linked `docs/index.md` as the primary master documentation index.
+- **Updated `docs/files.md`**: Registered `docs/index.md` in the files registry.
+- **Enforced in `scripts/verify-no-duplicate-md-files.ts`**: Added `docs/index.md` to required canonical documents.
+- **Automated Verification**: Verified with `npm run test:no-duplicate-md` (40 unique md files, 0 duplicates), `npm run test:readme-links`, `npm run test:quarantine-minimal-share`, `compile_applet`, and `lint_applet`.
+
+
 
 ### Summary:
 - **Strategic Reboot Specification (`docs/fix-android-e2e-test-and-video-product.md`)**:

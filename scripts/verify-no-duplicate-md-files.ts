@@ -100,6 +100,7 @@ const requiredDocsFiles = [
   "docs/later.md",
 ];
 
+
 for (const req of requiredDocsFiles) {
   const fullPath = path.resolve(rootDir, req);
   assert(fs.existsSync(fullPath), `Required canonical documentation file must exist: "${req}"`);
