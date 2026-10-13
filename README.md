@@ -25,7 +25,7 @@ An Android native shell application for YouTube learning with synchronized multi
 - **Repository**: mostuf25561/subtitle-sync
 - **Workflow / Checker**: README Link Integrity & Documentation Check
 - **Failing Step**: npm run test:readme-links
-- **Run URL**: https://github.com/mostuf25561/subtitle-sync/actions/runs/38482687347
+- **Run URL**: https://github.com/mostuf25561/subtitle-sync/actions/runs/38483257115
 
 ### Failure Log & Diagnosis:
 Broken relative links or missing workflow files detected in README.md.
