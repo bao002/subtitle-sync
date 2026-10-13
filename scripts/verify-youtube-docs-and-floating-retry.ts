@@ -25,8 +25,8 @@ console.log("--> [Step 1] Verifying server option deprecation annotations and ba
 const subtitleFetchPlanPath = path.resolve(__dirname, "../src/lib/subtitle-fetch-plan.ts");
 const subtitleFetchPlanContent = fs.readFileSync(subtitleFetchPlanPath, "utf-8");
 assert(
-  subtitleFetchPlanContent.includes("@deprecated"),
-  "subtitle-fetch-plan.ts must mark server fetch functions as @deprecated",
+  subtitleFetchPlanContent.includes("buildServerProxyUrl"),
+  "subtitle-fetch-plan.ts must build <server>/api/proxy URLs",
 );
 
 const attemptOrderSettingsPath = path.resolve(
