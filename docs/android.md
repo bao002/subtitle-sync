@@ -165,6 +165,10 @@ To maintain clean repository hygiene:
 3. **Deployment to `gh-pages` Branch Only**:
    - Artifacts are copied to `gh-pages-staging/` during workflow execution.
    - The `peaceiris/actions-gh-pages@v4` action pushes the staged directory strictly to the orphaned `gh-pages` branch, keeping the `main` branch pristine.
+4. **Automated Status Reflection in `README.md`**:
+   - Once `emulation.yml` concludes, `.github/workflows/update-readme.yml` triggers via `workflow_run`.
+   - If tests pass, the README dynamically reflects the `ALL VERIFIED` status with verified links to the HTML report, MP4 screencast video, and screenshot.
+   - If tests fail, the README highlights the exact failure step and embeds a copy-pasteable AI fix prompt for 1-click reproduction. See [`docs/operations/ACTIONS.md`](./operations/ACTIONS.md) for complete details.
 
 ---
 

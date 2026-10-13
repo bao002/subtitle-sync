@@ -13,6 +13,17 @@ An Android native shell application for YouTube learning with synchronized multi
 
 ---
 
+<!-- CI_STATUS_INDICATOR_START -->
+## 🚦 Latest CI Build & Test Status: ALL VERIFIED
+
+- **Android Emulator E2E Tests**: [Verified (Android 14 API 34)](https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html)
+- **Android Emulator Screencast Video**: [Download MP4 (6.41 MB)](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)
+- **Screenshot Image**: [View UI Capture](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png)
+- **Workflow Runs**: [GitHub Actions Dashboard](https://github.com/mostuf25561/subtitle-sync/actions)
+<!-- CI_STATUS_INDICATOR_END -->
+
+---
+
 ## 📱 Live Android Emulator Verification Report
 
 Access the primary, working verification report proving the core feature on Android 14 (API 34):
@@ -26,7 +37,7 @@ Access the primary, working verification report proving the core feature on Andr
 
 ### 📦 Verified Test Products:
 1. **Android Logs**: [Download `android-emulator-logcat.txt`](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-logcat.txt) (or live logcat audit)
-2. **Screencast Video**: [Download `android-emulator-video.mp4`](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (authentic screen recording)
+2. **Android Emulator Screencast Video**: [Download `android-emulator-video.mp4` (6.41 MB MP4 recording)](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (authentic screen recording)
 3. **Screenshot Images**: [View `android-emulator-screenshot.png`](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) (full-resolution UI capture)
 
 ---

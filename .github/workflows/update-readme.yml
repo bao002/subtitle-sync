@@ -6,7 +6,12 @@ on:
       - main
       - master
   workflow_run:
-    workflows: ["Android Emulator E2E Tests"]
+    workflows:
+      - "Android Emulator E2E Tests"
+      - "Web E2E Tests"
+      - "Build & Release Android APK"
+      - "Report Integrity Verification"
+      - "Automated Error Reporting & AI Reproduction Fix Engine"
     types:
       - completed
   workflow_dispatch:
@@ -20,7 +25,7 @@ permissions:
 
 jobs:
   sync-readme:
-    name: Synchronize README.md with Repository Identity
+    name: Synchronize README.md with Repository Identity & CI Status
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -35,21 +40,39 @@ jobs:
         with:
           node-version: 22
 
-      - name: Run README.md Synchronization
+      - name: Run README.md Synchronization & Status Extraction
         run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+              export CI_STATUS="failure"
+              export FAILED_WORKFLOW="${{ github.event.workflow_run.name }}"
+              export FAILED_STEP="Conclusion: ${{ github.event.workflow_run.conclusion }}"
+              export ERROR_MESSAGE="Workflow '${{ github.event.workflow_run.name }}' concluded with status '${{ github.event.workflow_run.conclusion }}'. Run details: ${{ github.event.workflow_run.html_url }}"
+            else
+              export CI_STATUS="success"
+            fi
+          fi
+          # Active broken links and documentation validation
+          if ! npm run test:readme-links 2>/dev/null; then
+            export CI_STATUS="failure"
+            export FAILED_WORKFLOW="README Link Integrity & Documentation Check"
+            export FAILED_STEP="npm run test:readme-links"
+            export ERROR_MESSAGE="Broken relative links or missing workflow files detected in README.md."
+          fi
           node scripts/update-readme.mjs
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_RUN_ID: ${{ github.event.workflow_run.id || github.run_id }}
 
       - name: Commit and Push if README Changed
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           if ! git diff --exit-code README.md; then
-            echo "README.md has been updated to match repository '${{ github.repository }}'. Committing changes..."
+            echo "README.md has been updated. Committing changes..."
             git add README.md
-            git commit -m "chore(docs): synchronize README.md repository identity for ${{ github.repository }}"
+            git commit -m "chore(docs): synchronize README.md repository identity and CI status for ${{ github.repository }}"
             git push origin ${{ github.ref_name }}
           else
             echo "README.md is already up to date with repository '${{ github.repository }}'."

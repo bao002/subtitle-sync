@@ -121,6 +121,8 @@
     "test:error-reporting": "tsx scripts/verify-error-reporting-workflow.ts",
     "test:auto-retry-and-versioning": "tsx scripts/verify-auto-retry-and-versioning.ts",
     "test:quarantine-minimal-share": "tsx scripts/verify-quarantine-and-minimal-share-e2e.ts",
+    "test:readme-error-indicator": "tsx scripts/verify-readme-error-indicator.ts",
+    "test:actions-readme-sync-docs": "tsx scripts/verify-actions-readme-sync-docs.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

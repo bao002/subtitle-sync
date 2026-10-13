@@ -1,5 +1,82 @@
 # Done tasks
 
+## Task 106: Document GitHub Actions & GitHub Pages to README.md Summary Lifecycle for Broken Tests and Links
+
+### Summary:
+- **Architectural Documentation in `docs/operations/ACTIONS.md`**:
+  - Added Section 2.6 documenting `.github/workflows/update-readme.yml` and Section 2.7 documenting `.github/workflows/integrity.yml`.
+  - Added Section 4: "End-to-End Pipeline: From GitHub Actions & GitHub Pages to README.md Broken Test and Link Summary" with:
+    - Complete ASCII telemetry loop showing how workflow execution -> GitHub Pages hosting -> `workflow_run` event interception -> `scripts/update-readme.mjs` link & CI analysis -> dynamic README indicator generation -> automated `[skip ci]` Git commit.
+    - Deep explanation of why screencasts and reports may initially seem missing on fresh clones/forks due to orphaned `gh-pages` deployment and asynchronous test runner execution.
+    - Full technical description of `scanReadmeBrokenLinks`, dynamic anchor boundaries (`<!-- CI_STATUS_INDICATOR_START -->` / `<!-- CI_STATUS_INDICATOR_END -->`), status state formatting (`ALL VERIFIED` vs `FAILED`), and copy-pasteable AI fix prompts.
+    - Explanation of loop prevention mechanisms using `git diff --exit-code README.md` and `[skip ci]`.
+- **Cross-Reference in `docs/self-verification.md` & `docs/android.md`**:
+  - Added Sanity Check 7 to `docs/self-verification.md` and integrated `npm run test:readme-error-indicator` into the Quick Verification Matrix.
+  - Added Section 6.4 to `docs/android.md` documenting automated status reflection in `README.md`.
+- **Dedicated Automated Verification Test (`scripts/verify-actions-readme-sync-docs.ts`)**:
+  - Asserts that all concepts, anchors, and workflows are accurately documented in `docs/operations/ACTIONS.md`, `docs/self-verification.md`, and `docs/android.md`.
+  - Registered as `npm run test:actions-readme-sync-docs` in `package.json` and cataloged in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:actions-readme-sync-docs` (Passed 100%)
+  - `npm run test:no-duplicate-md` (Passed 100%)
+  - `npm run test:md` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:readme-error-indicator` (Passed 100%)
+  - `lint_applet` (0 errors)
+  - `compile_applet` (Succeeded)
+
+## Task 105: Automate Broken Links Detection & Latest Error Info Sync in README.md
+
+### Summary:
+- **Active Broken Link Scanner (`scripts/update-readme.mjs`)**:
+  - Implemented `scanReadmeBrokenLinks(markdownContent, rootDir)` detecting missing relative target files, unresolvable anchors, missing screenshot assets, and invalid workflow badges.
+  - Automatically flags CI status as `failure` if any broken links are discovered.
+  - Generates detailed broken link diagnostic entries with line numbers and expected filesystem paths.
+  - Formats an actionable `# AI FIX PROMPT: CI Failure in README Link Integrity & Documentation Check` ready to copy-paste directly into AI Studio.
+- **Workflow Link Validation Integration (`.github/workflows/update-readme.yml`)**:
+  - Integrated `npm run test:readme-links` into the automated README synchronization step.
+  - Captures any link or documentation regression and immediately updates and commits `README.md` with the error and broken links info.
+- **Automated Verification**:
+  - Enhanced dedicated test suite `scripts/verify-readme-error-indicator.ts` with Test 5 verifying active broken link detection, failure triggering, diagnostic reporting, and automatic recovery.
+  - Verified with `npm run test:readme-error-indicator`, `npm run test:readme-links`, `npm run test:no-duplicate-md`, `lint_applet` (0 errors), and `compile_applet`.
+
+## Task 104: Automated README CI Status Indicator & Copy-Paste AI Error Prompt Sync
+
+### Summary:
+- **CI Status & Error Indicator Generator (`scripts/update-readme.mjs`)**:
+  - Injected dynamic status demarcations (`<!-- CI_STATUS_INDICATOR_START -->` ... `<!-- CI_STATUS_INDICATOR_END -->`) into `README.md`.
+  - Added support for both success (`ALL VERIFIED` with links to report, screencast MP4, screenshot, and actions dashboard) and failure states (`🚨 FAILED` alert banner with failing workflow name, step, and run URL).
+  - Automatically generates a formatted, clean markdown code block (`# AI FIX PROMPT: CI Failure in ...`) containing error log snippets and actionable AI instructions ready to copy-paste directly into AI Studio to fix the app immediately.
+- **Workflow-Driven Synchronization (`.github/workflows/update-readme.yml`)**:
+  - Triggers on completion of all key workflows (`Android Emulator E2E Tests`, `Web E2E Tests`, `Build & Release Android APK`, `Report Integrity Verification`, `Automated Error Reporting & AI Reproduction Fix Engine`).
+  - Detects workflow conclusion: sets `CI_STATUS="failure"`, extracts failed step and error log context on failure, runs `node scripts/update-readme.mjs`, and automatically commits and pushes updated `README.md`.
+- **Report Asset Links & Lifecycle Resilience (`public/android-emulator-report.html` & `public/android/index.html`)**:
+  - Fixed relative asset URLs for both root (`./screenshots/android-emulator-video.mp4`) and subfolder paths (`../screenshots/android-emulator-video.mp4`).
+  - Added lifecycle explanation explaining dynamic screencast video generation on the macOS runner during `emulation.yml` and fallback links.
+- **Automated Verification**:
+  - Authored dedicated test suite `scripts/verify-readme-error-indicator.ts` (`npm run test:readme-error-indicator`).
+  - Validates success status updates, failure mode with copy-pasteable AI error prompts, workflow triggers, and HTML report asset fallbacks.
+  - Verified with `npm run test:readme-links`, `npm run test:no-duplicate-md`, clean `lint_applet`, and clean `compile_applet`.
+
+## Task 103: Implement Versioning Discrepancy Architecture & Recovery Mechanisms According to `docs/versioning.md`
+
+### Summary:
+- **Native Android Safeguards (`MainActivity.kt`)**:
+  - Implemented automatic OTA cache invalidation on APK upgrade (`clearOtaCacheOnApkUpgrade`) comparing `currentVersionCode` against `last_run_version_code` stored in SharedPreferences.
+  - Implemented zero-cache headers (`Cache-Control: no-cache, no-store, must-revalidate` and `Pragma: no-cache`) for local web asset responses served from `LOCAL_ASSET_DOMAIN` (`appassets.androidplatform.net`).
+  - Added `@JavascriptInterface fun clearOtaCache(): Boolean` enabling web clients to purge downloaded OTA bundles.
+- **Web-Side Version Discrepancy Architecture (`src/utils/apkUpdater.ts` & `src/types.ts`)**:
+  - Exported `VersionComparison` interface and `checkVersionDiscrepancy()` comparing installed APK container version vs active web bundle version.
+  - Exported `clearOtaCacheAndReload()` invoking the native bridge or resetting `localStorage.active_release_artifact_tag`.
+  - Added `clearOtaCache` to `AndroidNativeShell` typing in `src/types.ts`.
+- **In-App Discrepancy Presentation & Recovery UI (`src/components/ApkReleaseModal.tsx`)**:
+  - Rendered dual-version badges indicating when an OTA hot update is active vs when an APK has newer bundled assets.
+  - Added interactive **"Reset to Bundled Assets (Clear OTA Cache)"** action button that cleans local cache and forces WebView reload.
+- **Automated Verification**:
+  - Authored dedicated automated test suite `scripts/verify-versioning-discrepancy-implementation.ts` (`npm run test:versioning-discrepancy-implementation`).
+  - Validated with `npm run test:versioning-discrepancy-doc`.
+  - Clean `compile_applet` and zero-warning `lint_applet`.
+
 ## Task 100: Enable Server Proxy Option, Robust Proxy URL Construction & Register `docs/server.md`
 
 ### Summary:

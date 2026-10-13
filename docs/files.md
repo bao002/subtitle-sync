@@ -47,7 +47,7 @@ This document serves as the master catalog and directory of all repository docum
 | :--- | :--- | :--- |
 | `docs/specifications/SCHEMA_TIMEDTEXT.md` | TimedText Schema | YouTube JSON3 format definitions, segment timings (`tStartMs`, `dDurationMs`), entity decoding, and BiDi normalization. |
 | `docs/specifications/LIBRARY.md` | Subtitle Library Schema | Schema definitions and integrity rules for offline local fixtures (`test/fixtures/<VIDEO_ID>/*.json`). |
-| `docs/operations/ACTIONS.md` | CI/CD Pipelines Guide | Workflows for APK building, emulator E2E tests, Pages deployment, and release publishing. |
+| `docs/operations/ACTIONS.md` | CI/CD Pipelines & Status Sync Guide | Workflows for APK building, emulator E2E tests, Pages deployment, and automated README CI status/broken link synchronization. |
 | `docs/operations/DEBUG.md` | Diagnostics Runbook | Log inspection runbook, network packet inspector, and AI troubleshooting prompt generator. |
 
 ### Root Entry Points & Scratchpads
@@ -260,7 +260,5 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-language-selection-and-tts-flow.ts` | Language Selection & TTS Architecture Verification | Validates default rate 0.5 and range 0.3-1.5, Google Translate TTS fallback and option, ISO alias normalization, per-video selection persistence, and enabled status indicators. |
 | `scripts/verify-versioning-discrepancy-doc.ts` | Version Discrepancy Doc Verification Suite | Validates Section 5 of docs/versioning.md covering APK vs WebView version discrepancies, 5 root causes, diagnostics, architectural safeguards, and recovery workflows. |
 | `scripts/verify-versioning-discrepancy-implementation.ts` | Version Discrepancy Implementation Verification Suite | Validates full implementation of MainActivity.kt safeguards, types, checkVersionDiscrepancy(), and UI reset controls. |
-
-
-
-
+| `scripts/verify-readme-error-indicator.ts` | README CI Status & AI Error Prompt Sync Test | Validates automated CI status indicator in README.md, failure alerts, copy-pasteable AI fix prompts, workflow triggers, and report HTML asset fallbacks. |
+| `scripts/verify-actions-readme-sync-docs.ts` | Actions -> Pages -> README Sync Docs Test | Validates that docs/operations/ACTIONS.md, docs/self-verification.md, and docs/android.md document the full Actions -> Pages -> README broken test and link sync flow. |

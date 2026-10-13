@@ -28,6 +28,7 @@ Run these commands in order to execute the full self-verification sequence:
 | **Done Tasks & Hotfix Holding Pattern**| `npm run test:hotfix-workflow` | Asserts task migration to `docs/done.md` and hotfix suspension protocol. |
 | **Application Compilation Gate** | `npm run build` | Zero build errors; bundles assets and synchronizes Android assets. |
 | **Code Linter Gate** | `npm run lint` | Zero ESLint warnings or errors. |
+| **README Status & AI Error Prompt Sync** | `npm run test:readme-error-indicator` | Asserts dynamic CI status indicator, broken link detector, and copy-pasteable AI error prompt in `README.md`. |
 | **Self-Verification Protocol Test** | `npm run test:self-verification` | Asserts `self-verification.md` exists and covers all testing, screencast, and sanity requirements. |
 
 ---
@@ -137,6 +138,13 @@ Before declaring any task or prompt complete, all 6 sanity checks must be passed
 - **Verification**:
   - `npm run build` (or `compile_applet`)
   - `npm run lint` (or `lint_applet`)
+
+### Sanity Check 7: Automated README CI Status & Broken Link Synchronizer
+- **Rule**: `README.md` must contain dynamic status indicator anchors (`<!-- CI_STATUS_INDICATOR_START -->` / `<!-- CI_STATUS_INDICATOR_END -->`). If any upstream workflow fails or broken links/workflows are discovered, it must automatically format an alert and a copy-pasteable AI error prompt block with exact diagnostic lines.
+- **Verification**:
+  - `npm run test:readme-error-indicator`
+  - `npm run test:readme-links`
+  - See full architectural specification in [`docs/operations/ACTIONS.md`](./operations/ACTIONS.md).
 
 ---
 
