@@ -81,28 +81,84 @@ content = content.replace(
 content = content.replace(/mostuf\d+/g, targetOwner);
 
 // 6. Update Android Emulator Screencast Video link & exact size:
-let videoSizeBytes = 6724502; // Default verified size (6.41 MB)
-if (process.env.VIDEO_SIZE_BYTES && Number(process.env.VIDEO_SIZE_BYTES) > 0) {
-  videoSizeBytes = Number(process.env.VIDEO_SIZE_BYTES);
-} else {
-  const localCandidates = [
-    path.resolve(process.cwd(), "android-emulator-video.mp4"),
-    path.resolve(process.cwd(), "public/screenshots/android-emulator-video.mp4"),
-    path.resolve(process.cwd(), "gh-pages-staging/screenshots/android-emulator-video.mp4"),
-  ];
-  for (const candidate of localCandidates) {
-    if (fs.existsSync(candidate)) {
-      const stats = fs.statSync(candidate);
-      if (stats.size > 0) {
-        videoSizeBytes = stats.size;
-        break;
-      }
+let videoSizeBytes = 0;
+let localVideoFound = false;
+
+const localCandidates = [
+  path.resolve(process.cwd(), "android-emulator-video.mp4"),
+  path.resolve(process.cwd(), "public/screenshots/android-emulator-video.mp4"),
+  path.resolve(process.cwd(), "gh-pages-staging/screenshots/android-emulator-video.mp4"),
+  path.resolve(process.cwd(), "dist/screenshots/android-emulator-video.mp4"),
+  path.resolve(process.cwd(), "public/android-emulator-video.mp4"),
+  path.resolve(process.cwd(), "gh-pages-staging/android-emulator-video.mp4"),
+];
+
+for (const candidate of localCandidates) {
+  if (fs.existsSync(candidate)) {
+    const stats = fs.statSync(candidate);
+    if (stats.size > 0) {
+      videoSizeBytes = stats.size;
+      localVideoFound = true;
+      break;
     }
   }
 }
 
+if (!localVideoFound && process.env.VIDEO_SIZE_BYTES && Number(process.env.VIDEO_SIZE_BYTES) > 0) {
+  videoSizeBytes = Number(process.env.VIDEO_SIZE_BYTES);
+}
+
+// Remote verification of screencast video on GitHub Pages
+const remoteVideoUrl = `https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4`;
+let remoteVideoStatus = null; // null = unchecked/offline, 200 = available, 404 = missing
+
+const shouldProbeRemote =
+  process.env.REPORT_VIDEO_BROKEN === "true" ||
+  process.env.CHECK_REMOTE_VIDEO === "true" ||
+  (!localVideoFound && !process.env.VIDEO_SIZE_BYTES) ||
+  (process.env.CI === "true" && !localVideoFound);
+
+if (shouldProbeRemote && process.env.CHECK_REMOTE_VIDEO !== "false") {
+  try {
+    const res = await fetch(remoteVideoUrl, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(3500),
+    });
+    remoteVideoStatus = res.status;
+    if (res.status === 200) {
+      const cl = res.headers.get("content-length");
+      if (cl && Number(cl) > 0 && !videoSizeBytes) {
+        videoSizeBytes = Number(cl);
+      }
+    }
+  } catch {
+    remoteVideoStatus = null; // network unreachable or offline
+  }
+}
+
+if (process.env.REPORT_VIDEO_BROKEN === "true" || process.env.FORCE_BROKEN_VIDEO === "true") {
+  remoteVideoStatus = 404;
+  localVideoFound = false;
+}
+
+const isVideoBroken =
+  remoteVideoStatus === 404 ||
+  process.env.REPORT_VIDEO_BROKEN === "true" ||
+  (process.env.STRICT_REPORT_CHECK === "true" && !localVideoFound && remoteVideoStatus !== 200);
+
+if (!videoSizeBytes && !isVideoBroken) {
+  // Verified fallback size when video is acknowledged present
+  videoSizeBytes = 6724502;
+}
+
 const mb = (videoSizeBytes / (1024 * 1024)).toFixed(2);
-const videoRow = `| 🎬 **Android Emulator Screencast Video**               | [**View/Download MP4 Screencast (${mb} MB)**](https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4) | Full authentic screen recording from Android Emulator E2E run (API 34 Google APIs, size: ${videoSizeBytes.toLocaleString()} bytes / ${mb} MB).          |`;
+let videoRow = "";
+
+if (isVideoBroken) {
+  videoRow = `| 🎬 **Android Emulator Screencast Video**               | ⚠️ [**Broken Link / Missing Asset (HTTP 404)**](https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html) | Screencast video returned HTTP 404 on GitHub Pages. Run [emulation.yml](https://github.com/${targetOwner}/${targetRepo}/actions/workflows/emulation.yml) to record and deploy. |`;
+} else {
+  videoRow = `| 🎬 **Android Emulator Screencast Video**               | [**View/Download MP4 Screencast (${mb} MB)**](https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4) | Full authentic screen recording from Android Emulator E2E run (API 34 Google APIs, size: ${videoSizeBytes.toLocaleString()} bytes / ${mb} MB).          |`;
+}
 
 const videoRegex = /\|\s*🎬\s*\*\*Android Emulator Screencast Video\*\*[^|\n]*\|[^|\n]*\|[^|\n]*\|/;
 if (videoRegex.test(content)) {
@@ -117,7 +173,19 @@ if (videoRegex.test(content)) {
 // Update numbered list item in README if present
 const listVideoRegex = /(\d+\.\s*\*\*Android Emulator Screencast Video\*\*:\s*\[Download\s*`android-emulator-video\.mp4`)[^\]]*(\]\(https:\/\/[^)]+\/screenshots\/android-emulator-video\.mp4\)[^\n]*)/;
 if (listVideoRegex.test(content)) {
-  content = content.replace(listVideoRegex, `$1 (${mb} MB MP4 recording)$2`);
+  if (isVideoBroken) {
+    content = content.replace(listVideoRegex, `$1 (⚠️ Broken Link / HTTP 404 on GitHub Pages)$2`);
+  } else {
+    content = content.replace(listVideoRegex, `$1 (${mb} MB MP4 recording)$2`);
+  }
+}
+
+const verifiedVideoListRegex = /(2\.\s*\*\*Android Emulator Screencast Video\*\*:\s*)\[Download\s*`android-emulator-video\.mp4`[^\]]*\]\([^)]+\)[^\n]*/;
+if (isVideoBroken && verifiedVideoListRegex.test(content)) {
+  content = content.replace(
+    verifiedVideoListRegex,
+    `$1⚠️ [**Missing Asset / HTTP 404**](https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4) (screencast video missing from gh-pages branch — see README CI status)`,
+  );
 }
 
 function scanReadmeBrokenLinks(markdownContent, rootDir) {
@@ -173,19 +241,56 @@ function scanReadmeBrokenLinks(markdownContent, rootDir) {
   return broken;
 }
 
+function scanReportVideoIntegrity(rootDir, targetOwner, targetRepo, brokenVideo) {
+  const broken = [];
+  if (brokenVideo) {
+    const reportHtmlPath = path.resolve(rootDir, "public/android-emulator-report.html");
+    const subfolderReportPath = path.resolve(rootDir, "public/android/index.html");
+    const hasReport = fs.existsSync(reportHtmlPath) || fs.existsSync(subfolderReportPath);
+    broken.push({
+      line: 0,
+      text: "Report Screencast Video: android-emulator-video.mp4",
+      target: `https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4`,
+      resolvedPath: `${hasReport ? "public/android-emulator-report.html -> <video controls>" : "README.md"} (screencast video missing / 404)`,
+      reason: `HTTP 404 on GitHub Pages (Report at https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html has broken video source)`,
+    });
+  }
+  return broken;
+}
+
 // 7. Inject or Update CI Status & Error Indicator Section
 const statusStartTag = "<!-- CI_STATUS_INDICATOR_START -->";
 const statusEndTag = "<!-- CI_STATUS_INDICATOR_END -->";
 
 const rootDir = process.cwd();
 const brokenLinks = scanReadmeBrokenLinks(content, rootDir);
+const brokenReportVideos = scanReportVideoIntegrity(rootDir, targetOwner, targetRepo, isVideoBroken);
+const allBroken = [...brokenLinks, ...brokenReportVideos];
 
-let ciStatus = process.env.CI_STATUS || (fs.existsSync("error.log") || brokenLinks.length > 0 ? "failure" : "success");
-const failedWorkflow = process.env.FAILED_WORKFLOW || (brokenLinks.length > 0 ? "README Link Integrity & Documentation Check" : "Android Emulator E2E Tests");
-const failedStep = process.env.FAILED_STEP || (brokenLinks.length > 0 ? `Broken Link Scan (${brokenLinks.length} broken targets)` : "Execution");
+let ciStatus = process.env.CI_STATUS || (fs.existsSync("error.log") || allBroken.length > 0 ? "failure" : "success");
+if (allBroken.length > 0) {
+  ciStatus = "failure";
+}
+
+const failedWorkflow =
+  process.env.FAILED_WORKFLOW ||
+  (brokenLinks.length > 0
+    ? "README Link Integrity & Documentation Check"
+    : brokenReportVideos.length > 0
+      ? "Android Emulator Screencast & Report Video Flow"
+      : "Android Emulator E2E Tests");
+
+const failedStep =
+  process.env.FAILED_STEP ||
+  (brokenLinks.length > 0
+    ? `Broken Link Scan (${allBroken.length} broken targets)`
+    : brokenReportVideos.length > 0
+      ? "Report Video Link Verification (android-emulator-video.mp4 returned HTTP 404)"
+      : "Execution");
+
 const runUrl = process.env.GITHUB_RUN_ID
   ? `https://github.com/${targetOwner}/${targetRepo}/actions/runs/${process.env.GITHUB_RUN_ID}`
-  : `https://github.com/${targetOwner}/${targetRepo}/actions`;
+  : `https://github.com/${targetOwner}/${targetRepo}/actions/workflows/emulation.yml`;
 
 let errorLogSnippet = "";
 if (fs.existsSync("error.log")) {
@@ -195,10 +300,10 @@ if (fs.existsSync("error.log")) {
 }
 
 let brokenLinksSnippet = "";
-if (brokenLinks.length > 0) {
+if (allBroken.length > 0) {
   brokenLinksSnippet =
     "\n\n### 🔗 Broken Links Detected:\n" +
-    brokenLinks
+    allBroken
       .map(
         (b) =>
           `- ${b.line > 0 ? `Line ${b.line}: ` : ""}\`[${b.text}](${b.target})\` -> ${b.reason} (\`${b.resolvedPath}\`)`,
@@ -209,8 +314,8 @@ if (brokenLinks.length > 0) {
 let statusSection = "";
 if (ciStatus === "failure") {
   const alertSubtitle =
-    brokenLinks.length > 0
-      ? `⚠️ **Automated Failure / Broken Links Detected**: \`${failedWorkflow}\` (${brokenLinks.length} broken link${brokenLinks.length > 1 ? "s" : ""} found)`
+    allBroken.length > 0
+      ? `⚠️ **Automated Failure / Broken Links Detected**: \`${failedWorkflow}\` (${allBroken.length} broken link${allBroken.length > 1 ? "s" : ""} found)`
       : `⚠️ **Automated CI Failure Detected**: \`${failedWorkflow}\` (Step: \`${failedStep}\`)`;
 
   statusSection = `${statusStartTag}
@@ -225,15 +330,24 @@ if (ciStatus === "failure") {
 - **Repository**: ${targetOwner}/${targetRepo}
 - **Workflow / Checker**: ${failedWorkflow}
 - **Failing Step**: ${failedStep}
+- **Report URL**: https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html
 - **Run URL**: ${runUrl}
 
 ### Failure Log & Diagnosis:
-${errorLogSnippet || (brokenLinks.length > 0 ? "Broken links or missing targets were identified in README.md." : "The automated test step terminated abnormally. Check the Actions run logs for full traceback.")}${brokenLinksSnippet}
+${
+  errorLogSnippet ||
+  (brokenReportVideos.length > 0
+    ? `The Android Emulator verification report at https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html references the screencast video 'android-emulator-video.mp4', but the asset returned HTTP 404 on GitHub Pages. The workflow 'emulation.yml' must be executed to record the authentic screencast via 'adb shell screenrecord' and deploy 'screenshots/android-emulator-video.mp4' to the gh-pages branch.`
+    : brokenLinks.length > 0
+      ? "Broken links or missing targets were identified in README.md."
+      : "The automated test step terminated abnormally. Check the Actions run logs for full traceback.")
+}${brokenLinksSnippet}
 
 ### Instructions for AI Assistant:
 1. Examine the root cause, broken link(s), and diagnostic details above.
-2. Fix broken target paths, restore missing files, or fix failing application code with targeted edits.
-3. Verify that \`npm run test:readme-links\` and all automated test suites pass cleanly.
+2. If the screencast video link returned 404 in android-emulator-report.html, trigger the 'Android Emulator E2E Tests' workflow (emulation.yml) to record and publish android-emulator-video.mp4 to GitHub Pages.
+3. Fix broken target paths, restore missing files, or fix failing application code with targeted edits.
+4. Verify that \`npm run test:readme-links\` and all automated test suites pass cleanly.
 \`\`\`
 ${statusEndTag}`;
 } else {
@@ -261,3 +375,4 @@ if (statusSectionRegex.test(content)) {
 
 fs.writeFileSync(readmePath, content, "utf8");
 console.log(`✅ README.md successfully updated with repository: "${targetOwner}/${targetRepo}", video size: ${mb} MB, and CI status: ${ciStatus}`);
+

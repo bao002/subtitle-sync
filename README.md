@@ -16,24 +16,29 @@ An Android native shell application for YouTube learning with synchronized multi
 <!-- CI_STATUS_INDICATOR_START -->
 ## 🚨 Latest CI Build & Test Status: FAILED
 
-> ⚠️ **Automated CI Failure Detected**: `README Link Integrity & Documentation Check` (Step: `npm run test:readme-links`)
+> ⚠️ **Automated Failure / Broken Links Detected**: `Android Emulator Screencast & Report Video Flow` (1 broken link found)
 >
 > If screencasts, logs, or reports are missing, copy the diagnostic block below and paste it directly into your AI Assistant prompt to reproduce and resolve the failure immediately:
 
 ```markdown
-# AI FIX PROMPT: CI Failure in README Link Integrity & Documentation Check
+# AI FIX PROMPT: CI Failure in Android Emulator Screencast & Report Video Flow
 - **Repository**: mostuf25561/subtitle-sync
-- **Workflow / Checker**: README Link Integrity & Documentation Check
-- **Failing Step**: npm run test:readme-links
-- **Run URL**: https://github.com/mostuf25561/subtitle-sync/actions/runs/38483257115
+- **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
+- **Failing Step**: Report Video Link Verification (android-emulator-video.mp4 returned HTTP 404)
+- **Report URL**: https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html
+- **Run URL**: https://github.com/mostuf25561/subtitle-sync/actions/workflows/emulation.yml
 
 ### Failure Log & Diagnosis:
-Broken relative links or missing workflow files detected in README.md.
+The Android Emulator verification report at https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html references the screencast video 'android-emulator-video.mp4', but the asset returned HTTP 404 on GitHub Pages. The workflow 'emulation.yml' must be executed to record the authentic screencast via 'adb shell screenrecord' and deploy 'screenshots/android-emulator-video.mp4' to the gh-pages branch.
+
+### 🔗 Broken Links Detected:
+- `[Report Screencast Video: android-emulator-video.mp4](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)` -> HTTP 404 on GitHub Pages (Report at https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html has broken video source) (`public/android-emulator-report.html -> <video controls> (screencast video missing / 404)`)
 
 ### Instructions for AI Assistant:
 1. Examine the root cause, broken link(s), and diagnostic details above.
-2. Fix broken target paths, restore missing files, or fix failing application code with targeted edits.
-3. Verify that `npm run test:readme-links` and all automated test suites pass cleanly.
+2. If the screencast video link returned 404 in android-emulator-report.html, trigger the 'Android Emulator E2E Tests' workflow (emulation.yml) to record and publish android-emulator-video.mp4 to GitHub Pages.
+3. Fix broken target paths, restore missing files, or fix failing application code with targeted edits.
+4. Verify that `npm run test:readme-links` and all automated test suites pass cleanly.
 ```
 <!-- CI_STATUS_INDICATOR_END -->
 
@@ -52,7 +57,7 @@ Access the primary, working verification report proving the core feature on Andr
 
 ### 📦 Verified Test Products:
 1. **Android Logs**: [Download `android-emulator-logcat.txt`](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-logcat.txt) (or live logcat audit)
-2. **Android Emulator Screencast Video**: [Download `android-emulator-video.mp4` (6.41 MB MP4 recording)](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (authentic screen recording)
+2. **Android Emulator Screencast Video**: ⚠️ [**Missing Asset / HTTP 404**](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (screencast video missing from gh-pages branch — see README CI status)
 3. **Screenshot Images**: [View `android-emulator-screenshot.png`](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) (full-resolution UI capture)
 
 ---

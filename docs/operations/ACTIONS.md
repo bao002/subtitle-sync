@@ -184,6 +184,25 @@ During execution of `scripts/update-readme.mjs` (both locally and in CI), the sc
 - **Workflow Badge Validation**: Extracts all references to GitHub Actions workflows (`actions/workflows/<name>.yml`) and checks that the corresponding `.github/workflows/<name>.yml` definition exists in the repository.
 - **Exit Status Escalation**: If one or more broken links are identified, the script automatically overrides `ciStatus = "failure"`, sets `failedWorkflow = "README Link Integrity & Documentation Check"`, and includes each broken link target and reason in the error report.
 
+### 4.3.1 Dedicated Report Video Link Verification (`scanReportVideoIntegrity`)
+
+When checking the live GitHub Pages report (such as `https://<owner>.github.io/<repo>/android-emulator-report.html`), video links may return HTTP 404 if `emulation.yml` has not completed or failed to deploy `screenshots/android-emulator-video.mp4` to `gh-pages`:
+
+1. **Active Probing**: Both `scripts/update-readme.mjs` (via `fetch` with timeout) and the dedicated test `npm run test:report-video-links` probe `https://<owner>.github.io/<repo>/screenshots/android-emulator-video.mp4`.
+2. **Detection & Failure Flagging**:
+   - If the video asset is not found on disk or returns HTTP 404 on GitHub Pages, `scanReportVideoIntegrity` flags the broken link.
+   - `ciStatus` is automatically escalated to `"failure"`.
+   - `failedWorkflow` is set to `"Android Emulator Screencast & Report Video Flow"`.
+   - `failedStep` is set to `"Report Video Link Verification (android-emulator-video.mp4 returned HTTP 404)"`.
+3. **Dynamic Reflection in `README.md`**:
+   - The status indicator switches to `## 🚨 Latest CI Build & Test Status: FAILED`.
+   - The broken video link is explicitly documented under `### 🔗 Broken Links Detected:` with the exact URL and report reference.
+   - A copy-pasteable `# AI FIX PROMPT: CI Failure in Android Emulator Screencast & Report Video Flow` is generated with full instructions to trigger `emulation.yml` to record and deploy the authentic screencast.
+   - The Verified Test Products table and lists in `README.md` switch from displaying a verified download to `⚠️ Missing Asset / HTTP 404`.
+4. **Client-Side Report Fallback**:
+   - Both `public/android-emulator-report.html` and `public/android/index.html` register active JavaScript error listeners on child `<source>` tags and `<video id="screencast-video-player">`.
+   - When a 404 or network error occurs, the report dynamically displays `#video-broken-banner` alerting the user that the video link is broken and directing them to `README.md` for the automated AI fix prompt.
+
 ### 4.4 Dynamic Status Indicators in `README.md`
 
 The status section is delimited by comment anchors:

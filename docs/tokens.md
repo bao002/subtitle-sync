@@ -166,8 +166,10 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 106.2: Cross-reference and enhance `docs/self-verification.md` and `docs/android.md` for the CI summary loop. [DONE]
   - Subtask 106.3: Implement dedicated verification test, run tests, compile, lint, commit, push, and migrate to `docs/done.md`. [DONE]
 
-- **Task 107**: Continuous CI Monitoring & Real Actions Runs Health [ACTIVE]
-  - Subtask 107.1: Monitor automated CI runs and verify GitHub Actions and GitHub Pages outputs across branches. [ACTIVE]
+- **Task 107**: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync [ACTIVE]
+  - Subtask 107.1: Enhance `scripts/update-readme.mjs` and report link validation to detect broken video links in `android-emulator-report.html` and report them dynamically on `README.md`. [ACTIVE]
+  - Subtask 107.2: Update `android-emulator-report.html` & `android/index.html` player resilience and update `.github/workflows/update-readme.yml` / `integrity.yml` to run dedicated video link verification. [PENDING]
+  - Subtask 107.3: Add dedicated test `scripts/verify-report-video-links-and-readme-sync.ts`, update documentation in `docs/operations/ACTIONS.md` and `docs/files.md`, run verification, compile, lint, commit, push, and migrate to `docs/done.md`. [PENDING]
 
 
 

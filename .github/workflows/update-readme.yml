@@ -59,11 +59,19 @@ jobs:
             export FAILED_STEP="npm run test:readme-links"
             export ERROR_MESSAGE="Broken relative links or missing workflow files detected in README.md."
           fi
+          # Dedicated report video links verification
+          if ! npm run test:report-video-links 2>/dev/null; then
+            export CI_STATUS="failure"
+            export FAILED_WORKFLOW="Android Emulator Screencast & Report Video Flow"
+            export FAILED_STEP="Broken Video Link Detection in android-emulator-report.html"
+            export ERROR_MESSAGE="Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404)."
+          fi
           node scripts/update-readme.mjs
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
           GITHUB_RUN_ID: ${{ github.event.workflow_run.id || github.run_id }}
+          CHECK_REMOTE_VIDEO: "true"
 
       - name: Commit and Push if README Changed
         run: |
