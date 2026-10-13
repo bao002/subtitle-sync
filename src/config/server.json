@@ -1,4 +1,4 @@
 {
-  "server_address": "https://<lovable-address>/api",
+  "server_address": "https://fuufqctnluwhlsfvybum.supabase.co/functions/v1/api",
   "is_enabled": false
 }
