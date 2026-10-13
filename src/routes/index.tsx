@@ -172,6 +172,9 @@ type YTPlayer = {
   getCurrentTime(): number;
   getPlayerState(): number;
   destroy?(): void;
+  stopVideo?(): void;
+  getVideoData?(): { video_id?: string; title?: string };
+  getDuration?(): number;
   getAvailableAudioTracks?(): unknown[];
   setAudioTrack?(trackId: string): void;
   getAudioTrack?(): unknown;

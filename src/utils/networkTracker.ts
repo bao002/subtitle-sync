@@ -4,7 +4,7 @@ export interface NetworkRequestRecord {
   id: string;
   url: string;
   method: string;
-  type: "fetch" | "timedtext_interception" | "native_bridge";
+  type: "fetch" | "timedtext_interception" | "native_bridge" | "server_proxy";
   startTime: number;
   duration?: number;
   status: number;
@@ -48,7 +48,7 @@ function notify() {
 export function trackNetworkRequest(
   url: string,
   method = "GET",
-  type: "fetch" | "timedtext_interception" | "native_bridge" = "fetch",
+  type: "fetch" | "timedtext_interception" | "native_bridge" | "server_proxy" = "fetch",
   options?: {
     attemptMode?: "tlang" | "lang";
     attemptSend?: "session" | "anon";

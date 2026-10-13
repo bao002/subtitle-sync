@@ -54,6 +54,15 @@ class SubtitleRequestQueue {
   // Listeners
   private listeners: Set<QueueStateListener> = new Set();
 
+  /** Forget success/failure state so the video can be fetched from scratch. */
+  public resetVideo(videoId: string) {
+    if (this.currentVideoId !== videoId) return;
+    this.succeededLanguages.clear();
+    this.failedLanguages.clear();
+    this.consecutiveErrors = 0;
+    this.cooldownUntil = 0;
+  }
+
   /**
    * Set the active video context. When changing video ID, any pending requests
    * for the previous video are cancelled and state is cleanly reset.
