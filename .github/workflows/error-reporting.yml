@@ -1,0 +1,109 @@
+name: Automated Error Reporting & AI Reproduction Fix Engine
+
+on:
+  workflow_run:
+    workflows:
+      - "Web E2E Tests"
+      - "Android Emulator E2E Tests"
+      - "Report Integrity Verification"
+      - "Publish Web Demo to GitHub Pages"
+    types:
+      - completed
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: error-reporting-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  diagnose-and-report:
+    name: Health Diagnostics & Error Reporting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Normalize package registry URLs
+        run: |
+          if [ -f package-lock.json ]; then
+            sed -i -E 's#https?://package-firewall\.replit\.internal/npm/#https://registry.npmjs.org/#g' package-lock.json 2>/dev/null || true
+          fi
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Core Lint & Style Verification
+        id: step_lint
+        continue-on-error: true
+        run: |
+          echo "Running ESLint verification..."
+          npx tsx scripts/generate-error-report.ts --run "npm run lint" --step "Code Style & ESLint Verification" --output "error.log"
+
+      - name: Run Web Application Build
+        id: step_build
+        if: steps.step_lint.outcome == 'success'
+        continue-on-error: true
+        run: |
+          echo "Building production web bundle..."
+          npx tsx scripts/generate-error-report.ts --run "npm run build" --step "Web Application Build" --output "error.log"
+
+      - name: Run Architecture & Documentation Contracts
+        id: step_architecture
+        if: steps.step_lint.outcome == 'success' && steps.step_build.outcome == 'success'
+        continue-on-error: true
+        run: |
+          echo "Verifying architectural contracts and repository hygiene..."
+          npx tsx scripts/generate-error-report.ts --run "npm run test:no-duplicate-md && npm run test:client-spa && npm run test:doc-contracts" --step "Architecture & Documentation Contracts" --output "error.log"
+
+      - name: Run Core Subtitles & Protocol Verification
+        id: step_tests
+        if: steps.step_lint.outcome == 'success' && steps.step_build.outcome == 'success' && steps.step_architecture.outcome == 'success'
+        continue-on-error: true
+        run: |
+          echo "Verifying subtitle parsing, pacing, and token economy protocols..."
+          npx tsx scripts/generate-error-report.ts --run "npm run test:tokens-economy && npm run test:youtube-docs-and-floating-retry && npm run test:default-punctuation" --step "Subtitles & Protocol Tests" --output "error.log"
+
+      - name: Publish AI Diagnostic Report to Summary & Console
+        if: steps.step_lint.outcome == 'failure' || steps.step_build.outcome == 'failure' || steps.step_architecture.outcome == 'failure' || steps.step_tests.outcome == 'failure'
+        run: |
+          if [ -f error.log ]; then
+            echo "====================================================================="
+            echo "🚨 CI PIPELINE FAILURE DETECTED - AI REPRODUCTION FIX PROMPT:"
+            echo "====================================================================="
+            cat error.log
+            echo "====================================================================="
+            
+            if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+              cat error.log >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+
+      - name: Upload Error Report Artifact (error.log)
+        if: steps.step_lint.outcome == 'failure' || steps.step_build.outcome == 'failure' || steps.step_architecture.outcome == 'failure' || steps.step_tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: error-log
+          path: error.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Enforce Pipeline Exit Status
+        if: steps.step_lint.outcome == 'failure' || steps.step_build.outcome == 'failure' || steps.step_architecture.outcome == 'failure' || steps.step_tests.outcome == 'failure'
+        run: |
+          echo "❌ Pipeline failed. Please copy the above error.log into the AI prompt to reproduce and resolve the issue."
+          exit 1

@@ -34,6 +34,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `src/components/SubtitlesTablePanel.tsx`          | Subtitles Table View Panel       | Encapsulates the entire parallel subtitles table layout, lines pagination bar, and alignment indicators.                           |
 | `src/components/ParserTimingLab.tsx`              | Parser Timing & Splitting Lab    | Interactive educational laboratory and metrics visualizer comparing pure punctuation vs timing-assisted sentence splitting.         |
 | `src/components/AttemptOrderSettings.tsx`         | Subtitle Attempt Order Settings  | Renders 4 fetch attempts reordering (Up/Down), toggling enabled/disabled, promote winner to front, and reset order.  |
+| `src/components/FloatingSubtitleRetryIndicator.tsx` | Floating Subtitle Retry Indicator | Floating status badge with retry/pause toggle, pending unfetched language counts, and anti-bot pacing countdown.     |
 | `src/components/ApkReleasesFooter.tsx`            | APK Releases Footer Component    | Modular bottom footer presenting dynamic APK release download and release page links for both repo owners.                          |
 
 ## Feature Utilities (`src/utils/`)
@@ -84,6 +85,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `docs/self-verification.md`                | Self-Verification Protocol        | Defines testing execution, screencast README linking, and full sanity check audits.                    |
 | `docs/tokens.md`                           | Token Economy Architecture        | Details token optimization protocol, task decomposition, and tracking files management.              |
 | `docs/android.md`                          | Android Architecture & E2E Spec   | Details native WebView bridge, TimedText interception, screencast video capture, and report schema.   |
+| `docs/youtube.md`                          | YouTube Subtitles & Rate-Limit Spec | Distinguishes tlang vs lang modes, evaluates client/server npm modules, and specifies rate-limit pacing. |
 | `docs/roadmap.md`                          | Roadmap & Milestones Guide        | Details feature delivery milestones, roadmap phases, and architectural progress.                      |
 
 ## Testing & Quality Assurance (`e2e/`, `cypress/`, `scripts/`)
@@ -177,5 +179,9 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `scripts/verify-anti-bot-browser-profile.ts`      | Anti-Bot Browser Profile & 429 Test                | Asserts dynamic WebView UA sanitization (stripping Version/X.X and ; wv), Chrome client hints, browser navigation headers, status 429 formatting, and UI bot detection card & manual paste fallback. |
 | `scripts/verify-dynamic-favorites-and-server-fetch.ts` | Dynamic Favorites Ordering & Server Fetch Test | Validates priority order sorting in subtitle fetches, dynamic recalculation of fetch again upon favorite changes, and configurable server repeat toggle + address. |
 | `scripts/verify-task-management-workflow.ts`      | Task Backlog & Done Migration Verification Test    | Asserts AGENTS.md and docs/tokens.md mandate moving completed tasks completely out of tasks.md into done.md, keeping tasks.md strictly as active backlog.  |
+| `scripts/verify-dev-server-stability.ts`          | Dev Server Stability & Health Verification Test    | Asserts host 0.0.0.0, port 3000, strictPort true in vite.config.ts, validates live HTTP 200 responses on /, /src/main.tsx, and /src/routes/index.tsx. |
+| `scripts/verify-youtube-docs-and-floating-retry.ts` | YouTube Docs, Server Deprecation & Retry Test     | Asserts server deprecation badges and JSDoc, Settings accordion naming, pacing preferences, FloatingSubtitleRetryIndicator, and docs/youtube.md spec. |
+| `scripts/generate-error-report.ts`                | Automated Error Report & AI Fix Prompt Engine      | Captures failed commands, environment telemetry, stack traces, and generates error.log with reproduction and AI fix prompt.                             |
+| `scripts/verify-error-reporting-workflow.ts`      | Error Reporting Workflow & Log Test Suite          | Validates error report generation, error.log structure, reproduction steps, AI prompt blocks, and GitHub Actions workflow file.                        |
 | `scripts/verify-md-links.ts`                      | Markdown Links Checker                             | Validates that all documentation cross-references and links resolve properly.                                                                          |
 | `scripts/normalize-web-assets.mjs`                | Build Asset Normalizer                             | Adjusts asset paths for GitHub Pages sub-path hosting.                                                                                                 |

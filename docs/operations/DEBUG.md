@@ -78,3 +78,27 @@ When a user encounters a playback desynchronization, missing voice, or network f
 ```
 
 This structured markdown block is copied to the clipboard with one click, ready for immediate triage by the AI assistant.
+
+---
+
+## 5. Automated CI/CD Error Reporting & AI Reproduction Fix Generator
+
+### 5.1 Overview
+In addition to client-side diagnostics, the project features an automated CI/CD error reporting engine (`scripts/generate-error-report.ts`) integrated into `.github/workflows/error-reporting.yml`.
+
+### 5.2 Purpose of `error.log`
+Whenever an automated test, build compilation, or lint verification step fails in CI:
+1. The error reporter captures the exact failing command, exit code, stdout, and stderr.
+2. It extracts suspect files, error category (e.g. `LINT`, `TYPECHECK`, `TEST_ASSERTION`, `BUILD`), and generates actionable reproduction steps.
+3. It emits `error.log` which includes a standardized **AI Prompt** block.
+4. The output is displayed in the GitHub Actions log, published to the GitHub Job Summary (`$GITHUB_STEP_SUMMARY`), and uploaded as an artifact (`actions/upload-artifact@v4`) for download and direct copy-pasting into the AI prompt to repair the application.
+
+### 5.3 Local Usage
+Developers and agents can invoke the reporter directly:
+```bash
+# Wrap a test command and auto-generate error.log on failure:
+npx tsx scripts/generate-error-report.ts --run "npm run test:xyz"
+
+# Or use the npm script:
+npm run report:error -- --run "npm run build"
+```
