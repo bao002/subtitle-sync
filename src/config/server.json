@@ -1,4 +1,4 @@
 {
-  "server_address": "https://fuufqctnluwhlsfvybum.supabase.co/functions/v1/api",
-  "is_enabled": false
+  "server_address": "https://fuufqctnluwhlsfvybum.supabase.co/functions/v1/api/proxy?url=",
+  "is_enabled": true
 }

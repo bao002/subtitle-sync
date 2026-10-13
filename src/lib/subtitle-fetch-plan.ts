@@ -123,12 +123,17 @@ export function setFetchServerUrl(url: string) {
   }
 }
 
-/** Builds `<server>/api/proxy?url=<encoded>` from a server base (or a `{url}` template). */
+/** Builds `<server>/api/proxy?url=<encoded>` from a server base, query template, or endpoint ending in `?url=`. */
 export function buildServerProxyUrl(serverUrl: string, targetUrl: string): string {
-  let base = (serverUrl || "").trim().replace(/\/+$/, "");
-  if (base.includes("{url}")) return base.replace("{url}", encodeURIComponent(targetUrl));
+  const trimmed = (serverUrl || "").trim();
+  const encoded = encodeURIComponent(targetUrl);
+  if (trimmed.includes("{url}")) return trimmed.replace("{url}", encoded);
+  if (trimmed.endsWith("?url=") || trimmed.endsWith("&url=")) return `${trimmed}${encoded}`;
+  if (trimmed.endsWith("?url") || trimmed.endsWith("&url")) return `${trimmed}=${encoded}`;
+
+  let base = trimmed.replace(/\/+$/, "");
   if (!/\/proxy$/.test(base)) base = /\/api$/.test(base) ? `${base}/proxy` : `${base}/api/proxy`;
-  return `${base}?url=${encodeURIComponent(targetUrl)}`;
+  return `${base}?url=${encoded}`;
 }
 
 /** Sends an anonymous timedtext request through `<server>/api/proxy`. */
@@ -148,10 +153,10 @@ export async function fetchViaServer(
   }
   const requestUrl = buildServerProxyUrl(cleanServer, targetUrl);
 
-
   try {
     const res = await fetch(requestUrl, {
       method: "GET",
+
       headers: { Accept: "application/json, text/plain, */*" },
     });
     const body = await res.text();
