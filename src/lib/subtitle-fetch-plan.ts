@@ -85,22 +85,19 @@ export function setPromoteSuccessfulAttempt(on: boolean) {
 
 const USE_SERVER_KEY = "yt_fetch_use_server_v1";
 const SERVER_URL_KEY = "yt_fetch_server_url_v1";
-export const DEFAULT_FETCH_SERVER_URL = "http://localhost:8080/fetch";
+/** Defaults come from src/config/server.json (see docs/server.md). */
+export const DEFAULT_FETCH_SERVER_URL = serverConfig.server_address;
 
-/**
- * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
- */
+/** Server proxy is Android-only (web demo stays fixture-only). */
 export function getUseFetchServer(): boolean {
   try {
-    return storage()?.getItem(USE_SERVER_KEY) === "1";
+    const v = storage()?.getItem(USE_SERVER_KEY);
+    return v == null ? serverConfig.is_enabled : v === "1";
   } catch {
-    return false;
+    return serverConfig.is_enabled;
   }
 }
 
-/**
- * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
- */
 export function setUseFetchServer(enabled: boolean) {
   try {
     storage()?.setItem(USE_SERVER_KEY, enabled ? "1" : "0");
@@ -109,9 +106,6 @@ export function setUseFetchServer(enabled: boolean) {
   }
 }
 
-/**
- * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
- */
 export function getFetchServerUrl(): string {
   try {
     return storage()?.getItem(SERVER_URL_KEY) || DEFAULT_FETCH_SERVER_URL;
@@ -120,9 +114,6 @@ export function getFetchServerUrl(): string {
   }
 }
 
-/**
- * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
- */
 export function setFetchServerUrl(url: string) {
   try {
     storage()?.setItem(SERVER_URL_KEY, url);
@@ -131,17 +122,21 @@ export function setFetchServerUrl(url: string) {
   }
 }
 
-/**
- * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
- * Sends a timedtext request through a configured repeating server proxy.
- * If serverUrl contains {url}, replaces it; otherwise appends ?url=... (or &url=...).
- */
+/** Builds `<server>/api/proxy?url=<encoded>` from a server base (or a `{url}` template). */
+export function buildServerProxyUrl(serverUrl: string, targetUrl: string): string {
+  let base = (serverUrl || "").trim().replace(/\/+$/, "");
+  if (base.includes("{url}")) return base.replace("{url}", encodeURIComponent(targetUrl));
+  if (!/\/proxy$/.test(base)) base = /\/api$/.test(base) ? `${base}/proxy` : `${base}/api/proxy`;
+  return `${base}?url=${encodeURIComponent(targetUrl)}`;
+}
+
+/** Sends an anonymous timedtext request through `<server>/api/proxy`. */
 export async function fetchViaServer(
   serverUrl: string,
   targetUrl: string,
 ): Promise<ExactFetchResult> {
   const cleanServer = (serverUrl || "").trim();
-  if (!cleanServer) {
+  if (!cleanServer || cleanServer.includes("<lovable-address>")) {
     return {
       status: 0,
       body: "",
@@ -150,13 +145,8 @@ export async function fetchViaServer(
       error: "Server address is not configured",
     };
   }
-  let requestUrl = cleanServer;
-  if (requestUrl.includes("{url}")) {
-    requestUrl = requestUrl.replace("{url}", encodeURIComponent(targetUrl));
-  } else {
-    const sep = requestUrl.includes("?") ? "&" : "?";
-    requestUrl = `${requestUrl}${sep}url=${encodeURIComponent(targetUrl)}`;
-  }
+  const requestUrl = buildServerProxyUrl(cleanServer, targetUrl);
+
 
   try {
     const res = await fetch(requestUrl, {

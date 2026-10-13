@@ -233,17 +233,10 @@ export const AttemptOrderSettings: React.FC<Props> = ({
             <Server className="w-3.5 h-3.5 text-primary" />
             <span>Use server for repeating fetch requests</span>
           </label>
-          <span
-            data-testid="server-option-deprecated-badge"
-            className="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30"
-          >
-            Deprecated
-          </span>
         </div>
         <p className="text-[10px] text-muted-foreground ml-6">
-          <span className="font-medium text-amber-600 dark:text-amber-400">Notice:</span> Server
-          proxy fetching is currently deprecated in favor of authentic client-side and native
-          Android fetching with paced jitter to protect privacy and eliminate external dependencies.
+          Android only. Sends the URL anonymously to <code>&lt;server&gt;/api/proxy?url=…</code>.
+          Defaults: <code>src/config/server.json</code>.
         </p>
 
         <div className="ml-6 space-y-1 pt-1">
