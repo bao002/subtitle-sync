@@ -1,18 +1,15 @@
 # Server (Android-only proxy)
 
-Defaults: `src/config/server.json` → `server_address` (base, e.g. `https://<lovable-address>/api`), `is_enabled` (default `false`). Device settings (localStorage) override them.
+Base: `https://fuufqctnluwhlsfvybum.supabase.co/functions/v1/api` (Lovable Cloud function `supabase/functions/api`).
+Defaults: `src/config/server.json` → `server_address`, `is_enabled` (default `false`). Device settings override.
 
-## Client
-- Toggle: Playback → Attempt order → "Use server for repeating fetch requests" (Android only; web demo stays fixture-only).
-- Request: `GET <server_address>/proxy?url=<encoded timedtext URL>` — anonymous, URL only (no cookies/headers).
-- Response passes the same json3 validation gate before caching.
+| Endpoint | Status |
+|---|---|
+| `/proxy?url=` — anonymous GET, only `https://*.youtube.com/api/timedtext` | live |
+| `/health` — `{ ok, uptime: "2h 5m 3s" }` | live |
+| `/openapi.json` — OpenAPI 3 spec | live |
+| `/openrouter` (needs `OPENROUTER_API_KEY`) | pending |
+| `/youtube?id=` metadata/tracks | nice-to-have |
 
-## Planned endpoints (`<lovable-address>/api`)
-| Endpoint | Purpose | Status |
-|---|---|---|
-| `/api/proxy?url=` | Anonymous GET of youtube.com/api/timedtext only (host allow-list) | pending backend |
-| `/api/health` | `{ ok, uptime: "2h 5m 3s" }` | pending backend |
-| `/api/openrouter` | OpenRouter chat passthrough (needs `OPENROUTER_API_KEY` secret) | pending |
-| `/api/youtube?id=` | Title, description, caption track list | nice-to-have |
-
-Backend needs Lovable Cloud (this app is a static SPA); not enabled yet.
+Interactive docs (Swagger "Try it out"): `<app>/api-docs/`.
+Note: unsigned timedtext URLs return 200 with empty body; use a captured signed URL.
