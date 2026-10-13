@@ -1,5 +1,48 @@
 # Done tasks
 
+## Task 59: Compact UI, Pin Toggles, Video Subtitle Scoping, Library Cache Controls & Clean Language Removal
+
+### Subtask 59.1: Compact Per-Language Settings & Voice Selection
+- Refactored per-language TTS control cards in `src/routes/index.tsx` into an inline, space-efficient flex row layout (`tts-settings-card-${lang.code}`).
+- Compacted speech ratio selector (1:N comprehension level), speech rate slider, and voice dropdown into a clean single-row presentation.
+- Fixed voice selection matching in `speakText` to search both `voiceURI` and voice `name` (`x.voiceURI === voiceURI || x.name === voiceURI`), with robust device and language code prefix fallback.
+- Ensured voice dropdown option value falls back to `voice.name` when `voiceURI` is empty, avoiding blank value selections across different browser engines.
+
+### Subtask 59.2: Accordions Auto-Fold After Timeout Unless Pinned
+- Verified and enforced auto-fold behavior in `src/components/AccordionSection.tsx` with `ACCORDION_AUTO_FOLD_MS` (30s) timer.
+- Bound pin toggle to localStorage key `yt_accordion_pinned_${id}`, ensuring pinned state persists per section ID.
+- Guarded auto-folding with `if (!open || pinned) return;`, maintaining open state indefinitely when pinned.
+- Provided accessible `aria-pressed={pinned}` toggle button with visual `Pin` and `PinOff` indicators.
+
+### Subtask 59.3: Subtitles Scoped Exclusively to Current Video
+- Harmonized all accordion sections and subtitle displays to bind strictly to active `videoId` (`data-video-id={videoId}`).
+- Ensured video switching completely resets previous subtitle tracks (`setTracks(null)`), clears observed URL (`setObservedUrl("")`), and resets queue state.
+- Prevented stale captions or mock fixtures from persisting across video loads.
+
+### Subtask 59.4: Remove Standalone Iframe Player Option
+- Verified complete removal of legacy standalone language-player and iframe-player panels from `PANELS` catalog and accordion switches.
+- Streamlined playback experience to the standard unified YouTube player and responsive video instances swiper.
+
+### Subtask 59.5: Library Record Cache Controls ("Clear cache" & "Fetch from scratch")
+- Added explicit "Fetch from scratch" button (`library-fetch-scratch-btn-${item.id}`) alongside "Clear cache" on each library history card in `src/components/VideoLibraryPanel.tsx`.
+- Implemented `handleFetchFromScratch` which purges cached subtitle cues and raw JSON3 via `clearVideoSubtitleCache(item.id)`, resets queue state, and re-triggers authentic live subtitle discovery.
+- Passed `onFetchFromScratch` handler from `src/routes/index.tsx` into `<VideoLibraryPanel />`.
+
+### Subtask 59.6: Clean Language Removal Across All Instances
+- Updated `handleTargetLanguagesChange` in `src/routes/index.tsx` to compute `removedLangs` when favorite languages are deselected.
+- Cleanly pruned all related instances upon removal:
+  1. Removed from `shown` array to immediately remove subtitle table columns.
+  2. Removed from `spoken` array to immediately halt speech synthesis.
+  3. Purged from `tracks` state to remove in-memory parsed cue records.
+  4. Removed from `subtitleRequestQueue` and pruned from attempted fetch cache.
+  5. Purged cached subtitle state for the active video via `removeCachedTargetSubtitles(videoId, prevLang)`.
+  6. Removed stored multi-instance player configurations via `removeVideoInstanceConfig(videoId, 'lang_' + prevLang)` and unregistered active player references.
+
+### Subtask 59.7: Automated Test Verification & Documentation
+- Authored dedicated automated test suite `scripts/verify-compact-ui-and-language-cleanup.ts` validating all Task 59 requirements.
+- Registered `"test:compact-ui-language-cleanup"` in `package.json` and cataloged in `docs/files.md`.
+- Verified 100% test pass (`npm run test:compact-ui-language-cleanup`), successful build compilation (`compile_applet`), and zero ESLint errors (`lint_applet`).
+
 ## Task 95: Winner Promotion Report Persistence & Subtitle Cache Architecture & Shared Video Library Fix
 
 ### Subtask 95.1: Stage Task 95 in Tracking Documentation
@@ -775,6 +818,15 @@
 - Created dedicated verification test suite `scripts/verify-android-device-e2e-suite.ts` and registered `"test:android-device-e2e"` in `package.json`.
 - Documented `scripts/verify-android-device-e2e-suite.ts` in `docs/files.md`.
 - Verified 100% test pass rate, clean compilation, and zero ESLint warnings.
+
+### Subtask 54.2: Adaptive Device Interaction, Live Intent Assertions & Multi-Scenario Video Capture
+
+- Added adaptive coordinate scaling based on device display resolution for gestures and taps (`DEV_W`, `DEV_H`, `ADAPTIVE_TAP_X`, `ADAPTIVE_TAP_Y`, `PLAYER_TAP_X`, `PLAYER_TAP_Y`) in `scripts/run-android-e2e.sh` and `scripts/android-e2e-assert.sh`.
+- Implemented real device live intent dispatch (`ACTION_VIEW` and `ACTION_SEND`) with verification of UI response and step screenshot captures (`step-share-browser-link.png`, `step-share-youtube-app-text.png`) in `scripts/android-e2e-assert.sh`.
+- Added `[SHARED_LINK_DISPATCH]` WebView telemetry logging in `src/routes/index.tsx` for real-time logcat observation.
+- Updated `e2e/emulation.spec.ts` and `cypress/e2e/emulation.cy.ts` to reflect physical device and emulator parity with adaptive touch and swipe gestures.
+- Authored dedicated automated verification test `scripts/verify-android-device-e2e-adaptive.ts` and registered `test:android-adaptive` in `package.json`.
+- Verified 100% test pass rate (`npm run test:android-adaptive`), clean compilation, and zero lint warnings.
 
 ## Task 53: Android E2E YouTube Share Intent Verification, Screencast Video Recording & GitHub Pages Presentation
 

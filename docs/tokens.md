@@ -159,11 +159,15 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 
 ---
 
-## 7. Active Prompt Execution Log: Task 95
+## 7. Active Prompt Execution Log: Task 59
 
-- **Task 95**: Winner Promotion Report Persistence & Subtitle Cache Architecture & Shared Video Library Fix [COMPLETED]
-  - Subtask 95.1: Tracking files staged in tokens.md, tasks.md, current-sub-task.md, and todo.md. [DONE]
-  - Subtask 95.2: Winner promotion tracking and persistence across all past videos implemented with stats aggregation and UI modal. [DONE]
-  - Subtask 95.3: Created docs/cache.md, fixed shared video library persistence, reactive event dispatch, and cache hydration. [DONE]
-  - Subtask 95.4: Automated test scripts/verify-cache-and-winner-promotion.ts verified 100%, compile_applet passed, lint_applet passed, migrated to docs/done.md. [DONE]
+- **Subtask 54.2**: Adaptive Device Interaction, Live Intent Assertions & Multi-Scenario Video Capture [COMPLETED & MIGRATED TO DONE.MD]
+- **Task 59**: Compact UI, Pin Toggles, Video Subtitle Scoping, Library Cache Controls & Clean Language Removal [COMPLETED & MIGRATED TO DONE.MD]
+  - Subtask 59.1: Compact per-language settings (rate/voice) and fix voice selection. [DONE]
+  - Subtask 59.2: Accordions auto-fold after a timeout unless pinned. [DONE]
+  - Subtask 59.3: Subtitles always belong to the current video (no fixture/stale captions on Android or other videos). [DONE]
+  - Subtask 59.4: Remove iframe player option. [DONE]
+  - Subtask 59.5: Library record: "Clear cache" and "Fetch from scratch" buttons. [DONE]
+  - Subtask 59.6: Removing a favorite language removes all related instances (columns, speech, players, cached state). [DONE]
+  - Subtask 59.7: Dedicated test verification (`test:compact-ui-language-cleanup`), file inventory, compilation, linting & migration to done.md. [DONE]
 

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Play, Trash2, Clock, Search, RotateCcw, Video, Database } from "lucide-react";
+import { Play, Trash2, Clock, Search, RotateCcw, Video, Database, RefreshCw } from "lucide-react";
 import { LibraryVideoItem } from "@/types";
 import {
   getVideoThumbnailUrl,
@@ -12,9 +12,10 @@ import { clearVideoSubtitleCache } from "@/utils/subtitleCache";
 import { Button } from "@/components/ui/button";
 
 export interface VideoLibraryPanelProps {
-  currentVideoId: string;
+  currentVideoId?: string;
   onSelectVideo: (videoId: string, url?: string) => void;
   onClearVideoCache?: (videoId: string) => void;
+  onFetchFromScratch?: (videoId: string, url?: string) => void;
   className?: string;
 }
 
@@ -22,6 +23,7 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
   currentVideoId,
   onSelectVideo,
   onClearVideoCache,
+  onFetchFromScratch,
   className = "",
 }) => {
   const [items, setItems] = useState<LibraryVideoItem[]>(() => loadVideoLibrary());
@@ -56,6 +58,17 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
     setTimeout(() => {
       setClearedCaches((prev) => ({ ...prev, [id]: false }));
     }, 2000);
+  };
+
+  const handleFetchFromScratch = (e: React.MouseEvent, item: LibraryVideoItem) => {
+    e.stopPropagation();
+    clearVideoSubtitleCache(item.id);
+    onClearVideoCache?.(item.id);
+    if (onFetchFromScratch) {
+      onFetchFromScratch(item.id, item.originalUrl);
+    } else {
+      onSelectVideo(item.id, item.originalUrl);
+    }
   };
 
   const handleRemove = (e: React.MouseEvent, id: string) => {
@@ -203,6 +216,17 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
                       {isActive ? "Currently loaded" : "Click to load"}
                     </span>
                     <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        aria-label={`Fetch from scratch for ${item.title}`}
+                        data-testid={`library-fetch-scratch-btn-${item.id}`}
+                        title="Purge cache and fetch subtitles fresh from YouTube"
+                        onClick={(e) => handleFetchFromScratch(e, item)}
+                        className="rounded px-1.5 py-0.5 text-[10px] flex items-center gap-1 border border-border text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        <span>Fetch from scratch</span>
+                      </button>
                       <button
                         type="button"
                         aria-label={`Clear cached subtitles for ${item.title}`}

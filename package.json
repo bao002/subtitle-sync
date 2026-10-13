@@ -87,6 +87,7 @@
     "test:android-device-e2e": "tsx scripts/verify-android-device-e2e-suite.ts",
     "test:android-adaptive": "tsx scripts/verify-android-device-e2e-adaptive.ts",
     "test:accordion-colors": "tsx scripts/verify-accordion-colors.ts",
+    "test:compact-ui-language-cleanup": "tsx scripts/verify-compact-ui-and-language-cleanup.ts",
     "test:auto-speak-on-fetch": "tsx scripts/verify-auto-speak-on-fetch.ts",
     "test:language-boxes": "tsx scripts/verify-language-boxes-selection.ts",
     "test:language-player-accordion": "tsx scripts/verify-language-video-player-accordion.ts",

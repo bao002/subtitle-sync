@@ -84,6 +84,24 @@ export function saveVideoInstanceConfig(
 }
 
 /**
+ * Removes stored instance configuration for a specific video instance.
+ */
+export function removeVideoInstanceConfig(videoId: string, instanceId: string): void {
+  if (typeof window === "undefined" || !window.localStorage || !instanceId) {
+    return;
+  }
+  try {
+    const existing = loadStoredInstanceConfigs(videoId);
+    if (existing[instanceId]) {
+      delete existing[instanceId];
+      window.localStorage.setItem(getStorageKey(videoId), JSON.stringify(existing));
+    }
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+/**
  * Computes the required video instance definitions given the spoken languages.
  * Always includes the primary instance, plus one instance for each spoken language.
  */
