@@ -1,3 +1,4 @@
+import serverConfig from "../config/server.json";
 /**
  * Android-only subtitle fetch attempts (see docs/reliable-subtitles-fetching.md).
  * An attempt = request style (tlang | lang) x sending method (session | anon).
