@@ -5,77 +5,53 @@
 [![Android Emulator E2E Tests](https://github.com/mostuf25564/subtitle-sync/actions/workflows/emulation.yml/badge.svg)](https://github.com/mostuf25564/subtitle-sync/actions/workflows/emulation.yml)
 [![Publish Web Demo](https://github.com/mostuf25564/subtitle-sync/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/mostuf25564/subtitle-sync/actions/workflows/deploy-demo.yml)
 
-A dedicated Android native shell application for YouTube video learning with synchronized multi-language subtitles, native hardware TTS speech flow, and on-the-fly translation switching. Accompanied by a scoped web companion for automated CI/CD test drivers and live interactive demonstration.
+An Android native shell application for YouTube learning with synchronized multi-language subtitles and speech flow.
+
+> **Status Notice (Minimalist Reboot)**:
+> All legacy/complex E2E test suites and secondary report dashboards have been **quarantined under `quarentined/`** (detailed in [`docs/fix-android-e2e-test-and-video-product.md`](./docs/fix-android-e2e-test-and-video-product.md)).
+> Current focus is 100% on verifying the core native feature on the Android Emulator with a single, clean report.
 
 ---
 
-## 📲 Install & Update Android APK via CLI
+## 📱 Live Android Emulator Verification Report
 
-All releases, version changelogs, and compiled APK artifacts are published on GitHub: [**Browse All Releases**](https://github.com/ofer-shaham/subtitle-sync/releases).
+Access the primary, working verification report proving the core feature on Android 14 (API 34):
 
-To download and install the latest `YouTube-Viewer-debug.apk` directly onto any connected Android device or emulator via ADB without cloning this repository or keeping local build files, run this single command:
+👉 [**Open Android Emulator E2E Report**](https://mostuf25564.github.io/subtitle-sync/android-emulator-report.html) (or [**/android/**](https://mostuf25564.github.io/subtitle-sync/android/))
+
+### 🎯 Feature Under Test:
+- **The application can be shared a YouTube video** via standard Android native intents:
+  - `ACTION_VIEW`: Direct YouTube browser URL sharing
+  - `ACTION_SEND`: Share text from the official YouTube app
+
+### 📦 Verified Test Products:
+1. **Android Logs**: [Download `android-emulator-logcat.txt`](https://mostuf25564.github.io/subtitle-sync/screenshots/android-emulator-logcat.txt) (or live logcat audit)
+2. **Screencast Video**: [Download `android-emulator-video.mp4`](https://mostuf25564.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (authentic screen recording)
+3. **Screenshot Images**: [View `android-emulator-screenshot.png`](https://mostuf25564.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) (full-resolution UI capture)
+
+---
+
+## 📲 Install Android APK via Single Command
+
+To download and install the latest `YouTube-Viewer-debug.apk` onto any connected Android device or emulator via ADB without cloning the repository:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/mostuf25564/subtitle-sync/main/update.apk.sh | bash -s -- "https://github.com/mostuf25564/subtitle-sync/releases/latest/download/YouTube-Viewer-debug.apk"
 ```
 
-### What this command does:
-
-1. **Locates ADB**: Automatically detects `adb` across Windows (Git Bash / MSYS2 / CMD), macOS, and Linux.
-2. **Downloads APK**: Streams the latest debug APK from the GitHub release to the local downloads folder.
-3. **Installs onto Device**: Executes `adb install -r -d -t` targeting package `com.ytviewer.app` with multi-tiered fallback pipelines.
-4. **Launches App**: Starts `com.ytviewer.app/.MainActivity` on the connected target device or emulator.
-
 ---
 
-## 🌐 GitHub Pages Links
+## 📁 Repository Documentation & Quarantined Assets
 
-Access the live web demo, web end-to-end test runner, and Android emulator verification reports:
+- **Strategy Specification**: [`docs/fix-android-e2e-test-and-video-product.md`](./docs/fix-android-e2e-test-and-video-product.md)
+- **Agent Instructions**: [`AGENTS.md`](./AGENTS.md)
+- **Android Architecture**: [`docs/android.md`](./docs/android.md)
+- **Token Economy**: [`docs/tokens.md`](./docs/tokens.md)
+- **Subtitle Parser**: [`docs/parser.md`](./docs/parser.md)
+- **Self Verification**: [`docs/self-verification.md`](./docs/self-verification.md)
+- **Task Backlog**: [`docs/tasks.md`](./docs/tasks.md)
+- **Completed Log**: [`docs/done.md`](./docs/done.md)
+- **File Inventory**: [`docs/files.md`](./docs/files.md)
+- **Project Roadmap**: [`docs/roadmap.md`](./docs/roadmap.md)
 
-| Resource                                               | Direct URL                                                                                                                     | Description                                                                                                                                                    |
-| :----------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🚀 **Web-App Demo Landing Page**                       | [**Open Live Web Demo**](https://mostuf25564.github.io/subtitle-sync/)                                                         | Standalone browser build with responsive playback controls, dual-language subtitles (`top`/`above`/`under`/`bottom`), and instant target language switching.   |
-| 📋 **Mochawesome Test Report**                         | [**Open Mochawesome Report**](https://mostuf25564.github.io/subtitle-sync/mochawesome.html)                                    | Suite breakdown, pass/fail metrics, step timing breakdown, and test assertion logs from Cypress E2E suite.                                                     |
-| 🔍 **Playwright E2E Test Report**                      | [**Open Playwright Report**](https://mostuf25564.github.io/subtitle-sync/playwright/index.html)                                | Network timeline, console events, and action waterfall inspector for web test execution.                                                                       |
-| 📱 **E2E Tests on Android Emulator**                   | [**Open Android Emulator Report**](https://mostuf25564.github.io/subtitle-sync/android-emulator-report.html)                   | Standalone report verifying native WebView `shouldInterceptRequest` on Google Pixel 7 (Android 14 / API 34), Logcat audit, and hardware TTS loop verification. |
-| 📸 **Android Emulator Screenshot**                     | [**View Latest Emulator Screenshot**](https://mostuf25564.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) | Latest authentic screenshot captured directly from the Android Emulator during CI verification.                                                                |
-| 🎬 **Android Emulator Screencast Video**               | [**View/Download MP4 Screencast (6.41 MB)**](https://mostuf25564.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) | Full authentic screen recording from Android Emulator E2E run (API 34 Google APIs, size: 6,724,502 bytes / 6.41 MB).          |
-| 🧪 **Web E2E Pipeline (CI Runs & Artifacts)**          | [**View Web E2E Test Workflow**](https://github.com/mostuf25564/subtitle-sync/actions/workflows/web.yml)                       | Continuous CI run history, Playwright traces, and Mochawesome build artifacts.                                                                                 |
-| 🤖 **Android Emulator Pipeline (CI Runs & Artifacts)** | [**View Android E2E Workflow**](https://github.com/mostuf25564/subtitle-sync/actions/workflows/emulation.yml)                  | Continuous CI run history, job summary with live Logcat telemetry, and APK binaries.                                                                           |
-
-> **Note on GitHub Pages Availability:**
-> Artifacts, test reports, and demo assets are automatically published to the `gh-pages` branch on every push. To access the live web demo, reports, and screenshot URLs, ensure GitHub Pages is enabled in repository settings:
-> 👉 **Settings > Pages > Build and deployment > Source: Deploy from a branch (`gh-pages` / `/root`)**.
-
----
-
-## 📁 Modular Architecture & Documentation
-
-The project is governed by strict Markdown contracts that decouple visual view implementations from data acquisition and platform internals. Any view can be recreated or swapped using different tools and frameworks by following these specifications:
-
-| Document                                                                        | Purpose & Scope                                                                                                  |
-| :------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------------------------- |
-| **[`AGENTS.md`](./AGENTS.md)**                                                  | Core architectural foundation, pure view mandates, data-flow boundaries, and testing phases.                     |
-| **[`ACTIONS.md`](./docs/operations/ACTIONS.md)**                                | GitHub Actions CI/CD guide: APK release, web testing, emulator pipelines, and artifact flow.                     |
-| **[`LIBRARY.md`](./docs/specifications/LIBRARY.md)**                            | JSON3 subtitle fixture library schema (`test/fixtures/<VIDEO_ID>/*.json`) and verification.                      |
-| **[`DESIGN_SUBTITLE_VIEWS.md`](./docs/designs/DESIGN_SUBTITLE_VIEWS.md)**       | Replaceable view contract for subtitle renderers (injected cues, active state, intent dispatch).                 |
-| **[`DESIGN_VIEW_LANGS.md`](./docs/designs/DESIGN_VIEW_LANGS.md)**               | Replaceable view contract for language selectors (injected language options, selection dispatch).                |
-| **[`DESIGN_CONTROLS_VIEW.md`](./docs/designs/DESIGN_CONTROLS_VIEW.md)**         | Replaceable view contract for media playback controls (injected playback metrics, intent callbacks).             |
-| **[`DESIGN_PLAYER_PROVIDER.md`](./docs/designs/DESIGN_PLAYER_PROVIDER.md)**     | Vendor-agnostic media player controller and time-synchronization contract.                                       |
-| **[`DESIGN_STATE_COORDINATOR.md`](./docs/designs/DESIGN_STATE_COORDINATOR.md)** | Finite state machine, lifecycle transitions, active cue resolution, and state flow.                              |
-| **[`SCHEMA_TIMEDTEXT.md`](./docs/specifications/SCHEMA_TIMEDTEXT.md)**          | Format definitions, segment timings, entity decoding, and RTL/BiDi normalization.                                |
-| **[`DEBUG.md`](./docs/operations/DEBUG.md)**                                    | Diagnostic log viewer, network interception, 200-char response preview, and AI troubleshooting prompt generator. |
-
----
-
-## 🏗️ Architectural Core: Pure Views & Dependency Injection
-
-```text
-[ Data Providers ] ──► [ Normalized Data ] ──► [ Pure Views ] ──► [ User Callbacks ]
-   - Local Fixtures (Web)     - SubtitleCue[]       - Overlay        - onSelectCue
-   - TimedText Hook (Android) - LanguageOption[]    - Transcript     - onSelectLanguage
-```
-
-1. **Pure Presentation**: Views never make network calls, read files, or parse raw timed-text files directly.
-2. **Implementation Independent**: Any view can be replaced (e.g. replacing a complex transcript panel with a parallel subtitles matrix) without touching the data acquisition logic.
-3. **Format Support**: Uses YouTube JSON3 (`.json`) exclusively for millisecond segment timing and word-level highlighting.
+*(Legacy web reports like [mochawesome.html](https://mostuf25564.github.io/subtitle-sync/mochawesome.html) and [playwright](https://mostuf25564.github.io/subtitle-sync/playwright/index.html) are deprecated and quarantined in `quarentined/`.)*

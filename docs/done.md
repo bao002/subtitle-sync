@@ -1,6 +1,37 @@
 # Done tasks
 
-## Task 59: Compact UI, Pin Toggles, Video Subtitle Scoping, Library Cache Controls & Clean Language Removal
+## Task 97: Quarantine Failing/Deprecated E2E Tests, Minimize Report & Focus on Android YouTube Share E2E
+
+### Summary:
+- **Strategic Reboot Specification (`docs/fix-android-e2e-test-and-video-product.md`)**:
+  - Documented the rationale for quarantining complex, failing E2E test suites and multi-dashboard report generators in order to restart with a clean, minimalistic focus.
+  - Defined the single core feature under test on the Android emulator: **The application can be shared a YouTube video** (via Android native intents `ACTION_VIEW` for browser URLs and `ACTION_SEND` for official YouTube app text shares).
+  - Specified the 3 authentic test products:
+    1. **Android logs**: `android-emulator-logcat.txt` capturing boot, intent reception, and subtitle network events.
+    2. **Screencast video**: `android-emulator-video.mp4` screen recording on API 34 Google APIs.
+    3. **Images**: `android-emulator-screenshot.png` verifying UI rendering of the shared video.
+- **Quarantine Isolation (`quarentined/`)**:
+  - Moved Cypress test suites (`cypress/e2e/app.cy.ts`, `cypress/e2e/emulation.cy.ts`, `cypress/e2e/web.cy.ts`, `cypress/support/e2e.ts`, `cypress.config.ts`) into `quarentined/cypress/`.
+  - Moved web/app Playwright suites (`e2e/app.spec.ts`, `e2e/web.spec.ts`) into `quarentined/e2e/`.
+  - Archived legacy complex emulation suite into `quarentined/e2e/emulation.legacy.spec.ts`.
+  - Archived deprecated report pages into `quarentined/reports/`.
+- **Single Minimal Android Share E2E Spec (`e2e/emulation.spec.ts`)**:
+  - Focused strictly on proving: `"the application can be shared a youtube video"`.
+  - Tests browser URL share (`ACTION_VIEW`) updating video to `dQw4w9WgXcQ`.
+  - Tests YouTube app text share (`ACTION_SEND`) updating video to `kJQP7kiw5Fk`.
+  - Asserts clean app launch without error boundaries.
+- **Android Device & Emulator Assertion Runner (`scripts/android-e2e-assert.sh`)**:
+  - Refactored assertion script to verify `[APP_READY]`, test `ACTION_VIEW` and `ACTION_SEND` intents, capture milestone screenshots, and output `android-emulator-logcat.txt`.
+- **Minimalist GitHub Pages Report (`public/android-emulator-report.html` & `public/android/index.html`)**:
+  - Created a single, clean report highlighting the verified YouTube video share feature.
+  - Directly features the 3 products: HTML5 screencast video player, emulator screenshot image preview, and filtered Logcat preview with download links.
+- **Simplified README (`README.md`)**:
+  - Deprecated legacy sprawling dashboards in favor of direct, working links to the GitHub Pages report (`android-emulator-report.html` and `/android/`).
+  - Outlined the 3 authentic test products, the 1-command APK install script, and a notice explaining quarantined suites under `quarentined/`.
+- **Dedicated Automated Verification (`scripts/verify-quarantine-and-minimal-share-e2e.ts`)**:
+  - Command: `npm run test:quarantine-minimal-share`
+  - Result: All 6 phases verified OK (strategy doc, quarantine directory, minimal e2e spec, assert script, report templates, and README.md).
+
 
 ### Subtask 59.1: Compact Per-Language Settings & Voice Selection
 - Refactored per-language TTS control cards in `src/routes/index.tsx` into an inline, space-efficient flex row layout (`tts-settings-card-${lang.code}`).

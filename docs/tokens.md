@@ -159,11 +159,14 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 
 ---
 
-## 7. Active Prompt Execution Log: Task 96
+## 7. Active Prompt Execution Log: Task 97
+ 
+- **Task 97**: Quarantine Deprecated/Failing E2E Tests & Complex Report Generation, Establish Minimal Android YouTube Share Test, and Deprecate README in Favor of Direct Report Link [COMPLETED & MIGRATED TO DONE.MD]
+  - Subtask 97.1: Stage Task 97 in Tracking Documentation (`tokens.md`, `tasks.md`, `current-sub-task.md`, `todo.md`). [DONE]
+  - Subtask 97.2: Create Strategy & Reasoning Specification `docs/fix-android-e2e-test-and-video-product.md`. [DONE]
+  - Subtask 97.3: Quarantine Deprecated GitHub Pages Report Generation & Non-Core E2E Suites into `quarentined/`, Retaining 1 Minimal Android Share E2E Suite. [DONE]
+  - Subtask 97.4: Simplify `README.md` to Focus on Working GitHub Report Link & Minimal Report Page for Video Share Verification. [DONE]
+  - Subtask 97.5: Dedicated Automated Verification Test, Compilation, Linting & Migration to `docs/done.md`. [DONE]
 
-- **Task 96**: Android Background Audio Playback & Lockscreen MediaSession Controls [COMPLETED & MIGRATED TO DONE.MD]
-  - Subtask 96.1: Stage Task 96 in Tracking Documentation (`tokens.md`, `tasks.md`, `current-sub-task.md`, `todo.md`). [DONE]
-  - Subtask 96.2: Android Shell Foreground Service & MediaSession Implementation (`AndroidManifest.xml`, `BackgroundAudioService.kt`, `MainActivity.kt`). [DONE]
-  - Subtask 96.3: Web Client MediaSession Bridge, Preferences & Settings UI (`playback-preferences.ts`, `backgroundMediaManager.ts`, `index.tsx`). [DONE]
-  - Subtask 96.4: Dedicated Automated Verification Test, Compilation, Linting & Migration to done.md. [DONE]
+
 
