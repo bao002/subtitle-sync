@@ -1,5 +1,70 @@
 # Done tasks
 
+## Task 93: Create Automated Error Reporting Workflow & AI Reproduction Fix Engine (error.log)
+
+### Subtask 93.1: Stage Task 93 in Tracking Documentation
+- Updated `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and `temp.md`.
+- Defined architecture and specifications for automated CI failure reporting and AI reproduction prompt formatting.
+
+### Subtask 93.2: Build Error Reporting Diagnostic Engine (`scripts/generate-error-report.ts`)
+- Created CLI engine `scripts/generate-error-report.ts` that captures failed command context, exit codes, git branch/commit, OS/Node environment, and stack traces.
+- Synthesizes actionable root-cause analysis, reproduction steps, and suggested fix heuristics across 6 error categories (`lint`, `typecheck`, `test_assertion`, `missing_module`, `network`, `build`).
+- Produces `error.log` structured as a clean, self-contained AI prompt block ready for copy-pasting directly into AI Studio prompt input.
+- Supports CLI options `--run <cmd>`, `--file <log>`, `--command <cmd>`, `--step <name>`, and `--output <path>`.
+
+### Subtask 93.3: Author GitHub Actions Workflow (`.github/workflows/error-reporting.yml`)
+- Created dedicated `.github/workflows/error-reporting.yml` workflow triggering on `workflow_run` (after primary CI runs), push/pull request to main, and manual dispatch.
+- Executes automated health diagnostics pipeline across linting, web application build, architectural documentation contracts, and core test suites.
+- On any failure, automatically invokes the error report generator to create `error.log`.
+- Outputs diagnostic summary and reproduction instructions to `$GITHUB_STEP_SUMMARY` and the workflow run log console.
+- Uploads `error.log` as an artifact (`actions/upload-artifact@v4`) for download and direct prompt sharing.
+
+### Subtask 93.4: Register Scripts, Documentation, and Files Inventory
+- Added `report:error` and `test:error-reporting` npm scripts in `package.json`.
+- Documented `error-reporting.yml` in `docs/operations/ACTIONS.md` and added section on automated CI error reporting in `docs/operations/DEBUG.md`.
+- Registered `error-reporting.yml`, `scripts/generate-error-report.ts`, and `scripts/verify-error-reporting-workflow.ts` in `docs/files.md`.
+
+### Subtask 93.5: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+- Authored automated test `scripts/verify-error-reporting-workflow.ts` validating error diagnostic heuristics, error report structure, reproduction command generation, AI prompt formatting, workflow file schema, and documentation contracts.
+- Verified 100% test pass (`npm run test:error-reporting`), clean build compilation (`compile_applet`), and zero lint errors (`lint_applet`).
+
+## Task 92: Deprecate Server Fetch Option, Add Paced Floating Retry Indicator, and Document YouTube Captions in docs/youtube.md
+
+### Subtask 92.1: Deprecate Server Option in Preferences, Components, and Route Handlers
+- Added `@deprecated` JSDoc annotations to `getUseFetchServer`, `setUseFetchServer`, `getFetchServerUrl`, and `setFetchServerUrl` in `src/lib/subtitle-fetch-plan.ts`.
+- In `src/components/AttemptOrderSettings.tsx`, added `(Deprecated)` badge (`data-testid="server-option-deprecated-badge"`) and clear explanation notice explaining that external server proxy fetching is deprecated in favor of authentic client-side and native Android fetching with paced jitter.
+
+### Subtask 92.2: Add Configurable Pacing Interval Settings in Settings Accordion
+- Renamed `playback` panel title in `src/config/accordionThemes.ts` to `"Settings"` to centralize all configuration under the accordion named "settings".
+- In `src/lib/playback-preferences.ts`, added persistent preferences: `autoRetrySubtitles` (boolean, default `true` — set to retry by default), `retryPacingMinSec` (number, default `3`, clamped >= 1), and `retryPacingMaxSec` (number, default `8`, clamped >= 1).
+- Added `getRandomRetryDelayMs(minSec, maxSec)` calculating randomized jitter delay between X and Y seconds to prevent bot triggers.
+- In `src/routes/index.tsx`, added auto-retry toggle (`data-testid="auto-retry-subtitles-toggle"`) and min/max pacing interval inputs (`data-testid="retry-pacing-min-input"` and `data-testid="retry-pacing-max-input"`) under the Settings accordion.
+
+### Subtask 92.3: Build Floating Auto-Retry Indicator Component
+- Created modular component `src/components/FloatingSubtitleRetryIndicator.tsx`.
+- Displays pending unfetched favorite languages count, active countdown timer with safe jitter, Retry Now button, Pause/Resume toggle, and minimize control.
+- Retries unfetched favorite languages automatically with randomized spacing between X and Y seconds to avoid triggering YouTube HTTP 429 rate limits.
+- Configured with `autoRetryEnabled = true` by default and mounted in `src/routes/index.tsx`.
+
+### Subtask 92.4: Create docs/youtube.md Architecture Specification
+- Authored comprehensive `docs/youtube.md` covering:
+  1. Distinguishing videos using `tlang` vs `lang` only (`captionTracks` vs `translationLanguages`, authored tracks vs ASR tracks, `vssId` inspection).
+  2. Evaluation of client-side YouTube npm modules (`youtube-caption-extractor`, `get-youtube-subtitle`, `yt-caption-scraper`, `youtube-captions-scraper`) and why they fail in pure browser environments due to CORS and bot fingerprinting.
+  3. Evaluation of server-side options (`youtubei.js`, `yt-dlp`, `@distube/ytdl-core`, YouTube Data API v3).
+  4. Anti-bot and rate-limiting architectural solution (paced staggered jitter between X and Y seconds, session cookies, User-Agent sanitization, client caching, deprecation of shared proxy IPs).
+
+### Subtask 92.5: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+- Authored automated test `scripts/verify-youtube-docs-and-floating-retry.ts` validating all requirements.
+- Registered `npm run test:youtube-docs-and-floating-retry` in `package.json` and documented in `docs/files.md`.
+- Verified 100% test pass, clean applet compilation (`compile_applet`), and zero lint errors (`lint_applet`).
+
+
+### Hotfix 91.1: Ensure Clean Port 3000 Binding with strictPort and Dev Server Stability
+- Configured `strictPort: true` in `vite.config.ts` alongside `host: "0.0.0.0"` and `port: 3000` to prevent port drifting and ensure rock-solid health checks during AI Studio pre-warming.
+- Verified dev server startup and responsiveness returning HTTP 200 on `/`, `/src/main.tsx`, and `/src/routes/index.tsx`.
+- Authored dedicated automated verification test `scripts/verify-dev-server-stability.ts` probing server configuration and live HTTP endpoints, registered `npm run test:dev-server-stability` in `package.json`, and documented in `docs/files.md`.
+- Verified clean build (`compile_applet`), zero lint errors (`lint_applet`), and 100% test pass rate across test suites (`test:dev-server-stability`, `test:tokens-economy`, `test:no-duplicate-md`, `test:parser-timing-lab`, `test:default-punctuation`).
+
 ## Task 87: Fix Anti-Bot HTTP 429 on Link-Only (Anon) Fetching by Matching Browser Profile
 
 ### Subtask 87.4: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md

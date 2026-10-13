@@ -109,6 +109,10 @@
     "test:anti-bot-browser-profile": "tsx scripts/verify-anti-bot-browser-profile.ts",
     "test:dynamic-favorites-and-server-fetch": "tsx scripts/verify-dynamic-favorites-and-server-fetch.ts",
     "test:task-management-workflow": "tsx scripts/verify-task-management-workflow.ts",
+    "test:dev-server-stability": "tsx scripts/verify-dev-server-stability.ts",
+    "test:youtube-docs-and-floating-retry": "tsx scripts/verify-youtube-docs-and-floating-retry.ts",
+    "report:error": "tsx scripts/generate-error-report.ts",
+    "test:error-reporting": "tsx scripts/verify-error-reporting-workflow.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

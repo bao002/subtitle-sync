@@ -87,6 +87,9 @@ const USE_SERVER_KEY = "yt_fetch_use_server_v1";
 const SERVER_URL_KEY = "yt_fetch_server_url_v1";
 export const DEFAULT_FETCH_SERVER_URL = "http://localhost:8080/fetch";
 
+/**
+ * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
+ */
 export function getUseFetchServer(): boolean {
   try {
     return storage()?.getItem(USE_SERVER_KEY) === "1";
@@ -95,6 +98,9 @@ export function getUseFetchServer(): boolean {
   }
 }
 
+/**
+ * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
+ */
 export function setUseFetchServer(enabled: boolean) {
   try {
     storage()?.setItem(USE_SERVER_KEY, enabled ? "1" : "0");
@@ -103,6 +109,9 @@ export function setUseFetchServer(enabled: boolean) {
   }
 }
 
+/**
+ * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
+ */
 export function getFetchServerUrl(): string {
   try {
     return storage()?.getItem(SERVER_URL_KEY) || DEFAULT_FETCH_SERVER_URL;
@@ -111,6 +120,9 @@ export function getFetchServerUrl(): string {
   }
 }
 
+/**
+ * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
+ */
 export function setFetchServerUrl(url: string) {
   try {
     storage()?.setItem(SERVER_URL_KEY, url);
@@ -120,6 +132,7 @@ export function setFetchServerUrl(url: string) {
 }
 
 /**
+ * @deprecated The external server proxy option is deprecated in favor of authentic client-side and native Android fetches.
  * Sends a timedtext request through a configured repeating server proxy.
  * If serverUrl contains {url}, replaces it; otherwise appends ?url=... (or &url=...).
  */

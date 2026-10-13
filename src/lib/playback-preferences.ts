@@ -7,12 +7,38 @@ const KEYS = {
   requestMode: "yt_subtitle_request_mode_v1",
   sectionOrder: "yt_section_order_v1",
   ttsRatios: "yt_tts_ratios_v1",
+  autoRetrySubtitles: "yt_auto_retry_subtitles_v1",
+  retryPacingMinSec: "yt_retry_pacing_min_sec_v1",
+  retryPacingMaxSec: "yt_retry_pacing_max_sec_v1",
 } as const;
 
-function read<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
-  if (typeof window === "undefined") return fallback;
+const memoryStorage = new Map<string, string>();
+
+function getStorage(): { getItem(k: string): string | null; setItem(k: string, v: string): void } {
   try {
-    const v = window.localStorage.getItem(key) as T | null;
+    if (typeof window !== "undefined" && window.localStorage) return window.localStorage;
+    if (
+      typeof globalThis !== "undefined" &&
+      (globalThis as unknown as { localStorage?: Storage }).localStorage
+    ) {
+      return (globalThis as unknown as { localStorage: Storage }).localStorage;
+    }
+  } catch {
+    // ignore
+  }
+  return {
+    getItem: (k: string) => memoryStorage.get(k) ?? null,
+    setItem: (k: string, v: string) => {
+      memoryStorage.set(k, v);
+    },
+  };
+}
+
+function read<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
+  const s = getStorage();
+  if (!s) return fallback;
+  try {
+    const v = s.getItem(key) as T | null;
     return v && allowed.includes(v) ? v : fallback;
   } catch {
     return fallback;
@@ -20,7 +46,7 @@ function read<T extends string>(key: string, allowed: readonly T[], fallback: T)
 }
 function write(key: string, value: string) {
   try {
-    window.localStorage.setItem(key, value);
+    getStorage()?.setItem(key, value);
   } catch {
     // ignore storage errors
   }
@@ -107,4 +133,64 @@ export const shouldHighlightSentenceForTTS = (
   const currentRatio = Math.max(1, Math.round(ratio ?? 1));
   if (currentRatio <= 1) return false; // Strictly highlight only when ratio is not 1:1
   return isSubtitleInstanceEligibleForTTS(rowIdx, currentRatio);
+};
+
+export const getAutoRetrySubtitles = (): boolean => {
+  const s = getStorage();
+  if (!s) return true;
+  try {
+    const v = s.getItem(KEYS.autoRetrySubtitles);
+    return v === null ? true : v === "1"; // Default true: retry by default
+  } catch {
+    return true;
+  }
+};
+
+export const setAutoRetrySubtitles = (enabled: boolean) => {
+  write(KEYS.autoRetrySubtitles, enabled ? "1" : "0");
+};
+
+export const getRetryPacingMinSec = (): number => {
+  const s = getStorage();
+  if (!s) return 3;
+  try {
+    const raw = s.getItem(KEYS.retryPacingMinSec);
+    const parsed = raw ? parseInt(raw, 10) : NaN;
+    return Number.isFinite(parsed) && parsed >= 1 ? parsed : 3;
+  } catch {
+    return 3;
+  }
+};
+
+export const setRetryPacingMinSec = (sec: number) => {
+  const clamped = Math.max(1, Math.round(sec));
+  write(KEYS.retryPacingMinSec, String(clamped));
+};
+
+export const getRetryPacingMaxSec = (): number => {
+  const s = getStorage();
+  if (!s) return 8;
+  try {
+    const raw = s.getItem(KEYS.retryPacingMaxSec);
+    const parsed = raw ? parseInt(raw, 10) : NaN;
+    return Number.isFinite(parsed) && parsed >= 1 ? parsed : 8;
+  } catch {
+    return 8;
+  }
+};
+
+export const setRetryPacingMaxSec = (sec: number) => {
+  const clamped = Math.max(1, Math.round(sec));
+  write(KEYS.retryPacingMaxSec, String(clamped));
+};
+
+export const getRandomRetryDelayMs = (
+  minSec: number = getRetryPacingMinSec(),
+  maxSec: number = getRetryPacingMaxSec(),
+): number => {
+  const safeMin = Math.max(1, Math.min(minSec, maxSec));
+  const safeMax = Math.max(safeMin, Math.max(minSec, maxSec));
+  const diff = safeMax - safeMin;
+  const randomSec = safeMin + Math.random() * diff;
+  return Math.round(randomSec * 1000);
 };

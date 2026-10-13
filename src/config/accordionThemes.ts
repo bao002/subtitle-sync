@@ -8,7 +8,7 @@ export interface PanelConfig {
 
 export const PANELS: PanelConfig[] = [
   { id: "player", title: "Video" },
-  { id: "playback", title: "Playback" },
+  { id: "playback", title: "Settings" },
   { id: "parser", title: "Parser" },
   { id: "languages", title: "Languages" },
   { id: "subtitles", title: "Parallel subtitles" },

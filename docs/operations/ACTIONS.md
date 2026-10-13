@@ -14,6 +14,7 @@ The repository maintains four dedicated GitHub Actions workflows to guarantee te
 | **`web.yml`**         | Push to `main`, PRs              | Runs web companion end-to-end tests across Playwright and Cypress.    | Playwright trace, Mochawesome HTML reports      |
 | **`emulation.yml`**   | Push to `main`, PRs              | Runs Android emulator instrumentation and WebView interception tests. | `android-emulator-report.html`, logcat captures |
 | **`deploy-demo.yml`** | Push to `main` (auto)            | Builds production web demo and deploys to GitHub Pages (`gh-pages`).  | GitHub Pages web app and test dashboards        |
+| **`error-reporting.yml`** | Workflow completion, Push, PR, Manual | Catches build/lint/test errors, produces `error.log` and AI fix prompt. | `error.log`, GitHub Step Summary diagnostic      |
 
 ---
 
@@ -64,6 +65,16 @@ The repository maintains four dedicated GitHub Actions workflows to guarantee te
   1. Compiles production web bundle (`npm run build`).
   2. Deploys `./dist` to `gh-pages` branch via `peaceiris/actions-gh-pages@v4` with `keep_files: true`.
   3. Stages and retains authentic emulator screenshots in `screenshots/android-emulator-screenshot.png`.
+
+### 2.5 Automated Error Reporting & AI Reproduction Fix Engine (`error-reporting.yml`)
+
+- **Objective**: Intercepts CI pipeline failures, compiles system telemetry, generates exact reproduction steps, and produces `error.log` with an AI diagnostic fix prompt.
+- **Workflow File**: `.github/workflows/error-reporting.yml`
+- **Trigger**: Automatic on `workflow_run` (after any primary workflow completes), push/pull request to main, and manual dispatch.
+- **Output Artifacts**:
+  - `error.log`: Downloadable artifact containing root-cause analysis, reproduction command, stack trace, and AI prompt block.
+  - GitHub Step Summary: Instant markdown report rendered directly on the GitHub Actions workflow run summary page.
+- **CLI Alternative**: Can be triggered locally or in scripts via `npm run report:error` (`npx tsx scripts/generate-error-report.ts`).
 
 ---
 

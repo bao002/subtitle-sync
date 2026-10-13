@@ -77,6 +77,7 @@ import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 import { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 import { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
 import { ParserTimingLab } from "@/components/ParserTimingLab";
+import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
 import {
   getSectionOrder,
   getSubtitleRequestMode,
@@ -87,6 +88,12 @@ import {
   setSubtitleRequestMode as saveSubtitleRequestMode,
   setTtsRatioPreference as saveTtsRatioPreference,
   subtitleRequestModeOrder,
+  getAutoRetrySubtitles,
+  setAutoRetrySubtitles as saveAutoRetrySubtitles,
+  getRetryPacingMinSec,
+  setRetryPacingMinSec as saveRetryPacingMinSec,
+  getRetryPacingMaxSec,
+  setRetryPacingMaxSec as saveRetryPacingMaxSec,
   type SectionOrder,
   type SubtitleRequestMode,
 } from "@/lib/playback-preferences";
@@ -508,6 +515,15 @@ function Index() {
   );
   const [useFetchServer, setUseFetchServerState] = useState<boolean>(() => getUseFetchServer());
   const [fetchServerUrl, setFetchServerUrlState] = useState<string>(() => getFetchServerUrl());
+  const [autoRetrySubtitles, setAutoRetrySubtitlesState] = useState<boolean>(() =>
+    getAutoRetrySubtitles(),
+  );
+  const [retryPacingMinSec, setRetryPacingMinSecState] = useState<number>(() =>
+    getRetryPacingMinSec(),
+  );
+  const [retryPacingMaxSec, setRetryPacingMaxSecState] = useState<number>(() =>
+    getRetryPacingMaxSec(),
+  );
 
   useEffect(() => {
     // Load device-saved preferences after hydration
@@ -517,6 +533,9 @@ function Index() {
     setPromoteSuccessState(getPromoteSuccessfulAttempt());
     setUseFetchServerState(getUseFetchServer());
     setFetchServerUrlState(getFetchServerUrl());
+    setAutoRetrySubtitlesState(getAutoRetrySubtitles());
+    setRetryPacingMinSecState(getRetryPacingMinSec());
+    setRetryPacingMaxSecState(getRetryPacingMaxSec());
   }, []);
   const requestModeRef = useRef(requestMode);
   requestModeRef.current = requestMode;
@@ -549,6 +568,23 @@ function Index() {
   const handleUpdateFetchServerUrl = useCallback((next: string) => {
     setFetchServerUrl(next);
     setFetchServerUrlState(next);
+  }, []);
+
+  const handleToggleAutoRetry = useCallback((next: boolean) => {
+    saveAutoRetrySubtitles(next);
+    setAutoRetrySubtitlesState(next);
+  }, []);
+
+  const handleUpdatePacingMin = useCallback((next: number) => {
+    const val = Math.max(1, next);
+    saveRetryPacingMinSec(val);
+    setRetryPacingMinSecState(val);
+  }, []);
+
+  const handleUpdatePacingMax = useCallback((next: number) => {
+    const val = Math.max(1, next);
+    saveRetryPacingMaxSec(val);
+    setRetryPacingMaxSecState(val);
   }, []);
 
   const [networkInspectorOpen, setNetworkInspectorOpen] = useState(false);
@@ -715,6 +751,18 @@ function Index() {
       }
     },
     [isAndroid, autoSpeakOnFetch, videoId],
+  );
+
+  const handleFloatingFetchSingleLanguage = useCallback(
+    async (code: string) => {
+      const activeUrl = observedUrlRef.current;
+      if (activeUrl) {
+        attemptedRef.current.delete(`${activeUrl}|${code}`);
+      }
+      setFailedLangs((prev) => prev.filter((c) => c !== code));
+      await fetchFavoriteLanguageSubtitles([code]);
+    },
+    [fetchFavoriteLanguageSubtitles],
   );
 
   const manualFetchFailed = () => {
@@ -2241,6 +2289,68 @@ function Index() {
                         fetchServerUrl={fetchServerUrl}
                         onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
                       />
+                      <div className="pt-2 border-t border-border/60 space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            data-testid="auto-retry-subtitles-toggle"
+                            type="checkbox"
+                            checked={autoRetrySubtitles}
+                            onChange={(e) => handleToggleAutoRetry(e.target.checked)}
+                            className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                          />
+                          <span className="font-medium text-xs text-foreground">
+                            Auto-retry unfetched favorite languages (safe paced jitter)
+                          </span>
+                        </label>
+                        <p className="text-[11px] text-muted-foreground ml-6">
+                          Automatically retries pending favorite subtitles with random spacing
+                          between X and Y seconds to prevent YouTube HTTP 429 rate limit blocks.
+                        </p>
+                        <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
+                          <div>
+                            <label
+                              htmlFor="retry-pacing-min-input"
+                              className="text-[11px] font-medium text-muted-foreground block mb-1"
+                            >
+                              Min interval (X seconds):
+                            </label>
+                            <input
+                              id="retry-pacing-min-input"
+                              data-testid="retry-pacing-min-input"
+                              type="number"
+                              min={1}
+                              max={retryPacingMaxSec}
+                              value={retryPacingMinSec}
+                              onChange={(e) =>
+                                handleUpdatePacingMin(parseInt(e.target.value, 10) || 1)
+                              }
+                              className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor="retry-pacing-max-input"
+                              className="text-[11px] font-medium text-muted-foreground block mb-1"
+                            >
+                              Max interval (Y seconds):
+                            </label>
+                            <input
+                              id="retry-pacing-max-input"
+                              data-testid="retry-pacing-max-input"
+                              type="number"
+                              min={retryPacingMinSec}
+                              max={60}
+                              value={retryPacingMaxSec}
+                              onChange={(e) =>
+                                handleUpdatePacingMax(
+                                  parseInt(e.target.value, 10) || retryPacingMinSec,
+                                )
+                              }
+                              className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </>
                   )}
                   <label className="flex items-center gap-2">
@@ -3117,6 +3227,16 @@ function Index() {
       <FloatingDraggablePauseButton
         isSetupPaused={isSetupPaused}
         onToggleSetupPause={toggleSetupPause}
+      />
+      <FloatingSubtitleRetryIndicator
+        targetLanguages={targetLanguages}
+        tracks={tracks}
+        onFetchLanguage={handleFloatingFetchSingleLanguage}
+        isFetching={isSubtitlesPending}
+        autoRetryEnabled={autoRetrySubtitles}
+        minPacingSec={retryPacingMinSec}
+        maxPacingSec={retryPacingMaxSec}
+        onToggleAutoRetry={handleToggleAutoRetry}
       />
     </div>
   );

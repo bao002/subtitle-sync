@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { ArrowUp, ArrowDown, RotateCcw, CheckCircle2, ShieldCheck, Globe, Server } from "lucide-react";
+import {
+  ArrowUp,
+  ArrowDown,
+  RotateCcw,
+  CheckCircle2,
+  ShieldCheck,
+  Globe,
+  Server,
+} from "lucide-react";
 import {
   type FetchAttempt,
   DEFAULT_ATTEMPT_ORDER,
@@ -80,7 +88,8 @@ export const AttemptOrderSettings: React.FC<Props> = ({
             <span>Subtitle Fetch Attempt Order (Android)</span>
           </h3>
           <p className="text-muted-foreground text-[11px] mt-0.5">
-            Sequential fallback chain (tlang/lang × session/anon). The loop stops at the first good response.
+            Sequential fallback chain (tlang/lang × session/anon). The loop stops at the first good
+            response.
           </p>
         </div>
         <button
@@ -182,24 +191,35 @@ export const AttemptOrderSettings: React.FC<Props> = ({
           <span>Move successful attempt to front automatically</span>
         </label>
         <p className="text-[10px] text-muted-foreground ml-6 mt-0.5">
-          When enabled, the attempt style that yields a good response is remembered and prioritized first on subsequent subtitle fetches.
+          When enabled, the attempt style that yields a good response is remembered and prioritized
+          first on subsequent subtitle fetches.
         </p>
       </div>
 
-      <div className="pt-2 border-t border-border/60 space-y-2">
-        <label className="flex items-center gap-2 cursor-pointer select-none text-foreground font-medium text-[11px]">
-          <input
-            type="checkbox"
-            checked={useFetchServer}
-            onChange={(e) => onToggleUseFetchServer?.(e.target.checked)}
-            data-testid="use-fetch-server-toggle"
-            className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-          />
-          <Server className="w-3.5 h-3.5 text-primary" />
-          <span>Use server for repeating fetch requests (off by default)</span>
-        </label>
+      <div className="pt-2 border-t border-border/60 space-y-2 opacity-85">
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 cursor-pointer select-none text-foreground font-medium text-[11px]">
+            <input
+              type="checkbox"
+              checked={useFetchServer}
+              onChange={(e) => onToggleUseFetchServer?.(e.target.checked)}
+              data-testid="use-fetch-server-toggle"
+              className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+            />
+            <Server className="w-3.5 h-3.5 text-primary" />
+            <span>Use server for repeating fetch requests</span>
+          </label>
+          <span
+            data-testid="server-option-deprecated-badge"
+            className="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+          >
+            Deprecated
+          </span>
+        </div>
         <p className="text-[10px] text-muted-foreground ml-6">
-          Routes repeated subtitle fetches through an external server/proxy to bypass device IP rate limits (e.g. YouTube bot detection HTTP 429).
+          <span className="font-medium text-amber-600 dark:text-amber-400">Notice:</span> Server
+          proxy fetching is currently deprecated in favor of authentic client-side and native
+          Android fetching with paced jitter to protect privacy and eliminate external dependencies.
         </p>
 
         <div className="ml-6 space-y-1 pt-1">
@@ -229,7 +249,8 @@ export const AttemptOrderSettings: React.FC<Props> = ({
             </button>
           </div>
           <p className="text-[10px] text-muted-foreground">
-            Enter server endpoint. URL will receive target via <code>?url=...</code> or replacing <code>{"{url}"}</code> placeholder.
+            Enter server endpoint. URL will receive target via <code>?url=...</code> or replacing{" "}
+            <code>{"{url}"}</code> placeholder.
           </p>
         </div>
       </div>
