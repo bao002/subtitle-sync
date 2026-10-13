@@ -24,12 +24,12 @@ An Android native shell application for YouTube learning with synchronized multi
 # AI FIX PROMPT: CI Failure in Android Emulator Screencast & Report Video Flow
 - **Repository**: mostuf25561/subtitle-sync
 - **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
-- **Failing Step**: Report Video Link Verification (android-emulator-video.mp4 returned HTTP 404)
+- **Failing Step**: Broken Video Link Detection in android-emulator-report.html
 - **Report URL**: https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html
-- **Run URL**: https://github.com/mostuf25561/subtitle-sync/actions/workflows/emulation.yml
+- **Run URL**: https://github.com/mostuf25561/subtitle-sync/actions/runs/38484456895
 
 ### Failure Log & Diagnosis:
-The Android Emulator verification report at https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html references the screencast video 'android-emulator-video.mp4', but the asset returned HTTP 404 on GitHub Pages. The workflow 'emulation.yml' must be executed to record the authentic screencast via 'adb shell screenrecord' and deploy 'screenshots/android-emulator-video.mp4' to the gh-pages branch.
+Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).
 
 ### 🔗 Broken Links Detected:
 - `[Report Screencast Video: android-emulator-video.mp4](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)` -> HTTP 404 on GitHub Pages (Report at https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html has broken video source) (`public/android-emulator-report.html -> <video controls> (screencast video missing / 404)`)
