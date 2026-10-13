@@ -14,12 +14,27 @@ An Android native shell application for YouTube learning with synchronized multi
 ---
 
 <!-- CI_STATUS_INDICATOR_START -->
-## 🚦 Latest CI Build & Test Status: ALL VERIFIED
+## 🚨 Latest CI Build & Test Status: FAILED
 
-- **Android Emulator E2E Tests**: [Verified (Android 14 API 34)](https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html)
-- **Android Emulator Screencast Video**: [Download MP4 (6.41 MB)](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)
-- **Screenshot Image**: [View UI Capture](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png)
-- **Workflow Runs**: [GitHub Actions Dashboard](https://github.com/mostuf25561/subtitle-sync/actions)
+> ⚠️ **Automated CI Failure Detected**: `README Link Integrity & Documentation Check` (Step: `npm run test:readme-links`)
+>
+> If screencasts, logs, or reports are missing, copy the diagnostic block below and paste it directly into your AI Assistant prompt to reproduce and resolve the failure immediately:
+
+```markdown
+# AI FIX PROMPT: CI Failure in README Link Integrity & Documentation Check
+- **Repository**: mostuf25561/subtitle-sync
+- **Workflow / Checker**: README Link Integrity & Documentation Check
+- **Failing Step**: npm run test:readme-links
+- **Run URL**: https://github.com/mostuf25561/subtitle-sync/actions/runs/38482127467
+
+### Failure Log & Diagnosis:
+Broken relative links or missing workflow files detected in README.md.
+
+### Instructions for AI Assistant:
+1. Examine the root cause, broken link(s), and diagnostic details above.
+2. Fix broken target paths, restore missing files, or fix failing application code with targeted edits.
+3. Verify that `npm run test:readme-links` and all automated test suites pass cleanly.
+```
 <!-- CI_STATUS_INDICATOR_END -->
 
 ---
