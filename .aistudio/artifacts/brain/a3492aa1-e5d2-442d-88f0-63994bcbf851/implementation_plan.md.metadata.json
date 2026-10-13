@@ -1,0 +1,5 @@
+{
+  "summary": "Plan and architecture documentation for the minimalist reboot of Android Emulator E2E testing, featuring:\n- Core verified feature: The application can be shared a YouTube video via native Android intents (ACTION_VIEW and ACTION_SEND).\n- Three authentic products: Android logs, screencast video, and screenshot images.\n- Quarantine isolation in quarentined/ for legacy complex E2E test suites and multi-dashboard report generators.\n- Simplified README.md focusing on the working GitHub Pages verification report link.",
+  "updatedAt": "2026-10-13T02:46:33.067104221Z",
+  "userFacing": true
+}

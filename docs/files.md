@@ -1,8 +1,64 @@
-# Code Files Inventory
+# Code & Documentation Files Inventory (`docs/files.md`)
 
-This document maintains the registry of codebase files, their specific roles, architectural responsibilities, and feature domain boundaries.
+This document serves as the master catalog and directory of all repository documentation files (under `docs/*.md` and root) as well as the complete codebase implementation inventory.
 
-## Application Architecture & Routing
+---
+
+## 1. Documentation Master Directory (`docs/*.md` & Root)
+
+### Core Architectural & Operational Specifications
+| File Path | Role | Feature & Responsibilities |
+| :--- | :--- | :--- |
+| `docs/tokens.md` | Token Economy Protocol | Mandatory rules for chunking prompts, staging `current-sub-task.md`, and checkpointing progress into Git to eliminate context bloat and token waste. |
+| `docs/android.md` | Android Architecture & E2E Runbook | Guide for native shell integration, timedtext caption interception, ADB telemetry, and Android 14 (API 34) verification. |
+| `docs/parser.md` | Subtitle Parsing & Timing Spec | Millisecond segment timing, JSON3 event mapping, punctuation splitting, and RTL/BiDi formatting. |
+| `docs/self-verification.md` | Self-Verification Protocol | Automated sanity check suite, test command matrix, and release verification standards. |
+| `docs/fix-android-e2e-test-and-video-product.md` | E2E Reboot & Video Product Strategy | Strategy to minimize GitHub Pages reporting to the core YouTube video share feature, produce 3 authentic products, and quarantine secondary suites. |
+| `docs/reliable-subtitles-fetching.md` | Subtitle Fetching Fallback Spec | 4 fetch attempts order, session vs link-only sending, winner promotion to front, and anti-bot pacing. |
+| `docs/auto-retry.md` | Auto-Retry & Anti-Bot Strategy | Backoff algorithms, request serialization, jitter, and HTTP 429/403 recovery mechanisms. |
+| `docs/cache.md` | Subtitle Caching Architecture | Invalidation gates, `isValidJsonSubtitleResponse` validation, local storage persistence, and cache eviction rules. |
+| `docs/youtube.md` | YouTube API & Player Guide | Embed player configuration, iframe lifecycle, deep link synchronization, and server fetch deprecation. |
+| `docs/versioning.md` | Versioning & OTA Updates | Version incrementing conventions, native shell version bridge, and OTA hot updates. |
+| `docs/files.md` | Documentation & Code Inventory | Master inventory cataloging and explaining every documentation file and source code module (this document). |
+| `docs/roadmap.md` | Project Roadmap | High-level strategic milestones and planned evolution phases. |
+
+### Active Backlog & Changelog Tracking
+| File Path | Role | Feature & Responsibilities |
+| :--- | :--- | :--- |
+| `docs/tasks.md` | Active Backlog | Master backlog of active, pending, and upcoming numbered tasks. Completed items are migrated to `done.md`. |
+| `docs/todo.md` | Active Task Mirror | Real-time mirror of the single active subtask staged in `current-sub-task.md`. |
+| `docs/done.md` | Verified Changelog Archive | Permanent record of completed tasks with automated test commands, verification outcomes, and modified file scopes. |
+| `docs/later.md` | Future Enhancements | Backlog of non-blocking features, optimizations, and technical debt slated for future prompts. |
+
+### Replaceable View Design Contracts (`docs/designs/`)
+| File Path | Role | Feature & Responsibilities |
+| :--- | :--- | :--- |
+| `docs/designs/DESIGN_SUBTITLE_VIEWS.md` | Subtitle View Contract | Presentation contract for overlay, transcript, and parallel table renderers with injected cues and callbacks. |
+| `docs/designs/DESIGN_VIEW_LANGS.md` | Language Selector Contract | Presentation contract for touch-friendly language boxes and selection dispatch. |
+| `docs/designs/DESIGN_CONTROLS_VIEW.md` | Playback Controls Contract | Presentation contract for media transport controls, scrub bars, and floating pause buttons. |
+| `docs/designs/DESIGN_PLAYER_PROVIDER.md` | Media Player Contract | Vendor-agnostic player controller abstraction for YouTube iframe and native media players. |
+| `docs/designs/DESIGN_STATE_COORDINATOR.md` | State Machine Contract | Finite state machine governing playback transitions, active subtitle resolution, and queue state. |
+
+### Technical Schemas & Operations (`docs/specifications/` & `docs/operations/`)
+| File Path | Role | Feature & Responsibilities |
+| :--- | :--- | :--- |
+| `docs/specifications/SCHEMA_TIMEDTEXT.md` | TimedText Schema | YouTube JSON3 format definitions, segment timings (`tStartMs`, `dDurationMs`), entity decoding, and BiDi normalization. |
+| `docs/specifications/LIBRARY.md` | Subtitle Library Schema | Schema definitions and integrity rules for offline local fixtures (`test/fixtures/<VIDEO_ID>/*.json`). |
+| `docs/operations/ACTIONS.md` | CI/CD Pipelines Guide | Workflows for APK building, emulator E2E tests, Pages deployment, and release publishing. |
+| `docs/operations/DEBUG.md` | Diagnostics Runbook | Log inspection runbook, network packet inspector, and AI troubleshooting prompt generator. |
+
+### Root Entry Points & Scratchpads
+| File Path | Role | Feature & Responsibilities |
+| :--- | :--- | :--- |
+| `README.md` | Repository Homepage | Main project overview, working link to GitHub Pages report, and APK installation guide. |
+| `AGENTS.md` | Agent Operating Rules | Mandatory developer and agent operating constitution, zero duplicates policy, and token economy mandate. |
+| `current-sub-task.md` | Active Subtask Staging | Active ephemeral staging file for the single subtask currently being executed. |
+| `temp.md` | Ephemeral Scratchpad | Active scratchpad for intermediate notes, diff drafting, and temporary calculations. |
+
+---
+
+## 2. Codebase Implementation Inventory
+
 
 | File Path               | Role                         | Feature & Responsibilities                                                                                    |
 | ----------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -195,4 +251,7 @@ This document maintains the registry of codebase files, their specific roles, ar
 | `scripts/verify-cache-and-winner-promotion.ts`     | Cache & Winner Promotion Verification Suite        | Asserts winner promotion tracking, statistical aggregation, shared video library persistence, event broadcast, validation gate, and cache hydration.  |
 | `scripts/verify-compact-ui-and-language-cleanup.ts` | Compact UI, Library Cache & Clean Language Test   | Validates compact per-language TTS controls, voice matching, pin toggles, active video scoping, library action buttons, and clean language removal.    |
 | `scripts/verify-md-links.ts`                      | Markdown Links Checker                             | Validates that all documentation cross-references and links resolve properly.                                                                          |
-| `scripts/normalize-web-assets.mjs`                | Build Asset Normalizer                             | Adjusts asset paths for GitHub Pages sub-path hosting.                                                                                                 |
+| `docs/fix-android-e2e-test-and-video-product.md`   | E2E Reboot & Video Product Strategy Specification  | Documents reasoning for minimal GitHub Pages report, YouTube video share feature, 3 products, and quarantine isolation roadmap.                         |
+| `scripts/verify-quarantine-and-minimal-share-e2e.ts` | Quarantine & Minimal Android Share E2E Test       | Dedicated automated verification asserting quarantine isolation, minimal Android share E2E spec, 3 authentic products, and streamlined README.md.     |
+
+

@@ -159,11 +159,17 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 
 ---
 
-## 7. Active Prompt Execution Log: Task 96
+## 7. Active Prompt Execution Log: Task 99
+ 
+- **Task 99**: Consolidate Master Documentation Catalog into `docs/files.md` (Remove Redundant `docs/index.md` & Link `files.md` in `README.md`) [COMPLETED & MIGRATED TO DONE.MD]
+  - Subtask 99.1: Stage Task 99 in Tracking Documentation (`tokens.md`, `tasks.md`, `current-sub-task.md`, `todo.md`). [DONE]
+  - Subtask 99.2: Delete redundant `docs/index.md` and revert `scripts/verify-no-duplicate-md-files.ts`. [DONE]
+  - Subtask 99.3: Expand `docs/files.md` with complete documentation directory explaining every `.md` file in `docs/`, subdirectories, and root files. [DONE]
+  - Subtask 99.4: Update `README.md` to link `docs/files.md` as the master catalog, verify with automated tests, and migrate to `docs/done.md`. [DONE]
 
-- **Task 96**: Android Background Audio Playback & Lockscreen MediaSession Controls [COMPLETED & MIGRATED TO DONE.MD]
-  - Subtask 96.1: Stage Task 96 in Tracking Documentation (`tokens.md`, `tasks.md`, `current-sub-task.md`, `todo.md`). [DONE]
-  - Subtask 96.2: Android Shell Foreground Service & MediaSession Implementation (`AndroidManifest.xml`, `BackgroundAudioService.kt`, `MainActivity.kt`). [DONE]
-  - Subtask 96.3: Web Client MediaSession Bridge, Preferences & Settings UI (`playback-preferences.ts`, `backgroundMediaManager.ts`, `index.tsx`). [DONE]
-  - Subtask 96.4: Dedicated Automated Verification Test, Compilation, Linting & Migration to done.md. [DONE]
+
+
+
+
+
 
