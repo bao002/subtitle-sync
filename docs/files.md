@@ -18,7 +18,9 @@ This document serves as the master catalog and directory of all repository docum
 | `docs/auto-retry.md` | Auto-Retry & Anti-Bot Strategy | Backoff algorithms, request serialization, jitter, and HTTP 429/403 recovery mechanisms. |
 | `docs/cache.md` | Subtitle Caching Architecture | Invalidation gates, `isValidJsonSubtitleResponse` validation, local storage persistence, and cache eviction rules. |
 | `docs/youtube.md` | YouTube API & Player Guide | Embed player configuration, iframe lifecycle, deep link synchronization, and server fetch deprecation. |
+| `docs/server.md` | Server Proxy Specification | Documentation for Android-only Supabase proxy endpoint (/proxy?url=) and server.json configuration. |
 | `docs/versioning.md` | Versioning & OTA Updates | Version incrementing conventions, native shell version bridge, and OTA hot updates. |
+
 | `docs/files.md` | Documentation & Code Inventory | Master inventory cataloging and explaining every documentation file and source code module (this document). |
 | `docs/roadmap.md` | Project Roadmap | High-level strategic milestones and planned evolution phases. |
 

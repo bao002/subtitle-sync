@@ -1,6 +1,25 @@
 # Done tasks
 
-## Task 99: Consolidate Documentation Index into `docs/files.md` & Remove Redundant `docs/index.md`
+## Task 100: Enable Server Proxy Option, Robust Proxy URL Construction & Register `docs/server.md`
+
+### Summary:
+- **Server Configuration (`src/config/server.json`)**:
+  - Configured default `server_address` to `"https://fuufqctnluwhlsfvybum.supabase.co/functions/v1/api/proxy?url="`.
+  - Enabled server option by default: `"is_enabled": true`.
+- **Robust Proxy URL Construction (`src/lib/subtitle-fetch-plan.ts`)**:
+  - Enhanced `buildServerProxyUrl` to robustly handle direct query endpoints ending with `?url=` or `&url=`, `{url}` templates, as well as `/api` or `/proxy` base paths.
+  - Correctly encodes the target YouTube timedtext URL as a query parameter value (`?url=<encoded-timedtext-url>`).
+- **Registered `docs/server.md`**:
+  - Added `docs/server.md` to the master documentation directory in `docs/files.md`.
+  - Added `docs/server.md` to `requiredDocsFiles` in `scripts/verify-no-duplicate-md-files.ts`.
+- **Automated Verification**:
+  - Verified with `npm run test:no-duplicate-md` (40 canonical files, 0 duplicates).
+  - Verified with `npm run test:readme-links`.
+  - Verified with `npm run test:youtube-docs-and-floating-retry`.
+  - Verified with `npm run test:quarantine-minimal-share`.
+  - Clean `compile_applet` and zero-warning `lint_applet`.
+
+
 
 ### Summary:
 - **Consolidated into `docs/files.md`**: Enhanced `docs/files.md` to serve as the single, authoritative master catalog of all documentation files under `docs/*.md` and the repository root, with detailed descriptions of their roles, features, and responsibilities across:

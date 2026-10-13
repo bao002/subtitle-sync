@@ -98,7 +98,9 @@ const requiredDocsFiles = [
   "docs/done.md",
   "docs/files.md",
   "docs/later.md",
+  "docs/server.md",
 ];
+
 
 
 for (const req of requiredDocsFiles) {
