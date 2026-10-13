@@ -19,8 +19,24 @@ import path from "path";
  *   VIDEO_SIZE_BYTES
  */
 
+const readmePath = path.resolve(process.cwd(), "README.md");
+
+if (!fs.existsSync(readmePath)) {
+  console.error("❌ README.md file not found at:", readmePath);
+  process.exit(1);
+}
+
+let content = fs.readFileSync(readmePath, "utf8");
+
 let targetOwner = "mostuf2556";
-let targetRepo = "Youtubenet6";
+let targetRepo = "subtitle-sync";
+
+// Detect from existing README badges or links if not passed
+const ownerMatch = content.match(/https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)\/actions/);
+if (ownerMatch && ownerMatch[1] && ownerMatch[2]) {
+  targetOwner = ownerMatch[1];
+  targetRepo = ownerMatch[2];
+}
 
 if (process.env.GITHUB_REPOSITORY) {
   const [envOwner, envRepo] = process.env.GITHUB_REPOSITORY.split("/");
@@ -43,15 +59,6 @@ if (process.argv[2]) {
 if (process.argv[3]) {
   targetRepo = process.argv[3];
 }
-
-const readmePath = path.resolve(process.cwd(), "README.md");
-
-if (!fs.existsSync(readmePath)) {
-  console.error("❌ README.md file not found at:", readmePath);
-  process.exit(1);
-}
-
-let content = fs.readFileSync(readmePath, "utf8");
 
 // 1. Update GitHub badge and action workflow links:
 content = content.replace(
@@ -120,19 +127,34 @@ const shouldProbeRemote =
 
 if (shouldProbeRemote && process.env.CHECK_REMOTE_VIDEO !== "false") {
   try {
-    const res = await fetch(remoteVideoUrl, {
+    let res = await fetch(remoteVideoUrl, {
       method: "HEAD",
       signal: AbortSignal.timeout(3500),
     });
+    if (!res.ok && res.status !== 404) {
+      try {
+        res = await fetch(remoteVideoUrl, {
+          method: "GET",
+          headers: { Range: "bytes=0-0" },
+          signal: AbortSignal.timeout(3500),
+        });
+      } catch {}
+    }
     remoteVideoStatus = res.status;
-    if (res.status === 200) {
-      const cl = res.headers.get("content-length");
-      if (cl && Number(cl) > 0 && !videoSizeBytes) {
-        videoSizeBytes = Number(cl);
+    if (res.status === 200 || res.status === 206) {
+      remoteVideoStatus = 200;
+      const cl = res.headers.get("content-length") || res.headers.get("content-range");
+      if (cl && !videoSizeBytes) {
+        const match = cl.match(/\/(\d+)$/) || cl.match(/^(\d+)$/);
+        if (match) videoSizeBytes = Number(match[1]);
       }
     }
   } catch {
-    remoteVideoStatus = null; // network unreachable or offline
+    if (process.env.CHECK_REMOTE_VIDEO === "true" || process.env.STRICT_REPORT_CHECK === "true") {
+      remoteVideoStatus = 404;
+    } else {
+      remoteVideoStatus = null; // network unreachable or offline
+    }
   }
 }
 
@@ -155,7 +177,7 @@ const mb = (videoSizeBytes / (1024 * 1024)).toFixed(2);
 let videoRow = "";
 
 if (isVideoBroken) {
-  videoRow = `| 🎬 **Android Emulator Screencast Video**               | ⚠️ [**Broken Link / Missing Asset (HTTP 404)**](https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html) | Screencast video returned HTTP 404 on GitHub Pages. Run [emulation.yml](https://github.com/${targetOwner}/${targetRepo}/actions/workflows/emulation.yml) to record and deploy. |`;
+  videoRow = `| 🎬 **Android Emulator Screencast Video**               | ⚠️ [**Broken Link / Missing Asset (HTTP 404)**](https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html) | Screencast video (android-emulator-video.mp4 returned HTTP 404 on GitHub Pages). Run [emulation.yml](https://github.com/${targetOwner}/${targetRepo}/actions/workflows/emulation.yml) to record and deploy. |`;
 } else {
   videoRow = `| 🎬 **Android Emulator Screencast Video**               | [**View/Download MP4 Screencast (${mb} MB)**](https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4) | Full authentic screen recording from Android Emulator E2E run (API 34 Google APIs, size: ${videoSizeBytes.toLocaleString()} bytes / ${mb} MB).          |`;
 }
@@ -252,7 +274,7 @@ function scanReportVideoIntegrity(rootDir, targetOwner, targetRepo, brokenVideo)
       text: "Report Screencast Video: android-emulator-video.mp4",
       target: `https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4`,
       resolvedPath: `${hasReport ? "public/android-emulator-report.html -> <video controls>" : "README.md"} (screencast video missing / 404)`,
-      reason: `HTTP 404 on GitHub Pages (Report at https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html has broken video source)`,
+      reason: `HTTP 404 on GitHub Pages (Report at https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html has broken video source; android-emulator-video.mp4 returned HTTP 404)`,
     });
   }
   return broken;
@@ -285,18 +307,25 @@ const failedStep =
   (brokenLinks.length > 0
     ? `Broken Link Scan (${allBroken.length} broken targets)`
     : brokenReportVideos.length > 0
-      ? "Report Video Link Verification (android-emulator-video.mp4 returned HTTP 404)"
+      ? "Broken Video Link Detection in android-emulator-report.html"
       : "Execution");
 
-const runUrl = process.env.GITHUB_RUN_ID
-  ? `https://github.com/${targetOwner}/${targetRepo}/actions/runs/${process.env.GITHUB_RUN_ID}`
-  : `https://github.com/${targetOwner}/${targetRepo}/actions/workflows/emulation.yml`;
+const existingRunUrlMatch = content.match(/- \*\*Run URL\*\*:\s*(https:\/\/github\.com\/[^\s\n]+)/);
+const existingRunUrl = existingRunUrlMatch ? existingRunUrlMatch[1] : null;
+
+const runUrl =
+  process.env.RUN_URL ||
+  (process.env.GITHUB_RUN_ID
+    ? `https://github.com/${targetOwner}/${targetRepo}/actions/runs/${process.env.GITHUB_RUN_ID}`
+    : (existingRunUrl || `https://github.com/${targetOwner}/${targetRepo}/actions/workflows/report-video-flow.yml`));
 
 let errorLogSnippet = "";
 if (fs.existsSync("error.log")) {
   errorLogSnippet = fs.readFileSync("error.log", "utf8");
 } else if (process.env.ERROR_MESSAGE) {
   errorLogSnippet = process.env.ERROR_MESSAGE;
+} else if (brokenReportVideos.length > 0) {
+  errorLogSnippet = "Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).";
 }
 
 let brokenLinksSnippet = "";

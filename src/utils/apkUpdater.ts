@@ -214,13 +214,13 @@ export function clearOtaCacheAndReload(): boolean {
     if (typeof window !== "undefined" && window.AndroidNativeShell?.clearOtaCache) {
       window.AndroidNativeShell.clearOtaCache();
     }
-    logInfo("Cleared OTA cache and stored release tag. Reloading app...");
+    logInfo("APKUpdater", "Cleared OTA cache and stored release tag. Reloading app...");
     if (typeof window !== "undefined") {
       window.location.reload();
     }
     return true;
   } catch (err) {
-    logError("Failed to clear OTA cache:", err);
+    logError("APKUpdater", "Failed to clear OTA cache", err);
     return false;
   }
 }

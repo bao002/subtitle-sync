@@ -159,17 +159,22 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 
 ---
 
-## 7. Active Prompt Execution Log: Task 106 Complete & Task 107 Staged
+## 7. Active Prompt Execution Log: Hotfix Completed & Task 107 Resumed
 
-- **Task 106**: Document GitHub Actions & GitHub Pages to README.md Summary Lifecycle for Broken Tests and Links [COMPLETED & MIGRATED TO docs/done.md]
-  - Subtask 106.1: Update `docs/operations/ACTIONS.md` detailing how GitHub Actions and GitHub Pages pipelines feed into the automated README.md summary of broken tests and links. [DONE]
-  - Subtask 106.2: Cross-reference and enhance `docs/self-verification.md` and `docs/android.md` for the CI summary loop. [DONE]
-  - Subtask 106.3: Implement dedicated verification test, run tests, compile, lint, commit, push, and migrate to `docs/done.md`. [DONE]
+- **Hotfix: Fix apkUpdater.ts logger arguments and resolve Vite stale export errors** [COMPLETED & MIGRATED TO docs/done.md]:
+  - Step 1: Fixed `logInfo` and `logError` parameter count and typing in `src/utils/apkUpdater.ts`.
+  - Step 2: Validated exports in `src/lib/playback-preferences.ts` and `src/utils/apkUpdater.ts`.
+  - Step 3: Restarted dev server to refresh Vite's module graph.
+  - Step 4: Authored dedicated test `scripts/verify-hotfix-dev-exports-and-logger.ts` and verified with `npm run test:hotfix-dev-exports`.
+  - Step 5: Verified clean `compile_applet` and `lint_applet`.
+  - Step 6: Logged completion in `docs/done.md` and resumed active backlog.
 
-- **Task 107**: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync [ACTIVE]
-  - Subtask 107.1: Enhance `scripts/update-readme.mjs` and report link validation to detect broken video links in `android-emulator-report.html` and report them dynamically on `README.md`. [ACTIVE]
-  - Subtask 107.2: Update `android-emulator-report.html` & `android/index.html` player resilience and update `.github/workflows/update-readme.yml` / `integrity.yml` to run dedicated video link verification. [PENDING]
-  - Subtask 107.3: Add dedicated test `scripts/verify-report-video-links-and-readme-sync.ts`, update documentation in `docs/operations/ACTIONS.md` and `docs/files.md`, run verification, compile, lint, commit, push, and migrate to `docs/done.md`. [PENDING]
+- **Task 107**: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 107.1: Enhance `scripts/update-readme.mjs` and report link validation to detect broken video links in `android-emulator-report.html` and report them dynamically on `README.md`. [DONE]
+  - Subtask 107.2: Create dedicated workflow `.github/workflows/report-video-flow.yml` and update workflow coordination. [DONE]
+  - Subtask 107.3: Add dedicated test `scripts/verify-report-video-links-and-readme-sync.ts`, update documentation in `docs/operations/ACTIONS.md` and `docs/files.md`, run verification, compile, lint, commit, push, and migrate to `docs/done.md`. [DONE]
+
+
 
 
 

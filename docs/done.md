@@ -1,6 +1,66 @@
 # Done tasks
 
+## Task 107: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync
+
+### Summary:
+- **Dedicated GitHub Actions Flow (`.github/workflows/report-video-flow.yml`)**:
+  - Implemented `Android Emulator Screencast & Report Video Flow` running on:
+    - Periodic schedule: Every 6 hours (`0 */6 * * *`)
+    - Upstream completions: `workflow_run` after `emulation.yml`, `deploy-demo.yml`, and `integrity.yml`
+    - Branch pushes: `main` and `master`
+    - Manual trigger: `workflow_dispatch`
+  - Automated check: runs `node scripts/update-readme.mjs` with `CHECK_REMOTE_VIDEO="true"`, `STRICT_REPORT_CHECK="true"`, and automatic commit of status updates to `README.md` using `[skip ci]`.
+- **Enhanced Broken Video Link Detection in `scripts/update-readme.mjs`**:
+  - Automatically scans report HTML files (`public/android-emulator-report.html` and `public/android/index.html`) for `<source src="...">` links.
+  - Detects missing local video files and HTTP 404 responses from GitHub Pages assets (`screenshots/android-emulator-video.mp4`).
+  - Sets CI status to `failure` when broken report video links are discovered.
+  - Dynamically formats the structured AI Fix Prompt in `README.md`:
+    - Workflow / Checker: `Android Emulator Screencast & Report Video Flow`
+    - Failing Step: `Broken Video Link Detection in android-emulator-report.html`
+    - Report URL: `https://<owner>.github.io/<repo>/android-emulator-report.html`
+    - Run URL: Dynamic run link or workflow trigger link
+    - Failure Log: `Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).`
+    - Exact broken link entry pointing to the screencast video asset.
+- **Workflow Coordination & Badges**:
+  - Added `Report Video Flow` workflow badge to `README.md`.
+  - Updated `.github/workflows/update-readme.yml` and `.github/workflows/integrity.yml` to trigger on and validate `report-video-flow.yml`.
+  - Documented in `docs/operations/ACTIONS.md` Section 2.8 and `docs/files.md`.
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-report-video-links-and-readme-sync.ts` (`npm run test:report-video-links`).
+  - Validates report HTML error banners, workflow files, broken video detection simulation, failure prompt generation, and recovery back to `ALL VERIFIED`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:report-video-links` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:readme-error-indicator` (Passed 100%)
+  - `npm run test:actions-readme-sync-docs` (Passed 100%)
+  - `npm run test:no-duplicate-md` (Passed 100%)
+  - `npm run test:md` (Passed 100%)
+  - `lint_applet` (0 errors)
+  - `compile_applet` (Build succeeded)
+
+### Hotfix: Fix apkUpdater.ts logger arguments and resolve Vite stale export errors
+
+- **Issue & Diagnostics**:
+  - Vite dev server reported:
+    - Missing export `getBackgroundAudioEnabled` from `/src/lib/playback-preferences.ts`
+    - Missing export `checkVersionDiscrepancy` from `/src/utils/apkUpdater.ts`
+    - React hook failure: `TypeError: Cannot read properties of null (reading 'useRef') at VideoInstancesSwiper`
+  - TypeScript check (`npx tsc --noEmit`) revealed `src/utils/apkUpdater.ts(217,5)` and `(223,44)` missing required `category` argument for `logInfo` and `logError`.
+  - Vite dev server cached stale module graph prior to recent feature additions, breaking module imports during runtime HMR.
+- **Changes & Fixes Applied**:
+  - Fixed `clearOtaCacheAndReload` in `src/utils/apkUpdater.ts` to call `logInfo("APKUpdater", ...)` and `logError("APKUpdater", ...)`.
+  - Validated that `getBackgroundAudioEnabled` and `checkVersionDiscrepancy` are properly exported and callable.
+  - Restarted dev server with `restart_dev_server` to reload the module graph and eliminate stale pre-bundles.
+  - Authored dedicated test suite `scripts/verify-hotfix-dev-exports-and-logger.ts` and registered `test:hotfix-dev-exports` in `package.json`.
+  - Updated `docs/files.md` with new test script inventory.
+- **Verification Commands & Outcomes**:
+  - `npm run test:hotfix-dev-exports` (Passed 100%)
+  - `npx tsc --noEmit` (Passed 0 errors)
+  - `lint_applet` (Passed 0 errors)
+  - `compile_applet` (Build succeeded)
+
 ## Task 106: Document GitHub Actions & GitHub Pages to README.md Summary Lifecycle for Broken Tests and Links
+
 
 ### Summary:
 - **Architectural Documentation in `docs/operations/ACTIONS.md`**:

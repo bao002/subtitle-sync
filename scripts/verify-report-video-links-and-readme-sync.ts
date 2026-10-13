@@ -15,6 +15,8 @@ const readmePath = path.resolve(rootDir, "README.md");
 const updateReadmeWorkflowPath = path.resolve(rootDir, ".github/workflows/update-readme.yml");
 const integrityWorkflowPath = path.resolve(rootDir, ".github/workflows/integrity.yml");
 
+const reportVideoFlowWorkflowPath = path.resolve(rootDir, ".github/workflows/report-video-flow.yml");
+
 // 1. Assert required files exist
 assert(fs.existsSync(reportHtmlPath), "public/android-emulator-report.html must exist");
 assert(fs.existsSync(androidIndexPath), "public/android/index.html must exist");
@@ -22,7 +24,34 @@ assert(fs.existsSync(updateReadmeScript), "scripts/update-readme.mjs must exist"
 assert(fs.existsSync(readmePath), "README.md must exist");
 assert(fs.existsSync(updateReadmeWorkflowPath), ".github/workflows/update-readme.yml must exist");
 assert(fs.existsSync(integrityWorkflowPath), ".github/workflows/integrity.yml must exist");
+assert(fs.existsSync(reportVideoFlowWorkflowPath), ".github/workflows/report-video-flow.yml must exist");
 console.log("✅ PASS: All required report HTML, script, and workflow files exist.");
+
+// 1b. Verify report-video-flow.yml workflow configuration & README badge
+const reportVideoWorkflowContent = fs.readFileSync(reportVideoFlowWorkflowPath, "utf-8");
+assert(
+  reportVideoWorkflowContent.includes("name: Android Emulator Screencast & Report Video Flow"),
+  "report-video-flow.yml must have name 'Android Emulator Screencast & Report Video Flow'",
+);
+assert(
+  reportVideoWorkflowContent.includes("node scripts/update-readme.mjs"),
+  "report-video-flow.yml must execute update-readme.mjs",
+);
+assert(
+  reportVideoWorkflowContent.includes("CHECK_REMOTE_VIDEO"),
+  "report-video-flow.yml must pass CHECK_REMOTE_VIDEO",
+);
+assert(
+  reportVideoWorkflowContent.includes("workflow_dispatch:"),
+  "report-video-flow.yml must support manual dispatch",
+);
+
+const readmeCurrentContent = fs.readFileSync(readmePath, "utf-8");
+assert(
+  readmeCurrentContent.includes("report-video-flow.yml/badge.svg"),
+  "README.md must feature Report Video Flow badge",
+);
+console.log("✅ PASS: Dedicated report-video-flow.yml workflow and README badge properly configured.");
 
 // 2. Validate client-side error handling & multi-path resilience in report HTMLs
 const reportHtml = fs.readFileSync(reportHtmlPath, "utf-8");
