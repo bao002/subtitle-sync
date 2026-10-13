@@ -80,6 +80,7 @@ export function getApkReleaseLinks(): ApkReleaseLink[] {
 
 /**
  * Retrieves the active app version, checking if a release artifact hot update was applied
+ * or reading dynamically from AndroidNativeShell
  */
 export function getActiveAppVersion(fallbackVersion = CURRENT_APK_VERSION): string {
   if (typeof window !== "undefined" && window.AndroidNativeShell?.getAppliedReleaseArtifactTag) {
@@ -94,8 +95,46 @@ export function getActiveAppVersion(fallbackVersion = CURRENT_APK_VERSION): stri
       if (stored) return stored;
     } catch {}
   }
+  if (typeof window !== "undefined" && window.AndroidNativeShell?.getAppVersionName) {
+    try {
+      const vName = window.AndroidNativeShell.getAppVersionName();
+      if (vName) {
+        return vName.startsWith("v") ? vName : `v${vName}`;
+      }
+    } catch {}
+  }
   return fallbackVersion;
 }
+
+/**
+ * Returns detailed version information about the installed native APK
+ */
+export function getInstalledApkVersionInfo(): {
+  isNative: boolean;
+  versionName: string;
+  versionCode: number | null;
+} {
+  if (typeof window !== "undefined" && window.AndroidNativeShell) {
+    const shell = window.AndroidNativeShell;
+    const isNative = Boolean(shell.isNativeShell?.());
+    let versionName = "";
+    let versionCode: number | null = null;
+    try {
+      if (shell.getAppVersionName) {
+        versionName = shell.getAppVersionName() || "";
+      }
+      if (shell.getAppVersionCode) {
+        const code = shell.getAppVersionCode();
+        if (typeof code === "number" || typeof code === "string") {
+          versionCode = Number(code) || null;
+        }
+      }
+    } catch {}
+    return { isNative, versionName, versionCode };
+  }
+  return { isNative: false, versionName: "", versionCode: null };
+}
+
 
 /**
  * Format bytes to human readable format (MB/KB)

@@ -132,6 +132,9 @@ declare global {
       fetchTimedTextExact?: (url: string, withSession: boolean) => string;
       applyReleaseArtifact?: (downloadUrl: string, releaseTag: string) => boolean;
       getAppliedReleaseArtifactTag?: () => string;
+      getAppVersionName?: () => string;
+      getAppVersionCode?: () => number;
+      getInstalledAppInfo?: () => string;
     };
     onNativeCaptionsInterceptedBase64?: (base64Json: string) => void;
     onNativeTTSDone?: (utteranceId: string) => void;

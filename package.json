@@ -80,6 +80,7 @@
     "test:apk-version": "tsx scripts/verify-apk-version-and-releases.ts",
     "test:audio-track-time-sections": "tsx scripts/verify-audio-track-time-sections.ts",
     "test:video-library": "tsx scripts/verify-video-library.ts",
+    "test:cache-and-winner-promotion": "tsx scripts/verify-cache-and-winner-promotion.ts",
     "test:emulator-subtitles-e2e": "tsx scripts/verify-emulator-e2e-subtitles.ts",
     "test:android-share-e2e": "tsx scripts/verify-android-share-e2e.ts",
     "test:emulator-screencast-report": "tsx scripts/verify-emulator-screencast-report.ts",
@@ -113,6 +114,7 @@
     "test:youtube-docs-and-floating-retry": "tsx scripts/verify-youtube-docs-and-floating-retry.ts",
     "report:error": "tsx scripts/generate-error-report.ts",
     "test:error-reporting": "tsx scripts/verify-error-reporting-workflow.ts",
+    "test:auto-retry-and-versioning": "tsx scripts/verify-auto-retry-and-versioning.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

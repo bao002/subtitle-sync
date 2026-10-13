@@ -7,6 +7,7 @@ import {
   ShieldCheck,
   Globe,
   Server,
+  Trophy,
 } from "lucide-react";
 import {
   type FetchAttempt,
@@ -14,6 +15,8 @@ import {
   DEFAULT_FETCH_SERVER_URL,
   moveAttempt,
 } from "@/lib/subtitle-fetch-plan";
+import { WinnerPromotionReportModal } from "./WinnerPromotionReportModal";
+
 
 interface Props {
   order: FetchAttempt[];
@@ -24,6 +27,7 @@ interface Props {
   onToggleUseFetchServer?: (next: boolean) => void;
   fetchServerUrl?: string;
   onUpdateFetchServerUrl?: (url: string) => void;
+  onSelectVideo?: (videoId: string) => void;
 }
 
 export const AttemptOrderSettings: React.FC<Props> = ({
@@ -35,8 +39,10 @@ export const AttemptOrderSettings: React.FC<Props> = ({
   onToggleUseFetchServer,
   fetchServerUrl = DEFAULT_FETCH_SERVER_URL,
   onUpdateFetchServerUrl,
+  onSelectVideo,
 }) => {
   const [inputServerUrl, setInputServerUrl] = useState(fetchServerUrl);
+  const [showWinnerReport, setShowWinnerReport] = useState(false);
 
   useEffect(() => {
     setInputServerUrl(fetchServerUrl);
@@ -194,7 +200,25 @@ export const AttemptOrderSettings: React.FC<Props> = ({
           When enabled, the attempt style that yields a good response is remembered and prioritized
           first on subsequent subtitle fetches.
         </p>
+
+        <div className="mt-2.5 flex items-center justify-between gap-2 p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px]">
+          <div className="flex items-center gap-1.5 text-foreground">
+            <Trophy className="h-4 w-4 text-amber-500 shrink-0" />
+            <span className="font-medium">Winner Promotion History:</span>
+            <span className="text-muted-foreground hidden sm:inline">Persisted across all past videos</span>
+          </div>
+          <button
+            type="button"
+            data-testid="view-winner-promotion-report-btn"
+            onClick={() => setShowWinnerReport(true)}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 font-semibold transition active:scale-95"
+          >
+            <Trophy className="h-3 w-3" />
+            <span>View Report</span>
+          </button>
+        </div>
       </div>
+
 
       <div className="pt-2 border-t border-border/60 space-y-2 opacity-85">
         <div className="flex items-center gap-2">
@@ -254,6 +278,13 @@ export const AttemptOrderSettings: React.FC<Props> = ({
           </p>
         </div>
       </div>
+
+      <WinnerPromotionReportModal
+        isOpen={showWinnerReport}
+        onClose={() => setShowWinnerReport(false)}
+        onSelectVideo={onSelectVideo}
+      />
     </div>
   );
 };
+

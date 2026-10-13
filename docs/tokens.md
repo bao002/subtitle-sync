@@ -156,3 +156,14 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 - **One Sub-Task at a Time**: Never combine multiple feature changes into one unverified step.
 - **Fail Fast, Fix Fast**: If a test fails, diagnose the immediate cause within the active sub-task rather than restarting or rewriting unrelated modules.
 - **Precedence**: This efficient token-saving workflow using `tokens.md`, `current-sub-task.md`, and `temp.md` governs agent task execution across all prompts.
+
+---
+
+## 7. Active Prompt Execution Log: Task 95
+
+- **Task 95**: Winner Promotion Report Persistence & Subtitle Cache Architecture & Shared Video Library Fix [COMPLETED]
+  - Subtask 95.1: Tracking files staged in tokens.md, tasks.md, current-sub-task.md, and todo.md. [DONE]
+  - Subtask 95.2: Winner promotion tracking and persistence across all past videos implemented with stats aggregation and UI modal. [DONE]
+  - Subtask 95.3: Created docs/cache.md, fixed shared video library persistence, reactive event dispatch, and cache hydration. [DONE]
+  - Subtask 95.4: Automated test scripts/verify-cache-and-winner-promotion.ts verified 100%, compile_applet passed, lint_applet passed, migrated to docs/done.md. [DONE]
+

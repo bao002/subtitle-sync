@@ -682,6 +682,51 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         fun isNativeShell(): Boolean = true
 
         @JavascriptInterface
+        fun getAppVersionName(): String {
+            return try {
+                val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                pInfo.versionName ?: ""
+            } catch (e: Exception) {
+                ""
+            }
+        }
+
+        @JavascriptInterface
+        fun getAppVersionCode(): Long {
+            return try {
+                val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                    pInfo.longVersionCode
+                } else {
+                    @Suppress("DEPRECATION")
+                    pInfo.versionCode.toLong()
+                }
+            } catch (e: Exception) {
+                0L
+            }
+        }
+
+        @JavascriptInterface
+        fun getInstalledAppInfo(): String {
+            return try {
+                val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                val vCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                    pInfo.longVersionCode
+                } else {
+                    @Suppress("DEPRECATION")
+                    pInfo.versionCode.toLong()
+                }
+                val obj = org.json.JSONObject()
+                obj.put("packageName", context.packageName)
+                obj.put("versionName", pInfo.versionName ?: "")
+                obj.put("versionCode", vCode)
+                obj.toString()
+            } catch (e: Exception) {
+                "{}"
+            }
+        }
+
+        @JavascriptInterface
         fun showToast(message: String) {
             mainHandler.post {
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()

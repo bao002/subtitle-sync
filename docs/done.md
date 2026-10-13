@@ -1,6 +1,73 @@
 # Done tasks
 
+## Task 95: Winner Promotion Report Persistence & Subtitle Cache Architecture & Shared Video Library Fix
+
+### Subtask 95.1: Stage Task 95 in Tracking Documentation
+- Updated `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and `temp.md`.
+- Formulated atomic 4-subtask decomposition plan.
+
+### Subtask 95.2: Winner Promotion Report Persistence & UI
+- Implemented `src/utils/winnerPromotionTracker.ts` storing and aggregating winning fetch attempts per video and language in `localStorage` (`yt_winner_promotion_history_v1`) and in-memory cache.
+- Implemented `src/components/WinnerPromotionReportModal.tsx` displaying aggregate metrics (total wins, unique videos, strategy win percentages for `tlang` vs `lang` and `session` vs `anon`), most effective combination card, chronological history table with search filtering by video ID/language, and clear history button.
+- Connected report trigger in `src/components/AttemptOrderSettings.tsx` and tracked every winning attempt in `src/routes/index.tsx` via `recordWinnerPromotion`.
+- Wired video selection from report modal directly into player loading via `onSelectVideo={handleSelectLibraryVideo}`.
+
+### Subtask 95.3: Create docs/cache.md & Fix Shared Video Library Persistence and Cache Hydration
+- Authored comprehensive specification `docs/cache.md` documenting:
+  1. Multi-tier cache hierarchy: In-Memory Map (`memoryCache`), Dedicated Raw JSON3 Storage (`localStorage`), Video Library Storage (`localStorage`), and Winner Promotion History (`localStorage`).
+  2. Pre-cache validation gate: strict rejection of HTML error pages (`<!DOCTYPE html>`, `<html>`), 4xx/5xx responses, malformed JSON, and empty cue lists (`events: []`).
+  3. Self-healing read-time eviction and LRU storage quota management.
+  4. Shared video persistence across Android `ACTION_SEND` / `ACTION_VIEW`, web URLs, and user input, backed by reactive event broadcasting (`video-library-updated`).
+  5. Cache hydration workflow: instant lookup of previously cached JSON3 tracks upon video switch/load with zero network latency and queue bypass.
+  6. User cache controls: clear all cache, per-video cache purging, and fetch from scratch.
+- Fixed shared video library recording in `src/routes/index.tsx` inside `openLink(link)` so shared links are immediately persisted to watch history.
+- Fixed `src/utils/videoLibraryManager.ts` to broadcast `"video-library-updated"` custom events upon save and clear.
+- Updated `src/components/VideoLibraryPanel.tsx` to listen to `"video-library-updated"` and `"storage"` events, react to `currentVideoId` changes, and expose per-card "Clear cache" buttons.
+- Updated `src/utils/subtitleCache.ts` to add `clearVideoSubtitleCache(videoId)` and fixed `getAllCachedTargetLanguages` to inspect both `raw_` and standard key prefixes.
+- Implemented cache hydration on video switch/load in `src/routes/index.tsx` via `getCachedRawJson3`, instantly populating `tracks` and marking succeeded in `subtitleRequestQueue`.
+
+### Subtask 95.4: Dedicated Test Verification, File Inventory, Compilation, and Migration to done.md
+- Authored dedicated automated test `scripts/verify-cache-and-winner-promotion.ts` verifying all requirements across documentation, winner promotion persistence, stats aggregation, library event dispatch, raw JSON3 storage, validation gate, and cache hydration.
+- Registered `"test:cache-and-winner-promotion"` in `package.json` and cataloged files in `docs/files.md`.
+- Verified 100% test pass (`npm run test:cache-and-winner-promotion`), clean build compilation (`compile_applet`), and zero lint errors (`lint_applet`).
+
+## Task 94: Auto-Retry Pacing Architecture & Android Application Versioning and Updates
+
+### Subtask 94.1: Stage Task 94 in Tracking Documentation
+- Updated `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and `temp.md`.
+- Formulated atomic 4-subtask decomposition plan.
+
+### Subtask 94.2: Create docs/auto-retry.md & Implement Serialized Request Queue
+- Authored comprehensive specification `docs/auto-retry.md` detailing:
+  1. Anti-abuse philosophy and prevention of HTTP 429 Too Many Requests.
+  2. Strict Concurrency = 1 (single-flight serialized execution: never fire concurrent requests to YouTube timedtext API).
+  3. Randomized inter-request pacing delays with jitter within configured min/max window (e.g. 3-8s).
+  4. Selective retry mechanism: retrying only failed tracks while preserving and immediately skipping already succeeded tracks.
+  5. Attempt strategy load balancing (`tlang` vs `lang` and `session` vs `anon`) and winner promotion.
+  6. Exponential backoff and cooling period upon encountering HTTP 429 or consecutive network failures.
+  7. Video context scoping and cancellation upon video switch or language removal.
+- Implemented `src/utils/subtitleRequestQueue.ts` providing the serialized single-flight coordinator with jitter pacing, selective filtering, and exponential backoff.
+- Integrated `subtitleRequestQueue` in `src/routes/index.tsx` (all favorite language fetch operations routed through queue, video switch and track synchronization) and `src/components/FloatingSubtitleRetryIndicator.tsx` (syncing pause/resume).
+
+### Subtask 94.3: Create docs/versioning.md & Implement Version Bridge and Collision Recovery
+- Authored comprehensive architecture document `docs/versioning.md` detailing:
+  1. Semantic differences between `versionName` (display string) and `versionCode` (monotonic integer).
+  2. The three application update channels: in-app OTA hot updates via `web-dist.zip`, automated ADB installation via `update.apk.sh`, and direct manual APK installation.
+  3. Deep-dive diagnosis into why updates fail with "same package already installed", `INSTALL_FAILED_ALREADY_EXISTS`, and `INSTALL_FAILED_UPDATE_INCOMPATIBLE` (keystore signature mismatches between local debug and CI releases, version code downgrade/equality blocks, missing replace `-r` flag, multi-user/work profile remnants).
+  4. Automated recovery and deep purge remediation steps.
+- Exposed `getAppVersionName()`, `getAppVersionCode()`, and `getInstalledAppInfo()` in `AndroidNativeBridge` (`MainActivity.kt`).
+- Updated `android-shell/app/build.gradle.kts` to dynamically read version from `package.json` and compute semver integer `versionCode` when build properties are omitted.
+- Updated `src/utils/apkUpdater.ts` to dynamically retrieve installed version from `AndroidNativeShell.getAppVersionName()` in `getActiveAppVersion()`, and exported `getInstalledApkVersionInfo()`.
+- Updated `src/types.ts` declaring native version methods on `AndroidNativeShell`.
+- Enhanced collision detection in `update.apk.sh` and `install-apk.sh` to recognize `INSTALL_FAILED_ALREADY_EXISTS` and `signatures do not match`, triggering automated deep purge and retry.
+
+### Subtask 94.4: Dedicated Test Verification, File Inventory, Compilation, and Migration to done.md
+- Authored automated test `scripts/verify-auto-retry-and-versioning.ts` verifying all requirements across documentation, queue concurrency, selective retry, native bridge, build configuration, and bash scripts.
+- Registered `test:auto-retry-and-versioning` in `package.json` and cataloged files in `docs/files.md`.
+- Verified 100% test pass (`npm run test:auto-retry-and-versioning`), clean build compilation (`compile_applet`), and zero lint errors (`lint_applet`).
+
 ## Task 93: Create Automated Error Reporting Workflow & AI Reproduction Fix Engine (error.log)
+
 
 ### Subtask 93.1: Stage Task 93 in Tracking Documentation
 - Updated `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and `temp.md`.

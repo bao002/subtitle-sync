@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Json3 } from "../lib/subtitles";
 import { getRandomRetryDelayMs } from "../lib/playback-preferences";
+import { subtitleRequestQueue } from "../utils/subtitleRequestQueue";
 import {
   RotateCcw,
   Pause,
@@ -136,6 +137,7 @@ export function FloatingSubtitleRetryIndicator({
   const handleTogglePause = () => {
     const nextState = !isPaused;
     setIsPaused(nextState);
+    subtitleRequestQueue.setPaused(nextState);
     onToggleAutoRetry?.(!nextState);
   };
 
