@@ -1,0 +1,86 @@
+name: Android Emulator Screencast & Report Video Flow
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_run:
+    workflows:
+      - "Android Emulator E2E Tests"
+      - "Publish Web Demo to GitHub Pages"
+      - "Report Integrity Verification"
+    types:
+      - completed
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: report-video-flow-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  check-report-video-links:
+    name: Check Report Video Links & Update README Status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Normalize package registry URLs
+        run: |
+          if [ -f package-lock.json ]; then
+            sed -i -E 's#https?://package-firewall\.replit\.internal/npm/#https://registry.npmjs.org/#g' package-lock.json 2>/dev/null || true
+          fi
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Check Report Video Links on GitHub Pages & Update README
+        run: |
+          node scripts/update-readme.mjs
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          CHECK_REMOTE_VIDEO: "true"
+          STRICT_REPORT_CHECK: "true"
+          FAILED_WORKFLOW: "Android Emulator Screencast & Report Video Flow"
+          FAILED_STEP: "Broken Video Link Detection in android-emulator-report.html"
+
+      - name: Commit and Push if README Changed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --exit-code README.md; then
+            echo "README.md has been updated with latest report video status. Committing..."
+            git add README.md
+            git commit -m "chore(docs): sync report video links status in README.md [skip ci]"
+            git push origin ${{ github.ref_name }}
+          else
+            echo "README.md is already up to date."
+          fi
+
+      - name: Auto-Trigger Android Emulator E2E Tests on Broken Video Detection
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if grep -q "CI Failure in Android Emulator Screencast & Report Video Flow" README.md; then
+            echo "⚠️ Screencast video returned HTTP 404 in android-emulator-report.html."
+            echo "--> Auto-triggering 'Android Emulator E2E Tests' (emulation.yml) to record and publish screencast video..."
+            gh workflow run emulation.yml -R "${{ github.repository }}" --ref "${{ github.ref_name }}" || gh workflow run "Android Emulator E2E Tests" -R "${{ github.repository }}" || echo "ℹ️ Automated dispatch attempted."
+          fi

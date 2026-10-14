@@ -20,8 +20,10 @@ console.log("✅ PASS: ci.yml is absent, matching Youtubenet6");
 const expectedWorkflows = [
   "deploy-demo.yml",
   "emulation.yml",
+  "error-reporting.yml",
   "integrity.yml",
   "release-apk.yml",
+  "report-video-flow.yml",
   "update-readme.yml",
   "web.yml",
 ];
@@ -29,7 +31,7 @@ const actualWorkflows = fs.readdirSync(workflowsDir).sort();
 assert.deepStrictEqual(
   actualWorkflows,
   expectedWorkflows.sort(),
-  `Workflow set must match Youtubenet6: ${expectedWorkflows.join(", ")}`,
+  `Workflow set must match expected workflows: ${expectedWorkflows.join(", ")}`,
 );
 console.log(
   `✅ PASS: Workflows directory contains exact Youtubenet6 set: ${actualWorkflows.join(", ")}`,

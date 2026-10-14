@@ -69,6 +69,7 @@
     "test:subtitle-api-fallback": "tsx scripts/verify-subtitle-api-fallback.ts",
     "test:playwright-locators": "tsx scripts/verify-playwright-locators.ts",
     "test:hotfix": "tsx scripts/verify-hotfix-links-and-actions.ts",
+    "test:hotfix-dev-exports": "tsx scripts/verify-hotfix-dev-exports-and-logger.ts",
     "test:fork-readme-links": "tsx scripts/verify-fork-readme-links.ts",
     "test:fork-ci-workflows": "tsx scripts/verify-fork-ci-workflows.ts",
     "test:tts-ratio": "tsx scripts/verify-tts-subtitles-ratio.ts",
