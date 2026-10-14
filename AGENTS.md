@@ -75,6 +75,11 @@
 - Preserve the existing application stack and repository structure.
 - Keep GitHub Actions, GitHub Pages reports, the web demo, and Android emulator coverage working together.
 - Do not add credentials or invent external service values; document and request anything required.
+- **README.md is to be created by GitHub Actions — do not copy it when syncing git**:
+  - `README.md` is to be created and dynamically updated by GitHub Actions (via `.github/workflows/update-readme.yml` and `scripts/update-readme.mjs`), embedding active repository badges, workflow links, release assets, emulator screencast video telemetry, and live CI status indicators.
+  - When syncing git (e.g., comparing against, pulling from, merging with, or cherry-picking files from baseline/upstream repositories such as [mostuf2556/Youtubenet6](https://github.com/mostuf2556/Youtubenet6), or syncing branches/forks), **`README.md` MUST NOT be copied or overwritten**.
+  - Keep the active repository's `README.md` untouched during git sync operations and let GitHub Actions generate, format, and maintain it automatically.
+- **App version updates**: The app version number must not stay 1.0 always; it should be updated across `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts` when delivering updates for prompt response.
 
 ### Android app E2E validation, screencast video & GitHub Pages reporting
 

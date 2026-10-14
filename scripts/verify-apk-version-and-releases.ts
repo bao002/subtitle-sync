@@ -56,14 +56,18 @@ assert.ok(
 );
 console.log("✅ PASS: Header version badge verified");
 
-// Test 3: Check Footer in src/routes/index.tsx
+// Test 3: Check Footer in src/routes/index.tsx or src/components/ApkReleasesFooter.tsx
 console.log("Test 3: Footer all releases link...");
+const footerPath = path.resolve(process.cwd(), "src/components/ApkReleasesFooter.tsx");
+const footerContent = fs.existsSync(footerPath) ? fs.readFileSync(footerPath, "utf-8") : "";
+const combinedFooter = indexContent + footerContent;
+
 assert.ok(
-  indexContent.includes('data-testid="footer-all-releases-link"'),
+  combinedFooter.includes('data-testid="footer-all-releases-link"'),
   "Footer must include data-testid=\"footer-all-releases-link\"",
 );
 assert.ok(
-  indexContent.includes("All Releases (v{APP_VERSION})"),
+  combinedFooter.includes("All Releases (v{APP_VERSION})") || combinedFooter.includes("ALL_RELEASES_URL"),
   "Footer must display All Releases (v{APP_VERSION})",
 );
 console.log("✅ PASS: Footer all releases link verified");

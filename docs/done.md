@@ -1,5 +1,76 @@
 # Done tasks
 
+## Task 111: Android Emulator E2E Screenshots Along Test, Pre-Test Device Settings Navigation, and docs/e2e-android.md
+
+### Summary:
+- **Version Bumped to 1.0.17**:
+  - Aligned semantic version `1.0.17` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10017`, versionName `"1.0.17"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.17"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.17"`), and `src/utils/appSettings.ts` (`version: "1.0.17"`).
+  - Verified cross-file version synchronization via `npx tsx scripts/verify-agents-version-rule.ts`, `npm run test:apk-version`, and `npm run test:apk-robustness`.
+- **Architectural Specification `docs/e2e-android.md`**:
+  - Authored comprehensive specification `docs/e2e-android.md` under `docs/*.md` in strict adherence to zero-duplicate repository markdown rules.
+  - Formulated the 10-point testing matrix on genuine Android runtimes without mocking or synthetic fixtures:
+    1. System Telemetry & About Phone
+    2. Local Asset Hydration (`appassets.androidplatform.net`)
+    3. Intent Handling (`ACTION_VIEW` for browser URLs)
+    4. Intent Handling (`ACTION_SEND` for YouTube app shares)
+    5. TimedText Interception (`shouldInterceptRequest` with genuine cookies & zero fixtures)
+    6. Target Language Fallback (`tlang` vs `lang`)
+    7. Native Text-to-Speech (`android.speech.tts.TextToSpeech`)
+    8. Background Audio & Notification (`BackgroundAudioService` and `MediaSession`)
+    9. Version Discrepancy & In-App OTA Updates
+    10. Hardware Keys, Gestures & Back Navigation
+- **Milestone Screenshot Pipeline & Pre-Test System Navigation**:
+  - Updated `scripts/run-android-e2e.sh` and `scripts/android-e2e-assert.sh` to execute pre-test navigation to Android Settings / "About Phone" (`am start -a android.settings.DEVICE_INFO_SETTINGS` / `SETTINGS`) and capture milestone screenshots:
+    - `step-01-about-phone.png`: Live system settings screen displaying model, Android 14 API 34, build number, and kernel.
+    - `step-02-app-launch.png`: Clean APK launch and `[APP_READY]` signal without error boundaries.
+    - `step-03-action-view.png`: Browser URL share intent processing (`dQw4w9WgXcQ`).
+    - `step-04-action-send.png`: Official YouTube app text share processing (`kJQP7kiw5Fk`).
+    - `step-05-captions-subtitles.png`: Intercepted timedtext subtitle cues rendering in UI table.
+    - `android-emulator-screenshot.png`: Primary final screenshot for README and GitHub Pages reports.
+  - Enhanced `e2e/emulation.spec.ts` with milestone screenshot captures.
+- **Dedicated Automated Verification Suite**:
+  - Implemented `scripts/verify-e2e-android-doc.ts` (`npm run test:e2e-android-doc`) validating `docs/e2e-android.md` contents, script navigation, screenshot capture assertions, and package registrations.
+  - Added Sanity Check 9 and matrix entry to `docs/self-verification.md` and registered files in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:e2e-android-doc` (Passed 100%)
+  - `npm run test:android-e2e-spec` (Passed 100%)
+  - `npm run test:apk-version` (Passed 100%)
+  - `npm run test:apk-robustness` (Passed 100%)
+  - `npx tsx scripts/verify-agents-version-rule.ts` (Passed 100%)
+  - `npm run test:self-verification` (Passed 100%)
+  - `npm run test:no-duplicate-md` (Passed 100%)
+  - `npm run test:md` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (0 errors)
+
+## Task 110: Formalize Rule: README.md Created by GitHub Actions, Do Not Copy When Syncing Git
+
+### Summary:
+- **Codified Policy in `AGENTS.md`**:
+  - Formalized under "Project-specific delivery" that `README.md` is to be created and dynamically updated by GitHub Actions (via `.github/workflows/update-readme.yml` and `scripts/update-readme.mjs`).
+  - Mandated that when syncing git (comparing against, pulling from, merging with, or cherry-picking files from baseline/upstream repositories such as `mostuf2556/Youtubenet6`, or syncing across branches/forks), **`README.md` MUST NOT be copied or overwritten**.
+  - Documented rationale: GitHub Actions dynamically injects active repository badges, workflow links, release assets, emulator screencast video metrics, and live CI status indicators tailored to the active repository.
+- **Documented Architecture in `docs/operations/ACTIONS.md`**:
+  - Added Section 4.7: "README.md Created by GitHub Actions — Do Not Copy When Syncing Git" detailing the dynamic creation flow and git sync exclusion mandate.
+- **Updated Self-Verification & Inventory**:
+  - Added Sanity Check 8 and matrix entry to `docs/self-verification.md`.
+  - Registered verification script in `docs/files.md`.
+  - Restored full `README.md` structure with badges, CI indicator, GitHub Pages links table, emulator report, and technical documentation links.
+- **Dedicated Automated Verification Test (`scripts/verify-readme-git-sync-rule.ts`)**:
+  - Asserts `AGENTS.md`, `docs/operations/ACTIONS.md`, `docs/self-verification.md`, `docs/files.md`, and `package.json` enforce the rule.
+  - Added `"test:readme-git-sync-rule": "tsx scripts/verify-readme-git-sync-rule.ts"` to `package.json`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:readme-git-sync-rule` (Passed 100%)
+  - `npm run test:actions-readme-sync-docs` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:self-verification` (Passed 100%)
+  - `npm run test:e2e-report-links` (Passed 100%)
+  - `npm run test:quarantine-minimal-share` (Passed 100%)
+  - `npm run test:no-duplicate-md` (Passed 100%)
+  - `npm run test:md` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (0 errors)
+
 ## Task 109: Guarantee Zero-404 Screencast Video Pipeline across GitHub Actions and GitHub Pages
 
 ### Summary:
