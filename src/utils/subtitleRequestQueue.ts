@@ -31,6 +31,8 @@ export interface SubtitleQueueState {
   isPaused: boolean;
   consecutiveErrors: number;
   cooldownUntil: number;
+  lastFetchTimestamp: number;
+  windowFrameSeconds: number;
 }
 
 export type QueueStateListener = (state: SubtitleQueueState) => void;
@@ -41,6 +43,10 @@ class SubtitleRequestQueue {
   private isPaused = false;
   private currentVideoId: string | null = null;
   private currentlyExecutingTask: QueuedSubtitleTask | null = null;
+
+  // Window frame rate-limiting (never >1 fetch per window of X seconds)
+  private windowFrameMs: number = 5000;
+  private lastFetchTimestamp: number = 0;
 
   // Language status sets scoped to currentVideoId
   private succeededLanguages = new Set<string>();
@@ -235,6 +241,19 @@ class SubtitleRequestQueue {
       return;
     }
 
+    // Rate-limiting protection: never try to fetch more than 1 subtitle in a window frame of X seconds
+    const elapsedSinceLast = now - this.lastFetchTimestamp;
+    if (this.lastFetchTimestamp > 0 && elapsedSinceLast < this.windowFrameMs) {
+      const remainingWindowMs = this.windowFrameMs - elapsedSinceLast;
+      if (!this.activeDelayTimer) {
+        this.activeDelayTimer = setTimeout(() => {
+          this.activeDelayTimer = null;
+          this.processNext();
+        }, remainingWindowMs);
+      }
+      return;
+    }
+
     const task = this.queue.shift();
     if (!task) return;
 
@@ -255,6 +274,7 @@ class SubtitleRequestQueue {
     }
 
     this.isExecuting = true;
+    this.lastFetchTimestamp = Date.now();
     this.currentlyExecutingTask = task;
     this.notifyState();
 
@@ -286,14 +306,36 @@ class SubtitleRequestQueue {
     this.isExecuting = false;
     this.notifyState();
 
-    // Enforce randomized pacing delay before executing the next queued task
+    // Enforce window frame pacing before executing the next queued task
     if (this.queue.length > 0 && !this.isPaused) {
-      const pacingDelayMs = getRandomRetryDelayMs(3, 8);
+      const elapsed = Date.now() - this.lastFetchTimestamp;
+      const windowRemainingMs = Math.max(0, this.windowFrameMs - elapsed);
+      const pacingDelayMs = Math.max(getRandomRetryDelayMs(3, 8), windowRemainingMs);
       this.activeDelayTimer = setTimeout(() => {
         this.activeDelayTimer = null;
         this.processNext();
       }, pacingDelayMs);
     }
+  }
+
+  public setWindowFrameSeconds(seconds: number) {
+    this.windowFrameMs = Math.max(1, Math.round(seconds)) * 1000;
+  }
+
+  public setWindowSeconds(seconds: number) {
+    this.setWindowFrameSeconds(seconds);
+  }
+
+  public getWindowFrameSeconds(): number {
+    return Math.round(this.windowFrameMs / 1000);
+  }
+
+  public getWindowSeconds(): number {
+    return this.getWindowFrameSeconds();
+  }
+
+  public getLastFetchTimestamp(): number {
+    return this.lastFetchTimestamp;
   }
 
   public subscribe(listener: QueueStateListener): () => void {
@@ -315,6 +357,8 @@ class SubtitleRequestQueue {
       isPaused: this.isPaused,
       consecutiveErrors: this.consecutiveErrors,
       cooldownUntil: this.cooldownUntil,
+      lastFetchTimestamp: this.lastFetchTimestamp,
+      windowFrameSeconds: this.getWindowFrameSeconds(),
     };
   }
 

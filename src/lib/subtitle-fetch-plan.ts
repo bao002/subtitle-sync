@@ -9,6 +9,28 @@ import type { SubtitleRequestMode } from "./playback-preferences";
 
 export type SendMode = "session" | "anon";
 export type FetchAttempt = { mode: SubtitleRequestMode; send: SendMode; enabled: boolean };
+export type FetchStrategyMode = "ordered" | "random" | "server_alternate";
+
+export interface SubtitleFetchStrategyConfig {
+  mode: FetchStrategyMode;
+  useServerAlternate: boolean;
+  allowSession: boolean;
+  allowAnon: boolean;
+  allowTlang: boolean;
+  allowLang: boolean;
+  windowSeconds: number;
+}
+
+export const DEFAULT_FETCH_STRATEGY_CONFIG: SubtitleFetchStrategyConfig = {
+  mode: "ordered",
+  useServerAlternate: false,
+  allowSession: true,
+  allowAnon: true,
+  allowTlang: true,
+  allowLang: true,
+  windowSeconds: 5,
+};
+
 export type ExactFetchResult = {
   status: number;
   body: string;
@@ -26,6 +48,7 @@ export const DEFAULT_ATTEMPT_ORDER: FetchAttempt[] = [
 
 const ORDER_KEY = "yt_fetch_attempt_order_v1";
 const PROMOTE_KEY = "yt_fetch_promote_success_v1";
+const STRATEGY_CONFIG_KEY = "yt_fetch_strategy_config_v1";
 
 const key = (a: Pick<FetchAttempt, "mode" | "send">) => `${a.mode}/${a.send}`;
 
@@ -82,6 +105,98 @@ export function setPromoteSuccessfulAttempt(on: boolean) {
   } catch {
     // ignore storage errors
   }
+}
+
+export function getFetchStrategyConfig(): SubtitleFetchStrategyConfig {
+  try {
+    const raw = storage()?.getItem(STRATEGY_CONFIG_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        return {
+          mode:
+            parsed.mode === "random" || parsed.mode === "server_alternate"
+              ? parsed.mode
+              : "ordered",
+          useServerAlternate: Boolean(parsed.useServerAlternate),
+          allowSession: parsed.allowSession !== false,
+          allowAnon: parsed.allowAnon !== false,
+          allowTlang: parsed.allowTlang !== false,
+          allowLang: parsed.allowLang !== false,
+          windowSeconds:
+            typeof parsed.windowSeconds === "number" && parsed.windowSeconds > 0
+              ? parsed.windowSeconds
+              : 5,
+        };
+      }
+    }
+  } catch {
+    // fallback
+  }
+  return { ...DEFAULT_FETCH_STRATEGY_CONFIG };
+}
+
+export function setFetchStrategyConfig(
+  patch: Partial<SubtitleFetchStrategyConfig>,
+): SubtitleFetchStrategyConfig {
+  const current = getFetchStrategyConfig();
+  const updated: SubtitleFetchStrategyConfig = {
+    ...current,
+    ...patch,
+  };
+  try {
+    storage()?.setItem(STRATEGY_CONFIG_KEY, JSON.stringify(updated));
+  } catch {
+    // ignore storage errors
+  }
+  return updated;
+}
+
+export function shuffleAttempts(attempts: FetchAttempt[]): FetchAttempt[] {
+  const out = [...attempts];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = out[i]!;
+    out[i] = out[j]!;
+    out[j] = temp;
+  }
+  return out;
+}
+
+/**
+ * Filters and orders attempts based on active strategy config:
+ * - Filters by session/anon and tlang/lang toggles.
+ * - If mode === "random" (first-random-strategy), returns randomized order.
+ * - If mode === "ordered", preserves base order.
+ * - If mode === "server_alternate", sets up attempts with server alternation flag.
+ */
+export function buildActiveAttemptOrder(
+  baseOrder: FetchAttempt[],
+  config?: SubtitleFetchStrategyConfig,
+): FetchAttempt[] {
+  const cfg = config || getFetchStrategyConfig();
+  let filtered = baseOrder.filter((a) => {
+    if (!a.enabled) return false;
+    if (a.send === "session" && !cfg.allowSession) return false;
+    if (a.send === "anon" && !cfg.allowAnon) return false;
+    if (a.mode === "tlang" && !cfg.allowTlang) return false;
+    if (a.mode === "lang" && !cfg.allowLang) return false;
+    return true;
+  });
+
+  // Prevent deadlock: if everything was filtered out, fallback to enabled attempts
+  if (filtered.length === 0) {
+    filtered = baseOrder.filter((a) => a.enabled);
+  }
+  if (filtered.length === 0) {
+    filtered = [...DEFAULT_ATTEMPT_ORDER];
+  }
+
+  if (cfg.mode === "random") {
+    return shuffleAttempts(filtered);
+  }
+
+  return filtered;
 }
 
 const USE_SERVER_KEY = "yt_fetch_use_server_v1";

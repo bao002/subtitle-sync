@@ -138,6 +138,7 @@ import {
   type FetchAttempt,
   type SendMode,
   type ExactFetchResult,
+  type SubtitleFetchStrategyConfig,
   getAttemptOrder,
   setAttemptOrder,
   getPromoteSuccessfulAttempt,
@@ -150,6 +151,9 @@ import {
   promoteAttempt,
   runFetchAttempts,
   nativeExactFetch,
+  getFetchStrategyConfig,
+  DEFAULT_FETCH_STRATEGY_CONFIG,
+  buildActiveAttemptOrder,
 } from "@/lib/subtitle-fetch-plan";
 import { recordVideoWatch } from "@/utils/videoLibraryManager";
 import { notifySubtitleFetch } from "@/utils/subtitleNotificationManager";
@@ -496,6 +500,7 @@ function Index() {
       } catch {
         // ignore storage error
       }
+    }
     // By default check all options (combine all categories: syntax, timing, alignment)
     return DEFAULT_PARSER_CRITERIA;
   });
@@ -756,6 +761,9 @@ function Index() {
   const [backgroundAudioEnabled, setBackgroundAudioEnabledState] = useState<boolean>(() =>
     getBackgroundAudioEnabled(),
   );
+  const [strategyConfig, setStrategyConfigState] = useState<SubtitleFetchStrategyConfig>(() =>
+    typeof window !== "undefined" ? getFetchStrategyConfig() : DEFAULT_FETCH_STRATEGY_CONFIG,
+  );
 
   useEffect(() => {
     // Load device-saved preferences after hydration
@@ -769,11 +777,14 @@ function Index() {
     setRetryPacingMinSecState(getRetryPacingMinSec());
     setRetryPacingMaxSecState(getRetryPacingMaxSec());
     setBackgroundAudioEnabledState(getBackgroundAudioEnabled());
+    setStrategyConfigState(getFetchStrategyConfig());
   }, []);
   const requestModeRef = useRef(requestMode);
   requestModeRef.current = requestMode;
   const attemptOrderRef = useRef(attemptOrder);
   attemptOrderRef.current = attemptOrder;
+  const strategyConfigRef = useRef(strategyConfig);
+  strategyConfigRef.current = strategyConfig;
   const promoteSuccessRef = useRef(promoteSuccess);
   promoteSuccessRef.current = promoteSuccess;
   const useFetchServerRef = useRef(useFetchServer);
@@ -894,7 +905,10 @@ function Index() {
           lang: code,
           execute: async () => {
             try {
-              const currentOrder = attemptOrderRef.current;
+              const activeOrder = buildActiveAttemptOrder(
+                attemptOrderRef.current,
+                strategyConfigRef.current,
+              );
               const promote = promoteSuccessRef.current;
 
               // Reference primary mode order for backward compatibility & preference alignment
@@ -903,7 +917,7 @@ function Index() {
               const result = runFetchAttempts({
                 observedUrl: activeUrl,
                 lang: code,
-                order: currentOrder,
+                order: activeOrder,
                 send: (url, withSession): ExactFetchResult => {
                   const mode = url.includes("tlang=") ? "tlang" : "lang";
                   const sendMode: SendMode = withSession ? "session" : "anon";
@@ -1031,7 +1045,7 @@ function Index() {
         }
       }
     },
-    [isAndroid, autoSpeakOnFetch, videoId],
+    [isAndroid, autoSpeakOnFetch, videoId, speakFetchedLanguageName],
   );
 
   const handleFloatingFetchSingleLanguage = useCallback(
@@ -1608,7 +1622,7 @@ function Index() {
     return () => {
       delete window.onNativeCaptionsInterceptedBase64;
     };
-  }, [isAndroid, videoId, autoSpeakOnFetch]);
+  }, [isAndroid, videoId, autoSpeakOnFetch, speakFetchedLanguageName]);
 
   useEffect(() => {
     if (!isAndroid || !observedUrl || !defaultCaptionsLoaded) return;
@@ -2778,6 +2792,19 @@ function Index() {
                         fetchServerUrl={fetchServerUrl}
                         onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
                         onSelectVideo={handleSelectLibraryVideo}
+                        strategyConfig={strategyConfig}
+                        onChangeStrategyConfig={(next) => {
+                          setStrategyConfigState(next);
+                          setSubtitleFetchWindowSeconds(next.windowSeconds);
+                          setFetchWindowSecondsState(next.windowSeconds);
+                          subtitleRequestQueue.setWindowSeconds(next.windowSeconds);
+                        }}
+                        windowSeconds={fetchWindowSeconds}
+                        onChangeWindowSeconds={(sec) => {
+                          setFetchWindowSecondsState(sec);
+                          setSubtitleFetchWindowSeconds(sec);
+                          subtitleRequestQueue.setWindowSeconds(sec);
+                        }}
                       />
                       <div className="pt-2 border-t border-border/60 space-y-2">
                         <label className="flex items-center gap-2 cursor-pointer">
@@ -3808,7 +3835,8 @@ function Index() {
                           TTS-play language name upon fetching
                         </label>
                         <div className="text-[11px] text-muted-foreground">
-                          When a new subtitle is fetched, speak aloud the name of the language used to fetch
+                          When a new subtitle is fetched, speak aloud the name of the language used
+                          to fetch
                         </div>
                       </div>
                       <input
