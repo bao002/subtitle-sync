@@ -1,5 +1,76 @@
 # Done tasks
 
+## Task 114: Prohibit Croned GitHub Actions from Modifying README.md, Indicate Failing Issues via Workflow Status Badges & Version Bump to 1.0.20
+
+### Summary:
+- **Version Bumped to 1.0.20**:
+  - Aligned semantic version `1.0.20` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10020`, versionName `"1.0.20"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.20"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.20"`), and `src/utils/appSettings.ts` (`version: "1.0.20"`).
+- **Prohibited Cron Jobs from Modifying or Committing README.md**:
+  - Completely removed the `schedule:` (cron `0 */6 * * *`) trigger from `.github/workflows/report-video-flow.yml` and eliminated automated git commits/pushes to `README.md`.
+  - Solved git merge conflicts caused by background runner commits to `README.md` when developers merge branches or git pull.
+- **Dynamic Workflow Status Badge for Failing Issue Indication**:
+  - In `.github/workflows/report-video-flow.yml`, configured the workflow check step to exit with code 1 (`exit 1`) upon detecting broken video links or 404 responses.
+  - The status badge `[![Report Video Flow](https://github.com/mostuf25561/subtitle-sync/actions/workflows/report-video-flow.yml/badge.svg)](https://github.com/mostuf25561/subtitle-sync/actions/workflows/report-video-flow.yml)` in `README.md` dynamically renders red (`failing`) when an issue exists and green (`passing`) when resolved.
+  - Reverted any temporary local README touches in the runner so the git working tree remains strictly pristine without committing changes.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-no-cron-readme-updates.ts` (`npm run test:no-cron-readme`) asserting version 1.0.20 parity, zero scheduled/cron workflows committing to `README.md`, absence of schedule in `report-video-flow.yml`, presence of workflow status badges in `README.md`, and clean exit handling.
+  - Registered test script in `package.json` and documented in `docs/files.md`.
+  - Updated architectural documentation in `docs/operations/ACTIONS.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:no-cron-readme` (Passed 100%)
+  - `npm run test:fetch-strategy` (Passed 100%)
+  - `npm run test:report-video-links` (Passed 100%)
+  - `npm run test:debug-mode` (Passed 100%)
+  - `npm run test:doc-contracts` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:favorite-checkboxes` (Passed 100%)
+  - `npm run test:no-duplicate-md` (Passed 100%)
+  - `npm run test:md` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (Lint passed cleanly with zero errors)
+
+## Task 113: Subtitle Fetch Pacing, Strategy Options, Auto-TTS Language Name, Default Debug Mode & All Parser Criteria
+
+### Summary:
+- **Version Bumped to 1.0.19**:
+  - Aligned semantic version `1.0.19` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10019`, versionName `"1.0.19"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.19"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.19"`), and `src/utils/appSettings.ts`.
+- **Subtitle Fetch Window Rate-Limiting (Anti-Abuse Protection)**:
+  - In `src/utils/subtitleRequestQueue.ts`, enforced a strict window frame rate-limiter: never try to fetch more than 1 subtitle in a window frame of X seconds (`subtitleFetchWindowSeconds` default 5s).
+  - Tracked `lastFetchTimestamp` and enforced single-flight sequential queueing (`concurrency = 1`), preventing multiple rapid clicks or simultaneous target language additions from overwhelming YouTube's timedtext service.
+  - Exposed `setWindowFrameSeconds`, `setWindowSeconds`, `getWindowFrameSeconds`, and `getLastFetchTimestamp`.
+- **Subtitle Fetching Strategy Modes & Granular Switches**:
+  - In `src/lib/subtitle-fetch-plan.ts`, introduced `FetchStrategyMode` (`"ordered"` | `"random"` | `"server_alternate"`) and `SubtitleFetchStrategyConfig`.
+  - Added First-Random Strategy (`random`) to distribute request attempt signatures and prevent bot fingerprinting.
+  - Added granular configuration switches: `server:alternate` (on/off), `session` (yes/no), `anon` (yes/no), `tlang` (on/off), `lang` (on/off), and `windowSeconds`.
+  - Implemented `buildActiveAttemptOrder` and `shuffleAttempts` to dynamically apply active strategy configurations.
+- **Enhanced AttemptOrderSettings UI**:
+  - Added Strategy Mode selector (`fetch-strategy-mode-select`) in `src/components/AttemptOrderSettings.tsx`.
+  - Added granular toggle switches for `server:alternate`, `session:yes/no`, `anon:yes/no`, `tlang:on/off`, `lang:on/off`, and window frame seconds input.
+  - Added collapsible detailed explanation card (`strategy-explanation-panel`) detailing how strategies and pacing protect against bot detection.
+- **Auto-TTS Language Name upon Fetching**:
+  - Enabled `speakLanguageNameOnFetch = true` by default in `src/utils/appSettings.ts` and `src/routes/index.tsx`.
+  - When a new subtitle is fetched, speech synthesis speaks the language name aloud.
+- **Default Debug Mode Enabled**:
+  - Enabled Debug Mode by default across `src/utils/appSettings.ts` (`getDebugModeSetting()` returns `true` when null) and in `src/routes/index.tsx`.
+- **Default Parser Criteria (All Options Combined)**:
+  - Enabled all parsing criteria by default (`DEFAULT_PARSER_CRITERIA` maps all `PARSER_CRITERIA.id`: `sentence`, `pause`, `punctVote`, `consensus`, `cue`, `anchors`, `window`).
+- **Comprehensive Architectural Documentation**:
+  - Updated `docs/reliable-subtitles-fetching.md` with in-depth sections on fetch window pacing, strategies, configuration options, and default platform behaviors.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-fetch-strategy-and-defaults.ts` (`npm run test:fetch-strategy`) validating version parity, debug mode default, all parser criteria, auto-TTS on fetch, window rate-limiting, strategy builders, and documentation.
+  - Registered test script in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:fetch-strategy` (Passed 100%)
+  - `npm run test:debug-mode` (Passed 100%)
+  - `npm run test:doc-contracts` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:report-video-links` (Passed 100%)
+  - `npm run test:favorite-checkboxes` (Passed 100%)
+  - `npm run test:no-duplicate-md` (Passed 100%)
+  - `npm run test:md` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (Lint passed cleanly with zero errors)
+
 ## Task 112: Favorite Languages Default Checkbox On for Both Present in Table & TTS-Play
 
 ### Summary:

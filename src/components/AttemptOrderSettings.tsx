@@ -8,11 +8,20 @@ import {
   Globe,
   Server,
   Trophy,
+  Shuffle,
+  Clock,
+  Sliders,
+  HelpCircle,
 } from "lucide-react";
 import {
   type FetchAttempt,
+  type FetchStrategyMode,
+  type SubtitleFetchStrategyConfig,
   DEFAULT_ATTEMPT_ORDER,
   DEFAULT_FETCH_SERVER_URL,
+  DEFAULT_FETCH_STRATEGY_CONFIG,
+  getFetchStrategyConfig,
+  setFetchStrategyConfig,
   moveAttempt,
 } from "@/lib/subtitle-fetch-plan";
 import { WinnerPromotionReportModal } from "./WinnerPromotionReportModal";
@@ -27,6 +36,10 @@ interface Props {
   fetchServerUrl?: string;
   onUpdateFetchServerUrl?: (url: string) => void;
   onSelectVideo?: (videoId: string) => void;
+  strategyConfig?: SubtitleFetchStrategyConfig;
+  onChangeStrategyConfig?: (next: SubtitleFetchStrategyConfig) => void;
+  windowSeconds?: number;
+  onChangeWindowSeconds?: (sec: number) => void;
 }
 
 export const AttemptOrderSettings: React.FC<Props> = ({
@@ -39,17 +52,42 @@ export const AttemptOrderSettings: React.FC<Props> = ({
   fetchServerUrl = DEFAULT_FETCH_SERVER_URL,
   onUpdateFetchServerUrl,
   onSelectVideo,
+  strategyConfig,
+  onChangeStrategyConfig,
+  windowSeconds,
+  onChangeWindowSeconds,
 }) => {
   const [inputServerUrl, setInputServerUrl] = useState(fetchServerUrl);
   const [showWinnerReport, setShowWinnerReport] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(true);
+
+  const [activeStrategyConfig, setActiveStrategyConfig] = useState<SubtitleFetchStrategyConfig>(
+    () => strategyConfig || getFetchStrategyConfig(),
+  );
+
+  useEffect(() => {
+    if (strategyConfig) {
+      setActiveStrategyConfig(strategyConfig);
+    }
+  }, [strategyConfig]);
 
   useEffect(() => {
     setInputServerUrl(fetchServerUrl);
   }, [fetchServerUrl]);
 
+  const handleUpdateConfig = (patch: Partial<SubtitleFetchStrategyConfig>) => {
+    const next = setFetchStrategyConfig(patch);
+    setActiveStrategyConfig(next);
+    onChangeStrategyConfig?.(next);
+    if (patch.windowSeconds !== undefined && onChangeWindowSeconds) {
+      onChangeWindowSeconds(patch.windowSeconds);
+    }
+  };
+
   const handleSaveServerUrl = () => {
     onUpdateFetchServerUrl?.(inputServerUrl.trim());
   };
+
   const handleToggle = (index: number) => {
     const next = [...order];
     const current = next[index];
@@ -65,6 +103,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
 
   const handleReset = () => {
     onChangeOrder([...DEFAULT_ATTEMPT_ORDER]);
+    handleUpdateConfig({ ...DEFAULT_FETCH_STRATEGY_CONFIG });
   };
 
   const describeAttempt = (a: FetchAttempt) => {
@@ -84,16 +123,16 @@ export const AttemptOrderSettings: React.FC<Props> = ({
     <div
       id="subtitle-attempt-order-settings"
       data-testid="subtitle-attempt-order-settings"
-      className="space-y-3 rounded-xl border border-border/70 bg-card/60 p-3.5 sm:p-4 text-xs shadow-sm"
+      className="space-y-3.5 rounded-xl border border-border/70 bg-card/60 p-3.5 sm:p-4 text-xs shadow-sm"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-2.5">
         <div>
           <h3 className="font-semibold text-foreground text-sm flex items-center gap-1.5">
             <Globe className="w-4 h-4 text-primary" />
-            <span>Subtitle Fetch Attempt Order (Android)</span>
+            <span>Subtitle Fetch Strategy & Attempt Order</span>
           </h3>
           <p className="text-muted-foreground text-[11px] mt-0.5">
-            Sequential fallback chain (tlang/lang × session/anon). The loop stops at the first good
+            Sequential & randomized fallback chain (tlang/lang × session/anon). Stops at first good
             response.
           </p>
         </div>
@@ -109,7 +148,143 @@ export const AttemptOrderSettings: React.FC<Props> = ({
         </button>
       </div>
 
+      {/* Fetching Strategy Mode Selector */}
+      <div className="rounded-lg border border-border/70 bg-background/70 p-3 space-y-2.5">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <label
+            htmlFor="fetch-strategy-mode-select"
+            className="font-medium text-foreground text-[12px] flex items-center gap-1.5"
+          >
+            <Shuffle className="w-3.5 h-3.5 text-primary" />
+            <span>Active Strategy:</span>
+          </label>
+          <select
+            id="fetch-strategy-mode-select"
+            data-testid="fetch-strategy-mode-select"
+            value={activeStrategyConfig.mode}
+            onChange={(e) =>
+              handleUpdateConfig({ mode: e.target.value as FetchStrategyMode })
+            }
+            className="rounded border border-input bg-card px-2.5 py-1 text-xs font-medium text-foreground focus:ring-1 focus:ring-primary"
+          >
+            <option value="ordered">Ordered Fallback (Deterministic 1→4)</option>
+            <option value="random">First-Random Strategy (Anti-Bot Fingerprint)</option>
+            <option value="server_alternate">Server Alternate (Client vs Proxy)</option>
+          </select>
+        </div>
+
+        {/* Configuration Options / Switches */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 border-t border-border/50 text-[11px]">
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              id="strategy-toggle-server-alternate"
+              data-testid="strategy-toggle-server-alternate"
+              checked={activeStrategyConfig.useServerAlternate}
+              onChange={(e) =>
+                handleUpdateConfig({ useServerAlternate: e.target.checked })
+              }
+              className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+            />
+            <span className="text-foreground">server:alternate</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              id="strategy-toggle-session"
+              data-testid="strategy-toggle-session"
+              checked={activeStrategyConfig.allowSession}
+              onChange={(e) =>
+                handleUpdateConfig({ allowSession: e.target.checked })
+              }
+              className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+            />
+            <span className="text-foreground">session:yes/no</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              id="strategy-toggle-anon"
+              data-testid="strategy-toggle-anon"
+              checked={activeStrategyConfig.allowAnon}
+              onChange={(e) =>
+                handleUpdateConfig({ allowAnon: e.target.checked })
+              }
+              className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+            />
+            <span className="text-foreground">anon (link-only)</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              id="strategy-toggle-tlang"
+              data-testid="strategy-toggle-tlang"
+              checked={activeStrategyConfig.allowTlang}
+              onChange={(e) =>
+                handleUpdateConfig({ allowTlang: e.target.checked })
+              }
+              className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+            />
+            <span className="text-foreground">tlang:on/off</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              id="strategy-toggle-lang"
+              data-testid="strategy-toggle-lang"
+              checked={activeStrategyConfig.allowLang}
+              onChange={(e) =>
+                handleUpdateConfig({ allowLang: e.target.checked })
+              }
+              className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+            />
+            <span className="text-foreground">lang:on/off</span>
+          </label>
+        </div>
+
+        {/* Window Frame Rate Limiting Input */}
+        <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 text-foreground text-[11px]">
+            <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span className="font-medium">Fetch Window Frame:</span>
+            <span className="text-muted-foreground text-[10px]">
+              (Never &gt;1 fetch per window of X seconds)
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <input
+              type="number"
+              id="strategy-window-seconds-input"
+              data-testid="strategy-window-seconds-input"
+              min={1}
+              max={60}
+              value={activeStrategyConfig.windowSeconds}
+              onChange={(e) => {
+                const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                handleUpdateConfig({ windowSeconds: val });
+              }}
+              className="w-14 rounded border border-input bg-card px-2 py-0.5 text-xs text-right font-mono"
+            />
+            <span className="text-[11px] text-muted-foreground">sec</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Attempt Order Rows */}
       <div className="space-y-1.5">
+        <div className="text-[11px] font-semibold text-foreground flex items-center justify-between">
+          <span>Priority Sequence (Drag or toggle attempts)</span>
+          <span className="text-[10px] text-muted-foreground font-normal">
+            {activeStrategyConfig.mode === "random"
+              ? "Randomized per fetch"
+              : "Executed in order"}
+          </span>
+        </div>
+
         {order.map((a, idx) => {
           const info = describeAttempt(a);
           const isFirst = idx === 0;
@@ -218,6 +393,43 @@ export const AttemptOrderSettings: React.FC<Props> = ({
             <span>View Report</span>
           </button>
         </div>
+      </div>
+
+      {/* Explanatory Guide Card */}
+      <div
+        id="strategy-explanation-panel"
+        data-testid="strategy-explanation-panel"
+        className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-[11px] text-muted-foreground space-y-1.5"
+      >
+        <div className="flex items-center justify-between text-foreground font-semibold">
+          <span className="flex items-center gap-1.5">
+            <HelpCircle className="w-3.5 h-3.5 text-primary" />
+            <span>How Fetching Strategies & Pacing Protect You</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowExplanation(!showExplanation)}
+            className="text-[10px] text-primary hover:underline"
+          >
+            {showExplanation ? "Hide Details" : "Show Details"}
+          </button>
+        </div>
+        {showExplanation && (
+          <div className="space-y-1.5 pt-1 text-[10.5px] leading-relaxed">
+            <p>
+              <strong className="text-foreground">Window Frame Rate Limiting:</strong> Enforces a strict minimum of {activeStrategyConfig.windowSeconds}s between any two YouTube subtitle fetches. Multiple clicks or simultaneous language additions are serialized, never hitting YouTube API concurrently.
+            </p>
+            <p>
+              <strong className="text-foreground">First-Random Strategy:</strong> Shuffles attempt order randomly per request. Bypasses repetitive bot fingerprinting patterns when scraping or fetching multiple tracks.
+            </p>
+            <p>
+              <strong className="text-foreground">Server Alternate:</strong> Distributes requests between local Android WebView (with session cookies) and external server proxy, preventing IP-level rate limits.
+            </p>
+            <p>
+              <strong className="text-foreground">Session vs Anon:</strong> Session uses embedded player cookies/tokens for private tracks; anon uses bare links for public caption streams.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="pt-2 border-t border-border/60 space-y-2 opacity-85">

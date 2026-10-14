@@ -101,19 +101,18 @@ The repository maintains four dedicated GitHub Actions workflows to guarantee te
 
 ### 2.8 Report Video Flow Pipeline (`report-video-flow.yml`)
 
-- **Objective**: Dedicated pipeline monitoring and auditing the availability of screencast video assets (`android-emulator-video.mp4`) in live GitHub Pages reports (`android-emulator-report.html`), automatically reflecting broken video links or HTTP 404 responses directly onto `README.md` with copy-pasteable AI fix prompts.
+- **Objective**: Dedicated pipeline monitoring and auditing the availability of screencast video assets (`android-emulator-video.mp4`) in live GitHub Pages reports (`android-emulator-report.html`), indicating broken video links or HTTP 404 responses dynamically via GitHub Actions status badges to eliminate git merge conflicts.
 - **Workflow File**: `.github/workflows/report-video-flow.yml`
 - **Trigger Events**:
-  - `schedule`: Runs every 6 hours (`0 */6 * * *`) for background health monitoring.
   - `workflow_run`: Runs upon completion of `emulation.yml`, `deploy-demo.yml`, and `integrity.yml`.
   - `push`: Runs on pushes to `main` and `master`.
   - `workflow_dispatch`: Enables immediate manual trigger from GitHub UI.
+  - **No Cron Schedule**: Scheduled cron triggers are strictly prohibited from modifying or committing to `README.md` to prevent git merge conflicts during active development.
 - **Key Operations**:
   1. Installs dependencies and runs dedicated test suite `npm run test:report-video-links`.
   2. Runs `scripts/update-readme.mjs` with `CHECK_REMOTE_VIDEO="true"`, verifying remote GitHub Pages assets against HTTP 404 responses.
-  3. If video assets are missing or broken, flags CI status as `failure`, titles the failure as `Android Emulator Screencast & Report Video Flow`, and inserts actionable AI fix prompt into `README.md`.
-  4. Commits and pushes any status updates with `[skip ci]`.
-  5. Automatically dispatches the `emulation.yml` workflow (`gh workflow run emulation.yml`) to record and publish the screencast video to the `gh-pages` branch, self-healing the missing asset.
+  3. Automatically dispatches the `emulation.yml` workflow (`gh workflow run emulation.yml`) to record and publish the screencast video to the `gh-pages` branch, self-healing the missing asset.
+  4. **Status Badge Failure Indication**: If video assets are missing or broken, the job exits with a failure exit code so that the `report-video-flow.yml/badge.svg` badge turns red (`failing`) on `README.md`. The workflow reverts any local changes to `README.md` rather than committing them, ensuring clean git history and zero merge conflicts.
 
 ---
 

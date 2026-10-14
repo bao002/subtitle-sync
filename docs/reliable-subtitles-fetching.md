@@ -79,3 +79,37 @@ Each request record on Android has actions:
 2. If the link-only fetch succeeds, the captured session headers are the problem. Move the `anon` attempts to the front.
 3. If both direct attempts hit rate limits (HTTP 429), enable **Use server for repeat** and specify your server endpoint to repeat the fetch via server proxy.
 4. If requests still fail, check the `expire` value. The signed URL may have expired, so play the video again to capture a fresh one.
+
+## Subtitle fetch window rate-limiting & anti-abuse protection
+
+To prevent YouTube API abuse, temporary IP blocks, and HTTP 429 (Too Many Requests) errors:
+
+- **Window frame rate-limiting**: The platform enforces a strict window frame rate limiter: **never try to fetch more than 1 subtitle in a window frame of X seconds** (default `X = 5` seconds, configurable in Settings and Attempt Order Settings).
+- **Serialized single-flight execution**: `SubtitleRequestQueue` enforces `Concurrency = 1`. Multiple rapid user clicks or simultaneous target language additions are enqueued into a sequential FIFO queue.
+- **Timestamp pacing**: Every fetch registers `lastFetchTimestamp = Date.now()`. Before dispatching any subsequent fetch task, the coordinator calculates `elapsed = now - lastFetchTimestamp`. If `elapsed < windowFrameMs`, execution delays for the exact remaining duration before dispatching.
+
+## Subtitle fetching strategies & configuration options
+
+The application exposes flexible subtitle fetching strategies and granular switches in both Attempt Order Settings and Application Settings:
+
+### 1. Available fetching strategies (`mode`)
+
+- **Ordered Fallback (Deterministic 1→4)**: Attempts are executed strictly in the configured sequential priority order (`tlang/session` → `lang/session` → `tlang/anon` → `lang/anon`). Stops immediately upon the first good response.
+- **First-Random Strategy (Anti-Bot Fingerprint)**: Randomly shuffles the active attempts on each fetch. Distributing the request signatures prevents automated scraping fingerprint detection by YouTube's edge gateways.
+- **Server Alternate Mode**: Alternates request dispatch between the local Android WebView client (with session cookies) and the external server proxy, balancing traffic origins.
+
+### 2. Granular configuration options & toggles
+
+- **`server:alternate` (on/off)**: When enabled, interleaves direct device requests with server proxy requests.
+- **`session` (yes/no)**: Enables or disables requests utilizing captured embedded player headers and cookies (`lastObservedHeaders`).
+- **`anon` (yes/no)**: Enables or disables bare URL requests without session cookies (link-only mode).
+- **`tlang` (on/off)**: Enables or disables machine-translation mode (`tlang=<lang>` with original video language preserved).
+- **`lang` (on/off)**: Enables or disables direct track replacement mode (`lang=<lang>` without `tlang`).
+- **`windowSeconds`**: Controls the anti-abuse pacing window frame (seconds, default 5s).
+
+## Default platform behaviors
+
+- **Auto TTS-play fetched language name**: By default when a new subtitle track is fetched, the app invokes speech synthesis to announce the name of the fetched language (`speakLanguageNameOnFetch = true`).
+- **Default debug mode enabled**: Debug Mode is ON by default (`getDebugModeSetting() === true`), surfacing the real-time TTS queue, diagnostic dock, and network inspector.
+- **Default parser criteria**: By default all parsing criteria options are enabled (`DEFAULT_PARSER_CRITERIA`), combining syntax sentence breaks, speech pauses, timing consensus, punctuation voting, cue chunking, anchor alignment, and window constraints.
+
