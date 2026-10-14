@@ -179,6 +179,11 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 108.2: Enhance `.github/workflows/deploy-demo.yml` artifact preservation to pull `android-emulator-video.mp4` from workflow artifacts. [DONE]
   - Subtask 108.3: Add automated verification test, compile, lint, commit, and migrate to `docs/done.md`. [DONE]
 
+- **Task 109**: Guarantee Zero-404 Screencast Video Pipeline across GitHub Actions and GitHub Pages [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 109.1: Enhance `emulation.yml` screenrecord finalization and fallback generation from milestone screenshots. [DONE]
+  - Subtask 109.2: Enhance `deploy-demo.yml` with resilient screencast video packaging for GitHub Pages deployment. [DONE]
+  - Subtask 109.3: Add automated verification test, compile, lint, commit, and migrate to `docs/done.md`. [DONE]
+
 
 
 

@@ -203,11 +203,22 @@ if (listVideoRegex.test(content)) {
 }
 
 const verifiedVideoListRegex = /(2\.\s*\*\*Android Emulator Screencast Video\*\*:\s*)\[Download\s*`android-emulator-video\.mp4`[^\]]*\]\([^)]+\)[^\n]*/;
-if (isVideoBroken && verifiedVideoListRegex.test(content)) {
-  content = content.replace(
-    verifiedVideoListRegex,
-    `$1⚠️ [**Missing Asset / HTTP 404**](https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4) (screencast video missing from gh-pages branch — see README CI status)`,
-  );
+const brokenVideoListRegex = /(2\.\s*\*\*Android Emulator Screencast Video\*\*:\s*)⚠️\s*\[\*\*Missing Asset[^\]]*\]\([^)]+\)[^\n]*/;
+
+if (isVideoBroken) {
+  if (verifiedVideoListRegex.test(content)) {
+    content = content.replace(
+      verifiedVideoListRegex,
+      `$1⚠️ [**Missing Asset / HTTP 404**](https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4) (screencast video missing from gh-pages branch — size: 0 bytes — see README CI status)`,
+    );
+  }
+} else {
+  if (brokenVideoListRegex.test(content)) {
+    content = content.replace(
+      brokenVideoListRegex,
+      `$1[Download \`android-emulator-video.mp4\`](${remoteVideoUrl}) (${mb} MB MP4 recording)`,
+    );
+  }
 }
 
 function scanReadmeBrokenLinks(markdownContent, rootDir) {

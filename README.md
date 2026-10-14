@@ -1,10 +1,10 @@
 # YouTube Subtitle & Speech Flow Viewer
 
-[![Build & Release Android APK](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/release-apk.yml/badge.svg)](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/release-apk.yml)
-[![Web E2E Tests](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/web.yml/badge.svg)](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/web.yml)
-[![Android Emulator E2E Tests](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/emulation.yml/badge.svg)](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/emulation.yml)
-[![Report Video Flow](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/report-video-flow.yml/badge.svg)](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/report-video-flow.yml)
-[![Publish Web Demo](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/ofer-shaham/subtitle-sync/actions/workflows/deploy-demo.yml)
+[![Build & Release Android APK](https://github.com/mostuf25561/subtitle-sync/actions/workflows/release-apk.yml/badge.svg)](https://github.com/mostuf25561/subtitle-sync/actions/workflows/release-apk.yml)
+[![Web E2E Tests](https://github.com/mostuf25561/subtitle-sync/actions/workflows/web.yml/badge.svg)](https://github.com/mostuf25561/subtitle-sync/actions/workflows/web.yml)
+[![Android Emulator E2E Tests](https://github.com/mostuf25561/subtitle-sync/actions/workflows/emulation.yml/badge.svg)](https://github.com/mostuf25561/subtitle-sync/actions/workflows/emulation.yml)
+[![Report Video Flow](https://github.com/mostuf25561/subtitle-sync/actions/workflows/report-video-flow.yml/badge.svg)](https://github.com/mostuf25561/subtitle-sync/actions/workflows/report-video-flow.yml)
+[![Publish Web Demo](https://github.com/mostuf25561/subtitle-sync/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/mostuf25561/subtitle-sync/actions/workflows/deploy-demo.yml)
 
 An Android native shell application for YouTube learning with synchronized multi-language subtitles and speech flow.
 
@@ -23,17 +23,17 @@ An Android native shell application for YouTube learning with synchronized multi
 
 ```markdown
 # AI FIX PROMPT: CI Failure in Android Emulator Screencast & Report Video Flow
-- **Repository**: ofer-shaham/subtitle-sync
+- **Repository**: mostuf25561/subtitle-sync
 - **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
 - **Failing Step**: Broken Video Link Detection in android-emulator-report.html
-- **Report URL**: https://ofer-shaham.github.io/subtitle-sync/android-emulator-report.html
-- **Run URL**: https://github.com/ofer-shaham/subtitle-sync/actions/runs/38488898745
+- **Report URL**: https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html
+- **Run URL**: https://github.com/ofer-shaham/subtitle-sync/actions/runs/38488353662
 
 ### Failure Log & Diagnosis:
 Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).
 
 ### 🔗 Broken Links Detected:
-- `[Report Screencast Video: android-emulator-video.mp4](https://ofer-shaham.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)` -> HTTP 404 on GitHub Pages (Report at https://ofer-shaham.github.io/subtitle-sync/android-emulator-report.html has broken video source; android-emulator-video.mp4 returned HTTP 404) (`public/android-emulator-report.html -> <video controls> (screencast video missing / 404)`)
+- `[Report Screencast Video: android-emulator-video.mp4](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)` -> HTTP 404 on GitHub Pages (Report at https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html has broken video source; android-emulator-video.mp4 returned HTTP 404) (`public/android-emulator-report.html -> <video controls> (screencast video missing / 404)`)
 
 ### Instructions for AI Assistant:
 1. Examine the root cause, broken link(s), and diagnostic details above.
@@ -49,7 +49,7 @@ Report at android-emulator-report.html contains broken video link (screencast vi
 
 Access the primary, working verification report proving the core feature on Android 14 (API 34):
 
-👉 [**Open Android Emulator E2E Report**](https://ofer-shaham.github.io/subtitle-sync/android-emulator-report.html) (or [**/android/**](https://ofer-shaham.github.io/subtitle-sync/android/))
+👉 [**Open Android Emulator E2E Report**](https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html) (or [**/android/**](https://mostuf25561.github.io/subtitle-sync/android/))
 
 ### 🎯 Feature Under Test:
 - **The application can be shared a YouTube video** via standard Android native intents:
@@ -57,9 +57,9 @@ Access the primary, working verification report proving the core feature on Andr
   - `ACTION_SEND`: Share text from the official YouTube app
 
 ### 📦 Verified Test Products:
-1. **Android Logs**: [Download `android-emulator-logcat.txt`](https://ofer-shaham.github.io/subtitle-sync/screenshots/android-emulator-logcat.txt) (or live logcat audit)
-2. **Android Emulator Screencast Video**: ⚠️ [**Missing Asset / HTTP 404**](https://ofer-shaham.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (screencast video missing from gh-pages branch — see README CI status)
-3. **Screenshot Images**: [View `android-emulator-screenshot.png`](https://ofer-shaham.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) (full-resolution UI capture)
+1. **Android Logs**: [Download `android-emulator-logcat.txt`](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-logcat.txt) (or live logcat audit)
+2. **Android Emulator Screencast Video**: ⚠️ [**Missing Asset / HTTP 404**](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (screencast video missing from gh-pages branch — size: 0 bytes — see README CI status)
+3. **Screenshot Images**: [View `android-emulator-screenshot.png`](https://mostuf25561.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) (full-resolution UI capture)
 
 ---
 
@@ -68,7 +68,7 @@ Access the primary, working verification report proving the core feature on Andr
 To download and install the latest `YouTube-Viewer-debug.apk` onto any connected Android device or emulator via ADB without cloning the repository:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ofer-shaham/subtitle-sync/main/update.apk.sh | bash -s -- "https://github.com/ofer-shaham/subtitle-sync/releases/latest/download/YouTube-Viewer-debug.apk"
+curl -fsSL https://raw.githubusercontent.com/mostuf25561/subtitle-sync/main/update.apk.sh | bash -s -- "https://github.com/mostuf25561/subtitle-sync/releases/latest/download/YouTube-Viewer-debug.apk"
 ```
 
 ---
@@ -85,10 +85,19 @@ curl -fsSL https://raw.githubusercontent.com/ofer-shaham/subtitle-sync/main/upda
 - **Task Backlog**: [`docs/tasks.md`](./docs/tasks.md)
 - **Completed Log**: [`docs/done.md`](./docs/done.md)
 - **Project Roadmap**: [`docs/roadmap.md`](./docs/roadmap.md)
+- **Actions Architecture**: [`docs/operations/ACTIONS.md`](./docs/operations/ACTIONS.md)
+- **Library Specification**: [`docs/specifications/LIBRARY.md`](./docs/specifications/LIBRARY.md)
+- **Subtitle Views Design**: [`docs/designs/DESIGN_SUBTITLE_VIEWS.md`](./docs/designs/DESIGN_SUBTITLE_VIEWS.md)
+- **View Languages Design**: [`docs/designs/DESIGN_VIEW_LANGS.md`](./docs/designs/DESIGN_VIEW_LANGS.md)
+- **Controls View Design**: [`docs/designs/DESIGN_CONTROLS_VIEW.md`](./docs/designs/DESIGN_CONTROLS_VIEW.md)
+- **Player Provider Design**: [`docs/designs/DESIGN_PLAYER_PROVIDER.md`](./docs/designs/DESIGN_PLAYER_PROVIDER.md)
+- **State Coordinator Design**: [`docs/designs/DESIGN_STATE_COORDINATOR.md`](./docs/designs/DESIGN_STATE_COORDINATOR.md)
+- **TimedText Schema**: [`docs/specifications/SCHEMA_TIMEDTEXT.md`](./docs/specifications/SCHEMA_TIMEDTEXT.md)
+- **Debug Operations**: [`docs/operations/DEBUG.md`](./docs/operations/DEBUG.md)
 
 
 
-*(Legacy web reports like [mochawesome.html](https://ofer-shaham.github.io/subtitle-sync/mochawesome.html) and [playwright](https://ofer-shaham.github.io/subtitle-sync/playwright/index.html) are deprecated and quarantined in `quarentined/`.)*
+*(Legacy web reports like [mochawesome.html](https://mostuf25561.github.io/subtitle-sync/mochawesome.html) and [playwright](https://mostuf25561.github.io/subtitle-sync/playwright/index.html) are deprecated and quarantined in `quarentined/`.)*
 
 ## Server config
 Default server settings live in `src/config/server.json` (`server_address`, `is_enabled` — off by default). Details: [docs/server.md](docs/server.md).
