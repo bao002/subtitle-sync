@@ -45,13 +45,27 @@ assert(
   reportVideoWorkflowContent.includes("workflow_dispatch:"),
   "report-video-flow.yml must support manual dispatch",
 );
+assert(
+  reportVideoWorkflowContent.includes("actions: write"),
+  "report-video-flow.yml must have actions: write permission",
+);
+assert(
+  reportVideoWorkflowContent.includes("gh workflow run emulation.yml"),
+  "report-video-flow.yml must include step to auto-trigger emulation.yml upon 404 video detection",
+);
+
+const deployDemoWorkflowContent = fs.readFileSync(path.resolve(rootDir, ".github/workflows/deploy-demo.yml"), "utf-8");
+assert(
+  deployDemoWorkflowContent.includes("android-emulator-artifacts"),
+  "deploy-demo.yml must retrieve android-emulator-artifacts if missing from dist/screenshots",
+);
 
 const readmeCurrentContent = fs.readFileSync(readmePath, "utf-8");
 assert(
   readmeCurrentContent.includes("report-video-flow.yml/badge.svg"),
   "README.md must feature Report Video Flow badge",
 );
-console.log("✅ PASS: Dedicated report-video-flow.yml workflow and README badge properly configured.");
+console.log("✅ PASS: Dedicated report-video-flow.yml workflow, auto-trigger, and deploy-demo recovery properly configured.");
 
 // 2. Validate client-side error handling & multi-path resilience in report HTMLs
 const reportHtml = fs.readFileSync(reportHtmlPath, "utf-8");

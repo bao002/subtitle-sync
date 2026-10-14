@@ -174,6 +174,11 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 107.2: Create dedicated workflow `.github/workflows/report-video-flow.yml` and update workflow coordination. [DONE]
   - Subtask 107.3: Add dedicated test `scripts/verify-report-video-links-and-readme-sync.ts`, update documentation in `docs/operations/ACTIONS.md` and `docs/files.md`, run verification, compile, lint, commit, push, and migrate to `docs/done.md`. [DONE]
 
+- **Task 108**: Auto-Trigger Screencast Recording on 404 Video Detection & Artifact Recovery Pipeline [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 108.1: Update `.github/workflows/report-video-flow.yml` with automated dispatch of `emulation.yml` upon 404 detection. [DONE]
+  - Subtask 108.2: Enhance `.github/workflows/deploy-demo.yml` artifact preservation to pull `android-emulator-video.mp4` from workflow artifacts. [DONE]
+  - Subtask 108.3: Add automated verification test, compile, lint, commit, and migrate to `docs/done.md`. [DONE]
+
 
 
 

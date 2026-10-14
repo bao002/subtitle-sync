@@ -1,5 +1,25 @@
 # Done tasks
 
+## Task 108: Auto-Trigger Screencast Recording on 404 Video Detection & Artifact Recovery Pipeline
+
+### Summary:
+- **Automated Workflow Self-Healing (`.github/workflows/report-video-flow.yml`)**:
+  - Added `actions: write` permission to the dedicated `report-video-flow.yml` workflow.
+  - Implemented the automated self-healing trigger: when `report-video-flow.yml` detects that `android-emulator-video.mp4` returned HTTP 404 on GitHub Pages, it automatically dispatches `emulation.yml` via GitHub CLI (`gh workflow run emulation.yml -R "${{ github.repository }}" --ref "${{ github.ref_name }}"`).
+  - This ensures that upon detection of missing or broken screencast assets, the emulator test suite is automatically executed on the macOS runner to record and redeploy the screencast video.
+- **Workflow Artifact Recovery Pipeline (`.github/workflows/deploy-demo.yml`)**:
+  - In `deploy-demo.yml`, integrated automated download of `android-emulator-artifacts` via GitHub CLI (`gh run download -n android-emulator-artifacts`) whenever `dist/screenshots/android-emulator-video.mp4` is absent from the current `gh-pages` branch.
+  - Ensures seamless asset propagation from the test runners directly into the GitHub Pages deployment bundle.
+- **Documentation & Verification**:
+  - Updated `docs/operations/ACTIONS.md` Section 2.8 with step 5 documenting the automated dispatch self-healing loop.
+  - Enhanced `scripts/verify-report-video-links-and-readme-sync.ts` asserting `actions: write` permission, `gh workflow run emulation.yml` dispatch, and artifact download recovery.
+- **Verification Commands & Outcomes**:
+  - `npm run test:report-video-links` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:actions-readme-sync-docs` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (0 errors)
+
 ## Task 107: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync
 
 ### Summary:

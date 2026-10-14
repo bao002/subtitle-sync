@@ -85,6 +85,19 @@ jobs:
             cp -r gh-pages-staging/* dist/ 2>/dev/null || true
             echo "Staged local gh-pages-staging to dist/"
           fi
+          # If android-emulator-video.mp4 is missing from dist/screenshots, attempt to download from workflow artifacts
+          if [ ! -f "dist/screenshots/android-emulator-video.mp4" ] && command -v gh >/dev/null 2>&1; then
+            echo "Attempting to retrieve android-emulator-video.mp4 from latest Android Emulator E2E Tests workflow artifact..."
+            gh run download -R "${{ github.repository }}" -n android-emulator-artifacts -D temp-artifacts 2>/dev/null || true
+            if [ -f "temp-artifacts/android-emulator-video.mp4" ]; then
+              mkdir -p dist/screenshots dist/android/screenshots
+              cp temp-artifacts/android-emulator-video.mp4 dist/screenshots/android-emulator-video.mp4
+              cp temp-artifacts/android-emulator-video.mp4 dist/android-emulator-video.mp4
+              cp temp-artifacts/android-emulator-video.mp4 dist/android/screenshots/android-emulator-video.mp4
+              echo "✅ Successfully staged android-emulator-video.mp4 from workflow artifact into dist/screenshots/"
+            fi
+            rm -rf temp-artifacts
+          fi
 
       - name: Deploy Web Demo to GitHub Pages (gh-pages branch)
         if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'master'))) && !cancelled()

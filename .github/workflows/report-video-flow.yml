@@ -22,6 +22,7 @@ concurrency:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   check-report-video-links:
@@ -72,4 +73,14 @@ jobs:
             git push origin ${{ github.ref_name }}
           else
             echo "README.md is already up to date."
+          fi
+
+      - name: Auto-Trigger Android Emulator E2E Tests on Broken Video Detection
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if grep -q "CI Failure in Android Emulator Screencast & Report Video Flow" README.md; then
+            echo "⚠️ Screencast video returned HTTP 404 in android-emulator-report.html."
+            echo "--> Auto-triggering 'Android Emulator E2E Tests' (emulation.yml) to record and publish screencast video..."
+            gh workflow run emulation.yml -R "${{ github.repository }}" --ref "${{ github.ref_name }}" || gh workflow run "Android Emulator E2E Tests" -R "${{ github.repository }}" || echo "ℹ️ Automated dispatch attempted."
           fi

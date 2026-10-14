@@ -113,6 +113,7 @@ The repository maintains four dedicated GitHub Actions workflows to guarantee te
   2. Runs `scripts/update-readme.mjs` with `CHECK_REMOTE_VIDEO="true"`, verifying remote GitHub Pages assets against HTTP 404 responses.
   3. If video assets are missing or broken, flags CI status as `failure`, titles the failure as `Android Emulator Screencast & Report Video Flow`, and inserts actionable AI fix prompt into `README.md`.
   4. Commits and pushes any status updates with `[skip ci]`.
+  5. Automatically dispatches the `emulation.yml` workflow (`gh workflow run emulation.yml`) to record and publish the screencast video to the `gh-pages` branch, self-healing the missing asset.
 
 ---
 
