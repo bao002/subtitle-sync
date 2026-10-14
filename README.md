@@ -1,10 +1,10 @@
 # YouTube Subtitle Learning Platform (`subtitle-sync`)
 
-[![Build & Release Android APK](https://github.com/mostuf2556/subtitle-sync/actions/workflows/release-apk.yml/badge.svg)](https://github.com/mostuf2556/subtitle-sync/actions/workflows/release-apk.yml)
-[![Web E2E Tests](https://github.com/mostuf2556/subtitle-sync/actions/workflows/web.yml/badge.svg)](https://github.com/mostuf2556/subtitle-sync/actions/workflows/web.yml)
-[![Android Emulator E2E Tests](https://github.com/mostuf2556/subtitle-sync/actions/workflows/emulation.yml/badge.svg)](https://github.com/mostuf2556/subtitle-sync/actions/workflows/emulation.yml)
-[![Deploy Demo to GitHub Pages](https://github.com/mostuf2556/subtitle-sync/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/mostuf2556/subtitle-sync/actions/workflows/deploy-demo.yml)
-[![Android Emulator Screencast & Report Video Flow](https://github.com/mostuf2556/subtitle-sync/actions/workflows/report-video-flow.yml/badge.svg)](https://github.com/mostuf2556/subtitle-sync/actions/workflows/report-video-flow.yml)
+[![Build & Release Android APK](https://github.com/mostuf25563/subtitle-sync/actions/workflows/release-apk.yml/badge.svg)](https://github.com/mostuf25563/subtitle-sync/actions/workflows/release-apk.yml)
+[![Web E2E Tests](https://github.com/mostuf25563/subtitle-sync/actions/workflows/web.yml/badge.svg)](https://github.com/mostuf25563/subtitle-sync/actions/workflows/web.yml)
+[![Android Emulator E2E Tests](https://github.com/mostuf25563/subtitle-sync/actions/workflows/emulation.yml/badge.svg)](https://github.com/mostuf25563/subtitle-sync/actions/workflows/emulation.yml)
+[![Deploy Demo to GitHub Pages](https://github.com/mostuf25563/subtitle-sync/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/mostuf25563/subtitle-sync/actions/workflows/deploy-demo.yml)
+[![Android Emulator Screencast & Report Video Flow](https://github.com/mostuf25563/subtitle-sync/actions/workflows/report-video-flow.yml/badge.svg)](https://github.com/mostuf25563/subtitle-sync/actions/workflows/report-video-flow.yml)
 
 <!-- CI_STATUS_INDICATOR_START -->
 ## 🚨 Latest CI Build & Test Status: FAILED
@@ -15,17 +15,17 @@
 
 ```markdown
 # AI FIX PROMPT: CI Failure in Android Emulator Screencast & Report Video Flow
-- **Repository**: mostuf2556/subtitle-sync
+- **Repository**: mostuf25563/subtitle-sync
 - **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
 - **Failing Step**: Broken Video Link Detection in android-emulator-report.html
-- **Report URL**: https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html
-- **Run URL**: https://github.com/mostuf2556/subtitle-sync/actions/workflows/report-video-flow.yml
+- **Report URL**: https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html
+- **Run URL**: https://github.com/mostuf25563/subtitle-sync/actions/runs/38508520004
 
 ### Failure Log & Diagnosis:
 Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).
 
 ### 🔗 Broken Links Detected:
-- `[Report Screencast Video: android-emulator-video.mp4](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)` -> HTTP 404 on GitHub Pages (Report at https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html has broken video source; android-emulator-video.mp4 returned HTTP 404) (`public/android-emulator-report.html -> <video controls> (screencast video missing / 404)`)
+- `[Report Screencast Video: android-emulator-video.mp4](https://mostuf25563.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)` -> HTTP 404 on GitHub Pages (Report at https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html has broken video source; android-emulator-video.mp4 returned HTTP 404) (`public/android-emulator-report.html -> <video controls> (screencast video missing / 404)`)
 
 ### Instructions for AI Assistant:
 1. Examine the root cause, broken link(s), and diagnostic details above.
@@ -41,21 +41,21 @@ Report at android-emulator-report.html contains broken video link (screencast vi
 
 | Resource | Target Link | Description |
 | :--- | :--- | :--- |
-| 🚀 **Live Web App Demo** | [https://mostuf2556.github.io/subtitle-sync/](https://mostuf2556.github.io/subtitle-sync/) | Production React SPA demo running on GitHub Pages |
-| 📊 **Mochawesome Test Report** | [**Open Mochawesome Report**](https://mostuf2556.github.io/subtitle-sync/mochawesome.html) | Mochawesome HTML E2E test report |
-| 🎭 **Playwright Test Report** | [**Open Playwright Report**](https://mostuf2556.github.io/subtitle-sync/playwright/index.html) | Playwright HTML test report |
-| 📱 **Android Emulator Report** | [**Open Android Emulator Report**](https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html) | Android Emulator verification report |
-| 📸 **Android Emulator Screenshot** | [**View Latest Emulator Screenshot**](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) | Latest full-resolution emulator screenshot |
-| 🎬 **Android Emulator Screencast Video** | [**View/Download MP4 Screencast (6.41 MB)**](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) | Screencast video (6,724,502 bytes / HTTP 404 fallback handling) |
+| 🚀 **Live Web App Demo** | [https://mostuf25563.github.io/subtitle-sync/](https://mostuf25563.github.io/subtitle-sync/) | Production React SPA demo running on GitHub Pages |
+| 📊 **Mochawesome Test Report** | [**Open Mochawesome Report**](https://mostuf25563.github.io/subtitle-sync/mochawesome.html) | Mochawesome HTML E2E test report |
+| 🎭 **Playwright Test Report** | [**Open Playwright Report**](https://mostuf25563.github.io/subtitle-sync/playwright/index.html) | Playwright HTML test report |
+| 📱 **Android Emulator Report** | [**Open Android Emulator Report**](https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html) | Android Emulator verification report |
+| 📸 **Android Emulator Screenshot** | [**View Latest Emulator Screenshot**](https://mostuf25563.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) | Latest full-resolution emulator screenshot |
+| 🎬 **Android Emulator Screencast Video**               | ⚠️ [**Broken Link / Missing Asset (HTTP 404)**](https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html) | Screencast video (android-emulator-video.mp4 returned HTTP 404 on GitHub Pages). Run [emulation.yml](https://github.com/mostuf25563/subtitle-sync/actions/workflows/emulation.yml) to record and deploy. |
 
 ---
 
 ## 📱 Live Android Emulator Verification Report
 
 - **Core Tested Feature**: The application can be shared a YouTube video via Android native intents (`ACTION_VIEW` for browser URLs and `ACTION_SEND` for YouTube app shares).
-- **Interactive Report**: [Android Emulator Report](https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html)
-- **UI Screen Capture**: [Screenshot Image](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png)
-- **Screencast Video**: 🎬 **Android Emulator Screencast Video**: [Download / Stream MP4 (6.41 MB)](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (6,724,502 bytes / HTTP 404 fallback handling)
+- **Interactive Report**: [Android Emulator Report](https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html)
+- **UI Screen Capture**: [Screenshot Image](https://mostuf25563.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png)
+- **Screencast Video**: 🎬 **Android Emulator Screencast Video**: [Download / Stream MP4 (6.41 MB)](https://mostuf25563.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (6,724,502 bytes / HTTP 404 fallback handling)
 
 > **Notice on Quarantined Suites**: Legacy browser suites and secondary dashboard generators have been moved to [`quarentined/`](quarentined/) to keep active CI focused on authentic Android runtime verification.
 
@@ -66,10 +66,10 @@ Report at android-emulator-report.html contains broken video link (screencast vi
 Install directly to an attached Android device or running emulator using [`install-apk.sh`](install-apk.sh) or [`update.apk.sh`](update.apk.sh):
 
 ```bash
-curl -sL https://raw.githubusercontent.com/mostuf2556/subtitle-sync/main/install-apk.sh | bash
+curl -sL https://raw.githubusercontent.com/mostuf25563/subtitle-sync/main/install-apk.sh | bash
 ```
 
-Alternatively, run [`update.apk.sh`](update.apk.sh) directly to install or update the debug APK. All binary downloads and past version releases are available on the [Releases](https://github.com/mostuf2556/subtitle-sync/releases) page.
+Alternatively, run [`update.apk.sh`](update.apk.sh) directly to install or update the debug APK. All binary downloads and past version releases are available on the [Releases](https://github.com/mostuf25563/subtitle-sync/releases) page.
 
 ---
 
