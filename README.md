@@ -9,17 +9,17 @@
 
 ```markdown
 # AI FIX PROMPT: CI Failure in Android Emulator Screencast & Report Video Flow
-- **Repository**: mostuf2556/subtitle-sync
+- **Repository**: mostuf25563/subtitle-sync
 - **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
 - **Failing Step**: Broken Video Link Detection in android-emulator-report.html
-- **Report URL**: https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html
-- **Run URL**: https://github.com/mostuf2556/subtitle-sync/actions/runs/38504865873
+- **Report URL**: https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html
+- **Run URL**: https://github.com/mostuf25563/subtitle-sync/actions/runs/38504912781
 
 ### Failure Log & Diagnosis:
 Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).
 
 ### 🔗 Broken Links Detected:
-- `[Report Screencast Video: android-emulator-video.mp4](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)` -> HTTP 404 on GitHub Pages (Report at https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html has broken video source; android-emulator-video.mp4 returned HTTP 404) (`public/android-emulator-report.html -> <video controls> (screencast video missing / 404)`)
+- `[Report Screencast Video: android-emulator-video.mp4](https://mostuf25563.github.io/subtitle-sync/screenshots/android-emulator-video.mp4)` -> HTTP 404 on GitHub Pages (Report at https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html has broken video source; android-emulator-video.mp4 returned HTTP 404) (`public/android-emulator-report.html -> <video controls> (screencast video missing / 404)`)
 
 ### Instructions for AI Assistant:
 1. Examine the root cause, broken link(s), and diagnostic details above.
