@@ -29,6 +29,7 @@ test.describe("Android Emulator E2E — YouTube Video Share Feature", () => {
     await expect(page.locator("[data-testid='router-error-component']")).toHaveCount(0);
     await expect(page.locator("text=This page didn't load")).toHaveCount(0);
     await expect(page.locator("header")).toBeVisible();
+    await page.screenshot({ path: "public/screenshots/step-02-app-launch.png", fullPage: false }).catch(() => {});
   });
 
   test("the application can be shared a youtube video", async ({ page }) => {
@@ -42,6 +43,9 @@ test.describe("Android Emulator E2E — YouTube Video Share Feature", () => {
     // Verify active video state successfully updated to dQw4w9WgXcQ
     await expect(page.locator("header")).toContainText("video dQw4w9WgXcQ", { timeout: 10000 });
     await page
+      .screenshot({ path: "public/screenshots/step-03-action-view.png", fullPage: false })
+      .catch(() => {});
+    await page
       .screenshot({ path: "public/screenshots/step-share-browser-link.png", fullPage: false })
       .catch(() => {});
 
@@ -54,6 +58,9 @@ test.describe("Android Emulator E2E — YouTube Video Share Feature", () => {
 
     // Verify active video state successfully switched to kJQP7kiw5Fk
     await expect(page.locator("header")).toContainText("video kJQP7kiw5Fk", { timeout: 10000 });
+    await page
+      .screenshot({ path: "public/screenshots/step-04-action-send.png", fullPage: false })
+      .catch(() => {});
     await page
       .screenshot({ path: "public/screenshots/step-share-youtube-app-text.png", fullPage: false })
       .catch(() => {});

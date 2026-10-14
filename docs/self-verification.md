@@ -30,6 +30,8 @@ Run these commands in order to execute the full self-verification sequence:
 | **Code Linter Gate** | `npm run lint` | Zero ESLint warnings or errors. |
 | **README Status & AI Error Prompt Sync** | `npm run test:readme-error-indicator` | Asserts dynamic CI status indicator, broken link detector, and copy-pasteable AI error prompt in `README.md`. |
 | **Report Video Links & Broken Asset Sync** | `npm run test:report-video-links` | Asserts detection of broken video links in `android-emulator-report.html` on GitHub Pages and reflection in `README.md`. |
+| **README Git Sync Exclusion Policy** | `npm run test:readme-git-sync-rule` | Asserts `README.md` is managed by GitHub Actions and excluded from git copy/sync operations. |
+| **Android E2E Spec & Screenshot Pipeline** | `npm run test:e2e-android-doc` | Asserts `docs/e2e-android.md`, About Phone pre-test navigation, and milestone screenshot pipeline. |
 | **Self-Verification Protocol Test** | `npm run test:self-verification` | Asserts `self-verification.md` exists and covers all testing, screencast, and sanity requirements. |
 
 ---
@@ -147,6 +149,18 @@ Before declaring any task or prompt complete, all 6 sanity checks must be passed
   - `npm run test:report-video-links`
   - `npm run test:readme-links`
   - See full architectural specification in [`docs/operations/ACTIONS.md`](./operations/ACTIONS.md).
+
+### Sanity Check 8: README.md Git Sync Exclusion Policy
+- **Rule**: `README.md` is strictly created and managed by GitHub Actions (`update-readme.yml` and `scripts/update-readme.mjs`). When syncing git across upstream repositories (such as `mostuf2556/Youtubenet6`), branches, or forks, `README.md` must NOT be copied or overwritten.
+- **Verification**:
+  - `npm run test:readme-git-sync-rule`
+  - See full architectural specification in [`docs/operations/ACTIONS.md`](./operations/ACTIONS.md) Section 4.7.
+
+### Sanity Check 9: Android E2E Specification & Milestone Screenshot Pipeline
+- **Rule**: Android E2E tests must validate genuine native behaviors without mocking or synthetic fixtures. The execution must perform pre-test system navigation to Settings / "About Phone" / Developer information, and capture milestone screenshots (`step-01-about-phone.png` through `step-05-captions-subtitles.png`).
+- **Verification**:
+  - `npm run test:e2e-android-doc`
+  - See full architectural specification in [`docs/e2e-android.md`](./e2e-android.md).
 
 ---
 

@@ -179,19 +179,13 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 108.2: Enhance `.github/workflows/deploy-demo.yml` artifact preservation to pull `android-emulator-video.mp4` from workflow artifacts. [DONE]
   - Subtask 108.3: Add automated verification test, compile, lint, commit, and migrate to `docs/done.md`. [DONE]
 
-- **Task 109**: Guarantee Zero-404 Screencast Video Pipeline across GitHub Actions and GitHub Pages [COMPLETED & MIGRATED TO docs/done.md]
-  - Subtask 109.1: Enhance `emulation.yml` screenrecord finalization and fallback generation from milestone screenshots. [DONE]
-  - Subtask 109.2: Enhance `deploy-demo.yml` with resilient screencast video packaging for GitHub Pages deployment. [DONE]
-  - Subtask 109.3: Add automated verification test, compile, lint, commit, and migrate to `docs/done.md`. [DONE]
+- **Task 110**: Enforce Rule: README.md Created by GitHub Actions, Do Not Copy When Syncing Git [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 110.1: Codify the rule in `AGENTS.md`, `docs/operations/ACTIONS.md`, `docs/self-verification.md`, and `docs/files.md`. [DONE]
+  - Subtask 110.2: Author dedicated verification test `scripts/verify-readme-git-sync-rule.ts` and add `test:readme-git-sync-rule` in `package.json`. [DONE]
+  - Subtask 110.3: Execute dedicated verification test, run compile_applet and lint_applet, checkpoint with commit/push, and migrate to `docs/done.md`. [DONE]
 
-
-
-
-
-
-
-
-
-
-
-
+- **Task 111**: Android Emulator E2E Screenshots Along Test, Pre-Test Device Settings Navigation, and docs/e2e-android.md [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 111.1: Update app version to 1.0.17 across package.json, build.gradle.kts, appConfig.ts, apkUpdater.ts, and appSettings.ts. [DONE]
+  - Subtask 111.2: Author docs/e2e-android.md detailing unmocked Android emulator testing, About Phone pre-test navigation, and milestone screenshots. [DONE]
+  - Subtask 111.3: Update scripts/run-android-e2e.sh and scripts/android-e2e-assert.sh with About Phone navigation and step screenshot pipeline. [DONE]
+  - Subtask 111.4: Author dedicated test scripts/verify-e2e-android-doc.ts, run verification, compile, lint, commit, push, and migrate to docs/done.md. [DONE]
