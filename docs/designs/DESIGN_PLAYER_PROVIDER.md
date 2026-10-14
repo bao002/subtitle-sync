@@ -61,3 +61,13 @@ export interface PlayerProvider {
 1. **Decoupled Renderers**: Subtitle views and playback controls never call YouTube APIs directly; they communicate through callbacks (`onSeek`, `onPlayPause`) handled by the controller implementing this provider contract.
 2. **Deterministic Tick Stream**: The provider guarantees time updates at least once every 100ms during active playback to enable smooth sub-line segment syntax highlighting.
 3. **Safe Cleanup**: All event subscription methods return an unsubscribe closure (`() => void`) to ensure zero memory leaks when components unmount.
+
+---
+
+## 4. Video Playground Standalone Instance
+
+While the primary PlayerProvider coordinates multi-instance swiper sync and auto-pause loops, the **Video Playground** (`src/components/VideoPlayground.tsx`) renders an uninhibited player embed:
+- **No External Seeking or Forcible Pauses**: Operates without external interval timers driving `pauseVideo()` or `seekTo()`.
+- **User-Centric Caption Switching**: Allows direct, unhindered access to native YouTube CC and quality menus.
+- **Background Interception**: Listens to network and native Android bridge caption streams to populate the detected tracks catalog in real time.
+

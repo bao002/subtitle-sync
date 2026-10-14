@@ -211,3 +211,16 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 114.4: Author dedicated automated test scripts/verify-no-cron-readme-updates.ts asserting no cron triggers commit to README and status badges reflect failures. [DONE]
   - Subtask 114.5: Update documentation in docs/operations/ACTIONS.md and docs/files.md. [DONE]
   - Subtask 114.6: Run test suite, compile_applet, lint_applet, git commit checkpoint, attempt git push, and migrate to docs/done.md. [DONE]
+
+- **Task 115**: Continuous CI Monitoring & Real Actions Runs Health [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 115.1: Verify repository hygiene, architectural contracts & CI integrity across workflows and README.md. [DONE]
+  - Subtask 115.2: Inspect and execute all verification suites: `test:doc-contracts`, `test:readme-links`, `test:no-cron-readme`, `test:e2e-report-links`, `test:report-video-links`, `test:client-spa`, and `test:hygiene`. [DONE]
+  - Subtask 115.3: Verify app compilation (`compile_applet`) and linting (`lint_applet`), checkpoint progress, and migrate completed tasks to `docs/done.md`. [DONE]
+
+- **Task 116**: Dedicated "Playground" Top Tab with Independent YouTube Player for Uninhibited Subtitle Switching & Interception (Version 1.0.21) [IN PROGRESS]
+  - Subtask 116.1: Update app version to 1.0.21 across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [ACTIVE]
+  - Subtask 116.2: Create `src/components/VideoPlayground.tsx` providing an independent YouTube player container free from external pause/seek/TTS controls, with real-time detected subtitle stream telemetry, cue preview, and 1-click import actions. [PENDING]
+  - Subtask 116.3: Integrate top tabs in `src/routes/index.tsx` (Viewer vs Playground), pausing background timers and TTS loops when on Playground, and wiring detected captions into the central catalog. [PENDING]
+  - Subtask 116.4: Author dedicated automated test `scripts/verify-video-playground-tab.ts` and register `test:playground-tab` script in `package.json`. [PENDING]
+  - Subtask 116.5: Update documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, `docs/designs/DESIGN_PLAYER_PROVIDER.md`, and `docs/operations/DEBUG.md`. [PENDING]
+  - Subtask 116.6: Run test suites, compile_applet, lint_applet, commit checkpoint, and migrate Task 116 to `docs/done.md`. [PENDING]
