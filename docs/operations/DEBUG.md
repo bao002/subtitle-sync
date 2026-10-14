@@ -84,17 +84,22 @@ This structured markdown block is copied to the clipboard with one click, ready 
 ## 5. Automated CI/CD Error Reporting & AI Reproduction Fix Generator
 
 ### 5.1 Overview
+
 In addition to client-side diagnostics, the project features an automated CI/CD error reporting engine (`scripts/generate-error-report.ts`) integrated into `.github/workflows/error-reporting.yml`.
 
 ### 5.2 Purpose of `error.log`
+
 Whenever an automated test, build compilation, or lint verification step fails in CI:
+
 1. The error reporter captures the exact failing command, exit code, stdout, and stderr.
 2. It extracts suspect files, error category (e.g. `LINT`, `TYPECHECK`, `TEST_ASSERTION`, `BUILD`), and generates actionable reproduction steps.
 3. It emits `error.log` which includes a standardized **AI Prompt** block.
 4. The output is displayed in the GitHub Actions log, published to the GitHub Job Summary (`$GITHUB_STEP_SUMMARY`), and uploaded as an artifact (`actions/upload-artifact@v4`) for download and direct copy-pasting into the AI prompt to repair the application.
 
 ### 5.3 Local Usage
+
 Developers and agents can invoke the reporter directly:
+
 ```bash
 # Wrap a test command and auto-generate error.log on failure:
 npx tsx scripts/generate-error-report.ts --run "npm run test:xyz"
@@ -102,3 +107,15 @@ npx tsx scripts/generate-error-report.ts --run "npm run test:xyz"
 # Or use the npm script:
 npm run report:error -- --run "npm run build"
 ```
+
+---
+
+## 6. Video Playground Diagnostic & Subtitle Discovery
+
+When troubleshooting subtitle fetching or inspecting native caption streams from YouTube:
+1. Navigate to the top **Playground** tab (`#tab-playground`).
+2. The independent player runs without external seek/pause/TTS triggers.
+3. Use the YouTube player's native controls (CC button, Settings gear ⚙️ -> Subtitles/CC) to switch tracks.
+4. The network and Android native bridge capture `timedtext` payloads and immediately display detected tracks in the **Detected Subtitle Tracks** panel.
+5. Users can preview the first 5 parsed cues and import any detected track into the Parallel Viewer table with 1-click.
+

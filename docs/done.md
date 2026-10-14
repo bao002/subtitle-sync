@@ -1,5 +1,28 @@
 # Done tasks
 
+## Task 115: Continuous CI Monitoring & Real Actions Runs Health
+
+### Summary:
+- **Repository Hygiene, Architectural Contracts & CI Integrity**:
+  - Restored complete `README.md` containing all required architectural contract documentation links (`docs/operations/ACTIONS.md`, `docs/specifications/LIBRARY.md`, `docs/designs/DESIGN_SUBTITLE_VIEWS.md`, `docs/designs/DESIGN_VIEW_LANGS.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, `docs/designs/DESIGN_PLAYER_PROVIDER.md`, `docs/designs/DESIGN_STATE_COORDINATOR.md`, `docs/specifications/SCHEMA_TIMEDTEXT.md`, `docs/operations/DEBUG.md`), 16 relative links, active GitHub Actions workflow status badges, one-line ADB CLI installation instructions, and dedicated GitHub Pages links (`mochawesome.html`, `playwright/index.html`, `android-emulator-report.html`, `screenshots/android-emulator-screenshot.png`, `screenshots/android-emulator-video.mp4`).
+  - Validated pure client SPA architecture and build artifacts generation via `npm run test:client-spa` and `npm run test:hygiene`.
+  - Audited and verified all GitHub Actions workflows (`release-apk.yml`, `web.yml`, `emulation.yml`, `deploy-demo.yml`, `error-reporting.yml`, `update-readme.yml`, `integrity.yml`, and `report-video-flow.yml`).
+- **Comprehensive Automated Verification Suite**:
+  - `npm run test:doc-contracts` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:no-cron-readme` (Passed 100%)
+  - `npm run test:e2e-report-links` (Passed 100%)
+  - `npm run test:report-video-links` (Passed 100%)
+  - `npm run test:client-spa` (Passed 100%)
+  - `npm run test:hygiene` (Passed 100%)
+  - `npm run test:caption-formats` (Passed 100%)
+  - `npm run test:parser` (Passed 100%)
+  - `npm run test:favorite-checkboxes` (Passed 100%)
+  - `npm run test:fetch-strategy` (Passed 100%)
+  - `npm run test:debug-mode` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (Clean - zero errors)
+
 ## Task 114: Prohibit Croned GitHub Actions from Modifying README.md, Indicate Failing Issues via Workflow Status Badges & Version Bump to 1.0.20
 
 ### Summary:

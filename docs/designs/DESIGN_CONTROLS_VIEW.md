@@ -85,3 +85,14 @@ The same controller props can drive completely different UI layouts:
 - **Seek Dispatch**: Simulate a seekbar interaction at 50% on a 120s video; verify `onSeek(60)` is dispatched.
 - **Toggle Dispatch**: Click play/pause button and verify `onTogglePlay` is invoked.
 - **Speed Selector**: Change speed dropdown to `1.5` and verify `onRateChange(1.5)` is called.
+
+---
+
+## 6. Video Playground Decoupled Mode
+
+To solve the challenge where automated section pauses, timer loops, and audio repeating interrupt user interactions with the YouTube player's built-in subtitle menu:
+- The top-level **Playground** tab provides an uninhibited, independent YouTube player (`src/components/VideoPlayground.tsx`).
+- In Playground mode, external pause commands, seeking triggers, and TTS synchronization are completely bypassed (`activeTopTabRef.current === "playground"`).
+- The user can freely toggle captions (CC) and select languages via YouTube's native player UI.
+- Intercepted caption streams are displayed live in the Playground with 1-click import into the parallel subtitle catalog.
+

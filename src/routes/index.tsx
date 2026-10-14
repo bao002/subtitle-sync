@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  LayoutList,
   Loader2,
   Moon,
   RefreshCw,
@@ -14,6 +15,7 @@ import {
   Smartphone,
   Subtitles,
   Sun,
+  Tv,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -101,6 +103,7 @@ import { AccordionSection } from "@/components/AccordionSection";
 import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 import { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 import { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
+import { VideoPlayground, type DetectedSubtitleTrack } from "@/components/VideoPlayground";
 import { ParserTimingLab } from "@/components/ParserTimingLab";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
@@ -482,6 +485,14 @@ function Index() {
     }
     return DEMO_VIDEO;
   });
+  const [activeTopTab, setActiveTopTab] = useState<"viewer" | "playground">("viewer");
+  const activeTopTabRef = useRef(activeTopTab);
+  activeTopTabRef.current = activeTopTab;
+
+  const [detectedPlaygroundTracks, setDetectedPlaygroundTracks] = useState<
+    Record<string, DetectedSubtitleTrack>
+  >({});
+
   const [videoInput, setVideoInput] = useState("");
   const [captionStatus, setCaptionStatus] = useState("");
   const [observedUrl, setObservedUrl] = useState("");
@@ -718,6 +729,24 @@ function Index() {
       void speak(name, langCode, rate, voiceURI, -1, () => {});
     },
     [speakLanguageNameOnFetch, isAndroid, rates, voiceSelections],
+  );
+
+  const handleImportTrackFromPlayground = useCallback(
+    (lang: string, json: Json3, rawData: string, setAsTarget = true) => {
+      if (videoId) {
+        saveCachedRawJson3(videoId, lang, rawData);
+      }
+      startSubtitlesTransition(() => {
+        setTracks((prev) => ({ ...prev, [lang]: json }));
+        setShown((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
+        if (setAsTarget) {
+          setTargetLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
+          setSpoken((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
+        }
+      });
+      speakFetchedLanguageName(lang);
+    },
+    [videoId, speakFetchedLanguageName],
   );
 
   const baseLanguage = useMemo(() => {
@@ -1617,12 +1646,54 @@ function Index() {
           setSpoken((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
         }
         speakFetchedLanguageName(lang);
+
+        const langMeta = LANGS.find((l) => l.code === lang);
+        const cuesCount =
+          json.events?.filter((ev) => ev.segs?.some((s) => s.utf8?.trim()))?.length || 0;
+        setDetectedPlaygroundTracks((prev) => ({
+          ...prev,
+          [lang]: {
+            lang,
+            langName: langMeta?.name || lang,
+            json,
+            rawData: payload.rawData,
+            url: payload.url,
+            timestamp: Date.now(),
+            cuesCount,
+          },
+        }));
       }
     };
     return () => {
       delete window.onNativeCaptionsInterceptedBase64;
     };
   }, [isAndroid, videoId, autoSpeakOnFetch, speakFetchedLanguageName]);
+
+  useEffect(() => {
+    if (!tracks) return;
+    setDetectedPlaygroundTracks((prev) => {
+      const updated = { ...prev };
+      let hasChanges = false;
+      for (const [code, json] of Object.entries(tracks)) {
+        if (!updated[code] && json) {
+          const langMeta = LANGS.find((l) => l.code === code);
+          const cuesCount =
+            json.events?.filter((ev) => ev.segs?.some((s) => s.utf8?.trim()))?.length || 0;
+          updated[code] = {
+            lang: code,
+            langName: langMeta?.name || code,
+            json,
+            rawData: JSON.stringify(json),
+            url: "",
+            timestamp: Date.now(),
+            cuesCount,
+          };
+          hasChanges = true;
+        }
+      }
+      return hasChanges ? updated : prev;
+    });
+  }, [tracks]);
 
   useEffect(() => {
     if (!isAndroid || !observedUrl || !defaultCaptionsLoaded) return;
@@ -2014,7 +2085,13 @@ function Index() {
     }
     const iv = setInterval(async () => {
       const p = player.current;
-      if (!p?.getCurrentTime || busy.current || st.current.isSetupPaused) return;
+      if (
+        !p?.getCurrentTime ||
+        busy.current ||
+        st.current.isSetupPaused ||
+        activeTopTabRef.current === "playground"
+      )
+        return;
       const ms = p.getCurrentTime() * 1000;
       // Detect user manually seeking or scrubbing across playback timeline
       if (Math.abs(ms - lastMs.current) > 2500 || ms < lastMs.current - 1000) {
@@ -2450,6 +2527,61 @@ function Index() {
             {isAndroid ? "live Android captions" : "fixture demo"}
           </span>
         </div>
+
+        <div
+          id="top-tabs-nav"
+          data-testid="top-tabs-nav"
+          className="flex items-center rounded-lg border border-border bg-card p-1 shadow-sm"
+          role="tablist"
+          aria-label="App Navigation Tabs"
+        >
+          <button
+            id="tab-viewer"
+            data-testid="tab-viewer"
+            role="tab"
+            aria-selected={activeTopTab === "viewer"}
+            type="button"
+            onClick={() => setActiveTopTab("viewer")}
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+              activeTopTab === "viewer"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <LayoutList className="h-3.5 w-3.5" />
+            <span>Parallel Viewer</span>
+          </button>
+          <button
+            id="tab-playground"
+            data-testid="tab-playground"
+            role="tab"
+            aria-selected={activeTopTab === "playground"}
+            type="button"
+            onClick={() => {
+              setActiveTopTab("playground");
+              cancelSpeech();
+              try {
+                player.current?.pauseVideo?.();
+              } catch {
+                // ignore
+              }
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+              activeTopTab === "playground"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Tv className="h-3.5 w-3.5" />
+            <span>Playground</span>
+            {Object.keys(detectedPlaygroundTracks).length > 0 && (
+              <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-[10px] font-mono font-bold">
+                {Object.keys(detectedPlaygroundTracks).length}
+              </span>
+            )}
+          </button>
+        </div>
+
         <div
           className="flex items-center gap-1 rounded-md border border-border bg-card p-1"
           aria-label="Color theme"
@@ -2520,9 +2652,35 @@ function Index() {
         </Button>
       </header>
 
-      <div className="px-4 pt-4 md:px-6 md:pt-6">
-        <form
-          id="youtube-url-form"
+      {activeTopTab === "playground" ? (
+        <VideoPlayground
+          videoId={videoId}
+          onVideoIdChange={(newId) => {
+            if (newId !== videoId) {
+              setTracks(null);
+              setObservedUrl("");
+              setDefaultCaptionsLoaded(false);
+              setActive(-1);
+              setSpeakingLang(null);
+              setSpeakingRow(-1);
+              setSpeechProgress(null);
+              cancelSpeech();
+            }
+            setVideoId(newId);
+            setVideoInput(newId);
+          }}
+          detectedTracks={detectedPlaygroundTracks}
+          onImportTrack={handleImportTrackFromPlayground}
+          existingTrackLanguages={Object.keys(tracks || {})}
+          onSwitchToViewerTab={() => setActiveTopTab("viewer")}
+          isAndroid={isAndroid}
+          observedUrl={observedUrl}
+        />
+      ) : (
+        <>
+          <div className="px-4 pt-4 md:px-6 md:pt-6">
+            <form
+              id="youtube-url-form"
           className="flex items-center gap-2 max-w-2xl mx-auto rounded-xl border border-border bg-card p-2 shadow-sm"
           onSubmit={(event) => {
             event.preventDefault();
@@ -4169,6 +4327,8 @@ function Index() {
         apkReleaseLinks={apkReleaseLinks}
         onOpenApkModal={() => setApkModalOpen(true)}
       />
+    </>
+  )}
 
       {debugMode && (
         <NetworkRequestsInspector
@@ -4220,3 +4380,4 @@ export { SubtitleRow } from "@/components/SubtitleRow";
 export { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 export { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 export { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
+export { VideoPlayground } from "@/components/VideoPlayground";
