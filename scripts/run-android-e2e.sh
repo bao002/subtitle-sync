@@ -180,11 +180,33 @@ EOF
     }
     trap stop_recording_and_pull EXIT INT TERM ERR
 
+    # Pre-test system navigation: Expose Android Settings, "About Phone", and Developer details
+    echo "--> [Milestone Step 1] Pre-test system navigation to Android Settings & About Phone..."
+    adb_cmd shell input keyevent KEYCODE_HOME 2>/dev/null || true
+    sleep 1.5
+    # Open Device Info / Settings to expose real OS & developer info
+    adb_cmd shell am start -a android.settings.DEVICE_INFO_SETTINGS 2>/dev/null || \
+      adb_cmd shell am start -a android.settings.SETTINGS 2>/dev/null || true
+    sleep 2
+    mkdir -p "${ROOT_DIR}/public/screenshots"
+    adb_cmd shell screencap -p /sdcard/step-01-about-phone.png 2>/dev/null || true
+    adb_cmd pull /sdcard/step-01-about-phone.png "${ROOT_DIR}/public/screenshots/step-01-about-phone.png" 2>/dev/null || true
+    echo "✓ Milestone Step 1 (About Phone) screenshot saved to: public/screenshots/step-01-about-phone.png"
+
+    # Return to Home screen before launching application
+    adb_cmd shell input keyevent KEYCODE_HOME 2>/dev/null || true
+    sleep 1
+
     echo "--> Launching MainActivity with Target URL: ${TARGET_VIDEO_URL}..."
     adb_cmd shell am start -n "${MAIN_ACTIVITY}" -d "${TARGET_VIDEO_URL}" || true
 
     echo "--> Waiting for WebView & Caption Interceptor initialization (8s)..."
     sleep 8
+
+    # Capture Milestone Step 2: Clean App Launch
+    adb_cmd shell screencap -p /sdcard/step-02-app-launch.png 2>/dev/null || true
+    adb_cmd pull /sdcard/step-02-app-launch.png "${ROOT_DIR}/public/screenshots/step-02-app-launch.png" 2>/dev/null || true
+    echo "✓ Milestone Step 2 (App Launch) screenshot saved to: public/screenshots/step-02-app-launch.png"
 
     # Assert early that error screen was not rendered
     EARLY_LOG=$(adb_cmd logcat -d 2>/dev/null || true)
@@ -199,6 +221,11 @@ EOF
 
     echo "--> Observing native subtitle interception without fixtures..."
     sleep 4
+
+    # Capture Milestone Step 5: Captions and Subtitles Table
+    adb_cmd shell screencap -p /sdcard/step-05-captions-subtitles.png 2>/dev/null || true
+    adb_cmd pull /sdcard/step-05-captions-subtitles.png "${ROOT_DIR}/public/screenshots/step-05-captions-subtitles.png" 2>/dev/null || true
+    echo "✓ Milestone Step 5 (Captions & Subtitles Table) screenshot saved: public/screenshots/step-05-captions-subtitles.png"
 
     echo "--> Testing target translation language switch (tlang=${TARGET_LANG})..."
     adb_cmd shell am broadcast -a "com.ytviewer.app.ACTION_SET_TARGET_LANG" --es "targetLang" "${TARGET_LANG}" 2>/dev/null || true

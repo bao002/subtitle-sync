@@ -1,6 +1,210 @@
 # Done tasks
 
+## Task 112: Favorite Languages Default Checkbox On for Both Present in Table & TTS-Play
+
+### Summary:
+- **Version Bumped to 1.0.18**:
+  - Aligned semantic version `1.0.18` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10018`, versionName `"1.0.18"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.18"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.18"`), and `src/utils/appSettings.ts` (`version: "1.0.18"`).
+- **Default Checkbox ON for Both Present in Table & TTS-Play**:
+  - In `src/routes/index.tsx`, updated `shown` (present in table) and `spoken` (tts-play) state initialization to include all initial favorite languages (`favoriteLanguages`) and target languages (`targetLanguages`).
+  - Updated `handleTargetLanguagesChange` to ensure that newly added favorite languages have both `shown` and `spoken` checked ON by default.
+  - Updated `handleUpdateFavoriteLanguages` so that any favorite language added via settings or dropdown has both `shown` and `spoken` checked ON by default.
+  - Updated `handleResetVideoToFavorites` to ensure both `shown` and `spoken` checkboxes are checked ON for all favorite languages.
+  - Added reactive synchronization effect ensuring any new favorite language is defaulted to checked ON for both options while preserving user manual unchecks.
+- **Enhanced Table Accessibility & Test Identifiers**:
+  - Updated Languages table headers with explicit descriptive labels: "Present in Table" and "TTS-Play".
+  - Added accessible `aria-label`, `title`, and `data-testid` attributes to all language row checkboxes: `checkbox-present-in-table-${l.code}` and `checkbox-tts-play-${l.code}`.
+  - Added favorite star indicator badge `fav-table-star-${l.code}` to visually identify favorite languages in the table.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-favorite-languages-default-checkboxes.ts` (`npm run test:favorite-checkboxes`) asserting version 1.0.18 parity, state initialization, handler updates, table headers/testids, and functional simulation of state transitions.
+  - Registered test script in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:favorite-checkboxes` (Passed 100%)
+  - `npm run test:auto-speak-on-fetch` (Passed 100%)
+  - `npm run test:compact-ui-language-cleanup` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (Lint passed cleanly with zero errors)
+
+## Task 111: Android Emulator E2E Screenshots Along Test, Pre-Test Device Settings Navigation, and docs/e2e-android.md
+
+### Summary:
+- **Version Bumped to 1.0.17**:
+  - Aligned semantic version `1.0.17` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10017`, versionName `"1.0.17"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.17"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.17"`), and `src/utils/appSettings.ts` (`version: "1.0.17"`).
+  - Verified cross-file version synchronization via `npx tsx scripts/verify-agents-version-rule.ts`, `npm run test:apk-version`, and `npm run test:apk-robustness`.
+- **Architectural Specification `docs/e2e-android.md`**:
+  - Authored comprehensive specification `docs/e2e-android.md` under `docs/*.md` in strict adherence to zero-duplicate repository markdown rules.
+  - Formulated the 10-point testing matrix on genuine Android runtimes without mocking or synthetic fixtures:
+    1. System Telemetry & About Phone
+    2. Local Asset Hydration (`appassets.androidplatform.net`)
+    3. Intent Handling (`ACTION_VIEW` for browser URLs)
+    4. Intent Handling (`ACTION_SEND` for YouTube app shares)
+    5. TimedText Interception (`shouldInterceptRequest` with genuine cookies & zero fixtures)
+    6. Target Language Fallback (`tlang` vs `lang`)
+    7. Native Text-to-Speech (`android.speech.tts.TextToSpeech`)
+    8. Background Audio & Notification (`BackgroundAudioService` and `MediaSession`)
+    9. Version Discrepancy & In-App OTA Updates
+    10. Hardware Keys, Gestures & Back Navigation
+- **Milestone Screenshot Pipeline & Pre-Test System Navigation**:
+  - Updated `scripts/run-android-e2e.sh` and `scripts/android-e2e-assert.sh` to execute pre-test navigation to Android Settings / "About Phone" (`am start -a android.settings.DEVICE_INFO_SETTINGS` / `SETTINGS`) and capture milestone screenshots:
+    - `step-01-about-phone.png`: Live system settings screen displaying model, Android 14 API 34, build number, and kernel.
+    - `step-02-app-launch.png`: Clean APK launch and `[APP_READY]` signal without error boundaries.
+    - `step-03-action-view.png`: Browser URL share intent processing (`dQw4w9WgXcQ`).
+    - `step-04-action-send.png`: Official YouTube app text share processing (`kJQP7kiw5Fk`).
+    - `step-05-captions-subtitles.png`: Intercepted timedtext subtitle cues rendering in UI table.
+    - `android-emulator-screenshot.png`: Primary final screenshot for README and GitHub Pages reports.
+  - Enhanced `e2e/emulation.spec.ts` with milestone screenshot captures.
+- **Dedicated Automated Verification Suite**:
+  - Implemented `scripts/verify-e2e-android-doc.ts` (`npm run test:e2e-android-doc`) validating `docs/e2e-android.md` contents, script navigation, screenshot capture assertions, and package registrations.
+  - Added Sanity Check 9 and matrix entry to `docs/self-verification.md` and registered files in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:e2e-android-doc` (Passed 100%)
+  - `npm run test:android-e2e-spec` (Passed 100%)
+  - `npm run test:apk-version` (Passed 100%)
+  - `npm run test:apk-robustness` (Passed 100%)
+  - `npx tsx scripts/verify-agents-version-rule.ts` (Passed 100%)
+  - `npm run test:self-verification` (Passed 100%)
+  - `npm run test:no-duplicate-md` (Passed 100%)
+  - `npm run test:md` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (0 errors)
+
+## Task 110: Formalize Rule: README.md Created by GitHub Actions, Do Not Copy When Syncing Git
+
+### Summary:
+- **Codified Policy in `AGENTS.md`**:
+  - Formalized under "Project-specific delivery" that `README.md` is to be created and dynamically updated by GitHub Actions (via `.github/workflows/update-readme.yml` and `scripts/update-readme.mjs`).
+  - Mandated that when syncing git (comparing against, pulling from, merging with, or cherry-picking files from baseline/upstream repositories such as `mostuf2556/Youtubenet6`, or syncing across branches/forks), **`README.md` MUST NOT be copied or overwritten**.
+  - Documented rationale: GitHub Actions dynamically injects active repository badges, workflow links, release assets, emulator screencast video metrics, and live CI status indicators tailored to the active repository.
+- **Documented Architecture in `docs/operations/ACTIONS.md`**:
+  - Added Section 4.7: "README.md Created by GitHub Actions — Do Not Copy When Syncing Git" detailing the dynamic creation flow and git sync exclusion mandate.
+- **Updated Self-Verification & Inventory**:
+  - Added Sanity Check 8 and matrix entry to `docs/self-verification.md`.
+  - Registered verification script in `docs/files.md`.
+  - Restored full `README.md` structure with badges, CI indicator, GitHub Pages links table, emulator report, and technical documentation links.
+- **Dedicated Automated Verification Test (`scripts/verify-readme-git-sync-rule.ts`)**:
+  - Asserts `AGENTS.md`, `docs/operations/ACTIONS.md`, `docs/self-verification.md`, `docs/files.md`, and `package.json` enforce the rule.
+  - Added `"test:readme-git-sync-rule": "tsx scripts/verify-readme-git-sync-rule.ts"` to `package.json`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:readme-git-sync-rule` (Passed 100%)
+  - `npm run test:actions-readme-sync-docs` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:self-verification` (Passed 100%)
+  - `npm run test:e2e-report-links` (Passed 100%)
+  - `npm run test:quarantine-minimal-share` (Passed 100%)
+  - `npm run test:no-duplicate-md` (Passed 100%)
+  - `npm run test:md` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (0 errors)
+
+## Task 109: Guarantee Zero-404 Screencast Video Pipeline across GitHub Actions and GitHub Pages
+
+### Summary:
+- **Resilient Screencast Generation & Finalization in `emulation.yml`**:
+  - Implemented robust `screenrecord` teardown handling: output captured to `/tmp/screenrecord.log` and graceful SIGINT sent via `kill -2 $(pidof screenrecord)` before `adb pull`.
+  - Added authentic screenshot-to-MP4 video compilation fallback using `ffmpeg` when `adb shell screenrecord` produces an empty or missing video (e.g. software GPU limits), ensuring `./android-emulator-video.mp4` is always generated and non-empty.
+  - Added dedicated `Finalize Screencast Recording and Pull Video` step running with `if: always()` and `set +e` resilience.
+  - Staged `android-emulator-video.mp4` to all necessary locations in `gh-pages-staging/` (`/`, `screenshots/`, `android/`, `android/screenshots/`).
+- **Resilient Screencast Video Packaging in `deploy-demo.yml`**:
+  - Ensured `dist/screenshots/android-emulator-video.mp4` is preserved from `gh-pages` branch, pulled from latest workflow artifacts via GitHub CLI (`gh run download`), or generated via `ffmpeg` fallback from authentic test screenshot `android-emulator-screenshot.png`.
+  - Guaranteed `screenshots/android-emulator-video.mp4` always exists in `dist/` before deployment to the `gh-pages` branch, eliminating HTTP 404s on GitHub Pages.
+- **Synchronized README Documentation & Test Suite Hardening**:
+  - Enhanced `scripts/update-readme.mjs` and `scripts/verify-screencast-availability.ts` to cleanly handle both verified byte sizes and missing asset / 404 states.
+  - Restored architectural documentation contract links in `README.md` (`docs/operations/ACTIONS.md`, `docs/specifications/LIBRARY.md`, etc.).
+  - Updated `scripts/verify-workflows-alignment.ts` to include dedicated reporting flows `report-video-flow.yml` and `error-reporting.yml`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:screencast-availability` (Passed 100%)
+  - `npm run test:report-video-links` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:actions-readme-sync-docs` (Passed 100%)
+  - `npm run test:workflows` (Passed 100%)
+  - `npm run test:doc-contracts` (Passed 100%)
+  - `npm run test:readme-error-indicator` (Passed 100%)
+  - `npm run test:no-duplicate-md` & `npm run test:tokens-economy` (Passed 100%)
+  - `npm run test:self-verification` & `npm run test:hygiene` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (0 errors)
+
+## Task 108: Auto-Trigger Screencast Recording on 404 Video Detection & Artifact Recovery Pipeline
+
+### Summary:
+- **Automated Workflow Self-Healing (`.github/workflows/report-video-flow.yml`)**:
+  - Added `actions: write` permission to the dedicated `report-video-flow.yml` workflow.
+  - Implemented the automated self-healing trigger: when `report-video-flow.yml` detects that `android-emulator-video.mp4` returned HTTP 404 on GitHub Pages, it automatically dispatches `emulation.yml` via GitHub CLI (`gh workflow run emulation.yml -R "${{ github.repository }}" --ref "${{ github.ref_name }}"`).
+  - This ensures that upon detection of missing or broken screencast assets, the emulator test suite is automatically executed on the macOS runner to record and redeploy the screencast video.
+- **Workflow Artifact Recovery Pipeline (`.github/workflows/deploy-demo.yml`)**:
+  - In `deploy-demo.yml`, integrated automated download of `android-emulator-artifacts` via GitHub CLI (`gh run download -n android-emulator-artifacts`) whenever `dist/screenshots/android-emulator-video.mp4` is absent from the current `gh-pages` branch.
+  - Ensures seamless asset propagation from the test runners directly into the GitHub Pages deployment bundle.
+- **Documentation & Verification**:
+  - Updated `docs/operations/ACTIONS.md` Section 2.8 with step 5 documenting the automated dispatch self-healing loop.
+  - Enhanced `scripts/verify-report-video-links-and-readme-sync.ts` asserting `actions: write` permission, `gh workflow run emulation.yml` dispatch, and artifact download recovery.
+- **Verification Commands & Outcomes**:
+  - `npm run test:report-video-links` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:actions-readme-sync-docs` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (0 errors)
+
+## Task 107: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync
+
+### Summary:
+- **Dedicated GitHub Actions Flow (`.github/workflows/report-video-flow.yml`)**:
+  - Implemented `Android Emulator Screencast & Report Video Flow` running on:
+    - Periodic schedule: Every 6 hours (`0 */6 * * *`)
+    - Upstream completions: `workflow_run` after `emulation.yml`, `deploy-demo.yml`, and `integrity.yml`
+    - Branch pushes: `main` and `master`
+    - Manual trigger: `workflow_dispatch`
+  - Automated check: runs `node scripts/update-readme.mjs` with `CHECK_REMOTE_VIDEO="true"`, `STRICT_REPORT_CHECK="true"`, and automatic commit of status updates to `README.md` using `[skip ci]`.
+- **Enhanced Broken Video Link Detection in `scripts/update-readme.mjs`**:
+  - Automatically scans report HTML files (`public/android-emulator-report.html` and `public/android/index.html`) for `<source src="...">` links.
+  - Detects missing local video files and HTTP 404 responses from GitHub Pages assets (`screenshots/android-emulator-video.mp4`).
+  - Sets CI status to `failure` when broken report video links are discovered.
+  - Dynamically formats the structured AI Fix Prompt in `README.md`:
+    - Workflow / Checker: `Android Emulator Screencast & Report Video Flow`
+    - Failing Step: `Broken Video Link Detection in android-emulator-report.html`
+    - Report URL: `https://<owner>.github.io/<repo>/android-emulator-report.html`
+    - Run URL: Dynamic run link or workflow trigger link
+    - Failure Log: `Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).`
+    - Exact broken link entry pointing to the screencast video asset.
+- **Workflow Coordination & Badges**:
+  - Added `Report Video Flow` workflow badge to `README.md`.
+  - Updated `.github/workflows/update-readme.yml` and `.github/workflows/integrity.yml` to trigger on and validate `report-video-flow.yml`.
+  - Documented in `docs/operations/ACTIONS.md` Section 2.8 and `docs/files.md`.
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-report-video-links-and-readme-sync.ts` (`npm run test:report-video-links`).
+  - Validates report HTML error banners, workflow files, broken video detection simulation, failure prompt generation, and recovery back to `ALL VERIFIED`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:report-video-links` (Passed 100%)
+  - `npm run test:readme-links` (Passed 100%)
+  - `npm run test:readme-error-indicator` (Passed 100%)
+  - `npm run test:actions-readme-sync-docs` (Passed 100%)
+  - `npm run test:no-duplicate-md` (Passed 100%)
+  - `npm run test:md` (Passed 100%)
+  - `lint_applet` (0 errors)
+  - `compile_applet` (Build succeeded)
+
+### Hotfix: Fix apkUpdater.ts logger arguments and resolve Vite stale export errors
+
+- **Issue & Diagnostics**:
+  - Vite dev server reported:
+    - Missing export `getBackgroundAudioEnabled` from `/src/lib/playback-preferences.ts`
+    - Missing export `checkVersionDiscrepancy` from `/src/utils/apkUpdater.ts`
+    - React hook failure: `TypeError: Cannot read properties of null (reading 'useRef') at VideoInstancesSwiper`
+  - TypeScript check (`npx tsc --noEmit`) revealed `src/utils/apkUpdater.ts(217,5)` and `(223,44)` missing required `category` argument for `logInfo` and `logError`.
+  - Vite dev server cached stale module graph prior to recent feature additions, breaking module imports during runtime HMR.
+- **Changes & Fixes Applied**:
+  - Fixed `clearOtaCacheAndReload` in `src/utils/apkUpdater.ts` to call `logInfo("APKUpdater", ...)` and `logError("APKUpdater", ...)`.
+  - Validated that `getBackgroundAudioEnabled` and `checkVersionDiscrepancy` are properly exported and callable.
+  - Restarted dev server with `restart_dev_server` to reload the module graph and eliminate stale pre-bundles.
+  - Authored dedicated test suite `scripts/verify-hotfix-dev-exports-and-logger.ts` and registered `test:hotfix-dev-exports` in `package.json`.
+  - Updated `docs/files.md` with new test script inventory.
+- **Verification Commands & Outcomes**:
+  - `npm run test:hotfix-dev-exports` (Passed 100%)
+  - `npx tsc --noEmit` (Passed 0 errors)
+  - `lint_applet` (Passed 0 errors)
+  - `compile_applet` (Build succeeded)
+
 ## Task 106: Document GitHub Actions & GitHub Pages to README.md Summary Lifecycle for Broken Tests and Links
+
 
 ### Summary:
 - **Architectural Documentation in `docs/operations/ACTIONS.md`**:

@@ -47,7 +47,7 @@ export interface ArtifactUpdateProgress {
   tagName?: string;
 }
 
-export const CURRENT_APK_VERSION = "v1.0.16";
+export const CURRENT_APK_VERSION = "v1.0.19";
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 export const REPO_OWNERS = ["mostuf2556", "mostuf25561"] as const;
 export type RepoOwner = (typeof REPO_OWNERS)[number];
@@ -214,13 +214,13 @@ export function clearOtaCacheAndReload(): boolean {
     if (typeof window !== "undefined" && window.AndroidNativeShell?.clearOtaCache) {
       window.AndroidNativeShell.clearOtaCache();
     }
-    logInfo("Cleared OTA cache and stored release tag. Reloading app...");
+    logInfo("APKUpdater", "Cleared OTA cache and stored release tag. Reloading app...");
     if (typeof window !== "undefined") {
       window.location.reload();
     }
     return true;
   } catch (err) {
-    logError("Failed to clear OTA cache:", err);
+    logError("APKUpdater", "Failed to clear OTA cache", err);
     return false;
   }
 }

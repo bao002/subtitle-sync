@@ -67,6 +67,9 @@ for ((i = 0; i < TIMEOUT_S; i++)); do
 
   if echo "${LOG}" | grep -q "APP_READY"; then
     echo "✅ Step 1 Verified: App booted cleanly without error screen."
+    mkdir -p ./public/screenshots
+    adb_cmd shell screencap -p /sdcard/step-02-app-launch.png 2>/dev/null || true
+    adb_cmd pull /sdcard/step-02-app-launch.png ./public/screenshots/step-02-app-launch.png 2>/dev/null || true
     break
   fi
 
@@ -98,10 +101,11 @@ if [[ "${VIEW_CONFIRMED}" != "true" ]]; then
   fail "timed out waiting for ACTION_VIEW intent processing (dQw4w9WgXcQ)"
 fi
 
-# Capture intermediate screenshot for Step 2
+# Capture milestone screenshot for Step 2
 mkdir -p ./public/screenshots
 adb_cmd shell screencap -p /sdcard/screen-action-view.png 2>/dev/null || true
-adb_cmd pull /sdcard/screen-action-view.png ./public/screenshots/step-share-browser-link.png 2>/dev/null || true
+adb_cmd pull /sdcard/screen-action-view.png ./public/screenshots/step-03-action-view.png 2>/dev/null || true
+cp -f ./public/screenshots/step-03-action-view.png ./public/screenshots/step-share-browser-link.png 2>/dev/null || true
 
 # Step 3: Live ACTION_SEND Intent Dispatch (Official YouTube App Share)
 echo "--> [Step 3] Testing live ACTION_SEND intent dispatch (YouTube App Text: kJQP7kiw5Fk)..."
@@ -124,11 +128,16 @@ if [[ "${SEND_CONFIRMED}" != "true" ]]; then
   fail "timed out waiting for ACTION_SEND intent processing (kJQP7kiw5Fk)"
 fi
 
-# Capture intermediate screenshot for Step 3
+# Capture milestone screenshot for Step 3
 adb_cmd shell screencap -p /sdcard/screen-action-send.png 2>/dev/null || true
-adb_cmd pull /sdcard/screen-action-send.png ./public/screenshots/step-share-youtube-app-text.png 2>/dev/null || true
+adb_cmd pull /sdcard/screen-action-send.png ./public/screenshots/step-04-action-send.png 2>/dev/null || true
+cp -f ./public/screenshots/step-04-action-send.png ./public/screenshots/step-share-youtube-app-text.png 2>/dev/null || true
 
-# Capture final screenshot
+# Capture milestone screenshot for Step 5 (Captions / Subtitles table rendering)
+adb_cmd shell screencap -p /sdcard/step-05-captions.png 2>/dev/null || true
+adb_cmd pull /sdcard/step-05-captions.png ./public/screenshots/step-05-captions-subtitles.png 2>/dev/null || true
+
+# Capture final primary screenshot
 adb_cmd shell screencap -p /sdcard/screen.png 2>/dev/null || true
 adb_cmd pull /sdcard/screen.png ./android-emulator-screenshot.png 2>/dev/null || true
 cp -f ./android-emulator-screenshot.png ./public/screenshots/android-emulator-screenshot.png 2>/dev/null || true

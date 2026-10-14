@@ -159,24 +159,47 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 
 ---
 
-## 7. Active Prompt Execution Log: Task 106 Complete & Task 107 Staged
+## 7. Active Prompt Execution Log: Hotfix Completed & Task 107 Resumed
 
-- **Task 106**: Document GitHub Actions & GitHub Pages to README.md Summary Lifecycle for Broken Tests and Links [COMPLETED & MIGRATED TO docs/done.md]
-  - Subtask 106.1: Update `docs/operations/ACTIONS.md` detailing how GitHub Actions and GitHub Pages pipelines feed into the automated README.md summary of broken tests and links. [DONE]
-  - Subtask 106.2: Cross-reference and enhance `docs/self-verification.md` and `docs/android.md` for the CI summary loop. [DONE]
-  - Subtask 106.3: Implement dedicated verification test, run tests, compile, lint, commit, push, and migrate to `docs/done.md`. [DONE]
+- **Hotfix: Fix apkUpdater.ts logger arguments and resolve Vite stale export errors** [COMPLETED & MIGRATED TO docs/done.md]:
+  - Step 1: Fixed `logInfo` and `logError` parameter count and typing in `src/utils/apkUpdater.ts`.
+  - Step 2: Validated exports in `src/lib/playback-preferences.ts` and `src/utils/apkUpdater.ts`.
+  - Step 3: Restarted dev server to refresh Vite's module graph.
+  - Step 4: Authored dedicated test `scripts/verify-hotfix-dev-exports-and-logger.ts` and verified with `npm run test:hotfix-dev-exports`.
+  - Step 5: Verified clean `compile_applet` and `lint_applet`.
+  - Step 6: Logged completion in `docs/done.md` and resumed active backlog.
 
-- **Task 107**: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync [ACTIVE]
-  - Subtask 107.1: Enhance `scripts/update-readme.mjs` and report link validation to detect broken video links in `android-emulator-report.html` and report them dynamically on `README.md`. [ACTIVE]
-  - Subtask 107.2: Update `android-emulator-report.html` & `android/index.html` player resilience and update `.github/workflows/update-readme.yml` / `integrity.yml` to run dedicated video link verification. [PENDING]
-  - Subtask 107.3: Add dedicated test `scripts/verify-report-video-links-and-readme-sync.ts`, update documentation in `docs/operations/ACTIONS.md` and `docs/files.md`, run verification, compile, lint, commit, push, and migrate to `docs/done.md`. [PENDING]
+- **Task 107**: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 107.1: Enhance `scripts/update-readme.mjs` and report link validation to detect broken video links in `android-emulator-report.html` and report them dynamically on `README.md`. [DONE]
+  - Subtask 107.2: Create dedicated workflow `.github/workflows/report-video-flow.yml` and update workflow coordination. [DONE]
+  - Subtask 107.3: Add dedicated test `scripts/verify-report-video-links-and-readme-sync.ts`, update documentation in `docs/operations/ACTIONS.md` and `docs/files.md`, run verification, compile, lint, commit, push, and migrate to `docs/done.md`. [DONE]
 
+- **Task 108**: Auto-Trigger Screencast Recording on 404 Video Detection & Artifact Recovery Pipeline [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 108.1: Update `.github/workflows/report-video-flow.yml` with automated dispatch of `emulation.yml` upon 404 detection. [DONE]
+  - Subtask 108.2: Enhance `.github/workflows/deploy-demo.yml` artifact preservation to pull `android-emulator-video.mp4` from workflow artifacts. [DONE]
+  - Subtask 108.3: Add automated verification test, compile, lint, commit, and migrate to `docs/done.md`. [DONE]
 
+- **Task 110**: Enforce Rule: README.md Created by GitHub Actions, Do Not Copy When Syncing Git [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 110.1: Codify the rule in `AGENTS.md`, `docs/operations/ACTIONS.md`, `docs/self-verification.md`, and `docs/files.md`. [DONE]
+  - Subtask 110.2: Author dedicated verification test `scripts/verify-readme-git-sync-rule.ts` and add `test:readme-git-sync-rule` in `package.json`. [DONE]
+  - Subtask 110.3: Execute dedicated verification test, run compile_applet and lint_applet, checkpoint with commit/push, and migrate to `docs/done.md`. [DONE]
 
+- **Task 111**: Android Emulator E2E Screenshots Along Test, Pre-Test Device Settings Navigation, and docs/e2e-android.md [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 111.1: Update app version to 1.0.17 across package.json, build.gradle.kts, appConfig.ts, apkUpdater.ts, and appSettings.ts. [DONE]
+  - Subtask 111.2: Author docs/e2e-android.md detailing unmocked Android emulator testing, About Phone pre-test navigation, and milestone screenshots. [DONE]
+  - Subtask 111.3: Update scripts/run-android-e2e.sh and scripts/android-e2e-assert.sh with About Phone navigation and step screenshot pipeline. [DONE]
+  - Subtask 111.4: Author dedicated test scripts/verify-e2e-android-doc.ts, run verification, compile, lint, commit, push, and migrate to docs/done.md. [DONE]
 
+- **Task 112**: Favorite Languages Default Checkbox On for Both Present in Table & TTS-Play [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 112.1: Update app version to 1.0.18 across package.json, build.gradle.kts, appConfig.ts, apkUpdater.ts, and appSettings.ts. [DONE]
+  - Subtask 112.2: Implement default checkbox ON for both "present in table" (shown) and "tts-play" (spoken) for all favorite languages. [DONE]
+  - Subtask 112.3: Author dedicated automated test scripts/verify-favorite-languages-default-checkboxes.ts and register npm test script. [DONE]
+  - Subtask 112.4: Run verification tests, compile_applet, lint_applet, git commit checkpoint, attempt push, and migrate to docs/done.md. [DONE]
 
-
-
-
-
-
+- **Task 113**: Subtitle Fetch Pacing, Strategy Options, Auto-TTS Language Name, Default Debug Mode & All Parser Criteria [ACTIVE]
+  - Subtask 113.1: Update app version to 1.0.19 across package.json, build.gradle.kts, appConfig.ts, apkUpdater.ts, and appSettings.ts. [PENDING]
+  - Subtask 113.2: Enable Debug Mode by default in appSettings and index.tsx, update verify-debug-mode-toggle.ts. [PENDING]
+  - Subtask 113.3: Set default parsing criteria to check all options (combining all categories: syntax, timing, alignment). [PENDING]
+  - Subtask 113.4: Add setting & implementation to TTS-play language name when a new subtitle is fetched. [PENDING]
+  - Subtask 113.5: Implement subtitle fetch window rate-limiting (max 1 fetch per window of X seconds) and strategy options (random, server-alternate, session, tlang/lang toggles) with documentation in docs/reliable-subtitles-fetching.md and AttemptOrderSettings. [PENDING]
+  - Subtask 113.6: Author dedicated automated test scripts/verify-fetch-strategy-and-defaults.ts, run compile_applet, lint_applet, git checkpoint, and migrate to docs/done.md. [PENDING]

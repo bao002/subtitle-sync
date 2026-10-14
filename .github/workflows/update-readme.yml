@@ -11,6 +11,7 @@ on:
       - "Web E2E Tests"
       - "Build & Release Android APK"
       - "Report Integrity Verification"
+      - "Android Emulator Screencast & Report Video Flow"
       - "Automated Error Reporting & AI Reproduction Fix Engine"
     types:
       - completed
