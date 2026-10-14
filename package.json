@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.17",
+  "version": "1.0.19",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -127,6 +127,7 @@
     "test:report-video-links": "tsx scripts/verify-report-video-links-and-readme-sync.ts",
     "test:readme-git-sync-rule": "tsx scripts/verify-readme-git-sync-rule.ts",
     "test:e2e-android-doc": "tsx scripts/verify-e2e-android-doc.ts",
+    "test:favorite-checkboxes": "tsx scripts/verify-favorite-languages-default-checkboxes.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

@@ -1,5 +1,30 @@
 # Done tasks
 
+## Task 112: Favorite Languages Default Checkbox On for Both Present in Table & TTS-Play
+
+### Summary:
+- **Version Bumped to 1.0.18**:
+  - Aligned semantic version `1.0.18` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10018`, versionName `"1.0.18"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.18"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.18"`), and `src/utils/appSettings.ts` (`version: "1.0.18"`).
+- **Default Checkbox ON for Both Present in Table & TTS-Play**:
+  - In `src/routes/index.tsx`, updated `shown` (present in table) and `spoken` (tts-play) state initialization to include all initial favorite languages (`favoriteLanguages`) and target languages (`targetLanguages`).
+  - Updated `handleTargetLanguagesChange` to ensure that newly added favorite languages have both `shown` and `spoken` checked ON by default.
+  - Updated `handleUpdateFavoriteLanguages` so that any favorite language added via settings or dropdown has both `shown` and `spoken` checked ON by default.
+  - Updated `handleResetVideoToFavorites` to ensure both `shown` and `spoken` checkboxes are checked ON for all favorite languages.
+  - Added reactive synchronization effect ensuring any new favorite language is defaulted to checked ON for both options while preserving user manual unchecks.
+- **Enhanced Table Accessibility & Test Identifiers**:
+  - Updated Languages table headers with explicit descriptive labels: "Present in Table" and "TTS-Play".
+  - Added accessible `aria-label`, `title`, and `data-testid` attributes to all language row checkboxes: `checkbox-present-in-table-${l.code}` and `checkbox-tts-play-${l.code}`.
+  - Added favorite star indicator badge `fav-table-star-${l.code}` to visually identify favorite languages in the table.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-favorite-languages-default-checkboxes.ts` (`npm run test:favorite-checkboxes`) asserting version 1.0.18 parity, state initialization, handler updates, table headers/testids, and functional simulation of state transitions.
+  - Registered test script in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:favorite-checkboxes` (Passed 100%)
+  - `npm run test:auto-speak-on-fetch` (Passed 100%)
+  - `npm run test:compact-ui-language-cleanup` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (Lint passed cleanly with zero errors)
+
 ## Task 111: Android Emulator E2E Screenshots Along Test, Pre-Test Device Settings Navigation, and docs/e2e-android.md
 
 ### Summary:

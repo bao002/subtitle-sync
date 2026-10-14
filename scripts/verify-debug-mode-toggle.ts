@@ -36,24 +36,14 @@ const mockStorage: Record<string, string> = {};
   },
 };
 
-// Default state must be false (OFF)
+// Default state must be true (ON by default)
 delete mockStorage[DEBUG_MODE_STORAGE_KEY];
 assert.strictEqual(
   getDebugModeSetting(),
-  false,
-  "Debug mode must strictly default to false (OFF) when no storage key exists",
-);
-console.log("✅ PASS: getDebugModeSetting() defaults to false (OFF)");
-
-// Toggle ON
-setDebugModeSetting(true);
-assert.strictEqual(mockStorage[DEBUG_MODE_STORAGE_KEY], "true");
-assert.strictEqual(
-  getDebugModeSetting(),
   true,
-  "getDebugModeSetting() must return true when enabled",
+  "Debug mode must strictly default to true (ON) when no storage key exists",
 );
-console.log("✅ PASS: setDebugModeSetting(true) persisted and read correctly");
+console.log("✅ PASS: getDebugModeSetting() defaults to true (ON)");
 
 // Toggle OFF
 setDebugModeSetting(false);
@@ -64,6 +54,16 @@ assert.strictEqual(
   "getDebugModeSetting() must return false when disabled",
 );
 console.log("✅ PASS: setDebugModeSetting(false) persisted and read correctly");
+
+// Toggle ON
+setDebugModeSetting(true);
+assert.strictEqual(mockStorage[DEBUG_MODE_STORAGE_KEY], "true");
+assert.strictEqual(
+  getDebugModeSetting(),
+  true,
+  "getDebugModeSetting() must return true when enabled",
+);
+console.log("✅ PASS: setDebugModeSetting(true) persisted and read correctly");
 
 // 3. Verify src/utils/appSettings.ts exports
 const appSettingsPath = path.join(process.cwd(), "src/utils/appSettings.ts");

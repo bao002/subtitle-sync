@@ -189,3 +189,17 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 111.2: Author docs/e2e-android.md detailing unmocked Android emulator testing, About Phone pre-test navigation, and milestone screenshots. [DONE]
   - Subtask 111.3: Update scripts/run-android-e2e.sh and scripts/android-e2e-assert.sh with About Phone navigation and step screenshot pipeline. [DONE]
   - Subtask 111.4: Author dedicated test scripts/verify-e2e-android-doc.ts, run verification, compile, lint, commit, push, and migrate to docs/done.md. [DONE]
+
+- **Task 112**: Favorite Languages Default Checkbox On for Both Present in Table & TTS-Play [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 112.1: Update app version to 1.0.18 across package.json, build.gradle.kts, appConfig.ts, apkUpdater.ts, and appSettings.ts. [DONE]
+  - Subtask 112.2: Implement default checkbox ON for both "present in table" (shown) and "tts-play" (spoken) for all favorite languages. [DONE]
+  - Subtask 112.3: Author dedicated automated test scripts/verify-favorite-languages-default-checkboxes.ts and register npm test script. [DONE]
+  - Subtask 112.4: Run verification tests, compile_applet, lint_applet, git commit checkpoint, attempt push, and migrate to docs/done.md. [DONE]
+
+- **Task 113**: Subtitle Fetch Pacing, Strategy Options, Auto-TTS Language Name, Default Debug Mode & All Parser Criteria [ACTIVE]
+  - Subtask 113.1: Update app version to 1.0.19 across package.json, build.gradle.kts, appConfig.ts, apkUpdater.ts, and appSettings.ts. [PENDING]
+  - Subtask 113.2: Enable Debug Mode by default in appSettings and index.tsx, update verify-debug-mode-toggle.ts. [PENDING]
+  - Subtask 113.3: Set default parsing criteria to check all options (combining all categories: syntax, timing, alignment). [PENDING]
+  - Subtask 113.4: Add setting & implementation to TTS-play language name when a new subtitle is fetched. [PENDING]
+  - Subtask 113.5: Implement subtitle fetch window rate-limiting (max 1 fetch per window of X seconds) and strategy options (random, server-alternate, session, tlang/lang toggles) with documentation in docs/reliable-subtitles-fetching.md and AttemptOrderSettings. [PENDING]
+  - Subtask 113.6: Author dedicated automated test scripts/verify-fetch-strategy-and-defaults.ts, run compile_applet, lint_applet, git checkpoint, and migrate to docs/done.md. [PENDING]

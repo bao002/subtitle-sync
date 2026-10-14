@@ -140,6 +140,8 @@ export const PARSER_CRITERIA: ParserCriteriaOption[] = [
   },
 ];
 
+export const DEFAULT_PARSER_CRITERIA: CriteriaId[] = PARSER_CRITERIA.map((c) => c.id);
+
 export interface SentenceInnerSettings {
   includeCommas: boolean;
   minWords: number;

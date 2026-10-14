@@ -24,6 +24,7 @@ import {
   RTL,
   STRATEGIES,
   PARSER_CRITERIA,
+  DEFAULT_PARSER_CRITERIA,
   PARSER_PRESETS,
   DEFAULT_CRITERIA_SETTINGS,
   type CriteriaGroupSettings,
@@ -53,6 +54,10 @@ import {
   saveVideoSettings,
   getAutoSpeakOnFetchSetting,
   setAutoSpeakOnFetchSetting,
+  getSpeakLanguageNameOnFetchSetting,
+  setSpeakLanguageNameOnFetchSetting,
+  getSubtitleFetchWindowSeconds,
+  setSubtitleFetchWindowSeconds,
   getFavoriteLanguages,
   setFavoriteLanguages,
 } from "@/utils/appSettings";
@@ -491,8 +496,8 @@ function Index() {
       } catch {
         // ignore storage error
       }
-    }
-    return ["sentence"];
+    // By default check all options (combine all categories: syntax, timing, alignment)
+    return DEFAULT_PARSER_CRITERIA;
   });
 
   const handleToggleCriterion = (id: CriteriaId) => {
@@ -584,9 +589,7 @@ function Index() {
       // ignore storage error
     }
   };
-  const [shown, setShown] = useState<string[]>([]);
-  const [spoken, setSpoken] = useState<string[]>([]);
-  const [favoriteLanguages, setFavoriteLanguagesState] = useState<string[]>(() => {
+  const getInitialFavoriteLanguages = (): string[] => {
     if (typeof window !== "undefined") {
       const favs = getFavoriteLanguages();
       if (favs && favs.length > 0) return favs;
@@ -596,8 +599,9 @@ function Index() {
       if (isAndroidEnv) return ["he", "it"];
     }
     return [];
-  });
-  const [targetLanguages, setTargetLanguages] = useState<string[]>(() => {
+  };
+
+  const getInitialTargetLanguages = (): string[] => {
     if (typeof window !== "undefined") {
       const urlVideo = parseVideoId(window.location.search) || DEMO_VIDEO;
       const videoSaved = loadVideoSettings(urlVideo);
@@ -618,17 +622,51 @@ function Index() {
       if (isAndroidEnv) return ["he", "it"];
     }
     return [];
+  };
+
+  const [favoriteLanguages, setFavoriteLanguagesState] = useState<string[]>(
+    getInitialFavoriteLanguages,
+  );
+  const [targetLanguages, setTargetLanguages] = useState<string[]>(getInitialTargetLanguages);
+
+  // For any favorite language - by default do checkbox on for both options: present in table & tts-play
+  const [shown, setShown] = useState<string[]>(() => {
+    const favs = getInitialFavoriteLanguages();
+    const targets = getInitialTargetLanguages();
+    return Array.from(new Set([...favs, ...targets]));
+  });
+  const [spoken, setSpoken] = useState<string[]>(() => {
+    const favs = getInitialFavoriteLanguages();
+    const targets = getInitialTargetLanguages();
+    return Array.from(new Set([...favs, ...targets]));
   });
 
   const handleUpdateFavoriteLanguages = (newFavs: string[]) => {
+    const addedFavs = newFavs.filter((l) => !favoriteLanguages.includes(l));
+    const removedFavs = favoriteLanguages.filter((l) => !newFavs.includes(l));
     setFavoriteLanguagesState(newFavs);
     setFavoriteLanguages(newFavs);
+
+    if (addedFavs.length > 0) {
+      // For any favorite language - by default do checkbox on for both options: present in table & tts-play
+      setShown((prev) => Array.from(new Set([...prev, ...addedFavs])));
+      setSpoken((prev) => Array.from(new Set([...prev, ...addedFavs])));
+      setTargetLanguages((prev) => Array.from(new Set([...prev, ...addedFavs])));
+    }
+    if (removedFavs.length > 0) {
+      setShown((prev) => prev.filter((c) => !removedFavs.includes(c)));
+      setSpoken((prev) => prev.filter((c) => !removedFavs.includes(c)));
+      setTargetLanguages((prev) => prev.filter((c) => !removedFavs.includes(c)));
+    }
   };
 
   const handleResetVideoToFavorites = () => {
     const favs = getFavoriteLanguages();
     if (favs.length > 0) {
       handleTargetLanguagesChange(favs);
+      // For any favorite language - by default do checkbox on for both options: present in table & tts-play
+      setShown((prev) => Array.from(new Set([...prev, ...favs])));
+      setSpoken((prev) => Array.from(new Set([...prev, ...favs])));
     }
   };
 
@@ -637,6 +675,12 @@ function Index() {
   };
   const [autoSpeakOnFetch, setAutoSpeakOnFetch] = useState<boolean>(() =>
     getAutoSpeakOnFetchSetting(),
+  );
+  const [speakLanguageNameOnFetch, setSpeakLanguageNameOnFetchState] = useState<boolean>(() =>
+    typeof window !== "undefined" ? getSpeakLanguageNameOnFetchSetting() : true,
+  );
+  const [fetchWindowSeconds, setFetchWindowSecondsState] = useState<number>(() =>
+    typeof window !== "undefined" ? getSubtitleFetchWindowSeconds() : 5,
   );
   const [rates, setRates] = useState<Record<string, number>>(() =>
     Object.fromEntries(LANGS.map((lang) => [lang.code, 0.5])),
@@ -656,6 +700,20 @@ function Index() {
       // ignore storage errors
     }
   }, []);
+
+  const speakFetchedLanguageName = useCallback(
+    (langCode: string) => {
+      if (!speakLanguageNameOnFetch) return;
+      const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+        (c) => c.code === langCode,
+      );
+      const name = langMeta?.name?.split("(")[0]?.trim() || langCode;
+      const rate = rates[langCode] ?? 0.8;
+      const voiceURI = voiceSelections[langCode] || "";
+      void speak(name, langCode, rate, voiceURI, -1, () => {});
+    },
+    [speakLanguageNameOnFetch, isAndroid, rates, voiceSelections],
+  );
 
   const baseLanguage = useMemo(() => {
     if (observedUrl) {
@@ -825,6 +883,7 @@ function Index() {
                 setTracks((prev) => ({ ...prev, [code]: json! }));
                 setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
               });
+              speakFetchedLanguageName(code);
               subtitleRequestQueue.markSucceeded(videoId, code);
               continue;
             }
@@ -898,6 +957,7 @@ function Index() {
                     setTracks((prev) => ({ ...prev, [code]: json! }));
                     setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
                   });
+                  speakFetchedLanguageName(code);
                   return true;
                 }
               } else if (useFetchServerRef.current && fetchServerUrlRef.current) {
@@ -927,6 +987,7 @@ function Index() {
                       setTracks((prev) => ({ ...prev, [code]: json! }));
                       setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
                     });
+                    speakFetchedLanguageName(code);
                     return true;
                   }
                 } else {
@@ -1153,6 +1214,8 @@ function Index() {
     }
     if (newlyAdded.length > 0) {
       setShown((prev) => Array.from(new Set([...prev, ...newlyAdded])));
+      // For any favorite language - by default do checkbox on for both options: present in table & tts-play
+      setSpoken((prev) => Array.from(new Set([...prev, ...newlyAdded])));
       if (isAndroid) {
         setCaptionStatus(
           `Fetching live subtitles for added favorite language: ${newlyAdded.join(", ")}…`,
@@ -1236,7 +1299,7 @@ function Index() {
     setAutoScrollSetting(enabled);
   };
   const [debugMode, setDebugModeState] = useState(() =>
-    typeof window !== "undefined" ? getDebugModeSetting() : false,
+    typeof window !== "undefined" ? getDebugModeSetting() : true,
   );
   const onDebugModeChange = (enabled: boolean) => {
     setDebugModeState(enabled);
@@ -1539,6 +1602,7 @@ function Index() {
           // Auto-enable "Speak" checkbox for the fetched language
           setSpoken((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
         }
+        speakFetchedLanguageName(lang);
       }
     };
     return () => {
@@ -1567,13 +1631,23 @@ function Index() {
     fetchFavoriteLanguageSubtitles,
   ]);
 
-  // Keep shown columns synchronized with favorite languages (no fetching here)
+  // Keep shown columns and spoken TTS synchronized with favorite languages by default
+  const processedDefaultFavsRef = useRef<Set<string>>(
+    new Set([...getInitialFavoriteLanguages(), ...getInitialTargetLanguages()]),
+  );
   useEffect(() => {
     const missingInShown = targetLanguages.filter((l) => !shown.includes(l));
     if (missingInShown.length > 0) {
       setShown((prev) => Array.from(new Set([...prev, ...missingInShown])));
     }
-  }, [targetLanguages, shown]);
+    const allFavs = Array.from(new Set([...favoriteLanguages, ...targetLanguages]));
+    const newFavsToDefault = allFavs.filter((lang) => !processedDefaultFavsRef.current.has(lang));
+    if (newFavsToDefault.length > 0) {
+      newFavsToDefault.forEach((l) => processedDefaultFavsRef.current.add(l));
+      setShown((prev) => Array.from(new Set([...prev, ...newFavsToDefault])));
+      setSpoken((prev) => Array.from(new Set([...prev, ...newFavsToDefault])));
+    }
+  }, [targetLanguages, favoriteLanguages, shown]);
 
   useEffect(() => {
     if (themeWasSelectedRef.current) return;
@@ -3725,13 +3799,78 @@ function Index() {
                         className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
                       />
                     </div>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                      <div className="space-y-0.5">
+                        <label
+                          htmlFor="speak-language-name-on-fetch-toggle"
+                          className="text-xs font-medium text-foreground cursor-pointer"
+                        >
+                          TTS-play language name upon fetching
+                        </label>
+                        <div className="text-[11px] text-muted-foreground">
+                          When a new subtitle is fetched, speak aloud the name of the language used to fetch
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        id="speak-language-name-on-fetch-toggle"
+                        data-testid="speak-language-name-on-fetch-toggle"
+                        checked={speakLanguageNameOnFetch}
+                        onChange={(e) => {
+                          setSpeakLanguageNameOnFetchState(e.target.checked);
+                          setSpeakLanguageNameOnFetchSetting(e.target.checked);
+                        }}
+                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                      <div className="space-y-0.5">
+                        <label
+                          htmlFor="fetch-window-seconds-input"
+                          className="text-xs font-medium text-foreground"
+                        >
+                          Subtitle fetch window pacing
+                        </label>
+                        <div className="text-[11px] text-muted-foreground">
+                          Never try to fetch more than 1 subtitle within this window frame (seconds)
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          id="fetch-window-seconds-input"
+                          data-testid="fetch-window-seconds-input"
+                          min={1}
+                          max={60}
+                          value={fetchWindowSeconds}
+                          onChange={(e) => {
+                            const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                            setFetchWindowSecondsState(val);
+                            setSubtitleFetchWindowSeconds(val);
+                            subtitleRequestQueue.setWindowSeconds(val);
+                          }}
+                          className="w-16 rounded border border-input bg-background px-2 py-1 text-xs text-right"
+                        />
+                        <span className="text-xs text-muted-foreground">sec</span>
+                      </div>
+                    </div>
                   </div>
                   <table className="w-full">
                     <thead>
                       <tr className="text-xs text-muted-foreground">
                         <th className="text-left font-normal">Language</th>
-                        <th className="font-normal text-center">Show</th>
-                        <th className="font-normal text-center">Speak</th>
+                        <th
+                          className="font-normal text-center"
+                          title="Present in table (show subtitle column in table)"
+                        >
+                          Present in Table
+                        </th>
+                        <th
+                          className="font-normal text-center"
+                          title="TTS-play (speak subtitle during playback)"
+                        >
+                          TTS-Play
+                        </th>
                         <th
                           className="font-normal text-center"
                           title="Foreign subtitle TTS play frequency ratio"
@@ -3745,12 +3884,29 @@ function Index() {
                       {orderedLangs.map((l, index) => {
                         const isSpoken = spoken.includes(l.code);
                         const ratio = ttsRatios[l.code] ?? 1;
+                        const isFavorite = favoriteLanguages.includes(l.code);
                         return (
-                          <tr key={l.code}>
-                            <td className="py-1">{l.name}</td>
+                          <tr key={l.code} data-testid={`language-row-${l.code}`}>
+                            <td className="py-1">
+                              <span className="flex items-center gap-1">
+                                <span>{l.name}</span>
+                                {isFavorite && (
+                                  <span
+                                    title="Favorite language"
+                                    className="text-[10px] text-amber-500 font-bold"
+                                    data-testid={`fav-table-star-${l.code}`}
+                                  >
+                                    ⭐
+                                  </span>
+                                )}
+                              </span>
+                            </td>
                             <td className="text-center">
                               <input
                                 type="checkbox"
+                                data-testid={`checkbox-present-in-table-${l.code}`}
+                                aria-label={`Present in table: ${l.name}`}
+                                title={`Present in table: ${l.name}`}
                                 checked={shown.includes(l.code)}
                                 onChange={() => toggle(shown, setShown, l.code)}
                               />
@@ -3758,6 +3914,9 @@ function Index() {
                             <td className="text-center">
                               <input
                                 type="checkbox"
+                                data-testid={`checkbox-tts-play-${l.code}`}
+                                aria-label={`TTS-play: ${l.name}`}
+                                title={`TTS-play: ${l.name}`}
                                 checked={isSpoken}
                                 onChange={() => toggle(spoken, setSpoken, l.code)}
                               />

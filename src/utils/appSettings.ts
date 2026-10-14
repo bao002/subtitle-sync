@@ -54,6 +54,12 @@ export interface AppSettings {
   // Auto-fetch target translation subtitles via tlang once after default subs loaded (Requirement 6)
   autoFetchTargetTranslationsWithTlang: boolean;
 
+  // By default when a new subtitle is fetched - tts-play the name of the language used to fetch
+  speakLanguageNameOnFetch: boolean;
+
+  // Subtitle fetch pacing window (never try to fetch more than 1 subtitle in window frame of X seconds)
+  subtitleFetchWindowSeconds: number;
+
   // Advanced Features (OFF by default)
   enableDiagnosticDock: boolean;
   enableNetworkInspector: boolean;
@@ -198,6 +204,12 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 
   // By default try to subtitle fetch using tlang param change once after default subs loaded (Requirement 6)
   autoFetchTargetTranslationsWithTlang: true,
+
+  // By default when a new subtitle is fetched - tts-play the name of the language used to fetch
+  speakLanguageNameOnFetch: true,
+
+  // Subtitle fetch pacing window (never try to fetch more than 1 subtitle in window frame of X seconds)
+  subtitleFetchWindowSeconds: 5,
 
   // Advanced features: ON by default
   enableDiagnosticDock: true,
@@ -420,7 +432,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.17",
+    version: "1.0.19",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -518,16 +530,17 @@ export const DEBUG_MODE_STORAGE_KEY = "yt_debug_mode";
 
 /**
  * Get whether debug mode is enabled.
- * Defaults to FALSE (off) as required by Subtask 34.1.
+ * Defaults to TRUE (on) by default.
  */
 export function getDebugModeSetting(): boolean {
   if (typeof window === "undefined" || !window.localStorage) {
-    return false;
+    return true;
   }
   try {
-    return window.localStorage.getItem(DEBUG_MODE_STORAGE_KEY) === "true";
+    const val = window.localStorage.getItem(DEBUG_MODE_STORAGE_KEY);
+    return val === null ? true : val === "true";
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -572,6 +585,77 @@ export function setAutoSpeakOnFetchSetting(enabled: boolean): void {
   }
   try {
     window.localStorage.setItem(AUTO_SPEAK_ON_FETCH_STORAGE_KEY, enabled ? "true" : "false");
+  } catch {
+    // Ignore storage errors in restricted contexts
+  }
+}
+
+export const SPEAK_LANGUAGE_NAME_ON_FETCH_STORAGE_KEY = "yt_speak_language_name_on_fetch";
+
+/**
+ * Get whether TTS-playing the language name upon fetching subtitles is enabled.
+ * Defaults to TRUE (on) by default.
+ */
+export function getSpeakLanguageNameOnFetchSetting(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return true;
+  }
+  try {
+    const val = window.localStorage.getItem(SPEAK_LANGUAGE_NAME_ON_FETCH_STORAGE_KEY);
+    return val === null ? true : val === "true";
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Persist TTS-play language name upon subtitle fetch setting.
+ */
+export function setSpeakLanguageNameOnFetchSetting(enabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  try {
+    window.localStorage.setItem(
+      SPEAK_LANGUAGE_NAME_ON_FETCH_STORAGE_KEY,
+      enabled ? "true" : "false",
+    );
+  } catch {
+    // Ignore storage errors in restricted contexts
+  }
+}
+
+export const SUBTITLE_FETCH_WINDOW_SECONDS_STORAGE_KEY = "yt_subtitle_fetch_window_seconds";
+
+/**
+ * Get the subtitle fetch window frame in seconds.
+ * Never try to fetch more than 1 subtitle in this window frame to prevent YouTube API abuse.
+ * Defaults to 5 seconds.
+ */
+export function getSubtitleFetchWindowSeconds(): number {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return 5;
+  }
+  try {
+    const val = window.localStorage.getItem(SUBTITLE_FETCH_WINDOW_SECONDS_STORAGE_KEY);
+    if (!val) return 5;
+    const num = parseInt(val, 10);
+    return isNaN(num) || num < 1 ? 5 : num;
+  } catch {
+    return 5;
+  }
+}
+
+/**
+ * Persist subtitle fetch window frame in seconds.
+ */
+export function setSubtitleFetchWindowSeconds(seconds: number): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  try {
+    const clamped = Math.max(1, Math.min(60, seconds));
+    window.localStorage.setItem(SUBTITLE_FETCH_WINDOW_SECONDS_STORAGE_KEY, String(clamped));
   } catch {
     // Ignore storage errors in restricted contexts
   }
