@@ -110,8 +110,13 @@ assert(
   `Web demo displays all ${alignedRows.length} rows regardless of android limit`,
 );
 
-// 8. Verify Source Code Scoping in src/routes/index.tsx
+// 8. Verify Source Code Scoping in src/routes/index.tsx and modular SubtitlesTablePanel.tsx
 const indexSource = readFileSync(resolve(process.cwd(), "src/routes/index.tsx"), "utf-8");
+const subtitlesPanelPath = resolve(process.cwd(), "src/components/SubtitlesTablePanel.tsx");
+const subtitlesPanelSource = existsSync(subtitlesPanelPath)
+  ? readFileSync(subtitlesPanelPath, "utf-8")
+  : "";
+const combinedSource = indexSource + "\n" + subtitlesPanelSource;
 
 assert(
   indexSource.includes(
@@ -121,13 +126,13 @@ assert(
 );
 
 assert(
-  indexSource.includes('data-testid="android-subtitles-pagination-bar"'),
-  "src/routes/index.tsx renders dedicated android-subtitles-pagination-bar only on Android",
+  combinedSource.includes('data-testid="android-subtitles-pagination-bar"'),
+  "src/routes/index.tsx / SubtitlesTablePanel renders dedicated android-subtitles-pagination-bar only on Android",
 );
 
 assert(
-  indexSource.includes("First 10 lines of favorite languages"),
-  'src/routes/index.tsx includes badge indicating "First 10 lines of favorite languages"',
+  combinedSource.includes("First 10 lines of favorite languages"),
+  'src/routes/index.tsx / SubtitlesTablePanel includes badge indicating "First 10 lines of favorite languages"',
 );
 
 // 9. Verify web demo fixtures are present and unchanged

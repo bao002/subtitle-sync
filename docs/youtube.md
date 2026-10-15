@@ -1,6 +1,7 @@
 # YouTube Subtitles Architecture: `tlang` vs `lang`, NPM Modules & Rate-Limit Optimization (docs/youtube.md)
 
 This document provides a comprehensive technical guide explaining:
+
 1. How to distinguish between YouTube videos that use `tlang` (machine translation) vs `lang` (direct authored captions).
 2. Evaluation of client-side npm modules for subtitle extraction and their browser constraints.
 3. Evaluation of server-side alternatives for extracting video language tracks.
@@ -58,6 +59,7 @@ interface TranslationLanguage {
 ```
 
 #### Decision Matrix:
+
 1. **Target Language in `captionTracks`**:
    If the target language code matches a track in `captionTracks`:
    $$\text{Mode} = \mathbf{lang} \quad (\text{URL: } \texttt{lang=target})$$
@@ -76,19 +78,22 @@ interface TranslationLanguage {
 
 Several open-source NPM modules claim client-side YouTube subtitle extraction:
 
-| Module | Mechanism | Client-Side Browser Feasibility | Main Limitation |
-| :--- | :--- | :--- | :--- |
-| **`youtube-caption-extractor`** | Scrapes `get_video_info` or player HTML | ❌ **Fails in pure browser** | Blocked by CORS; triggers Google bot detection. |
-| **`get-youtube-subtitle`** | Fetches timedtext XML/VTT directly | ❌ **Fails in pure browser** | Blocked by CORS; no session cookie capture. |
-| **`yt-caption-scraper`** | Parses player response | ❌ **Fails in pure browser** | Requires Node.js runtime or backend proxy. |
-| **`youtube-captions-scraper`** | Scrapes video page and timedtext | ❌ **Fails in pure browser** | Node.js `cheerio`/`axios` dependencies; CORS failure. |
+| Module                          | Mechanism                               | Client-Side Browser Feasibility | Main Limitation                                       |
+| :------------------------------ | :-------------------------------------- | :------------------------------ | :---------------------------------------------------- |
+| **`youtube-caption-extractor`** | Scrapes `get_video_info` or player HTML | ❌ **Fails in pure browser**    | Blocked by CORS; triggers Google bot detection.       |
+| **`get-youtube-subtitle`**      | Fetches timedtext XML/VTT directly      | ❌ **Fails in pure browser**    | Blocked by CORS; no session cookie capture.           |
+| **`yt-caption-scraper`**        | Parses player response                  | ❌ **Fails in pure browser**    | Requires Node.js runtime or backend proxy.            |
+| **`youtube-captions-scraper`**  | Scrapes video page and timedtext        | ❌ **Fails in pure browser**    | Node.js `cheerio`/`axios` dependencies; CORS failure. |
 
 ### Why Pure Client-Side Web Modules Fail in Browsers:
+
 1. **Cross-Origin Resource Sharing (CORS)**: YouTube's `timedtext` endpoints do NOT send `Access-Control-Allow-Origin: *`. A standard web browser running on `localhost:3000` or GitHub Pages is blocked by browser security policy.
 2. **Anti-Bot Signatures**: YouTube checks User-Agent and TLS fingerprints. Naked client fetches lack session cookies (`VISITOR_INFO1_LIVE`, `PREF`) and receive HTTP 429 (Too Many Requests).
 
 ### The Working Client Solution: Android Shell / WebView Bridge
+
 Our Android shell (`MainActivity.kt`) solves this by:
+
 - Embedding the genuine YouTube mobile web player in a sanitized WebView (stripping `; wv` from User-Agent).
 - Intercepting the authentic `timedtext` network call triggered by the player.
 - Using native `OkHttpClient` to repeat the call with genuine browser session cookies, bypassing CORS and bot blocks.
@@ -99,19 +104,21 @@ Our Android shell (`MainActivity.kt`) solves this by:
 
 When running on a backend server (Node.js, Python, or Go), CORS is not enforced. Here is how the primary server options compare:
 
-### 3.1 `youtubei.js` (InnerTube by LuanRT) — *Recommended Node.js Library*
+### 3.1 `youtubei.js` (InnerTube by LuanRT) — _Recommended Node.js Library_
+
 - **Mechanism**: Reverse-engineers YouTube's internal InnerTube API (used by official Android, iOS, and Web clients).
 - **Capabilities**:
   ```typescript
-  import { Innertube } from 'youtubei.js';
+  import { Innertube } from "youtubei.js";
   const yt = await Innertube.create();
-  const info = await yt.getInfo('VIDEO_ID');
+  const info = await yt.getInfo("VIDEO_ID");
   const transcript = await info.getTranscript(); // full captions with word timing!
   ```
 - **Strengths**: Can extract available `captionTracks` and `translationLanguages`, supports visitor data, and handles session tokens.
 - **Rate Limit Resilience**: High, especially when authenticated or configured with rotating session data.
 
-### 3.2 `yt-dlp` (Python / CLI Microservice) — *Gold Standard for Reliability*
+### 3.2 `yt-dlp` (Python / CLI Microservice) — _Gold Standard for Reliability_
+
 - **Mechanism**: Dedicated open-source command-line tool actively maintained against YouTube's anti-scraping changes.
 - **Capabilities**:
   - `yt-dlp --list-subs https://www.youtube.com/watch?v=VIDEO_ID`: Lists all native and translated subtitles.
@@ -119,10 +126,12 @@ When running on a backend server (Node.js, Python, or Go), CORS is not enforced.
 - **Strengths**: Best-in-class evasion against HTTP 429; supports `--cookies` export from browser.
 
 ### 3.3 `@distube/ytdl-core` (Node.js)
+
 - **Mechanism**: Parses player page HTML and decipher tokens.
 - **Limitations**: High maintenance overhead; frequently breaks whenever YouTube updates its obfuscated player code.
 
 ### 3.4 Official YouTube Data API v3 (`captions.list`)
+
 - **Mechanism**: Google's official REST API (`GET https://www.googleapis.com/youtube/v3/captions?videoId=...`).
 - **Quota Cost**: **50 quota units per call** out of a default 10,000 daily project quota (permits only **200 requests per day**).
 - **Limitation**: Official API only allows downloading subtitle files for videos owned by the authenticated account. Third-party video captions cannot be downloaded through the official Data API.
@@ -158,6 +167,7 @@ To avoid exceeding YouTube rate limitations and triggering HTTP 429 blocks, the 
 ```
 
 ### Key Pillars of Anti-Bot Protection:
+
 1. **Paced Staggered Jitter ($X \to Y$ Seconds)**:
    - Concurrent requests for 5+ languages simultaneously are an immediate red flag for YouTube's bot detectors.
    - Pacing requests serially with randomized delay between $X=3\text{s}$ and $Y=8\text{s}$ mimics human interaction.

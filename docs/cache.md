@@ -7,6 +7,7 @@ This document details the multi-tier caching system, validation barriers, storag
 ## 1. Architectural Motivation & Anti-Abuse Objectives
 
 The YouTube timedtext caption endpoint (`https://www.youtube.com/api/timedtext`) is subject to aggressive rate counters, bot mitigation heuristics, and IP throttling. Repeatedly requesting identical subtitle tracks on every app launch, video switch, or tab switch causes:
+
 1. **Network Throttling (HTTP 429)**: YouTube quickly throttles rapid duplicate requests.
 2. **Session Cookie Invalidation**: Repeated identical calls risk triggering Captchas or session termination.
 3. **Unnecessary Battery & Bandwidth Consumption**: Especially critical in mobile environments (Android WebView).
@@ -82,6 +83,7 @@ The caching architecture consists of four coordinated layers, operating from the
 Under no circumstances is an unverified, errored, or synthetic payload written to cache. Every response must pass the `isValidJsonSubtitleResponse()` validator before writing to memory or `localStorage`.
 
 ### Validation Criteria:
+
 1. **JSON Envelope Guard**: Payload must be non-empty, begin with `{` or `[`, and end with `}` or `]`.
 2. **HTML / Error Page Rejection**: Any response containing HTML tags (`<!DOCTYPE html>`, `<html>`, `<body>`), error XML, or plain-text messages is rejected immediately.
 3. **Schema Compliance**:
@@ -98,13 +100,17 @@ Under no circumstances is an unverified, errored, or synthetic payload written t
 Mobile web storage quotas can be constrained (typically 5MB–10MB in WebView environments). The application employs multiple eviction mechanisms:
 
 ### Read-Time Eviction (Self-Healing)
+
 Whenever `getCachedRawJson3` or `getCachedSubtitles` reads a cache entry:
+
 1. If JSON parsing throws an exception: The entry is immediately deleted from `localStorage`.
 2. If `isValidJsonSubtitleResponse()` returns `false` (e.g., empty events or corrupted data): The key is purged via `localStorage.removeItem(key)`.
 3. If sanitized cue count is 0: The entry is evicted and `null` is returned.
 
 ### Least Recently Used (LRU) Quota Pruning
+
 If a write throws a `QuotaExceededError`:
+
 1. The cache manager scans all keys prefixed with `yt_subtitles_`.
 2. Inspects record timestamps and sorts entries in ascending chronological order.
 3. Purges the oldest 3 entries to free storage capacity.
@@ -117,11 +123,13 @@ If a write throws a `QuotaExceededError`:
 A common issue in earlier versions was that videos shared with the application (via Android `ACTION_SEND` or `ACTION_VIEW`) were played transiently without being saved to the persistent Video Library.
 
 ### The Problem:
+
 - The native Android shell intercepted the share intent and invoked `window.onNativeSharedLinkReceived(link)`.
 - The handler updated the transient video ID state (`setVideoId(id)`), but did not immediately call `recordVideoWatch()`.
 - Furthermore, the `VideoLibraryPanel` component only loaded its items on initial mount (`useState(() => loadVideoLibrary())`) without listening for runtime storage mutations, leaving the library panel stale.
 
 ### The Fix:
+
 1. **Immediate Ingestion on Dispatch**:
    In `openLink(link)` (and in URL query parameter extraction), the video is parsed with `parseVideoId(link)` and immediately registered into persistent storage via:
    ```typescript
@@ -166,6 +174,7 @@ User switches video (videoId changes)
 ```
 
 ### Benefits of Cache Hydration:
+
 - **Instant UI rendering**: Subtitle tracks display immediately without waiting for network latency.
 - **Queue bypass**: Cached languages are marked as succeeded in `subtitleRequestQueue`, preventing the queue from submitting redundant requests to YouTube's timedtext API.
 - **Offline resilience**: Videos whose subtitles were cached previously remain fully readable even without active network connectivity.

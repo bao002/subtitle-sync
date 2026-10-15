@@ -72,7 +72,9 @@ for (const payload of nonJson3Payloads) {
     `parseJson3 must return null for non-JSON3 payload: ${payload.slice(0, 40)}`,
   );
 }
-console.log("✅ PASS: parseJson3 strictly rejects all XML, HTML, plain text, and non-JSON3 payloads");
+console.log(
+  "✅ PASS: parseJson3 strictly rejects all XML, HTML, plain text, and non-JSON3 payloads",
+);
 
 // Verify parseRawCaptionData in src/utils/captionParser.ts rejects every non-JSON3 payload
 for (const payload of nonJson3Payloads) {
@@ -98,7 +100,9 @@ for (const payload of nonJson3Payloads) {
     `isValidJsonSubtitleResponse must return false for non-JSON3 payload: ${payload.slice(0, 40)}`,
   );
 }
-console.log("✅ PASS: isValidJsonSubtitleResponse strictly returns false for all non-JSON3 payloads");
+console.log(
+  "✅ PASS: isValidJsonSubtitleResponse strictly returns false for all non-JSON3 payloads",
+);
 
 // 2. Authentic JSON3 verification
 const validJson3Payload = JSON.stringify({
@@ -191,7 +195,7 @@ assert(
   "MainActivity.kt must enforce isValidJsonSubtitle in executeTimedTextRepetition and saveCaptionToFile",
 );
 assert(
-  mainActivityContent.includes("val events = JSONObject(trimmed).optJSONArray(\"events\")"),
+  mainActivityContent.includes('val events = JSONObject(trimmed).optJSONArray("events")'),
   "countCaptionCues in MainActivity.kt must only parse JSON3 events",
 );
 console.log("✅ PASS: MainActivity.kt strictly enforces JSON3 and contains no XML conversion");

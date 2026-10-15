@@ -1,8 +1,34 @@
 # Done tasks
 
+## Task 116: Dedicated "Playground" Top Tab with Independent YouTube Player for Uninhibited Subtitle Switching & Interception (Version 1.0.21)
+
+### Summary:
+
+- **Version 1.0.21 Bump & Strict System Parity**:
+  - Aligned semantic version `1.0.21` and versionCode `10021` across all 5 core locations: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Independent YouTube Playground Component (`src/components/VideoPlayground.tsx`)**:
+  - Engineered an isolated YouTube player container decoupled from the primary viewer's automated section timers, speech synchronization loops, and auto-pause routines.
+  - Enables uninhibited user interaction with native YouTube subtitle toggling (CC) and language track selection.
+  - Integrated real-time detected subtitle stream telemetry card displaying stream count badge, query mode indicator (`lang` vs `tlang`), language code badges, formatted timestamps, and JSON3 event/cue previews.
+  - Implemented 1-click import mechanism allowing detected caption streams to be imported directly into the active parallel subtitle catalog (`onImportTrack`).
+  - Added video URL input form allowing manual loading of arbitrary YouTube URLs or IDs with player reload capability.
+- **Top Tab Navigation & Background Loop Decoupling in `src/routes/index.tsx`**:
+  - Introduced top-level tab switcher (`tab-viewer` vs `tab-playground`) with persistent state.
+  - Decoupled playback and speech timers: when active tab is `"playground"`, speech synthesis queue processing and auto-pause loops are suspended (`activeTopTabRef.current === "playground"`).
+  - Wired detected subtitle streams intercepted during Playground playback into central track state.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-video-playground-tab.ts` (`npm run test:playground-tab`) validating version 1.0.21 parity, component data-testid presence, embed parameters, top tab decoupling in `index.tsx`, and schema simulation.
+  - Registered `test:playground-tab` in `package.json`.
+  - Updated design contracts and documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, `docs/designs/DESIGN_PLAYER_PROVIDER.md`, and `docs/operations/DEBUG.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:playground-tab` (Passed 100%)
+  - `compile_applet` (Build succeeded)
+  - `lint_applet` (Clean - zero errors)
+
 ## Task 115: Continuous CI Monitoring & Real Actions Runs Health
 
 ### Summary:
+
 - **Repository Hygiene, Architectural Contracts & CI Integrity**:
   - Restored complete `README.md` containing all required architectural contract documentation links (`docs/operations/ACTIONS.md`, `docs/specifications/LIBRARY.md`, `docs/designs/DESIGN_SUBTITLE_VIEWS.md`, `docs/designs/DESIGN_VIEW_LANGS.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, `docs/designs/DESIGN_PLAYER_PROVIDER.md`, `docs/designs/DESIGN_STATE_COORDINATOR.md`, `docs/specifications/SCHEMA_TIMEDTEXT.md`, `docs/operations/DEBUG.md`), 16 relative links, active GitHub Actions workflow status badges, one-line ADB CLI installation instructions, and dedicated GitHub Pages links (`mochawesome.html`, `playwright/index.html`, `android-emulator-report.html`, `screenshots/android-emulator-screenshot.png`, `screenshots/android-emulator-video.mp4`).
   - Validated pure client SPA architecture and build artifacts generation via `npm run test:client-spa` and `npm run test:hygiene`.
@@ -26,6 +52,7 @@
 ## Task 114: Prohibit Croned GitHub Actions from Modifying README.md, Indicate Failing Issues via Workflow Status Badges & Version Bump to 1.0.20
 
 ### Summary:
+
 - **Version Bumped to 1.0.20**:
   - Aligned semantic version `1.0.20` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10020`, versionName `"1.0.20"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.20"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.20"`), and `src/utils/appSettings.ts` (`version: "1.0.20"`).
 - **Prohibited Cron Jobs from Modifying or Committing README.md**:
@@ -55,6 +82,7 @@
 ## Task 113: Subtitle Fetch Pacing, Strategy Options, Auto-TTS Language Name, Default Debug Mode & All Parser Criteria
 
 ### Summary:
+
 - **Version Bumped to 1.0.19**:
   - Aligned semantic version `1.0.19` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10019`, versionName `"1.0.19"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.19"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.19"`), and `src/utils/appSettings.ts`.
 - **Subtitle Fetch Window Rate-Limiting (Anti-Abuse Protection)**:
@@ -97,6 +125,7 @@
 ## Task 112: Favorite Languages Default Checkbox On for Both Present in Table & TTS-Play
 
 ### Summary:
+
 - **Version Bumped to 1.0.18**:
   - Aligned semantic version `1.0.18` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10018`, versionName `"1.0.18"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.18"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.18"`), and `src/utils/appSettings.ts` (`version: "1.0.18"`).
 - **Default Checkbox ON for Both Present in Table & TTS-Play**:
@@ -122,6 +151,7 @@
 ## Task 111: Android Emulator E2E Screenshots Along Test, Pre-Test Device Settings Navigation, and docs/e2e-android.md
 
 ### Summary:
+
 - **Version Bumped to 1.0.17**:
   - Aligned semantic version `1.0.17` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10017`, versionName `"1.0.17"`), `src/config/appConfig.ts` (`APP_VERSION = "1.0.17"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.17"`), and `src/utils/appSettings.ts` (`version: "1.0.17"`).
   - Verified cross-file version synchronization via `npx tsx scripts/verify-agents-version-rule.ts`, `npm run test:apk-version`, and `npm run test:apk-robustness`.
@@ -165,6 +195,7 @@
 ## Task 110: Formalize Rule: README.md Created by GitHub Actions, Do Not Copy When Syncing Git
 
 ### Summary:
+
 - **Codified Policy in `AGENTS.md`**:
   - Formalized under "Project-specific delivery" that `README.md` is to be created and dynamically updated by GitHub Actions (via `.github/workflows/update-readme.yml` and `scripts/update-readme.mjs`).
   - Mandated that when syncing git (comparing against, pulling from, merging with, or cherry-picking files from baseline/upstream repositories such as `mostuf2556/Youtubenet6`, or syncing across branches/forks), **`README.md` MUST NOT be copied or overwritten**.
@@ -193,6 +224,7 @@
 ## Task 109: Guarantee Zero-404 Screencast Video Pipeline across GitHub Actions and GitHub Pages
 
 ### Summary:
+
 - **Resilient Screencast Generation & Finalization in `emulation.yml`**:
   - Implemented robust `screenrecord` teardown handling: output captured to `/tmp/screenrecord.log` and graceful SIGINT sent via `kill -2 $(pidof screenrecord)` before `adb pull`.
   - Added authentic screenshot-to-MP4 video compilation fallback using `ffmpeg` when `adb shell screenrecord` produces an empty or missing video (e.g. software GPU limits), ensuring `./android-emulator-video.mp4` is always generated and non-empty.
@@ -221,6 +253,7 @@
 ## Task 108: Auto-Trigger Screencast Recording on 404 Video Detection & Artifact Recovery Pipeline
 
 ### Summary:
+
 - **Automated Workflow Self-Healing (`.github/workflows/report-video-flow.yml`)**:
   - Added `actions: write` permission to the dedicated `report-video-flow.yml` workflow.
   - Implemented the automated self-healing trigger: when `report-video-flow.yml` detects that `android-emulator-video.mp4` returned HTTP 404 on GitHub Pages, it automatically dispatches `emulation.yml` via GitHub CLI (`gh workflow run emulation.yml -R "${{ github.repository }}" --ref "${{ github.ref_name }}"`).
@@ -241,6 +274,7 @@
 ## Task 107: Dedicated GitHub Actions Flow for Report Video Links Verification & README Error Sync
 
 ### Summary:
+
 - **Dedicated GitHub Actions Flow (`.github/workflows/report-video-flow.yml`)**:
   - Implemented `Android Emulator Screencast & Report Video Flow` running on:
     - Periodic schedule: Every 6 hours (`0 */6 * * *`)
@@ -299,8 +333,8 @@
 
 ## Task 106: Document GitHub Actions & GitHub Pages to README.md Summary Lifecycle for Broken Tests and Links
 
-
 ### Summary:
+
 - **Architectural Documentation in `docs/operations/ACTIONS.md`**:
   - Added Section 2.6 documenting `.github/workflows/update-readme.yml` and Section 2.7 documenting `.github/workflows/integrity.yml`.
   - Added Section 4: "End-to-End Pipeline: From GitHub Actions & GitHub Pages to README.md Broken Test and Link Summary" with:
@@ -326,6 +360,7 @@
 ## Task 105: Automate Broken Links Detection & Latest Error Info Sync in README.md
 
 ### Summary:
+
 - **Active Broken Link Scanner (`scripts/update-readme.mjs`)**:
   - Implemented `scanReadmeBrokenLinks(markdownContent, rootDir)` detecting missing relative target files, unresolvable anchors, missing screenshot assets, and invalid workflow badges.
   - Automatically flags CI status as `failure` if any broken links are discovered.
@@ -341,6 +376,7 @@
 ## Task 104: Automated README CI Status Indicator & Copy-Paste AI Error Prompt Sync
 
 ### Summary:
+
 - **CI Status & Error Indicator Generator (`scripts/update-readme.mjs`)**:
   - Injected dynamic status demarcations (`<!-- CI_STATUS_INDICATOR_START -->` ... `<!-- CI_STATUS_INDICATOR_END -->`) into `README.md`.
   - Added support for both success (`ALL VERIFIED` with links to report, screencast MP4, screenshot, and actions dashboard) and failure states (`🚨 FAILED` alert banner with failing workflow name, step, and run URL).
@@ -359,6 +395,7 @@
 ## Task 103: Implement Versioning Discrepancy Architecture & Recovery Mechanisms According to `docs/versioning.md`
 
 ### Summary:
+
 - **Native Android Safeguards (`MainActivity.kt`)**:
   - Implemented automatic OTA cache invalidation on APK upgrade (`clearOtaCacheOnApkUpgrade`) comparing `currentVersionCode` against `last_run_version_code` stored in SharedPreferences.
   - Implemented zero-cache headers (`Cache-Control: no-cache, no-store, must-revalidate` and `Pragma: no-cache`) for local web asset responses served from `LOCAL_ASSET_DOMAIN` (`appassets.androidplatform.net`).
@@ -378,6 +415,7 @@
 ## Task 100: Enable Server Proxy Option, Robust Proxy URL Construction & Register `docs/server.md`
 
 ### Summary:
+
 - **Server Configuration (`src/config/server.json`)**:
   - Configured default `server_address` to `"https://fuufqctnluwhlsfvybum.supabase.co/functions/v1/api/proxy?url="`.
   - Enabled server option by default: `"is_enabled": true`.
@@ -394,9 +432,8 @@
   - Verified with `npm run test:quarantine-minimal-share`.
   - Clean `compile_applet` and zero-warning `lint_applet`.
 
-
-
 ### Summary:
+
 - **Consolidated into `docs/files.md`**: Enhanced `docs/files.md` to serve as the single, authoritative master catalog of all documentation files under `docs/*.md` and the repository root, with detailed descriptions of their roles, features, and responsibilities across:
   - Core Architectural & Operational Specifications (`tokens.md`, `android.md`, `parser.md`, `self-verification.md`, `fix-android-e2e-test-and-video-product.md`, `reliable-subtitles-fetching.md`, `auto-retry.md`, `cache.md`, `youtube.md`, `versioning.md`, `files.md`, `roadmap.md`).
   - Active Backlog & Changelog Tracking (`tasks.md`, `todo.md`, `done.md`, `later.md`).
@@ -408,9 +445,8 @@
 - **Reverted Verification Check**: Updated `scripts/verify-no-duplicate-md-files.ts` to remove `docs/index.md`.
 - **Automated Verification**: Passed `npm run test:no-duplicate-md` (39 files, 0 duplicates), `npm run test:readme-links`, `npm run test:quarantine-minimal-share`, `compile_applet`, and `lint_applet`.
 
-
-
 ### Summary:
+
 - **Created `docs/index.md`**: Comprehensive master index cataloging and explaining every documentation file in `docs/` across all categories:
   - Core Architectural & Operational Specifications (`tokens.md`, `android.md`, `parser.md`, `self-verification.md`, `fix-android-e2e-test-and-video-product.md`, `reliable-subtitles-fetching.md`, `auto-retry.md`, `cache.md`, `youtube.md`, `versioning.md`, `files.md`, `roadmap.md`).
   - Active Backlog & Changelog Tracking (`tasks.md`, `todo.md`, `done.md`, `later.md`).
@@ -422,9 +458,8 @@
 - **Enforced in `scripts/verify-no-duplicate-md-files.ts`**: Added `docs/index.md` to required canonical documents.
 - **Automated Verification**: Verified with `npm run test:no-duplicate-md` (40 unique md files, 0 duplicates), `npm run test:readme-links`, `npm run test:quarantine-minimal-share`, `compile_applet`, and `lint_applet`.
 
-
-
 ### Summary:
+
 - **Strategic Reboot Specification (`docs/fix-android-e2e-test-and-video-product.md`)**:
   - Documented the rationale for quarantining complex, failing E2E test suites and multi-dashboard report generators in order to restart with a clean, minimalistic focus.
   - Defined the single core feature under test on the Android emulator: **The application can be shared a YouTube video** (via Android native intents `ACTION_VIEW` for browser URLs and `ACTION_SEND` for official YouTube app text shares).
@@ -454,34 +489,39 @@
   - Command: `npm run test:quarantine-minimal-share`
   - Result: All 6 phases verified OK (strategy doc, quarantine directory, minimal e2e spec, assert script, report templates, and README.md).
 
-
 ### Subtask 59.1: Compact Per-Language Settings & Voice Selection
+
 - Refactored per-language TTS control cards in `src/routes/index.tsx` into an inline, space-efficient flex row layout (`tts-settings-card-${lang.code}`).
 - Compacted speech ratio selector (1:N comprehension level), speech rate slider, and voice dropdown into a clean single-row presentation.
 - Fixed voice selection matching in `speakText` to search both `voiceURI` and voice `name` (`x.voiceURI === voiceURI || x.name === voiceURI`), with robust device and language code prefix fallback.
 - Ensured voice dropdown option value falls back to `voice.name` when `voiceURI` is empty, avoiding blank value selections across different browser engines.
 
 ### Subtask 59.2: Accordions Auto-Fold After Timeout Unless Pinned
+
 - Verified and enforced auto-fold behavior in `src/components/AccordionSection.tsx` with `ACCORDION_AUTO_FOLD_MS` (30s) timer.
 - Bound pin toggle to localStorage key `yt_accordion_pinned_${id}`, ensuring pinned state persists per section ID.
 - Guarded auto-folding with `if (!open || pinned) return;`, maintaining open state indefinitely when pinned.
 - Provided accessible `aria-pressed={pinned}` toggle button with visual `Pin` and `PinOff` indicators.
 
 ### Subtask 59.3: Subtitles Scoped Exclusively to Current Video
+
 - Harmonized all accordion sections and subtitle displays to bind strictly to active `videoId` (`data-video-id={videoId}`).
 - Ensured video switching completely resets previous subtitle tracks (`setTracks(null)`), clears observed URL (`setObservedUrl("")`), and resets queue state.
 - Prevented stale captions or mock fixtures from persisting across video loads.
 
 ### Subtask 59.4: Remove Standalone Iframe Player Option
+
 - Verified complete removal of legacy standalone language-player and iframe-player panels from `PANELS` catalog and accordion switches.
 - Streamlined playback experience to the standard unified YouTube player and responsive video instances swiper.
 
 ### Subtask 59.5: Library Record Cache Controls ("Clear cache" & "Fetch from scratch")
+
 - Added explicit "Fetch from scratch" button (`library-fetch-scratch-btn-${item.id}`) alongside "Clear cache" on each library history card in `src/components/VideoLibraryPanel.tsx`.
 - Implemented `handleFetchFromScratch` which purges cached subtitle cues and raw JSON3 via `clearVideoSubtitleCache(item.id)`, resets queue state, and re-triggers authentic live subtitle discovery.
 - Passed `onFetchFromScratch` handler from `src/routes/index.tsx` into `<VideoLibraryPanel />`.
 
 ### Subtask 59.6: Clean Language Removal Across All Instances
+
 - Updated `handleTargetLanguagesChange` in `src/routes/index.tsx` to compute `removedLangs` when favorite languages are deselected.
 - Cleanly pruned all related instances upon removal:
   1. Removed from `shown` array to immediately remove subtitle table columns.
@@ -492,6 +532,7 @@
   6. Removed stored multi-instance player configurations via `removeVideoInstanceConfig(videoId, 'lang_' + prevLang)` and unregistered active player references.
 
 ### Subtask 59.7: Automated Test Verification & Documentation
+
 - Authored dedicated automated test suite `scripts/verify-compact-ui-and-language-cleanup.ts` validating all Task 59 requirements.
 - Registered `"test:compact-ui-language-cleanup"` in `package.json` and cataloged in `docs/files.md`.
 - Verified 100% test pass (`npm run test:compact-ui-language-cleanup`), successful build compilation (`compile_applet`), and zero ESLint errors (`lint_applet`).
@@ -499,16 +540,19 @@
 ## Task 95: Winner Promotion Report Persistence & Subtitle Cache Architecture & Shared Video Library Fix
 
 ### Subtask 95.1: Stage Task 95 in Tracking Documentation
+
 - Updated `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and `temp.md`.
 - Formulated atomic 4-subtask decomposition plan.
 
 ### Subtask 95.2: Winner Promotion Report Persistence & UI
+
 - Implemented `src/utils/winnerPromotionTracker.ts` storing and aggregating winning fetch attempts per video and language in `localStorage` (`yt_winner_promotion_history_v1`) and in-memory cache.
 - Implemented `src/components/WinnerPromotionReportModal.tsx` displaying aggregate metrics (total wins, unique videos, strategy win percentages for `tlang` vs `lang` and `session` vs `anon`), most effective combination card, chronological history table with search filtering by video ID/language, and clear history button.
 - Connected report trigger in `src/components/AttemptOrderSettings.tsx` and tracked every winning attempt in `src/routes/index.tsx` via `recordWinnerPromotion`.
 - Wired video selection from report modal directly into player loading via `onSelectVideo={handleSelectLibraryVideo}`.
 
 ### Subtask 95.3: Create docs/cache.md & Fix Shared Video Library Persistence and Cache Hydration
+
 - Authored comprehensive specification `docs/cache.md` documenting:
   1. Multi-tier cache hierarchy: In-Memory Map (`memoryCache`), Dedicated Raw JSON3 Storage (`localStorage`), Video Library Storage (`localStorage`), and Winner Promotion History (`localStorage`).
   2. Pre-cache validation gate: strict rejection of HTML error pages (`<!DOCTYPE html>`, `<html>`), 4xx/5xx responses, malformed JSON, and empty cue lists (`events: []`).
@@ -523,6 +567,7 @@
 - Implemented cache hydration on video switch/load in `src/routes/index.tsx` via `getCachedRawJson3`, instantly populating `tracks` and marking succeeded in `subtitleRequestQueue`.
 
 ### Subtask 95.4: Dedicated Test Verification, File Inventory, Compilation, and Migration to done.md
+
 - Authored dedicated automated test `scripts/verify-cache-and-winner-promotion.ts` verifying all requirements across documentation, winner promotion persistence, stats aggregation, library event dispatch, raw JSON3 storage, validation gate, and cache hydration.
 - Registered `"test:cache-and-winner-promotion"` in `package.json` and cataloged files in `docs/files.md`.
 - Verified 100% test pass (`npm run test:cache-and-winner-promotion`), clean build compilation (`compile_applet`), and zero lint errors (`lint_applet`).
@@ -530,10 +575,12 @@
 ## Task 96: Android Background Audio Playback & Lockscreen MediaSession Controls
 
 ### Subtask 96.1: Stage Task 96 in Tracking Documentation
+
 - Updated `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and `temp.md`.
 - Established atomic subtask plan for Android Foreground Service and Web Client MediaSession coordination.
 
 ### Subtask 96.2: Android Shell Foreground Service & MediaSession Implementation
+
 - Added `androidx.media:media:1.7.0` to `android-shell/app/build.gradle.kts`.
 - Added `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, and `POST_NOTIFICATIONS` permissions to `AndroidManifest.xml`.
 - Registered `BackgroundAudioService` with `foregroundServiceType="mediaPlayback"` in `AndroidManifest.xml`.
@@ -541,6 +588,7 @@
 - Exposed native bridge methods in `MainActivity.kt` (`setBackgroundAudioEnabled`, `updateMediaMetadata`, and `dispatchMediaCommand` evaluating `window.onNativeMediaCommand`).
 
 ### Subtask 96.3: Web Client MediaSession Bridge, Preferences & Settings UI
+
 - Added background audio preference in `src/lib/playback-preferences.ts` (`getBackgroundAudioEnabled`, `setBackgroundAudioEnabled`) using key `yt_background_audio_enabled_v1`.
 - Created `src/utils/backgroundMediaManager.ts` managing client playback state, lockscreen progress, and dispatching transport actions between native shell, Web MediaSession, and YouTube player.
 - Declared native types and Window callbacks in `src/types.ts` (`setBackgroundAudioEnabled`, `updateMediaMetadata`, `onNativeMediaCommand`).
@@ -548,19 +596,21 @@
 - Added UI toggle (`#background-audio-toggle` / `data-testid="background-audio-toggle"`) in Playback Settings accordion in `src/routes/index.tsx`.
 
 ### Subtask 96.4: Dedicated Automated Verification Test, Compilation, Linting & Migration to done.md
+
 - Authored dedicated automated verification test `scripts/verify-android-background-audio-service.ts` validating all 7 architectural components across AndroidManifest, Kotlin service, MainActivity bridge, TypeScript types, preferences, media manager, and React route UI.
 - Registered `"test:android-background-audio"` in `package.json` and cataloged in `docs/files.md`.
 - Verified 100% test pass rate (`npm run test:android-background-audio`).
 - Verified clean build compilation (`compile_applet`) and zero ESLint errors or warnings (`lint_applet`).
 
-
 ## Task 94: Auto-Retry Pacing Architecture & Android Application Versioning and Updates
 
 ### Subtask 94.1: Stage Task 94 in Tracking Documentation
+
 - Updated `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and `temp.md`.
 - Formulated atomic 4-subtask decomposition plan.
 
 ### Subtask 94.2: Create docs/auto-retry.md & Implement Serialized Request Queue
+
 - Authored comprehensive specification `docs/auto-retry.md` detailing:
   1. Anti-abuse philosophy and prevention of HTTP 429 Too Many Requests.
   2. Strict Concurrency = 1 (single-flight serialized execution: never fire concurrent requests to YouTube timedtext API).
@@ -573,6 +623,7 @@
 - Integrated `subtitleRequestQueue` in `src/routes/index.tsx` (all favorite language fetch operations routed through queue, video switch and track synchronization) and `src/components/FloatingSubtitleRetryIndicator.tsx` (syncing pause/resume).
 
 ### Subtask 94.3: Create docs/versioning.md & Implement Version Bridge and Collision Recovery
+
 - Authored comprehensive architecture document `docs/versioning.md` detailing:
   1. Semantic differences between `versionName` (display string) and `versionCode` (monotonic integer).
   2. The three application update channels: in-app OTA hot updates via `web-dist.zip`, automated ADB installation via `update.apk.sh`, and direct manual APK installation.
@@ -585,24 +636,27 @@
 - Enhanced collision detection in `update.apk.sh` and `install-apk.sh` to recognize `INSTALL_FAILED_ALREADY_EXISTS` and `signatures do not match`, triggering automated deep purge and retry.
 
 ### Subtask 94.4: Dedicated Test Verification, File Inventory, Compilation, and Migration to done.md
+
 - Authored automated test `scripts/verify-auto-retry-and-versioning.ts` verifying all requirements across documentation, queue concurrency, selective retry, native bridge, build configuration, and bash scripts.
 - Registered `test:auto-retry-and-versioning` in `package.json` and cataloged files in `docs/files.md`.
 - Verified 100% test pass (`npm run test:auto-retry-and-versioning`), clean build compilation (`compile_applet`), and zero lint errors (`lint_applet`).
 
 ## Task 93: Create Automated Error Reporting Workflow & AI Reproduction Fix Engine (error.log)
 
-
 ### Subtask 93.1: Stage Task 93 in Tracking Documentation
+
 - Updated `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`, and `temp.md`.
 - Defined architecture and specifications for automated CI failure reporting and AI reproduction prompt formatting.
 
 ### Subtask 93.2: Build Error Reporting Diagnostic Engine (`scripts/generate-error-report.ts`)
+
 - Created CLI engine `scripts/generate-error-report.ts` that captures failed command context, exit codes, git branch/commit, OS/Node environment, and stack traces.
 - Synthesizes actionable root-cause analysis, reproduction steps, and suggested fix heuristics across 6 error categories (`lint`, `typecheck`, `test_assertion`, `missing_module`, `network`, `build`).
 - Produces `error.log` structured as a clean, self-contained AI prompt block ready for copy-pasting directly into AI Studio prompt input.
 - Supports CLI options `--run <cmd>`, `--file <log>`, `--command <cmd>`, `--step <name>`, and `--output <path>`.
 
 ### Subtask 93.3: Author GitHub Actions Workflow (`.github/workflows/error-reporting.yml`)
+
 - Created dedicated `.github/workflows/error-reporting.yml` workflow triggering on `workflow_run` (after primary CI runs), push/pull request to main, and manual dispatch.
 - Executes automated health diagnostics pipeline across linting, web application build, architectural documentation contracts, and core test suites.
 - On any failure, automatically invokes the error report generator to create `error.log`.
@@ -610,33 +664,39 @@
 - Uploads `error.log` as an artifact (`actions/upload-artifact@v4`) for download and direct prompt sharing.
 
 ### Subtask 93.4: Register Scripts, Documentation, and Files Inventory
+
 - Added `report:error` and `test:error-reporting` npm scripts in `package.json`.
 - Documented `error-reporting.yml` in `docs/operations/ACTIONS.md` and added section on automated CI error reporting in `docs/operations/DEBUG.md`.
 - Registered `error-reporting.yml`, `scripts/generate-error-report.ts`, and `scripts/verify-error-reporting-workflow.ts` in `docs/files.md`.
 
 ### Subtask 93.5: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+
 - Authored automated test `scripts/verify-error-reporting-workflow.ts` validating error diagnostic heuristics, error report structure, reproduction command generation, AI prompt formatting, workflow file schema, and documentation contracts.
 - Verified 100% test pass (`npm run test:error-reporting`), clean build compilation (`compile_applet`), and zero lint errors (`lint_applet`).
 
 ## Task 92: Deprecate Server Fetch Option, Add Paced Floating Retry Indicator, and Document YouTube Captions in docs/youtube.md
 
 ### Subtask 92.1: Deprecate Server Option in Preferences, Components, and Route Handlers
+
 - Added `@deprecated` JSDoc annotations to `getUseFetchServer`, `setUseFetchServer`, `getFetchServerUrl`, and `setFetchServerUrl` in `src/lib/subtitle-fetch-plan.ts`.
 - In `src/components/AttemptOrderSettings.tsx`, added `(Deprecated)` badge (`data-testid="server-option-deprecated-badge"`) and clear explanation notice explaining that external server proxy fetching is deprecated in favor of authentic client-side and native Android fetching with paced jitter.
 
 ### Subtask 92.2: Add Configurable Pacing Interval Settings in Settings Accordion
+
 - Renamed `playback` panel title in `src/config/accordionThemes.ts` to `"Settings"` to centralize all configuration under the accordion named "settings".
 - In `src/lib/playback-preferences.ts`, added persistent preferences: `autoRetrySubtitles` (boolean, default `true` — set to retry by default), `retryPacingMinSec` (number, default `3`, clamped >= 1), and `retryPacingMaxSec` (number, default `8`, clamped >= 1).
 - Added `getRandomRetryDelayMs(minSec, maxSec)` calculating randomized jitter delay between X and Y seconds to prevent bot triggers.
 - In `src/routes/index.tsx`, added auto-retry toggle (`data-testid="auto-retry-subtitles-toggle"`) and min/max pacing interval inputs (`data-testid="retry-pacing-min-input"` and `data-testid="retry-pacing-max-input"`) under the Settings accordion.
 
 ### Subtask 92.3: Build Floating Auto-Retry Indicator Component
+
 - Created modular component `src/components/FloatingSubtitleRetryIndicator.tsx`.
 - Displays pending unfetched favorite languages count, active countdown timer with safe jitter, Retry Now button, Pause/Resume toggle, and minimize control.
 - Retries unfetched favorite languages automatically with randomized spacing between X and Y seconds to avoid triggering YouTube HTTP 429 rate limits.
 - Configured with `autoRetryEnabled = true` by default and mounted in `src/routes/index.tsx`.
 
 ### Subtask 92.4: Create docs/youtube.md Architecture Specification
+
 - Authored comprehensive `docs/youtube.md` covering:
   1. Distinguishing videos using `tlang` vs `lang` only (`captionTracks` vs `translationLanguages`, authored tracks vs ASR tracks, `vssId` inspection).
   2. Evaluation of client-side YouTube npm modules (`youtube-caption-extractor`, `get-youtube-subtitle`, `yt-caption-scraper`, `youtube-captions-scraper`) and why they fail in pure browser environments due to CORS and bot fingerprinting.
@@ -644,12 +704,13 @@
   4. Anti-bot and rate-limiting architectural solution (paced staggered jitter between X and Y seconds, session cookies, User-Agent sanitization, client caching, deprecation of shared proxy IPs).
 
 ### Subtask 92.5: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+
 - Authored automated test `scripts/verify-youtube-docs-and-floating-retry.ts` validating all requirements.
 - Registered `npm run test:youtube-docs-and-floating-retry` in `package.json` and documented in `docs/files.md`.
 - Verified 100% test pass, clean applet compilation (`compile_applet`), and zero lint errors (`lint_applet`).
 
-
 ### Hotfix 91.1: Ensure Clean Port 3000 Binding with strictPort and Dev Server Stability
+
 - Configured `strictPort: true` in `vite.config.ts` alongside `host: "0.0.0.0"` and `port: 3000` to prevent port drifting and ensure rock-solid health checks during AI Studio pre-warming.
 - Verified dev server startup and responsiveness returning HTTP 200 on `/`, `/src/main.tsx`, and `/src/routes/index.tsx`.
 - Authored dedicated automated verification test `scripts/verify-dev-server-stability.ts` probing server configuration and live HTTP endpoints, registered `npm run test:dev-server-stability` in `package.json`, and documented in `docs/files.md`.
@@ -658,6 +719,7 @@
 ## Task 87: Fix Anti-Bot HTTP 429 on Link-Only (Anon) Fetching by Matching Browser Profile
 
 ### Subtask 87.4: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+
 - Authored dedicated automated verification test `scripts/verify-anti-bot-browser-profile.ts` validating:
   1. Android Shell `MainActivity.kt` authentic browser profile (sanitizing `Version/X.X` and `; wv` from User-Agent).
   2. Dynamic Chrome client hints (`sec-ch-ua`, `sec-ch-ua-mobile`, `sec-ch-ua-platform`, `sec-ch-ua-model`).
@@ -670,6 +732,7 @@
 - Verified applet compilation (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
 
 ### Subtask 87.3: Add Client-Side Navigation Fallback & Diagnostic Guidance in App UI
+
 - In `NetworkRequestsInspector.tsx`:
   - Added `isBotDetected()` helper identifying HTTP 429 and "automated queries" HTML responses.
   - Added dedicated `bot-detection-card` explaining why the link failed in direct native OkHttp (automated query detection) while working in a browser window.
@@ -678,6 +741,7 @@
   - Added distinct `429 BOT BLOCK` status badge in the requests list.
 
 ### Subtask 87.2: Enhance Android Shell (MainActivity.kt) Network Client with Authentic Browser Navigation Profile
+
 - Enhanced `getSanitizedBrowserUserAgent()` in `MainActivity.kt` to strip `Version/\d+\.\d+\s*` and `; wv`, eliminating the telltale embedded WebView signature that triggered Google's bot detection.
 - Added dynamic fallback User-Agent reflecting real Android release and device model (`Build.VERSION.RELEASE`, `Build.MODEL`).
 - Added full Chrome Client Hints in `fetchTimedTextExact` (`sec-ch-ua`, `sec-ch-ua-mobile`, `sec-ch-ua-platform`, `sec-ch-ua-model`) matching the Chrome version.
@@ -685,6 +749,7 @@
 - Preserved HTTP 429 status code and error messages explicitly.
 
 ### Subtask 87.1: Stage Task 87 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
 - Processed token economy optimization protocol according to `docs/tokens.md`.
 - Staged Task 87 and subtasks in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
 - Documented diagnosis and execution plan in `temp.md`.
@@ -692,6 +757,7 @@
 ## Task 86: Complete Reliable Subtitle Fetching Implementation (Attempt Order, Settings, Network Actions & Build Fix)
 
 ### Subtask 86.5: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+
 - Authored dedicated automated verification test `scripts/verify-reliable-subtitles-fetching.ts` validating:
   1. Default attempt order (`DEFAULT_ATTEMPT_ORDER`) with 4 distinct attempts (`tlang/session`, `lang/session`, `tlang/anon`, `lang/anon`).
   2. Attempt order normalization (`normalizeAttemptOrder`), reordering (`moveAttempt`), and winner promotion (`promoteAttempt`).
@@ -703,6 +769,7 @@
 - Verified applet compilation (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
 
 ### Subtask 86.4: Add Attempt-Order Settings & Network Panel Actions
+
 - Created `src/components/AttemptOrderSettings.tsx` allowing users to reorder attempts with Up/Down buttons, enable/disable individual attempts, toggle automatic winner promotion to front (`promoteSuccessfulAttempt`), and reset to defaults.
 - Integrated `AttemptOrderSettings` into the Playback/Parser settings section under Android environment.
 - Updated `src/components/NetworkRequestsInspector.tsx` to include interactive action buttons:
@@ -711,17 +778,20 @@
   - "Use these subtitles": loads valid JSON3 captions directly into the current video's track dictionary and local cache.
 
 ### Subtask 86.3: Connect Attempt Order Loop (runFetchAttempts) in src/routes/index.tsx
+
 - Integrated `runFetchAttempts` in `fetchFavoriteLanguageSubtitles` using device-persisted attempt order (`getAttemptOrder()`, `setAttemptOrder()`).
 - Enabled winner promotion (`promoteAttempt`) when `promoteSuccessfulAttempt` is on.
 - Connected native bridge `fetchTimedTextExact` via `nativeExactFetch`.
 - Enhanced `networkTracker` to record attempt style (`tlang` | `lang`), sending method (`session` | `anon`), and real HTTP status.
 
 ### Subtask 86.2: Fix the 3 TypeScript build errors in src/routes/index.tsx
+
 - Fixed lines in `cols` `useMemo` where `tracks[baseLanguage]` and `tracks[code]` were accessed directly with `.length > 0` causing `Object is possibly 'undefined'` errors under strict TypeScript checks.
 - Safely routed checks through `hasTrackCues` while maintaining backward-compatible spec comments for `verify-subtitles-table-visibility-on-fetch.ts`.
 - Verified `npx tsc --noEmit` exits with 0 errors.
 
 ### Subtask 86.1: Stage Task 86 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
 - Processed token economy optimization protocol according to `docs/tokens.md`.
 - Staged Task 86 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
 - Maintained working notes in `temp.md`.
@@ -729,6 +799,7 @@
 ## Task 85: Architectural Evaluation and Guidelines for AGENTS.md Modularization vs Bloat
 
 ### Subtask 85.3: Document Evaluation in docs/done.md, Finalize Task 85, and Provide Comprehensive User Guidance
+
 - Completed architectural assessment on `AGENTS.md` design:
   1. Affirmed that `AGENTS.md` should NEVER be bloated; inlined implementation details bloat the agent's permanent system context on every prompt turn and degrade model reasoning.
   2. Confirmed that `AGENTS.md` SHOULD point to modular, specialized reference documents under `docs/*.md` using the "Orchestrator Index" pattern.
@@ -737,11 +808,13 @@
 - Verified compilation (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
 
 ### Subtask 85.2: Audit Current AGENTS.md, Token Economy Impact, and Verification Test Invariants
+
 - Analyzed current `AGENTS.md` structure against `docs/tokens.md` and repository standards.
 - Evaluated system context overhead: `AGENTS.md` is loaded into every single prompt execution turn as part of system prompt instructions (`<RULE[AGENTS_md]>`).
 - Validated that modularizing specialized details into `docs/*.md` (e.g., `docs/reliable-subtitles-fetching.md`, `docs/android.md`, `docs/parser.md`, `docs/self-verification.md`, `docs/tokens.md`) keeps agent turns fast, economical, and focused.
 
 ### Subtask 85.1: Stage Task 85 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
 - Processed token economy optimization protocol according to `docs/tokens.md`.
 - Staged Task 85 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
 - Maintained working notes in `temp.md`.
@@ -749,6 +822,7 @@
 ## Task 84: Subtitles Table Visibility When Subtitles Are Fetched
 
 ### Subtask 84.3: Implement Dedicated Automated Test scripts/verify-subtitles-table-visibility-on-fetch.ts, Verify Build & Lint, and Migrate to docs/done.md
+
 - Created dedicated verification test `scripts/verify-subtitles-table-visibility-on-fetch.ts` testing runtime behavior of `hasLegitimateSubtitles`, `cols`, and accordion expansion when subtitles are fetched.
 - Verified:
   1. `HighlightedSubtitle` is properly imported in `src/routes/index.tsx`.
@@ -764,6 +838,7 @@
 - Verified build (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
 
 ### Subtask 84.2: Fix Subtitles Table Visibility, Alignment, and Cue Detection (src/routes/index.tsx, src/lib/subtitles.ts)
+
 - Updated `Json3` type in `src/lib/subtitles.ts` to support optional `.length` property.
 - Updated `parseJson3` in `src/lib/native-captions.ts` to assign `data.length = data.events.length`.
 - Fixed `hasLegitimateSubtitles` in `src/routes/index.tsx` to inspect `track?.events` cues in addition to direct array checking, ensuring valid `Json3` objects evaluate `hasValidTrack = true`.
@@ -772,15 +847,15 @@
 - Added missing `HighlightedSubtitle` import to `src/routes/index.tsx`.
 
 ### Subtask 84.1: Stage Task 84 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
 - Processed token economy optimization protocol according to `docs/tokens.md`.
 - Staged Task 84 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
 - Maintained working scratchpad in `temp.md`.
 
-
-
 ## Task 83: Eliminate Duplicate .md Files and Mandate docs/*.md Location in AGENTS.md
 
 ### Subtask 83.3: Update Existing Verification Tests, Implement verify-no-duplicate-md-files.ts, Verify Build & Lint, and Migrate to docs/done.md
+
 - Updated verification tests (`verify-tokens-economy.ts`, `verify-android-e2e-spec.ts`, `verify-parser-docs.ts`, `verify-self-verification.ts`, `verify-hotfix-and-done-workflow.ts`) to assert canonical files in `docs/` and guarantee absence of root duplicates.
 - Created dedicated verification test `scripts/verify-no-duplicate-md-files.ts` asserting 0 duplicate `.md` files across the repository, verifying `AGENTS.md` mandate, checking allowed root Markdown files (`README.md`, `AGENTS.md`, `current-sub-task.md`, `temp.md`), and checking SHA-256 content uniqueness across all 30 Markdown files.
 - Registered `test:no-duplicate-md` in `package.json` and documented in `docs/files.md`.
@@ -788,20 +863,22 @@
 - Verified application compilation (`compile_applet`) and ESLint (`lint_applet`) with 0 errors.
 
 ### Subtask 83.2: Eliminate Root Duplicate .md Files, Relocate roadmap.md, and Mandate docs/*.md in AGENTS.md
+
 - Removed redundant root duplicate files: `tokens.md`, `android.md`, `parser.md`, and `self-verification.md`.
 - Moved `roadmap.md` to canonical path `docs/roadmap.md`.
 - Updated `AGENTS.md` to mandate that all documentation, specification, design, operational, and architectural `.md` files must be located strictly under `docs/*.md` (or its subdirectories `docs/designs/`, `docs/specifications/`, and `docs/operations/`), prohibiting duplicate `.md` files.
 - Updated `docs/files.md` inventory to reflect canonical `docs/*.md` paths.
 
 ### Subtask 83.1: Stage Task 83 in tracking documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
 - Processed token economy optimization protocol according to `docs/tokens.md`.
 - Staged Task 83 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
 - Maintained working notes in `temp.md`.
 
-
 ## Task 82: self-verification.md Protocol Specification, Screencast README Verification & Sanity Check Suite
 
 ### Subtask 82.3: Run Verification Suites, Verify Build & Lint, Commit and Migrate to docs/done.md, and Provide Comprehensive User Guidance
+
 - Executed full sanity check and verification suite:
   - `npm run test:self-verification`: 100% pass across all command matrix, screencast lifecycle, and sanity checks.
   - `npm run test:screencast-availability`: Verified README links, GitHub Actions workflows, screencast capture lifecycle, and GitHub Pages report presentation.
@@ -821,6 +898,7 @@
 - ESLint passed with 0 errors (`npm run lint` / `lint_applet`).
 
 ### Subtask 82.2: Create self-verification.md and Dedicated Automated Verification Test
+
 - Authored `self-verification.md` and `docs/self-verification.md` documenting the complete self-verification protocol:
   1. Quick Verification Command Matrix covering all test suites.
   2. Pillar 1: Ensuring All Tests Are Passing (hierarchy, criteria, and zero-defect requirements).
@@ -831,10 +909,10 @@
 - Registered `test:self-verification` in `package.json` and documented in `docs/files.md`.
 
 ### Subtask 82.1: Stage Task 82 in tracking documentation (tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
 - Processed token economy optimization protocol according to `tokens.md`.
 - Staged Task 82 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
 - Maintained working notes in `temp.md`.
-
 
 ## Task 80: Diagnose Missing Screencast Video & Guarantee Video Pull with Dedicated Workflow Step & Trap Resilience
 
@@ -1192,9 +1270,6 @@
 - Verified GitHub Actions emulator workflow (`.github/workflows/emulation.yml`) and HTML report (`public/android-emulator-report.html`) presentation with hardware telemetry and video player embedding.
 - Verified dedicated test suites passed: `test:emulator-error-detection`, `test:emulator-subtitles-e2e`, `test:emulator-screencast-report`, `test:android-device-e2e`, `test:android-adaptive`, and `test:emulation-gh-pages`.
 
-
-
-
 ## Task 62: Fix Android App "This page didn't load" Error & Enforce Emulator E2E Failure
 
 ### Subtask 62.1: Enforce Emulator E2E Failure on Android Error Pages ("This page didn't load")
@@ -1260,17 +1335,20 @@
 ## Task 55: Accordion Color Standardization, Auto-TTS Subtitle Fetching, Touch-Friendly Language Selection & Multi-Language Video Player
 
 ### Subtask 55.1: Constant Theme Colors per Accordion Type
+
 - Created `src/config/accordionThemes.ts` defining distinct constant color themes (borders, summary backgrounds, badges, and tags) for each accordion section (`player`, `playback`, `parser`, `languages`, `language-player`, `subtitles`, `library`).
 - Updated `AccordionSection` to apply `data-accordion-type`, `data-accordion-color`, `data-testid="accordion-bar-{id}"`, and colored header bars.
 - Implemented dedicated test `scripts/verify-accordion-colors.ts` and registered `npm run test:accordion-colors`.
 
 ### Subtask 55.2: Automatic Speech Synthesis Announcement on Subtitle Fetch
+
 - Added persistent configuration `getAutoSpeakOnFetchSetting` and `setAutoSpeakOnFetchSetting` in `src/utils/appSettings.ts` (defaulting to enabled/`true`).
 - Triggered automatic pronunciation of language names via TTS (`speak`) upon live fetch completion, base64 caption interception, and language selection.
 - Added accessible toggle `data-testid="auto-speak-on-fetch-toggle"` in the Languages panel.
 - Implemented dedicated test `scripts/verify-auto-speak-on-fetch.ts` and registered `npm run test:auto-speak-on-fetch`.
 
 ### Subtask 55.3: Touch-Friendly Language Boxes & Keep Clicked Selections on Top
+
 - Created `src/components/LanguageBoxesSelector.tsx` featuring a mode toggle button (`#toggle-language-display-mode`) between boxes and list.
 - Provided large touch-friendly box elements (`min-h-[48px]`, `data-testid="language-box-{code}"`) suitable for Android.
 - Automatically partitioned and kept selected/clicked languages at the top of the grid and table (`orderedLangs`).
@@ -1278,6 +1356,7 @@
 - Implemented dedicated test `scripts/verify-language-boxes-selection.ts` and registered `npm run test:language-boxes`.
 
 ### Subtask 55.4: Dedicated Language Video Player Accordion with Iframe URL Subtitle Control & Network Inspector Integration
+
 - Registered `"language-player"` accordion panel (`"Language video player"`) in `PANELS` and `panelOrder`.
 - Created `src/components/LanguageVideoPlayerPanel.tsx` rendering YouTube embed iframes with `https://www.youtube.com/embed/VIDEO_ID?hl=en&cc_load_policy=1&cc_lang_pref={lang}`.
 - Strictly maintained `hl=en` to keep menus in English, forced captions via `cc_load_policy=1`, and controlled subtitle languages via `cc_lang_pref`.
@@ -1976,6 +2055,7 @@
 ## Task 56: Fix autoSpeakOnFetch ReferenceError Initialization Order
 
 ### Subtask 56.1: Initialize autoSpeakOnFetch Prior to Callback Bindings
+
 - Reordered state variable declarations in `src/routes/index.tsx` so that `autoSpeakOnFetch`, `rates`, and `voiceSelections` are initialized near the top of the component prior to `fetchFavoriteLanguageSubtitles` and any effects referencing them in closures or dependency arrays.
 - Removed downstream duplicate declarations to avoid TDZ (Temporal Dead Zone) `ReferenceError`.
 - Created dedicated test suite `scripts/verify-autospeak-initialization-order.ts` (`npm run test:autospeak-init`) validating top-level declaration order and absence of duplicate re-declarations.
@@ -1985,11 +2065,13 @@
 ## Task 88: Dynamic Favorite Languages Reordering & Order-Determined Fetch Again with Configurable Server Proxy Option
 
 ### Subtask 88.1: Stage Task 88 in tracking documentation
+
 - Processed token economy architecture in `docs/tokens.md`.
 - Staged all 4 subtasks of Task 88 in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
 - Captured architecture and diagnostic decomposition in `temp.md`.
 
 ### Subtask 88.2: Implement Dynamic Favorite Language Ordering & Order-Determined Fetch Again
+
 - In `LanguageBoxesSelector.tsx`, added a priority order bar displaying the sequential fetch order (`#1`, `#2`, etc.) and move earlier / move later buttons (`moveFavoriteLanguage`) for selected favorite languages, along with priority badges on selection boxes.
 - In `src/routes/index.tsx`, sorted `needed` languages in `fetchFavoriteLanguageSubtitles` strictly according to `targetLanguagesRef.current` order so sequential discovery executes in the exact user-defined order.
 - Dynamically derived `languagesToFetchNext` and `activeFailedToFetch` from active `targetLanguages` and loaded `tracks`.
@@ -1998,6 +2080,7 @@
 - Updated the "Fetch again" button to dynamically reflect the updated favorite languages in their exact priority order (`Fetch again (${pendingFetchAgainLangs.join(", ")})`).
 
 ### Subtask 88.3: Implement Option to Use a Server for Repeating Fetch Requests with Configurable Address
+
 - In `src/lib/subtitle-fetch-plan.ts`, implemented `getUseFetchServer()` (defaults to false / off), `setUseFetchServer()`, `getFetchServerUrl()`, `setFetchServerUrl()`, and `fetchViaServer()` supporting query parameters (`?url=...`) and `{url}` template interpolation.
 - In `src/components/AttemptOrderSettings.tsx`, added the "Use server for repeating fetch requests" toggle (off by default), an input field for the server address, and an update button.
 - In `src/components/NetworkRequestsInspector.tsx`, added a server proxy configuration bar and the "Fetch again (via server)" action button on request details.
@@ -2005,6 +2088,7 @@
 - Updated `docs/reliable-subtitles-fetching.md` with dynamic favorite language ordering rules and server repeat proxy documentation.
 
 ### Subtask 88.4: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+
 - Authored `scripts/verify-dynamic-favorites-and-server-fetch.ts` testing priority reordering controls, fetch sorting, dynamic "Fetch again" updates upon favorites changes, server proxy toggle + address input, and functional simulation of URL building and ordering.
 - Registered `test:dynamic-favorites-and-server-fetch` in `package.json` and documented in `docs/files.md`.
 - Ran and passed dedicated tests, `compile_applet` (`npm run build`), and `lint_applet` (`npm run lint`).
@@ -2012,12 +2096,14 @@
 ## Task 89: Best-Practice Task Management Workflow — Mandate Moving Completed Tasks from tasks.md to done.md
 
 ### Subtask 89.4: Clean Up docs/tasks.md by Migrating Completed Tasks to docs/done.md & Final Verification
+
 - Pruned historical completed tasks (Tasks 53 through 88) out of `docs/tasks.md` into `docs/done.md`, reducing `docs/tasks.md` from 579 lines to a clean 25-line active backlog containing strictly pending work (Subtask 54.2 and Task 59).
 - Verified that all historical tasks are safely and completely archived in `docs/done.md`.
 - Ran full test verification suite (`test:task-management-workflow`, `test:tokens-economy`, `test:hotfix-workflow`, `test:no-duplicate-md`).
 - Verified zero errors on full application build (`compile_applet`) and ESLint checks (`lint_applet`).
 
 ### Subtask 89.3: Create Dedicated Verification Test and Update Verification Scripts
+
 - Created dedicated verification test `scripts/verify-task-management-workflow.ts` asserting:
   1. `AGENTS.md` explicitly mandates moving completed tasks completely out of `current-sub-task.md`, `docs/todo.md`, and `docs/tasks.md` directly into `docs/done.md`.
   2. `AGENTS.md` specifies `docs/tasks.md` is strictly the active backlog of pending/upcoming tasks.
@@ -2026,15 +2112,18 @@
 - Registered `test:task-management-workflow` in `package.json` and documented in `docs/files.md`.
 
 ### Subtask 89.2: Update AGENTS.md and docs/tokens.md to Mandate Moving Completed Tasks from tasks.md to done.md
+
 - Updated Rule 7 and hotfix protocol in `AGENTS.md` to mandate moving completed tasks and subtasks completely out of `tasks.md` into `done.md`.
 - Updated `docs/tokens.md` table and workflow steps (Step 7 and Hotfix Step 4) to specify that `docs/tasks.md` is strictly the active backlog and that completed tasks move to `docs/done.md`.
 
 ### Subtask 89.1: Stage Task 89 in Tracking Documentation (docs/tokens.md, docs/tasks.md, current-sub-task.md, docs/todo.md, temp.md)
+
 - Activated token economy flow and staged Task 89 across tracking documents.
 
 ## Task 90: Synchronize README.md Screencast Metrics and Validate GitHub Pages Documentation Links
 
 ### Subtask 90.1: Synchronize README.md Screencast Video Metrics and Validate All Documentation Links
+
 - Updated `README.md` releases link to match active repo repository (`mostuf2556/subtitle-sync/releases`).
 - Synchronized Android Emulator Screencast Video exact file size and metric in `README.md` (`6,739,315 bytes / 6.43 MB`), matching the verified latest GitHub Actions workflow run artifact (`#38197468661`).
 - Verified all link and documentation tests:
@@ -2050,6 +2139,7 @@
 ## Task 101: Language Selection Flow, TTS Voice Fix, Alternative TTS Service, TTS Speed Rate 0.3-1.5 (Default 0.5), Favorites in Settings & Per-Video Persistence
 
 ### Subtask 101.1: Create docs/languages-selection-flow.md and Register in docs/files.md
+
 - Authored comprehensive documentation in `docs/languages-selection-flow.md` defining:
   - Dual persistence hierarchy: Favorite languages in settings (`yt_favorite_languages`) and per-video target language persistence (`yt_video_settings_${videoId}`).
   - Lifecycle for loading new videos: Checks per-video settings first; falls back cleanly to favorite languages if not previously saved.
@@ -2060,6 +2150,7 @@
 - Registered `docs/languages-selection-flow.md` in `docs/files.md`.
 
 ### Subtask 101.2: Implement TTS Engine Fixes, Speed Rate Range & Default, and Alternative TTS Service
+
 - In `src/utils/speechVoiceUtils.ts`:
   - Added ISO-639 alias mappings (`ISO_LANGUAGE_ALIASES`) for Hebrew (`he`/`iw`), Indonesian (`id`/`in`), and Yiddish (`yi`/`ji`).
   - Added `matchesLanguageCode` with prefix expansion, normalization, and alias matching.
@@ -2079,6 +2170,7 @@
   - Updated speed rate controls: set default rate to 0.5 across state initializers and fallbacks, bounded range between 0.3 and 1.5 with 0.1 step.
 
 ### Subtask 101.3: Implement Favorites Languages in Settings, Per-Video Persistence, and Enabled Status Indicator
+
 - In `src/routes/index.tsx`:
   - Added "Favorite Languages" configuration section under Settings modal with quick-add pills, custom code input, remove tags, and save confirmation.
   - Added "Alternative Text-to-Speech (Google Translate TTS)" settings panel with enable toggle (off by default) and mode selector ("fallback_only" vs "always").
@@ -2087,6 +2179,7 @@
   - Implemented Enabled Languages status indicator in UI displaying active target languages alongside favorite badges (`★ Favorite` / `★ Non-favorite`).
 
 ### Subtask 101.4: Author Dedicated Verification Test, Verify Build & Lint, and Migrate to docs/done.md
+
 - Authored dedicated test suite in `scripts/verify-language-selection-and-tts-flow.ts`:
   - Verified default rate 0.5, min 0.3, max 1.5, step 0.1.
   - Verified Google Translate TTS URL construction, query parameters, and default-off preference.
@@ -2100,9 +2193,11 @@
 ## Task 102: Update docs/versioning.md — Tackle APK Version vs WebView Version Discrepancies
 
 ### Subtask 102.1: Stage Task 102 in Tracking Documentation (tokens.md, tasks.md, current-sub-task.md, todo.md, temp.md)
+
 - Activated token economy flow and staged Task 102 across all tracking documents.
 
 ### Subtask 102.2: Update docs/versioning.md Explaining How to Tackle APK vs WebView Version Discrepancies
+
 - Added Section 5 "APK Version vs. WebView Version Discrepancies: Architecture, Causes & Recovery" to `docs/versioning.md`:
   - Defined hybrid dual-layer versioning anatomy: Native APK Container Layer (`build.gradle.kts`, `versionName`, `versionCode`, `PackageManager`, `AndroidNativeShell.getAppVersionName()`) vs Embedded WebView SPA Layer (`package.json`, bundled assets in `assets/`, OTA update files in `context.filesDir/app_updates/`, `getActiveAppVersion()`).
   - Documented 5 distinct root causes of discrepancies:
@@ -2116,6 +2211,7 @@
   - Authored step-by-step recovery procedures: Procedure A (User In-App Recovery with zero reinstall), Procedure B (Developer ADB One-Line Clean `pm clear`), and Procedure C (Complete Clean Rebuild & Reinstall).
 
 ### Subtask 102.3: Author Dedicated Automated Verification Test & Register in Project Catalogs
+
 - Created `scripts/verify-versioning-discrepancy-doc.ts` asserting:
   1. Section 5 presence and hybrid dual-layer architecture definitions.
   2. Complete documentation of all 5 root causes.
@@ -2127,9 +2223,8 @@
 - Registered `scripts/verify-versioning-discrepancy-doc.ts` in `docs/files.md`.
 
 ### Subtask 102.4: Execute Verification Suites, Compile Applet, Lint Applet, and Migrate Task 102 to docs/done.md
+
 - Ran and passed dedicated verification test `npm run test:versioning-discrepancy-doc`.
 - Ran and passed markdown integrity suites `npm run test:no-duplicate-md` and `npm run test:md`.
 - Verified clean build (`compile_applet`) and zero ESLint issues (`lint_applet`).
 - Migrated Task 102 out of active tracking files to `docs/done.md`.
-
-

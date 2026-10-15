@@ -24,7 +24,11 @@ console.log("Test 1: Version parity across project manifests and configs...");
 const pkgPath = path.resolve(process.cwd(), "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
 
-assert.strictEqual(pkg.version, APP_VERSION, `package.json version (${pkg.version}) must match APP_VERSION (${APP_VERSION})`);
+assert.strictEqual(
+  pkg.version,
+  APP_VERSION,
+  `package.json version (${pkg.version}) must match APP_VERSION (${APP_VERSION})`,
+);
 assert.strictEqual(
   `v${pkg.version}`,
   CURRENT_APK_VERSION,
@@ -44,7 +48,7 @@ const indexContent = fs.readFileSync(indexPath, "utf-8");
 
 assert.ok(
   indexContent.includes('data-testid="header-app-version-badge"'),
-  "Header must include data-testid=\"header-app-version-badge\"",
+  'Header must include data-testid="header-app-version-badge"',
 );
 assert.ok(
   indexContent.includes("href={ALL_RELEASES_URL}"),
@@ -64,10 +68,11 @@ const combinedFooter = indexContent + footerContent;
 
 assert.ok(
   combinedFooter.includes('data-testid="footer-all-releases-link"'),
-  "Footer must include data-testid=\"footer-all-releases-link\"",
+  'Footer must include data-testid="footer-all-releases-link"',
 );
 assert.ok(
-  combinedFooter.includes("All Releases (v{APP_VERSION})") || combinedFooter.includes("ALL_RELEASES_URL"),
+  combinedFooter.includes("All Releases (v{APP_VERSION})") ||
+    combinedFooter.includes("ALL_RELEASES_URL"),
   "Footer must display All Releases (v{APP_VERSION})",
 );
 console.log("✅ PASS: Footer all releases link verified");
@@ -79,7 +84,7 @@ const modalContent = fs.readFileSync(modalPath, "utf-8");
 
 assert.ok(
   modalContent.includes('data-testid="modal-all-releases-link"'),
-  "ApkReleaseModal must include data-testid=\"modal-all-releases-link\"",
+  'ApkReleaseModal must include data-testid="modal-all-releases-link"',
 );
 assert.ok(
   modalContent.includes("https://github.com/mostuf2556/subtitle-sync/releases"),

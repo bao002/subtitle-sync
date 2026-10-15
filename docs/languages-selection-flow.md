@@ -28,6 +28,7 @@ The application manages language preferences using a two-tier persistence model:
 ```
 
 ### Video Loading Lifecycle Rules:
+
 1. **Initial Video Load**: When a video with ID `videoId` is loaded:
    - Check `yt_video_settings_<videoId>` for saved language settings.
    - **Saved Settings Exist**: Restore the exact target languages and ordering specifically saved for this video.
@@ -43,6 +44,7 @@ The application manages language preferences using a two-tier persistence model:
 ## 2. Enabled Languages & Favorites Presentation
 
 The UI clearly visualizes the status of all languages:
+
 - **Favorite Languages**: Indicated with a star (⭐) or "Favorite" badge in settings, selector grids, and headers.
 - **Current Video Selection**: Languages currently staged for playback, timedtext caption fetching, and parallel alignment for this video.
 - **Enabled Languages Status Bar**:
@@ -57,19 +59,24 @@ The UI clearly visualizes the status of all languages:
 The Web Speech API voice selection flow is hardened against browser-specific timing issues, duplicate enumerations, and locale code disparities:
 
 ### 3.1. Asynchronous Voice Enumeration & Caching
+
 1. **Dual Event Hooking**: Both `window.speechSynthesis.onvoiceschanged = refresh` and `window.speechSynthesis.addEventListener("voiceschanged", refresh)` are bound to guarantee voice population across Chromium, WebKit, Gecko, and Android WebView.
 2. **Module-Level Voice Cache**: Loaded voices are cached in a persistent reference (`cachedVoices`) so `speak()` calls retain synchronous access to voice objects even before component re-renders complete.
 3. **Periodic Recovery**: An initial check plus delayed recovery timers (e.g., 250ms and 1000ms) ensure voices are detected when browser voice synthesis engines initialize lazily.
 
 ### 3.2. ISO-639 Code Alias Normalization
+
 Android, Java, and Chromium environments frequently utilize legacy or alternate BCP-47 / ISO-639 codes. The matcher normalizes:
+
 - **Hebrew**: `he` ↔ `iw` (e.g., matching `iw-IL` voice to `he-IL` subtitles).
 - **Indonesian**: `id` ↔ `in` (e.g., matching `in-ID` voice to `id-ID` subtitles).
 - **Yiddish**: `yi` ↔ `ji`.
 - **Chinese**: `zh-CN` / `zh-TW` matching with language prefix fallbacks.
 
 ### 3.3. Utterance Voice Assignment & Language Synchronization
+
 When configuring `SpeechSynthesisUtterance`:
+
 ```typescript
 const u = new SpeechSynthesisUtterance(text);
 u.rate = rate; // 0.3 to 1.5 (default 0.5)
@@ -84,6 +91,7 @@ if (chosenVoice) {
 ```
 
 ### 3.4. Persistence
+
 User voice selections are stored per language code in `localStorage` under `yt_tts_voice_selections_v1` and restored automatically on startup.
 
 ---
@@ -101,16 +109,19 @@ User voice selections are stored per language code in `localStorage` under `yt_t
 For environments with missing voice engines, broken Web Speech implementations, or when a consistent external audio stream is desired:
 
 ### 5.1. Service Endpoint
+
 ```
 https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl={lang}&q={text}
 ```
 
 ### 5.2. Operational Modes & Settings Configuration
+
 - **Settings Toggle**: `useAlternativeTtsService` (boolean, **OFF by default**).
 - **Fallback Mode**: When enabled, the alternative service acts as an automatic fallback if native Web Speech fails, rejects the utterance, or has no voices available.
 - **Alternative Primary Option**: Can also be selected as the primary synthesis engine when enabled in Settings.
 
 ### 5.3. Audio Stream Management
+
 - Executed using an HTML5 `Audio` element with dynamic playback rate scaling (`audio.playbackRate = rate`).
 - Clean lifecycle management: cancels preceding streams, unbinds event listeners upon early termination/seek, and reports playback completion.
 
@@ -119,6 +130,7 @@ https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl={lang}&q={text
 ## 6. Verification and Automated Testing
 
 All behaviors are covered by dedicated automated test suites in `scripts/`:
+
 - `scripts/verify-language-selection-and-tts-flow.ts`:
   - Validates default rate 0.5 and range 0.3-1.5.
   - Validates alternative TTS URL builder, default OFF toggle, and fallback mechanics.

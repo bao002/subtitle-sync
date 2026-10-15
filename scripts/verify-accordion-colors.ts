@@ -20,20 +20,10 @@ const indexContent = fs.readFileSync(indexTsxPath, "utf8");
 const panelIds = PANELS.map((p) => p.id);
 console.log(`Checking ${panelIds.length} accordion panel types:`, panelIds.join(", "));
 
-const expectedTypes = [
-  "player",
-  "playback",
-  "parser",
-  "languages",
-  "subtitles",
-  "library",
-];
+const expectedTypes = ["player", "playback", "parser", "languages", "subtitles", "library"];
 
 for (const type of expectedTypes) {
-  assert(
-    panelIds.includes(type as any),
-    `PANELS must include panel type: "${type}"`,
-  );
+  assert(panelIds.includes(type as any), `PANELS must include panel type: "${type}"`);
   const theme = ACCORDION_THEMES[type as keyof typeof ACCORDION_THEMES];
   assert(theme, `ACCORDION_THEMES must define constant theme for "${type}"`);
   assert(
@@ -44,19 +34,17 @@ for (const type of expectedTypes) {
     theme.summaryBg.length > 0,
     `Theme for "${type}" must have constant summaryBg header bar styling`,
   );
-  assert(
-    theme.badgeBg.length > 0,
-    `Theme for "${type}" must have badgeBg styling`,
+  assert(theme.badgeBg.length > 0, `Theme for "${type}" must have badgeBg styling`);
+  assert(theme.tagColor.length > 0, `Theme for "${type}" must have constant tagColor defined`);
+  console.log(
+    `✅ PASS: Constant color for panel "${type}": tag="${theme.tagColor}", border="${theme.borderLeft}"`,
   );
-  assert(
-    theme.tagColor.length > 0,
-    `Theme for "${type}" must have constant tagColor defined`,
-  );
-  console.log(`✅ PASS: Constant color for panel "${type}": tag="${theme.tagColor}", border="${theme.borderLeft}"`);
 }
 
 // Ensure constant colors are distinct per type
-const tagColors = expectedTypes.map((t) => ACCORDION_THEMES[t as keyof typeof ACCORDION_THEMES].tagColor);
+const tagColors = expectedTypes.map(
+  (t) => ACCORDION_THEMES[t as keyof typeof ACCORDION_THEMES].tagColor,
+);
 const uniqueTagColors = new Set(tagColors);
 assert.strictEqual(
   uniqueTagColors.size,
@@ -72,28 +60,30 @@ const accordionContent = fs.existsSync(accordionComponentPath)
   : indexContent;
 
 assert(
-  accordionContent.includes('data-accordion-type={id}'),
+  accordionContent.includes("data-accordion-type={id}"),
   "AccordionSection must set data-accordion-type attribute",
 );
 assert(
-  accordionContent.includes('data-accordion-color={theme.tagColor}'),
+  accordionContent.includes("data-accordion-color={theme.tagColor}"),
   "AccordionSection must set data-accordion-color attribute",
 );
 assert(
-  accordionContent.includes('data-testid={`accordion-bar-${id}`}'),
+  accordionContent.includes("data-testid={`accordion-bar-${id}`}"),
   "AccordionSection must expose accordion-bar testid",
 );
 assert(
-  accordionContent.includes('data-testid={`accordion-color-badge-${id}`}'),
+  accordionContent.includes("data-testid={`accordion-color-badge-${id}`}"),
   "AccordionSection must expose accordion-color-badge testid",
 );
 // Assert that textual color names (e.g. "{theme.tagColor}") are NOT rendered in header
 assert(
-  !indexContent.includes('>{theme.tagColor}<'),
+  !indexContent.includes(">{theme.tagColor}<"),
   "Textual color names must NOT be rendered in accordion headers",
 );
 console.log("✅ PASS: Textual color names are removed from accordion bar headers");
-console.log("✅ PASS: AccordionSection component binds constant color theme, attributes, and testids");
+console.log(
+  "✅ PASS: AccordionSection component binds constant color theme, attributes, and testids",
+);
 
 console.log("====================================================");
 console.log("📊 ACCORDION COLORS TEST: All assertions passed successfully!");

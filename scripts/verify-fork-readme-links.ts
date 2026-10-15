@@ -96,7 +96,9 @@ try {
     forkedReadme.includes("raw.githubusercontent.com/test-fork-user/subtitle-sync/"),
     "Fork update must update raw.githubusercontent.com curl script URLs",
   );
-  console.log("✅ PASS: scripts/update-readme.mjs cleanly synchronizes forked repository identities");
+  console.log(
+    "✅ PASS: scripts/update-readme.mjs cleanly synchronizes forked repository identities",
+  );
 } finally {
   // Restore original repository identity
   fs.writeFileSync(readmePath, originalReadme, "utf8");

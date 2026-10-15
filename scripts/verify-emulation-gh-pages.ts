@@ -126,7 +126,10 @@ let parsedWorkflow: unknown;
 assert.doesNotThrow(() => {
   parsedWorkflow = jsYaml.load(workflowContent);
 }, "emulation.yml must be valid YAML parseable by js-yaml");
-assert(parsedWorkflow && typeof parsedWorkflow === "object", "emulation.yml must parse to an object");
+assert(
+  parsedWorkflow && typeof parsedWorkflow === "object",
+  "emulation.yml must parse to an object",
+);
 console.log("✅ PASS: emulation.yml syntax is 100% valid YAML verified by js-yaml");
 
 // 2. Verify .gitignore ignores ephemeral emulator artifacts

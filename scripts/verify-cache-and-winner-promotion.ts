@@ -79,11 +79,20 @@ console.log("\n1. Verifying docs/cache.md documentation...");
 const cacheDocPath = path.join(rootDir, "docs", "cache.md");
 assert.ok(fs.existsSync(cacheDocPath), "docs/cache.md must exist under docs/");
 const cacheDocContent = fs.readFileSync(cacheDocPath, "utf-8");
-assert.ok(cacheDocContent.includes("Multi-Tier Cache Hierarchy"), "Must detail multi-tier caching hierarchy");
+assert.ok(
+  cacheDocContent.includes("Multi-Tier Cache Hierarchy"),
+  "Must detail multi-tier caching hierarchy",
+);
 assert.ok(cacheDocContent.includes("isValidJsonSubtitleResponse"), "Must detail validation gate");
-assert.ok(cacheDocContent.includes("Shared Video Persistence"), "Must detail shared video persistence");
+assert.ok(
+  cacheDocContent.includes("Shared Video Persistence"),
+  "Must detail shared video persistence",
+);
 assert.ok(cacheDocContent.includes("Cache Hydration"), "Must detail cache hydration workflow");
-assert.ok(cacheDocContent.includes("yt_subtitles_raw_"), "Must document raw JSON3 storage key namespace");
+assert.ok(
+  cacheDocContent.includes("yt_subtitles_raw_"),
+  "Must document raw JSON3 storage key namespace",
+);
 console.log("✅ PASS: docs/cache.md contains complete cache and persistence documentation");
 
 // -------------------------------------------------------------
@@ -135,7 +144,9 @@ assert.strictEqual(stats.modeCounts.tlang, 2, "tlang count must be 2");
 assert.strictEqual(stats.modeCounts.lang, 1, "lang count must be 1");
 assert.strictEqual(stats.sendCounts.session, 2, "session count must be 2");
 assert.strictEqual(stats.sendCounts.anon, 1, "anon count must be 1");
-console.log("✅ PASS: Winner Promotion records and aggregates statistics accurately across all past videos");
+console.log(
+  "✅ PASS: Winner Promotion records and aggregates statistics accurately across all past videos",
+);
 
 // -------------------------------------------------------------
 // Test 3: Video Library Persistence & Shared Video Ingestion
@@ -151,11 +162,21 @@ const updatedLib = recordVideoWatch({
   title: "Shared Test Video",
 });
 
-assert.ok(updatedLib.some((item) => item.id === "shared_vid_123"), "Shared video must be stored in library");
-assert.strictEqual(updatedLib[0].id, "shared_vid_123", "Most recently watched video must be at index 0");
+assert.ok(
+  updatedLib.some((item) => item.id === "shared_vid_123"),
+  "Shared video must be stored in library",
+);
+assert.strictEqual(
+  updatedLib[0].id,
+  "shared_vid_123",
+  "Most recently watched video must be at index 0",
+);
 
 const loaded = loadVideoLibrary();
-assert.ok(loaded.some((item) => item.id === "shared_vid_123"), "Loaded library must include shared video");
+assert.ok(
+  loaded.some((item) => item.id === "shared_vid_123"),
+  "Loaded library must include shared video",
+);
 
 // Check event dispatch
 assert.ok(
@@ -165,7 +186,10 @@ assert.ok(
 
 // Remove video
 const afterRemove = removeVideoFromLibrary("shared_vid_123");
-assert.ok(!afterRemove.some((item) => item.id === "shared_vid_123"), "Removed video must no longer be in library");
+assert.ok(
+  !afterRemove.some((item) => item.id === "shared_vid_123"),
+  "Removed video must no longer be in library",
+);
 console.log("✅ PASS: Shared video library persistence and reactive updates verified");
 
 // -------------------------------------------------------------
@@ -175,12 +199,24 @@ console.log("\n4. Verifying Subtitle Cache Validation Gate & Hydration...");
 
 // 4a. Reject HTML error payloads
 const htmlErrorPayload = "<html><body><p>403 Forbidden</p></body></html>";
-assert.strictEqual(isValidJsonSubtitleResponse(htmlErrorPayload), false, "HTML error response must be rejected");
+assert.strictEqual(
+  isValidJsonSubtitleResponse(htmlErrorPayload),
+  false,
+  "HTML error response must be rejected",
+);
 
 // 4b. Reject empty events or non-json
 assert.strictEqual(isValidJsonSubtitleResponse(""), false, "Empty string must be rejected");
-assert.strictEqual(isValidJsonSubtitleResponse("{'malformed': true}"), false, "Malformed JSON must be rejected");
-assert.strictEqual(isValidJsonSubtitleResponse('{"events": []}'), false, "Empty events array must be rejected");
+assert.strictEqual(
+  isValidJsonSubtitleResponse("{'malformed': true}"),
+  false,
+  "Malformed JSON must be rejected",
+);
+assert.strictEqual(
+  isValidJsonSubtitleResponse('{"events": []}'),
+  false,
+  "Empty events array must be rejected",
+);
 
 // 4c. Accept valid JSON3 schema
 const sampleJson3 = JSON.stringify({
@@ -192,7 +228,11 @@ const sampleJson3 = JSON.stringify({
     },
   ],
 });
-assert.strictEqual(isValidJsonSubtitleResponse(sampleJson3), true, "Valid JSON3 with events must be accepted");
+assert.strictEqual(
+  isValidJsonSubtitleResponse(sampleJson3),
+  true,
+  "Valid JSON3 with events must be accepted",
+);
 
 // 4d. Save raw JSON3
 const saved = saveCachedRawJson3("vid_test_xyz", "he", sampleJson3);
@@ -208,7 +248,11 @@ assert.ok(cachedLangs.includes("he"), "getAllCachedTargetLanguages must list 'he
 
 // 4g. Clear cache for specific video
 clearVideoSubtitleCache("vid_test_xyz");
-assert.strictEqual(getCachedRawJson3("vid_test_xyz", "he"), null, "Cache must be purged after clearVideoSubtitleCache");
+assert.strictEqual(
+  getCachedRawJson3("vid_test_xyz", "he"),
+  null,
+  "Cache must be purged after clearVideoSubtitleCache",
+);
 console.log("✅ PASS: Subtitle cache validation gate, raw storage, and granular eviction verified");
 
 console.log("\n==================================================================");

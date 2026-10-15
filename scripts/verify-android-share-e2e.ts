@@ -95,7 +95,8 @@ const youtubeAppPayloads = [
   },
   {
     label: "Official YouTube app share with title, description, and link",
-    input: "Amazing Physics Simulation\nCheck it out here:\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share",
+    input:
+      "Amazing Physics Simulation\nCheck it out here:\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ&feature=share",
     expectedId: "dQw4w9WgXcQ",
   },
   {
@@ -157,10 +158,15 @@ assert(
   manifestContent.includes('android:launchMode="singleTask"'),
   "AndroidManifest.xml must specify singleTask launchMode to reuse active activity",
 );
-console.log("✅ PASS: AndroidManifest.xml correctly configures singleTask, ACTION_VIEW & ACTION_SEND filters");
+console.log(
+  "✅ PASS: AndroidManifest.xml correctly configures singleTask, ACTION_VIEW & ACTION_SEND filters",
+);
 
 // 3.2 MainActivity.kt
-const mainActivityPath = path.resolve(rootDir, "android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt");
+const mainActivityPath = path.resolve(
+  rootDir,
+  "android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt",
+);
 assert(fs.existsSync(mainActivityPath), "MainActivity.kt must exist");
 const activityContent = fs.readFileSync(mainActivityPath, "utf8");
 
@@ -184,7 +190,9 @@ assert(
   activityContent.includes("window.onNativeSharedLinkReceived"),
   "MainActivity.kt must call window.onNativeSharedLinkReceived in WebView",
 );
-console.log("✅ PASS: MainActivity.kt implements onNewIntent, extractSharedText & JS bridge dispatch");
+console.log(
+  "✅ PASS: MainActivity.kt implements onNewIntent, extractSharedText & JS bridge dispatch",
+);
 
 // ============================================================================
 // PART 4: React App State Transition & Captions Ingestion for Shared Video
@@ -205,11 +213,13 @@ assert(
 );
 assert(
   indexContent.includes("setTracks(null)") &&
-    indexContent.includes("setObservedUrl(\"\")") &&
+    indexContent.includes('setObservedUrl("")') &&
     indexContent.includes("setDefaultCaptionsLoaded(false)"),
   "src/routes/index.tsx must cleanly reset tracks & captions when shared video ID changes",
 );
-console.log("✅ PASS: React application cleanly binds onNativeSharedLinkReceived and resets tracks on switch");
+console.log(
+  "✅ PASS: React application cleanly binds onNativeSharedLinkReceived and resets tracks on switch",
+);
 
 // 4.1 Simulate Caption Decoding and Alignment for Newly Shared Video
 const sharedVideoId = "dQw4w9WgXcQ";
@@ -238,7 +248,9 @@ const mockTracks: Record<string, Json3> = { en: parsedSharedJson };
 const alignedShared = align(mockTracks, "en", "sentence");
 assert.strictEqual(alignedShared.length, 2);
 assert(alignedShared[0].texts["en"].includes("no strangers to love"));
-console.log(`✅ PASS: Shared video subtitle ingestion and alignment verified (${alignedShared.length} rows)`);
+console.log(
+  `✅ PASS: Shared video subtitle ingestion and alignment verified (${alignedShared.length} rows)`,
+);
 
 console.log("\n====================================================");
 console.log("🎉 ALL ANDROID YOUTUBE SHARE INTENT E2E CHECKS PASSED!");

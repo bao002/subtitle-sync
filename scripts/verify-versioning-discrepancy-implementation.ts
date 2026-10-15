@@ -18,7 +18,7 @@ console.log("===================================================================
 console.log("--> [Check 1] Verifying MainActivity.kt Native Android Safeguards...");
 const mainActivityPath = path.resolve(
   process.cwd(),
-  "android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt"
+  "android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt",
 );
 const mainActivityContent = fs.readFileSync(mainActivityPath, "utf-8");
 
@@ -98,7 +98,9 @@ for (const el of requiredModalElements) {
     process.exit(1);
   }
 }
-console.log("✅ PASS: Dual-version presentation and 'Reset to Bundled Assets' UI controls verified.");
+console.log(
+  "✅ PASS: Dual-version presentation and 'Reset to Bundled Assets' UI controls verified.",
+);
 
 console.log("=========================================================================");
 console.log("🎉 ALL VERSIONING DISCREPANCY IMPLEMENTATION CHECKS PASSED!");

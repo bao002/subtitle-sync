@@ -131,7 +131,7 @@ console.log("--> [Check 6] Simulating Version Discrepancy Detection Logic...");
 function evaluateVersionDiscrepancy(
   apkVersion: string,
   webVersion: string,
-  otaTag: string | null
+  otaTag: string | null,
 ): { isDiscrepancy: boolean; isOtaActive: boolean; isStaleOtaCache: boolean } {
   const isOtaActive = Boolean(otaTag);
   const cleanApk = apkVersion.replace(/^v/, "");

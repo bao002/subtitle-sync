@@ -51,7 +51,8 @@ try {
 
   // --- Test 2: Simulate Failure Status & Copy-Paste AI Error Prompt ---
   console.log("--> [Test 2] Simulating CI failure status and AI error prompt generation...");
-  const mockFailureMessage = "TypeError: Cannot read properties of undefined (reading 'events') at fetchSubtitles";
+  const mockFailureMessage =
+    "TypeError: Cannot read properties of undefined (reading 'events') at fetchSubtitles";
   execSync(`node scripts/update-readme.mjs mostuf25561 subtitle-sync`, {
     env: {
       ...process.env,
@@ -89,18 +90,31 @@ try {
     failureReadme.includes("https://github.com/mostuf25561/subtitle-sync/actions/runs/99887766"),
     "Failure mode must include direct link to the failing run",
   );
-  console.log("✅ PASS: Failure indicator and copy-pasteable AI fix prompt validated in README.md.");
+  console.log(
+    "✅ PASS: Failure indicator and copy-pasteable AI fix prompt validated in README.md.",
+  );
 
   // --- Test 3: Verify GitHub Actions Workflow Triggers ---
-  console.log("--> [Test 3] Verifying .github/workflows/update-readme.yml triggers and sync step...");
+  console.log(
+    "--> [Test 3] Verifying .github/workflows/update-readme.yml triggers and sync step...",
+  );
   const workflowPath = path.resolve(rootDir, ".github/workflows/update-readme.yml");
   assert(fs.existsSync(workflowPath), ".github/workflows/update-readme.yml must exist");
   const workflowContent = fs.readFileSync(workflowPath, "utf-8");
 
-  assert(workflowContent.includes("workflow_run:"), "update-readme.yml must trigger on workflow_run");
-  assert(workflowContent.includes("Android Emulator E2E Tests"), "Must trigger after Android Emulator E2E Tests");
+  assert(
+    workflowContent.includes("workflow_run:"),
+    "update-readme.yml must trigger on workflow_run",
+  );
+  assert(
+    workflowContent.includes("Android Emulator E2E Tests"),
+    "Must trigger after Android Emulator E2E Tests",
+  );
   assert(workflowContent.includes("Web E2E Tests"), "Must trigger after Web E2E Tests");
-  assert(workflowContent.includes("node scripts/update-readme.mjs"), "Must execute update-readme.mjs");
+  assert(
+    workflowContent.includes("node scripts/update-readme.mjs"),
+    "Must execute update-readme.mjs",
+  );
   assert(workflowContent.includes("git commit -m"), "Must commit updated README back to branch");
 
   console.log("✅ PASS: update-readme.yml workflow triggers and automated commit step validated.");
@@ -133,7 +147,8 @@ try {
 
   // --- Test 5: Verify Active Broken Link Detection & Reporting ---
   console.log("--> [Test 5] Verifying active broken link detection and automatic reporting...");
-  const tempReadmeWithBrokenLink = originalReadme + "\n\n[Broken Link Test](./non-existent-doc-12345.md)\n";
+  const tempReadmeWithBrokenLink =
+    originalReadme + "\n\n[Broken Link Test](./non-existent-doc-12345.md)\n";
   fs.writeFileSync(readmePath, tempReadmeWithBrokenLink, "utf-8");
 
   execSync(`node scripts/update-readme.mjs mostuf25561 subtitle-sync`, {
@@ -154,7 +169,9 @@ try {
     "Failure section must explicitly name the missing target file",
   );
   assert(
-    brokenLinkReadme.includes("# AI FIX PROMPT: CI Failure in README Link Integrity & Documentation Check"),
+    brokenLinkReadme.includes(
+      "# AI FIX PROMPT: CI Failure in README Link Integrity & Documentation Check",
+    ),
     "Must generate specific AI fix prompt for broken link integrity check",
   );
   console.log("✅ PASS: Active broken link detection and detailed reporting validated.");

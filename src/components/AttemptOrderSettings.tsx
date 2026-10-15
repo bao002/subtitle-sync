@@ -162,9 +162,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
             id="fetch-strategy-mode-select"
             data-testid="fetch-strategy-mode-select"
             value={activeStrategyConfig.mode}
-            onChange={(e) =>
-              handleUpdateConfig({ mode: e.target.value as FetchStrategyMode })
-            }
+            onChange={(e) => handleUpdateConfig({ mode: e.target.value as FetchStrategyMode })}
             className="rounded border border-input bg-card px-2.5 py-1 text-xs font-medium text-foreground focus:ring-1 focus:ring-primary"
           >
             <option value="ordered">Ordered Fallback (Deterministic 1→4)</option>
@@ -181,9 +179,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
               id="strategy-toggle-server-alternate"
               data-testid="strategy-toggle-server-alternate"
               checked={activeStrategyConfig.useServerAlternate}
-              onChange={(e) =>
-                handleUpdateConfig({ useServerAlternate: e.target.checked })
-              }
+              onChange={(e) => handleUpdateConfig({ useServerAlternate: e.target.checked })}
               className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
             />
             <span className="text-foreground">server:alternate</span>
@@ -195,9 +191,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
               id="strategy-toggle-session"
               data-testid="strategy-toggle-session"
               checked={activeStrategyConfig.allowSession}
-              onChange={(e) =>
-                handleUpdateConfig({ allowSession: e.target.checked })
-              }
+              onChange={(e) => handleUpdateConfig({ allowSession: e.target.checked })}
               className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
             />
             <span className="text-foreground">session:yes/no</span>
@@ -209,9 +203,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
               id="strategy-toggle-anon"
               data-testid="strategy-toggle-anon"
               checked={activeStrategyConfig.allowAnon}
-              onChange={(e) =>
-                handleUpdateConfig({ allowAnon: e.target.checked })
-              }
+              onChange={(e) => handleUpdateConfig({ allowAnon: e.target.checked })}
               className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
             />
             <span className="text-foreground">anon (link-only)</span>
@@ -223,9 +215,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
               id="strategy-toggle-tlang"
               data-testid="strategy-toggle-tlang"
               checked={activeStrategyConfig.allowTlang}
-              onChange={(e) =>
-                handleUpdateConfig({ allowTlang: e.target.checked })
-              }
+              onChange={(e) => handleUpdateConfig({ allowTlang: e.target.checked })}
               className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
             />
             <span className="text-foreground">tlang:on/off</span>
@@ -237,9 +227,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
               id="strategy-toggle-lang"
               data-testid="strategy-toggle-lang"
               checked={activeStrategyConfig.allowLang}
-              onChange={(e) =>
-                handleUpdateConfig({ allowLang: e.target.checked })
-              }
+              onChange={(e) => handleUpdateConfig({ allowLang: e.target.checked })}
               className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
             />
             <span className="text-foreground">lang:on/off</span>
@@ -279,9 +267,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
         <div className="text-[11px] font-semibold text-foreground flex items-center justify-between">
           <span>Priority Sequence (Drag or toggle attempts)</span>
           <span className="text-[10px] text-muted-foreground font-normal">
-            {activeStrategyConfig.mode === "random"
-              ? "Randomized per fetch"
-              : "Executed in order"}
+            {activeStrategyConfig.mode === "random" ? "Randomized per fetch" : "Executed in order"}
           </span>
         </div>
 
@@ -417,16 +403,25 @@ export const AttemptOrderSettings: React.FC<Props> = ({
         {showExplanation && (
           <div className="space-y-1.5 pt-1 text-[10.5px] leading-relaxed">
             <p>
-              <strong className="text-foreground">Window Frame Rate Limiting:</strong> Enforces a strict minimum of {activeStrategyConfig.windowSeconds}s between any two YouTube subtitle fetches. Multiple clicks or simultaneous language additions are serialized, never hitting YouTube API concurrently.
+              <strong className="text-foreground">Window Frame Rate Limiting:</strong> Enforces a
+              strict minimum of {activeStrategyConfig.windowSeconds}s between any two YouTube
+              subtitle fetches. Multiple clicks or simultaneous language additions are serialized,
+              never hitting YouTube API concurrently.
             </p>
             <p>
-              <strong className="text-foreground">First-Random Strategy:</strong> Shuffles attempt order randomly per request. Bypasses repetitive bot fingerprinting patterns when scraping or fetching multiple tracks.
+              <strong className="text-foreground">First-Random Strategy:</strong> Shuffles attempt
+              order randomly per request. Bypasses repetitive bot fingerprinting patterns when
+              scraping or fetching multiple tracks.
             </p>
             <p>
-              <strong className="text-foreground">Server Alternate:</strong> Distributes requests between local Android WebView (with session cookies) and external server proxy, preventing IP-level rate limits.
+              <strong className="text-foreground">Server Alternate:</strong> Distributes requests
+              between local Android WebView (with session cookies) and external server proxy,
+              preventing IP-level rate limits.
             </p>
             <p>
-              <strong className="text-foreground">Session vs Anon:</strong> Session uses embedded player cookies/tokens for private tracks; anon uses bare links for public caption streams.
+              <strong className="text-foreground">Session vs Anon:</strong> Session uses embedded
+              player cookies/tokens for private tracks; anon uses bare links for public caption
+              streams.
             </p>
           </div>
         )}

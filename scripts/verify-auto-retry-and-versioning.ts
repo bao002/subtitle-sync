@@ -42,10 +42,13 @@ assert(
   "docs/auto-retry.md must detail exponential backoff and cooling periods",
 );
 assert(
-  autoRetryDoc.includes("Lifecycle Management") || autoRetryDoc.includes("Video Navigation Invalidation"),
+  autoRetryDoc.includes("Lifecycle Management") ||
+    autoRetryDoc.includes("Video Navigation Invalidation"),
   "docs/auto-retry.md must cover request cancellation upon video change or language removal",
 );
-console.log("✅ PASS: docs/auto-retry.md comprehensively covers all anti-abuse and retry specifications.");
+console.log(
+  "✅ PASS: docs/auto-retry.md comprehensively covers all anti-abuse and retry specifications.",
+);
 
 // --- Step 2: Verify docs/versioning.md ---
 console.log("--> [Step 2] Verifying docs/versioning.md content and update troubleshooting...");
@@ -78,7 +81,9 @@ assert(
   versioningDoc.includes("Deep Purge") && versioningDoc.includes("pm uninstall"),
   "docs/versioning.md must document automated deep purge and recovery steps",
 );
-console.log("✅ PASS: docs/versioning.md provides complete upgrade and collision recovery documentation.");
+console.log(
+  "✅ PASS: docs/versioning.md provides complete upgrade and collision recovery documentation.",
+);
 
 // --- Step 3: Verify Subtitle Request Queue Logic ---
 console.log("--> [Step 3] Testing SubtitleRequestQueue unit behaviors...");
@@ -103,7 +108,10 @@ async function testSubtitleQueue() {
       return true;
     },
   });
-  assert(enResult === true && !enExecuted, "Enqueuing an already succeeded language must return true without executing");
+  assert(
+    enResult === true && !enExecuted,
+    "Enqueuing an already succeeded language must return true without executing",
+  );
 
   // 3. Queue multiple tasks and verify strict sequential execution (Concurrency = 1)
   let activeExecutions = 0;
@@ -160,7 +168,9 @@ async function testSubtitleQueue() {
 }
 
 await testSubtitleQueue();
-console.log("✅ PASS: SubtitleRequestQueue guarantees concurrency = 1, selective filtering, and context scoping.");
+console.log(
+  "✅ PASS: SubtitleRequestQueue guarantees concurrency = 1, selective filtering, and context scoping.",
+);
 
 // --- Step 4: Verify Android Native Shell Version Bridge & Build Gradle ---
 console.log("--> [Step 4] Verifying native version bridge and build.gradle.kts configuration...");
@@ -217,7 +227,9 @@ assert(
     installShContent.includes("signatures do not match"),
   "install-apk.sh must check INSTALL_FAILED_ALREADY_EXISTS and signatures do not match",
 );
-console.log("✅ PASS: Shell update scripts handle all collision scenarios with automated deep purge.");
+console.log(
+  "✅ PASS: Shell update scripts handle all collision scenarios with automated deep purge.",
+);
 
 // --- Step 6: Zero Duplicate MD Files Check ---
 console.log("--> [Step 6] Verifying zero duplicate markdown files policy...");

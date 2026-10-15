@@ -98,7 +98,11 @@ export function VideoPlayground({
       .map((ev, idx) => ({
         id: idx,
         startMs: ev.tStartMs || 0,
-        text: ev.segs?.map((s) => s.utf8).join("").trim() || "",
+        text:
+          ev.segs
+            ?.map((s) => s.utf8)
+            .join("")
+            .trim() || "",
       }));
   }, [previewTrackLang, detectedTracks]);
 
@@ -163,18 +167,21 @@ export function VideoPlayground({
                 Why use Playground to discover and switch subtitles?
               </p>
               <p>
-                In the regular Parallel Viewer, the player is actively controlled by interval timers,
-                auto-pause loops, and audio speech coordination. This can make it tricky to open the
-                player menu and switch subtitle tracks.
+                In the regular Parallel Viewer, the player is actively controlled by interval
+                timers, auto-pause loops, and audio speech coordination. This can make it tricky to
+                open the player menu and switch subtitle tracks.
               </p>
               <p className="pt-1">
-                <span className="font-semibold text-foreground">Quick Instructions:</span>
-                {" "}1. Start the video below &nbsp;·&nbsp;
-                2. Click the <span className="font-semibold text-foreground">CC</span> button or{" "}
-                <span className="font-semibold text-foreground">Settings ⚙️ &rarr; Subtitles/CC</span> in the YouTube player &nbsp;·&nbsp;
-                3. Choose any language &nbsp;·&nbsp;
-                4. The app intercepts YouTube&apos;s subtitle request and displays it in the{" "}
-                <span className="font-semibold text-foreground">Detected Subtitles</span> panel below with 1-click import!
+                <span className="font-semibold text-foreground">Quick Instructions:</span> 1. Start
+                the video below &nbsp;·&nbsp; 2. Click the{" "}
+                <span className="font-semibold text-foreground">CC</span> button or{" "}
+                <span className="font-semibold text-foreground">
+                  Settings ⚙️ &rarr; Subtitles/CC
+                </span>{" "}
+                in the YouTube player &nbsp;·&nbsp; 3. Choose any language &nbsp;·&nbsp; 4. The app
+                intercepts YouTube&apos;s subtitle request and displays it in the{" "}
+                <span className="font-semibold text-foreground">Detected Subtitles</span> panel
+                below with 1-click import!
               </p>
             </div>
           </div>
@@ -244,8 +251,12 @@ export function VideoPlayground({
             />
           </div>
           <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
-            <span>Video ID: <strong className="font-mono text-foreground">{videoId}</strong></span>
-            <span>{isAndroid ? "Android Native Bridge Interceptor" : "Web Captions Interceptor"}</span>
+            <span>
+              Video ID: <strong className="font-mono text-foreground">{videoId}</strong>
+            </span>
+            <span>
+              {isAndroid ? "Android Native Bridge Interceptor" : "Web Captions Interceptor"}
+            </span>
           </div>
         </div>
 
@@ -275,7 +286,8 @@ export function VideoPlayground({
                 <Subtitles className="h-8 w-8 mx-auto opacity-40" />
                 <p className="font-medium text-foreground">No subtitle switch captured yet</p>
                 <p>
-                  Click the <strong>CC</strong> icon or <strong>Settings &rarr; Subtitles</strong> on the video player to activate or switch caption tracks.
+                  Click the <strong>CC</strong> icon or <strong>Settings &rarr; Subtitles</strong>{" "}
+                  on the video player to activate or switch caption tracks.
                 </p>
                 {observedUrl && (
                   <p className="pt-2 text-[11px] text-muted-foreground/80 font-mono truncate max-w-xs mx-auto">
@@ -293,7 +305,9 @@ export function VideoPlayground({
                   const isAlreadyInViewer = existingTrackLanguages.includes(track.lang);
                   const isJustImported = justImportedLang === track.lang;
                   const langMeta = LANGS.find((l) => l.code === track.lang);
-                  const displayName = langMeta ? `${langMeta.name} (${track.lang})` : track.langName || track.lang;
+                  const displayName = langMeta
+                    ? `${langMeta.name} (${track.lang})`
+                    : track.langName || track.lang;
 
                   return (
                     <div
@@ -310,7 +324,11 @@ export function VideoPlayground({
                           </span>
                         </div>
                         <span className="text-[10px] text-muted-foreground font-mono">
-                          {new Date(track.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                          {new Date(track.timestamp).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            second: "2-digit",
+                          })}
                         </span>
                       </div>
 
@@ -371,7 +389,9 @@ export function VideoPlayground({
                             First Sample Cues:
                           </div>
                           {previewCues.length === 0 ? (
-                            <p className="text-muted-foreground italic">No text cues found in payload.</p>
+                            <p className="text-muted-foreground italic">
+                              No text cues found in payload.
+                            </p>
                           ) : (
                             previewCues.map((c) => (
                               <div key={c.id} className="flex items-baseline gap-2">

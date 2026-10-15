@@ -222,7 +222,10 @@ assert(customWindowSections.length > 0, "Custom inner group settings must produc
 const sentenceGroupSettingSections = criteriaSections(testTracks, "en", ["sentence"], {
   sentence: { includeCommas: true, minWords: 1 },
 });
-assert(sentenceGroupSettingSections.length > 0, "Sentence inner settings must produce valid sections");
+assert(
+  sentenceGroupSettingSections.length > 0,
+  "Sentence inner settings must produce valid sections",
+);
 console.log("✅ PASS: Inner group settings effectively customize section cutting");
 
 // 10. Verify no BiDi character direction bleeding in criteria descriptions

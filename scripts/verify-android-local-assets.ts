@@ -72,7 +72,10 @@ assert(
 );
 const syncScriptPath = path.join(rootDir, "scripts/sync-android-assets.mjs");
 assert(fs.existsSync(syncScriptPath), "Android asset synchronization script must exist");
-assert(fs.existsSync(path.join(rootDir, "dist/index.html")), "Run npm run build before checking Android assets");
+assert(
+  fs.existsSync(path.join(rootDir, "dist/index.html")),
+  "Run npm run build before checking Android assets",
+);
 fs.mkdirSync(assetsDir, { recursive: true });
 const staleAssetPath = path.join(assetsDir, "stale-build-marker.txt");
 fs.writeFileSync(staleAssetPath, "stale");

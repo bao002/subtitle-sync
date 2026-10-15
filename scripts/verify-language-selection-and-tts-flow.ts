@@ -62,31 +62,19 @@ assert.strictEqual(
   true,
   "iw-IL (legacy Android Hebrew) should match target language he",
 );
-assert.strictEqual(
-  matchesLanguageCode("he-IL", "he"),
-  true,
-  "he-IL should match he",
-);
+assert.strictEqual(matchesLanguageCode("he-IL", "he"), true, "he-IL should match he");
 assert.strictEqual(
   matchesLanguageCode("in-ID", "id"),
   true,
   "in-ID (legacy Android Indonesian) should match target language id",
 );
-assert.strictEqual(
-  matchesLanguageCode("en-US", "en"),
-  true,
-  "en-US should match en",
-);
+assert.strictEqual(matchesLanguageCode("en-US", "en"), true, "en-US should match en");
 assert.strictEqual(
   matchesLanguageCode("en_GB", "en"),
   true,
   "en_GB with underscore should match en",
 );
-assert.strictEqual(
-  matchesLanguageCode("fr-FR", "he"),
-  false,
-  "fr-FR should not match he",
-);
+assert.strictEqual(matchesLanguageCode("fr-FR", "he"), false, "fr-FR should not match he");
 
 const testVoices = [
   { voiceURI: "v1", name: "Hebrew Voice", lang: "iw-IL" },
@@ -124,17 +112,18 @@ assert.strictEqual(
 );
 
 const hebrewUrl = buildGoogleTranslateTtsUrl("שלום", "iw-IL");
-assert(
-  hebrewUrl.includes("tl=he"),
-  "Alternative TTS URL should normalize iw-IL to tl=he",
-);
+assert(hebrewUrl.includes("tl=he"), "Alternative TTS URL should normalize iw-IL to tl=he");
 
 // Verify default is OFF
 setUseAlternativeTts(false);
 assert.strictEqual(getUseAlternativeTts(), false, "Alternative TTS must be turned OFF by default");
 
 setUseAlternativeTts(true);
-assert.strictEqual(getUseAlternativeTts(), true, "setUseAlternativeTts(true) should enable alternative TTS");
+assert.strictEqual(
+  getUseAlternativeTts(),
+  true,
+  "setUseAlternativeTts(true) should enable alternative TTS",
+);
 
 setAlternativeTtsMode("always");
 assert.strictEqual(getAlternativeTtsMode(), "always", "setAlternativeTtsMode should persist mode");
@@ -164,10 +153,7 @@ assert(
   routesFile.includes("rates[lang.code] ?? 0.5"),
   "TTS rate default fallback must be 0.5 in index.tsx",
 );
-assert(
-  routesFile.includes("[lang.code, 0.5]"),
-  "TTS initial rates state must use default 0.5",
-);
+assert(routesFile.includes("[lang.code, 0.5]"), "TTS initial rates state must use default 0.5");
 
 console.log("✅ PASS: TTS speed rate 0.3-1.5 range and default 0.5 verified.");
 
@@ -179,12 +165,19 @@ console.log("--> [Check 4] Verifying Favorite Languages & Per-Video Persistence.
 const initialFavs = ["he", "it"];
 setFavoriteLanguages(initialFavs);
 const loadedFavs = getFavoriteLanguages();
-assert.deepStrictEqual(loadedFavs, initialFavs, "getFavoriteLanguages should retrieve stored favorites");
+assert.deepStrictEqual(
+  loadedFavs,
+  initialFavs,
+  "getFavoriteLanguages should retrieve stored favorites",
+);
 
 // Video 1: Custom target languages
 const testVideo1 = "vid_alpha_123";
 saveVideoSettings(testVideo1, {
-  targetLanguages: [{ code: "fr", name: "French" }, { code: "es", name: "Spanish" }] as any,
+  targetLanguages: [
+    { code: "fr", name: "French" },
+    { code: "es", name: "Spanish" },
+  ] as any,
 });
 
 const video1Settings = getVideoSettings(testVideo1);
@@ -194,7 +187,11 @@ assert.strictEqual(video1Settings?.targetLanguages?.[0].code, "fr");
 // Video 2: Has no saved settings, so it should fallback to global favorite languages
 const testVideo2 = "vid_beta_456";
 deleteVideoSettings(testVideo2);
-assert.strictEqual(getVideoSettings(testVideo2), null, "Unvisited video has null settings initially");
+assert.strictEqual(
+  getVideoSettings(testVideo2),
+  null,
+  "Unvisited video has null settings initially",
+);
 
 // Clean up
 deleteVideoSettings(testVideo1);
@@ -224,7 +221,10 @@ assert(
   "LanguageBoxesSelector must receive favoriteLanguages prop",
 );
 
-const selectorFile = fs.readFileSync(path.resolve(process.cwd(), "src/components/LanguageBoxesSelector.tsx"), "utf-8");
+const selectorFile = fs.readFileSync(
+  path.resolve(process.cwd(), "src/components/LanguageBoxesSelector.tsx"),
+  "utf-8",
+);
 assert(
   selectorFile.includes("favoriteLanguages"),
   "LanguageBoxesSelector.tsx must accept and process favoriteLanguages prop",
@@ -241,7 +241,10 @@ const docPath = path.resolve(process.cwd(), "docs/languages-selection-flow.md");
 assert(fs.existsSync(docPath), "docs/languages-selection-flow.md must exist under docs/*.md");
 
 const docContent = fs.readFileSync(docPath, "utf-8");
-assert(docContent.includes("Dual Persistence Hierarchy"), "Doc must explain Dual Persistence Hierarchy");
+assert(
+  docContent.includes("Dual Persistence Hierarchy"),
+  "Doc must explain Dual Persistence Hierarchy",
+);
 assert(docContent.includes("Alternative TTS Service"), "Doc must specify Alternative TTS Service");
 assert(docContent.includes("0.3"), "Doc must specify 0.3 min rate");
 assert(docContent.includes("1.5"), "Doc must specify 1.5 max rate");

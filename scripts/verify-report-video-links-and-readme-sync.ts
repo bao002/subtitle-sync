@@ -15,7 +15,10 @@ const readmePath = path.resolve(rootDir, "README.md");
 const updateReadmeWorkflowPath = path.resolve(rootDir, ".github/workflows/update-readme.yml");
 const integrityWorkflowPath = path.resolve(rootDir, ".github/workflows/integrity.yml");
 
-const reportVideoFlowWorkflowPath = path.resolve(rootDir, ".github/workflows/report-video-flow.yml");
+const reportVideoFlowWorkflowPath = path.resolve(
+  rootDir,
+  ".github/workflows/report-video-flow.yml",
+);
 
 // 1. Assert required files exist
 assert(fs.existsSync(reportHtmlPath), "public/android-emulator-report.html must exist");
@@ -24,7 +27,10 @@ assert(fs.existsSync(updateReadmeScript), "scripts/update-readme.mjs must exist"
 assert(fs.existsSync(readmePath), "README.md must exist");
 assert(fs.existsSync(updateReadmeWorkflowPath), ".github/workflows/update-readme.yml must exist");
 assert(fs.existsSync(integrityWorkflowPath), ".github/workflows/integrity.yml must exist");
-assert(fs.existsSync(reportVideoFlowWorkflowPath), ".github/workflows/report-video-flow.yml must exist");
+assert(
+  fs.existsSync(reportVideoFlowWorkflowPath),
+  ".github/workflows/report-video-flow.yml must exist",
+);
 console.log("✅ PASS: All required report HTML, script, and workflow files exist.");
 
 // 1b. Verify report-video-flow.yml workflow configuration & README badge
@@ -54,7 +60,10 @@ assert(
   "report-video-flow.yml must include step to auto-trigger emulation.yml upon 404 video detection",
 );
 
-const deployDemoWorkflowContent = fs.readFileSync(path.resolve(rootDir, ".github/workflows/deploy-demo.yml"), "utf-8");
+const deployDemoWorkflowContent = fs.readFileSync(
+  path.resolve(rootDir, ".github/workflows/deploy-demo.yml"),
+  "utf-8",
+);
 assert(
   deployDemoWorkflowContent.includes("android-emulator-artifacts"),
   "deploy-demo.yml must retrieve android-emulator-artifacts if missing from dist/screenshots",
@@ -65,16 +74,30 @@ assert(
   readmeCurrentContent.includes("report-video-flow.yml/badge.svg"),
   "README.md must feature Report Video Flow badge",
 );
-console.log("✅ PASS: Dedicated report-video-flow.yml workflow, auto-trigger, and deploy-demo recovery properly configured.");
+console.log(
+  "✅ PASS: Dedicated report-video-flow.yml workflow, auto-trigger, and deploy-demo recovery properly configured.",
+);
 
 // 2. Validate client-side error handling & multi-path resilience in report HTMLs
 const reportHtml = fs.readFileSync(reportHtmlPath, "utf-8");
 const androidHtml = fs.readFileSync(androidIndexPath, "utf-8");
 
-for (const [name, content] of [["android-emulator-report.html", reportHtml], ["android/index.html", androidHtml]]) {
-  assert(content.includes('id="screencast-video-player"'), `${name} must include id="screencast-video-player"`);
-  assert(content.includes('id="video-broken-banner"'), `${name} must include #video-broken-banner element`);
-  assert(content.includes("screencast-alert-error"), `${name} must define .screencast-alert-error styling`);
+for (const [name, content] of [
+  ["android-emulator-report.html", reportHtml],
+  ["android/index.html", androidHtml],
+]) {
+  assert(
+    content.includes('id="screencast-video-player"'),
+    `${name} must include id="screencast-video-player"`,
+  );
+  assert(
+    content.includes('id="video-broken-banner"'),
+    `${name} must include #video-broken-banner element`,
+  );
+  assert(
+    content.includes("screencast-alert-error"),
+    `${name} must define .screencast-alert-error styling`,
+  );
   assert(content.includes("markVideoBroken"), `${name} must include markVideoBroken JS handler`);
   assert(content.includes("#readme"), `${name} must link to README.md for AI fix prompt`);
   console.log(`✅ PASS: ${name} contains video error banner, listener, and README fix link.`);
@@ -106,7 +129,9 @@ assert(
   integrityWorkflowContent.includes("test:report-video-links"),
   "integrity.yml must include test:report-video-links step",
 );
-console.log("✅ PASS: Workflows update-readme.yml and integrity.yml enforce report video validation.");
+console.log(
+  "✅ PASS: Workflows update-readme.yml and integrity.yml enforce report video validation.",
+);
 
 // 4. Test broken video detection and automatic README error reporting
 const originalReadme = fs.readFileSync(readmePath, "utf-8");
@@ -136,11 +161,15 @@ try {
     "README must state that android-emulator-video.mp4 returned HTTP 404",
   );
   assert(
-    failureReadme.includes("# AI FIX PROMPT: CI Failure in Android Emulator Screencast & Report Video Flow"),
+    failureReadme.includes(
+      "# AI FIX PROMPT: CI Failure in Android Emulator Screencast & Report Video Flow",
+    ),
     "README must generate structured AI Fix Prompt for broken report video link",
   );
   assert(
-    failureReadme.includes("https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html"),
+    failureReadme.includes(
+      "https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html",
+    ),
     "README must reference the report URL with the broken video",
   );
   assert(
@@ -170,7 +199,9 @@ try {
     restoredReadme.includes("6.41 MB"),
     "When video is verified, README.md must display verified file size",
   );
-  console.log("✅ PASS: Verified recovery restores ALL VERIFIED status and file size in README.md.");
+  console.log(
+    "✅ PASS: Verified recovery restores ALL VERIFIED status and file size in README.md.",
+  );
 } finally {
   // Restore README to original state
   fs.writeFileSync(readmePath, originalReadme, "utf-8");

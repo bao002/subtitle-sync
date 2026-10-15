@@ -26,7 +26,9 @@ assert(
   "src/routes/index.tsx must initialize openPanels.subtitles to true",
 );
 assert(
-  indexContent.includes("setOpenPanels((current) => (current.subtitles ? current : { ...current, subtitles: true }))"),
+  indexContent.includes(
+    "setOpenPanels((current) => (current.subtitles ? current : { ...current, subtitles: true }))",
+  ),
   "src/routes/index.tsx must auto-expand subtitles accordion panel when hasLegitimateSubtitles is true",
 );
 console.log("✅ PASS: Subtitles accordion panel is opened and auto-expands on subtitle fetch");
@@ -54,7 +56,8 @@ assert(
 assert(
   indexContent.includes("tracks[baseLanguage].length > 0") &&
     indexContent.includes("tracks[l.code].length > 0") &&
-    (indexContent.includes("tracks[code]?.length > 0") || indexContent.includes("tracks[code].length > 0")),
+    (indexContent.includes("tracks[code]?.length > 0") ||
+      indexContent.includes("tracks[code].length > 0")),
   "cols must retain track length assertions for full spec compliance",
 );
 console.log("✅ PASS: cols properly extracts language columns from Json3 tracks");
@@ -104,7 +107,7 @@ function simulateHasLegitimateSubtitles(
 ): boolean {
   if (!tracks) return false;
   const hasValidTrack = Object.values(tracks).some((track) => {
-    const cues = Array.isArray(track) ? track : (track?.events || []);
+    const cues = Array.isArray(track) ? track : track?.events || [];
     const isValid =
       (Array.isArray(cues) && cues.length > 0) ||
       (Array.isArray(track?.events) && track.events.length > 0);
@@ -136,7 +139,10 @@ function simulateGetCols(
     (tracks[baseLanguage]!.length! > 0 || hasTrackCues(tracks[baseLanguage])) &&
     shown.includes(baseLanguage)
   ) {
-    const meta = LANGS.find((l) => l.code === baseLanguage) || { code: baseLanguage, name: baseLanguage };
+    const meta = LANGS.find((l) => l.code === baseLanguage) || {
+      code: baseLanguage,
+      name: baseLanguage,
+    };
     list.push(meta);
     addedCodes.add(baseLanguage);
   }
@@ -196,7 +202,9 @@ assert.strictEqual(
   true,
   "hasLegitimateSubtitles must be TRUE when 1 subtitle is fetched correctly",
 );
-console.log("✅ PASS: When at least 1 subtitle is fetched, hasLegitimateSubtitles is TRUE and table is visible");
+console.log(
+  "✅ PASS: When at least 1 subtitle is fetched, hasLegitimateSubtitles is TRUE and table is visible",
+);
 
 // Case 3: At least 1 subtitle fetched in target language (Hebrew) even if not in shown yet
 const heTrack = parseJson3(sampleHeRaw);

@@ -20,6 +20,7 @@ In large codebases and complex full-stack applications, processing broad or mono
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 
 By isolating execution into focused atomic sub-tasks:
+
 - **Token Input is Minimized**: The model only loads and reads the precise files relevant to the active sub-task.
 - **Token Output is Bounded**: Code edits are short, targeted, and verified immediately.
 - **Progress is Checkpointed**: Completed sub-tasks are committed to Git and logged in `docs/done.md`, preventing token loss if later tasks encounter issues.
@@ -31,15 +32,15 @@ By isolating execution into focused atomic sub-tasks:
 
 To guarantee token economy, the agent must activate and maintain the following files on **every single prompt**:
 
-| File | Purpose | Retention |
-| :--- | :--- | :--- |
-| `docs/tokens.md` | Protocol specification defining the token economy and task decomposition rules. | Permanent specification |
-| `docs/tasks.md` | Master backlog of active, pending, and upcoming numbered tasks and sub-tasks across the project. Completed items are migrated to `docs/done.md`. | Active backlog |
-| `current-sub-task.md` | **Strictly focused staging of the single sub-task currently being executed.** Updated on every single step. | Active state indicator |
-| `temp.md` | **Ephemeral scratchpad** for drafting file edits, temporary checklists, raw diffs, or intermediate calculations. Avoids cluttering permanent docs. | Ephemeral / Scratchpad |
-| `docs/todo.md` | High-level active sub-task synchronization mirror. | Single active task |
-| `docs/done.md` | Permanent verified changelog and archive of all completed tasks and sub-tasks. | Permanent archive / log |
-| `docs/self-verification.md` | Comprehensive self-verification protocol for automated test execution, screencast linking in README, and full sanity check audits. | Permanent specification |
+| File                        | Purpose                                                                                                                                            | Retention               |
+| :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------- |
+| `docs/tokens.md`            | Protocol specification defining the token economy and task decomposition rules.                                                                    | Permanent specification |
+| `docs/tasks.md`             | Master backlog of active, pending, and upcoming numbered tasks and sub-tasks across the project. Completed items are migrated to `docs/done.md`.   | Active backlog          |
+| `current-sub-task.md`       | **Strictly focused staging of the single sub-task currently being executed.** Updated on every single step.                                        | Active state indicator  |
+| `temp.md`                   | **Ephemeral scratchpad** for drafting file edits, temporary checklists, raw diffs, or intermediate calculations. Avoids cluttering permanent docs. | Ephemeral / Scratchpad  |
+| `docs/todo.md`              | High-level active sub-task synchronization mirror.                                                                                                 | Single active task      |
+| `docs/done.md`              | Permanent verified changelog and archive of all completed tasks and sub-tasks.                                                                     | Permanent archive / log |
+| `docs/self-verification.md` | Comprehensive self-verification protocol for automated test execution, screencast linking in README, and full sanity check audits.                 | Permanent specification |
 
 ---
 
@@ -144,6 +145,7 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
 ```
 
 ### Hotfix Rules:
+
 - **Never Mix Hotfixes with Feature Work**: Hotfixes must be executed in strict isolation to prevent compound bugs.
 - **The Suspended Task Remains on Hold**: Do not abandon or delete the suspended task. It must resume immediately after the hotfix is verified and logged.
 - **Hotfix Audit**: The hotfix must be documented in `docs/done.md` with its dedicated test validation.
@@ -217,10 +219,18 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 115.2: Inspect and execute all verification suites: `test:doc-contracts`, `test:readme-links`, `test:no-cron-readme`, `test:e2e-report-links`, `test:report-video-links`, `test:client-spa`, and `test:hygiene`. [DONE]
   - Subtask 115.3: Verify app compilation (`compile_applet`) and linting (`lint_applet`), checkpoint progress, and migrate completed tasks to `docs/done.md`. [DONE]
 
-- **Task 116**: Dedicated "Playground" Top Tab with Independent YouTube Player for Uninhibited Subtitle Switching & Interception (Version 1.0.21) [IN PROGRESS]
-  - Subtask 116.1: Update app version to 1.0.21 across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [ACTIVE]
-  - Subtask 116.2: Create `src/components/VideoPlayground.tsx` providing an independent YouTube player container free from external pause/seek/TTS controls, with real-time detected subtitle stream telemetry, cue preview, and 1-click import actions. [PENDING]
-  - Subtask 116.3: Integrate top tabs in `src/routes/index.tsx` (Viewer vs Playground), pausing background timers and TTS loops when on Playground, and wiring detected captions into the central catalog. [PENDING]
-  - Subtask 116.4: Author dedicated automated test `scripts/verify-video-playground-tab.ts` and register `test:playground-tab` script in `package.json`. [PENDING]
-  - Subtask 116.5: Update documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, `docs/designs/DESIGN_PLAYER_PROVIDER.md`, and `docs/operations/DEBUG.md`. [PENDING]
-  - Subtask 116.6: Run test suites, compile_applet, lint_applet, commit checkpoint, and migrate Task 116 to `docs/done.md`. [PENDING]
+- **Task 116**: Dedicated "Playground" Top Tab with Independent YouTube Player for Uninhibited Subtitle Switching & Interception (Version 1.0.21) [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 116.1: Update app version to 1.0.21 across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [DONE]
+  - Subtask 116.2: Create `src/components/VideoPlayground.tsx` providing an independent YouTube player container free from external pause/seek/TTS controls, with real-time detected subtitle stream telemetry, cue preview, and 1-click import actions. [DONE]
+  - Subtask 116.3: Integrate top tabs in `src/routes/index.tsx` (Viewer vs Playground), pausing background timers and TTS loops when on Playground, and wiring detected captions into the central catalog. [DONE]
+  - Subtask 116.4: Author dedicated automated test `scripts/verify-video-playground-tab.ts` and register `test:playground-tab` script in `package.json`. [DONE]
+  - Subtask 116.5: Update documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, `docs/designs/DESIGN_PLAYER_PROVIDER.md`, and `docs/operations/DEBUG.md`. [DONE]
+  - Subtask 116.6: Run test suites, compile_applet, lint_applet, commit checkpoint, and migrate Task 116 to `docs/done.md`. [DONE]
+
+- **Task 117**: Comprehensive Test Suite Audit & Fix-Testing-to-Pass (Version 1.0.21) [IN PROGRESS]
+  - Subtask 117.1: Run inventory of automated verification scripts to audit test suite status and identify any failing tests. [ACTIVE]
+  - Subtask 117.2: Apply minimal targeted fixes for identified test failures to achieve 100% test pass rate. [PENDING]
+  - Subtask 117.3: Verify all relevant test suites pass, confirm clean compilation (`compile_applet`) and zero-error linting (`lint_applet`). [PENDING]
+  - Subtask 117.4: Commit progress via git, attempt git push, and migrate Task 117 to `docs/done.md`. [PENDING]
+
+

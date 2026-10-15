@@ -35,10 +35,7 @@ const emulationPath = path.join(workflowsDir, "emulation.yml");
 assert(fs.existsSync(emulationPath), "emulation.yml must exist");
 const emulationYaml = fs.readFileSync(emulationPath, "utf8");
 const parsedEmulation = jsYaml.load(emulationYaml) as any;
-assert(
-  parsedEmulation.on.push,
-  "emulation.yml must include push trigger for forked repositories",
-);
+assert(parsedEmulation.on.push, "emulation.yml must include push trigger for forked repositories");
 assert(
   parsedEmulation.on.push.branches.includes("main") &&
     parsedEmulation.on.push.branches.includes("master"),

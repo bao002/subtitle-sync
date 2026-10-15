@@ -12,7 +12,10 @@ const rootDir = process.cwd();
 const rootSpecPath = path.resolve(rootDir, "self-verification.md");
 const docsSpecPath = path.resolve(rootDir, "docs/self-verification.md");
 
-assert(!fs.existsSync(rootSpecPath), "self-verification.md must not exist in root repository (canonical is docs/self-verification.md)");
+assert(
+  !fs.existsSync(rootSpecPath),
+  "self-verification.md must not exist in root repository (canonical is docs/self-verification.md)",
+);
 assert(fs.existsSync(docsSpecPath), "docs/self-verification.md must exist in docs/");
 
 const docsSpecContent = fs.readFileSync(docsSpecPath, "utf8");
@@ -51,27 +54,24 @@ const sanityChecks = [
 ];
 
 for (const check of sanityChecks) {
-  assert(
-    docsSpecContent.includes(check),
-    `docs/self-verification.md must define "${check}"`,
-  );
+  assert(docsSpecContent.includes(check), `docs/self-verification.md must define "${check}"`);
   console.log(`✓ Sanity check verified: ${check}`);
 }
 
 // 4. Verify Screencast Capture Lifecycle & README Linkage Rules
 assert(
   docsSpecContent.includes("screenrecord") &&
-  docsSpecContent.includes("/sdcard/android-emulator-video.mp4"),
+    docsSpecContent.includes("/sdcard/android-emulator-video.mp4"),
   "docs/self-verification.md must specify adb screenrecord command and output path",
 );
 assert(
   docsSpecContent.includes("SIGINT") &&
-  (docsSpecContent.includes("kill -2") || docsSpecContent.includes("pkill -2")),
+    (docsSpecContent.includes("kill -2") || docsSpecContent.includes("pkill -2")),
   "docs/self-verification.md must specify graceful SIGINT container finalization",
 );
 assert(
   docsSpecContent.includes("Finalize Screencast Recording and Pull Video") ||
-  docsSpecContent.includes("set +e"),
+    docsSpecContent.includes("set +e"),
   "docs/self-verification.md must document set +e resilient pull step",
 );
 assert(

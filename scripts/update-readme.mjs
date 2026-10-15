@@ -32,7 +32,9 @@ let targetOwner = "mostuf2556";
 let targetRepo = "subtitle-sync";
 
 // Detect from existing README badges or links if not passed
-const ownerMatch = content.match(/https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)\/actions/);
+const ownerMatch = content.match(
+  /https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)\/actions/,
+);
 if (ownerMatch && ownerMatch[1] && ownerMatch[2]) {
   targetOwner = ownerMatch[1];
   targetRepo = ownerMatch[2];
@@ -186,14 +188,16 @@ const videoRegex = /\|\s*🎬\s*\*\*Android Emulator Screencast Video\*\*[^|\n]*
 if (videoRegex.test(content)) {
   content = content.replace(videoRegex, videoRow);
 } else {
-  const screenshotRegex = /(\|\s*📸\s*\*\*Android Emulator Screenshot\*\*[^|\n]*\|[^|\n]*\|[^|\n]*\|\n)/;
+  const screenshotRegex =
+    /(\|\s*📸\s*\*\*Android Emulator Screenshot\*\*[^|\n]*\|[^|\n]*\|[^|\n]*\|\n)/;
   if (screenshotRegex.test(content)) {
     content = content.replace(screenshotRegex, `$1${videoRow}\n`);
   }
 }
 
 // Update numbered list item in README if present
-const listVideoRegex = /(\d+\.\s*\*\*Android Emulator Screencast Video\*\*:\s*\[Download\s*`android-emulator-video\.mp4`)[^\]]*(\]\(https:\/\/[^)]+\/screenshots\/android-emulator-video\.mp4\)[^\n]*)/;
+const listVideoRegex =
+  /(\d+\.\s*\*\*Android Emulator Screencast Video\*\*:\s*\[Download\s*`android-emulator-video\.mp4`)[^\]]*(\]\(https:\/\/[^)]+\/screenshots\/android-emulator-video\.mp4\)[^\n]*)/;
 if (listVideoRegex.test(content)) {
   if (isVideoBroken) {
     content = content.replace(listVideoRegex, `$1 (⚠️ Broken Link / HTTP 404 on GitHub Pages)$2`);
@@ -202,8 +206,10 @@ if (listVideoRegex.test(content)) {
   }
 }
 
-const verifiedVideoListRegex = /(2\.\s*\*\*Android Emulator Screencast Video\*\*:\s*)\[Download\s*`android-emulator-video\.mp4`[^\]]*\]\([^)]+\)[^\n]*/;
-const brokenVideoListRegex = /(2\.\s*\*\*Android Emulator Screencast Video\*\*:\s*)⚠️\s*\[\*\*Missing Asset[^\]]*\]\([^)]+\)[^\n]*/;
+const verifiedVideoListRegex =
+  /(2\.\s*\*\*Android Emulator Screencast Video\*\*:\s*)\[Download\s*`android-emulator-video\.mp4`[^\]]*\]\([^)]+\)[^\n]*/;
+const brokenVideoListRegex =
+  /(2\.\s*\*\*Android Emulator Screencast Video\*\*:\s*)⚠️\s*\[\*\*Missing Asset[^\]]*\]\([^)]+\)[^\n]*/;
 
 if (isVideoBroken) {
   if (verifiedVideoListRegex.test(content)) {
@@ -297,10 +303,17 @@ const statusEndTag = "<!-- CI_STATUS_INDICATOR_END -->";
 
 const rootDir = process.cwd();
 const brokenLinks = scanReadmeBrokenLinks(content, rootDir);
-const brokenReportVideos = scanReportVideoIntegrity(rootDir, targetOwner, targetRepo, isVideoBroken);
+const brokenReportVideos = scanReportVideoIntegrity(
+  rootDir,
+  targetOwner,
+  targetRepo,
+  isVideoBroken,
+);
 const allBroken = [...brokenLinks, ...brokenReportVideos];
 
-let ciStatus = process.env.CI_STATUS || (fs.existsSync("error.log") || allBroken.length > 0 ? "failure" : "success");
+let ciStatus =
+  process.env.CI_STATUS ||
+  (fs.existsSync("error.log") || allBroken.length > 0 ? "failure" : "success");
 if (allBroken.length > 0) {
   ciStatus = "failure";
 }
@@ -328,7 +341,8 @@ const runUrl =
   process.env.RUN_URL ||
   (process.env.GITHUB_RUN_ID
     ? `https://github.com/${targetOwner}/${targetRepo}/actions/runs/${process.env.GITHUB_RUN_ID}`
-    : (existingRunUrl || `https://github.com/${targetOwner}/${targetRepo}/actions/workflows/report-video-flow.yml`));
+    : existingRunUrl ||
+      `https://github.com/${targetOwner}/${targetRepo}/actions/workflows/report-video-flow.yml`);
 
 let errorLogSnippet = "";
 if (fs.existsSync("error.log")) {
@@ -336,7 +350,8 @@ if (fs.existsSync("error.log")) {
 } else if (process.env.ERROR_MESSAGE) {
   errorLogSnippet = process.env.ERROR_MESSAGE;
 } else if (brokenReportVideos.length > 0) {
-  errorLogSnippet = "Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).";
+  errorLogSnippet =
+    "Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).";
 }
 
 let brokenLinksSnippet = "";
@@ -414,5 +429,6 @@ if (statusSectionRegex.test(content)) {
 }
 
 fs.writeFileSync(readmePath, content, "utf8");
-console.log(`✅ README.md successfully updated with repository: "${targetOwner}/${targetRepo}", video size: ${mb} MB, and CI status: ${ciStatus}`);
-
+console.log(
+  `✅ README.md successfully updated with repository: "${targetOwner}/${targetRepo}", video size: ${mb} MB, and CI status: ${ciStatus}`,
+);

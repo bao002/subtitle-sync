@@ -25,6 +25,7 @@
    - "Fetch again (link only)": sends just the link, with no cookies or extra headers, like pasting it into a browser.
 
    Each result appears as a new entry in the panel. When a result contains valid subtitles, a "Use these subtitles" button loads them as that language's column for the current video and saves them.
+
 4. **Web demo stays as it is:** it shows only the sample subtitles stored with the app. It never fetches live subtitles, and the new buttons and attempt settings appear only in the Android app. On Android, the app watches the subtitle request the YouTube player makes, then sends it again with changes: `lang` swapped for a different subtitle language, or `tlang` added to get a translation.
 
 ## Technical details

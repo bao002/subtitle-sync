@@ -62,7 +62,7 @@ console.log("✅ PASS: AGENTS.md documents anti-bot execution and header capture
 
 // Section 3: Request validation & "good" response criteria
 assert(
-  agentsContent.includes("Request validation & \"Good\" response criteria"),
+  agentsContent.includes('Request validation & "Good" response criteria'),
   "AGENTS.md must specify request validation and good response criteria",
 );
 assert(
@@ -147,7 +147,9 @@ assert.strictEqual(isValidJsonSubtitleResponse(""), false, "Empty string must fa
 assert.strictEqual(isValidJsonSubtitleResponse(null), false, "Null must fail validation");
 assert.strictEqual(isValidJsonSubtitleResponse(undefined), false, "Undefined must fail validation");
 
-console.log("✅ PASS: isValidJsonSubtitleResponse strictly enforces JSON3 schema and rejects invalid payloads");
+console.log(
+  "✅ PASS: isValidJsonSubtitleResponse strictly enforces JSON3 schema and rejects invalid payloads",
+);
 
 // 3. Functional verification of Request Mode Toggling
 setSubtitleRequestMode("tlang");
@@ -194,7 +196,9 @@ assert(
   "MainActivity.kt must validate subtitle JSON before returning or storing",
 );
 
-console.log("✅ PASS: MainActivity.kt implements anti-bot User-Agent sanitization, header mirroring, and validation");
+console.log(
+  "✅ PASS: MainActivity.kt implements anti-bot User-Agent sanitization, header mirroring, and validation",
+);
 
 console.log("==================================================================");
 console.log("🎉 ALL AGENTS.MD SUBTITLES ARCHITECTURE VERIFICATIONS PASSED!");

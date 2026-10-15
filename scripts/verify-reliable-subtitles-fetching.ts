@@ -105,7 +105,11 @@ const execResult = runFetchAttempts({
 
 assert(execResult !== null, "Execution must yield a winner");
 assert.strictEqual(execResult?.winner.mode, "lang");
-assert.strictEqual(callsMade.length, 2, "Must stop at first good response without trying 3rd attempt");
+assert.strictEqual(
+  callsMade.length,
+  2,
+  "Must stop at first good response without trying 3rd attempt",
+);
 console.log("✅ PASS: runFetchAttempts stops at first good response and returns winner");
 
 // 4. Verify nativeExactFetch parser
@@ -138,15 +142,27 @@ const indexFile = path.join(rootDir, "src/routes/index.tsx");
 const indexContent = fs.readFileSync(indexFile, "utf8");
 assert(indexContent.includes("runFetchAttempts"), "index.tsx must use runFetchAttempts");
 assert(indexContent.includes("AttemptOrderSettings"), "index.tsx must render AttemptOrderSettings");
-assert(indexContent.includes("onFetchAgainWithSession"), "index.tsx must pass onFetchAgainWithSession");
+assert(
+  indexContent.includes("onFetchAgainWithSession"),
+  "index.tsx must pass onFetchAgainWithSession",
+);
 assert(indexContent.includes("onFetchAgainAnon"), "index.tsx must pass onFetchAgainAnon");
 assert(indexContent.includes("onUseTheseSubtitles"), "index.tsx must pass onUseTheseSubtitles");
 
 const inspectorFile = path.join(rootDir, "src/components/NetworkRequestsInspector.tsx");
 const inspectorContent = fs.readFileSync(inspectorFile, "utf8");
-assert(inspectorContent.includes("fetch-again-session-button"), "Inspector must have Fetch again session button");
-assert(inspectorContent.includes("fetch-again-anon-button"), "Inspector must have Fetch again anon button");
-assert(inspectorContent.includes("use-these-subtitles-button"), "Inspector must have Use these subtitles button");
+assert(
+  inspectorContent.includes("fetch-again-session-button"),
+  "Inspector must have Fetch again session button",
+);
+assert(
+  inspectorContent.includes("fetch-again-anon-button"),
+  "Inspector must have Fetch again anon button",
+);
+assert(
+  inspectorContent.includes("use-these-subtitles-button"),
+  "Inspector must have Use these subtitles button",
+);
 
 console.log("✅ PASS: All files, components, buttons, and handlers verified in code");
 

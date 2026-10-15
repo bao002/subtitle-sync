@@ -12,7 +12,10 @@ const rootDir = process.cwd();
 console.log("1. Verifying docs/android.md existence and no duplicate in root...");
 const androidMdPath = path.join(rootDir, "android.md");
 const docsAndroidMdPath = path.join(rootDir, "docs/android.md");
-assert(!fs.existsSync(androidMdPath), "android.md must not exist in root directory (canonical is docs/android.md)");
+assert(
+  !fs.existsSync(androidMdPath),
+  "android.md must not exist in root directory (canonical is docs/android.md)",
+);
 assert(fs.existsSync(docsAndroidMdPath), "docs/android.md must exist in docs directory");
 
 const androidMdContent = fs.readFileSync(docsAndroidMdPath, "utf8");
@@ -40,13 +43,11 @@ assert(
   "android.md must detail the GitHub Pages report structure and embedded video presentation",
 );
 assert(
-  androidMdContent.includes("This page didn't load") &&
-    androidMdContent.includes("APP_BOOT_ERROR"),
+  androidMdContent.includes("This page didn't load") && androidMdContent.includes("APP_BOOT_ERROR"),
   "android.md must detail strict failure detection on error screens",
 );
 assert(
-  androidMdContent.includes("Never Commit Video") &&
-    androidMdContent.includes("gh-pages"),
+  androidMdContent.includes("Never Commit Video") && androidMdContent.includes("gh-pages"),
   "android.md must enforce clean repository hygiene forbidding videos on main branch",
 );
 console.log("✅ PASS: android.md comprehensively documents Android E2E architecture");
@@ -62,8 +63,7 @@ assert(
   "AGENTS.md must feature dedicated section on Android E2E validation and screencast reporting",
 );
 assert(
-  agentsContent.includes("screenrecord") &&
-    agentsContent.includes("pkill -2"),
+  agentsContent.includes("screenrecord") && agentsContent.includes("pkill -2"),
   "AGENTS.md must detail the screencast video recording protocol",
 );
 assert(
