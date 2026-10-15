@@ -21,7 +21,7 @@
 - **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
 - **Failing Step**: Broken Video Link Detection in android-emulator-report.html
 - **Report URL**: https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html
-- **Run URL**: https://github.com/mostuf2556/subtitle-sync/actions/runs/38670090336
+- **Run URL**: https://github.com/mostuf2556/subtitle-sync/actions/runs/38675879316
 
 ### Failure Log & Diagnosis:
 Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).
@@ -55,11 +55,11 @@ All verification runs produce authentic test outputs published directly to GitHu
 | 🔍 **Playwright Test Report** | [playwright](https://mostuf2556.github.io/subtitle-sync/playwright/index.html) | Interactive web test trace |
 | 📱 **Android Emulator Report** | [android-emulator-report.html](https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html) | Authentic Android WebView verification report |
 | 📸 **Android Emulator Screenshot** | [android-emulator-screenshot.png](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) | High-resolution UI screen capture from Android Emulator E2E run |
-| 🎬 **Android Emulator Screencast Video** | [View/Download MP4 Screencast (6.41 MB)](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) | Full authentic screen recording from Android Emulator E2E run (API 34 Google APIs, size: 6,724,502 bytes / 6.41 MB). |
+| 🎬 **Android Emulator Screencast Video**               | ⚠️ [**Broken Link / Missing Asset (HTTP 404)**](https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html) | Screencast video (android-emulator-video.mp4 returned HTTP 404 on GitHub Pages). Run [emulation.yml](https://github.com/mostuf2556/subtitle-sync/actions/workflows/emulation.yml) to record and deploy. |
 
 ### Verified Products:
 1. **Android Emulator Report**: [View report](https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html)
-2. **Android Emulator Screencast Video**: [Download `android-emulator-video.mp4`](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (6.41 MB MP4 recording)
+2. **Android Emulator Screencast Video**: ⚠️ [**Missing Asset / HTTP 404**](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-video.mp4) (screencast video missing from gh-pages branch — size: 0 bytes — see README CI status)
 3. **Android Emulator Screenshot**: [View screenshot](https://mostuf2556.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png)
 
 ---
