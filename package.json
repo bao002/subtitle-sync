@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -74,6 +74,7 @@
     "test:playwright-locators": "tsx scripts/verify-playwright-locators.ts",
     "test:hotfix": "tsx scripts/verify-hotfix-links-and-actions.ts",
     "test:hotfix-dev-exports": "tsx scripts/verify-hotfix-dev-exports-and-logger.ts",
+    "test:hotfix-rows-init": "tsx scripts/verify-hotfix-rows-initialization.ts",
     "test:fork-readme-links": "tsx scripts/verify-fork-readme-links.ts",
     "test:fork-ci-workflows": "tsx scripts/verify-fork-ci-workflows.ts",
     "test:tts-ratio": "tsx scripts/verify-tts-subtitles-ratio.ts",

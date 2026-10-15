@@ -1,5 +1,48 @@
 # Done tasks
 
+### Hotfix: Fix TDZ ReferenceError for rows in src/routes/index.tsx
+
+- **Root Cause & Diagnosis**:
+  - `ReferenceError: Cannot access 'rows' before initialization` was thrown during `Index` component initialization (`APP_BOOT_ERROR`).
+  - `handleSwitchToViewerAtTime` callback had been declared with `[rows]` dependency array before `const rows = useMemo(...)` declaration, triggering JavaScript's Temporal Dead Zone (TDZ).
+  - Additionally, `handleSwitchToViewerAtTime` referenced undeclared `playerRef` instead of the canonical `player` ref.
+- **Remediation**:
+  - Relocated `handleSwitchToViewerAtTime` below the `const rows = useMemo(...)` and `player` ref declarations in `src/routes/index.tsx`.
+  - Replaced `playerRef.current` with `player.current.seekTo(timeSec, true)`.
+  - Restarted dev server to serve fresh runtime module graph.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-hotfix-rows-initialization.ts` (`npm run test:hotfix-rows-init`), validating that:
+    1. `handleSwitchToViewerAtTime` is positioned strictly after `const rows = useMemo`.
+    2. Zero premature hook dependency references to `rows` exist before its declaration.
+    3. `player.current` is referenced safely without undeclared variable lookups.
+  - Registered `test:hotfix-rows-init` in `package.json`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:hotfix-rows-init`: PASSED (100% verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
+## Task 119: Strict Prohibition & Verification of Zero GitHub Actions Cron Jobs Across All Workflows (Version 1.0.23)
+
+### Summary:
+
+- **Strict Audit & Zero GitHub Actions Cron Jobs Enforcement**:
+  - Audited all 8 GitHub Actions workflow definitions in `.github/workflows/` (`deploy-demo.yml`, `emulation.yml`, `error-reporting.yml`, `integrity.yml`, `release-apk.yml`, `report-video-flow.yml`, `update-readme.yml`, `web.yml`).
+  - Confirmed 100% absence of `schedule:` triggers or cron expressions across all workflow files; all workflows are strictly event-driven (`push`, `pull_request`, `workflow_run`, `workflow_dispatch`).
+- **Automated Verification Script Enhancement**:
+  - Strengthened `scripts/verify-no-cron-readme-updates.ts` (`npm run test:no-cron-readme`) to assert zero `schedule:` triggers and zero `cron:` expressions across every workflow in `.github/workflows/`.
+  - Added strict assertions preventing any workflow from defining scheduled cron jobs.
+- **Architectural Documentation Codification**:
+  - Formally codified the zero GitHub Actions cron jobs policy in `AGENTS.md`, `docs/operations/ACTIONS.md` (Section 4.8), and `docs/files.md`.
+- **Version 1.0.23 Bump & Strict System Parity**:
+  - Aligned semantic version `1.0.23` and versionCode `10023` across all 5 core locations: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:no-cron-readme`: PASSED (zero cron workflows found across entire repository, all badges validated).
+  - `npm run test:doc-contracts`: PASSED (all 9 architectural documentation contracts verified).
+  - `npm run test:readme-links`: PASSED (all relative links and workflow badges verified).
+  - `npm run test:e2e-report-links`: PASSED (all report links and YAML structures verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
 ## Task 118: Video Playground Playback Speed Controls, JSON Telemetry Export & Seamless Timestamp Handoff to Synchronized Viewer (Version 1.0.22)
 
 ### Summary:

@@ -305,4 +305,14 @@ To prevent infinite workflow recursion:
 - **Dynamic Creation & Management**: `README.md` is strictly generated, formatted, and updated dynamically by GitHub Actions (`update-readme.yml` and `scripts/update-readme.mjs`). It embeds repository-specific badges, Actions workflow links, verified screencast video URLs, file sizes, and dynamic CI status indicators.
 - **Git Sync Exclusion Mandate**: When syncing git (e.g., merging, pulling, cherry-picking, or copying changes from baseline/upstream repositories such as `mostuf2556/Youtubenet6`, or syncing across different forks and branches), `README.md` **MUST NOT be copied or overwritten**.
 - **Rationale**: Overwriting `README.md` during git synchronization wipes out active repository metadata, replaces valid fork links with upstream links, destroys live CI status blocks, and breaks automated screencast video telemetry. GitHub Actions is the sole authoritative generator of `README.md`.
-```
+
+### 4.8 Strict Prohibition of Scheduled / Cron GitHub Actions Workflows
+
+- **Absolute Prohibition**: No GitHub Actions workflow file in `.github/workflows/` may define a `schedule:` trigger or cron expression under any circumstances.
+- **Purely Event-Driven Pipelines**: All CI/CD workflows must be strictly event-driven:
+  - `push` to branches/tags
+  - `pull_request`
+  - `workflow_run` (chained pipeline coordination)
+  - `workflow_dispatch` (manual developer triggers)
+- **Rationale**: Scheduled cron jobs run unpredictably in the background, incur unnecessary runner hours, generate unwanted automated commits, risk merge conflicts with active local development, and introduce non-deterministic state. Real-time issue reporting is handled via event-driven workflow runs and badge indicators, guaranteeing 100% deterministic operation.
+
