@@ -1,5 +1,79 @@
 # Done tasks
 
+## Task 122: Restore Web-Demo UI Design, Codify Design Preservation in AGENTS.md, and Fix Video/Subtitle State Isolation (Version 1.0.25)
+
+### Summary:
+- **Version 1.0.25 Bump & Parity**:
+  - Aligned semantic version `1.0.25` and versionCode `10025` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Codified Design Preservation Mandate in AGENTS.md**:
+  - Formally codified the "Strict UI & Web-Demo Design Preservation Mandate" in `AGENTS.md` explicitly prohibiting altering, redesigning, replacing, or re-theming the web-demo UI without explicit user confirmation.
+- **Restored Clean Web-Demo Input Bar Design (`WebDemoUrlsInput.tsx`)**:
+  - Replaced the large expanded multi-input box with the clean original single-row web-demo input bar (`#youtube-url-form`, `#youtube-url-input`, `#play-video-button`) matching the original UI aesthetics 100%.
+  - Defaulted custom subtitle URL inputs to collapsed (`isExpanded: false`), with an elegant, non-intrusive toggle button allowing users to optionally provide subtitle URLs per language without altering page layout.
+- **Fixed Subtitle Track Isolation & Default Video Leakage (`src/routes/index.tsx`)**:
+  - Fixed `handleWebDemoLoadVideoAndSubtitles` so that when a new video ID and subtitle URL for lang X are provided, `setTracks(newTracks)` strictly replaces tracks without merging with previous or default video fixtures (`L2Ryrr6txwA`).
+  - Reset `shown`, `targetLanguages`, and `spoken` strictly to `trackLangs` (`setShown(trackLangs)`), ensuring subtitles of the default video are NEVER introduced into alternative videos.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-web-demo-design-preservation.ts` (`npm run test:design-preservation`) validating version 1.0.25 parity, AGENTS.md mandate, clean single-row form design, and track isolation.
+  - Registered `test:design-preservation` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:design-preservation`: PASSED (100% verified).
+  - `npm run test:web-demo-subtitles-urls`: PASSED (100% verified).
+  - `npm run test:no-cron-readme`: PASSED (100% verified).
+  - `npm run test:github-import-migration`: PASSED (100% verified).
+  - `npm run test:doc-contracts`: PASSED (all 9 architectural contracts verified).
+  - `npm run test:readme-links`: PASSED (all 17 relative links and badges verified).
+  - `npm run test:tokens-economy`: PASSED (token economy protocol verified).
+  - `npm run test:md`: PASSED (all 42 markdown cross-references verified).
+  - `npm run test:no-duplicate-md`: PASSED (zero duplicate markdown files).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
+## Task 121: GitHub Import Migration & Environment Harmonization
+
+### Summary:
+- **Environment & Lockfile Normalization**:
+  - Deleted extraneous `bun.lock` file in compliance with the `github-import-migration` skill for Node.js runtimes.
+  - Verified package manager configuration, ensuring no unsupported lockfiles or engines exist.
+  - Confirmed dev server host binding `0.0.0.0` and port `3000` in both `package.json` and `vite.config.ts`.
+- **Environment Variable Declarations**:
+  - Scanned source dependencies and updated `.env.example` to declare `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` alongside `GITHUB_REPOSITORY` and `GITHUB_REPOSITORY_OWNER`.
+- **Architectural Documentation & Contract Restoration**:
+  - Restored full `README.md` including all 9 architectural documentation contracts (`docs/operations/ACTIONS.md`, `docs/specifications/LIBRARY.md`, `docs/designs/DESIGN_SUBTITLE_VIEWS.md`, `docs/designs/DESIGN_VIEW_LANGS.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, `docs/designs/DESIGN_PLAYER_PROVIDER.md`, `docs/designs/DESIGN_STATE_COORDINATOR.md`, `docs/specifications/SCHEMA_TIMEDTEXT.md`, `docs/operations/DEBUG.md`), 7 workflow badges, CI status block, core tested feature definition, and GitHub Pages report links.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-github-import-migration.ts` (`npm run test:github-import-migration`) asserting package manager cleanliness, port binding, environment variables, and client SPA integrity.
+  - Registered `test:github-import-migration` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:github-import-migration`: PASSED (100% verified).
+  - `npm run test:doc-contracts`: PASSED (all 9 architectural contracts verified).
+  - `npm run test:readme-links`: PASSED (all 17 relative links and badges verified).
+  - `npm run test:no-cron-readme`: PASSED (zero cron jobs across workflows).
+  - `npm run test:tokens-economy`: PASSED (token economy protocol verified).
+  - `npm run test:web-demo-subtitles-urls`: PASSED (100% verified).
+  - `npm run test:md`: PASSED (all 42 markdown files verified).
+  - `npm run test:no-duplicate-md`: PASSED (zero duplicate markdown files).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
+## Task 120: Web-Demo Mode Video & Subtitles URLs Input for Per-Language Subtitle Fetching (Version 1.0.24)
+
+### Summary:
+- **Version 1.0.24 Bump & Strict Parity**:
+  - Aligned semantic version `1.0.24` and versionCode `10024` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Modular WebDemoUrlsInput Component**:
+  - Authored `src/components/WebDemoUrlsInput.tsx` providing video URL input and subtitle URLs textarea supporting timedtext base URLs and per-language direct subtitle URLs.
+  - Implemented client-side JSON3 schema validation (`isValidJsonSubtitleResponse`), server-proxy fallback for YouTube timedtext URLs, and language extraction.
+- **Web-Demo Route Integration**:
+  - Integrated `WebDemoUrlsInput` into `src/routes/index.tsx` conditionally rendered when `!isAndroid`.
+  - Wired fetched tracks directly into the primary parallel subtitles catalog and synchronized player.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-web-demo-subtitles-urls-input.ts` (`npm run test:web-demo-subtitles-urls`), validating version parity, modular component architecture, and integration.
+  - Registered `test:web-demo-subtitles-urls` in `package.json`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:web-demo-subtitles-urls`: PASSED (100% verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
 ### Hotfix: Fix TDZ ReferenceError for rows in src/routes/index.tsx
 
 - **Root Cause & Diagnosis**:

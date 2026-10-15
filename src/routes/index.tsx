@@ -2086,8 +2086,8 @@ function Index() {
       observedUrl?: string;
     }) => {
       startSubtitlesTransition(() => {
-        if (newVideoId && newVideoId !== videoId) {
-          setTracks(null);
+        const isDifferentVideo = Boolean(newVideoId && newVideoId !== videoId);
+        if (isDifferentVideo) {
           setActive(-1);
           setSpeakingLang(null);
           setSpeakingRow(-1);
@@ -2110,15 +2110,26 @@ function Index() {
 
         if (newObservedUrl) {
           setObservedUrl(newObservedUrl);
+        } else if (isDifferentVideo) {
+          setObservedUrl("");
         }
-        const trackLangs = Object.keys(newTracks);
+
+        const trackLangs = Object.keys(newTracks || {});
         if (trackLangs.length > 0) {
           setDefaultCaptionsLoaded(true);
-          setTracks((prev) => ({ ...(prev || {}), ...newTracks }));
-          setShown((prev) => Array.from(new Set([...prev, ...trackLangs])));
-          setTargetLanguages((prev) => Array.from(new Set([...prev, ...trackLangs])));
-          setSpoken((prev) => Array.from(new Set([...prev, ...trackLangs])));
+          // Strictly set tracks to ONLY the new tracks — never merge with previous or default video's tracks
+          setTracks(newTracks);
+          setShown(trackLangs);
+          setTargetLanguages(trackLangs);
+          setSpoken(trackLangs);
           setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+        } else if (isDifferentVideo) {
+          // Reset cleanly when changing video without new subtitle tracks
+          setDefaultCaptionsLoaded(false);
+          setTracks(null);
+          setShown([]);
+          setTargetLanguages([]);
+          setSpoken([]);
         }
       });
     },
@@ -2770,6 +2781,9 @@ function Index() {
                   if (id) {
                     if (id !== videoId) {
                       setTracks(null);
+                      setShown([]);
+                      setTargetLanguages([]);
+                      setSpoken([]);
                       setObservedUrl("");
                       setDefaultCaptionsLoaded(false);
                       setActive(-1);

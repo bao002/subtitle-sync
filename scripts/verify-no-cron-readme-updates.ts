@@ -10,9 +10,9 @@ const rootDir = process.cwd();
 const workflowsDir = path.resolve(rootDir, ".github/workflows");
 const readmePath = path.resolve(rootDir, "README.md");
 
-// 1. Verify Version 1.0.24 Parity Across Files
-console.log("\n📦 Section 1: Version 1.0.24 Parity");
-const expectedVersion = "1.0.24";
+// 1. Verify Version 1.0.25 Parity Across Files
+console.log("\n📦 Section 1: Version 1.0.25 Parity");
+const expectedVersion = "1.0.25";
 
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
 assert.strictEqual(pkg.version, expectedVersion, `package.json version must be ${expectedVersion}`);
@@ -25,7 +25,7 @@ assert.ok(
   buildGradle.includes(`"${expectedVersion}"`),
   `build.gradle.kts must contain ${expectedVersion}`,
 );
-assert.ok(buildGradle.includes("10024"), "build.gradle.kts must contain versionCode 10024");
+assert.ok(buildGradle.includes("10025"), "build.gradle.kts must contain versionCode 10025");
 
 const appConfig = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert.ok(
@@ -45,7 +45,7 @@ assert.ok(
   `appSettings.ts must declare version ${expectedVersion}`,
 );
 
-console.log("✅ PASS: Version 1.0.24 strictly aligned across all target files.");
+console.log("✅ PASS: Version 1.0.25 strictly aligned across all target files.");
 
 // 2. Verify No Workflow Runs Cron Jobs Across the Entire Repository
 console.log("\n🚫 Section 2: Prohibit Any Cron Jobs Across All GitHub Actions Workflows");

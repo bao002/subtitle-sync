@@ -22,23 +22,23 @@ android {
     val packageJsonFile = file("../../package.json")
     val packageJsonVersion = if (packageJsonFile.exists()) {
         val match = Regex("\"version\":\\s*\"([^\"]+)\"").find(packageJsonFile.readText())
-        match?.groupValues?.get(1) ?: "1.0.24"
+        match?.groupValues?.get(1) ?: "1.0.25"
     } else {
-        "1.0.24"
+        "1.0.25"
     }
     val defaultDerivedCode = try {
         val parts = packageJsonVersion.split(".").map { it.toIntOrNull() ?: 0 }
         (parts.getOrElse(0) { 1 } * 10000) + (parts.getOrElse(1) { 0 } * 100) + parts.getOrElse(2) { 0 }
     } catch (_: Exception) {
-        10024
+        10025
     }
 
     defaultConfig {
         applicationId = "com.ytviewer.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10024
-        versionName = "1.0.24"
+        versionCode = 10025
+        versionName = "1.0.25"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
