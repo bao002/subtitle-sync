@@ -1,7 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Status: Staged - Awaiting User Confirmation Before Testing
-- **Active Task**: Task 120 - Comprehensive Testing & Screencast Video Pipeline Verification
-- **Status**: [AWAITING CONFIRMATION] (per prompt instruction: "test later - after confirmation and by spliting to many sub-tasks ensuring working on 1 sub-task at a time")
-- **Hotfix Outcome**: TDZ ReferenceError for `rows` resolved and verified.
-- **Next Step**: Awaiting user confirmation to proceed with Subtask 120.1.
+## Active Subtask: 120.4 Author Dedicated Automated Test & Documentation
+- **Task**: Task 120 - Web-Demo Mode Video & Subtitles URLs Input for Per-Language Subtitle Fetching (Version 1.0.24)
+- **Target**: Author `scripts/verify-web-demo-subtitles-urls-input.ts`, register `test:web-demo-subtitles-urls` in `package.json`, update `docs/files.md`, `docs/reliable-subtitles-fetching.md`, and `docs/designs/DESIGN_CONTROLS_VIEW.md`.
+- **Status**: [IN PROGRESS]

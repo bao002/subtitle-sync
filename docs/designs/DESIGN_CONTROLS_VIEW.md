@@ -105,3 +105,13 @@ In Version 1.0.22, the Video Playground view introduces enhanced inspection and 
 - **Telemetry JSON Export & Clipboard Copy**: Provides 1-click clipboard copy of raw JSON3 timedtext caption payloads (`handleCopyJson`) and file download (`handleDownloadJson`) for offline validation and debugging.
 - **Seamless Timestamp Handoff**: Connects Playground exploration to the Parallel Viewer via `onSwitchToViewerAtTime`, automatically switching tabs, seeking the main player to the exact second, and centering the matching subtitle row in view.
 
+## 8. Web Demo Mode Video & Subtitles URLs Input (`src/components/WebDemoUrlsInput.tsx`)
+
+In Version 1.0.24, the web companion introduces a dedicated input component for browser demo environments:
+
+- **Paired Video & Subtitle URL Inputs**: Allows users to input both the target YouTube video URL and one or more subtitle URLs (timedtext base URL or multi-line per-language subtitle URLs).
+- **Per-Language URL Resolution & Extraction**: Detects language codes from URL query parameters (`lang=`, `tlang=`), line prefixes (`en: https://...`), or JSON filenames (`.../he.json`).
+- **Resilient Direct & Server Proxy Fetch**: Attempts direct fetch for local/CORS-enabled endpoints, falling back to server proxy execution for YouTube timedtext URLs.
+- **Immediate Parallel Catalog Hydration**: Validates payloads with `isValidJsonSubtitleResponse` / `parseJson3` and updates `tracks`, `shown`, `targetLanguages`, and `spoken` to immediately display the multi-language table.
+
+
