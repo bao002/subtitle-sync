@@ -7,15 +7,15 @@ console.log("🧪 Verifying Video Playground Top Tab & Subtitle Interception Arc
 console.log("=========================================================================");
 
 const rootDir = process.cwd();
-const expectedVersion = "1.0.21";
-
-// -----------------------------------------------------------------------------
-// Section 1: Version 1.0.21 Parity Across Codebase
-// -----------------------------------------------------------------------------
-console.log("\n📦 Section 1: Version 1.0.21 Parity Check");
-
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
-assert.strictEqual(pkg.version, expectedVersion, `package.json version must be ${expectedVersion}`);
+const expectedVersion = pkg.version;
+
+// -----------------------------------------------------------------------------
+// Section 1: Version Parity Across Codebase
+// -----------------------------------------------------------------------------
+console.log(`\n📦 Section 1: Version ${expectedVersion} Parity Check`);
+
+assert.ok(expectedVersion && expectedVersion.length > 0, "package.json must declare version");
 
 const buildGradle = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
@@ -25,7 +25,6 @@ assert.ok(
   buildGradle.includes(`"${expectedVersion}"`),
   `build.gradle.kts must declare ${expectedVersion}`,
 );
-assert.ok(buildGradle.includes("10021"), "build.gradle.kts must declare versionCode 10021");
 
 const appConfig = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert.ok(

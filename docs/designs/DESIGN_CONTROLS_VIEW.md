@@ -96,3 +96,12 @@ To solve the challenge where automated section pauses, timer loops, and audio re
 - In Playground mode, external pause commands, seeking triggers, and TTS synchronization are completely bypassed (`activeTopTabRef.current === "playground"`).
 - The user can freely toggle captions (CC) and select languages via YouTube's native player UI.
 - Intercepted caption streams are displayed live in the Playground with 1-click import into the parallel subtitle catalog.
+
+## 7. Video Playground Speed Controls, JSON Telemetry & Seamless Timestamp Handoff
+
+In Version 1.0.22, the Video Playground view introduces enhanced inspection and transition controls:
+
+- **Integrated Playback Speed Group**: Allows switching YouTube playback speed between 0.5x, 0.75x, 1.0x, 1.25x, 1.5x, and 2.0x via iframe postMessage commands (`func: "setPlaybackRate"`).
+- **Telemetry JSON Export & Clipboard Copy**: Provides 1-click clipboard copy of raw JSON3 timedtext caption payloads (`handleCopyJson`) and file download (`handleDownloadJson`) for offline validation and debugging.
+- **Seamless Timestamp Handoff**: Connects Playground exploration to the Parallel Viewer via `onSwitchToViewerAtTime`, automatically switching tabs, seeking the main player to the exact second, and centering the matching subtitle row in view.
+

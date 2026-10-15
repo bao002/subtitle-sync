@@ -749,6 +749,31 @@ function Index() {
     [videoId, speakFetchedLanguageName],
   );
 
+  const handleSwitchToViewerAtTime = useCallback(
+    (timeSec: number) => {
+      setActiveTopTab("viewer");
+      if (typeof timeSec === "number" && !isNaN(timeSec) && timeSec >= 0) {
+        if (playerRef.current && typeof playerRef.current.seekTo === "function") {
+          try {
+            playerRef.current.seekTo(timeSec, true);
+          } catch {
+            // ignore seek error
+          }
+        }
+        const targetMs = timeSec * 1000;
+        const matchingRowIdx = rows.findIndex((r) => r.start <= targetMs && targetMs <= r.end);
+        if (matchingRowIdx >= 0) {
+          setActive(matchingRowIdx);
+          const rowEl = document.getElementById(`subtitle-row-${matchingRowIdx}`);
+          if (rowEl) {
+            rowEl.scrollIntoView({ behavior: "smooth", block: "center" });
+          }
+        }
+      }
+    },
+    [rows],
+  );
+
   const baseLanguage = useMemo(() => {
     if (observedUrl) {
       try {
@@ -2670,6 +2695,7 @@ function Index() {
           onImportTrack={handleImportTrackFromPlayground}
           existingTrackLanguages={Object.keys(tracks || {})}
           onSwitchToViewerTab={() => setActiveTopTab("viewer")}
+          onSwitchToViewerAtTime={handleSwitchToViewerAtTime}
           isAndroid={isAndroid}
           observedUrl={observedUrl}
         />

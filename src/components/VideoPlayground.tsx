@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   ArrowRight,
+  ArrowUpRight,
   Check,
   CheckCircle2,
+  Clock,
+  Copy,
   Download,
   ExternalLink,
   Eye,
+  Gauge,
   Info,
   Play,
   RefreshCw,
@@ -35,9 +39,12 @@ export interface VideoPlaygroundProps {
   onImportTrack: (lang: string, json: Json3, rawData: string, setAsTarget?: boolean) => void;
   existingTrackLanguages: string[];
   onSwitchToViewerTab?: () => void;
+  onSwitchToViewerAtTime?: (timeSec: number) => void;
   isAndroid?: boolean;
   observedUrl?: string;
 }
+
+export const PLAYGROUND_PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
 export function VideoPlayground({
   videoId,
@@ -46,6 +53,7 @@ export function VideoPlayground({
   onImportTrack,
   existingTrackLanguages,
   onSwitchToViewerTab,
+  onSwitchToViewerAtTime,
   isAndroid = false,
   observedUrl = "",
 }: VideoPlaygroundProps) {
@@ -53,6 +61,9 @@ export function VideoPlayground({
   const [playerIframeKey, setPlayerIframeKey] = useState(0);
   const [previewTrackLang, setPreviewTrackLang] = useState<string | null>(null);
   const [justImportedLang, setJustImportedLang] = useState<string | null>(null);
+  const [copiedTrackLang, setCopiedTrackLang] = useState<string | null>(null);
+  const [currentPlaybackRate, setCurrentPlaybackRate] = useState<number>(1);
+  const [handoffTimeInput, setHandoffTimeInput] = useState<string>("0");
   const [activePlayerStatus, setActivePlayerStatus] = useState<string>("Ready");
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -80,6 +91,21 @@ export function VideoPlayground({
     setActivePlayerStatus("Player reloaded");
   };
 
+  const handleSetPlaybackRate = (rate: number) => {
+    setCurrentPlaybackRate(rate);
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        JSON.stringify({
+          event: "command",
+          func: "setPlaybackRate",
+          args: [rate],
+        }),
+        "*",
+      );
+    }
+    setActivePlayerStatus(`Speed: ${rate}x`);
+  };
+
   const handleImport = (lang: string, json: Json3, rawData: string) => {
     onImportTrack(lang, json, rawData, true);
     setJustImportedLang(lang);
@@ -88,13 +114,44 @@ export function VideoPlayground({
     }, 3000);
   };
 
+  const handleCopyJson = (track: DetectedSubtitleTrack) => {
+    const payload = track.rawData || JSON.stringify(track.json, null, 2);
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(payload);
+      setCopiedTrackLang(track.lang);
+      setTimeout(() => setCopiedTrackLang(null), 2500);
+    }
+  };
+
+  const handleDownloadJson = (track: DetectedSubtitleTrack) => {
+    const payload = track.rawData || JSON.stringify(track.json, null, 2);
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `youtube-${videoId}-${track.lang}-timedtext.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleHandoffToViewer = (timeSec?: number) => {
+    const sec = timeSec !== undefined ? timeSec : parseFloat(handoffTimeInput) || 0;
+    if (onSwitchToViewerAtTime) {
+      onSwitchToViewerAtTime(sec);
+    } else if (onSwitchToViewerTab) {
+      onSwitchToViewerTab();
+    }
+  };
+
   // Preview track cues
   const previewCues = useMemo(() => {
     if (!previewTrackLang || !detectedTracks[previewTrackLang]) return null;
     const track = detectedTracks[previewTrackLang];
     return track.json.events
       ?.filter((ev) => ev.segs && ev.segs.some((s) => s.utf8 && s.utf8.trim().length > 0))
-      .slice(0, 5)
+      .slice(0, 6)
       .map((ev, idx) => ({
         id: idx,
         startMs: ev.tStartMs || 0,
@@ -181,7 +238,7 @@ export function VideoPlayground({
                 in the YouTube player &nbsp;·&nbsp; 3. Choose any language &nbsp;·&nbsp; 4. The app
                 intercepts YouTube&apos;s subtitle request and displays it in the{" "}
                 <span className="font-semibold text-foreground">Detected Subtitles</span> panel
-                below with 1-click import!
+                below with 1-click import and timestamp synchronization!
               </p>
             </div>
           </div>
@@ -216,21 +273,37 @@ export function VideoPlayground({
           </Button>
         </form>
 
-        {onSwitchToViewerTab && (
+        {/* Timestamp Handoff to Viewer */}
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-card p-1.5 shadow-sm">
+          <Clock className="h-4 w-4 text-muted-foreground ml-1 shrink-0" />
+          <input
+            id="playground-handoff-time-input"
+            data-testid="playground-handoff-time-input"
+            aria-label="Target timestamp in seconds to hand off to viewer"
+            type="number"
+            min="0"
+            step="1"
+            value={handoffTimeInput}
+            onChange={(e) => setHandoffTimeInput(e.target.value)}
+            className="w-16 rounded border border-border/80 bg-background px-2 py-0.5 text-xs text-center focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+            placeholder="sec"
+            title="Timestamp in seconds to open in Parallel Viewer"
+          />
+          <span className="text-[11px] text-muted-foreground">sec</span>
           <Button
-            id="switch-to-viewer-btn"
-            data-testid="switch-to-viewer-btn"
+            id="jump-to-viewer-btn"
+            data-testid="jump-to-viewer-btn"
             type="button"
             variant="secondary"
             size="sm"
-            onClick={onSwitchToViewerTab}
-            className="gap-1.5 h-11 text-xs shrink-0"
-            title="Return to the Parallel Subtitles viewer with current tracks"
+            onClick={() => handleHandoffToViewer()}
+            className="gap-1.5 h-8 text-xs shrink-0"
+            title="Open Parallel Viewer positioned at this timestamp"
           >
-            Open Parallel Viewer
+            <span>Open in Viewer</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Button>
-        )}
+        </div>
       </div>
 
       {/* Video Player & Interception Grid */}
@@ -250,6 +323,54 @@ export function VideoPlayground({
               className="h-full w-full border-0"
             />
           </div>
+
+          {/* Player Toolbar: Playback Speed Selector & Status */}
+          <div className="rounded-xl border border-border bg-card p-3 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-foreground flex items-center gap-1.5">
+                <Gauge className="h-3.5 w-3.5 text-primary" />
+                Speed:
+              </span>
+              <div
+                id="playground-playback-speed-group"
+                data-testid="playground-playback-speed-group"
+                className="flex items-center gap-1"
+              >
+                {PLAYGROUND_PLAYBACK_RATES.map((rate) => {
+                  const isActive = currentPlaybackRate === rate;
+                  return (
+                    <Button
+                      key={rate}
+                      id={`playback-speed-btn-${rate}`}
+                      data-testid={`playback-speed-btn-${rate}`}
+                      type="button"
+                      variant={isActive ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleSetPlaybackRate(rate)}
+                      className={`h-7 px-2 text-xs font-mono ${
+                        isActive ? "font-bold shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      title={`Set video playback speed to ${rate}x`}
+                    >
+                      {rate}x
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <span>Status:</span>
+              <span
+                id="playground-player-status"
+                data-testid="playground-player-status"
+                className="font-mono font-medium text-foreground"
+              >
+                {activePlayerStatus}
+              </span>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
             <span>
               Video ID: <strong className="font-mono text-foreground">{videoId}</strong>
@@ -299,11 +420,12 @@ export function VideoPlayground({
               <div
                 id="detected-subtitles-list"
                 data-testid="detected-subtitles-list"
-                className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1"
+                className="space-y-2.5 max-h-[420px] overflow-y-auto pr-1"
               >
                 {sortedDetectedTracks.map((track) => {
                   const isAlreadyInViewer = existingTrackLanguages.includes(track.lang);
                   const isJustImported = justImportedLang === track.lang;
+                  const isCopied = copiedTrackLang === track.lang;
                   const langMeta = LANGS.find((l) => l.code === track.lang);
                   const displayName = langMeta
                     ? `${langMeta.name} (${track.lang})`
@@ -332,7 +454,7 @@ export function VideoPlayground({
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-2 pt-1">
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
                         <Button
                           id={`import-subtitle-btn-${track.lang}`}
                           data-testid={`import-subtitle-btn-${track.lang}`}
@@ -340,7 +462,7 @@ export function VideoPlayground({
                           size="sm"
                           variant={isAlreadyInViewer ? "outline" : "default"}
                           onClick={() => handleImport(track.lang, track.json, track.rawData)}
-                          className="h-7 text-xs gap-1.5 flex-1"
+                          className="h-7 text-xs gap-1.5 flex-1 min-w-[120px]"
                           title="Import this subtitle track into the Parallel Subtitles Table"
                         >
                           {isJustImported ? (
@@ -351,7 +473,7 @@ export function VideoPlayground({
                           ) : isAlreadyInViewer ? (
                             <>
                               <Check className="h-3.5 w-3.5 opacity-70" />
-                              <span>In Viewer (Update)</span>
+                              <span>In Viewer</span>
                             </>
                           ) : (
                             <>
@@ -359,6 +481,42 @@ export function VideoPlayground({
                               <span>Import to Table</span>
                             </>
                           )}
+                        </Button>
+
+                        <Button
+                          id={`copy-json-btn-${track.lang}`}
+                          data-testid={`copy-json-btn-${track.lang}`}
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCopyJson(track)}
+                          className="h-7 text-xs px-2 gap-1 text-muted-foreground hover:text-foreground"
+                          title="Copy raw JSON3 caption data to clipboard"
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check className="h-3.5 w-3.5 text-emerald-500" />
+                              <span>Copied!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="h-3.5 w-3.5" />
+                              <span>JSON</span>
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          id={`download-json-btn-${track.lang}`}
+                          data-testid={`download-json-btn-${track.lang}`}
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDownloadJson(track)}
+                          className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground"
+                          title="Download JSON3 subtitle file"
+                        >
+                          <Download className="h-3.5 w-3.5" />
                         </Button>
 
                         <Button
@@ -385,8 +543,21 @@ export function VideoPlayground({
                           data-testid={`preview-box-${track.lang}`}
                           className="mt-2 rounded border border-border/80 bg-muted/50 p-2.5 text-[11px] space-y-1.5"
                         >
-                          <div className="font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">
-                            First Sample Cues:
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-muted-foreground text-[10px] uppercase tracking-wider">
+                              First Sample Cues:
+                            </span>
+                            {previewCues.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => handleHandoffToViewer(previewCues[0].startMs / 1000)}
+                                className="text-[10px] text-primary hover:underline flex items-center gap-0.5"
+                                title="Open Viewer positioned at this cue"
+                              >
+                                <span>Seek in Viewer</span>
+                                <ArrowUpRight className="h-3 w-3" />
+                              </button>
+                            )}
                           </div>
                           {previewCues.length === 0 ? (
                             <p className="text-muted-foreground italic">
@@ -394,11 +565,21 @@ export function VideoPlayground({
                             </p>
                           ) : (
                             previewCues.map((c) => (
-                              <div key={c.id} className="flex items-baseline gap-2">
-                                <span className="font-mono text-[10px] text-muted-foreground shrink-0">
-                                  {(c.startMs / 1000).toFixed(1)}s:
-                                </span>
-                                <span className="text-foreground line-clamp-2">{c.text}</span>
+                              <div key={c.id} className="flex items-baseline justify-between gap-2">
+                                <div className="flex items-baseline gap-2 min-w-0">
+                                  <span className="font-mono text-[10px] text-muted-foreground shrink-0">
+                                    {(c.startMs / 1000).toFixed(1)}s:
+                                  </span>
+                                  <span className="text-foreground line-clamp-2">{c.text}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleHandoffToViewer(c.startMs / 1000)}
+                                  className="text-[10px] font-mono text-muted-foreground hover:text-primary shrink-0 opacity-70 hover:opacity-100"
+                                  title="Jump to this cue in Viewer"
+                                >
+                                  &rarr;
+                                </button>
                               </div>
                             ))
                           )}

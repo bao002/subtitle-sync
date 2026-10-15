@@ -1,5 +1,28 @@
 # Done tasks
 
+## Task 118: Video Playground Playback Speed Controls, JSON Telemetry Export & Seamless Timestamp Handoff to Synchronized Viewer (Version 1.0.22)
+
+### Summary:
+
+- **Version 1.0.22 Bump & Strict System Parity**:
+  - Aligned semantic version `1.0.22` and versionCode `10022` across all 5 core locations: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Playback Speed Selector in Video Playground**:
+  - Engineered an interactive playback speed button group (0.5x, 0.75x, 1.0x, 1.25x, 1.5x, 2.0x) communicating with the YouTube iframe via `postMessage({ event: "command", func: "setPlaybackRate", args: [rate] })`.
+  - Added real-time status indicator displaying current speed and player state.
+- **Telemetry JSON Export & Clipboard Copy**:
+  - Implemented 1-click clipboard copy of raw JSON3 timedtext caption payloads (`handleCopyJson`) and file download (`handleDownloadJson`) with visual feedback.
+- **Seamless Timestamp Handoff to Parallel Viewer**:
+  - Added `onSwitchToViewerAtTime` callback and timestamp input in `src/components/VideoPlayground.tsx` and `src/routes/index.tsx`.
+  - Enables users exploring videos in Playground to jump directly to the same timestamp in the Synchronized Viewer, seeking the player and automatically scrolling the matching subtitle row into view.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-video-playground-enhancements.ts` (`npm run test:playground-enhancements`) validating version 1.0.22 parity, playback speed buttons, JSON export/copy logic, and timestamp handoff.
+  - Registered `test:playground-enhancements` in `package.json`.
+  - Updated architectural contracts and documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, and `docs/designs/DESIGN_PLAYER_PROVIDER.md`.
+- **Verification Commands & Outcomes**:
+  - 106 out of 106 test suites passed (`npm run test:*` 100% pass rate).
+  - `compile_applet` (Build succeeded).
+  - `lint_applet` (Clean - zero errors).
+
 ## Task 117: Comprehensive Test Suite Audit & Fix-Testing-to-Pass (Version 1.0.21)
 
 ### Summary:

@@ -11,8 +11,8 @@ const workflowsDir = path.resolve(rootDir, ".github/workflows");
 const readmePath = path.resolve(rootDir, "README.md");
 
 // 1. Verify Version 1.0.21 Parity Across Files
-console.log("\n📦 Section 1: Version 1.0.21 Parity");
-const expectedVersion = "1.0.21";
+console.log("\n📦 Section 1: Version 1.0.22 Parity");
+const expectedVersion = "1.0.22";
 
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
 assert.strictEqual(pkg.version, expectedVersion, `package.json version must be ${expectedVersion}`);
@@ -25,7 +25,7 @@ assert.ok(
   buildGradle.includes(`"${expectedVersion}"`),
   `build.gradle.kts must contain ${expectedVersion}`,
 );
-assert.ok(buildGradle.includes("10021"), "build.gradle.kts must contain versionCode 10021");
+assert.ok(buildGradle.includes("10022"), "build.gradle.kts must contain versionCode 10022");
 
 const appConfig = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert.ok(

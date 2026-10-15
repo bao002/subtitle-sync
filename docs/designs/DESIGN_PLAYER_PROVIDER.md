@@ -71,3 +71,6 @@ While the primary PlayerProvider coordinates multi-instance swiper sync and auto
 - **No External Seeking or Forcible Pauses**: Operates without external interval timers driving `pauseVideo()` or `seekTo()`.
 - **User-Centric Caption Switching**: Allows direct, unhindered access to native YouTube CC and quality menus.
 - **Background Interception**: Listens to network and native Android bridge caption streams to populate the detected tracks catalog in real time.
+- **Interactive Speed Adjustment**: Exposes explicit playback rate controls (`setPlaybackRate`) from 0.5x to 2.0x.
+- **Bi-Directional Timestamp Handoff**: Supports seamless transitions back to the main PlayerProvider at the exact playback position (`onSwitchToViewerAtTime`).
+
