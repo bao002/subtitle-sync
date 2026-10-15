@@ -1,6 +1,11 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Idle / Prompt Verification Complete
-- **Task**: Task 122 - Restore Web-Demo UI Design, Codify Design Preservation in AGENTS.md, and Fix Video/Subtitle State Isolation
-- **Status**: [COMPLETED]
-- **Summary**: All prompt requirements verified and migrated to `docs/done.md`.
+## Active Subtask: Subtask 126.1 - Version Bump to 1.0.29 across Project Files
+- **Task**: Task 126 - Provide Per-Language Subtitle URL Input via Language Button & Clean Top Bar of Redundant Drawer (Version 1.0.29)
+- **Status**: [IN PROGRESS]
+- **Target Files**:
+  - `package.json`
+  - `android-shell/app/build.gradle.kts`
+  - `src/config/appConfig.ts`
+  - `src/utils/apkUpdater.ts`
+  - `src/utils/appSettings.ts`
