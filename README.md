@@ -23,7 +23,7 @@ A high-performance YouTube subtitle synchronizer, multi-language parallel viewer
 - **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
 - **Failing Step**: Broken Video Link Detection in android-emulator-report.html
 - **Report URL**: https://ofershaham1-cyber.github.io/subtitle-sync/android-emulator-report.html
-- **Run URL**: https://github.com/ofershaham1-cyber/subtitle-sync/actions/runs/38667052723
+- **Run URL**: https://github.com/ofershaham1-cyber/subtitle-sync/actions/runs/38667838720
 
 ### Failure Log & Diagnosis:
 Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).
@@ -49,7 +49,7 @@ Report at android-emulator-report.html contains broken video link (screencast vi
 | 🎭 **Playwright Test Report** | [**Open Playwright Report**](https://ofershaham1-cyber.github.io/subtitle-sync/playwright/index.html) | Playwright web and mobile emulation E2E suite report. |
 | 📱 **Android Emulator Report** | [**Open Android Emulator Report**](https://ofershaham1-cyber.github.io/subtitle-sync/android-emulator-report.html) | Full system telemetry, milestone flow cards, and live logcat audit. |
 | 📸 **Android Emulator Screenshot** | [**View Latest Emulator Screenshot**](https://ofershaham1-cyber.github.io/subtitle-sync/screenshots/android-emulator-screenshot.png) | High-resolution capture of authentic Android emulator test runtime. |
-| 🎬 **Android Emulator Screencast Video** | ⚠️ [**Broken Link / Missing Asset (HTTP 404)**](https://ofershaham1-cyber.github.io/subtitle-sync/android-emulator-report.html) | Screencast video (`android-emulator-video.mp4` returned HTTP 404 on GitHub Pages). Run [emulation.yml](https://github.com/ofershaham1-cyber/subtitle-sync/actions/workflows/emulation.yml) to record and deploy. |
+| 🎬 **Android Emulator Screencast Video**               | ⚠️ [**Broken Link / Missing Asset (HTTP 404)**](https://ofershaham1-cyber.github.io/subtitle-sync/android-emulator-report.html) | Screencast video (android-emulator-video.mp4 returned HTTP 404 on GitHub Pages). Run [emulation.yml](https://github.com/ofershaham1-cyber/subtitle-sync/actions/workflows/emulation.yml) to record and deploy. |
 
 ---
 
