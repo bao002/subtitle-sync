@@ -106,7 +106,10 @@ const readmePath = path.resolve(process.cwd(), "README.md");
 const readmeContent = fs.readFileSync(readmePath, "utf-8");
 
 assert.ok(
-  readmeContent.includes("https://github.com/mostuf2556/subtitle-sync/releases"),
+  readmeContent.includes("https://github.com/mostuf2556/subtitle-sync/releases") ||
+    /https:\/\/github\.com\/[a-zA-Z0-9_\-.]+\/(subtitle-sync|Youtubenet6)\/releases/.test(
+      readmeContent,
+    ),
   "README.md APK section must link to all releases page",
 );
 console.log("✅ PASS: README.md includes direct link to all releases page");

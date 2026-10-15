@@ -227,10 +227,19 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 116.5: Update documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, `docs/designs/DESIGN_PLAYER_PROVIDER.md`, and `docs/operations/DEBUG.md`. [DONE]
   - Subtask 116.6: Run test suites, compile_applet, lint_applet, commit checkpoint, and migrate Task 116 to `docs/done.md`. [DONE]
 
-- **Task 117**: Comprehensive Test Suite Audit & Fix-Testing-to-Pass (Version 1.0.21) [IN PROGRESS]
-  - Subtask 117.1: Run inventory of automated verification scripts to audit test suite status and identify any failing tests. [ACTIVE]
-  - Subtask 117.2: Apply minimal targeted fixes for identified test failures to achieve 100% test pass rate. [PENDING]
-  - Subtask 117.3: Verify all relevant test suites pass, confirm clean compilation (`compile_applet`) and zero-error linting (`lint_applet`). [PENDING]
-  - Subtask 117.4: Commit progress via git, attempt git push, and migrate Task 117 to `docs/done.md`. [PENDING]
+- **Task 117**: Comprehensive Test Suite Audit & Fix-Testing-to-Pass (Version 1.0.21) [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 117.1: Run inventory of automated verification scripts to audit test suite status and identify any failing tests. [DONE]
+  - Subtask 117.2: Apply minimal targeted fixes for identified test failures to achieve 100% test pass rate (restore complete README.md architectural structure and contracts). [DONE]
+  - Subtask 117.3: Verify all relevant test suites pass, confirm clean compilation (`compile_applet`) and zero-error linting (`lint_applet`). [DONE]
+  - Subtask 117.4: Commit progress via git, attempt git push, and migrate Task 117 to `docs/done.md`. [DONE]
+
+- **Task 118**: Video Playground Playback Speed Controls, JSON Telemetry Export & Seamless Timestamp Handoff to Synchronized Viewer (Version 1.0.22) [IN PROGRESS]
+  - Subtask 118.1: Update app version to 1.0.22 across `package.json`, `android-shell/app/build.gradle.kts` (versionCode 10022, versionName "1.0.22"), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [ACTIVE]
+  - Subtask 118.2: Implement Video Playground playback speed selector (0.5x to 2.0x), raw JSON / cue telemetry clipboard export, and 1-click seamless timestamp handoff to Synchronized Viewer tab in `src/components/VideoPlayground.tsx` and `src/routes/index.tsx`. [PENDING]
+  - Subtask 118.3: Author dedicated automated test `scripts/verify-video-playground-enhancements.ts`, register `test:playground-enhancements` in `package.json`, and update architectural documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, and `docs/designs/DESIGN_PLAYER_PROVIDER.md`. [PENDING]
+  - Subtask 118.4: Execute test suites, verify clean compilation (`compile_applet`) and zero-error linting (`lint_applet`), commit progress via git, attempt push, and migrate Task 118 to `docs/done.md`. [PENDING]
+
+
+
 
 

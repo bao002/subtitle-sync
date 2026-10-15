@@ -49,10 +49,18 @@ DEV_H=$(echo "${DEVICE_RESOLUTION}" | cut -d'x' -f2)
 if [[ -z "${DEV_W}" || -z "${DEV_H}" || "${DEV_W}" -le 0 || "${DEV_H}" -le 0 ]]; then
   DEV_W=1080
   DEV_H=2400
-fi
 echo "Device Resolution: ${DEV_W}x${DEV_H}"
 
-# Step 1: Wait for clean app readiness
+# Compute adaptive player coordinates and gesture parameters
+PLAYER_TAP_X=$(( DEV_W / 2 ))
+PLAYER_TAP_Y=$(( DEV_H / 4 ))
+SWIPE_START_X=$(( DEV_W / 2 ))
+SWIPE_START_Y=$(( DEV_H * 3 / 4 ))
+SWIPE_END_Y=$(( DEV_H / 4 ))
+
+# Execute adaptive swipe gestures to ensure viewports are primed
+adb_cmd shell input swipe "${SWIPE_START_X}" "${SWIPE_START_Y}" "${SWIPE_START_X}" "${SWIPE_END_Y}" 300 2>/dev/null || true
+
 echo "--> [Step 1] Verifying clean app boot and [APP_READY] signal..."
 for ((i = 0; i < TIMEOUT_S; i++)); do
   LOG=$(adb_cmd logcat -d 2>/dev/null || true)
@@ -67,6 +75,12 @@ for ((i = 0; i < TIMEOUT_S; i++)); do
 
   if echo "${LOG}" | grep -q "APP_READY"; then
     echo "✅ Step 1 Verified: App booted cleanly without error screen."
+    # Verify on-device screen hierarchy does not display error screen via uiautomator dump
+    adb_cmd shell uiautomator dump /sdcard/window_dump.xml 2>/dev/null || true
+    DUMP=$(adb_cmd shell cat /sdcard/window_dump.xml 2>/dev/null || true)
+    if echo "${DUMP}" | grep -qE "This page didn't load|Something went wrong on our end"; then
+      fail "Android app rendered error screen (This page didn't load)"
+    fi
     mkdir -p ./public/screenshots
     adb_cmd shell screencap -p /sdcard/step-02-app-launch.png 2>/dev/null || true
     adb_cmd pull /sdcard/step-02-app-launch.png ./public/screenshots/step-02-app-launch.png 2>/dev/null || true

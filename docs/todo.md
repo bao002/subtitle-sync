@@ -1,6 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: 117.2 Restore Complete Architectural Structure & Contract Links to README.md
-- **Task**: Task 117 - Comprehensive Test Suite Audit & Fix-Testing-to-Pass
-- **Target**: Restore full `README.md` containing all required workflow badges, GitHub Pages E2E links table, 9 architectural documentation contract links, and CLI update instructions.
+## Active Subtask: 118.3 Author Dedicated Verification Test & Update Architectural Contracts
+- **Task**: Task 118 - Video Playground Playback Speed Controls, JSON Telemetry Export & Seamless Timestamp Handoff to Synchronized Viewer (Version 1.0.22)
+- **Target**: Author `scripts/verify-video-playground-enhancements.ts` covering speed controls, JSON export, timestamp handoff, and version 1.0.22; register `test:playground-enhancements` in `package.json`; update `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, and `docs/designs/DESIGN_PLAYER_PROVIDER.md`.
 - **Status**: [IN PROGRESS]

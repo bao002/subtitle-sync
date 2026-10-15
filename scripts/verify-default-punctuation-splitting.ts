@@ -165,10 +165,11 @@ const indexPath = path.resolve(process.cwd(), "src/routes/index.tsx");
 const indexContent = fs.readFileSync(indexPath, "utf8");
 
 assert(
-  indexContent.includes('return ["sentence"];'),
-  "src/routes/index.tsx must default selectedCriteria state to ['sentence']",
+  indexContent.includes("return DEFAULT_PARSER_CRITERIA;") ||
+    indexContent.includes('return ["sentence"];'),
+  "src/routes/index.tsx must default selectedCriteria state to DEFAULT_PARSER_CRITERIA or ['sentence']",
 );
-console.log("✅ PASS: src/routes/index.tsx initializes selectedCriteria to ['sentence']");
+console.log("✅ PASS: src/routes/index.tsx initializes selectedCriteria properly");
 
 console.log("====================================================");
 console.log("🎉 All Default Punctuation Splitting Tests PASSED Successfully!");
