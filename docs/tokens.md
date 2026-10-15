@@ -233,11 +233,31 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 117.3: Verify all relevant test suites pass, confirm clean compilation (`compile_applet`) and zero-error linting (`lint_applet`). [DONE]
   - Subtask 117.4: Commit progress via git, attempt git push, and migrate Task 117 to `docs/done.md`. [DONE]
 
-- **Task 118**: Video Playground Playback Speed Controls, JSON Telemetry Export & Seamless Timestamp Handoff to Synchronized Viewer (Version 1.0.22) [IN PROGRESS]
-  - Subtask 118.1: Update app version to 1.0.22 across `package.json`, `android-shell/app/build.gradle.kts` (versionCode 10022, versionName "1.0.22"), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [ACTIVE]
-  - Subtask 118.2: Implement Video Playground playback speed selector (0.5x to 2.0x), raw JSON / cue telemetry clipboard export, and 1-click seamless timestamp handoff to Synchronized Viewer tab in `src/components/VideoPlayground.tsx` and `src/routes/index.tsx`. [PENDING]
-  - Subtask 118.3: Author dedicated automated test `scripts/verify-video-playground-enhancements.ts`, register `test:playground-enhancements` in `package.json`, and update architectural documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, and `docs/designs/DESIGN_PLAYER_PROVIDER.md`. [PENDING]
-  - Subtask 118.4: Execute test suites, verify clean compilation (`compile_applet`) and zero-error linting (`lint_applet`), commit progress via git, attempt push, and migrate Task 118 to `docs/done.md`. [PENDING]
+- **Task 118**: Video Playground Playback Speed Controls, JSON Telemetry Export & Seamless Timestamp Handoff to Synchronized Viewer (Version 1.0.22) [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 118.1: Update app version to 1.0.22 across `package.json`, `android-shell/app/build.gradle.kts` (versionCode 10022, versionName "1.0.22"), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [DONE]
+  - Subtask 118.2: Implement Video Playground playback speed selector (0.5x to 2.0x), raw JSON / cue telemetry clipboard export, and 1-click seamless timestamp handoff to Synchronized Viewer tab in `src/components/VideoPlayground.tsx` and `src/routes/index.tsx`. [DONE]
+  - Subtask 118.3: Author dedicated automated test `scripts/verify-video-playground-enhancements.ts`, register `test:playground-enhancements` in `package.json`, and update architectural documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, and `docs/designs/DESIGN_PLAYER_PROVIDER.md`. [DONE]
+  - Subtask 118.4: Execute test suites, verify clean compilation (`compile_applet`) and zero-error linting (`lint_applet`), commit progress via git, attempt push, and migrate Task 118 to `docs/done.md`. [DONE]
+
+- **Task 119**: Strict Prohibition & Verification of Zero GitHub Actions Cron Jobs Across All Workflows (Version 1.0.23) [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 119.1: Update app version to 1.0.23 across `package.json`, `android-shell/app/build.gradle.kts` (versionCode 10023, versionName "1.0.23"), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [DONE]
+  - Subtask 119.2: Audit all `.github/workflows/*.yml` files to confirm strictly zero `schedule:` / cron triggers, and strengthen `scripts/verify-no-cron-readme-updates.ts` to assert that zero workflows in `.github/workflows/` contain any `schedule:` or cron configurations. [DONE]
+  - Subtask 119.3: Update architectural documentation in `AGENTS.md`, `docs/operations/ACTIONS.md`, and `docs/files.md` formalizing the zero-cron policy. [DONE]
+  - Subtask 119.4: Run the dedicated verification test `npm run test:no-cron-readme`, verify app compilation (`compile_applet`) and zero-error linting (`lint_applet`), checkpoint via git, and migrate Task 119 to `docs/done.md`. [DONE]
+
+- **Hotfix: Fix TDZ ReferenceError for rows in src/routes/index.tsx** [COMPLETED & MIGRATED TO docs/done.md]
+  - Step 1: Relocate `handleSwitchToViewerAtTime` below `const rows = useMemo(...)` declaration in `src/routes/index.tsx`. [DONE]
+  - Step 2: Author dedicated automated test `scripts/verify-hotfix-rows-initialization.ts` and register npm script. [DONE]
+  - Step 3: Verify clean build (`compile_applet`), zero-error linting (`lint_applet`), commit progress, and migrate Hotfix to `docs/done.md`. [DONE]
+
+- **Task 120**: Comprehensive Testing & Screencast Video Pipeline Verification (Version 1.0.23) [ON HOLD - AWAITING USER CONFIRMATION]
+  - Subtask 120.1: [AWAITING CONFIRMATION] Audit and address broken video link detection in `android-emulator-report.html` (Run 38666582894) by coordinating emulator recording workflow dispatch. [PENDING]
+  - Subtask 120.2: [AWAITING CONFIRMATION] Execute Playwright and web companion E2E test suites in dedicated isolated step. [PENDING]
+  - Subtask 120.3: [AWAITING CONFIRMATION] Execute full unit and verification test suite inventory sequentially 1 sub-task at a time with dedicated checkpoints. [PENDING]
+
+
+
+
 
 
 

@@ -80,6 +80,9 @@
   - When syncing git (e.g., comparing against, pulling from, merging with, or cherry-picking files from baseline/upstream repositories such as [mostuf2556/Youtubenet6](https://github.com/mostuf2556/Youtubenet6), or syncing branches/forks), **`README.md` MUST NOT be copied or overwritten**.
   - Keep the active repository's `README.md` untouched during git sync operations and let GitHub Actions generate, format, and maintain it automatically.
 - **App version updates**: The app version number must not stay 1.0 always; it should be updated across `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts` when delivering updates for prompt response.
+- **Zero GitHub Actions cron jobs policy**:
+  - All GitHub Actions workflows under `.github/workflows/` must strictly be event-driven (`push`, `pull_request`, `workflow_dispatch`, `workflow_run`).
+  - No workflow may define a `schedule:` or `cron` trigger under any circumstances. Cron jobs cause unexpected automated runs, unpredictable background commits, and git merge conflicts. All pipeline automation is triggered solely by genuine repository events and manual dispatches.
 
 ### Android app E2E validation, screencast video & GitHub Pages reporting
 

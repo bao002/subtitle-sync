@@ -10,9 +10,9 @@ const rootDir = process.cwd();
 const workflowsDir = path.resolve(rootDir, ".github/workflows");
 const readmePath = path.resolve(rootDir, "README.md");
 
-// 1. Verify Version 1.0.21 Parity Across Files
-console.log("\n📦 Section 1: Version 1.0.22 Parity");
-const expectedVersion = "1.0.22";
+// 1. Verify Version 1.0.23 Parity Across Files
+console.log("\n📦 Section 1: Version 1.0.23 Parity");
+const expectedVersion = "1.0.23";
 
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
 assert.strictEqual(pkg.version, expectedVersion, `package.json version must be ${expectedVersion}`);
@@ -25,7 +25,7 @@ assert.ok(
   buildGradle.includes(`"${expectedVersion}"`),
   `build.gradle.kts must contain ${expectedVersion}`,
 );
-assert.ok(buildGradle.includes("10022"), "build.gradle.kts must contain versionCode 10022");
+assert.ok(buildGradle.includes("10023"), "build.gradle.kts must contain versionCode 10023");
 
 const appConfig = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert.ok(
@@ -45,10 +45,10 @@ assert.ok(
   `appSettings.ts must declare version ${expectedVersion}`,
 );
 
-console.log("✅ PASS: Version 1.0.20 strictly aligned across all target files.");
+console.log("✅ PASS: Version 1.0.23 strictly aligned across all target files.");
 
-// 2. Verify No Workflow Runs Cron Jobs that Commit to README.md
-console.log("\n🚫 Section 2: Prohibit Cron Jobs from Modifying or Committing README.md");
+// 2. Verify No Workflow Runs Cron Jobs Across the Entire Repository
+console.log("\n🚫 Section 2: Prohibit Any Cron Jobs Across All GitHub Actions Workflows");
 
 const workflowFiles = fs
   .readdirSync(workflowsDir)
@@ -58,16 +58,18 @@ assert.ok(workflowFiles.length > 0, "Workflow directory must contain workflow fi
 for (const wfFile of workflowFiles) {
   const content = fs.readFileSync(path.resolve(workflowsDir, wfFile), "utf-8");
   const hasSchedule = /^\s*schedule\s*:/m.test(content);
-  const commitsToReadme = content.includes("git commit") && content.includes("README.md");
+  const hasCron = /cron\s*:/i.test(content);
 
-  if (hasSchedule) {
-    assert.ok(
-      !commitsToReadme,
-      `Workflow ${wfFile} has a schedule trigger AND commits to README.md! This causes git merge conflicts. Cron jobs must not modify README.md.`,
-    );
-  }
+  assert.ok(
+    !hasSchedule,
+    `Workflow ${wfFile} contains a 'schedule:' trigger! All GitHub Actions cron jobs are strictly prohibited across all workflows.`,
+  );
+  assert.ok(
+    !hasCron,
+    `Workflow ${wfFile} contains a 'cron:' configuration! All GitHub Actions cron jobs are strictly prohibited across all workflows.`,
+  );
 }
-console.log("✅ PASS: Zero scheduled/cron workflows commit to README.md across repository.");
+console.log("✅ PASS: Zero scheduled/cron workflows exist across the entire repository (100% event-driven).");
 
 // 3. Specifically verify report-video-flow.yml does NOT contain schedule trigger
 console.log("\n🛡️ Section 3: Verify report-video-flow.yml Trigger & Conflict-Free Architecture");

@@ -51,7 +51,7 @@ This document serves as the master catalog and directory of all repository docum
 | :---------------------------------------- | :---------------------------------- | :---------------------------------------------------------------------------------------------------------------------------- |
 | `docs/specifications/SCHEMA_TIMEDTEXT.md` | TimedText Schema                    | YouTube JSON3 format definitions, segment timings (`tStartMs`, `dDurationMs`), entity decoding, and BiDi normalization.       |
 | `docs/specifications/LIBRARY.md`          | Subtitle Library Schema             | Schema definitions and integrity rules for offline local fixtures (`test/fixtures/<VIDEO_ID>/*.json`).                        |
-| `docs/operations/ACTIONS.md`              | CI/CD Pipelines & Status Sync Guide | Workflows for APK building, emulator E2E tests, Pages deployment, and automated README CI status/broken link synchronization. |
+| `docs/operations/ACTIONS.md`              | CI/CD Pipelines & Status Sync Guide | Workflows for APK building, emulator E2E tests, Pages deployment, zero-cron policy, and automated README CI status/broken link synchronization. |
 | `docs/operations/DEBUG.md`                | Diagnostics Runbook                 | Log inspection runbook, network packet inspector, and AI troubleshooting prompt generator.                                    |
 
 ### Root Entry Points & Scratchpads
@@ -278,3 +278,5 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-no-cron-readme-updates.ts`                     | No Cron README Updates & Status Badge Issue Indication Test   | Asserts version 1.0.20 parity, zero cron jobs committing to README.md to eliminate merge conflicts, and dynamic failure indication via status badges.                                                             |
 | `scripts/verify-video-playground-tab.ts`                       | Video Playground Top Tab & Subtitle Interception Test         | Validates version 1.0.21 parity, VideoPlayground component structure, top navigation tabs (Viewer vs Playground), background interval decoupling, cue preview, and track import logic.                            |
 | `scripts/verify-video-playground-enhancements.ts`              | Video Playground Enhancements Verification Suite              | Asserts version 1.0.22 parity, playback speed controls (0.5x-2.0x), raw JSON export/copy, and seamless timestamp handoff to Synchronized Viewer.                                                                  |
+| `scripts/verify-hotfix-rows-initialization.ts`                 | Rows Initialization & TDZ ReferenceError Guard Test           | Asserts handleSwitchToViewerAtTime is safely declared after const rows and player declarations, preventing ReferenceError during component initialization.                                                         |
+

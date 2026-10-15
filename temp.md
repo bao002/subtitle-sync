@@ -1,5 +1,10 @@
 # Temporary Scratchpad (`temp.md`)
 
-Task 117 successfully accomplished, verified, and migrated to docs/done.md.
-Clean compilation and linting confirmed.
-105/105 automated verification tests passing (100% pass rate).
+Hotfix successfully implemented and verified:
+- Relocated handleSwitchToViewerAtTime below rows and player declarations in src/routes/index.tsx.
+- Replaced playerRef with player.current.
+- Dedicated test scripts/verify-hotfix-rows-initialization.ts passed 100%.
+- Dev server restarted.
+- Applet compiled cleanly and passed linting.
+- Hotfix documented and migrated to docs/done.md.
+- Task 120 resumed on hold awaiting user confirmation before executing test suites.
