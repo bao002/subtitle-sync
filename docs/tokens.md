@@ -250,12 +250,25 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Step 2: Author dedicated automated test `scripts/verify-hotfix-rows-initialization.ts` and register npm script. [DONE]
   - Step 3: Verify clean build (`compile_applet`), zero-error linting (`lint_applet`), commit progress, and migrate Hotfix to `docs/done.md`. [DONE]
 
-- **Task 120**: Web-Demo Mode Video & Subtitles URLs Input for Per-Language Subtitle Fetching (Version 1.0.24) [ACTIVE]
-  - Subtask 120.1: Bump version to 1.0.24 across `package.json`, `android-shell/app/build.gradle.kts` (versionCode 10024, versionName "1.0.24"), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [ACTIVE]
-  - Subtask 120.2: Create modular component `src/components/WebDemoUrlsInput.tsx` providing inputs for video URL and subtitle URLs (timedtext base URL or per-language subtitle URLs) with per-language fetching and parsing. [PENDING]
-  - Subtask 120.3: Integrate `WebDemoUrlsInput` into `src/routes/index.tsx` for web-demo mode (`!isAndroid`), wiring it to load the video and populate `tracks` with fetched per-language subtitles. [PENDING]
-  - Subtask 120.4: Author dedicated automated test `scripts/verify-web-demo-subtitles-urls-input.ts`, register `test:web-demo-subtitles-urls` in `package.json`, and update documentation in `docs/files.md`, `docs/reliable-subtitles-fetching.md`, and `docs/designs/DESIGN_CONTROLS_VIEW.md`. [PENDING]
-  - Subtask 120.5: Execute dedicated verification test, confirm clean compilation (`compile_applet`) and zero-error linting (`lint_applet`), commit progress, and migrate Task 120 to `docs/done.md`. [PENDING]
+- **Task 120**: Web-Demo Mode Video & Subtitles URLs Input for Per-Language Subtitle Fetching (Version 1.0.24) [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 120.1: Bump version to 1.0.24 across `package.json`, `android-shell/app/build.gradle.kts` (versionCode 10024, versionName "1.0.24"), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [DONE]
+  - Subtask 120.2: Create modular component `src/components/WebDemoUrlsInput.tsx` providing inputs for video URL and subtitle URLs with per-language fetching and parsing. [DONE]
+  - Subtask 120.3: Integrate `WebDemoUrlsInput` into `src/routes/index.tsx` for web-demo mode (`!isAndroid`), wiring it to load the video and populate `tracks` with fetched per-language subtitles. [DONE]
+  - Subtask 120.4: Author dedicated automated test `scripts/verify-web-demo-subtitles-urls-input.ts`, register `test:web-demo-subtitles-urls` in `package.json`, and update documentation in `docs/files.md`, `docs/reliable-subtitles-fetching.md`, and `docs/designs/DESIGN_CONTROLS_VIEW.md`. [DONE]
+  - Subtask 120.5: Execute dedicated verification test, confirm clean compilation (`compile_applet`) and zero-error linting (`lint_applet`), commit progress, and migrate Task 120 to `docs/done.md`. [DONE]
+
+- **Task 121**: GitHub Import Migration & Environment Harmonization [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 121.1: Audit & normalize environment per `github-import-migration` skill: verify package manager, locks, engines, port 3000/0.0.0.0, and add detected env vars (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`) to `.env.example`. [DONE]
+  - Subtask 121.2: Restore and harmonize `README.md` architectural contract documentation, workflow status badges, and report links to satisfy all verification suites. [DONE]
+  - Subtask 121.3: Verify mock layers, integrations, and dependencies (database stubs, Supabase env config). [DONE]
+  - Subtask 121.4: Execute verification test suite (`npm run test:doc-contracts`, `npm run test:readme-links`, `npm run test:no-cron-readme`, `npm run test:tokens-economy`, `npm run test:web-demo-subtitles-urls`, `compile_applet`, `lint_applet`), commit checkpoint, and migrate Task 121 to `docs/done.md`. [DONE]
+
+- **Task 122**: Restore Web-Demo UI Design, Codify Design Preservation in AGENTS.md, and Fix Video/Subtitle State Isolation (Version 1.0.25) [ACTIVE]
+  - Subtask 122.1: Update app version to 1.0.25 across `package.json`, `android-shell/app/build.gradle.kts` (versionCode 10025, versionName "1.0.25"), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`. [ACTIVE]
+  - Subtask 122.2: Update `AGENTS.md` with strict rule never to alter or redesign the web-demo UI/design/layout without explicit user confirmation. [PENDING]
+  - Subtask 122.3: Redesign `src/components/WebDemoUrlsInput.tsx` to restore the exact clean single-row web-demo input bar (`#youtube-url-form`, `#youtube-url-input`, `#play-video-button`) by default, with a subtle expandable subtitle URL popover/panel, keeping the original web-demo design 100% intact. [PENDING]
+  - Subtask 122.4: Fix video and subtitle state isolation in `src/routes/index.tsx` so that when a new videoID and its subtitles URL for lang X are provided, all default video tracks, shown languages, and target languages are cleanly reset to only the new video's tracks (`setTracks(newTracks)`, `setShown(trackLangs)`), completely preventing any introduction of the default video's subtitles. [PENDING]
+  - Subtask 122.5: Update and author dedicated verification tests (`scripts/verify-web-demo-design-preservation.ts`, update `scripts/verify-web-demo-subtitles-urls-input.ts`), register `test:design-preservation` in `package.json`, run all contract tests, compile (`compile_applet`), lint (`lint_applet`), commit checkpoint, and migrate Task 122 to `docs/done.md`. [PENDING]
 
 
 

@@ -5,7 +5,7 @@ import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
 import { fetchViaServer } from "../lib/subtitle-fetch-plan";
 import serverConfig from "../config/server.json";
 import { Json3 } from "../types";
-import { ExternalLink, RefreshCw, CheckCircle2, AlertCircle, FileText, Globe } from "lucide-react";
+import { RefreshCw, CheckCircle2, AlertCircle, FileText, ChevronDown, ChevronUp } from "lucide-react";
 
 export interface WebDemoUrlsInputProps {
   currentVideoId: string;
@@ -44,15 +44,13 @@ export function WebDemoUrlsInput({
   const [videoUrlInput, setVideoUrlInput] = useState(
     currentVideoId ? `https://www.youtube.com/watch?v=${currentVideoId}` : "",
   );
-  const [subtitlesUrlsInput, setSubtitlesUrlsInput] = useState(
-    initialObservedUrl ||
-      `/fixtures/${currentVideoId || "L2Ryrr6txwA"}/en.json\n/fixtures/${currentVideoId || "L2Ryrr6txwA"}/he.json`,
-  );
+  const [subtitlesUrlsInput, setSubtitlesUrlsInput] = useState(initialObservedUrl || "");
   const [selectedLangs, setSelectedLangs] = useState<string[]>(["en", "he"]);
   const [isFetching, setIsFetching] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusType, setStatusType] = useState<"info" | "success" | "error">("info");
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Default to collapsed (false) to preserve the original clean single-row web-demo design
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Helper to extract language code from a line or URL
   const extractLangFromLine = useCallback((line: string, index: number): ParsedUrlEntry | null => {
@@ -81,7 +79,7 @@ export function WebDemoUrlsInput({
     }
 
     // Fallback: assign from selectedLangs order if available
-    const fallbackLang = COMMON_DEMO_LANGS[index % COMMON_DEMO_LANGS.length].code;
+    const fallbackLang = COMMON_DEMO_LANGS[index % COMMON_DEMO_LANGS.length]?.code || "en";
     return { lang: fallbackLang, url: trimmed };
   }, []);
 
@@ -127,7 +125,6 @@ export function WebDemoUrlsInput({
             derived.searchParams.set("lang", targetCode);
             derived.searchParams.delete("tlang");
           } else {
-            // translation mode
             derived.searchParams.set("lang", originalLang);
             derived.searchParams.set("tlang", targetCode);
           }
@@ -231,7 +228,7 @@ export function WebDemoUrlsInput({
     );
     setSelectedLangs(["en", "he", "es", "de"]);
     setStatusType("info");
-    setStatusMessage("Populated sample local fixtures (English, Hebrew, Spanish, German). Click 'Fetch Subtitles per Language' to load.");
+    setStatusMessage("Populated sample local fixtures. Click 'Fetch Subtitles per Language' to load.");
   }, []);
 
   const handleToggleLang = (code: string) => {
@@ -244,169 +241,161 @@ export function WebDemoUrlsInput({
     );
   };
 
+  const handlePrimarySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const extractedVideoId = parseVideoId(videoUrlInput);
+    if (!extractedVideoId) {
+      setStatusType("error");
+      setStatusMessage("Enter a valid YouTube link or video ID.");
+      return;
+    }
+
+    // If subtitle URLs are supplied and expanded, fetch them
+    if (isExpanded && subtitlesUrlsInput.trim()) {
+      void handleFetchSubtitles();
+      return;
+    }
+
+    // Otherwise load the video cleanly
+    onLoadVideoAndSubtitles({
+      videoId: extractedVideoId,
+      tracks: {},
+    });
+    setStatusType("info");
+    setStatusMessage(`Loaded video ${extractedVideoId}.`);
+  };
+
   return (
     <div
-      className={`rounded-xl border border-border bg-card p-4 shadow-sm text-card-foreground ${className}`}
+      className={`max-w-2xl mx-auto space-y-2 ${className}`}
       data-testid="web-demo-urls-input-container"
     >
-      <div className="flex items-center justify-between pb-2 border-b border-border/60 mb-3">
-        <div className="flex items-center gap-2">
-          <Globe className="w-4 h-4 text-primary" />
-          <h3 className="font-semibold text-sm">
-            Web Demo: Provide Video & Subtitle URLs per Language
-          </h3>
-          <span className="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-medium">
-            Web Mode
-          </span>
-        </div>
-        <button
+      {/* 1. Original Clean Single-Row Input Form (Preserves Old Design 100%) */}
+      <form
+        id="youtube-url-form"
+        data-testid="youtube-url-form"
+        onSubmit={handlePrimarySubmit}
+        className="flex items-center gap-2 rounded-xl border border-border bg-card p-2 shadow-sm text-card-foreground"
+      >
+        <input
+          id="youtube-url-input"
+          data-testid="youtube-url-input"
+          aria-label="YouTube video URL or ID"
+          type="text"
+          value={videoUrlInput}
+          onChange={(e) => setVideoUrlInput(e.target.value)}
+          placeholder="Paste YouTube video link (e.g. https://www.youtube.com/watch?v=vBURridJXZ0)"
+          className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+        />
+        <Button
+          id="play-video-button"
+          data-testid="play-video-button"
+          type="submit"
+          size="sm"
+        >
+          Load video
+        </Button>
+        <Button
           type="button"
+          variant="outline"
+          size="sm"
           onClick={() => setIsExpanded((prev) => !prev)}
-          className="text-xs text-muted-foreground hover:text-foreground underline"
+          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+          title="Supply subtitles per language by URL"
           aria-expanded={isExpanded}
         >
-          {isExpanded ? "Collapse" : "Expand"}
-        </button>
-      </div>
+          <span>Subtitles</span>
+          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </Button>
+      </form>
 
+      {/* 2. Collapsible Custom Subtitles Input Drawer */}
       {isExpanded && (
-        <form
-          id={formId}
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleFetchSubtitles();
-          }}
-          className="space-y-3"
+        <div
+          className="rounded-xl border border-border bg-card p-3 shadow-sm text-card-foreground text-xs space-y-2.5 animate-in fade-in duration-150"
         >
-          {/* Video URL Input */}
-          <div>
-            <label
-              htmlFor="youtube-url-input"
-              className="block text-xs font-medium text-muted-foreground mb-1"
+          <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
+            <span className="font-medium text-foreground">
+              Provide Subtitle URLs per Language:
+            </span>
+            <button
+              type="button"
+              onClick={handleUseSampleFixtures}
+              className="text-primary hover:underline flex items-center gap-1 font-medium"
             >
-              1. YouTube Video URL or Video ID:
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="youtube-url-input"
-                data-testid="youtube-url-input"
-                type="text"
-                value={videoUrlInput}
-                onChange={(e) => setVideoUrlInput(e.target.value)}
-                placeholder="e.g. https://www.youtube.com/watch?v=L2Ryrr6txwA or video ID"
-                className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <Button
-                id="play-video-button"
-                data-testid="play-video-button"
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const extractedVideoId = parseVideoId(videoUrlInput);
-                  if (extractedVideoId) {
-                    onLoadVideoAndSubtitles({
-                      videoId: extractedVideoId,
-                      tracks: {},
-                    });
-                    setStatusType("info");
-                    setStatusMessage(`Loaded video ${extractedVideoId}.`);
-                  } else {
-                    setStatusType("error");
-                    setStatusMessage("Please enter a valid YouTube video URL or ID.");
-                  }
-                }}
-              >
-                Load video only
-              </Button>
-            </div>
+              <FileText className="w-3 h-3" /> Load Sample Fixtures
+            </button>
           </div>
 
-          {/* Subtitles URLs Input */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label
-                htmlFor="web-demo-subtitles-urls-input"
-                className="block text-xs font-medium text-muted-foreground"
-              >
-                2. Subtitle URLs Input (one per line, timedtext base URL or per-language URLs):
-              </label>
-              <button
-                type="button"
-                onClick={handleUseSampleFixtures}
-                className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
-              >
-                <FileText className="w-3 h-3" /> Load Sample Fixtures
-              </button>
-            </div>
             <textarea
               id="web-demo-subtitles-urls-input"
               data-testid="web-demo-subtitles-urls-input"
-              rows={3}
+              rows={2}
               value={subtitlesUrlsInput}
               onChange={(e) => setSubtitlesUrlsInput(e.target.value)}
-              placeholder="Paste one or more URLs (e.g. /fixtures/L2Ryrr6txwA/en.json, https://www.youtube.com/api/timedtext?..., or lang: url)"
-              className="w-full font-mono text-xs rounded-md border border-input bg-background p-2.5 focus:outline-none focus:ring-1 focus:ring-ring resize-y"
+              placeholder="Paste one or more URLs per language (e.g. es: https://..., or /fixtures/L2Ryrr6txwA/he.json, or timedtext URL)"
+              className="w-full font-mono text-xs rounded-md border border-input bg-background p-2 focus:outline-none focus:ring-1 focus:ring-ring resize-y"
             />
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Supports relative fixture paths, signed timedtext URLs (proxy supported), or per-language format (<code>en: https://...</code>).
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Formats: <code>lang: URL</code> (e.g. <code>he: https://...</code>), relative fixture path, or YouTube timedtext URL.
             </p>
           </div>
 
-          {/* Target Languages Chips for Base URL mode */}
-          <div>
-            <span className="block text-xs font-medium text-muted-foreground mb-1.5">
-              Target Languages to Fetch:
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {COMMON_DEMO_LANGS.map((lang) => {
-                const isSelected = selectedLangs.includes(lang.code);
-                return (
-                  <button
-                    key={lang.code}
-                    type="button"
-                    onClick={() => handleToggleLang(lang.code)}
-                    className={`text-xs px-2 py-1 rounded-md border transition-colors ${
-                      isSelected
-                        ? "bg-primary text-primary-foreground border-primary font-medium"
-                        : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
-                    }`}
-                  >
-                    {lang.name}
-                  </button>
-                );
-              })}
-            </div>
+          {/* Target language selector chips */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[11px] text-muted-foreground mr-1">Target Languages:</span>
+            {COMMON_DEMO_LANGS.map((lang) => {
+              const isSelected = selectedLangs.includes(lang.code);
+              return (
+                <button
+                  key={lang.code}
+                  type="button"
+                  onClick={() => handleToggleLang(lang.code)}
+                  className={`text-[11px] px-1.5 py-0.5 rounded border transition-colors ${
+                    isSelected
+                      ? "bg-primary text-primary-foreground border-primary font-medium"
+                      : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+                  }`}
+                >
+                  {lang.name}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Action Button & Status Feedback */}
-          <div className="pt-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="pt-1 flex items-center justify-between gap-2">
             <Button
               id="fetch-web-demo-subtitles-button"
               data-testid="fetch-web-demo-subtitles-button"
-              type="submit"
+              type="button"
+              size="sm"
               disabled={isFetching}
-              className="flex-1 sm:flex-initial"
+              onClick={handleFetchSubtitles}
             >
               {isFetching ? (
                 <>
-                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />
                   Fetching Subtitles…
                 </>
               ) : (
-                <>
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Fetch Subtitles per Language
-                </>
+                "Fetch Subtitles per Language"
               )}
             </Button>
+            <button
+              type="button"
+              onClick={() => setIsExpanded(false)}
+              className="text-[11px] text-muted-foreground hover:text-foreground underline"
+            >
+              Close
+            </button>
           </div>
 
           {/* Live Feedback Banner */}
           {statusMessage && (
             <div
               data-testid="web-demo-status-banner"
-              className={`p-2.5 rounded-lg text-xs flex items-start gap-2 border ${
+              className={`p-2 rounded-lg text-xs flex items-start gap-2 border ${
                 statusType === "success"
                   ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
                   : statusType === "error"
@@ -415,16 +404,16 @@ export function WebDemoUrlsInput({
               }`}
             >
               {statusType === "success" ? (
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 mt-0.5" />
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600 mt-0.5" />
               ) : statusType === "error" ? (
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
+                <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600 mt-0.5" />
               ) : (
-                <RefreshCw className="w-4 h-4 shrink-0 text-blue-600 animate-spin mt-0.5" />
+                <RefreshCw className="w-3.5 h-3.5 shrink-0 text-blue-600 animate-spin mt-0.5" />
               )}
               <div className="flex-1 leading-relaxed">{statusMessage}</div>
             </div>
           )}
-        </form>
+        </div>
       )}
     </div>
   );

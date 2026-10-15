@@ -432,7 +432,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.24",
+    version: "1.0.25",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
