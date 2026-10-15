@@ -104,6 +104,7 @@ import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 import { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 import { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
 import { VideoPlayground, type DetectedSubtitleTrack } from "@/components/VideoPlayground";
+import { WebDemoUrlsInput } from "@/components/WebDemoUrlsInput";
 import { ParserTimingLab } from "@/components/ParserTimingLab";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
@@ -2074,6 +2075,56 @@ function Index() {
     [rows],
   );
 
+  const handleWebDemoLoadVideoAndSubtitles = useCallback(
+    ({
+      videoId: newVideoId,
+      tracks: newTracks,
+      observedUrl: newObservedUrl,
+    }: {
+      videoId: string;
+      tracks: Record<string, Json3>;
+      observedUrl?: string;
+    }) => {
+      startSubtitlesTransition(() => {
+        if (newVideoId && newVideoId !== videoId) {
+          setTracks(null);
+          setActive(-1);
+          setSpeakingLang(null);
+          setSpeakingRow(-1);
+          setSpeechProgress(null);
+          cancelSpeech();
+          if (typeof window !== "undefined") {
+            const currentSearch = new URLSearchParams(window.location.search);
+            if (currentSearch.get("v") !== newVideoId) {
+              currentSearch.set("v", newVideoId);
+              window.history.pushState(
+                { videoId: newVideoId },
+                "",
+                `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
+              );
+            }
+          }
+          setVideoId(newVideoId);
+          setVideoInput(newVideoId);
+        }
+
+        if (newObservedUrl) {
+          setObservedUrl(newObservedUrl);
+        }
+        const trackLangs = Object.keys(newTracks);
+        if (trackLangs.length > 0) {
+          setDefaultCaptionsLoaded(true);
+          setTracks((prev) => ({ ...(prev || {}), ...newTracks }));
+          setShown((prev) => Array.from(new Set([...prev, ...trackLangs])));
+          setTargetLanguages((prev) => Array.from(new Set([...prev, ...trackLangs])));
+          setSpoken((prev) => Array.from(new Set([...prev, ...trackLangs])));
+          setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+        }
+      });
+    },
+    [videoId],
+  );
+
   useEffect(() => {
     const init = () => {
       if (!playerEl.current) return;
@@ -2702,58 +2753,67 @@ function Index() {
       ) : (
         <>
           <div className="px-4 pt-4 md:px-6 md:pt-6">
-            <form
-              id="youtube-url-form"
-              className="flex items-center gap-2 max-w-2xl mx-auto rounded-xl border border-border bg-card p-2 shadow-sm"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const id = parseVideoId(videoInput);
-                if (id) {
-                  if (id !== videoId) {
-                    setTracks(null);
-                    setObservedUrl("");
-                    setDefaultCaptionsLoaded(false);
-                    setActive(-1);
-                    setSpeakingLang(null);
-                    setSpeakingRow(-1);
-                    setSpeechProgress(null);
-                    cancelSpeech();
-                    if (typeof window !== "undefined") {
-                      const currentSearch = new URLSearchParams(window.location.search);
-                      if (currentSearch.get("v") !== id) {
-                        currentSearch.set("v", id);
-                        window.history.pushState(
-                          { videoId: id },
-                          "",
-                          `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
-                        );
+            {!isAndroid ? (
+              <WebDemoUrlsInput
+                currentVideoId={videoId}
+                observedUrl={observedUrl}
+                onLoadVideoAndSubtitles={handleWebDemoLoadVideoAndSubtitles}
+                className="max-w-2xl mx-auto"
+              />
+            ) : (
+              <form
+                id="youtube-url-form"
+                className="flex items-center gap-2 max-w-2xl mx-auto rounded-xl border border-border bg-card p-2 shadow-sm"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const id = parseVideoId(videoInput);
+                  if (id) {
+                    if (id !== videoId) {
+                      setTracks(null);
+                      setObservedUrl("");
+                      setDefaultCaptionsLoaded(false);
+                      setActive(-1);
+                      setSpeakingLang(null);
+                      setSpeakingRow(-1);
+                      setSpeechProgress(null);
+                      cancelSpeech();
+                      if (typeof window !== "undefined") {
+                        const currentSearch = new URLSearchParams(window.location.search);
+                        if (currentSearch.get("v") !== id) {
+                          currentSearch.set("v", id);
+                          window.history.pushState(
+                            { videoId: id },
+                            "",
+                            `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
+                          );
+                        }
                       }
                     }
+                    setVideoId(id);
+                  } else {
+                    setCaptionStatus("Enter a valid YouTube link or video ID.");
                   }
-                  setVideoId(id);
-                } else {
-                  setCaptionStatus("Enter a valid YouTube link or video ID.");
-                }
-              }}
-            >
-              <input
-                id="youtube-url-input"
-                data-testid="youtube-url-input"
-                aria-label="YouTube video URL or ID"
-                value={videoInput}
-                onChange={(event) => setVideoInput(event.target.value)}
-                placeholder="Paste YouTube video link (e.g. https://www.youtube.com/watch?v=vBURridJXZ0)"
-                className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
-              />
-              <Button
-                id="play-video-button"
-                data-testid="play-video-button"
-                type="submit"
-                size="sm"
+                }}
               >
-                Load video
-              </Button>
-            </form>
+                <input
+                  id="youtube-url-input"
+                  data-testid="youtube-url-input"
+                  aria-label="YouTube video URL or ID"
+                  value={videoInput}
+                  onChange={(event) => setVideoInput(event.target.value)}
+                  placeholder="Paste YouTube video link (e.g. https://www.youtube.com/watch?v=vBURridJXZ0)"
+                  className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+                />
+                <Button
+                  id="play-video-button"
+                  data-testid="play-video-button"
+                  type="submit"
+                  size="sm"
+                >
+                  Load video
+                </Button>
+              </form>
+            )}
           </div>
 
           <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">

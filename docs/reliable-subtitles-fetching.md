@@ -112,3 +112,15 @@ The application exposes flexible subtitle fetching strategies and granular switc
 - **Auto TTS-play fetched language name**: By default when a new subtitle track is fetched, the app invokes speech synthesis to announce the name of the fetched language (`speakLanguageNameOnFetch = true`).
 - **Default debug mode enabled**: Debug Mode is ON by default (`getDebugModeSetting() === true`), surfacing the real-time TTS queue, diagnostic dock, and network inspector.
 - **Default parser criteria**: By default all parsing criteria options are enabled (`DEFAULT_PARSER_CRITERIA`), combining syntax sentence breaks, speech pauses, timing consensus, punctuation voting, cue chunking, anchor alignment, and window constraints.
+
+## Web Demo Mode: Video and Subtitles URLs Input
+
+In web browser mode (`!isAndroid`), native WebView network interception is not available. To allow full testing and usage in web-demo mode:
+
+1. **Paired Input Fields**:
+   - **YouTube Video URL or ID**: Sets the active YouTube video ID for embedded playback.
+   - **Subtitle URLs Input**: Allows entering either a single timedtext base URL (with target languages selection for automatic translation parameterization) or multi-line per-language subtitle URLs (JSON3 files or signed timedtext URLs).
+2. **Per-Language Extraction & Fetching**:
+   - Automatically parses language metadata from URL query parameters (`lang=` or `tlang=`), line prefixes (`en: https://...`), or JSON filenames (`.../he.json`).
+   - Fetches each stream, validates the response with `isValidJsonSubtitleResponse` / `parseJson3`, routes through proxy if CORS occurs on timedtext endpoints, and immediately hydrates `tracks` and opens the parallel subtitles table.
+

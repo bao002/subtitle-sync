@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -62,6 +62,7 @@
     "test:no-cron-readme": "tsx scripts/verify-no-cron-readme-updates.ts",
     "test:playground-tab": "tsx scripts/verify-video-playground-tab.ts",
     "test:playground-enhancements": "tsx scripts/verify-video-playground-enhancements.ts",
+    "test:web-demo-subtitles-urls": "tsx scripts/verify-web-demo-subtitles-urls-input.ts",
     "test:background-playback": "tsx scripts/verify-android-background-playback.ts",
     "test:favorites-sync": "tsx scripts/verify-favorites-subtitles-sync.ts",
     "test:clean-network": "tsx scripts/verify-network-clean-records.ts",
