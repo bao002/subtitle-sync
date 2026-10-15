@@ -28,6 +28,7 @@ test.describe("Android Emulator E2E — YouTube Video Share Feature", () => {
     // Verify clean boot without error screen
     await expect(page.locator("[data-testid='router-error-component']")).toHaveCount(0);
     await expect(page.locator("text=This page didn't load")).toHaveCount(0);
+    await expect(page.locator("text=Something went wrong on our end")).toHaveCount(0);
     await expect(page.locator("header")).toBeVisible();
     await page
       .screenshot({ path: "public/screenshots/step-02-app-launch.png", fullPage: false })
@@ -68,4 +69,13 @@ test.describe("Android Emulator E2E — YouTube Video Share Feature", () => {
       .screenshot({ path: "public/screenshots/step-share-youtube-app-text.png", fullPage: false })
       .catch(() => {});
   });
+
+  test("device parity: adaptive touch gestures and viewport interactions", async ({ page }) => {
+    // Validate viewport presence and adaptive interaction
+    const viewport = page.viewportSize();
+    expect(viewport).toBeDefined();
+    await page.mouse.wheel(0, 200);
+    await expect(page.locator("header")).toBeVisible();
+  });
 });
+

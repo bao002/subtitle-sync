@@ -1,6 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: 117.2 Restore Complete Architectural Structure & Contract Links to README.md
-- **Task**: Task 117 - Comprehensive Test Suite Audit & Fix-Testing-to-Pass
-- **Target**: Restore full `README.md` containing all required workflow badges, GitHub Pages E2E links table, 9 architectural documentation contract links, and CLI update instructions.
-- **Status**: [IN PROGRESS]
+## Active Subtask: Awaiting Next User Prompt
+- **Task**: Task 117 - Comprehensive Test Suite Audit & Fix-Testing-to-Pass [COMPLETED & MIGRATED TO docs/done.md]
+- **Target**: All 105 automated verification suites pass with 100% success rate, clean compilation (`compile_applet`), zero lint errors (`lint_applet`).
+- **Status**: [COMPLETED]

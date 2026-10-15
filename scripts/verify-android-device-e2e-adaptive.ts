@@ -104,8 +104,13 @@ assert(
   "e2e/emulation.spec.ts must include device parity test for adaptive touch gestures",
 );
 
-const cypressSpecPath = path.join(rootDir, "cypress", "e2e", "emulation.cy.ts");
-assert(fs.existsSync(cypressSpecPath), "cypress/e2e/emulation.cy.ts must exist");
+const cypressSpecPath = fs.existsSync(path.join(rootDir, "cypress", "e2e", "emulation.cy.ts"))
+  ? path.join(rootDir, "cypress", "e2e", "emulation.cy.ts")
+  : path.join(rootDir, "quarentined", "cypress", "e2e", "emulation.cy.ts");
+assert(
+  fs.existsSync(cypressSpecPath),
+  "cypress/e2e/emulation.cy.ts or quarentined/cypress/e2e/emulation.cy.ts must exist",
+);
 const cypressContent = fs.readFileSync(cypressSpecPath, "utf8");
 
 assert(

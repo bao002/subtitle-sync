@@ -57,6 +57,10 @@ console.log("✅ PASS: src/client.tsx is configured for client-side rendering (c
 
 // Test 5: Assert dist build exists and is valid
 const distIndexPath = path.join(rootDir, "dist", "index.html");
+if (!fs.existsSync(distIndexPath)) {
+  const { execSync } = await import("node:child_process");
+  execSync("npm run build", { cwd: rootDir, stdio: "pipe" });
+}
 assert(fs.existsSync(distIndexPath), "dist/index.html must exist from build");
 const distHtml = fs.readFileSync(distIndexPath, "utf8");
 assert(distHtml.includes('id="root"'), "dist/index.html must contain #root");

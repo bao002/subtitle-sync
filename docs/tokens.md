@@ -227,10 +227,12 @@ When an urgent issue, broken build, regression, or failing CI workflow is discov
   - Subtask 116.5: Update documentation in `docs/files.md`, `docs/designs/DESIGN_CONTROLS_VIEW.md`, `docs/designs/DESIGN_PLAYER_PROVIDER.md`, and `docs/operations/DEBUG.md`. [DONE]
   - Subtask 116.6: Run test suites, compile_applet, lint_applet, commit checkpoint, and migrate Task 116 to `docs/done.md`. [DONE]
 
-- **Task 117**: Comprehensive Test Suite Audit & Fix-Testing-to-Pass (Version 1.0.21) [IN PROGRESS]
-  - Subtask 117.1: Run inventory of automated verification scripts to audit test suite status and identify any failing tests. [ACTIVE]
-  - Subtask 117.2: Apply minimal targeted fixes for identified test failures to achieve 100% test pass rate. [PENDING]
-  - Subtask 117.3: Verify all relevant test suites pass, confirm clean compilation (`compile_applet`) and zero-error linting (`lint_applet`). [PENDING]
-  - Subtask 117.4: Commit progress via git, attempt git push, and migrate Task 117 to `docs/done.md`. [PENDING]
+- **Task 117**: Comprehensive Test Suite Audit & Fix-Testing-to-Pass (Version 1.0.21) [COMPLETED & MIGRATED TO docs/done.md]
+  - Subtask 117.1: Run inventory of automated verification scripts to audit test suite status and identify any failing tests. [DONE]
+  - Subtask 117.2: Apply minimal targeted fixes for identified test failures to achieve 100% test pass rate (restore complete README.md architectural structure and contracts). [DONE]
+  - Subtask 117.3: Verify all relevant test suites pass, confirm clean compilation (`compile_applet`) and zero-error linting (`lint_applet`). [DONE]
+  - Subtask 117.4: Commit progress via git, attempt git push, and migrate Task 117 to `docs/done.md`. [DONE]
+
+
 
 
