@@ -15,12 +15,9 @@ const viteConfigPath = path.resolve(rootDir, "vite.config.ts");
 assert(fs.existsSync(viteConfigPath), "vite.config.ts must exist");
 const viteConfigContent = fs.readFileSync(viteConfigPath, "utf8");
 
+assert(viteConfigContent.includes("port: 3000"), "vite.config.ts must configure port: 3000");
 assert(
-  viteConfigContent.includes('port: 3000'),
-  "vite.config.ts must configure port: 3000",
-);
-assert(
-  viteConfigContent.includes('strictPort: true'),
+  viteConfigContent.includes("strictPort: true"),
   "vite.config.ts must configure strictPort: true to prevent port drifting",
 );
 assert(

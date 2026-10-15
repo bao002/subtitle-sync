@@ -28,11 +28,11 @@ assert.ok(
   "update.apk.sh must define deep_purge_package",
 );
 assert.ok(
-  updateScriptContent.includes("pm clear \"${PACKAGE_NAME}\""),
+  updateScriptContent.includes('pm clear "${PACKAGE_NAME}"'),
   "deep_purge_package must execute pm clear",
 );
 assert.ok(
-  updateScriptContent.includes("pm uninstall --user 0 \"${PACKAGE_NAME}\""),
+  updateScriptContent.includes('pm uninstall --user 0 "${PACKAGE_NAME}"'),
   "deep_purge_package must execute pm uninstall --user 0",
 );
 assert.ok(
@@ -58,11 +58,11 @@ assert.ok(
   "install-apk.sh must define deep_purge_package",
 );
 assert.ok(
-  installScriptContent.includes("pm clear \"${PACKAGE_NAME}\""),
+  installScriptContent.includes('pm clear "${PACKAGE_NAME}"'),
   "install-apk.sh must execute pm clear",
 );
 assert.ok(
-  installScriptContent.includes("pm uninstall --user 0 \"${PACKAGE_NAME}\""),
+  installScriptContent.includes('pm uninstall --user 0 "${PACKAGE_NAME}"'),
   "install-apk.sh must execute pm uninstall --user 0",
 );
 assert.ok(
@@ -78,7 +78,11 @@ console.log("Test 3: package.json standard version field...");
 const pkgJsonPath = path.resolve(process.cwd(), "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
 assert.ok(pkg.version, "package.json must contain a standard 'version' field");
-assert.match(pkg.version, /^\d+\.\d+\.\d+/, "package.json version must be semantic versioning (x.y.z)");
+assert.match(
+  pkg.version,
+  /^\d+\.\d+\.\d+/,
+  "package.json version must be semantic versioning (x.y.z)",
+);
 console.log(`✅ PASS: package.json has valid version: "${pkg.version}"`);
 
 // Test 4: release-apk.yml version propagation

@@ -24,8 +24,14 @@ console.log("====================================================");
 
 // Test 1: Verify component file existence and exports
 console.log("Test 1: FloatingDraggablePauseButton file and exports check...");
-const componentPath = path.resolve(process.cwd(), "src/components/FloatingDraggablePauseButton.tsx");
-assert.ok(fs.existsSync(componentPath), "src/components/FloatingDraggablePauseButton.tsx must exist");
+const componentPath = path.resolve(
+  process.cwd(),
+  "src/components/FloatingDraggablePauseButton.tsx",
+);
+assert.ok(
+  fs.existsSync(componentPath),
+  "src/components/FloatingDraggablePauseButton.tsx must exist",
+);
 const componentCode = fs.readFileSync(componentPath, "utf-8");
 
 assert.ok(
@@ -51,8 +57,8 @@ assert.ok(
   "Component must implement touch events for mobile dragging",
 );
 assert.ok(
-  componentCode.includes("addEventListener(\"mousemove\"") &&
-    componentCode.includes("addEventListener(\"mouseup\""),
+  componentCode.includes('addEventListener("mousemove"') &&
+    componentCode.includes('addEventListener("mouseup"'),
   "Component must register global mouse move/up listeners during active dragging",
 );
 assert.ok(
@@ -80,19 +86,19 @@ console.log("✅ PASS: Gesture discrimination prevents accidental toggle on drag
 // Test 4: Visual and accessibility contracts
 console.log("Test 4: Visual and accessibility test IDs & attributes...");
 assert.ok(
-  componentCode.includes("data-testid=\"floating-draggable-pause-container\""),
+  componentCode.includes('data-testid="floating-draggable-pause-container"'),
   "Must include container testid",
 );
 assert.ok(
-  componentCode.includes("data-testid=\"floating-pause-button\""),
+  componentCode.includes('data-testid="floating-pause-button"'),
   "Must include button testid",
 );
 assert.ok(
-  componentCode.includes("data-testid=\"floating-pause-status\""),
+  componentCode.includes('data-testid="floating-pause-status"'),
   "Must include status text testid",
 );
 assert.ok(
-  componentCode.includes("data-testid=\"floating-pause-badge\""),
+  componentCode.includes('data-testid="floating-pause-badge"'),
   "Must include setup pause badge testid",
 );
 assert.ok(
@@ -130,7 +136,9 @@ assert.ok(fs.existsSync(indexPath), "src/routes/index.tsx must exist");
 const indexCode = fs.readFileSync(indexPath, "utf-8");
 
 assert.ok(
-  indexCode.includes("import { FloatingDraggablePauseButton } from \"@/components/FloatingDraggablePauseButton\""),
+  indexCode.includes(
+    'import { FloatingDraggablePauseButton } from "@/components/FloatingDraggablePauseButton"',
+  ),
   "src/routes/index.tsx must import FloatingDraggablePauseButton",
 );
 assert.ok(

@@ -37,20 +37,16 @@ const testAbbrevs = [
   "B.",
 ];
 for (const abbr of testAbbrevs) {
-  assert(
-    isAbbreviation(abbr),
-    `Expected '${abbr}' to be identified as an abbreviation`,
-  );
+  assert(isAbbreviation(abbr), `Expected '${abbr}' to be identified as an abbreviation`);
 }
 
 const nonAbbrevs = ["world.", "end.", "sentence.", "now.", "stop.", "cat."];
 for (const word of nonAbbrevs) {
-  assert(
-    !isAbbreviation(word),
-    `Expected '${word}' NOT to be identified as an abbreviation`,
-  );
+  assert(!isAbbreviation(word), `Expected '${word}' NOT to be identified as an abbreviation`);
 }
-console.log("✅ PASS: Abbreviation guard correctly identifies abbreviations and excludes regular words");
+console.log(
+  "✅ PASS: Abbreviation guard correctly identifies abbreviations and excludes regular words",
+);
 
 // 2. Verify isSentenceEnding with punctuation and abbreviation guards
 console.log("2. Testing sentence ending validation with edge cases...");
@@ -65,10 +61,15 @@ assert(isSentenceEnding('"Quoted sentence!"'), "Should identify quote after punc
 
 // Should NOT trigger sentence ending on abbreviations
 assert(!isSentenceEnding("I visited Dr."), "Should NOT treat trailing 'Dr.' as sentence end");
-assert(!isSentenceEnding("Products made in the U.S."), "Should NOT treat trailing 'U.S.' as sentence end");
+assert(
+  !isSentenceEnding("Products made in the U.S."),
+  "Should NOT treat trailing 'U.S.' as sentence end",
+);
 assert(!isSentenceEnding("Such as e.g."), "Should NOT treat trailing 'e.g.' as sentence end");
 assert(!isSentenceEnding("PI equals 3.14"), "Should NOT treat decimal number as sentence end");
-console.log("✅ PASS: isSentenceEnding correctly detects multilingual punctuation and respects abbreviation guards");
+console.log(
+  "✅ PASS: isSentenceEnding correctly detects multilingual punctuation and respects abbreviation guards",
+);
 
 // 3. Test Intra-Cue segment punctuation splitting
 console.log("3. Testing intra-cue segment punctuation splitting with word offsets...");
@@ -123,7 +124,9 @@ assert(
   hasIntraCueCut,
   `Expected cut at intra-cue timestamp 3500ms (1000ms base + 2500ms 'How'), got sections: ${JSON.stringify(intraCueSections)}`,
 );
-console.log("✅ PASS: Intra-cue segment punctuation splitting correctly cuts at word token boundary (3500ms)");
+console.log(
+  "✅ PASS: Intra-cue segment punctuation splitting correctly cuts at word token boundary (3500ms)",
+);
 
 // 4. Test default criteria when no criteria specified (pure sentence)
 console.log("4. Testing default criteria in align and criteriaSections...");
@@ -134,7 +137,10 @@ assert(
 );
 
 const defaultAlign = align(trackWithIntraCueSentences, "en");
-assert(defaultAlign.length > 0, "align() without arguments should default to pure sentence splitting");
+assert(
+  defaultAlign.length > 0,
+  "align() without arguments should default to pure sentence splitting",
+);
 assert(
   defaultAlign.length === cueBoundarySections.length,
   `align() default should produce same row count as ['sentence'] (${defaultAlign.length} vs ${cueBoundarySections.length})`,

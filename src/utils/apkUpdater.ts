@@ -188,13 +188,15 @@ export function checkVersionDiscrepancy(): VersionComparison {
   const isApkAhead = comparison > 0;
   const isWebAhead = comparison < 0;
 
-  const isStaleOtaCache = Boolean(
-    cleanApk && cleanOta && compareVersions(cleanApk, cleanOta) > 0
-  );
+  const isStaleOtaCache = Boolean(cleanApk && cleanOta && compareVersions(cleanApk, cleanOta) > 0);
 
   return {
     isDiscrepancy,
-    apkVersion: rawApkVersion ? (rawApkVersion.startsWith("v") ? rawApkVersion : `v${rawApkVersion}`) : "",
+    apkVersion: rawApkVersion
+      ? rawApkVersion.startsWith("v")
+        ? rawApkVersion
+        : `v${rawApkVersion}`
+      : "",
     webVersion: rawWebVersion.startsWith("v") ? rawWebVersion : `v${rawWebVersion}`,
     isOtaActive,
     isStaleOtaCache,

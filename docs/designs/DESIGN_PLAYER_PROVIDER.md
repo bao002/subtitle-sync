@@ -67,7 +67,7 @@ export interface PlayerProvider {
 ## 4. Video Playground Standalone Instance
 
 While the primary PlayerProvider coordinates multi-instance swiper sync and auto-pause loops, the **Video Playground** (`src/components/VideoPlayground.tsx`) renders an uninhibited player embed:
+
 - **No External Seeking or Forcible Pauses**: Operates without external interval timers driving `pauseVideo()` or `seekTo()`.
 - **User-Centric Caption Switching**: Allows direct, unhindered access to native YouTube CC and quality menus.
 - **Background Interception**: Listens to network and native Android bridge caption streams to populate the detected tracks catalog in real time.
-

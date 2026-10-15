@@ -25,7 +25,9 @@ assert(
     indexContent.includes("rows.length > 0 && cols.length > 0"),
   "hasLegitimateSubtitles must require non-empty track cues, non-empty aligned rows, and non-empty cols",
 );
-console.log("✅ PASS: hasLegitimateSubtitles strictly enforces legitimate non-empty JSON3 cues and aligned rows");
+console.log(
+  "✅ PASS: hasLegitimateSubtitles strictly enforces legitimate non-empty JSON3 cues and aligned rows",
+);
 
 // 3. Verify no loading state or error state is rendered inside subtitles table panel
 const subtitlesPanelBlock = indexContent.slice(
@@ -40,20 +42,26 @@ assert(
     !subtitlesPanelBlock.includes("subtitles-manual-fetch"),
   "Subtitles table view must not render loading or error state placeholders wasting space",
 );
-console.log("✅ PASS: Subtitles table view has zero loading or error state placeholders wasting space");
+console.log(
+  "✅ PASS: Subtitles table view has zero loading or error state placeholders wasting space",
+);
 
 // 4. Verify cols only includes tracks with non-empty cues
 assert(
   indexContent.includes("tracks[baseLanguage].length > 0") &&
     indexContent.includes("tracks[l.code].length > 0") &&
-    (indexContent.includes("tracks[code]?.length > 0") || indexContent.includes("tracks[code].length > 0")),
+    (indexContent.includes("tracks[code]?.length > 0") ||
+      indexContent.includes("tracks[code].length > 0")),
   "cols must only include columns that have authentic tracks with cues > 0",
 );
 console.log("✅ PASS: Subtitles columns strictly include tracks with non-zero cues");
 
 // 5. Functional simulation of hasLegitimateSubtitles logic
 function checkLegitimateSubtitles(
-  tracks: Record<string, { tStartMs: number; dDurationMs: number; segs: { utf8: string }[] }[]> | null,
+  tracks: Record<
+    string,
+    { tStartMs: number; dDurationMs: number; segs: { utf8: string }[] }[]
+  > | null,
   rowsCount: number,
   colsCount: number,
 ): boolean {

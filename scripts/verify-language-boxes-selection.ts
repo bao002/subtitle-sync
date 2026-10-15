@@ -65,7 +65,9 @@ assert(
 );
 assert(
   indexContent.includes("const selected = list.filter((l) => targetLanguages.includes(l.code))") &&
-    indexContent.includes("const unselected = list.filter((l) => !targetLanguages.includes(l.code))"),
+    indexContent.includes(
+      "const unselected = list.filter((l) => !targetLanguages.includes(l.code))",
+    ),
   "orderedLangs in index.tsx must keep selected target languages at the top of the table",
 );
 console.log("✅ PASS: index.tsx integrates LanguageBoxesSelector and sorts orderedLangs");

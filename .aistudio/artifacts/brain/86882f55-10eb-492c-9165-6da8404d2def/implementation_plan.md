@@ -27,7 +27,7 @@ Enable continuous background audio playback on Android when the screen turns off
 
 1. **Enabling Background Playback**:
    - The user opens the Playback Settings accordion.
-   - A dedicated toggle *"Background playback & lockscreen audio"* (persisted in preferences) allows activating background media service.
+   - A dedicated toggle _"Background playback & lockscreen audio"_ (persisted in preferences) allows activating background media service.
    - When active, minimizing the app or turning off the screen triggers the Android Foreground Service, keeping audio streaming without pause.
 
 2. **Lockscreen & Notification Bar Interaction**:
@@ -52,11 +52,13 @@ Enable continuous background audio playback on Android when the screen turns off
 ## 3. Key Product Decisions & Trade-Offs
 
 ### Decision 1: Android Foreground Service with MediaSession vs. WebView Battery Saver Exemption
+
 - **Chosen Approach**: Dedicated `MediaSessionService` / `ForegroundService` with `FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK` in Android shell, communicating with the WebView via `AndroidNativeBridge`.
 - **Why**: Android OS aggressively throttles or kills background WebViews and JavaScript timers after 10–30 seconds if no active Foreground Service with an ongoing notification is maintained.
 - **Alternatives Considered**: Keeping WebView alive purely with wake locks (rejected: drains battery without system lockscreen controls and gets terminated by Android Doze).
 
 ### Decision 2: Audio Coordination between Video Player and Native TTS
+
 - **Chosen Approach**: The native Android shell synchronizes playback state between the YouTube WebView audio track and `TextToSpeech` engine. When TTS starts speaking between sections, the MediaSession updates its playback state seamlessly.
 - **Why**: Prevents Android system media session from thinking playback is paused or completed while TTS translations are actively speaking.
 

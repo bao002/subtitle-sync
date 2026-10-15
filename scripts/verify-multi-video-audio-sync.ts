@@ -130,8 +130,16 @@ setTimeout(() => {
 
 await syncPromise;
 
-assert.strictEqual(esPlayer.isPlaying, false, "Target player must be paused after segment finishes");
-assert.strictEqual(primaryPlayer.isMuted(), false, "Primary player must be unmuted after completion");
+assert.strictEqual(
+  esPlayer.isPlaying,
+  false,
+  "Target player must be paused after segment finishes",
+);
+assert.strictEqual(
+  primaryPlayer.isMuted(),
+  false,
+  "Primary player must be unmuted after completion",
+);
 assert.ok(progressCalled, "Progress callback must have been invoked");
 console.log("✅ PASS: Segment playback seek, execution, and cleanup verified");
 
@@ -163,7 +171,11 @@ setTimeout(() => {
 }, 120);
 
 await fallbackPromise;
-assert.strictEqual(standalonePrimary.isPlaying, false, "Fallback player must pause upon segment completion");
+assert.strictEqual(
+  standalonePrimary.isPlaying,
+  false,
+  "Fallback player must pause upon segment completion",
+);
 console.log("✅ PASS: Fallback to primary player functions smoothly");
 
 // Test 4: Cancellation stops playback immediately and restores registry
@@ -187,7 +199,11 @@ await new Promise((r) => setTimeout(r, 150));
 await cancelPromise;
 
 assert.strictEqual(esPlayer.isPlaying, false, "Player must pause immediately when cancelled");
-assert.strictEqual(primaryPlayer.isMuted(), false, "Primary player must be unmuted after cancellation");
+assert.strictEqual(
+  primaryPlayer.isMuted(),
+  false,
+  "Primary player must be unmuted after cancellation",
+);
 console.log("✅ PASS: Cancellation stops multi-video playback and restores state");
 
 // Test 5: Verify integration contracts in src/routes/index.tsx
@@ -204,11 +220,11 @@ assert.ok(
   "src/routes/index.tsx must pass multiVideoPlayerRegistry to executeMultiVideoSegmentSync",
 );
 assert.ok(
-  indexCode.includes("multiVideoPlayerRegistry.unmuteOnly(\"primary\")"),
+  indexCode.includes('multiVideoPlayerRegistry.unmuteOnly("primary")'),
   "src/routes/index.tsx must unmute primary upon video resumption",
 );
 assert.ok(
-  indexCode.includes("multiVideoPlayerRegistry.pauseAllExcept(\"primary\")"),
+  indexCode.includes('multiVideoPlayerRegistry.pauseAllExcept("primary")'),
   "src/routes/index.tsx must pause secondaries upon speech cancellation and loop exit",
 );
 assert.ok(

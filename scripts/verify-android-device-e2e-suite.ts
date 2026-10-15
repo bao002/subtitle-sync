@@ -19,7 +19,7 @@ assert(
   "scripts/run-android-e2e.sh must support explicit ANDROID_SERIAL configuration",
 );
 assert(
-  runShContent.includes("-s \"${ANDROID_SERIAL}\"") || runShContent.includes("-s $ANDROID_SERIAL"),
+  runShContent.includes('-s "${ANDROID_SERIAL}"') || runShContent.includes("-s $ANDROID_SERIAL"),
   "scripts/run-android-e2e.sh must target specified device with adb -s flag",
 );
 assert(
@@ -36,17 +36,19 @@ assert(
 );
 assert(
   runShContent.includes("ro.product.manufacturer") &&
-  runShContent.includes("ro.product.model") &&
-  runShContent.includes("ro.product.cpu.abi") &&
-  runShContent.includes("wm size") &&
-  runShContent.includes("wm density"),
+    runShContent.includes("ro.product.model") &&
+    runShContent.includes("ro.product.cpu.abi") &&
+    runShContent.includes("wm size") &&
+    runShContent.includes("wm density"),
   "scripts/run-android-e2e.sh must collect hardware telemetry (model, manufacturer, abi, resolution, density)",
 );
 assert(
   runShContent.includes("android-emulator-device-info.json"),
   "scripts/run-android-e2e.sh must output telemetry to android-emulator-device-info.json",
 );
-console.log("✓ Check 1 Passed: Runner script includes device serial targeting, screen wake, keyguard dismissal, and hardware telemetry.");
+console.log(
+  "✓ Check 1 Passed: Runner script includes device serial targeting, screen wake, keyguard dismissal, and hardware telemetry.",
+);
 
 // 2. Verify scripts/android-e2e-assert.sh accepts ANDROID_SERIAL and wraps adb calls
 console.log("--> [Check 2] Verifying scripts/android-e2e-assert.sh device serial routing...");
@@ -60,13 +62,16 @@ assert(
 );
 assert(
   assertShContent.includes("adb_cmd") &&
-  (assertShContent.includes("-s \"${ANDROID_SERIAL}\"") || assertShContent.includes("-s $ANDROID_SERIAL")),
+    (assertShContent.includes('-s "${ANDROID_SERIAL}"') ||
+      assertShContent.includes("-s $ANDROID_SERIAL")),
   "scripts/android-e2e-assert.sh must wrap adb commands to target ANDROID_SERIAL if set",
 );
 console.log("✓ Check 2 Passed: Assertion script cleanly targets specific device serial.");
 
 // 3. Verify public/android-emulator-report.html presents Device & Hardware Telemetry
-console.log("--> [Check 3] Verifying Device & Hardware Telemetry card in public/android-emulator-report.html...");
+console.log(
+  "--> [Check 3] Verifying Device & Hardware Telemetry card in public/android-emulator-report.html...",
+);
 const reportHtmlPath = path.join(rootDir, "public", "android-emulator-report.html");
 assert(fs.existsSync(reportHtmlPath), "public/android-emulator-report.html must exist");
 const reportHtmlContent = fs.readFileSync(reportHtmlPath, "utf8");
@@ -77,34 +82,41 @@ assert(
 );
 assert(
   reportHtmlContent.includes("telem-model") &&
-  reportHtmlContent.includes("telem-manufacturer") &&
-  reportHtmlContent.includes("telem-os") &&
-  reportHtmlContent.includes("telem-abi") &&
-  reportHtmlContent.includes("telem-resolution") &&
-  reportHtmlContent.includes("telem-density"),
+    reportHtmlContent.includes("telem-manufacturer") &&
+    reportHtmlContent.includes("telem-os") &&
+    reportHtmlContent.includes("telem-abi") &&
+    reportHtmlContent.includes("telem-resolution") &&
+    reportHtmlContent.includes("telem-density"),
   "public/android-emulator-report.html must display model, manufacturer, OS, ABI, resolution, and density",
 );
 assert(
   reportHtmlContent.includes("android-emulator-device-info.json"),
   "public/android-emulator-report.html must include dynamic hydration from android-emulator-device-info.json",
 );
-console.log("✓ Check 3 Passed: HTML report contains rich hardware & environment telemetry presentation.");
+console.log(
+  "✓ Check 3 Passed: HTML report contains rich hardware & environment telemetry presentation.",
+);
 
 // 4. Verify .github/workflows/emulation.yml includes wakeup, keyguard dismiss, telemetry json extraction, and staging
-console.log("--> [Check 4] Verifying .github/workflows/emulation.yml device setup & artifact staging...");
+console.log(
+  "--> [Check 4] Verifying .github/workflows/emulation.yml device setup & artifact staging...",
+);
 const emulationYmlPath = path.join(rootDir, ".github", "workflows", "emulation.yml");
 assert(fs.existsSync(emulationYmlPath), ".github/workflows/emulation.yml must exist");
 const emulationYmlContent = fs.readFileSync(emulationYmlPath, "utf8");
 
 assert(
-  emulationYmlContent.includes("KEYCODE_WAKEUP") && emulationYmlContent.includes("wm dismiss-keyguard"),
+  emulationYmlContent.includes("KEYCODE_WAKEUP") &&
+    emulationYmlContent.includes("wm dismiss-keyguard"),
   ".github/workflows/emulation.yml must ensure emulator is awake and unlocked",
 );
 assert(
   emulationYmlContent.includes("android-emulator-device-info.json"),
   ".github/workflows/emulation.yml must produce, upload, and stage android-emulator-device-info.json",
 );
-console.log("✓ Check 4 Passed: CI emulation workflow wakes device, extracts hardware telemetry, and stages report artifacts.");
+console.log(
+  "✓ Check 4 Passed: CI emulation workflow wakes device, extracts hardware telemetry, and stages report artifacts.",
+);
 
 // 5. Verify .gitignore ignores android-emulator-device-info.json on main
 console.log("--> [Check 5] Verifying repository hygiene in .gitignore...");

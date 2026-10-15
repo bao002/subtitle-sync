@@ -9,7 +9,10 @@ console.log("====================================================");
 const rootDir = process.cwd();
 const parserMdPath = path.join(rootDir, "parser.md");
 const docsParserMdPath = path.join(rootDir, "docs/parser.md");
-assert(!fs.existsSync(parserMdPath), "parser.md must not exist in root directory (canonical is docs/parser.md)");
+assert(
+  !fs.existsSync(parserMdPath),
+  "parser.md must not exist in root directory (canonical is docs/parser.md)",
+);
 assert(fs.existsSync(docsParserMdPath), "docs/parser.md must exist in the docs directory");
 
 const parserContent = fs.readFileSync(docsParserMdPath, "utf8");

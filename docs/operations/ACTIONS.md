@@ -8,15 +8,15 @@ This document details the automated GitHub Actions CI/CD workflows, build pipeli
 
 The repository maintains four dedicated GitHub Actions workflows to guarantee test coverage, release automation, and continuous live demonstration across Web and Android platforms:
 
-| Workflow File         | Trigger Events                   | Primary Responsibilities                                              | Target Artifacts                                |
-| :-------------------- | :------------------------------- | :-------------------------------------------------------------------- | :---------------------------------------------- |
-| **`release-apk.yml`** | Tag push (`v*`), Manual dispatch | Compiles Android native debug APK and packages web bundle.            | `YouTube-Viewer-debug.apk`, `web-dist.zip`      |
-| **`web.yml`**         | Push to `main`, PRs              | Runs web companion end-to-end tests across Playwright and Cypress.    | Playwright trace, Mochawesome HTML reports      |
-| **`emulation.yml`**   | Push to `main`, PRs              | Runs Android emulator instrumentation and WebView interception tests. | `android-emulator-report.html`, logcat captures |
-| **`deploy-demo.yml`** | Push to `main` (auto)            | Builds production web demo and deploys to GitHub Pages (`gh-pages`).  | GitHub Pages web app and test dashboards        |
-| **`error-reporting.yml`** | Workflow completion, Push, PR, Manual | Catches build/lint/test errors, produces `error.log` and AI fix prompt. | `error.log`, GitHub Step Summary diagnostic      |
-| **`update-readme.yml`** | Workflow completion (`workflow_run`), Push to `main`, Manual | Scans broken links, extracts CI status, updates README with AI prompt. | `README.md` dynamic indicator & AI fix prompt   |
-| **`integrity.yml`**   | Push to `main`, PRs              | Validates report schemas, no duplicate docs, and markdown links.       | Integrity test logs & validation matrices       |
+| Workflow File             | Trigger Events                                               | Primary Responsibilities                                                | Target Artifacts                                |
+| :------------------------ | :----------------------------------------------------------- | :---------------------------------------------------------------------- | :---------------------------------------------- |
+| **`release-apk.yml`**     | Tag push (`v*`), Manual dispatch                             | Compiles Android native debug APK and packages web bundle.              | `YouTube-Viewer-debug.apk`, `web-dist.zip`      |
+| **`web.yml`**             | Push to `main`, PRs                                          | Runs web companion end-to-end tests across Playwright and Cypress.      | Playwright trace, Mochawesome HTML reports      |
+| **`emulation.yml`**       | Push to `main`, PRs                                          | Runs Android emulator instrumentation and WebView interception tests.   | `android-emulator-report.html`, logcat captures |
+| **`deploy-demo.yml`**     | Push to `main` (auto)                                        | Builds production web demo and deploys to GitHub Pages (`gh-pages`).    | GitHub Pages web app and test dashboards        |
+| **`error-reporting.yml`** | Workflow completion, Push, PR, Manual                        | Catches build/lint/test errors, produces `error.log` and AI fix prompt. | `error.log`, GitHub Step Summary diagnostic     |
+| **`update-readme.yml`**   | Workflow completion (`workflow_run`), Push to `main`, Manual | Scans broken links, extracts CI status, updates README with AI prompt.  | `README.md` dynamic indicator & AI fix prompt   |
+| **`integrity.yml`**       | Push to `main`, PRs                                          | Validates report schemas, no duplicate docs, and markdown links.        | Integrity test logs & validation matrices       |
 
 ---
 
@@ -222,29 +222,38 @@ When checking the live GitHub Pages report (such as `https://<owner>.github.io/<
 ### 4.4 Dynamic Status Indicators in `README.md`
 
 The status section is delimited by comment anchors:
+
 ```markdown
 <!-- CI_STATUS_INDICATOR_START -->
+
 ... dynamic content ...
 <!-- CI_STATUS_INDICATOR_END -->
 ```
 
 #### State A: All CI Pipelines Passing & Zero Broken Links
+
 When all upstream workflows succeed and zero broken links are detected:
+
 ```markdown
 <!-- CI_STATUS_INDICATOR_START -->
+
 ## 🚦 Latest CI Build & Test Status: ALL VERIFIED
 
 - **Android Emulator E2E Tests**: [Verified (Android 14 API 34)](https://<owner>.github.io/<repo>/android-emulator-report.html)
 - **Android Emulator Screencast Video**: [Download MP4 (6.41 MB)](https://<owner>.github.io/<repo>/screenshots/android-emulator-video.mp4)
 - **Screenshot Image**: [View UI Capture](https://<owner>.github.io/<repo>/screenshots/android-emulator-screenshot.png)
 - **Workflow Runs**: [GitHub Actions Dashboard](https://github.com/<owner>/<repo>/actions)
+
 <!-- CI_STATUS_INDICATOR_END -->
 ```
 
 #### State B: CI Failure or Broken Links Detected
+
 When an upstream pipeline fails or a broken link is discovered:
-```markdown
+
+````markdown
 <!-- CI_STATUS_INDICATOR_START -->
+
 ## 🚨 Latest CI Build & Test Status: FAILED
 
 > ⚠️ **Automated Failure / Broken Links Detected**: `Android Emulator E2E Tests` (Step: `Run Android E2E Runner`)
@@ -253,20 +262,26 @@ When an upstream pipeline fails or a broken link is discovered:
 
 ```markdown
 # AI FIX PROMPT: CI Failure in Android Emulator E2E Tests
+
 - **Repository**: owner/repo
 - **Workflow / Checker**: Android Emulator E2E Tests
 - **Failing Step**: Run Android E2E Runner
 - **Run URL**: https://github.com/owner/repo/actions/runs/123456789
 
 ### Failure Log & Diagnosis:
+
 Workflow 'Android Emulator E2E Tests' concluded with status 'failure'.
 
 ### Instructions for AI Assistant:
+
 1. Examine the root cause, broken link(s), and diagnostic details above.
 2. Fix broken target paths, restore missing files, or fix failing application code with targeted edits.
 3. Verify that `npm run test:readme-links` and all automated test suites pass cleanly.
 ```
+````
+
 <!-- CI_STATUS_INDICATOR_END -->
+
 ```
 
 ### 4.5 Copy-Pasteable AI Error Prompt Block
@@ -290,3 +305,4 @@ To prevent infinite workflow recursion:
 - **Dynamic Creation & Management**: `README.md` is strictly generated, formatted, and updated dynamically by GitHub Actions (`update-readme.yml` and `scripts/update-readme.mjs`). It embeds repository-specific badges, Actions workflow links, verified screencast video URLs, file sizes, and dynamic CI status indicators.
 - **Git Sync Exclusion Mandate**: When syncing git (e.g., merging, pulling, cherry-picking, or copying changes from baseline/upstream repositories such as `mostuf2556/Youtubenet6`, or syncing across different forks and branches), `README.md` **MUST NOT be copied or overwritten**.
 - **Rationale**: Overwriting `README.md` during git synchronization wipes out active repository metadata, replaces valid fork links with upstream links, destroys live CI status blocks, and breaks automated screencast video telemetry. GitHub Actions is the sole authoritative generator of `README.md`.
+```

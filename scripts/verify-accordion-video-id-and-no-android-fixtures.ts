@@ -38,8 +38,7 @@ const accordionSectionContent = fs.existsSync(accordionSectionPath)
   : "";
 
 assert(
-  indexContent.includes("<AccordionSection") &&
-    indexContent.includes("videoId={videoId}"),
+  indexContent.includes("<AccordionSection") && indexContent.includes("videoId={videoId}"),
   "AccordionSection must receive videoId={videoId} in index.tsx",
 );
 assert(
@@ -65,7 +64,9 @@ assert(
   !indexContent.includes("JSON3_RAW_MAP[code]"),
   "fetchFavoriteLanguageSubtitles must not fall back to JSON3_RAW_MAP fixtures",
 );
-console.log("✅ PASS: Web and Android subtitle fetching does not inject fixture data for live languages");
+console.log(
+  "✅ PASS: Web and Android subtitle fetching does not inject fixture data for live languages",
+);
 
 // 5. Verify MainActivity.kt has no fake subtitle generators
 assert(
@@ -76,11 +77,13 @@ assert(
   !activityContent.includes("fun generateTranslatedFallbackJson"),
   "MainActivity.kt must not contain generateTranslatedFallbackJson",
 );
-console.log("✅ PASS: Synthetic fake subtitle generators are completely removed from MainActivity.kt");
+console.log(
+  "✅ PASS: Synthetic fake subtitle generators are completely removed from MainActivity.kt",
+);
 
 // 6. Verify proactiveDetectSubtitles does not load asset fixtures
 assert(
-  !activityContent.includes('assets.open(path)'),
+  !activityContent.includes("assets.open(path)"),
   "MainActivity.kt must not load subtitle fixtures from assets.open",
 );
 assert(

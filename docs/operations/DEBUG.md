@@ -113,9 +113,9 @@ npm run report:error -- --run "npm run build"
 ## 6. Video Playground Diagnostic & Subtitle Discovery
 
 When troubleshooting subtitle fetching or inspecting native caption streams from YouTube:
+
 1. Navigate to the top **Playground** tab (`#tab-playground`).
 2. The independent player runs without external seek/pause/TTS triggers.
 3. Use the YouTube player's native controls (CC button, Settings gear ⚙️ -> Subtitles/CC) to switch tracks.
 4. The network and Android native bridge capture `timedtext` payloads and immediately display detected tracks in the **Detected Subtitle Tracks** panel.
 5. Users can preview the first 5 parsed cues and import any detected track into the Parallel Viewer table with 1-click.
-

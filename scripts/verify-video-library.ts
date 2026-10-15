@@ -50,11 +50,7 @@ const updated = recordVideoWatch({
 });
 assert.equal(updated[0].id, newVideoId, "New video must be inserted at index 0");
 assert.equal(updated[0].title, "Rick Astley - Never Gonna Give You Up");
-assert.equal(
-  updated.length,
-  DEFAULT_LIBRARY_ITEMS.length + 1,
-  "List size should increment by 1",
-);
+assert.equal(updated.length, DEFAULT_LIBRARY_ITEMS.length + 1, "List size should increment by 1");
 console.log("✅ PASS: recordVideoWatch prepends new video item");
 
 // Test 3: recordVideoWatch deduplicates and moves re-watched video to front
@@ -107,9 +103,15 @@ console.log("✅ PASS: formatRelativeTime handles just now, minutes, hours, days
 const panelComponentPath = path.resolve(process.cwd(), "src/components/VideoLibraryPanel.tsx");
 assert(fs.existsSync(panelComponentPath), "src/components/VideoLibraryPanel.tsx must exist");
 const panelCode = fs.readFileSync(panelComponentPath, "utf-8");
-assert(panelCode.includes("data-testid=\"video-library-panel\""), "Must contain data-testid for panel");
-assert(panelCode.includes("data-testid=\"library-search-input\""), "Must support search filter input");
-assert(panelCode.includes("data-testid=\"library-clear-btn\""), "Must support clear button");
+assert(
+  panelCode.includes('data-testid="video-library-panel"'),
+  "Must contain data-testid for panel",
+);
+assert(
+  panelCode.includes('data-testid="library-search-input"'),
+  "Must support search filter input",
+);
+assert(panelCode.includes('data-testid="library-clear-btn"'), "Must support clear button");
 assert(panelCode.includes("getVideoThumbnailUrl"), "Must render video thumbnail URLs");
 console.log("✅ PASS: VideoLibraryPanel component contains required testids and controls");
 
@@ -120,7 +122,7 @@ const themesCode = path.resolve(process.cwd(), "src/config/accordionThemes.ts");
 const themesContent = fs.readFileSync(themesCode, "utf-8");
 assert(indexContent.includes('import { VideoLibraryPanel } from "@/components/VideoLibraryPanel"'));
 assert(themesContent.includes('{ id: "library", title: "Video library" }'));
-assert(indexContent.includes('handleSelectLibraryVideo'));
+assert(indexContent.includes("handleSelectLibraryVideo"));
 assert(indexContent.includes('{panelId === "library" && ('));
 console.log("✅ PASS: src/routes/index.tsx cleanly integrates VideoLibraryPanel in PANELS list");
 

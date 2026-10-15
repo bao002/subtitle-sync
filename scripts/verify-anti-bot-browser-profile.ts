@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert";
-import { trackNetworkRequest, formatRequestForClipboard, type NetworkRequestRecord } from "../src/utils/networkTracker";
+import {
+  trackNetworkRequest,
+  formatRequestForClipboard,
+  type NetworkRequestRecord,
+} from "../src/utils/networkTracker";
 
 console.log("==================================================================");
 console.log("🧪 Running Anti-Bot Browser Profile & 429 Diagnostics Verification");
@@ -11,7 +15,10 @@ const rootDir = process.cwd();
 
 // 1. Verify Android Shell (MainActivity.kt) Authentic Browser Profile
 console.log("1. Verifying Android Shell MainActivity.kt browser profile & headers...");
-const mainActivityPath = path.join(rootDir, "android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt");
+const mainActivityPath = path.join(
+  rootDir,
+  "android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt",
+);
 assert.ok(fs.existsSync(mainActivityPath), "MainActivity.kt must exist");
 const mainActivitySrc = fs.readFileSync(mainActivityPath, "utf-8");
 
@@ -51,10 +58,15 @@ console.log("✅ PASS: Android Shell browser navigation profile verified");
 
 // 2. Verify networkTracker 429 Handling and Formatting
 console.log("2. Verifying networkTracker status 429 handling and clipboard format...");
-const tracker = trackNetworkRequest("https://www.youtube.com/api/timedtext?v=test&tlang=pt", "GET", "native_bridge", {
-  attemptMode: "tlang",
-  attemptSend: "anon",
-});
+const tracker = trackNetworkRequest(
+  "https://www.youtube.com/api/timedtext?v=test&tlang=pt",
+  "GET",
+  "native_bridge",
+  {
+    attemptMode: "tlang",
+    attemptSend: "anon",
+  },
+);
 const mock429Html = "<html><body><h1>We're sorry... automated queries</h1></body></html>";
 tracker.fail("HTTP 429 (Too Many Requests / Bot Detection)", 429, mock429Html);
 
@@ -73,9 +85,18 @@ const record: NetworkRequestRecord = {
 };
 
 const clipboardText = formatRequestForClipboard(record);
-assert.ok(clipboardText.includes("Status: 429 (Too Many Requests / Bot Detection)"), "Clipboard text must format status 429 properly");
-assert.ok(clipboardText.includes("Target Language (tlang): pt"), "Clipboard text must preserve tlang");
-assert.ok(clipboardText.includes("Sending Method: anon"), "Clipboard text must display anon sending method");
+assert.ok(
+  clipboardText.includes("Status: 429 (Too Many Requests / Bot Detection)"),
+  "Clipboard text must format status 429 properly",
+);
+assert.ok(
+  clipboardText.includes("Target Language (tlang): pt"),
+  "Clipboard text must preserve tlang",
+);
+assert.ok(
+  clipboardText.includes("Sending Method: anon"),
+  "Clipboard text must display anon sending method",
+);
 assert.ok(clipboardText.includes("automated queries"), "Clipboard text must include response body");
 console.log("✅ PASS: networkTracker 429 status and response body preservation verified");
 
@@ -85,11 +106,26 @@ const inspectorPath = path.join(rootDir, "src/components/NetworkRequestsInspecto
 assert.ok(fs.existsSync(inspectorPath), "NetworkRequestsInspector.tsx must exist");
 const inspectorSrc = fs.readFileSync(inspectorPath, "utf-8");
 
-assert.ok(inspectorSrc.includes("bot-detection-card"), "NetworkRequestsInspector must render bot-detection-card");
-assert.ok(inspectorSrc.includes("open-in-browser-button"), "NetworkRequestsInspector must have open-in-browser-button");
-assert.ok(inspectorSrc.includes("paste-subtitles-json-textarea"), "NetworkRequestsInspector must provide paste-subtitles-json-textarea");
-assert.ok(inspectorSrc.includes("apply-pasted-json-button"), "NetworkRequestsInspector must provide apply-pasted-json-button");
-assert.ok(inspectorSrc.includes("429 BOT BLOCK"), "NetworkRequestsInspector must show 429 BOT BLOCK badge in request list");
+assert.ok(
+  inspectorSrc.includes("bot-detection-card"),
+  "NetworkRequestsInspector must render bot-detection-card",
+);
+assert.ok(
+  inspectorSrc.includes("open-in-browser-button"),
+  "NetworkRequestsInspector must have open-in-browser-button",
+);
+assert.ok(
+  inspectorSrc.includes("paste-subtitles-json-textarea"),
+  "NetworkRequestsInspector must provide paste-subtitles-json-textarea",
+);
+assert.ok(
+  inspectorSrc.includes("apply-pasted-json-button"),
+  "NetworkRequestsInspector must provide apply-pasted-json-button",
+);
+assert.ok(
+  inspectorSrc.includes("429 BOT BLOCK"),
+  "NetworkRequestsInspector must show 429 BOT BLOCK badge in request list",
+);
 console.log("✅ PASS: NetworkRequestsInspector UI bot detection and manual paste verified");
 
 console.log("==================================================================");

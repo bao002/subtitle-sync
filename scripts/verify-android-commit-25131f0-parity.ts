@@ -32,7 +32,9 @@ console.log("✅ PASS: onNewIntent calls proactiveDetectSubtitles(targetVideoId)
 
 // Assert query suffix fallback ensures default video and android=true
 assert(
-  activityContent.includes('buildQuerySuffix(sharedText).ifEmpty { "?v=vBURridJXZ0&android=true" }'),
+  activityContent.includes(
+    'buildQuerySuffix(sharedText).ifEmpty { "?v=vBURridJXZ0&android=true" }',
+  ),
   "MainActivity.kt must provide fallback to ?v=vBURridJXZ0&android=true on default launch",
 );
 console.log("✅ PASS: querySuffix guarantees default video ID and android=true on launch");
@@ -47,11 +49,15 @@ assert(
     !activityContent.includes("fixtures/L2Ryrr6txwA/en.json"),
   "proactiveDetectSubtitles must not use offline asset fixture fallback",
 );
-console.log("✅ PASS: proactiveDetectSubtitles queries authentic timedtext without fixture fallback");
+console.log(
+  "✅ PASS: proactiveDetectSubtitles queries authentic timedtext without fixture fallback",
+);
 
 // Assert executeTimedTextRepetition preserves lang parameter
 assert(
-  activityContent.includes('val originalLang = uri.getQueryParameter("lang")?.takeIf { it.isNotBlank() } ?: "en"'),
+  activityContent.includes(
+    'val originalLang = uri.getQueryParameter("lang")?.takeIf { it.isNotBlank() } ?: "en"',
+  ),
   "executeTimedTextRepetition must ensure originalLang is never omitted or blank",
 );
 console.log("✅ PASS: executeTimedTextRepetition ensures originalLang is always set");
@@ -71,7 +77,9 @@ assert(
   !indexContent.includes("JSON3_RAW_MAP[code]"),
   "src/routes/index.tsx must not fall back to JSON3_RAW_MAP[code] fixtures for live languages",
 );
-console.log("✅ PASS: React application uses authentic native bridge and network subtitles without fixture fallbacks");
+console.log(
+  "✅ PASS: React application uses authentic native bridge and network subtitles without fixture fallbacks",
+);
 
 console.log("==================================================================");
 console.log("🎉 ALL ANDROID COMMIT 25131f0 PARITY CHECKS PASSED SUCCESSFULLY!");

@@ -24,13 +24,21 @@ assert(
     (agentsContent.includes("app version") && agentsContent.includes("prompt response")),
   "AGENTS.md must instruct updating the app version number for prompt response",
 );
-console.log("✅ PASS: AGENTS.md contains explicit instruction that app version number must not stay 1.0 always and must be updated for prompt response");
+console.log(
+  "✅ PASS: AGENTS.md contains explicit instruction that app version number must not stay 1.0 always and must be updated for prompt response",
+);
 
 // 2. Verify package.json contains valid updated version
 assert(fs.existsSync(packageJsonPath), "package.json must exist in root");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
-assert(typeof packageJson.version === "string" && packageJson.version.length > 0, "package.json must contain a version field");
-assert(packageJson.version !== "1.0" && packageJson.version !== "1.0.0", `package.json version must not stay 1.0, got: "${packageJson.version}"`);
+assert(
+  typeof packageJson.version === "string" && packageJson.version.length > 0,
+  "package.json must contain a version field",
+);
+assert(
+  packageJson.version !== "1.0" && packageJson.version !== "1.0.0",
+  `package.json version must not stay 1.0, got: "${packageJson.version}"`,
+);
 console.log(`✅ PASS: package.json has updated version: "${packageJson.version}"`);
 
 // 3. Verify android-shell build.gradle.kts has updated versionCode and versionName
@@ -46,8 +54,13 @@ console.log(`✅ PASS: android-shell/app/build.gradle.kts has updated versionCod
 const versionNameMatch = gradleContent.match(/versionName\s*=\s*"([^"]+)"/);
 assert(versionNameMatch, "build.gradle.kts must specify versionName");
 const versionName = versionNameMatch[1];
-assert(versionName !== "1.0", `build.gradle.kts versionName must not stay "1.0", got: "${versionName}"`);
-console.log(`✅ PASS: android-shell/app/build.gradle.kts has updated versionName: "${versionName}"`);
+assert(
+  versionName !== "1.0",
+  `build.gradle.kts versionName must not stay "1.0", got: "${versionName}"`,
+);
+console.log(
+  `✅ PASS: android-shell/app/build.gradle.kts has updated versionName: "${versionName}"`,
+);
 
 // 4. Verify src/utils/apkUpdater.ts CURRENT_APK_VERSION
 assert(fs.existsSync(apkUpdaterPath), "src/utils/apkUpdater.ts must exist");
@@ -57,8 +70,13 @@ assert(
     CURRENT_APK_VERSION === `v${packageJson.version}`,
   `CURRENT_APK_VERSION ("${CURRENT_APK_VERSION}") must align with package.json version ("${packageJson.version}")`,
 );
-assert(CURRENT_APK_VERSION !== "v1.0" && CURRENT_APK_VERSION !== "v1.0.0", `CURRENT_APK_VERSION must not stay 1.0, got: "${CURRENT_APK_VERSION}"`);
-console.log(`✅ PASS: src/utils/apkUpdater.ts has updated CURRENT_APK_VERSION: "${CURRENT_APK_VERSION}"`);
+assert(
+  CURRENT_APK_VERSION !== "v1.0" && CURRENT_APK_VERSION !== "v1.0.0",
+  `CURRENT_APK_VERSION must not stay 1.0, got: "${CURRENT_APK_VERSION}"`,
+);
+console.log(
+  `✅ PASS: src/utils/apkUpdater.ts has updated CURRENT_APK_VERSION: "${CURRENT_APK_VERSION}"`,
+);
 
 // 5. Verify src/utils/appSettings.ts default snapshot version
 assert(fs.existsSync(appSettingsPath), "src/utils/appSettings.ts must exist");
@@ -66,8 +84,13 @@ const appSettingsContent = fs.readFileSync(appSettingsPath, "utf8");
 const appSettingsVersionMatch = appSettingsContent.match(/version:\s*"([^"]+)"/);
 assert(appSettingsVersionMatch, "appSettings.ts AppStateSnapshot must contain version");
 const appSettingsVersion = appSettingsVersionMatch[1];
-assert(appSettingsVersion !== "1.0" && appSettingsVersion !== "1.0.0", `appSettings.ts version must not stay 1.0, got: "${appSettingsVersion}"`);
-console.log(`✅ PASS: src/utils/appSettings.ts has updated snapshot version: "${appSettingsVersion}"`);
+assert(
+  appSettingsVersion !== "1.0" && appSettingsVersion !== "1.0.0",
+  `appSettings.ts version must not stay 1.0, got: "${appSettingsVersion}"`,
+);
+console.log(
+  `✅ PASS: src/utils/appSettings.ts has updated snapshot version: "${appSettingsVersion}"`,
+);
 
 // 6. Verify cross-file version synchronization
 assert.strictEqual(

@@ -130,6 +130,7 @@
 ### 3. Request validation & "Good" response criteria
 
 A subtitle HTTP response is considered valid and "good" ONLY when it satisfies all of the following criteria:
+
 - **HTTP status**: Status code must be 200 OK. Any 4xx or 5xx status code is strictly rejected as a failure.
 - **Valid JSON parsing**: Response body must be non-empty, must start with `{` or `[`, and must parse successfully without syntax errors. HTML error responses (e.g., containing `<!DOCTYPE html>` or `<html>`) are rejected immediately.
 - **YouTube `json3` structural schema compliance**:

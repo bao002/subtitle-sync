@@ -27,7 +27,7 @@ const requiredActionsTokens = [
   "Why Reports or Screencast Links May Initially Seem Broken",
   "[skip ci]",
   "gh-pages",
-  "android-emulator-report.html"
+  "android-emulator-report.html",
 ];
 
 for (const token of requiredActionsTokens) {
@@ -46,7 +46,7 @@ const selfVerifyContent = fs.readFileSync(selfVerifyPath, "utf8");
 const requiredSelfVerifyTokens = [
   "Sanity Check 7: Automated README CI Status & Broken Link Synchronizer",
   "test:readme-error-indicator",
-  "docs/operations/ACTIONS.md"
+  "docs/operations/ACTIONS.md",
 ];
 
 for (const token of requiredSelfVerifyTokens) {
@@ -55,7 +55,9 @@ for (const token of requiredSelfVerifyTokens) {
     process.exit(1);
   }
 }
-console.log("✅ PASS: docs/self-verification.md contains Sanity Check 7 and command matrix entries.");
+console.log(
+  "✅ PASS: docs/self-verification.md contains Sanity Check 7 and command matrix entries.",
+);
 
 // Test 3: Validate docs/android.md
 console.log("--> [Test 3] Auditing docs/android.md...");
@@ -66,7 +68,7 @@ const requiredAndroidTokens = [
   "Automated Status Reflection in `README.md`",
   "update-readme.yml",
   "workflow_run",
-  "docs/operations/ACTIONS.md"
+  "docs/operations/ACTIONS.md",
 ];
 
 for (const token of requiredAndroidTokens) {

@@ -1,12 +1,22 @@
 import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert";
-import { removeCachedTargetSubtitles, saveCachedTargetSubtitles, getCachedTargetSubtitles } from "../src/utils/subtitleCache";
-import { removeVideoInstanceConfig, loadStoredInstanceConfigs, saveVideoInstanceConfig } from "../src/utils/multiVideoPlayerManager";
+import {
+  removeCachedTargetSubtitles,
+  saveCachedTargetSubtitles,
+  getCachedTargetSubtitles,
+} from "../src/utils/subtitleCache";
+import {
+  removeVideoInstanceConfig,
+  loadStoredInstanceConfigs,
+  saveVideoInstanceConfig,
+} from "../src/utils/multiVideoPlayerManager";
 import { PANELS } from "../src/config/accordionThemes";
 
 console.log("==================================================================");
-console.log("🧪 Verify Compact UI, Pin Toggles, Library Cache Controls & Clean Language Removal (Task 59)");
+console.log(
+  "🧪 Verify Compact UI, Pin Toggles, Library Cache Controls & Clean Language Removal (Task 59)",
+);
 console.log("==================================================================");
 
 const rootDir = process.cwd();
@@ -31,7 +41,9 @@ const multiVideoContent = fs.readFileSync(multiVideoManagerPath, "utf8");
 // ------------------------------------------------------------------
 // Check 1: Subtask 59.1 - Compact per-language settings & voice selection
 // ------------------------------------------------------------------
-console.log("--> [Check 1] Validating Subtask 59.1: Compact per-language settings & voice selection...");
+console.log(
+  "--> [Check 1] Validating Subtask 59.1: Compact per-language settings & voice selection...",
+);
 assert(
   indexContent.includes("data-testid={`tts-settings-card-${lang.code}`}"),
   "index.tsx must render tts-settings-card for each spoken language",
@@ -52,7 +64,9 @@ assert(
   indexContent.includes("x.voiceURI === voiceURI || x.name === voiceURI"),
   "speakText voice resolution must match by either voiceURI or name",
 );
-console.log("✅ PASS: Subtask 59.1 verified: compact layout and robust voice selection resolution.");
+console.log(
+  "✅ PASS: Subtask 59.1 verified: compact layout and robust voice selection resolution.",
+);
 
 // ------------------------------------------------------------------
 // Check 2: Subtask 59.2 - Accordions auto-fold after timeout unless pinned
@@ -81,21 +95,26 @@ console.log("✅ PASS: Subtask 59.2 verified: auto-fold timeout and persistent p
 // ------------------------------------------------------------------
 console.log("--> [Check 3] Validating Subtask 59.3: Subtitles scoped to active video...");
 assert(
-  indexContent.includes("videoId={videoId}") && accordionContent.includes("data-video-id={videoId}"),
+  indexContent.includes("videoId={videoId}") &&
+    accordionContent.includes("data-video-id={videoId}"),
   "Accordion sections must be bound to active videoId",
 );
 assert(
-  indexContent.includes("setTracks(null)") && indexContent.includes("setObservedUrl(\"\")"),
+  indexContent.includes("setTracks(null)") && indexContent.includes('setObservedUrl("")'),
   "Video loading and switching must clear previous video tracks and observed URL",
 );
-console.log("✅ PASS: Subtask 59.3 verified: all subtitles and cues belong strictly to current video.");
+console.log(
+  "✅ PASS: Subtask 59.3 verified: all subtitles and cues belong strictly to current video.",
+);
 
 // ------------------------------------------------------------------
 // Check 4: Subtask 59.4 - Remove standalone iframe player option
 // ------------------------------------------------------------------
 console.log("--> [Check 4] Validating Subtask 59.4: Remove standalone iframe player option...");
 assert(
-  !PANELS.some((p) => p.id === ("language-player" as unknown) || p.id === ("iframe-player" as unknown)),
+  !PANELS.some(
+    (p) => p.id === ("language-player" as unknown) || p.id === ("iframe-player" as unknown),
+  ),
   "PANELS must not contain legacy standalone language-player or iframe-player accordion",
 );
 assert(
@@ -124,7 +143,9 @@ assert(
   indexContent.includes("onFetchFromScratch={"),
   "index.tsx must supply onFetchFromScratch handler to VideoLibraryPanel",
 );
-console.log("✅ PASS: Subtask 59.5 verified: both Clear cache and Fetch from scratch buttons present.");
+console.log(
+  "✅ PASS: Subtask 59.5 verified: both Clear cache and Fetch from scratch buttons present.",
+);
 
 // ------------------------------------------------------------------
 // Check 6: Subtask 59.6 - Clean language removal removes all instances

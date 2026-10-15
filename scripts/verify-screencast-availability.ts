@@ -61,12 +61,16 @@ if (!targetOwner) {
 
 // Priority 3: Extract from README.md
 if (!targetOwner) {
-  const matchWorkflow = readmeContent.match(/https:\/\/github\.com\/([a-zA-Z0-9_\-.]+)\/([a-zA-Z0-9_\-.]+)\/actions/);
+  const matchWorkflow = readmeContent.match(
+    /https:\/\/github\.com\/([a-zA-Z0-9_\-.]+)\/([a-zA-Z0-9_\-.]+)\/actions/,
+  );
   if (matchWorkflow) {
     targetOwner = matchWorkflow[1];
     targetRepo = matchWorkflow[2];
   } else {
-    const matchPages = readmeContent.match(/https:\/\/([a-zA-Z0-9_\-.]+)\.github\.io\/([a-zA-Z0-9_\-.]+)/);
+    const matchPages = readmeContent.match(
+      /https:\/\/([a-zA-Z0-9_\-.]+)\.github\.io\/([a-zA-Z0-9_\-.]+)/,
+    );
     if (matchPages) {
       targetOwner = matchPages[1];
       targetRepo = matchPages[2];
@@ -139,15 +143,22 @@ assert(
 );
 assert(
   readmeContent.includes("Android Emulator Screencast Video") &&
-  (readmeContent.includes("MB") || readmeContent.includes("bytes") || readmeContent.includes("HTTP 404") || readmeContent.includes("Missing Asset")),
+    (readmeContent.includes("MB") ||
+      readmeContent.includes("bytes") ||
+      readmeContent.includes("HTTP 404") ||
+      readmeContent.includes("Missing Asset")),
   "README.md must document the Android Emulator Screencast Video along with its video size or status",
 );
-console.log(`   ✓ Android Emulator Screencast Video link & size verified in README: ${screencastVideoUrl}`);
+console.log(
+  `   ✓ Android Emulator Screencast Video link & size verified in README: ${screencastVideoUrl}`,
+);
 
 // -----------------------------------------------------------------------------
 // 3. Inspect GitHub Actions Workflows (emulation.yml & deploy-demo.yml)
 // -----------------------------------------------------------------------------
-console.log("\n--> [Step 3] Inspecting GitHub Actions: Ensuring E2E Runs on Android & Produces Screencasts...");
+console.log(
+  "\n--> [Step 3] Inspecting GitHub Actions: Ensuring E2E Runs on Android & Produces Screencasts...",
+);
 
 const emulationYmlPath = path.resolve(rootDir, ".github/workflows/emulation.yml");
 assert(fs.existsSync(emulationYmlPath), ".github/workflows/emulation.yml must exist");
@@ -159,9 +170,15 @@ assert.doesNotThrow(() => {
 }, ".github/workflows/emulation.yml must parse as valid YAML");
 
 // 3.1 Verify triggers and runner
-assert(emulationConfig.jobs && emulationConfig.jobs["android-emulator-e2e"], "emulation.yml must define android-emulator-e2e job");
+assert(
+  emulationConfig.jobs && emulationConfig.jobs["android-emulator-e2e"],
+  "emulation.yml must define android-emulator-e2e job",
+);
 const job = emulationConfig.jobs["android-emulator-e2e"];
-assert(job["runs-on"] === "macos-14" || job["runs-on"].includes("macos"), "Android emulator runner must run on macOS runner with virtualization");
+assert(
+  job["runs-on"] === "macos-14" || job["runs-on"].includes("macos"),
+  "Android emulator runner must run on macOS runner with virtualization",
+);
 
 // 3.2 Verify Android Emulator runner action & API level
 assert(
@@ -179,8 +196,10 @@ assert(
 
 // 3.3 Verify Target App & Clean Preferences
 assert(
-  emulationYmlRaw.includes("adb install -r android-shell/app/build/outputs/apk/debug/app-debug.apk") ||
-  emulationYmlRaw.includes("adb install") && emulationYmlRaw.includes(".apk"),
+  emulationYmlRaw.includes(
+    "adb install -r android-shell/app/build/outputs/apk/debug/app-debug.apk",
+  ) ||
+    (emulationYmlRaw.includes("adb install") && emulationYmlRaw.includes(".apk")),
   "emulation.yml must install Android debug APK",
 );
 assert(
@@ -191,8 +210,11 @@ assert(
 // 3.4 Verify Screencast Video Recording Lifecycle (Start, Clean Signal, Pull)
 console.log("   --> Checking screenrecord lifecycle in emulation.yml...");
 assert(
-  emulationYmlRaw.includes("adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4") ||
-  emulationYmlRaw.includes("screenrecord") && emulationYmlRaw.includes("/sdcard/android-emulator-video.mp4"),
+  emulationYmlRaw.includes(
+    "adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4",
+  ) ||
+    (emulationYmlRaw.includes("screenrecord") &&
+      emulationYmlRaw.includes("/sdcard/android-emulator-video.mp4")),
   "emulation.yml must start screenrecord to capture video screencast to /sdcard/android-emulator-video.mp4",
 );
 assert(
@@ -200,7 +222,9 @@ assert(
   "emulation.yml must stop screenrecord with SIGINT (kill -2 / pkill -2) to finalize moov atom header",
 );
 assert(
-  emulationYmlRaw.includes("adb pull /sdcard/android-emulator-video.mp4 ./android-emulator-video.mp4"),
+  emulationYmlRaw.includes(
+    "adb pull /sdcard/android-emulator-video.mp4 ./android-emulator-video.mp4",
+  ),
   "emulation.yml must pull the finalized android-emulator-video.mp4 from the emulator",
 );
 assert(
@@ -209,10 +233,12 @@ assert(
 );
 assert(
   emulationYmlRaw.includes("Finalize Screencast Recording and Pull Video") &&
-  emulationYmlRaw.includes("set +e"),
+    emulationYmlRaw.includes("set +e"),
   "emulation.yml must contain dedicated 'Finalize Screencast Recording and Pull Video' step with set +e resilience",
 );
-console.log("   ✓ Screenrecord lifecycle verified (start, SIGINT flush, adb pull, byte count validation, dedicated pull step)");
+console.log(
+  "   ✓ Screenrecord lifecycle verified (start, SIGINT flush, adb pull, byte count validation, dedicated pull step)",
+);
 
 // 3.5 Verify Android E2E Assertion Execution
 assert(
@@ -259,11 +285,13 @@ assert(fs.existsSync(deployDemoYmlPath), ".github/workflows/deploy-demo.yml must
 const deployDemoYmlRaw = fs.readFileSync(deployDemoYmlPath, "utf8");
 assert(
   deployDemoYmlRaw.includes("android-emulator-report.html") &&
-  deployDemoYmlRaw.includes("screenshots") &&
-  deployDemoYmlRaw.includes("android"),
+    deployDemoYmlRaw.includes("screenshots") &&
+    deployDemoYmlRaw.includes("android"),
   "deploy-demo.yml must preserve android-emulator-report.html, screenshots, and android directories from gh-pages branch",
 );
-console.log("   ✓ deploy-demo.yml preserves reports, screenshots, and screencasts across web deployments");
+console.log(
+  "   ✓ deploy-demo.yml preserves reports, screenshots, and screencasts across web deployments",
+);
 
 // 3.9 Verify Automated README Synchronization Pipeline across Workflows
 const updateReadmeYmlPath = path.resolve(rootDir, ".github/workflows/update-readme.yml");
@@ -274,15 +302,18 @@ assert(
   "update-readme.yml must run scripts/update-readme.mjs",
 );
 assert(
-  updateReadmeYmlRaw.includes("workflow_run") && updateReadmeYmlRaw.includes("Android Emulator E2E Tests"),
+  updateReadmeYmlRaw.includes("workflow_run") &&
+    updateReadmeYmlRaw.includes("Android Emulator E2E Tests"),
   "update-readme.yml must trigger on completion of Android Emulator E2E Tests to guarantee README update on every run",
 );
 assert(
   emulationYmlRaw.includes("Synchronize README with Latest Screencast Video Size & Link") ||
-  emulationYmlRaw.includes("scripts/update-readme.mjs"),
+    emulationYmlRaw.includes("scripts/update-readme.mjs"),
   "emulation.yml must trigger README synchronization upon pulling the screencast video",
 );
-console.log("   ✓ Automated README synchronization pipeline verified across workflows on every run");
+console.log(
+  "   ✓ Automated README synchronization pipeline verified across workflows on every run",
+);
 
 // -----------------------------------------------------------------------------
 // 4. Verify GitHub Pages Report's Screencasts Presentation
@@ -299,25 +330,24 @@ assert(
   "public/android-emulator-report.html must embed an HTML5 <video> tag",
 );
 assert(
-  reportHtml.includes("controls") && reportHtml.includes("autoplay") && reportHtml.includes("muted"),
+  reportHtml.includes("controls") &&
+    reportHtml.includes("autoplay") &&
+    reportHtml.includes("muted"),
   "Video player must have controls, autoplay, and muted attributes",
 );
 
 // 4.2 Source Paths for Screencast Video
 assert(
   reportHtml.includes('src="./screenshots/android-emulator-video.mp4"') ||
-  reportHtml.includes('android-emulator-video.mp4'),
+    reportHtml.includes("android-emulator-video.mp4"),
   "Report must source android-emulator-video.mp4 in the video element",
 );
-assert(
-  reportHtml.includes('type="video/mp4"'),
-  "Video source must declare type='video/mp4'",
-);
+assert(reportHtml.includes('type="video/mp4"'), "Video source must declare type='video/mp4'");
 
 // 4.3 Direct Video Download Link
 assert(
   reportHtml.includes('href="./screenshots/android-emulator-video.mp4"') ||
-  reportHtml.includes('android-emulator-video.mp4" target="_blank"'),
+    reportHtml.includes('android-emulator-video.mp4" target="_blank"'),
   "Report must offer a direct download link for the MP4 screencast",
 );
 
@@ -330,18 +360,22 @@ assert(
 // 4.5 5-Step E2E Milestone Workflow Cards & Telemetry
 assert(
   reportHtml.includes("step1-default-subtitles-detected.png") &&
-  reportHtml.includes("step2-favorite-languages-fetch.png") &&
-  reportHtml.includes("step3-youtube-api-tlang-lang-fallback.png") &&
-  reportHtml.includes("step4-network-panel-inspection.png") &&
-  reportHtml.includes("step5-subtitles-view-inspection.png"),
+    reportHtml.includes("step2-favorite-languages-fetch.png") &&
+    reportHtml.includes("step3-youtube-api-tlang-lang-fallback.png") &&
+    reportHtml.includes("step4-network-panel-inspection.png") &&
+    reportHtml.includes("step5-subtitles-view-inspection.png"),
   "Report must display all 5 step milestone screenshots",
 );
 assert(
-  reportHtml.includes("telem-model") && reportHtml.includes("telem-os") && reportHtml.includes("telem-resolution"),
+  reportHtml.includes("telem-model") &&
+    reportHtml.includes("telem-os") &&
+    reportHtml.includes("telem-resolution"),
   "Report must display device hardware telemetry card",
 );
 
-console.log("   ✓ GitHub Pages report embeds video player, MP4 source, download link, milestone cards, and telemetry");
+console.log(
+  "   ✓ GitHub Pages report embeds video player, MP4 source, download link, milestone cards, and telemetry",
+);
 
 // 4.6 Live GitHub Pages HTTP Endpoint Check
 let livePagesReportStatus = "unverified";
@@ -352,10 +386,16 @@ try {
   });
   if (pagesResp.ok) {
     const liveHtml = await pagesResp.text();
-    const hasLiveVideo = liveHtml.includes("<video") && liveHtml.includes("android-emulator-video.mp4");
+    const hasLiveVideo =
+      liveHtml.includes("<video") && liveHtml.includes("android-emulator-video.mp4");
     livePagesReportStatus = `HTTP ${pagesResp.status} OK (Live HTML verified with video elements)`;
-    console.log(`   ✓ Live GitHub Pages Report verified: ${emulatorReportUrl} -> ${livePagesReportStatus}`);
-    assert(hasLiveVideo, "Live deployed GitHub Pages report must contain video presentation player");
+    console.log(
+      `   ✓ Live GitHub Pages Report verified: ${emulatorReportUrl} -> ${livePagesReportStatus}`,
+    );
+    assert(
+      hasLiveVideo,
+      "Live deployed GitHub Pages report must contain video presentation player",
+    );
   } else {
     livePagesReportStatus = `HTTP ${pagesResp.status} (${pagesResp.statusText})`;
     console.log(`   ℹ Live GitHub Pages Report returned: ${livePagesReportStatus}`);
@@ -375,9 +415,18 @@ let localCommitSubject = "";
 let localCommitAuthor = "";
 
 try {
-  localCommitSha = execSync("git rev-parse HEAD", { encoding: "utf8", stdio: ["pipe", "pipe", "ignore"] }).trim();
-  localCommitSubject = execSync("git log -1 --format=%s", { encoding: "utf8", stdio: ["pipe", "pipe", "ignore"] }).trim();
-  localCommitAuthor = execSync("git log -1 --format='%an <%ae>'", { encoding: "utf8", stdio: ["pipe", "pipe", "ignore"] }).trim();
+  localCommitSha = execSync("git rev-parse HEAD", {
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "ignore"],
+  }).trim();
+  localCommitSubject = execSync("git log -1 --format=%s", {
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "ignore"],
+  }).trim();
+  localCommitAuthor = execSync("git log -1 --format='%an <%ae>'", {
+    encoding: "utf8",
+    stdio: ["pipe", "pipe", "ignore"],
+  }).trim();
 } catch {
   localCommitSha = "HEAD";
   localCommitSubject = "Latest commit";
@@ -402,9 +451,12 @@ if (process.env.GITHUB_TOKEN || process.env.GH_TOKEN) {
 }
 
 try {
-  const commitResp = await fetch(`https://api.github.com/repos/${targetOwner}/${targetRepo}/commits?per_page=1`, {
-    headers: ghHeaders,
-  });
+  const commitResp = await fetch(
+    `https://api.github.com/repos/${targetOwner}/${targetRepo}/commits?per_page=1`,
+    {
+      headers: ghHeaders,
+    },
+  );
   if (commitResp.ok) {
     const commits: any = await commitResp.json();
     if (Array.isArray(commits) && commits.length > 0) {
@@ -432,9 +484,12 @@ let liveArtifactsFound = false;
 
 try {
   // Query runs for Android Emulator E2E Tests
-  const runsResp = await fetch(`https://api.github.com/repos/${targetOwner}/${targetRepo}/actions/workflows/emulation.yml/runs?per_page=5`, {
-    headers: ghHeaders,
-  });
+  const runsResp = await fetch(
+    `https://api.github.com/repos/${targetOwner}/${targetRepo}/actions/workflows/emulation.yml/runs?per_page=5`,
+    {
+      headers: ghHeaders,
+    },
+  );
 
   if (runsResp.ok) {
     const runsData: any = await runsResp.json();
@@ -446,13 +501,18 @@ try {
       console.log(`     URL:        ${latestRun.html_url}`);
 
       // Query artifacts for this run
-      const artifactsResp = await fetch(`https://api.github.com/repos/${targetOwner}/${targetRepo}/actions/runs/${latestRun.id}/artifacts`, {
-        headers: ghHeaders,
-      });
+      const artifactsResp = await fetch(
+        `https://api.github.com/repos/${targetOwner}/${targetRepo}/actions/runs/${latestRun.id}/artifacts`,
+        {
+          headers: ghHeaders,
+        },
+      );
 
       if (artifactsResp.ok) {
         const artifactsData: any = await artifactsResp.json();
-        const screencastArtifact = artifactsData.artifacts?.find((a: any) => a.name === "android-emulator-artifacts");
+        const screencastArtifact = artifactsData.artifacts?.find(
+          (a: any) => a.name === "android-emulator-artifacts",
+        );
         if (screencastArtifact) {
           liveArtifactsFound = true;
           const mb = (screencastArtifact.size_in_bytes / (1024 * 1024)).toFixed(2);
@@ -463,12 +523,15 @@ try {
           try {
             const currentReadme = fs.readFileSync(readmePath, "utf8");
             const expectedRow = `| 🎬 **Android Emulator Screencast Video**               | [**View/Download MP4 Screencast (${mb} MB)**](https://${targetOwner}.github.io/${targetRepo}/screenshots/android-emulator-video.mp4) | Full authentic screen recording from Android Emulator E2E run (API 34 Google APIs, size: ${screencastArtifact.size_in_bytes.toLocaleString()} bytes / ${mb} MB).          |`;
-            const rowRegex = /\|\s*🎬\s*\*\*Android Emulator Screencast Video\*\*[^|\n]*\|[^|\n]*\|[^|\n]*\|/;
+            const rowRegex =
+              /\|\s*🎬\s*\*\*Android Emulator Screencast Video\*\*[^|\n]*\|[^|\n]*\|[^|\n]*\|/;
             if (rowRegex.test(currentReadme)) {
               const updated = currentReadme.replace(rowRegex, expectedRow);
               if (updated !== currentReadme) {
                 fs.writeFileSync(readmePath, updated, "utf8");
-                console.log(`   ✓ README.md synchronized with verified video size (${mb} MB) and link.`);
+                console.log(
+                  `   ✓ README.md synchronized with verified video size (${mb} MB) and link.`,
+                );
               }
             }
           } catch (syncErr: any) {
@@ -500,7 +563,9 @@ console.log(`✓ Screencast Artifact:           ${liveArtifactsStatus}`);
 console.log(`✓ GitHub Pages Report:           ${emulatorReportUrl}`);
 console.log(`✓ GitHub Pages Report Status:    ${livePagesReportStatus}`);
 console.log(`✓ Embedded Video Player:         HTML5 <video> with controls & fallback`);
-console.log(`✓ Direct Screencast Download:    ${expectedPagesBaseUrl}/screenshots/android-emulator-video.mp4`);
+console.log(
+  `✓ Direct Screencast Download:    ${expectedPagesBaseUrl}/screenshots/android-emulator-video.mp4`,
+);
 console.log(`✓ Last Commit Evaluated:         ${lastEvaluatedSha.slice(0, 10)}`);
 console.log("=========================================================================");
 console.log("🎉 ALL SCREENCAST & ACTIONS VERIFICATION CHECKS PASSED SUCCESSFULLY!");

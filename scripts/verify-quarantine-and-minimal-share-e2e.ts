@@ -39,7 +39,9 @@ assert(
   strategyDocContent.includes("README") && strategyDocContent.includes("deprecate"),
   "Strategy doc must define deprecating current README in favor of minimal report link",
 );
-console.log("✅ PASS: Strategy document contains complete reasoning, products, and quarantine plan.");
+console.log(
+  "✅ PASS: Strategy document contains complete reasoning, products, and quarantine plan.",
+);
 
 // 2. Verify quarentined/ directory and archived suites
 console.log("\n--> [Step 2] Verifying quarentined/ directory contents...");
@@ -52,8 +54,13 @@ assert(fs.existsSync(quarantinedAppSpec), "e2e/app.spec.ts must be isolated in q
 assert(fs.existsSync(quarantinedWebSpec), "e2e/web.spec.ts must be isolated in quarentined/e2e/");
 
 const quarantinedCypressDir = path.resolve(rootDir, "quarentined/cypress");
-assert(fs.existsSync(quarantinedCypressDir), "Cypress suites must be isolated in quarentined/cypress/");
-console.log("✅ PASS: Non-core E2E suites and legacy test fixtures successfully isolated in quarentined/.");
+assert(
+  fs.existsSync(quarantinedCypressDir),
+  "Cypress suites must be isolated in quarentined/cypress/",
+);
+console.log(
+  "✅ PASS: Non-core E2E suites and legacy test fixtures successfully isolated in quarentined/.",
+);
 
 // 3. Verify active e2e/emulation.spec.ts is minimal and validates YouTube video sharing
 console.log("\n--> [Step 3] Verifying active e2e/emulation.spec.ts...");
@@ -77,7 +84,9 @@ assert(
   emulationContent.includes("kJQP7kiw5Fk"),
   "e2e/emulation.spec.ts must test official YouTube app text sharing",
 );
-console.log("✅ PASS: Active e2e/emulation.spec.ts is streamlined to test the YouTube video share feature.");
+console.log(
+  "✅ PASS: Active e2e/emulation.spec.ts is streamlined to test the YouTube video share feature.",
+);
 
 // 4. Verify scripts/android-e2e-assert.sh validates the share feature
 console.log("\n--> [Step 4] Verifying scripts/android-e2e-assert.sh...");

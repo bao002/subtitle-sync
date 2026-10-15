@@ -253,7 +253,9 @@ async function runOtaUpdaterVerification() {
 
   // Verify UI integration in src/routes/index.tsx and src/components/ApkReleaseModal.tsx
   const indexFile = fs.readFileSync(path.resolve(process.cwd(), "src/routes/index.tsx"), "utf8");
-  const footerFile = fs.existsSync(path.resolve(process.cwd(), "src/components/ApkReleasesFooter.tsx"))
+  const footerFile = fs.existsSync(
+    path.resolve(process.cwd(), "src/components/ApkReleasesFooter.tsx"),
+  )
     ? fs.readFileSync(path.resolve(process.cwd(), "src/components/ApkReleasesFooter.tsx"), "utf8")
     : indexFile;
 

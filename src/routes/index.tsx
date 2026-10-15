@@ -630,8 +630,8 @@ function Index() {
           typeof l === "string" ? l : (l as { code: string }).code,
         );
       }
-      const favs = getFavoriteLanguages();
-      if (favs && favs.length > 0) return favs;
+      const saved = getUserLearningLanguages();
+      if (saved && saved.length > 0) return saved;
       const isAndroidEnv =
         Boolean(nativeShell()) ||
         new URLSearchParams(window.location.search).get("android") === "true";
@@ -983,10 +983,11 @@ function Index() {
                   setAttemptOrder(promoted);
                   setAttemptOrderState(promoted);
                 }
-                json = parseJson3(result.body);
+                const raw = result.body;
+                json = parseJson3(raw);
                 if (json) {
                   if (videoId) {
-                    saveCachedRawJson3(videoId, code, result.body);
+                    saveCachedRawJson3(videoId, code, raw);
                   }
                   recordWinnerPromotion({
                     videoId: videoId || "unknown",
@@ -1050,6 +1051,7 @@ function Index() {
         if (!json) {
           failed.push(code);
         }
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
       }
       if (failed.length > 0) {
         setFailedLangs((prev) => Array.from(new Set([...prev, ...failed])));
@@ -2085,13 +2087,8 @@ function Index() {
     }
     const iv = setInterval(async () => {
       const p = player.current;
-      if (
-        !p?.getCurrentTime ||
-        busy.current ||
-        st.current.isSetupPaused ||
-        activeTopTabRef.current === "playground"
-      )
-        return;
+      if (!p?.getCurrentTime || busy.current || st.current.isSetupPaused) return;
+      if (activeTopTabRef.current === "playground") return;
       const ms = p.getCurrentTime() * 1000;
       // Detect user manually seeking or scrubbing across playback timeline
       if (Math.abs(ms - lastMs.current) > 2500 || ms < lastMs.current - 1000) {
@@ -2681,1654 +2678,1685 @@ function Index() {
           <div className="px-4 pt-4 md:px-6 md:pt-6">
             <form
               id="youtube-url-form"
-          className="flex items-center gap-2 max-w-2xl mx-auto rounded-xl border border-border bg-card p-2 shadow-sm"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const id = parseVideoId(videoInput);
-            if (id) {
-              if (id !== videoId) {
-                setTracks(null);
-                setObservedUrl("");
-                setDefaultCaptionsLoaded(false);
-                setActive(-1);
-                setSpeakingLang(null);
-                setSpeakingRow(-1);
-                setSpeechProgress(null);
-                cancelSpeech();
-                if (typeof window !== "undefined") {
-                  const currentSearch = new URLSearchParams(window.location.search);
-                  if (currentSearch.get("v") !== id) {
-                    currentSearch.set("v", id);
-                    window.history.pushState(
-                      { videoId: id },
-                      "",
-                      `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
-                    );
-                  }
-                }
-              }
-              setVideoId(id);
-            } else {
-              setCaptionStatus("Enter a valid YouTube link or video ID.");
-            }
-          }}
-        >
-          <input
-            id="youtube-url-input"
-            data-testid="youtube-url-input"
-            aria-label="YouTube video URL or ID"
-            value={videoInput}
-            onChange={(event) => setVideoInput(event.target.value)}
-            placeholder="Paste YouTube video link (e.g. https://www.youtube.com/watch?v=vBURridJXZ0)"
-            className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
-          />
-          <Button id="play-video-button" data-testid="play-video-button" type="submit" size="sm">
-            Load video
-          </Button>
-        </form>
-      </div>
-
-      <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">
-        {panelOrder.map((panelId, panelIndex) => {
-          const panel = PANELS.find((candidate) => candidate.id === panelId);
-          if (!panel) return null;
-          if (panelId === "subtitles" && !hasLegitimateSubtitles) return null;
-          return (
-            <AccordionSection
-              key={panelId}
-              id={panelId}
-              title={panel.title}
-              videoId={videoId}
-              open={openPanels[panelId]}
-              onOpenChange={(open) => setOpenPanels((current) => ({ ...current, [panelId]: open }))}
-              onMoveUp={() => movePanel(panelId, -1)}
-              onMoveDown={() => movePanel(panelId, 1)}
-              canMoveUp={panelIndex > 0}
-              canMoveDown={panelIndex < panelOrder.length - 1}
-              wide={panelId === "subtitles"}
-            >
-              {panelId === "player" && (
-                <div>
-                  {isAndroid && (
-                    <form
-                      className="flex gap-2 p-3"
-                      onSubmit={(event) => {
-                        event.preventDefault();
-                        const id = parseVideoId(videoInput);
-                        if (id) {
-                          if (id !== videoId) {
-                            setTracks(null);
-                            setObservedUrl("");
-                            setDefaultCaptionsLoaded(false);
-                            setActive(-1);
-                            setSpeakingLang(null);
-                            setSpeakingRow(-1);
-                            setSpeechProgress(null);
-                            cancelSpeech();
-                            if (typeof window !== "undefined") {
-                              const currentSearch = new URLSearchParams(window.location.search);
-                              if (currentSearch.get("v") !== id) {
-                                currentSearch.set("v", id);
-                                window.history.pushState(
-                                  { videoId: id },
-                                  "",
-                                  `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
-                                );
-                              }
-                            }
-                          }
-                          setVideoId(id);
-                        } else {
-                          setCaptionStatus("Enter a valid YouTube link or video ID.");
-                        }
-                      }}
-                    >
-                      <input
-                        aria-label="YouTube video URL or ID"
-                        value={videoInput}
-                        onChange={(event) => setVideoInput(event.target.value)}
-                        placeholder="YouTube link or video ID"
-                        className="min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1"
-                      />
-                      <Button type="submit">Load video</Button>
-                    </form>
-                  )}
-                  <VideoInstancesSwiper
-                    instances={videoInstances}
-                    activeIndex={activeSwiperIndex}
-                    onActiveIndexChange={setActiveSwiperIndex}
-                    activePlayingId={
-                      speakingLang && audioTrackMode ? `lang_${speakingLang}` : "primary"
-                    }
-                    videoId={videoId}
-                    renderPlayerContainer={(instance) => {
-                      if (instance.isPrimary) {
-                        return (
-                          <div className="relative h-full w-full">
-                            <div ref={playerEl} className="h-full w-full" />
-                            {showVideoSubtitles && (
-                              <div
-                                className="pointer-events-none absolute inset-x-3 top-3 text-center"
-                                aria-live="polite"
-                              >
-                                <p
-                                  id="active-subtitle-cue-text"
-                                  data-testid="active-subtitle-cue-text"
-                                  dir={speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"}
-                                  className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 text-base font-medium text-background shadow-lg md:text-lg"
-                                >
-                                  {speakingLang && speakingRow >= 0 ? (
-                                    <HighlightedSubtitle
-                                      text={rows[speakingRow]?.texts[speakingLang] ?? ""}
-                                      progress={
-                                        speechProgress?.row === speakingRow &&
-                                        speechProgress.lang === speakingLang
-                                          ? speechProgress
-                                          : null
-                                      }
-                                    />
-                                  ) : active >= 0 && rows[active] ? (
-                                    <span>
-                                      {baseLanguage && rows[active]?.texts[baseLanguage]
-                                        ? rows[active]?.texts[baseLanguage]
-                                        : Object.values(rows[active]?.texts || {})[0] || ""}
-                                    </span>
-                                  ) : (
-                                    <span className="text-xs opacity-75">Subtitles active</span>
-                                  )}
-                                </p>
-                              </div>
-                            )}
-                          </div>
+              className="flex items-center gap-2 max-w-2xl mx-auto rounded-xl border border-border bg-card p-2 shadow-sm"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const id = parseVideoId(videoInput);
+                if (id) {
+                  if (id !== videoId) {
+                    setTracks(null);
+                    setObservedUrl("");
+                    setDefaultCaptionsLoaded(false);
+                    setActive(-1);
+                    setSpeakingLang(null);
+                    setSpeakingRow(-1);
+                    setSpeechProgress(null);
+                    cancelSpeech();
+                    if (typeof window !== "undefined") {
+                      const currentSearch = new URLSearchParams(window.location.search);
+                      if (currentSearch.get("v") !== id) {
+                        currentSearch.set("v", id);
+                        window.history.pushState(
+                          { videoId: id },
+                          "",
+                          `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
                         );
                       }
-                      return (
-                        <div
-                          ref={(el) => {
-                            if (el) {
-                              secondaryPlayerHosts.current.set(instance.id, el);
+                    }
+                  }
+                  setVideoId(id);
+                } else {
+                  setCaptionStatus("Enter a valid YouTube link or video ID.");
+                }
+              }}
+            >
+              <input
+                id="youtube-url-input"
+                data-testid="youtube-url-input"
+                aria-label="YouTube video URL or ID"
+                value={videoInput}
+                onChange={(event) => setVideoInput(event.target.value)}
+                placeholder="Paste YouTube video link (e.g. https://www.youtube.com/watch?v=vBURridJXZ0)"
+                className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+              />
+              <Button
+                id="play-video-button"
+                data-testid="play-video-button"
+                type="submit"
+                size="sm"
+              >
+                Load video
+              </Button>
+            </form>
+          </div>
+
+          <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">
+            {panelOrder.map((panelId, panelIndex) => {
+              const panel = PANELS.find((candidate) => candidate.id === panelId);
+              if (!panel) return null;
+              if (panelId === "subtitles" && !hasLegitimateSubtitles) return null;
+              return (
+                <AccordionSection
+                  key={panelId}
+                  id={panelId}
+                  title={panel.title}
+                  videoId={videoId}
+                  open={openPanels[panelId]}
+                  onOpenChange={(open) =>
+                    setOpenPanels((current) => ({ ...current, [panelId]: open }))
+                  }
+                  onMoveUp={() => movePanel(panelId, -1)}
+                  onMoveDown={() => movePanel(panelId, 1)}
+                  canMoveUp={panelIndex > 0}
+                  canMoveDown={panelIndex < panelOrder.length - 1}
+                  wide={panelId === "subtitles"}
+                >
+                  {panelId === "player" && (
+                    <div>
+                      {isAndroid && (
+                        <form
+                          className="flex gap-2 p-3"
+                          onSubmit={(event) => {
+                            event.preventDefault();
+                            const id = parseVideoId(videoInput);
+                            if (id) {
+                              if (id !== videoId) {
+                                setTracks(null);
+                                setObservedUrl("");
+                                setDefaultCaptionsLoaded(false);
+                                setActive(-1);
+                                setSpeakingLang(null);
+                                setSpeakingRow(-1);
+                                setSpeechProgress(null);
+                                cancelSpeech();
+                                if (typeof window !== "undefined") {
+                                  const currentSearch = new URLSearchParams(window.location.search);
+                                  if (currentSearch.get("v") !== id) {
+                                    currentSearch.set("v", id);
+                                    window.history.pushState(
+                                      { videoId: id },
+                                      "",
+                                      `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
+                                    );
+                                  }
+                                }
+                              }
+                              setVideoId(id);
                             } else {
-                              secondaryPlayerHosts.current.delete(instance.id);
+                              setCaptionStatus("Enter a valid YouTube link or video ID.");
                             }
                           }}
-                          className="h-full w-full"
-                        />
-                      );
-                    }}
-                  />
-                  {isAndroid && (
-                    <p role="status" className="px-3 py-2 text-sm text-muted-foreground">
-                      {captionStatus}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {panelId === "playback" && (
-                <div className="space-y-3">
-                  {speakingLang ? (
-                    <p>
-                      {audioTrackMode ? "Repeating" : "Speaking"}{" "}
-                      <b>{LANGS.find((l) => l.code === speakingLang)?.name ?? speakingLang}</b>…
-                    </p>
-                  ) : (
-                    <p className="text-muted-foreground">
-                      Press play.{" "}
-                      {pauseMode
-                        ? audioTrackMode
-                          ? "The video pauses after each section and repeats it using native audio."
-                          : "The video pauses after each section and speaks it."
-                        : "Continuous playback."}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <label className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={pauseMode}
-                        onChange={(e) => setPauseMode(e.target.checked)}
-                      />{" "}
-                      Pause &amp; speak after each section
-                    </label>
-                    {playedRecordsCount > 0 && (
-                      <button
-                        type="button"
-                        data-testid="reset-played-subtitles-btn"
-                        onClick={() => {
-                          playedTtsRecords.current.clear();
-                          handledRow.current = -1;
-                          setPlayedRecordsCount(0);
+                        >
+                          <input
+                            aria-label="YouTube video URL or ID"
+                            value={videoInput}
+                            onChange={(event) => setVideoInput(event.target.value)}
+                            placeholder="YouTube link or video ID"
+                            className="min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1"
+                          />
+                          <Button type="submit">Load video</Button>
+                        </form>
+                      )}
+                      <VideoInstancesSwiper
+                        instances={videoInstances}
+                        activeIndex={activeSwiperIndex}
+                        onActiveIndexChange={setActiveSwiperIndex}
+                        activePlayingId={
+                          speakingLang && audioTrackMode ? `lang_${speakingLang}` : "primary"
+                        }
+                        videoId={videoId}
+                        renderPlayerContainer={(instance) => {
+                          if (instance.isPrimary) {
+                            return (
+                              <div className="relative h-full w-full">
+                                <div ref={playerEl} className="h-full w-full" />
+                                {showVideoSubtitles && (
+                                  <div
+                                    className="pointer-events-none absolute inset-x-3 top-3 text-center"
+                                    aria-live="polite"
+                                  >
+                                    <p
+                                      id="active-subtitle-cue-text"
+                                      data-testid="active-subtitle-cue-text"
+                                      dir={speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"}
+                                      className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 text-base font-medium text-background shadow-lg md:text-lg"
+                                    >
+                                      {speakingLang && speakingRow >= 0 ? (
+                                        <HighlightedSubtitle
+                                          text={rows[speakingRow]?.texts[speakingLang] ?? ""}
+                                          progress={
+                                            speechProgress?.row === speakingRow &&
+                                            speechProgress.lang === speakingLang
+                                              ? speechProgress
+                                              : null
+                                          }
+                                        />
+                                      ) : active >= 0 && rows[active] ? (
+                                        <span>
+                                          {baseLanguage && rows[active]?.texts[baseLanguage]
+                                            ? rows[active]?.texts[baseLanguage]
+                                            : Object.values(rows[active]?.texts || {})[0] || ""}
+                                        </span>
+                                      ) : (
+                                        <span className="text-xs opacity-75">Subtitles active</span>
+                                      )}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
+                          return (
+                            <div
+                              ref={(el) => {
+                                if (el) {
+                                  secondaryPlayerHosts.current.set(instance.id, el);
+                                } else {
+                                  secondaryPlayerHosts.current.delete(instance.id);
+                                }
+                              }}
+                              className="h-full w-full"
+                            />
+                          );
                         }}
-                        className="text-xs text-primary hover:underline font-medium"
-                        title="Reset history of spoken subtitle records so they can be spoken again"
-                      >
-                        Reset spoken history ({playedRecordsCount} spoken)
-                      </button>
-                    )}
-                  </div>
-                  <label className="flex flex-wrap items-center gap-2">
-                    <span>For each section, play first:</span>
-                    <select
-                      data-testid="section-order-select"
-                      value={sectionOrder}
-                      onChange={(e) => {
-                        const v = e.target.value as SectionOrder;
-                        setSectionOrderState(v);
-                        saveSectionOrder(v);
-                      }}
-                      className="rounded-md border border-input bg-background px-2 py-1"
-                    >
-                      <option value="video-first">Video, then speech</option>
-                      <option value="tts-first">Speech, then video</option>
-                    </select>
-                  </label>
-                  {isAndroid && (
-                    <>
+                      />
+                      {isAndroid && (
+                        <p role="status" className="px-3 py-2 text-sm text-muted-foreground">
+                          {captionStatus}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {panelId === "playback" && (
+                    <div className="space-y-3">
+                      {speakingLang ? (
+                        <p>
+                          {audioTrackMode ? "Repeating" : "Speaking"}{" "}
+                          <b>{LANGS.find((l) => l.code === speakingLang)?.name ?? speakingLang}</b>…
+                        </p>
+                      ) : (
+                        <p className="text-muted-foreground">
+                          Press play.{" "}
+                          {pauseMode
+                            ? audioTrackMode
+                              ? "The video pauses after each section and repeats it using native audio."
+                              : "The video pauses after each section and speaks it."
+                            : "Continuous playback."}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <label className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={pauseMode}
+                            onChange={(e) => setPauseMode(e.target.checked)}
+                          />{" "}
+                          Pause &amp; speak after each section
+                        </label>
+                        {playedRecordsCount > 0 && (
+                          <button
+                            type="button"
+                            data-testid="reset-played-subtitles-btn"
+                            onClick={() => {
+                              playedTtsRecords.current.clear();
+                              handledRow.current = -1;
+                              setPlayedRecordsCount(0);
+                            }}
+                            className="text-xs text-primary hover:underline font-medium"
+                            title="Reset history of spoken subtitle records so they can be spoken again"
+                          >
+                            Reset spoken history ({playedRecordsCount} spoken)
+                          </button>
+                        )}
+                      </div>
                       <label className="flex flex-wrap items-center gap-2">
-                        <span>Subtitle request (first try, other is fallback):</span>
+                        <span>For each section, play first:</span>
                         <select
-                          data-testid="subtitle-request-mode-select"
-                          value={requestMode}
+                          data-testid="section-order-select"
+                          value={sectionOrder}
                           onChange={(e) => {
-                            const v = e.target.value as SubtitleRequestMode;
-                            setRequestModeState(v);
-                            saveSubtitleRequestMode(v);
+                            const v = e.target.value as SectionOrder;
+                            setSectionOrderState(v);
+                            saveSectionOrder(v);
                           }}
                           className="rounded-md border border-input bg-background px-2 py-1"
                         >
-                          <option value="tlang">Add tlang=&lt;language&gt;</option>
-                          <option value="lang">Replace lang=&lt;language&gt;</option>
+                          <option value="video-first">Video, then speech</option>
+                          <option value="tts-first">Speech, then video</option>
                         </select>
                       </label>
-                      <AttemptOrderSettings
-                        order={attemptOrder}
-                        onChangeOrder={handleUpdateAttemptOrder}
-                        promoteSuccess={promoteSuccess}
-                        onTogglePromoteSuccess={handleTogglePromoteSuccess}
-                        useFetchServer={useFetchServer}
-                        onToggleUseFetchServer={handleToggleUseFetchServer}
-                        fetchServerUrl={fetchServerUrl}
-                        onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
-                        onSelectVideo={handleSelectLibraryVideo}
-                        strategyConfig={strategyConfig}
-                        onChangeStrategyConfig={(next) => {
-                          setStrategyConfigState(next);
-                          setSubtitleFetchWindowSeconds(next.windowSeconds);
-                          setFetchWindowSecondsState(next.windowSeconds);
-                          subtitleRequestQueue.setWindowSeconds(next.windowSeconds);
-                        }}
-                        windowSeconds={fetchWindowSeconds}
-                        onChangeWindowSeconds={(sec) => {
-                          setFetchWindowSecondsState(sec);
-                          setSubtitleFetchWindowSeconds(sec);
-                          subtitleRequestQueue.setWindowSeconds(sec);
-                        }}
-                      />
-                      <div className="pt-2 border-t border-border/60 space-y-2">
+                      {isAndroid && (
+                        <>
+                          <label className="flex flex-wrap items-center gap-2">
+                            <span>Subtitle request (first try, other is fallback):</span>
+                            <select
+                              data-testid="subtitle-request-mode-select"
+                              value={requestMode}
+                              onChange={(e) => {
+                                const v = e.target.value as SubtitleRequestMode;
+                                setRequestModeState(v);
+                                saveSubtitleRequestMode(v);
+                              }}
+                              className="rounded-md border border-input bg-background px-2 py-1"
+                            >
+                              <option value="tlang">Add tlang=&lt;language&gt;</option>
+                              <option value="lang">Replace lang=&lt;language&gt;</option>
+                            </select>
+                          </label>
+                          <AttemptOrderSettings
+                            order={attemptOrder}
+                            onChangeOrder={handleUpdateAttemptOrder}
+                            promoteSuccess={promoteSuccess}
+                            onTogglePromoteSuccess={handleTogglePromoteSuccess}
+                            useFetchServer={useFetchServer}
+                            onToggleUseFetchServer={handleToggleUseFetchServer}
+                            fetchServerUrl={fetchServerUrl}
+                            onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
+                            onSelectVideo={handleSelectLibraryVideo}
+                            strategyConfig={strategyConfig}
+                            onChangeStrategyConfig={(next) => {
+                              setStrategyConfigState(next);
+                              setSubtitleFetchWindowSeconds(next.windowSeconds);
+                              setFetchWindowSecondsState(next.windowSeconds);
+                              subtitleRequestQueue.setWindowSeconds(next.windowSeconds);
+                            }}
+                            windowSeconds={fetchWindowSeconds}
+                            onChangeWindowSeconds={(sec) => {
+                              setFetchWindowSecondsState(sec);
+                              setSubtitleFetchWindowSeconds(sec);
+                              subtitleRequestQueue.setWindowSeconds(sec);
+                            }}
+                          />
+                          <div className="pt-2 border-t border-border/60 space-y-2">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                data-testid="auto-retry-subtitles-toggle"
+                                type="checkbox"
+                                checked={autoRetrySubtitles}
+                                onChange={(e) => handleToggleAutoRetry(e.target.checked)}
+                                className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                              />
+                              <span className="font-medium text-xs text-foreground">
+                                Auto-retry unfetched favorite languages (safe paced jitter)
+                              </span>
+                            </label>
+                            <p className="text-[11px] text-muted-foreground ml-6">
+                              Automatically retries pending favorite subtitles with random spacing
+                              between X and Y seconds to prevent YouTube HTTP 429 rate limit blocks.
+                            </p>
+                            <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
+                              <div>
+                                <label
+                                  htmlFor="retry-pacing-min-input"
+                                  className="text-[11px] font-medium text-muted-foreground block mb-1"
+                                >
+                                  Min interval (X seconds):
+                                </label>
+                                <input
+                                  id="retry-pacing-min-input"
+                                  data-testid="retry-pacing-min-input"
+                                  type="number"
+                                  min={1}
+                                  max={retryPacingMaxSec}
+                                  value={retryPacingMinSec}
+                                  onChange={(e) =>
+                                    handleUpdatePacingMin(parseInt(e.target.value, 10) || 1)
+                                  }
+                                  className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  htmlFor="retry-pacing-max-input"
+                                  className="text-[11px] font-medium text-muted-foreground block mb-1"
+                                >
+                                  Max interval (Y seconds):
+                                </label>
+                                <input
+                                  id="retry-pacing-max-input"
+                                  data-testid="retry-pacing-max-input"
+                                  type="number"
+                                  min={retryPacingMinSec}
+                                  max={60}
+                                  value={retryPacingMaxSec}
+                                  onChange={(e) =>
+                                    handleUpdatePacingMax(
+                                      parseInt(e.target.value, 10) || retryPacingMinSec,
+                                    )
+                                  }
+                                  className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      <label className="flex items-center gap-2">
+                        <input
+                          id="audio-track-mode-toggle"
+                          type="checkbox"
+                          checked={audioTrackMode}
+                          onChange={(e) => onAudioTrackModeChange(e.target.checked)}
+                        />{" "}
+                        Audio-track mode (repeat segment with native video audio instead of
+                        synthesized TTS)
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          id="auto-scroll-toggle"
+                          type="checkbox"
+                          checked={autoFocus}
+                          onChange={(e) => onAutoFocusChange(e.target.checked)}
+                        />{" "}
+                        Auto-focus and scroll to current subtitle
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          id="debug-mode-toggle"
+                          data-testid="debug-mode-toggle"
+                          type="checkbox"
+                          checked={debugMode}
+                          onChange={(e) => onDebugModeChange(e.target.checked)}
+                        />{" "}
+                        Debug mode (show network traffic inspector and diagnostics)
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={showVideoSubtitles}
+                          onChange={(e) => setShowVideoSubtitles(e.target.checked)}
+                        />{" "}
+                        Show spoken subtitle over video
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          id="background-audio-toggle"
+                          data-testid="background-audio-toggle"
+                          type="checkbox"
+                          checked={backgroundAudioEnabled}
+                          onChange={(e) => handleToggleBackgroundAudio(e.target.checked)}
+                        />{" "}
+                        Background audio &amp; lockscreen playback controls
+                      </label>
+
+                      {/* Alternative TTS Service (Google Translate TTS) */}
+                      <div
+                        className="pt-2 border-t border-border/60 space-y-2"
+                        data-testid="alternative-tts-settings-card"
+                      >
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
-                            data-testid="auto-retry-subtitles-toggle"
+                            id="alternative-tts-toggle"
+                            data-testid="alternative-tts-toggle"
                             type="checkbox"
-                            checked={autoRetrySubtitles}
-                            onChange={(e) => handleToggleAutoRetry(e.target.checked)}
+                            checked={useAlternativeTtsState}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setUseAlternativeTtsState(checked);
+                              setUseAlternativeTts(checked);
+                            }}
                             className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                           />
                           <span className="font-medium text-xs text-foreground">
-                            Auto-retry unfetched favorite languages (safe paced jitter)
+                            Alternative TTS Service (Google Translate TTS)
+                          </span>
+                          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                            Off by default
                           </span>
                         </label>
                         <p className="text-[11px] text-muted-foreground ml-6">
-                          Automatically retries pending favorite subtitles with random spacing
-                          between X and Y seconds to prevent YouTube HTTP 429 rate limit blocks.
+                          Endpoint:{" "}
+                          <code className="bg-muted px-1 py-0.5 rounded text-[10px]">
+                            https://translate.google.com/translate_tts?ie=UTF-8&amp;client=gtx&amp;tl=en&amp;q=Hello%20world
+                          </code>
                         </p>
-                        <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
-                          <div>
-                            <label
-                              htmlFor="retry-pacing-min-input"
-                              className="text-[11px] font-medium text-muted-foreground block mb-1"
-                            >
-                              Min interval (X seconds):
-                            </label>
-                            <input
-                              id="retry-pacing-min-input"
-                              data-testid="retry-pacing-min-input"
-                              type="number"
-                              min={1}
-                              max={retryPacingMaxSec}
-                              value={retryPacingMinSec}
-                              onChange={(e) =>
-                                handleUpdatePacingMin(parseInt(e.target.value, 10) || 1)
-                              }
-                              className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
-                            />
-                          </div>
-                          <div>
-                            <label
-                              htmlFor="retry-pacing-max-input"
-                              className="text-[11px] font-medium text-muted-foreground block mb-1"
-                            >
-                              Max interval (Y seconds):
-                            </label>
-                            <input
-                              id="retry-pacing-max-input"
-                              data-testid="retry-pacing-max-input"
-                              type="number"
-                              min={retryPacingMinSec}
-                              max={60}
-                              value={retryPacingMaxSec}
-                              onChange={(e) =>
-                                handleUpdatePacingMax(
-                                  parseInt(e.target.value, 10) || retryPacingMinSec,
-                                )
-                              }
-                              className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                  <label className="flex items-center gap-2">
-                    <input
-                      id="audio-track-mode-toggle"
-                      type="checkbox"
-                      checked={audioTrackMode}
-                      onChange={(e) => onAudioTrackModeChange(e.target.checked)}
-                    />{" "}
-                    Audio-track mode (repeat segment with native video audio instead of synthesized
-                    TTS)
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      id="auto-scroll-toggle"
-                      type="checkbox"
-                      checked={autoFocus}
-                      onChange={(e) => onAutoFocusChange(e.target.checked)}
-                    />{" "}
-                    Auto-focus and scroll to current subtitle
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      id="debug-mode-toggle"
-                      data-testid="debug-mode-toggle"
-                      type="checkbox"
-                      checked={debugMode}
-                      onChange={(e) => onDebugModeChange(e.target.checked)}
-                    />{" "}
-                    Debug mode (show network traffic inspector and diagnostics)
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={showVideoSubtitles}
-                      onChange={(e) => setShowVideoSubtitles(e.target.checked)}
-                    />{" "}
-                    Show spoken subtitle over video
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      id="background-audio-toggle"
-                      data-testid="background-audio-toggle"
-                      type="checkbox"
-                      checked={backgroundAudioEnabled}
-                      onChange={(e) => handleToggleBackgroundAudio(e.target.checked)}
-                    />{" "}
-                    Background audio &amp; lockscreen playback controls
-                  </label>
-
-                  {/* Alternative TTS Service (Google Translate TTS) */}
-                  <div
-                    className="pt-2 border-t border-border/60 space-y-2"
-                    data-testid="alternative-tts-settings-card"
-                  >
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        id="alternative-tts-toggle"
-                        data-testid="alternative-tts-toggle"
-                        type="checkbox"
-                        checked={useAlternativeTtsState}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setUseAlternativeTtsState(checked);
-                          setUseAlternativeTts(checked);
-                        }}
-                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                      />
-                      <span className="font-medium text-xs text-foreground">
-                        Alternative TTS Service (Google Translate TTS)
-                      </span>
-                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                        Off by default
-                      </span>
-                    </label>
-                    <p className="text-[11px] text-muted-foreground ml-6">
-                      Endpoint:{" "}
-                      <code className="bg-muted px-1 py-0.5 rounded text-[10px]">
-                        https://translate.google.com/translate_tts?ie=UTF-8&amp;client=gtx&amp;tl=en&amp;q=Hello%20world
-                      </code>
-                    </p>
-                    {useAlternativeTtsState && (
-                      <div className="ml-6 space-y-2 pt-1">
-                        <div className="flex flex-wrap items-center gap-4">
-                          <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                            <input
-                              type="radio"
-                              name="alternative-tts-mode"
-                              data-testid="alternative-tts-mode-fallback"
-                              value="fallback_only"
-                              checked={alternativeTtsModeState === "fallback_only"}
-                              onChange={() => {
-                                setAlternativeTtsModeState("fallback_only");
-                                setAlternativeTtsMode("fallback_only");
-                              }}
-                            />
-                            Use as fallback when Web Speech fails / errors
-                          </label>
-                          <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                            <input
-                              type="radio"
-                              name="alternative-tts-mode"
-                              data-testid="alternative-tts-mode-always"
-                              value="always"
-                              checked={alternativeTtsModeState === "always"}
-                              onChange={() => {
-                                setAlternativeTtsModeState("always");
-                                setAlternativeTtsMode("always");
-                              }}
-                            />
-                            Use as alternative primary TTS engine
-                          </label>
-                        </div>
-                        <button
-                          type="button"
-                          data-testid="test-alternative-tts-btn"
-                          onClick={() => {
-                            void playAlternativeTtsAudio("Hello world", "en", 0.5);
-                          }}
-                          className="px-2 py-0.5 rounded border border-input bg-background hover:bg-muted text-xs font-mono"
-                        >
-                          ▶ Test Alternative TTS ("Hello world")
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Favorite Languages (Settings & localStorage) and Video-Specific Selection */}
-                  <div
-                    className="pt-2 border-t border-border/60 space-y-2.5"
-                    data-testid="settings-favorites-languages-card"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <span className="font-semibold text-xs text-foreground flex items-center gap-1">
-                          <span>⭐ Favorite Languages (Settings &amp; localStorage)</span>
-                        </span>
-                        <p className="text-[11px] text-muted-foreground">
-                          Saved in localStorage. Applied automatically as default target languages
-                          for every new video.
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          data-testid="settings-reset-video-to-favorites-btn"
-                          onClick={handleResetVideoToFavorites}
-                          className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-xs font-medium"
-                        >
-                          Apply Favorites to Active Video
-                        </button>
-                        <button
-                          type="button"
-                          data-testid="settings-save-current-as-favorites-btn"
-                          onClick={handleSaveCurrentAsFavorites}
-                          className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-xs font-medium"
-                        >
-                          Save Active Selection as Favorites
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="rounded-md border border-border bg-background/50 p-2 space-y-2">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[11px] font-medium text-muted-foreground mr-1">
-                          Global Favorites:
-                        </span>
-                        {favoriteLanguages.length === 0 ? (
-                          <span className="text-[11px] text-muted-foreground italic">
-                            No favorites selected yet
-                          </span>
-                        ) : (
-                          favoriteLanguages.map((code) => {
-                            const langMeta = SUPPORTED_LANGUAGES_CATALOG.find(
-                              (c) => c.code === code,
-                            ) || { code, name: code };
-                            return (
-                              <span
-                                key={code}
-                                data-testid={`settings-fav-chip-${code}`}
-                                className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium"
-                              >
-                                <span>{langMeta.name}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const nextFavs = favoriteLanguages.filter((c) => c !== code);
-                                    handleUpdateFavoriteLanguages(nextFavs);
+                        {useAlternativeTtsState && (
+                          <div className="ml-6 space-y-2 pt-1">
+                            <div className="flex flex-wrap items-center gap-4">
+                              <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="alternative-tts-mode"
+                                  data-testid="alternative-tts-mode-fallback"
+                                  value="fallback_only"
+                                  checked={alternativeTtsModeState === "fallback_only"}
+                                  onChange={() => {
+                                    setAlternativeTtsModeState("fallback_only");
+                                    setAlternativeTtsMode("fallback_only");
                                   }}
-                                  className="hover:text-destructive transition ml-0.5 text-xs"
-                                  title={`Remove ${langMeta.name} from favorites`}
-                                  aria-label={`Remove ${langMeta.name} from favorites`}
-                                >
-                                  ×
-                                </button>
-                              </span>
-                            );
-                          })
+                                />
+                                Use as fallback when Web Speech fails / errors
+                              </label>
+                              <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="alternative-tts-mode"
+                                  data-testid="alternative-tts-mode-always"
+                                  value="always"
+                                  checked={alternativeTtsModeState === "always"}
+                                  onChange={() => {
+                                    setAlternativeTtsModeState("always");
+                                    setAlternativeTtsMode("always");
+                                  }}
+                                />
+                                Use as alternative primary TTS engine
+                              </label>
+                            </div>
+                            <button
+                              type="button"
+                              data-testid="test-alternative-tts-btn"
+                              onClick={() => {
+                                void playAlternativeTtsAudio("Hello world", "en", 0.5);
+                              }}
+                              className="px-2 py-0.5 rounded border border-input bg-background hover:bg-muted text-xs font-mono"
+                            >
+                              ▶ Test Alternative TTS ("Hello world")
+                            </button>
+                          </div>
                         )}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/40 text-xs">
-                        <label
-                          htmlFor="add-favorite-language-select"
-                          className="text-muted-foreground"
-                        >
-                          Add favorite language:
-                        </label>
-                        <select
-                          id="add-favorite-language-select"
-                          data-testid="add-favorite-language-select"
-                          value=""
-                          onChange={(e) => {
-                            const code = e.target.value;
-                            if (code && !favoriteLanguages.includes(code)) {
-                              const nextFavs = [...favoriteLanguages, code];
-                              handleUpdateFavoriteLanguages(nextFavs);
-                            }
-                          }}
-                          className="rounded border border-input bg-background px-2 py-0.5 text-xs"
-                        >
-                          <option value="">Choose a language to add to favorites…</option>
-                          {SUPPORTED_LANGUAGES_CATALOG.filter(
-                            (c) => !favoriteLanguages.includes(c.code),
-                          ).map((c) => (
-                            <option key={c.code} value={c.code}>
-                              {c.name} ({c.code})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="pt-1.5 border-t border-border/40 text-[11px] space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-foreground">
-                            Enabled for this Video:
-                          </span>
-                          <span className="font-mono text-primary font-semibold">
-                            {targetLanguages.join(", ") || "None"}
-                          </span>
-                        </div>
-                        <p className="text-muted-foreground">
-                          Video-specific customizations are saved per video ID (
-                          {videoId || "active video"}) and remembered when reloaded.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {panelId === "library" && (
-                <VideoLibraryPanel
-                  currentVideoId={videoId}
-                  onSelectVideo={handleSelectLibraryVideo}
-                  onClearVideoCache={(clearedId) => {
-                    if (clearedId === videoId) {
-                      setTracks(null);
-                      setObservedUrl("");
-                      subtitleRequestQueue.resetVideo(clearedId);
-                    }
-                  }}
-                  onFetchFromScratch={(scratchId, scratchUrl) => {
-                    clearVideoSubtitleCache(scratchId);
-                    subtitleRequestQueue.resetVideo(scratchId);
-                    if (scratchId === videoId) {
-                      setTracks(null);
-                      setObservedUrl("");
-                      if (isAndroid) {
-                        void fetchFavoriteLanguageSubtitles(targetLanguages);
-                      }
-                    } else {
-                      handleSelectLibraryVideo(scratchId, scratchUrl);
-                    }
-                  }}
-                />
-              )}
-
-              {panelId === "parser" && (
-                <div className="space-y-4">
-                  {/* Interactive Timing & Punctuation Splitting Lab */}
-                  <ParserTimingLab
-                    tracks={tracks}
-                    baseLanguage={baseLanguage}
-                    selectedCriteria={selectedCriteria}
-                    criteriaSettings={criteriaSettings}
-                    onApplyCriteria={handleApplyPreset}
-                    onUpdateGroupSettings={handleUpdateGroupSettings}
-                  />
-
-                  {/* Presets Header */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                        Alignment Presets
-                      </span>
-                      <span className="text-xs text-muted-foreground">Quick combinations</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {PARSER_PRESETS.map((preset) => {
-                        const isPresetActive =
-                          preset.criteria.length === selectedCriteria.length &&
-                          preset.criteria.every((c) => selectedCriteria.includes(c));
-                        return (
-                          <Button
-                            key={preset.id}
-                            type="button"
-                            size="sm"
-                            variant={isPresetActive ? "default" : "outline"}
-                            className="h-7 text-xs px-2.5"
-                            onClick={() => handleApplyPreset(preset.criteria)}
-                            title={preset.desc}
-                          >
-                            {preset.name}
-                          </Button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Accumulative Criteria Section */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                        Accumulative Division Criteria (Multi-Select)
-                      </label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-primary">
-                          {selectedCriteria.length} criteria active
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground"
-                          onClick={handleResetGroupSettings}
-                          title="Reset all criteria inner settings to default"
-                        >
-                          <RotateCcw className="h-3 w-3 mr-1" />
-                          Reset settings
-                        </Button>
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Select multiple criteria accumulatively to divide subtitles into separated,
-                      translatable sections of related sentences and cohesive context. Click
-                      settings to tune inner parameters for each group.
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {PARSER_CRITERIA.map((crit) => {
-                        const isChecked = selectedCriteria.includes(crit.id);
-                        const isExpanded = expandedSettingsGroup === crit.id;
-                        return (
-                          <div
-                            key={crit.id}
-                            className={`rounded-lg border transition-all ${
-                              isChecked
-                                ? "border-primary/60 bg-primary/5 text-foreground shadow-xs"
-                                : "border-border/70 hover:border-border hover:bg-muted/40 text-muted-foreground"
-                            }`}
-                          >
-                            <div
-                              onClick={() => handleToggleCriterion(crit.id)}
-                              className="p-2.5 cursor-pointer flex items-start gap-2.5"
+                      {/* Favorite Languages (Settings & localStorage) and Video-Specific Selection */}
+                      <div
+                        className="pt-2 border-t border-border/60 space-y-2.5"
+                        data-testid="settings-favorites-languages-card"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <span className="font-semibold text-xs text-foreground flex items-center gap-1">
+                              <span>⭐ Favorite Languages (Settings &amp; localStorage)</span>
+                            </span>
+                            <p className="text-[11px] text-muted-foreground">
+                              Saved in localStorage. Applied automatically as default target
+                              languages for every new video.
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              data-testid="settings-reset-video-to-favorites-btn"
+                              onClick={handleResetVideoToFavorites}
+                              className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-xs font-medium"
                             >
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={() => handleToggleCriterion(crit.id)}
-                                onClick={(e) => e.stopPropagation()}
-                                className="mt-0.5 rounded border-muted-foreground/40 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-1 flex-wrap">
-                                  <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span
-                                      className={`text-xs font-semibold ${isChecked ? "text-foreground" : "text-foreground/80"}`}
-                                    >
-                                      {crit.name}
-                                    </span>
-                                    <Badge
-                                      variant={isChecked ? "default" : "outline"}
-                                      className="text-[10px] h-4 px-1.5 py-0 font-normal"
-                                    >
-                                      {crit.badge}
-                                    </Badge>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setExpandedSettingsGroup(isExpanded ? null : crit.id);
-                                    }}
-                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] transition-colors ${
-                                      isExpanded
-                                        ? "bg-primary text-primary-foreground font-medium"
-                                        : "bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground"
-                                    }`}
-                                    title="Toggle inner settings for this criteria group"
-                                  >
-                                    <SlidersHorizontal className="h-3 w-3" />
-                                    <span>Settings</span>
-                                    {isExpanded ? (
-                                      <ChevronUp className="h-3 w-3" />
-                                    ) : (
-                                      <ChevronDown className="h-3 w-3" />
-                                    )}
-                                  </button>
-                                </div>
-                                <p className="text-[11px] leading-tight text-muted-foreground mt-1">
-                                  {crit.desc}
-                                </p>
-                              </div>
-                            </div>
+                              Apply Favorites to Active Video
+                            </button>
+                            <button
+                              type="button"
+                              data-testid="settings-save-current-as-favorites-btn"
+                              onClick={handleSaveCurrentAsFavorites}
+                              className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-xs font-medium"
+                            >
+                              Save Active Selection as Favorites
+                            </button>
+                          </div>
+                        </div>
 
-                            {/* Inner Settings Panel for this Group */}
-                            {isExpanded && (
-                              <div
-                                onClick={(e) => e.stopPropagation()}
-                                className="px-3 pb-3 pt-2 border-t border-border/60 bg-background/90 rounded-b-lg space-y-2.5 text-xs text-foreground"
-                              >
-                                <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
-                                  <span className="font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
-                                    {crit.name} Inner Settings
+                        <div className="rounded-md border border-border bg-background/50 p-2 space-y-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-[11px] font-medium text-muted-foreground mr-1">
+                              Global Favorites:
+                            </span>
+                            {favoriteLanguages.length === 0 ? (
+                              <span className="text-[11px] text-muted-foreground italic">
+                                No favorites selected yet
+                              </span>
+                            ) : (
+                              favoriteLanguages.map((code) => {
+                                const langMeta = SUPPORTED_LANGUAGES_CATALOG.find(
+                                  (c) => c.code === code,
+                                ) || { code, name: code };
+                                return (
+                                  <span
+                                    key={code}
+                                    data-testid={`settings-fav-chip-${code}`}
+                                    className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium"
+                                  >
+                                    <span>{langMeta.name}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const nextFavs = favoriteLanguages.filter(
+                                          (c) => c !== code,
+                                        );
+                                        handleUpdateFavoriteLanguages(nextFavs);
+                                      }}
+                                      className="hover:text-destructive transition ml-0.5 text-xs"
+                                      title={`Remove ${langMeta.name} from favorites`}
+                                      aria-label={`Remove ${langMeta.name} from favorites`}
+                                    >
+                                      ×
+                                    </button>
                                   </span>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleUpdateGroupSettings(
-                                        crit.id,
-                                        DEFAULT_CRITERIA_SETTINGS[crit.id] as never,
-                                      )
-                                    }
-                                    className="text-[10px] text-muted-foreground hover:text-foreground underline"
-                                  >
-                                    Reset this group
-                                  </button>
-                                </div>
-
-                                {crit.id === "sentence" && (
-                                  <div className="space-y-2">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                      <input
-                                        type="checkbox"
-                                        checked={criteriaSettings.sentence.includeCommas}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("sentence", {
-                                            includeCommas: e.target.checked,
-                                          })
-                                        }
-                                        className="rounded border-border text-primary h-3.5 w-3.5"
-                                      />
-                                      <span className="text-[11px]">
-                                        Split on secondary clauses (commas, semicolons, colons)
-                                      </span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                      <input
-                                        type="checkbox"
-                                        checked={criteriaSettings.sentence.splitIntraCue}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("sentence", {
-                                            splitIntraCue: e.target.checked,
-                                          })
-                                        }
-                                        className="rounded border-border text-primary h-3.5 w-3.5"
-                                      />
-                                      <span className="text-[11px]">
-                                        Split inside word-timed cues (intra-cue segments)
-                                      </span>
-                                    </label>
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="text-[11px] text-muted-foreground">
-                                        Minimum words per sentence:
-                                      </span>
-                                      <input
-                                        type="number"
-                                        min={1}
-                                        max={10}
-                                        value={criteriaSettings.sentence.minWords}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("sentence", {
-                                            minWords: Math.max(1, parseInt(e.target.value) || 1),
-                                          })
-                                        }
-                                        className="h-6 w-14 rounded border border-input bg-background px-1.5 text-xs text-right"
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {crit.id === "pause" && (
-                                  <div className="space-y-2">
-                                    <div>
-                                      <div className="flex justify-between text-[11px] mb-1">
-                                        <span className="text-muted-foreground">
-                                          Silence gap threshold:
-                                        </span>
-                                        <span className="font-semibold text-primary">
-                                          {criteriaSettings.pause.minPauseMs} ms
-                                        </span>
-                                      </div>
-                                      <input
-                                        type="range"
-                                        min={200}
-                                        max={1500}
-                                        step={50}
-                                        value={criteriaSettings.pause.minPauseMs}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("pause", {
-                                            minPauseMs: parseInt(e.target.value),
-                                          })
-                                        }
-                                        className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                                      />
-                                    </div>
-                                    <div>
-                                      <div className="flex justify-between text-[11px] mb-1">
-                                        <span className="text-muted-foreground">
-                                          Cue snap proximity:
-                                        </span>
-                                        <span className="font-semibold text-primary">
-                                          {criteriaSettings.pause.snapToleranceMs} ms
-                                        </span>
-                                      </div>
-                                      <input
-                                        type="range"
-                                        min={400}
-                                        max={2000}
-                                        step={100}
-                                        value={criteriaSettings.pause.snapToleranceMs}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("pause", {
-                                            snapToleranceMs: parseInt(e.target.value),
-                                          })
-                                        }
-                                        className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {crit.id === "punctVote" && (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="text-[11px] text-muted-foreground">
-                                        Minimum agreeing tracks:
-                                      </span>
-                                      <select
-                                        value={criteriaSettings.punctVote.minTrackVotes}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("punctVote", {
-                                            minTrackVotes: parseInt(e.target.value),
-                                          })
-                                        }
-                                        className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-                                      >
-                                        <option value={1}>1 track (any mark)</option>
-                                        <option value={2}>2 tracks (agreement)</option>
-                                        <option value={3}>3 tracks (consensus)</option>
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <div className="flex justify-between text-[11px] mb-1">
-                                        <span className="text-muted-foreground">
-                                          Cluster proximity window:
-                                        </span>
-                                        <span className="font-semibold text-primary">
-                                          {criteriaSettings.punctVote.clusterToleranceMs} ms
-                                        </span>
-                                      </div>
-                                      <input
-                                        type="range"
-                                        min={200}
-                                        max={1200}
-                                        step={50}
-                                        value={criteriaSettings.punctVote.clusterToleranceMs}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("punctVote", {
-                                            clusterToleranceMs: parseInt(e.target.value),
-                                          })
-                                        }
-                                        className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {crit.id === "consensus" && (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <span className="text-[11px] text-muted-foreground">
-                                        Required track alignment:
-                                      </span>
-                                      <select
-                                        value={criteriaSettings.consensus.majorityRatio}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("consensus", {
-                                            majorityRatio: parseFloat(e.target.value),
-                                          })
-                                        }
-                                        className="h-6 rounded border border-input bg-background px-1.5 text-xs"
-                                      >
-                                        <option value={0.33}>33% (any 2+ tracks)</option>
-                                        <option value={0.5}>50% (majority)</option>
-                                        <option value={0.66}>66% (supermajority)</option>
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <div className="flex justify-between text-[11px] mb-1">
-                                        <span className="text-muted-foreground">
-                                          Proximity window:
-                                        </span>
-                                        <span className="font-semibold text-primary">
-                                          {criteriaSettings.consensus.clusterToleranceMs} ms
-                                        </span>
-                                      </div>
-                                      <input
-                                        type="range"
-                                        min={200}
-                                        max={800}
-                                        step={50}
-                                        value={criteriaSettings.consensus.clusterToleranceMs}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("consensus", {
-                                            clusterToleranceMs: parseInt(e.target.value),
-                                          })
-                                        }
-                                        className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {crit.id === "cue" && (
-                                  <div className="space-y-2">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                      <input
-                                        type="checkbox"
-                                        checked={criteriaSettings.cue.splitAllTracks}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("cue", {
-                                            splitAllTracks: e.target.checked,
-                                          })
-                                        }
-                                        className="rounded border-border text-primary h-3.5 w-3.5"
-                                      />
-                                      <span className="text-[11px]">
-                                        Split on cue starts from all parallel tracks
-                                      </span>
-                                    </label>
-                                  </div>
-                                )}
-
-                                {crit.id === "anchors" && (
-                                  <div className="space-y-1.5">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                      <input
-                                        type="checkbox"
-                                        checked={criteriaSettings.anchors.matchNumbers}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("anchors", {
-                                            matchNumbers: e.target.checked,
-                                          })
-                                        }
-                                        className="rounded border-border text-primary h-3.5 w-3.5"
-                                      />
-                                      <span className="text-[11px]">Match numbers and digits</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                      <input
-                                        type="checkbox"
-                                        checked={criteriaSettings.anchors.matchProperNouns}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("anchors", {
-                                            matchProperNouns: e.target.checked,
-                                          })
-                                        }
-                                        className="rounded border-border text-primary h-3.5 w-3.5"
-                                      />
-                                      <span className="text-[11px]">
-                                        Match capitalized proper nouns
-                                      </span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                      <input
-                                        type="checkbox"
-                                        checked={criteriaSettings.anchors.requireStrictMultiTrack}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("anchors", {
-                                            requireStrictMultiTrack: e.target.checked,
-                                          })
-                                        }
-                                        className="rounded border-border text-primary h-3.5 w-3.5"
-                                      />
-                                      <span className="text-[11px]">
-                                        Strict: require anchor in all tracks
-                                      </span>
-                                    </label>
-                                  </div>
-                                )}
-
-                                {crit.id === "window" && (
-                                  <div className="space-y-2">
-                                    <div>
-                                      <div className="flex justify-between text-[11px] mb-1">
-                                        <span className="text-muted-foreground">
-                                          Minimum section length:
-                                        </span>
-                                        <span className="font-semibold text-primary">
-                                          {(criteriaSettings.window.minSectionMs / 1000).toFixed(1)}
-                                          s
-                                        </span>
-                                      </div>
-                                      <input
-                                        type="range"
-                                        min={800}
-                                        max={4000}
-                                        step={200}
-                                        value={criteriaSettings.window.minSectionMs}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("window", {
-                                            minSectionMs: parseInt(e.target.value),
-                                          })
-                                        }
-                                        className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                                      />
-                                    </div>
-                                    <div>
-                                      <div className="flex justify-between text-[11px] mb-1">
-                                        <span className="text-muted-foreground">
-                                          Maximum section length:
-                                        </span>
-                                        <span className="font-semibold text-primary">
-                                          {(criteriaSettings.window.maxSectionMs / 1000).toFixed(0)}
-                                          s
-                                        </span>
-                                      </div>
-                                      <input
-                                        type="range"
-                                        min={6000}
-                                        max={24000}
-                                        step={1000}
-                                        value={criteriaSettings.window.maxSectionMs}
-                                        onChange={(e) =>
-                                          handleUpdateGroupSettings("window", {
-                                            maxSectionMs: parseInt(e.target.value),
-                                          })
-                                        }
-                                        className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
+                                );
+                              })
                             )}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </div>
 
-                  {/* Status & Summary */}
-                  <div className="pt-2 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
-                    <div>
-                      Sections:{" "}
-                      <span className="font-semibold text-foreground">
-                        {rows.length} translatable sections
-                      </span>{" "}
-                      · Timing base:{" "}
-                      <span className="font-semibold text-foreground">
-                        {baseLanguage
-                          ? getLanguageMeta(baseLanguage).name
-                          : "None (waiting for captions)"}
-                      </span>
-                    </div>
-                    <div className="text-[11px] text-muted-foreground/80">
-                      Cuts accumulate at sentence marks, breath pauses & alignment consensus
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {panelId === "languages" && (
-                <>
-                  <div className="mb-4 space-y-3 border-b border-border pb-4">
-                    {/* Enabled Languages Status Card */}
-                    <div
-                      data-testid="enabled-languages-status-card"
-                      className="rounded-lg border border-border/80 bg-muted/20 p-2.5 text-xs space-y-2"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="font-semibold text-foreground flex items-center gap-1.5">
-                          <span>🎬 Enabled for this Video:</span>
-                          <span className="font-mono text-primary font-bold">
-                            {targetLanguages.length}{" "}
-                            {targetLanguages.length === 1 ? "language" : "languages"}
-                          </span>
-                          <span className="text-[11px] text-muted-foreground font-normal">
-                            ({targetLanguages.filter((l) => favoriteLanguages.includes(l)).length}{" "}
-                            from favorites)
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            data-testid="reset-video-to-favorites-btn"
-                            onClick={handleResetVideoToFavorites}
-                            className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium"
-                            title="Reset this video to your global favorite languages"
-                          >
-                            ↺ Reset to Favorites
-                          </button>
-                          <button
-                            type="button"
-                            data-testid="save-current-as-favorites-btn"
-                            onClick={handleSaveCurrentAsFavorites}
-                            className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-[11px] font-medium"
-                            title="Save this video's current languages as your global favorites"
-                          >
-                            ★ Save as Favorites
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1.5 items-center">
-                        <span className="text-muted-foreground text-[11px] mr-1">
-                          Current selection:
-                        </span>
-                        {targetLanguages.length === 0 ? (
-                          <span className="text-muted-foreground italic text-[11px]">
-                            None selected
-                          </span>
-                        ) : (
-                          targetLanguages.map((code) => {
-                            const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
-                              (c) => c.code === code,
-                            ) || {
-                              code,
-                              name: code,
-                            };
-                            const isFav = favoriteLanguages.includes(code);
-                            return (
-                              <span
-                                key={code}
-                                data-testid={`enabled-lang-badge-${code}`}
-                                className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium border ${
-                                  isFav
-                                    ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                                    : "border-border bg-background text-foreground"
-                                }`}
-                              >
-                                <span>{langMeta.name}</span>
-                                {isFav && <span title="Favorite language">⭐</span>}
-                              </span>
-                            );
-                          })
-                        )}
-                      </div>
-
-                      <div className="flex flex-wrap gap-1.5 items-center border-t border-border/50 pt-1.5">
-                        <span className="text-muted-foreground text-[11px] mr-1">
-                          ⭐ Global favorites:
-                        </span>
-                        {favoriteLanguages.length === 0 ? (
-                          <span className="text-muted-foreground italic text-[11px]">
-                            No favorites configured in settings
-                          </span>
-                        ) : (
-                          favoriteLanguages.map((code) => {
-                            const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
-                              (c) => c.code === code,
-                            ) || {
-                              code,
-                              name: code,
-                            };
-                            const isCurrent = targetLanguages.includes(code);
-                            return (
-                              <span
-                                key={code}
-                                data-testid={`favorite-lang-badge-${code}`}
-                                className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border ${
-                                  isCurrent
-                                    ? "border-primary/40 bg-primary/10 text-primary"
-                                    : "border-muted bg-muted/40 text-muted-foreground line-through opacity-70"
-                                }`}
-                                title={
-                                  isCurrent
-                                    ? "Enabled for this video"
-                                    : "Not enabled for this video"
-                                }
-                              >
-                                <span>{langMeta.name}</span>
-                              </span>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-
-                    <LanguageBoxesSelector
-                      catalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
-                      selectedLanguages={targetLanguages}
-                      onSelectionChange={handleTargetLanguagesChange}
-                      isAndroid={isAndroid}
-                      favoriteLanguages={favoriteLanguages}
-                    />
-                    {(() => {
-                      const pendingFetchAgainLangs =
-                        activeFailedToFetch.length > 0
-                          ? activeFailedToFetch
-                          : failedLangs.length > 0
-                            ? languagesToFetchNext
-                            : [];
-                      if (pendingFetchAgainLangs.length === 0) return null;
-                      return (
-                        <div className="flex items-center justify-between p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-xs">
-                          <span className="text-destructive font-medium">
-                            Failed to fetch subtitles: {pendingFetchAgainLangs.join(", ")}
-                          </span>
-                          <button
-                            type="button"
-                            data-testid="subtitles-manual-fetch"
-                            onClick={manualFetchFailed}
-                            className="inline-flex items-center gap-1 rounded bg-destructive/20 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/30"
-                          >
-                            <RefreshCw className="h-3 w-3" />
-                            Fetch again ({pendingFetchAgainLangs.join(", ")})
-                          </button>
-                        </div>
-                      );
-                    })()}
-                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
-                      <div className="space-y-0.5">
-                        <label
-                          htmlFor="auto-speak-on-fetch-toggle"
-                          className="text-xs font-medium text-foreground cursor-pointer"
-                        >
-                          Auto speak language upon fetching
-                        </label>
-                        <div className="text-[11px] text-muted-foreground">
-                          Automatically enable the "Speak" checkbox for languages when their
-                          subtitles are loaded
-                        </div>
-                      </div>
-                      <input
-                        type="checkbox"
-                        id="auto-speak-on-fetch-toggle"
-                        data-testid="auto-speak-on-fetch-toggle"
-                        checked={autoSpeakOnFetch}
-                        onChange={(e) => {
-                          setAutoSpeakOnFetch(e.target.checked);
-                          setAutoSpeakOnFetchSetting(e.target.checked);
-                        }}
-                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
-                      <div className="space-y-0.5">
-                        <label
-                          htmlFor="speak-language-name-on-fetch-toggle"
-                          className="text-xs font-medium text-foreground cursor-pointer"
-                        >
-                          TTS-play language name upon fetching
-                        </label>
-                        <div className="text-[11px] text-muted-foreground">
-                          When a new subtitle is fetched, speak aloud the name of the language used
-                          to fetch
-                        </div>
-                      </div>
-                      <input
-                        type="checkbox"
-                        id="speak-language-name-on-fetch-toggle"
-                        data-testid="speak-language-name-on-fetch-toggle"
-                        checked={speakLanguageNameOnFetch}
-                        onChange={(e) => {
-                          setSpeakLanguageNameOnFetchState(e.target.checked);
-                          setSpeakLanguageNameOnFetchSetting(e.target.checked);
-                        }}
-                        className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
-                      <div className="space-y-0.5">
-                        <label
-                          htmlFor="fetch-window-seconds-input"
-                          className="text-xs font-medium text-foreground"
-                        >
-                          Subtitle fetch window pacing
-                        </label>
-                        <div className="text-[11px] text-muted-foreground">
-                          Never try to fetch more than 1 subtitle within this window frame (seconds)
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          id="fetch-window-seconds-input"
-                          data-testid="fetch-window-seconds-input"
-                          min={1}
-                          max={60}
-                          value={fetchWindowSeconds}
-                          onChange={(e) => {
-                            const val = Math.max(1, parseInt(e.target.value, 10) || 1);
-                            setFetchWindowSecondsState(val);
-                            setSubtitleFetchWindowSeconds(val);
-                            subtitleRequestQueue.setWindowSeconds(val);
-                          }}
-                          className="w-16 rounded border border-input bg-background px-2 py-1 text-xs text-right"
-                        />
-                        <span className="text-xs text-muted-foreground">sec</span>
-                      </div>
-                    </div>
-                  </div>
-                  <table className="w-full">
-                    <thead>
-                      <tr className="text-xs text-muted-foreground">
-                        <th className="text-left font-normal">Language</th>
-                        <th
-                          className="font-normal text-center"
-                          title="Present in table (show subtitle column in table)"
-                        >
-                          Present in Table
-                        </th>
-                        <th
-                          className="font-normal text-center"
-                          title="TTS-play (speak subtitle during playback)"
-                        >
-                          TTS-Play
-                        </th>
-                        <th
-                          className="font-normal text-center"
-                          title="Foreign subtitle TTS play frequency ratio"
-                        >
-                          TTS Ratio
-                        </th>
-                        <th className="font-normal text-center">Order</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orderedLangs.map((l, index) => {
-                        const isSpoken = spoken.includes(l.code);
-                        const ratio = ttsRatios[l.code] ?? 1;
-                        const isFavorite = favoriteLanguages.includes(l.code);
-                        return (
-                          <tr key={l.code} data-testid={`language-row-${l.code}`}>
-                            <td className="py-1">
-                              <span className="flex items-center gap-1">
-                                <span>{l.name}</span>
-                                {isFavorite && (
-                                  <span
-                                    title="Favorite language"
-                                    className="text-[10px] text-amber-500 font-bold"
-                                    data-testid={`fav-table-star-${l.code}`}
-                                  >
-                                    ⭐
-                                  </span>
-                                )}
-                              </span>
-                            </td>
-                            <td className="text-center">
-                              <input
-                                type="checkbox"
-                                data-testid={`checkbox-present-in-table-${l.code}`}
-                                aria-label={`Present in table: ${l.name}`}
-                                title={`Present in table: ${l.name}`}
-                                checked={shown.includes(l.code)}
-                                onChange={() => toggle(shown, setShown, l.code)}
-                              />
-                            </td>
-                            <td className="text-center">
-                              <input
-                                type="checkbox"
-                                data-testid={`checkbox-tts-play-${l.code}`}
-                                aria-label={`TTS-play: ${l.name}`}
-                                title={`TTS-play: ${l.name}`}
-                                checked={isSpoken}
-                                onChange={() => toggle(spoken, setSpoken, l.code)}
-                              />
-                            </td>
-                            <td className="text-center">
-                              {isSpoken ? (
-                                <span
-                                  data-testid={`tts-ratio-badge-${l.code}`}
-                                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-primary/10 text-primary border border-primary/20"
-                                  title={`1:${ratio} ratio (${ratio === 1 ? "All sentences" : `${Math.round(100 / ratio)}% of sentences`})`}
-                                >
-                                  1:{ratio}
-                                </span>
-                              ) : (
-                                <span className="text-[11px] text-muted-foreground">—</span>
-                              )}
-                            </td>
-                            <td>
-                              <div className="flex justify-center gap-1">
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  disabled={index === 0}
-                                  onClick={() => moveLanguage(l.code, -1)}
-                                  title={`Move ${l.name} earlier`}
-                                  aria-label={`Move ${l.name} earlier`}
-                                >
-                                  <ChevronUp aria-hidden="true" />
-                                </Button>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  disabled={index === orderedLangs.length - 1}
-                                  onClick={() => moveLanguage(l.code, 1)}
-                                  title={`Move ${l.name} later`}
-                                  aria-label={`Move ${l.name} later`}
-                                >
-                                  <ChevronDown aria-hidden="true" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                  <div className="mt-2 space-y-1 border-t border-border pt-2">
-                    {orderedLangs
-                      .filter((lang) => spoken.includes(lang.code))
-                      .map((lang) => {
-                        const languageVoices = getLanguageVoices(voices, lang.tts, true);
-                        const ratio = ttsRatios[lang.code] ?? 1;
-                        return (
-                          <div
-                            key={lang.code}
-                            data-testid={`tts-settings-card-${lang.code}`}
-                            className="flex flex-wrap sm:flex-nowrap items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-2 py-1 text-xs"
-                          >
-                            <span
-                              className="w-16 shrink-0 truncate font-semibold text-foreground"
-                              title={lang.name}
-                            >
-                              {lang.name}
-                            </span>
-                            {/* Speech ratio: speak 1 of every N sections */}
+                          <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/40 text-xs">
                             <label
-                              className="flex items-center gap-1 shrink-0"
-                              title="Speak 1 of every N sections (comprehension level)"
+                              htmlFor="add-favorite-language-select"
+                              className="text-muted-foreground"
                             >
-                              <span className="text-muted-foreground">Speak</span>
-                              <select
-                                aria-label={`${lang.name} TTS sentence ratio`}
-                                data-testid={`tts-ratio-slider-${lang.code}`}
-                                value={ratio}
-                                onChange={(e) => {
-                                  const val = Math.max(1, Math.min(10, Number(e.target.value)));
-                                  setTtsRatios((curr) => ({ ...curr, [lang.code]: val }));
-                                  saveTtsRatioPreference(lang.code, val);
-                                  if (videoId)
-                                    saveVideoSettings(videoId, { ttsRatios: { [lang.code]: val } });
-                                }}
-                                className="rounded border border-input bg-background px-1 py-0.5 text-xs"
-                              >
-                                {[1, 2, 3, 4, 5, 7, 10].map((n) => (
-                                  <option
-                                    key={n}
-                                    value={n}
-                                    data-testid={`tts-ratio-preset-${lang.code}-${n}`}
-                                  >
-                                    1:{n}
-                                  </option>
-                                ))}
-                              </select>
-                              <span
-                                data-testid={`tts-ratio-label-${lang.code}`}
-                                className="sr-only"
-                              >
-                                1:{ratio} ({Math.round(100 / ratio)}% of sentences)
-                              </span>
+                              Add favorite language:
                             </label>
-                            {/* Rate slider: range 0.3 to 1.5, default 0.5 */}
-                            <label className="flex items-center gap-1.5 flex-1 min-w-[7rem]">
-                              <span className="text-muted-foreground shrink-0">Rate</span>
-                              <input
-                                aria-label={`${lang.name} speech rate`}
-                                type="range"
-                                min={0.3}
-                                max={1.5}
-                                step={0.1}
-                                value={rates[lang.code] ?? 0.5}
-                                onChange={(e) => {
-                                  const val = Number(e.target.value);
-                                  setRates((current) => ({
-                                    ...current,
-                                    [lang.code]: val,
-                                  }));
-                                  if (videoId) {
-                                    saveVideoSettings(videoId, { ttsRates: { [lang.code]: val } });
-                                  }
-                                }}
-                                className="h-1.5 min-w-0 flex-1 cursor-pointer accent-primary"
-                              />
-                              <span className="w-7 text-right font-mono tabular-nums text-muted-foreground shrink-0">
-                                {(rates[lang.code] ?? 0.5).toFixed(1)}×
-                              </span>
-                            </label>
-                            {/* Voice selector */}
                             <select
-                              aria-label={`${lang.name} voice`}
-                              value={voiceSelections[lang.code] ?? ""}
+                              id="add-favorite-language-select"
+                              data-testid="add-favorite-language-select"
+                              value=""
                               onChange={(e) => {
-                                const value = e.target.value;
-                                setVoiceSelections((current) => {
-                                  const next = { ...current, [lang.code]: value };
-                                  try {
-                                    localStorage.setItem(
-                                      "yt_tts_voice_selections_v1",
-                                      JSON.stringify(next),
-                                    );
-                                  } catch {
-                                    // ignore storage errors
-                                  }
-                                  return next;
-                                });
+                                const code = e.target.value;
+                                if (code && !favoriteLanguages.includes(code)) {
+                                  const nextFavs = [...favoriteLanguages, code];
+                                  handleUpdateFavoriteLanguages(nextFavs);
+                                }
                               }}
-                              disabled={languageVoices.length === 0}
-                              title={
-                                languageVoices.length === 0
-                                  ? "No selectable voices on this device; the device default voice is used"
-                                  : "Voice"
-                              }
-                              className="w-full sm:w-44 shrink-0 truncate rounded border border-input bg-background px-1.5 py-0.5 text-xs disabled:opacity-60"
+                              className="rounded border border-input bg-background px-2 py-0.5 text-xs"
                             >
-                              <option value="">
-                                {languageVoices.length === 0 ? "Device voice" : "Default voice"}
-                              </option>
-                              {languageVoices.map((voice, voiceIndex) => (
-                                <option
-                                  key={getUniqueVoiceKey(voice, voiceIndex)}
-                                  value={voice.voiceURI || voice.name}
-                                >
-                                  {voice.name} {voice.lang ? `(${voice.lang})` : ""}
+                              <option value="">Choose a language to add to favorites…</option>
+                              {SUPPORTED_LANGUAGES_CATALOG.filter(
+                                (c) => !favoriteLanguages.includes(c.code),
+                              ).map((c) => (
+                                <option key={c.code} value={c.code}>
+                                  {c.name} ({c.code})
                                 </option>
                               ))}
                             </select>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const voiceToTest = voiceSelections[lang.code] ?? "";
-                                const rateToTest = rates[lang.code] ?? 0.5;
-                                void speak(
-                                  lang.name,
-                                  lang.tts,
-                                  rateToTest,
-                                  voiceToTest,
-                                  -1,
-                                  () => {},
-                                );
-                              }}
-                              title={`Test ${lang.name} voice`}
-                              aria-label={`Test ${lang.name} voice`}
-                              className="shrink-0 rounded border border-input bg-background px-2 py-0.5 text-xs hover:bg-muted font-mono"
-                            >
-                              ▶ Test
-                            </button>
                           </div>
-                        );
-                      })}
-                  </div>
-                </>
-              )}
 
-              {panelId === "subtitles" &&
-                (!hasLegitimateSubtitles ? null : (
-                  <SubtitlesTablePanel
-                    isAndroid={isAndroid}
-                    rows={rows}
-                    displayedRows={displayedRows}
-                    cols={cols}
-                    subtitlesLimit={subtitlesLimit}
-                    setSubtitlesLimit={setSubtitlesLimit}
-                    subtitlesPage={subtitlesPage}
-                    setSubtitlesPage={setSubtitlesPage}
-                    active={active}
-                    allFavoritesAligned={allFavoritesAligned}
-                    targetLanguages={targetLanguages}
-                    speechProgress={speechProgress}
-                    tracks={tracks}
-                    onSeek={seek}
-                    spokenLangs={spoken}
-                    ttsRatios={ttsRatios}
-                  />
-                ))}
-            </AccordionSection>
-          );
-        })}
-      </div>
+                          <div className="pt-1.5 border-t border-border/40 text-[11px] space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-foreground">
+                                Enabled for this Video:
+                              </span>
+                              <span className="font-mono text-primary font-semibold">
+                                {targetLanguages.join(", ") || "None"}
+                              </span>
+                            </div>
+                            <p className="text-muted-foreground">
+                              Video-specific customizations are saved per video ID (
+                              {videoId || "active video"}) and remembered when reloaded.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-      <ApkReleasesFooter
-        apkReleaseLinks={apkReleaseLinks}
-        onOpenApkModal={() => setApkModalOpen(true)}
-      />
-    </>
-  )}
+                  {panelId === "library" && (
+                    <VideoLibraryPanel
+                      currentVideoId={videoId}
+                      onSelectVideo={handleSelectLibraryVideo}
+                      onClearVideoCache={(clearedId) => {
+                        if (clearedId === videoId) {
+                          setTracks(null);
+                          setObservedUrl("");
+                          subtitleRequestQueue.resetVideo(clearedId);
+                        }
+                      }}
+                      onFetchFromScratch={(scratchId, scratchUrl) => {
+                        clearVideoSubtitleCache(scratchId);
+                        subtitleRequestQueue.resetVideo(scratchId);
+                        if (scratchId === videoId) {
+                          setTracks(null);
+                          setObservedUrl("");
+                          if (isAndroid) {
+                            void fetchFavoriteLanguageSubtitles(targetLanguages);
+                          }
+                        } else {
+                          handleSelectLibraryVideo(scratchId, scratchUrl);
+                        }
+                      }}
+                    />
+                  )}
+
+                  {panelId === "parser" && (
+                    <div className="space-y-4">
+                      {/* Interactive Timing & Punctuation Splitting Lab */}
+                      <ParserTimingLab
+                        tracks={tracks}
+                        baseLanguage={baseLanguage}
+                        selectedCriteria={selectedCriteria}
+                        criteriaSettings={criteriaSettings}
+                        onApplyCriteria={handleApplyPreset}
+                        onUpdateGroupSettings={handleUpdateGroupSettings}
+                      />
+
+                      {/* Presets Header */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                            Alignment Presets
+                          </span>
+                          <span className="text-xs text-muted-foreground">Quick combinations</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {PARSER_PRESETS.map((preset) => {
+                            const isPresetActive =
+                              preset.criteria.length === selectedCriteria.length &&
+                              preset.criteria.every((c) => selectedCriteria.includes(c));
+                            return (
+                              <Button
+                                key={preset.id}
+                                type="button"
+                                size="sm"
+                                variant={isPresetActive ? "default" : "outline"}
+                                className="h-7 text-xs px-2.5"
+                                onClick={() => handleApplyPreset(preset.criteria)}
+                                title={preset.desc}
+                              >
+                                {preset.name}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Accumulative Criteria Section */}
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                            Accumulative Division Criteria (Multi-Select)
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium text-primary">
+                              {selectedCriteria.length} criteria active
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground"
+                              onClick={handleResetGroupSettings}
+                              title="Reset all criteria inner settings to default"
+                            >
+                              <RotateCcw className="h-3 w-3 mr-1" />
+                              Reset settings
+                            </Button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          Select multiple criteria accumulatively to divide subtitles into
+                          separated, translatable sections of related sentences and cohesive
+                          context. Click settings to tune inner parameters for each group.
+                        </p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {PARSER_CRITERIA.map((crit) => {
+                            const isChecked = selectedCriteria.includes(crit.id);
+                            const isExpanded = expandedSettingsGroup === crit.id;
+                            return (
+                              <div
+                                key={crit.id}
+                                className={`rounded-lg border transition-all ${
+                                  isChecked
+                                    ? "border-primary/60 bg-primary/5 text-foreground shadow-xs"
+                                    : "border-border/70 hover:border-border hover:bg-muted/40 text-muted-foreground"
+                                }`}
+                              >
+                                <div
+                                  onClick={() => handleToggleCriterion(crit.id)}
+                                  className="p-2.5 cursor-pointer flex items-start gap-2.5"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => handleToggleCriterion(crit.id)}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="mt-0.5 rounded border-muted-foreground/40 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-1 flex-wrap">
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span
+                                          className={`text-xs font-semibold ${isChecked ? "text-foreground" : "text-foreground/80"}`}
+                                        >
+                                          {crit.name}
+                                        </span>
+                                        <Badge
+                                          variant={isChecked ? "default" : "outline"}
+                                          className="text-[10px] h-4 px-1.5 py-0 font-normal"
+                                        >
+                                          {crit.badge}
+                                        </Badge>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setExpandedSettingsGroup(isExpanded ? null : crit.id);
+                                        }}
+                                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] transition-colors ${
+                                          isExpanded
+                                            ? "bg-primary text-primary-foreground font-medium"
+                                            : "bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground"
+                                        }`}
+                                        title="Toggle inner settings for this criteria group"
+                                      >
+                                        <SlidersHorizontal className="h-3 w-3" />
+                                        <span>Settings</span>
+                                        {isExpanded ? (
+                                          <ChevronUp className="h-3 w-3" />
+                                        ) : (
+                                          <ChevronDown className="h-3 w-3" />
+                                        )}
+                                      </button>
+                                    </div>
+                                    <p className="text-[11px] leading-tight text-muted-foreground mt-1">
+                                      {crit.desc}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Inner Settings Panel for this Group */}
+                                {isExpanded && (
+                                  <div
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="px-3 pb-3 pt-2 border-t border-border/60 bg-background/90 rounded-b-lg space-y-2.5 text-xs text-foreground"
+                                  >
+                                    <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+                                      <span className="font-semibold text-[11px] text-muted-foreground uppercase tracking-wider">
+                                        {crit.name} Inner Settings
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          handleUpdateGroupSettings(
+                                            crit.id,
+                                            DEFAULT_CRITERIA_SETTINGS[crit.id] as never,
+                                          )
+                                        }
+                                        className="text-[10px] text-muted-foreground hover:text-foreground underline"
+                                      >
+                                        Reset this group
+                                      </button>
+                                    </div>
+
+                                    {crit.id === "sentence" && (
+                                      <div className="space-y-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={criteriaSettings.sentence.includeCommas}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("sentence", {
+                                                includeCommas: e.target.checked,
+                                              })
+                                            }
+                                            className="rounded border-border text-primary h-3.5 w-3.5"
+                                          />
+                                          <span className="text-[11px]">
+                                            Split on secondary clauses (commas, semicolons, colons)
+                                          </span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={criteriaSettings.sentence.splitIntraCue}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("sentence", {
+                                                splitIntraCue: e.target.checked,
+                                              })
+                                            }
+                                            className="rounded border-border text-primary h-3.5 w-3.5"
+                                          />
+                                          <span className="text-[11px]">
+                                            Split inside word-timed cues (intra-cue segments)
+                                          </span>
+                                        </label>
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-[11px] text-muted-foreground">
+                                            Minimum words per sentence:
+                                          </span>
+                                          <input
+                                            type="number"
+                                            min={1}
+                                            max={10}
+                                            value={criteriaSettings.sentence.minWords}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("sentence", {
+                                                minWords: Math.max(
+                                                  1,
+                                                  parseInt(e.target.value) || 1,
+                                                ),
+                                              })
+                                            }
+                                            className="h-6 w-14 rounded border border-input bg-background px-1.5 text-xs text-right"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {crit.id === "pause" && (
+                                      <div className="space-y-2">
+                                        <div>
+                                          <div className="flex justify-between text-[11px] mb-1">
+                                            <span className="text-muted-foreground">
+                                              Silence gap threshold:
+                                            </span>
+                                            <span className="font-semibold text-primary">
+                                              {criteriaSettings.pause.minPauseMs} ms
+                                            </span>
+                                          </div>
+                                          <input
+                                            type="range"
+                                            min={200}
+                                            max={1500}
+                                            step={50}
+                                            value={criteriaSettings.pause.minPauseMs}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("pause", {
+                                                minPauseMs: parseInt(e.target.value),
+                                              })
+                                            }
+                                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                          />
+                                        </div>
+                                        <div>
+                                          <div className="flex justify-between text-[11px] mb-1">
+                                            <span className="text-muted-foreground">
+                                              Cue snap proximity:
+                                            </span>
+                                            <span className="font-semibold text-primary">
+                                              {criteriaSettings.pause.snapToleranceMs} ms
+                                            </span>
+                                          </div>
+                                          <input
+                                            type="range"
+                                            min={400}
+                                            max={2000}
+                                            step={100}
+                                            value={criteriaSettings.pause.snapToleranceMs}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("pause", {
+                                                snapToleranceMs: parseInt(e.target.value),
+                                              })
+                                            }
+                                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {crit.id === "punctVote" && (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-[11px] text-muted-foreground">
+                                            Minimum agreeing tracks:
+                                          </span>
+                                          <select
+                                            value={criteriaSettings.punctVote.minTrackVotes}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("punctVote", {
+                                                minTrackVotes: parseInt(e.target.value),
+                                              })
+                                            }
+                                            className="h-6 rounded border border-input bg-background px-1.5 text-xs"
+                                          >
+                                            <option value={1}>1 track (any mark)</option>
+                                            <option value={2}>2 tracks (agreement)</option>
+                                            <option value={3}>3 tracks (consensus)</option>
+                                          </select>
+                                        </div>
+                                        <div>
+                                          <div className="flex justify-between text-[11px] mb-1">
+                                            <span className="text-muted-foreground">
+                                              Cluster proximity window:
+                                            </span>
+                                            <span className="font-semibold text-primary">
+                                              {criteriaSettings.punctVote.clusterToleranceMs} ms
+                                            </span>
+                                          </div>
+                                          <input
+                                            type="range"
+                                            min={200}
+                                            max={1200}
+                                            step={50}
+                                            value={criteriaSettings.punctVote.clusterToleranceMs}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("punctVote", {
+                                                clusterToleranceMs: parseInt(e.target.value),
+                                              })
+                                            }
+                                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {crit.id === "consensus" && (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <span className="text-[11px] text-muted-foreground">
+                                            Required track alignment:
+                                          </span>
+                                          <select
+                                            value={criteriaSettings.consensus.majorityRatio}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("consensus", {
+                                                majorityRatio: parseFloat(e.target.value),
+                                              })
+                                            }
+                                            className="h-6 rounded border border-input bg-background px-1.5 text-xs"
+                                          >
+                                            <option value={0.33}>33% (any 2+ tracks)</option>
+                                            <option value={0.5}>50% (majority)</option>
+                                            <option value={0.66}>66% (supermajority)</option>
+                                          </select>
+                                        </div>
+                                        <div>
+                                          <div className="flex justify-between text-[11px] mb-1">
+                                            <span className="text-muted-foreground">
+                                              Proximity window:
+                                            </span>
+                                            <span className="font-semibold text-primary">
+                                              {criteriaSettings.consensus.clusterToleranceMs} ms
+                                            </span>
+                                          </div>
+                                          <input
+                                            type="range"
+                                            min={200}
+                                            max={800}
+                                            step={50}
+                                            value={criteriaSettings.consensus.clusterToleranceMs}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("consensus", {
+                                                clusterToleranceMs: parseInt(e.target.value),
+                                              })
+                                            }
+                                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {crit.id === "cue" && (
+                                      <div className="space-y-2">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={criteriaSettings.cue.splitAllTracks}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("cue", {
+                                                splitAllTracks: e.target.checked,
+                                              })
+                                            }
+                                            className="rounded border-border text-primary h-3.5 w-3.5"
+                                          />
+                                          <span className="text-[11px]">
+                                            Split on cue starts from all parallel tracks
+                                          </span>
+                                        </label>
+                                      </div>
+                                    )}
+
+                                    {crit.id === "anchors" && (
+                                      <div className="space-y-1.5">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={criteriaSettings.anchors.matchNumbers}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("anchors", {
+                                                matchNumbers: e.target.checked,
+                                              })
+                                            }
+                                            className="rounded border-border text-primary h-3.5 w-3.5"
+                                          />
+                                          <span className="text-[11px]">
+                                            Match numbers and digits
+                                          </span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={criteriaSettings.anchors.matchProperNouns}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("anchors", {
+                                                matchProperNouns: e.target.checked,
+                                              })
+                                            }
+                                            className="rounded border-border text-primary h-3.5 w-3.5"
+                                          />
+                                          <span className="text-[11px]">
+                                            Match capitalized proper nouns
+                                          </span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                          <input
+                                            type="checkbox"
+                                            checked={
+                                              criteriaSettings.anchors.requireStrictMultiTrack
+                                            }
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("anchors", {
+                                                requireStrictMultiTrack: e.target.checked,
+                                              })
+                                            }
+                                            className="rounded border-border text-primary h-3.5 w-3.5"
+                                          />
+                                          <span className="text-[11px]">
+                                            Strict: require anchor in all tracks
+                                          </span>
+                                        </label>
+                                      </div>
+                                    )}
+
+                                    {crit.id === "window" && (
+                                      <div className="space-y-2">
+                                        <div>
+                                          <div className="flex justify-between text-[11px] mb-1">
+                                            <span className="text-muted-foreground">
+                                              Minimum section length:
+                                            </span>
+                                            <span className="font-semibold text-primary">
+                                              {(
+                                                criteriaSettings.window.minSectionMs / 1000
+                                              ).toFixed(1)}
+                                              s
+                                            </span>
+                                          </div>
+                                          <input
+                                            type="range"
+                                            min={800}
+                                            max={4000}
+                                            step={200}
+                                            value={criteriaSettings.window.minSectionMs}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("window", {
+                                                minSectionMs: parseInt(e.target.value),
+                                              })
+                                            }
+                                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                          />
+                                        </div>
+                                        <div>
+                                          <div className="flex justify-between text-[11px] mb-1">
+                                            <span className="text-muted-foreground">
+                                              Maximum section length:
+                                            </span>
+                                            <span className="font-semibold text-primary">
+                                              {(
+                                                criteriaSettings.window.maxSectionMs / 1000
+                                              ).toFixed(0)}
+                                              s
+                                            </span>
+                                          </div>
+                                          <input
+                                            type="range"
+                                            min={6000}
+                                            max={24000}
+                                            step={1000}
+                                            value={criteriaSettings.window.maxSectionMs}
+                                            onChange={(e) =>
+                                              handleUpdateGroupSettings("window", {
+                                                maxSectionMs: parseInt(e.target.value),
+                                              })
+                                            }
+                                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                          />
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Status & Summary */}
+                      <div className="pt-2 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
+                        <div>
+                          Sections:{" "}
+                          <span className="font-semibold text-foreground">
+                            {rows.length} translatable sections
+                          </span>{" "}
+                          · Timing base:{" "}
+                          <span className="font-semibold text-foreground">
+                            {baseLanguage
+                              ? getLanguageMeta(baseLanguage).name
+                              : "None (waiting for captions)"}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-muted-foreground/80">
+                          Cuts accumulate at sentence marks, breath pauses & alignment consensus
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {panelId === "languages" && (
+                    <>
+                      <div className="mb-4 space-y-3 border-b border-border pb-4">
+                        {/* Enabled Languages Status Card */}
+                        <div
+                          data-testid="enabled-languages-status-card"
+                          className="rounded-lg border border-border/80 bg-muted/20 p-2.5 text-xs space-y-2"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="font-semibold text-foreground flex items-center gap-1.5">
+                              <span>🎬 Enabled for this Video:</span>
+                              <span className="font-mono text-primary font-bold">
+                                {targetLanguages.length}{" "}
+                                {targetLanguages.length === 1 ? "language" : "languages"}
+                              </span>
+                              <span className="text-[11px] text-muted-foreground font-normal">
+                                (
+                                {
+                                  targetLanguages.filter((l) => favoriteLanguages.includes(l))
+                                    .length
+                                }{" "}
+                                from favorites)
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                data-testid="reset-video-to-favorites-btn"
+                                onClick={handleResetVideoToFavorites}
+                                className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium"
+                                title="Reset this video to your global favorite languages"
+                              >
+                                ↺ Reset to Favorites
+                              </button>
+                              <button
+                                type="button"
+                                data-testid="save-current-as-favorites-btn"
+                                onClick={handleSaveCurrentAsFavorites}
+                                className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-[11px] font-medium"
+                                title="Save this video's current languages as your global favorites"
+                              >
+                                ★ Save as Favorites
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            <span className="text-muted-foreground text-[11px] mr-1">
+                              Current selection:
+                            </span>
+                            {targetLanguages.length === 0 ? (
+                              <span className="text-muted-foreground italic text-[11px]">
+                                None selected
+                              </span>
+                            ) : (
+                              targetLanguages.map((code) => {
+                                const langMeta = (isAndroid
+                                  ? SUPPORTED_LANGUAGES_CATALOG
+                                  : LANGS
+                                ).find((c) => c.code === code) || {
+                                  code,
+                                  name: code,
+                                };
+                                const isFav = favoriteLanguages.includes(code);
+                                return (
+                                  <span
+                                    key={code}
+                                    data-testid={`enabled-lang-badge-${code}`}
+                                    className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium border ${
+                                      isFav
+                                        ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                        : "border-border bg-background text-foreground"
+                                    }`}
+                                  >
+                                    <span>{langMeta.name}</span>
+                                    {isFav && <span title="Favorite language">⭐</span>}
+                                  </span>
+                                );
+                              })
+                            )}
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5 items-center border-t border-border/50 pt-1.5">
+                            <span className="text-muted-foreground text-[11px] mr-1">
+                              ⭐ Global favorites:
+                            </span>
+                            {favoriteLanguages.length === 0 ? (
+                              <span className="text-muted-foreground italic text-[11px]">
+                                No favorites configured in settings
+                              </span>
+                            ) : (
+                              favoriteLanguages.map((code) => {
+                                const langMeta = (isAndroid
+                                  ? SUPPORTED_LANGUAGES_CATALOG
+                                  : LANGS
+                                ).find((c) => c.code === code) || {
+                                  code,
+                                  name: code,
+                                };
+                                const isCurrent = targetLanguages.includes(code);
+                                return (
+                                  <span
+                                    key={code}
+                                    data-testid={`favorite-lang-badge-${code}`}
+                                    className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border ${
+                                      isCurrent
+                                        ? "border-primary/40 bg-primary/10 text-primary"
+                                        : "border-muted bg-muted/40 text-muted-foreground line-through opacity-70"
+                                    }`}
+                                    title={
+                                      isCurrent
+                                        ? "Enabled for this video"
+                                        : "Not enabled for this video"
+                                    }
+                                  >
+                                    <span>{langMeta.name}</span>
+                                  </span>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+
+                        <LanguageBoxesSelector
+                          catalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
+                          selectedLanguages={targetLanguages}
+                          onSelectionChange={handleTargetLanguagesChange}
+                          isAndroid={isAndroid}
+                          favoriteLanguages={favoriteLanguages}
+                        />
+                        {(() => {
+                          const pendingFetchAgainLangs =
+                            activeFailedToFetch.length > 0
+                              ? activeFailedToFetch
+                              : failedLangs.length > 0
+                                ? languagesToFetchNext
+                                : [];
+                          if (pendingFetchAgainLangs.length === 0) return null;
+                          return (
+                            <div className="flex items-center justify-between p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-xs">
+                              <span className="text-destructive font-medium">
+                                Failed to fetch subtitles: {pendingFetchAgainLangs.join(", ")}
+                              </span>
+                              <button
+                                type="button"
+                                data-testid="subtitles-manual-fetch"
+                                onClick={manualFetchFailed}
+                                className="inline-flex items-center gap-1 rounded bg-destructive/20 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/30"
+                              >
+                                <RefreshCw className="h-3 w-3" />
+                                Fetch again ({pendingFetchAgainLangs.join(", ")})
+                              </button>
+                            </div>
+                          );
+                        })()}
+                        <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                          <div className="space-y-0.5">
+                            <label
+                              htmlFor="auto-speak-on-fetch-toggle"
+                              className="text-xs font-medium text-foreground cursor-pointer"
+                            >
+                              Auto speak language upon fetching
+                            </label>
+                            <div className="text-[11px] text-muted-foreground">
+                              Automatically enable the "Speak" checkbox for languages when their
+                              subtitles are loaded
+                            </div>
+                          </div>
+                          <input
+                            type="checkbox"
+                            id="auto-speak-on-fetch-toggle"
+                            data-testid="auto-speak-on-fetch-toggle"
+                            checked={autoSpeakOnFetch}
+                            onChange={(e) => {
+                              setAutoSpeakOnFetch(e.target.checked);
+                              setAutoSpeakOnFetchSetting(e.target.checked);
+                            }}
+                            className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                          <div className="space-y-0.5">
+                            <label
+                              htmlFor="speak-language-name-on-fetch-toggle"
+                              className="text-xs font-medium text-foreground cursor-pointer"
+                            >
+                              TTS-play language name upon fetching
+                            </label>
+                            <div className="text-[11px] text-muted-foreground">
+                              When a new subtitle is fetched, speak aloud the name of the language
+                              used to fetch
+                            </div>
+                          </div>
+                          <input
+                            type="checkbox"
+                            id="speak-language-name-on-fetch-toggle"
+                            data-testid="speak-language-name-on-fetch-toggle"
+                            checked={speakLanguageNameOnFetch}
+                            onChange={(e) => {
+                              setSpeakLanguageNameOnFetchState(e.target.checked);
+                              setSpeakLanguageNameOnFetchSetting(e.target.checked);
+                            }}
+                            className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                          />
+                        </div>
+                        <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                          <div className="space-y-0.5">
+                            <label
+                              htmlFor="fetch-window-seconds-input"
+                              className="text-xs font-medium text-foreground"
+                            >
+                              Subtitle fetch window pacing
+                            </label>
+                            <div className="text-[11px] text-muted-foreground">
+                              Never try to fetch more than 1 subtitle within this window frame
+                              (seconds)
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="number"
+                              id="fetch-window-seconds-input"
+                              data-testid="fetch-window-seconds-input"
+                              min={1}
+                              max={60}
+                              value={fetchWindowSeconds}
+                              onChange={(e) => {
+                                const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                                setFetchWindowSecondsState(val);
+                                setSubtitleFetchWindowSeconds(val);
+                                subtitleRequestQueue.setWindowSeconds(val);
+                              }}
+                              className="w-16 rounded border border-input bg-background px-2 py-1 text-xs text-right"
+                            />
+                            <span className="text-xs text-muted-foreground">sec</span>
+                          </div>
+                        </div>
+                      </div>
+                      <table className="w-full">
+                        <thead>
+                          <tr className="text-xs text-muted-foreground">
+                            <th className="text-left font-normal">Language</th>
+                            <th
+                              className="font-normal text-center"
+                              title="Present in table (show subtitle column in table)"
+                            >
+                              Present in Table
+                            </th>
+                            <th
+                              className="font-normal text-center"
+                              title="TTS-play (speak subtitle during playback)"
+                            >
+                              TTS-Play
+                            </th>
+                            <th
+                              className="font-normal text-center"
+                              title="Foreign subtitle TTS play frequency ratio"
+                            >
+                              TTS Ratio
+                            </th>
+                            <th className="font-normal text-center">Order</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {orderedLangs.map((l, index) => {
+                            const isSpoken = spoken.includes(l.code);
+                            const ratio = ttsRatios[l.code] ?? 1;
+                            const isFavorite = favoriteLanguages.includes(l.code);
+                            return (
+                              <tr key={l.code} data-testid={`language-row-${l.code}`}>
+                                <td className="py-1">
+                                  <span className="flex items-center gap-1">
+                                    <span>{l.name}</span>
+                                    {isFavorite && (
+                                      <span
+                                        title="Favorite language"
+                                        className="text-[10px] text-amber-500 font-bold"
+                                        data-testid={`fav-table-star-${l.code}`}
+                                      >
+                                        ⭐
+                                      </span>
+                                    )}
+                                  </span>
+                                </td>
+                                <td className="text-center">
+                                  <input
+                                    type="checkbox"
+                                    data-testid={`checkbox-present-in-table-${l.code}`}
+                                    aria-label={`Present in table: ${l.name}`}
+                                    title={`Present in table: ${l.name}`}
+                                    checked={shown.includes(l.code)}
+                                    onChange={() => toggle(shown, setShown, l.code)}
+                                  />
+                                </td>
+                                <td className="text-center">
+                                  <input
+                                    type="checkbox"
+                                    data-testid={`checkbox-tts-play-${l.code}`}
+                                    aria-label={`TTS-play: ${l.name}`}
+                                    title={`TTS-play: ${l.name}`}
+                                    checked={isSpoken}
+                                    onChange={() => toggle(spoken, setSpoken, l.code)}
+                                  />
+                                </td>
+                                <td className="text-center">
+                                  {isSpoken ? (
+                                    <span
+                                      data-testid={`tts-ratio-badge-${l.code}`}
+                                      className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-primary/10 text-primary border border-primary/20"
+                                      title={`1:${ratio} ratio (${ratio === 1 ? "All sentences" : `${Math.round(100 / ratio)}% of sentences`})`}
+                                    >
+                                      1:{ratio}
+                                    </span>
+                                  ) : (
+                                    <span className="text-[11px] text-muted-foreground">—</span>
+                                  )}
+                                </td>
+                                <td>
+                                  <div className="flex justify-center gap-1">
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      disabled={index === 0}
+                                      onClick={() => moveLanguage(l.code, -1)}
+                                      title={`Move ${l.name} earlier`}
+                                      aria-label={`Move ${l.name} earlier`}
+                                    >
+                                      <ChevronUp aria-hidden="true" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon"
+                                      disabled={index === orderedLangs.length - 1}
+                                      onClick={() => moveLanguage(l.code, 1)}
+                                      title={`Move ${l.name} later`}
+                                      aria-label={`Move ${l.name} later`}
+                                    >
+                                      <ChevronDown aria-hidden="true" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      <div className="mt-2 space-y-1 border-t border-border pt-2">
+                        {orderedLangs
+                          .filter((lang) => spoken.includes(lang.code))
+                          .map((lang) => {
+                            const languageVoices = getLanguageVoices(voices, lang.tts, true);
+                            const ratio = ttsRatios[lang.code] ?? 1;
+                            return (
+                              <div
+                                key={lang.code}
+                                data-testid={`tts-settings-card-${lang.code}`}
+                                className="flex flex-wrap sm:flex-nowrap items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-2 py-1 text-xs"
+                              >
+                                <span
+                                  className="w-16 shrink-0 truncate font-semibold text-foreground"
+                                  title={lang.name}
+                                >
+                                  {lang.name}
+                                </span>
+                                {/* Speech ratio: speak 1 of every N sections */}
+                                <label
+                                  className="flex items-center gap-1 shrink-0"
+                                  title="Speak 1 of every N sections (comprehension level)"
+                                >
+                                  <span className="text-muted-foreground">Speak</span>
+                                  <select
+                                    aria-label={`${lang.name} TTS sentence ratio`}
+                                    data-testid={`tts-ratio-slider-${lang.code}`}
+                                    value={ratio}
+                                    onChange={(e) => {
+                                      const val = Math.max(1, Math.min(10, Number(e.target.value)));
+                                      setTtsRatios((curr) => ({ ...curr, [lang.code]: val }));
+                                      saveTtsRatioPreference(lang.code, val);
+                                      if (videoId)
+                                        saveVideoSettings(videoId, {
+                                          ttsRatios: { [lang.code]: val },
+                                        });
+                                    }}
+                                    className="rounded border border-input bg-background px-1 py-0.5 text-xs"
+                                  >
+                                    {[1, 2, 3, 4, 5, 7, 10].map((n) => (
+                                      <option
+                                        key={n}
+                                        value={n}
+                                        data-testid={`tts-ratio-preset-${lang.code}-${n}`}
+                                      >
+                                        1:{n}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <span
+                                    data-testid={`tts-ratio-label-${lang.code}`}
+                                    className="sr-only"
+                                  >
+                                    1:{ratio} ({Math.round(100 / ratio)}% of sentences)
+                                  </span>
+                                </label>
+                                {/* Rate slider: range 0.3 to 1.5, default 0.5 */}
+                                <label className="flex items-center gap-1.5 flex-1 min-w-[7rem]">
+                                  <span className="text-muted-foreground shrink-0">Rate</span>
+                                  <input
+                                    aria-label={`${lang.name} speech rate`}
+                                    type="range"
+                                    min={0.3}
+                                    max={1.5}
+                                    step={0.1}
+                                    value={rates[lang.code] ?? 0.5}
+                                    onChange={(e) => {
+                                      const val = Number(e.target.value);
+                                      setRates((current) => ({
+                                        ...current,
+                                        [lang.code]: val,
+                                      }));
+                                      if (videoId) {
+                                        saveVideoSettings(videoId, {
+                                          ttsRates: { [lang.code]: val },
+                                        });
+                                      }
+                                    }}
+                                    className="h-1.5 min-w-0 flex-1 cursor-pointer accent-primary"
+                                  />
+                                  <span className="w-7 text-right font-mono tabular-nums text-muted-foreground shrink-0">
+                                    {(rates[lang.code] ?? 0.5).toFixed(1)}×
+                                  </span>
+                                </label>
+                                {/* Voice selector */}
+                                <select
+                                  aria-label={`${lang.name} voice`}
+                                  value={voiceSelections[lang.code] ?? ""}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    setVoiceSelections((current) => {
+                                      const next = { ...current, [lang.code]: value };
+                                      try {
+                                        localStorage.setItem(
+                                          "yt_tts_voice_selections_v1",
+                                          JSON.stringify(next),
+                                        );
+                                      } catch {
+                                        // ignore storage errors
+                                      }
+                                      return next;
+                                    });
+                                  }}
+                                  disabled={languageVoices.length === 0}
+                                  title={
+                                    languageVoices.length === 0
+                                      ? "No selectable voices on this device; the device default voice is used"
+                                      : "Voice"
+                                  }
+                                  className="w-full sm:w-44 shrink-0 truncate rounded border border-input bg-background px-1.5 py-0.5 text-xs disabled:opacity-60"
+                                >
+                                  <option value="">
+                                    {languageVoices.length === 0 ? "Device voice" : "Default voice"}
+                                  </option>
+                                  {languageVoices.map((voice, voiceIndex) => (
+                                    <option
+                                      key={getUniqueVoiceKey(voice, voiceIndex)}
+                                      value={voice.voiceURI || voice.name}
+                                    >
+                                      {voice.name} {voice.lang ? `(${voice.lang})` : ""}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const voiceToTest = voiceSelections[lang.code] ?? "";
+                                    const rateToTest = rates[lang.code] ?? 0.5;
+                                    void speak(
+                                      lang.name,
+                                      lang.tts,
+                                      rateToTest,
+                                      voiceToTest,
+                                      -1,
+                                      () => {},
+                                    );
+                                  }}
+                                  title={`Test ${lang.name} voice`}
+                                  aria-label={`Test ${lang.name} voice`}
+                                  className="shrink-0 rounded border border-input bg-background px-2 py-0.5 text-xs hover:bg-muted font-mono"
+                                >
+                                  ▶ Test
+                                </button>
+                              </div>
+                            );
+                          })}
+                      </div>
+                    </>
+                  )}
+
+                  {panelId === "subtitles" &&
+                    (!hasLegitimateSubtitles ? null : (
+                      <SubtitlesTablePanel
+                        isAndroid={isAndroid}
+                        rows={rows}
+                        displayedRows={displayedRows}
+                        cols={cols}
+                        subtitlesLimit={subtitlesLimit}
+                        setSubtitlesLimit={setSubtitlesLimit}
+                        subtitlesPage={subtitlesPage}
+                        setSubtitlesPage={setSubtitlesPage}
+                        active={active}
+                        allFavoritesAligned={allFavoritesAligned}
+                        targetLanguages={targetLanguages}
+                        speechProgress={speechProgress}
+                        tracks={tracks}
+                        onSeek={seek}
+                        spokenLangs={spoken}
+                        ttsRatios={ttsRatios}
+                      />
+                    ))}
+                </AccordionSection>
+              );
+            })}
+          </div>
+
+          <ApkReleasesFooter
+            apkReleaseLinks={apkReleaseLinks}
+            onOpenApkModal={() => setApkModalOpen(true)}
+          />
+        </>
+      )}
 
       {debugMode && (
         <NetworkRequestsInspector

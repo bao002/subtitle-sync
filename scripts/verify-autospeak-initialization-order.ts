@@ -16,7 +16,9 @@ const indexContent = fs.readFileSync(indexTsxPath, "utf8");
 const autoSpeakPos = indexContent.indexOf("const [autoSpeakOnFetch, setAutoSpeakOnFetch]");
 const ratesPos = indexContent.indexOf("const [rates, setRates]");
 const voiceSelectionsPos = indexContent.indexOf("const [voiceSelections, setVoiceSelections]");
-const fetchCallbackPos = indexContent.indexOf("const fetchFavoriteLanguageSubtitles = useCallback(");
+const fetchCallbackPos = indexContent.indexOf(
+  "const fetchFavoriteLanguageSubtitles = useCallback(",
+);
 
 assert(autoSpeakPos !== -1, "autoSpeakOnFetch state declaration must exist in index.tsx");
 assert(ratesPos !== -1, "rates state declaration must exist in index.tsx");
@@ -53,15 +55,8 @@ assert.strictEqual(
   "There must be no duplicate re-declaration of autoSpeakOnFetch",
 );
 
-const secondRates = indexContent.indexOf(
-  "const [rates, setRates]",
-  ratesPos + 1,
-);
-assert.strictEqual(
-  secondRates,
-  -1,
-  "There must be no duplicate re-declaration of rates",
-);
+const secondRates = indexContent.indexOf("const [rates, setRates]", ratesPos + 1);
+assert.strictEqual(secondRates, -1, "There must be no duplicate re-declaration of rates");
 
 const secondVoiceSelections = indexContent.indexOf(
   "const [voiceSelections, setVoiceSelections]",

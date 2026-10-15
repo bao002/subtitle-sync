@@ -12,14 +12,16 @@ const rootDir = process.cwd();
 console.log("1. Verifying docs/tokens.md and no root duplicate...");
 const tokensPath = path.join(rootDir, "tokens.md");
 const docsTokensPath = path.join(rootDir, "docs/tokens.md");
-assert(!fs.existsSync(tokensPath), "tokens.md must not exist in root directory (canonical is docs/tokens.md)");
+assert(
+  !fs.existsSync(tokensPath),
+  "tokens.md must not exist in root directory (canonical is docs/tokens.md)",
+);
 assert(fs.existsSync(docsTokensPath), "docs/tokens.md must exist");
 
 const docsTokensContent = fs.readFileSync(docsTokensPath, "utf8");
 
 assert(
-  docsTokensContent.includes("Move to done.md") &&
-    docsTokensContent.includes("docs/done.md"),
+  docsTokensContent.includes("Move to done.md") && docsTokensContent.includes("docs/done.md"),
   "docs/tokens.md must mandate moving completed tasks to docs/done.md",
 );
 assert(

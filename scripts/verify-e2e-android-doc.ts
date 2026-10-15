@@ -13,18 +13,24 @@ console.log("--> [Step 1] Verifying docs/e2e-android.md location and zero-duplic
 const rootE2eAndroidPath = path.resolve(rootDir, "e2e-android.md");
 const docsE2eAndroidPath = path.resolve(rootDir, "docs/e2e-android.md");
 
-assert(!fs.existsSync(rootE2eAndroidPath), "e2e-android.md must not exist in repository root (canonical location is docs/e2e-android.md)");
+assert(
+  !fs.existsSync(rootE2eAndroidPath),
+  "e2e-android.md must not exist in repository root (canonical location is docs/e2e-android.md)",
+);
 assert(fs.existsSync(docsE2eAndroidPath), "docs/e2e-android.md must exist under docs/");
 
 const docContent = fs.readFileSync(docsE2eAndroidPath, "utf8");
-assert(docContent.length > 1500, "docs/e2e-android.md must provide comprehensive specification details");
+assert(
+  docContent.length > 1500,
+  "docs/e2e-android.md must provide comprehensive specification details",
+);
 console.log("✅ PASS: docs/e2e-android.md exists canonically under docs/ with 0 root duplicates.");
 
 // 2. Verify Core Architecture & Testing Principles
 console.log("\n--> [Step 2] Auditing core testing principles and 10-point unmocked test matrix...");
 const requiredConcepts = [
   "Zero Mocking & Authentic Runtime Execution",
-  "Pre-Test Android Emulator Navigation: Exposing \"About Phone\" & Developer Details",
+  'Pre-Test Android Emulator Navigation: Exposing "About Phone" & Developer Details',
   "DEVICE_INFO_SETTINGS",
   "step-01-about-phone.png",
   "step-02-app-launch.png",
@@ -59,7 +65,8 @@ assert(fs.existsSync(runScriptPath), "scripts/run-android-e2e.sh must exist");
 const runScriptContent = fs.readFileSync(runScriptPath, "utf8");
 
 assert(
-  runScriptContent.includes("DEVICE_INFO_SETTINGS") || runScriptContent.includes("android.settings.SETTINGS"),
+  runScriptContent.includes("DEVICE_INFO_SETTINGS") ||
+    runScriptContent.includes("android.settings.SETTINGS"),
   "run-android-e2e.sh must dispatch intent to open Settings / About Phone",
 );
 assert(
@@ -74,7 +81,9 @@ assert(
   runScriptContent.includes("step-05-captions-subtitles.png"),
   "run-android-e2e.sh must capture step-05-captions-subtitles.png",
 );
-console.log("✅ PASS: run-android-e2e.sh contains pre-test About Phone navigation and milestone captures.");
+console.log(
+  "✅ PASS: run-android-e2e.sh contains pre-test About Phone navigation and milestone captures.",
+);
 
 // 4. Verify scripts/android-e2e-assert.sh includes milestone screenshots
 console.log("\n--> [Step 4] Auditing scripts/android-e2e-assert.sh milestone captures...");

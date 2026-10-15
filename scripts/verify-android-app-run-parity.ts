@@ -26,9 +26,13 @@ const assetsHtml = fs.readFileSync(assetsIndex, "utf8");
 
 // Extract referenced scripts and stylesheets
 const distScripts = Array.from(distHtml.matchAll(/src="(\.\/assets\/[^"]+)"/g)).map((m) => m[1]);
-const assetsScripts = Array.from(assetsHtml.matchAll(/src="(\.\/assets\/[^"]+)"/g)).map((m) => m[1]);
+const assetsScripts = Array.from(assetsHtml.matchAll(/src="(\.\/assets\/[^"]+)"/g)).map(
+  (m) => m[1],
+);
 const distStyles = Array.from(distHtml.matchAll(/href="(\.\/assets\/[^"]+)"/g)).map((m) => m[1]);
-const assetsStyles = Array.from(assetsHtml.matchAll(/href="(\.\/assets\/[^"]+)"/g)).map((m) => m[1]);
+const assetsStyles = Array.from(assetsHtml.matchAll(/href="(\.\/assets\/[^"]+)"/g)).map(
+  (m) => m[1],
+);
 
 assert(distScripts.length > 0, "dist/index.html must reference at least one script chunk");
 assert.deepStrictEqual(
@@ -65,16 +69,33 @@ assert(fs.existsSync(mainActivityPath), "MainActivity.kt must exist");
 const activityContent = fs.readFileSync(mainActivityPath, "utf8");
 
 // Check Kotlin syntax safety
-assert(!activityContent.includes("catch (_:"), "No illegal catch (_: Exception) in MainActivity.kt");
+assert(
+  !activityContent.includes("catch (_:"),
+  "No illegal catch (_: Exception) in MainActivity.kt",
+);
 assert(activityContent.includes("LOCAL_ASSET_DOMAIN"), "LOCAL_ASSET_DOMAIN must be defined");
-assert(activityContent.includes('LOCAL_ASSET_DOMAIN = "appassets.androidplatform.net"'), "LOCAL_ASSET_DOMAIN must be appassets.androidplatform.net");
+assert(
+  activityContent.includes('LOCAL_ASSET_DOMAIN = "appassets.androidplatform.net"'),
+  "LOCAL_ASSET_DOMAIN must be appassets.androidplatform.net",
+);
 assert(activityContent.includes("fun buildQuerySuffix"), "buildQuerySuffix helper must exist");
-assert(activityContent.includes("fun extractYouTubeVideoId"), "extractYouTubeVideoId helper must exist");
+assert(
+  activityContent.includes("fun extractYouTubeVideoId"),
+  "extractYouTubeVideoId helper must exist",
+);
 assert(activityContent.includes("override fun onNewIntent"), "onNewIntent must be implemented");
-assert(activityContent.includes("override fun shouldInterceptRequest"), "shouldInterceptRequest must be implemented");
-assert(activityContent.includes("override fun shouldOverrideUrlLoading"), "shouldOverrideUrlLoading must be implemented");
+assert(
+  activityContent.includes("override fun shouldInterceptRequest"),
+  "shouldInterceptRequest must be implemented",
+);
+assert(
+  activityContent.includes("override fun shouldOverrideUrlLoading"),
+  "shouldOverrideUrlLoading must be implemented",
+);
 
-console.log("✅ PASS: MainActivity.kt implements all required native shell lifecycle & interception hooks");
+console.log(
+  "✅ PASS: MainActivity.kt implements all required native shell lifecycle & interception hooks",
+);
 
 // 3. Verify build.gradle.kts integrates asset build on preBuild
 const gradlePath = path.join(rootDir, "android-shell/app/build.gradle.kts");

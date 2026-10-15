@@ -61,11 +61,13 @@ const emptyAndNonJsonTestCases: { label: string; payload: unknown }[] = [
   // Non-JSON responses
   {
     label: "HTML 404 error document",
-    payload: "<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1></body></html>",
+    payload:
+      "<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>404 Not Found</h1></body></html>",
   },
   {
     label: "HTML 500 internal server error page",
-    payload: "<html><body><h1>500 Internal Server Error</h1><p>Timedtext service unavailable</p></body></html>",
+    payload:
+      "<html><body><h1>500 Internal Server Error</h1><p>Timedtext service unavailable</p></body></html>",
   },
   {
     label: "Plaintext error string",
@@ -77,7 +79,8 @@ const emptyAndNonJsonTestCases: { label: string; payload: unknown }[] = [
   },
   {
     label: "XML error response",
-    payload: "<?xml version=\"1.0\" encoding=\"UTF-8\"?><error><code>403</code><message>Forbidden</message></error>",
+    payload:
+      '<?xml version="1.0" encoding="UTF-8"?><error><code>403</code><message>Forbidden</message></error>',
   },
   {
     label: "Malformed broken JSON string",
@@ -121,11 +124,7 @@ const emptyAndNonJsonTestCases: { label: string; payload: unknown }[] = [
 
 for (const tc of emptyAndNonJsonTestCases) {
   const isValid = isValidJsonSubtitleResponse(tc.payload);
-  assert.strictEqual(
-    isValid,
-    false,
-    `Validation MUST return false for ${tc.label}, but got true`,
-  );
+  assert.strictEqual(isValid, false, `Validation MUST return false for ${tc.label}, but got true`);
   console.log(`✅ PASS: Correctly rejected ${tc.label}`);
 }
 
@@ -350,7 +349,9 @@ assert(
   "MainActivity.kt saveCaptionToFile must guard disk write with isValidJsonSubtitle",
 );
 assert(
-  mainActivitySrc.includes("Not caching caption because response is not valid JSON with subtitle cues"),
+  mainActivitySrc.includes(
+    "Not caching caption because response is not valid JSON with subtitle cues",
+  ),
   "MainActivity.kt must log warning and abort caching on invalid or empty response",
 );
 console.log("✅ PASS: Android Native Shell saveCaptionToFile blocks empty/non-JSON from disk");
@@ -362,7 +363,9 @@ assert(
     mainActivitySrc.includes("saveCaptionToFile(url, rawBodyBytes)"),
   "MainActivity.kt interception loop must verify isValidJsonSubtitle before saving caption file",
 );
-console.log("✅ PASS: Android Native Shell interceptor checks JSON validity before saveCaptionToFile");
+console.log(
+  "✅ PASS: Android Native Shell interceptor checks JSON validity before saveCaptionToFile",
+);
 
 // Assert executeTimedTextRepetition rejects empty/non-JSON and falls back
 assert(
@@ -371,8 +374,12 @@ assert(
     mainActivitySrc.includes("Falling back to alternative option"),
   "MainActivity.kt executeTimedTextRepetition must reject invalid JSON and trigger fallback",
 );
-console.log("✅ PASS: Android Native Shell executeTimedTextRepetition rejects invalid JSON & triggers fallback");
+console.log(
+  "✅ PASS: Android Native Shell executeTimedTextRepetition rejects invalid JSON & triggers fallback",
+);
 
 console.log("\n====================================================");
-console.log("🎉 ALL TESTS PASSED: The app strictly does NOT cache empty response or non-JSON response!");
+console.log(
+  "🎉 ALL TESTS PASSED: The app strictly does NOT cache empty response or non-JSON response!",
+);
 console.log("====================================================");

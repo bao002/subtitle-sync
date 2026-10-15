@@ -50,14 +50,16 @@ assert(
   "src/routes/index.tsx must initialize autoSpeakOnFetch from persistent setting",
 );
 assert(
-  indexContent.includes("data-testid=\"auto-speak-on-fetch-toggle\""),
+  indexContent.includes('data-testid="auto-speak-on-fetch-toggle"'),
   "src/routes/index.tsx must expose auto-speak toggle with testid auto-speak-on-fetch-toggle",
 );
 console.log("✅ PASS: Auto-speak toggle UI element exposed in index.tsx");
 
 // 4. Verify that fetching subtitles auto-checks the "Speak" checkbox (updates spoken state)
 assert(
-  indexContent.includes("setSpoken((prev) => Array.from(new Set([...prev, ...Object.keys(next)])))"),
+  indexContent.includes(
+    "setSpoken((prev) => Array.from(new Set([...prev, ...Object.keys(next)])))",
+  ),
   "fetchFavoriteLanguageSubtitles must auto-enable Speak checkbox (setSpoken) for fetched languages",
 );
 assert(
@@ -85,12 +87,20 @@ simulateFetchComplete(["es", "he"], true);
 assert.deepStrictEqual(simulatedSpoken, ["es", "he"], "Must add fetched languages to spoken list");
 
 simulateFetchComplete(["ru"], true);
-assert.deepStrictEqual(simulatedSpoken, ["es", "he", "ru"], "Must accumulate new languages without duplicates");
+assert.deepStrictEqual(
+  simulatedSpoken,
+  ["es", "he", "ru"],
+  "Must accumulate new languages without duplicates",
+);
 
 // When disabled, no new languages added
 const prevLength = simulatedSpoken.length;
 simulateFetchComplete(["fr"], false);
-assert.strictEqual(simulatedSpoken.length, prevLength, "Must not add to spoken list when autoSpeak is disabled");
+assert.strictEqual(
+  simulatedSpoken.length,
+  prevLength,
+  "Must not add to spoken list when autoSpeak is disabled",
+);
 console.log("✅ PASS: Functional simulation of auto-enabling Speak checkbox passed");
 
 console.log("====================================================");

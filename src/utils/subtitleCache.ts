@@ -609,6 +609,9 @@ export function clearVideoSubtitleCache(videoId: string): void {
         keysToRemove.push(k);
       }
     }
+    for (const k of keysToRemove) {
+      localStorage.removeItem(k);
+    }
   } catch {}
 }
 

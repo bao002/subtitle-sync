@@ -23,34 +23,30 @@ const mockStorage: Record<string, string> = {};
   },
 };
 
-// 2. Verify Version 1.0.20 Parity Across All Required Files
-console.log("\n📦 Section 1: Version 1.0.20 Parity");
-const expectedVersion = "1.0.20";
-
+// 2. Verify Version Parity Across All Required Files
+console.log("\n📦 Section 1: Version Parity Check");
 const pkg = JSON.parse(fs.readFileSync(path.resolve("package.json"), "utf-8"));
-assert.strictEqual(pkg.version, expectedVersion, "package.json version must be 1.0.20");
+const currentVersion = pkg.version;
+assert.ok(currentVersion && currentVersion.startsWith("1.0."), "package.json version must be valid 1.0.x");
 
-const buildGradle = fs.readFileSync(
-  path.resolve("android-shell/app/build.gradle.kts"),
-  "utf-8",
-);
+const buildGradle = fs.readFileSync(path.resolve("android-shell/app/build.gradle.kts"), "utf-8");
 assert.ok(
-  buildGradle.includes('"1.0.19"'),
-  "android-shell/app/build.gradle.kts must contain 1.0.19",
+  buildGradle.includes(`"${currentVersion}"`),
+  `android-shell/app/build.gradle.kts must contain ${currentVersion}`,
 );
 
 const appConfig = fs.readFileSync(path.resolve("src/config/appConfig.ts"), "utf-8");
 assert.ok(
-  appConfig.includes(`APP_VERSION = "${expectedVersion}"`),
-  "src/config/appConfig.ts must declare APP_VERSION 1.0.19",
+  appConfig.includes(`APP_VERSION = "${currentVersion}"`),
+  `src/config/appConfig.ts must declare APP_VERSION ${currentVersion}`,
 );
 
 const apkUpdater = fs.readFileSync(path.resolve("src/utils/apkUpdater.ts"), "utf-8");
 assert.ok(
-  apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVersion}"`),
-  "src/utils/apkUpdater.ts must declare CURRENT_APK_VERSION v1.0.19",
+  apkUpdater.includes(`CURRENT_APK_VERSION = "v${currentVersion}"`),
+  `src/utils/apkUpdater.ts must declare CURRENT_APK_VERSION v${currentVersion}`,
 );
-console.log("✅ PASS: Semantic version 1.0.19 strictly aligned across all target files");
+console.log(`✅ PASS: Semantic version ${currentVersion} strictly aligned across all target files`);
 
 // 3. Verify Default Debug Mode (Requirement: By default enable debug mode)
 console.log("\n🐛 Section 2: Default Debug Mode Verification");
@@ -85,10 +81,7 @@ console.log("✅ PASS: Debug Mode defaults to true and is fully controllable");
 
 // 4. Verify Default Parsing Criteria (Requirement: By default use parsing option: check all options)
 console.log("\n🧩 Section 3: Default Parser Criteria (All Options Combined)");
-import {
-  DEFAULT_PARSER_CRITERIA,
-  PARSER_CRITERIA,
-} from "../src/lib/subtitles";
+import { DEFAULT_PARSER_CRITERIA, PARSER_CRITERIA } from "../src/lib/subtitles";
 
 assert.strictEqual(
   DEFAULT_PARSER_CRITERIA.length,
@@ -263,10 +256,7 @@ console.log("✅ PASS: All required UI controls and data-testids present in Atte
 
 // 9. Verify Documentation in docs/reliable-subtitles-fetching.md
 console.log("\n📚 Section 8: Architectural Documentation Completeness");
-const reliableDoc = fs.readFileSync(
-  path.resolve("docs/reliable-subtitles-fetching.md"),
-  "utf-8",
-);
+const reliableDoc = fs.readFileSync(path.resolve("docs/reliable-subtitles-fetching.md"), "utf-8");
 const docAssertions = [
   "Subtitle fetch window rate-limiting",
   "never try to fetch more than 1 subtitle in a window frame of X seconds",

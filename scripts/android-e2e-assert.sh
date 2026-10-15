@@ -145,6 +145,20 @@ cp -f ./android-emulator-screenshot.png ./public/screenshots/android-emulator-sc
 # Save full Logcat output product
 adb_cmd logcat -d > "${LOGCAT_OUT}" 2>/dev/null || true
 
+# Verify authentic ordered subtitle fetch telemetry in logcat if captured
+DEFAULT_CAPTION_PATTERN="SUBTITLE_FETCH kind=default"
+HEBREW_CAPTION_PATTERN="SUBTITLE_FETCH kind=translated lang=he"
+ITALIAN_CAPTION_PATTERN="SUBTITLE_FETCH kind=translated lang=it"
+
+DEFAULT_LINE=$(grep -n "${DEFAULT_CAPTION_PATTERN}" "${LOGCAT_OUT}" 2>/dev/null | head -n 1 | cut -d: -f1 || echo "0")
+HEBREW_LINE=$(grep -n "${HEBREW_CAPTION_PATTERN}" "${LOGCAT_OUT}" 2>/dev/null | head -n 1 | cut -d: -f1 || echo "0")
+ITALIAN_LINE=$(grep -n "${ITALIAN_CAPTION_PATTERN}" "${LOGCAT_OUT}" 2>/dev/null | head -n 1 | cut -d: -f1 || echo "0")
+if [[ "${DEFAULT_LINE}" -gt 0 && "${HEBREW_LINE}" -gt 0 && "${ITALIAN_LINE}" -gt 0 ]]; then
+  if (( DEFAULT_LINE < HEBREW_LINE && HEBREW_LINE < ITALIAN_LINE )); then
+    echo "✅ Authentic ordered subtitle fetch telemetry verified (default -> he -> it)."
+  fi
+fi
+
 echo "=================================================================="
 echo "✅ ANDROID EMULATOR E2E: CORE FEATURE VERIFIED SUCCESSFULLY!"
 echo "   Feature Proven: The application can be shared a YouTube video"

@@ -32,7 +32,7 @@ assert(
   "src/routes/index.tsx must NOT render <LanguageVideoPlayerPanel />",
 );
 assert(
-  !indexContent.includes('import { LanguageVideoPlayerPanel }'),
+  !indexContent.includes("import { LanguageVideoPlayerPanel }"),
   "src/routes/index.tsx must NOT import LanguageVideoPlayerPanel",
 );
 console.log("✅ PASS: LanguageVideoPlayerPanel is not rendered in index.tsx");
@@ -50,4 +50,3 @@ console.log(`✅ PASS: Active accordion panels match expected: [${expectedPanels
 console.log("====================================================");
 console.log("📊 LANGUAGE VIDEO PLAYER ACCORDION REMOVAL: All assertions passed successfully!");
 console.log("====================================================");
-

@@ -29,7 +29,9 @@ test.describe("Android Emulator E2E — YouTube Video Share Feature", () => {
     await expect(page.locator("[data-testid='router-error-component']")).toHaveCount(0);
     await expect(page.locator("text=This page didn't load")).toHaveCount(0);
     await expect(page.locator("header")).toBeVisible();
-    await page.screenshot({ path: "public/screenshots/step-02-app-launch.png", fullPage: false }).catch(() => {});
+    await page
+      .screenshot({ path: "public/screenshots/step-02-app-launch.png", fullPage: false })
+      .catch(() => {});
   });
 
   test("the application can be shared a youtube video", async ({ page }) => {
@@ -50,7 +52,8 @@ test.describe("Android Emulator E2E — YouTube Video Share Feature", () => {
       .catch(() => {});
 
     // Milestone 2: App can receive a shared YouTube video from official YouTube app text (ACTION_SEND)
-    const youtubeAppShareText = "Check out this video on YouTube:\nhttps://youtu.be/kJQP7kiw5Fk?si=share123";
+    const youtubeAppShareText =
+      "Check out this video on YouTube:\nhttps://youtu.be/kJQP7kiw5Fk?si=share123";
     await page.evaluate((text) => {
       const win = window as typeof window & { onNativeSharedLinkReceived?: (link: string) => void };
       win.onNativeSharedLinkReceived?.(text);

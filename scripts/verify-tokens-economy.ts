@@ -12,7 +12,10 @@ const rootDir = process.cwd();
 console.log("1. Verifying docs/tokens.md existence and no duplicate in root...");
 const tokensPath = path.join(rootDir, "tokens.md");
 const docsTokensPath = path.join(rootDir, "docs/tokens.md");
-assert(!fs.existsSync(tokensPath), "tokens.md must not be duplicated in root directory (canonical is docs/tokens.md)");
+assert(
+  !fs.existsSync(tokensPath),
+  "tokens.md must not be duplicated in root directory (canonical is docs/tokens.md)",
+);
 assert(fs.existsSync(docsTokensPath), "docs/tokens.md must exist in docs directory");
 
 const tokensContent = fs.readFileSync(docsTokensPath, "utf8");
@@ -52,8 +55,7 @@ assert(fs.existsSync(agentsPath), "AGENTS.md must exist");
 const agentsContent = fs.readFileSync(agentsPath, "utf8");
 
 assert(
-  agentsContent.includes("tokens.md") &&
-    agentsContent.includes("current-sub-task.md"),
+  agentsContent.includes("tokens.md") && agentsContent.includes("current-sub-task.md"),
   "AGENTS.md must reference tokens.md and current-sub-task.md under work tracking",
 );
 console.log("✅ PASS: AGENTS.md incorporates tokens.md token economy flow");

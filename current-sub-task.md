@@ -1,10 +1,7 @@
 # Current Subtask (`current-sub-task.md`)
 
-## Active Subtask: 116.6 Run Test Suites, Compile, Lint & Migrate to done.md
-- **Task**: Task 116 - Dedicated "Playground" Top Tab with Independent YouTube Player for Uninhibited Subtitle Switching & Interception
-- **Target Files**:
-  - Full automated verification test suite
-  - Compilation & linting (`compile_applet`, `lint_applet`)
-  - Tracking docs (`docs/done.md`, `docs/tokens.md`, `docs/tasks.md`)
+## Active Subtask: 117.2 Restore Complete Architectural Structure & Contract Links to README.md
+- **Task**: Task 117 - Comprehensive Test Suite Audit & Fix-Testing-to-Pass
+- **Target**: Restore full `README.md` containing all required workflow badges, GitHub Pages E2E links table, 9 architectural documentation contract links, and CLI update instructions.
 - **Status**: [IN PROGRESS]
-- **Goal**: Run all automated tests, confirm clean compilation and linting, and migrate Task 116 to docs/done.md.
+- **Goal**: Resolve test failure in `scripts/verify-doc-contracts.ts`, `scripts/verify-readme-links.ts`, `scripts/verify-e2e-report-links.ts`, and `scripts/verify-no-cron-readme-updates.ts`.

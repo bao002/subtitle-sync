@@ -177,8 +177,8 @@ assert(
   "src/routes/index.tsx must sync media metadata during playback loop",
 );
 assert(
-  indexContent.includes("id=\"background-audio-toggle\"") ||
-    indexContent.includes("data-testid=\"background-audio-toggle\""),
+  indexContent.includes('id="background-audio-toggle"') ||
+    indexContent.includes('data-testid="background-audio-toggle"'),
   "src/routes/index.tsx must render background-audio-toggle in Playback settings",
 );
 console.log("✅ PASS: src/routes/index.tsx integration and UI controls verified");

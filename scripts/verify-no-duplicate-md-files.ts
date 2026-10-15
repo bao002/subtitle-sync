@@ -46,14 +46,15 @@ assert(fs.existsSync(agentsPath), "AGENTS.md must exist in root directory");
 const agentsContent = fs.readFileSync(agentsPath, "utf8");
 
 assert(
-  agentsContent.includes("Mandatory location of all .md files under `docs/*.md` & zero duplicates policy") ||
-  agentsContent.includes("docs/*.md"),
+  agentsContent.includes(
+    "Mandatory location of all .md files under `docs/*.md` & zero duplicates policy",
+  ) || agentsContent.includes("docs/*.md"),
   "AGENTS.md must mandate that all documentation files are located under docs/*.md",
 );
 assert(
   agentsContent.includes("ZERO duplicate `.md` files") ||
-  agentsContent.includes("zero duplicate") ||
-  agentsContent.includes("zero duplicates"),
+    agentsContent.includes("zero duplicate") ||
+    agentsContent.includes("zero duplicates"),
   "AGENTS.md must mandate zero duplicate markdown files in repository",
 );
 assert(
@@ -64,7 +65,9 @@ assert(
   agentsContent.includes("docs/android.md"),
   "AGENTS.md must reference docs/android.md instead of root android.md",
 );
-console.log("✅ PASS: AGENTS.md explicitly mandates docs/*.md location and zero duplicates policy.");
+console.log(
+  "✅ PASS: AGENTS.md explicitly mandates docs/*.md location and zero duplicates policy.",
+);
 
 // 2. Verify forbidden duplicate files do NOT exist in root
 console.log("\n--> [Step 2] Verifying no duplicate / redundant .md files in root directory...");
@@ -101,8 +104,6 @@ const requiredDocsFiles = [
   "docs/server.md",
 ];
 
-
-
 for (const req of requiredDocsFiles) {
   const fullPath = path.resolve(rootDir, req);
   assert(fs.existsSync(fullPath), `Required canonical documentation file must exist: "${req}"`);
@@ -112,9 +113,7 @@ for (const req of requiredDocsFiles) {
 // 4. Verify Root Markdown Files Contain Only Allowed Entry Points
 console.log("\n--> [Step 4] Auditing root directory markdown files...");
 const allowedRootMdFiles = new Set(["README.md", "AGENTS.md", "current-sub-task.md", "temp.md"]);
-const rootMdFiles = fs
-  .readdirSync(rootDir)
-  .filter((f) => f.endsWith(".md"));
+const rootMdFiles = fs.readdirSync(rootDir).filter((f) => f.endsWith(".md"));
 
 for (const rootFile of rootMdFiles) {
   assert(

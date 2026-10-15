@@ -14,7 +14,9 @@ assert(fs.existsSync(rootRoutePath), "src/routes/__root.tsx must exist");
 const rootRouteContent = fs.readFileSync(rootRoutePath, "utf8");
 
 assert(
-  rootRouteContent.includes("[APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load"),
+  rootRouteContent.includes(
+    "[APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load",
+  ),
   "ErrorComponent must log [APP_BOOT_ERROR] on error",
 );
 assert(
@@ -23,7 +25,7 @@ assert(
 );
 assert(
   rootRouteContent.includes('data-testid="router-error-component"'),
-  "ErrorComponent container must have data-testid=\"router-error-component\"",
+  'ErrorComponent container must have data-testid="router-error-component"',
 );
 assert(
   rootRouteContent.includes("This page didn't load"),
@@ -33,7 +35,9 @@ assert(
   rootRouteContent.includes("Something went wrong on our end"),
   "ErrorComponent must render 'Something went wrong on our end'",
 );
-console.log("✅ PASS: src/routes/__root.tsx ErrorComponent logs boot errors and renders error markers");
+console.log(
+  "✅ PASS: src/routes/__root.tsx ErrorComponent logs boot errors and renders error markers",
+);
 
 // 2. Verify client.tsx detects error boundary and inhibits [APP_READY]
 const clientPath = path.join(rootDir, "src/client.tsx");
@@ -46,10 +50,14 @@ assert(
   "src/client.tsx must check for error boundary rendering",
 );
 assert(
-  clientContent.includes("[APP_BOOT_ERROR] Application rendered error boundary: This page didn't load"),
+  clientContent.includes(
+    "[APP_BOOT_ERROR] Application rendered error boundary: This page didn't load",
+  ),
   "src/client.tsx must log [APP_BOOT_ERROR] when error boundary renders",
 );
-console.log("✅ PASS: src/client.tsx checkReady detects router error boundary and halts [APP_READY]");
+console.log(
+  "✅ PASS: src/client.tsx checkReady detects router error boundary and halts [APP_READY]",
+);
 
 // 3. Verify scripts/android-e2e-assert.sh fails immediately on error screen
 const assertShPath = path.join(rootDir, "scripts/android-e2e-assert.sh");
@@ -66,8 +74,7 @@ assert(
   "scripts/android-e2e-assert.sh must fail immediately if error screen logs are detected",
 );
 assert(
-  assertShContent.includes("uiautomator dump") &&
-    assertShContent.includes("This page didn't load"),
+  assertShContent.includes("uiautomator dump") && assertShContent.includes("This page didn't load"),
   "scripts/android-e2e-assert.sh must verify on-device screen hierarchy does not display error screen",
 );
 console.log("✅ PASS: scripts/android-e2e-assert.sh enforces failure when error page is detected");

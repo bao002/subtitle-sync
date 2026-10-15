@@ -28,7 +28,9 @@ assert(
   agentsContent.includes("update-readme.yml") && agentsContent.includes("update-readme.mjs"),
   "AGENTS.md must reference update-readme.yml and scripts/update-readme.mjs",
 );
-console.log("✅ PASS: AGENTS.md codifies that README.md is created by GitHub Actions and excluded from git sync.");
+console.log(
+  "✅ PASS: AGENTS.md codifies that README.md is created by GitHub Actions and excluded from git sync.",
+);
 
 // 2. Audit docs/operations/ACTIONS.md
 console.log("\n--> [Step 2] Auditing docs/operations/ACTIONS.md for Section 4.7...");
@@ -37,7 +39,9 @@ assert(fs.existsSync(actionsPath), "docs/operations/ACTIONS.md must exist");
 const actionsContent = fs.readFileSync(actionsPath, "utf8");
 
 assert(
-  actionsContent.includes("### 4.7 README.md Created by GitHub Actions — Do Not Copy When Syncing Git"),
+  actionsContent.includes(
+    "### 4.7 README.md Created by GitHub Actions — Do Not Copy When Syncing Git",
+  ),
   "docs/operations/ACTIONS.md must include Section 4.7",
 );
 assert(
@@ -45,7 +49,9 @@ assert(
     actionsContent.includes("MUST NOT be copied or overwritten"),
   "docs/operations/ACTIONS.md must define Git Sync Exclusion Mandate",
 );
-console.log("✅ PASS: docs/operations/ACTIONS.md Section 4.7 details the Git sync exclusion policy and rationale.");
+console.log(
+  "✅ PASS: docs/operations/ACTIONS.md Section 4.7 details the Git sync exclusion policy and rationale.",
+);
 
 // 3. Audit docs/self-verification.md
 console.log("\n--> [Step 3] Auditing docs/self-verification.md for Sanity Check 8 & matrix...");
@@ -61,7 +67,9 @@ assert(
   selfVerifyContent.includes("test:readme-git-sync-rule"),
   "docs/self-verification.md must list test:readme-git-sync-rule in verification matrix",
 );
-console.log("✅ PASS: docs/self-verification.md incorporates Sanity Check 8 and command matrix entry.");
+console.log(
+  "✅ PASS: docs/self-verification.md incorporates Sanity Check 8 and command matrix entry.",
+);
 
 // 4. Audit docs/files.md
 console.log("\n--> [Step 4] Auditing docs/files.md inventory registration...");

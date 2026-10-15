@@ -34,7 +34,9 @@ assert(
   indexContent.includes("<ParserTimingLab"),
   "src/routes/index.tsx must render ParserTimingLab in the parser panel",
 );
-console.log("✅ PASS: ParserTimingLab is cleanly imported and integrated into src/routes/index.tsx");
+console.log(
+  "✅ PASS: ParserTimingLab is cleanly imported and integrated into src/routes/index.tsx",
+);
 
 // 3. Verify UI test IDs and interactive lab features
 console.log("3. Verifying test IDs and UI capabilities...");
@@ -51,7 +53,7 @@ assert(
   "ParserTimingLab must render data-testid='timing-guide-modal'",
 );
 assert(
-  labContent.includes('data-testid={`experiment-card-${exp.id}`}'),
+  labContent.includes("data-testid={`experiment-card-${exp.id}`}"),
   "ParserTimingLab must provide test IDs for experiment cards",
 );
 console.log("✅ PASS: Required test IDs and interactive controls are present");
@@ -64,9 +66,7 @@ const testVideoTrack: Record<string, Json3> = {
       {
         tStartMs: 0,
         dDurationMs: 6000,
-        segs: [
-          { utf8: "This is a quick sentence. ", tOffsetMs: 0 },
-        ],
+        segs: [{ utf8: "This is a quick sentence. ", tOffsetMs: 0 }],
       },
       {
         tStartMs: 6500,

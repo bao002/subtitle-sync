@@ -62,7 +62,9 @@ assert(
   "src/routes/index.tsx must dynamically compute activeFailedToFetch from targetLanguages",
 );
 assert(
-  indexContent.includes("setFailedLangs((prev) => prev.filter((lang) => newTargetLangs.includes(lang)))"),
+  indexContent.includes(
+    "setFailedLangs((prev) => prev.filter((lang) => newTargetLangs.includes(lang)))",
+  ),
   "handleTargetLanguagesChange must prune failedLangs to only currently selected target languages",
 );
 assert(
@@ -87,7 +89,9 @@ assert(
   fetchPlanContent.includes("export async function fetchViaServer("),
   "subtitle-fetch-plan.ts must export fetchViaServer",
 );
-console.log("✅ PASS: subtitle-fetch-plan.ts includes server repetition getters, setters & fetchViaServer");
+console.log(
+  "✅ PASS: subtitle-fetch-plan.ts includes server repetition getters, setters & fetchViaServer",
+);
 
 // 4. Verify AttemptOrderSettings server repeat controls
 assert(
@@ -195,8 +199,14 @@ assert.deepStrictEqual(activeFailed, ["it", "es"], "'he' is immediately excluded
 // 3. User swaps order of favorites to ['es', 'it']
 currentFavorites = ["es", "it"];
 activeFailed = currentFavorites.filter((code) => failedLangs.includes(code));
-assert.deepStrictEqual(activeFailed, ["es", "it"], "fetch again order reflects new favorites order");
-console.log("✅ PASS: Dynamic fetch again list and ordering responds immediately to favorites changes");
+assert.deepStrictEqual(
+  activeFailed,
+  ["es", "it"],
+  "fetch again order reflects new favorites order",
+);
+console.log(
+  "✅ PASS: Dynamic fetch again list and ordering responds immediately to favorites changes",
+);
 
 // Test D: Server proxy URL generation simulation
 function buildServerProxyUrl(serverUrl: string, targetUrl: string): string {

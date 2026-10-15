@@ -7,6 +7,7 @@ This document outlines the design, best practices, and implementation mechanics 
 ## 1. The Challenge: Anti-Bot Protection & Timedtext API Abuse Prevention
 
 YouTube protects its subtitle services (`https://www.youtube.com/api/timedtext`) using automated bot-detection and rate-limiting infrastructure:
+
 1. **Concurrency Penalties**: Submitting multiple simultaneous requests across several target languages immediately flags client network traffic as an automated scraper, triggering `HTTP 429 (Too Many Requests)` or `HTTP 403 (Forbidden)`.
 2. **Periodic Fingerprints**: Firing requests on fixed periodic intervals (e.g., exactly every 5.0 seconds) produces an artificial pattern easily identified by server-side anomaly detectors.
 3. **Redundant Burden**: Blindly retrying every language track—including tracks that have already succeeded or tracks with cached cues—multiplies API load unnecessarily.
@@ -65,6 +66,7 @@ User Action / Auto-Retry Event
 ## 3. Five Pillars of the Paced Auto-Retry Engine
 
 ### Pillar 1: Strict Concurrency = 1 (Never Submit Multiple Requests Simultaneously)
+
 - **Single-Flight Guarantee**: Under no circumstances does the application make parallel HTTP calls to YouTube's timedtext endpoint.
 - All requests—whether triggered by the initial video load, adding a new language from the language selector, clicking "Fetch again" on a failed row, or the floating auto-retry timer—are routed through `SubtitleRequestQueue`.
 - The queue enforces `concurrency = 1`. If three languages (e.g., `he`, `ar`, `es`) need subtitles, they are executed in strict serial order:
@@ -75,6 +77,7 @@ User Action / Auto-Retry Event
   - Language 3 is requested and awaited.
 
 ### Pillar 2: Randomized Paced Jitter (Defeating Periodic Bot Heuristics)
+
 - Fixed timer intervals (such as `setInterval(fetch, 5000)`) are strictly forbidden.
 - The interval between consecutive requests is randomized dynamically:
   $$\text{Delay} = \text{RandomBetween}(\text{minPacingSec}, \text{maxPacingSec}) \times 1000 + \text{JitterMs}$$
@@ -82,6 +85,7 @@ User Action / Auto-Retry Event
 - Randomized spacing mimics authentic human interactions and ensures the timedtext server treats requests as natural client activity.
 
 ### Pillar 3: Selective Retry (Only Failed Requests are Scheduled)
+
 - The application separates languages into three discrete sets:
   1. **Succeeded**: Contains valid parsed `Json3` cues (`cuesCount > 0`). These are stored in memory and `subtitleCache`. They are **never retried**.
   2. **Pending / Active**: Currently queued or currently in-flight. Duplicate requests for this code are de-duplicated and ignored.
@@ -96,6 +100,7 @@ User Action / Auto-Retry Event
 - As soon as a language succeeds, it drops out of `pendingLanguages` immediately, freeing resources and minimizing requests.
 
 ### Pillar 4: Strategy Load Balancing (`tlang` vs `lang` and `session` vs `anon`)
+
 - Rather than repeating the exact same failing query parameters, the application rotates strategies:
   - **Translation Mode (`tlang`)**: Preserves original spoken language in `lang=` (e.g. `lang=en`) and specifies target translation in `tlang=he`.
   - **Direct Track Mode (`lang`)**: Replaces `lang=he` directly without `tlang` to search for authored native tracks.
@@ -104,6 +109,7 @@ User Action / Auto-Retry Event
 - The **Winner Promotion** mechanism automatically moves the successful mode to the top of the attempt order (`promoteSuccessfulAttempt: true`).
 
 ### Pillar 5: Exponential Backoff & Cooldown on 429
+
 - If YouTube returns `HTTP 429 (Too Many Requests)` or a network failure:
   1. The queue immediately enters a cooldown pause.
   2. The backoff multiplier is calculated:
@@ -128,12 +134,12 @@ User Action / Auto-Retry Event
 
 ## 5. Summary Matrix of Request Behaviors
 
-| Scenario | Behavior | Concurrency | Pacing / Delay |
-| :--- | :--- | :--- | :--- |
-| **Initial Video Load** | Fetches favorite languages one-by-one | 1 | 3s - 8s randomized jitter |
-| **User Adds Language** | Appends language to queue | 1 | Runs immediately if idle, else after pacing |
-| **Subtitle Track Succeeded** | Saved to cache; removed from retry pool | - | Zero subsequent requests |
-| **Subtitle Track Failed** | Added to failed pool; auto-retry scheduled | 1 | Paced according to min/max jitter settings |
-| **HTTP 429 Encountered** | Cooldown activated; backoff applied | 0 (Paused) | Exponential backoff (up to 60s) |
-| **Video Switched** | Queue cleared; active timers cancelled | 0 (Reset) | Re-initializes for new video context |
-| **Auto-Retry Disabled** | No background retries scheduled | 0 (Disabled) | User may manually click "Fetch again" |
+| Scenario                     | Behavior                                   | Concurrency  | Pacing / Delay                              |
+| :--------------------------- | :----------------------------------------- | :----------- | :------------------------------------------ |
+| **Initial Video Load**       | Fetches favorite languages one-by-one      | 1            | 3s - 8s randomized jitter                   |
+| **User Adds Language**       | Appends language to queue                  | 1            | Runs immediately if idle, else after pacing |
+| **Subtitle Track Succeeded** | Saved to cache; removed from retry pool    | -            | Zero subsequent requests                    |
+| **Subtitle Track Failed**    | Added to failed pool; auto-retry scheduled | 1            | Paced according to min/max jitter settings  |
+| **HTTP 429 Encountered**     | Cooldown activated; backoff applied        | 0 (Paused)   | Exponential backoff (up to 60s)             |
+| **Video Switched**           | Queue cleared; active timers cancelled     | 0 (Reset)    | Re-initializes for new video context        |
+| **Auto-Retry Disabled**      | No background retries scheduled            | 0 (Disabled) | User may manually click "Fetch again"       |

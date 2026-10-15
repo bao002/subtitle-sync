@@ -17,25 +17,42 @@ const expectedVersion = "1.0.21";
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
 assert.strictEqual(pkg.version, expectedVersion, `package.json version must be ${expectedVersion}`);
 
-const buildGradle = fs.readFileSync(path.resolve(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(buildGradle.includes(`"${expectedVersion}"`), `build.gradle.kts must contain ${expectedVersion}`);
+const buildGradle = fs.readFileSync(
+  path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
+  "utf-8",
+);
+assert.ok(
+  buildGradle.includes(`"${expectedVersion}"`),
+  `build.gradle.kts must contain ${expectedVersion}`,
+);
 assert.ok(buildGradle.includes("10021"), "build.gradle.kts must contain versionCode 10021");
 
 const appConfig = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
-assert.ok(appConfig.includes(`APP_VERSION = "${expectedVersion}"`), `appConfig.ts must declare APP_VERSION ${expectedVersion}`);
+assert.ok(
+  appConfig.includes(`APP_VERSION = "${expectedVersion}"`),
+  `appConfig.ts must declare APP_VERSION ${expectedVersion}`,
+);
 
 const apkUpdater = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
-assert.ok(apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVersion}"`), `apkUpdater.ts must declare CURRENT_APK_VERSION v${expectedVersion}`);
+assert.ok(
+  apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVersion}"`),
+  `apkUpdater.ts must declare CURRENT_APK_VERSION v${expectedVersion}`,
+);
 
 const appSettings = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert.ok(appSettings.includes(`version: "${expectedVersion}"`), `appSettings.ts must declare version ${expectedVersion}`);
+assert.ok(
+  appSettings.includes(`version: "${expectedVersion}"`),
+  `appSettings.ts must declare version ${expectedVersion}`,
+);
 
 console.log("✅ PASS: Version 1.0.20 strictly aligned across all target files.");
 
 // 2. Verify No Workflow Runs Cron Jobs that Commit to README.md
 console.log("\n🚫 Section 2: Prohibit Cron Jobs from Modifying or Committing README.md");
 
-const workflowFiles = fs.readdirSync(workflowsDir).filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"));
+const workflowFiles = fs
+  .readdirSync(workflowsDir)
+  .filter((f) => f.endsWith(".yml") || f.endsWith(".yaml"));
 assert.ok(workflowFiles.length > 0, "Workflow directory must contain workflow files");
 
 for (const wfFile of workflowFiles) {
@@ -71,7 +88,9 @@ assert.ok(
   reportVideoWf.includes("exit 1"),
   "report-video-flow.yml must exit with code 1 upon failure so the status badge reflects the failing issue",
 );
-console.log("✅ PASS: report-video-flow.yml correctly relies on workflow badge and rejects cron commits.");
+console.log(
+  "✅ PASS: report-video-flow.yml correctly relies on workflow badge and rejects cron commits.",
+);
 
 // 4. Verify README.md Prominently Features the Status Badge
 console.log("\n🏷️ Section 4: Verify README.md Workflow Status Badges");

@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             } else {
                 buildFallbackBrowserUserAgent(targetUrl)
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             buildFallbackBrowserUserAgent(targetUrl)
         }
     }
@@ -942,7 +942,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 reqBuilder.header("Cookie", cookies)
                             }
                         }
-                    } catch (_: Exception) {}
+                    } catch (ignored: Exception) {}
                     // Strip WebView flags from session User-Agent if present
                     val sessionUa = lastObservedHeaders["user-agent"] ?: lastObservedHeaders["User-Agent"]
                     if (sessionUa != null && (sessionUa.contains("; wv") || sessionUa.contains("Version/"))) {

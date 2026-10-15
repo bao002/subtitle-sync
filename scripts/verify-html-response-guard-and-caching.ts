@@ -36,7 +36,7 @@ const localStorageMock = {
 // 1. Verify parseJson3 in src/lib/native-captions.ts rejects HTML error pages
 const htmlErrorResponses = [
   "<!DOCTYPE html><html><head><title>404 Not Found</title></head><body><h1>Not Found</h1><text>Error occurred</text></body></html>",
-  "<html><body><p>Access Denied</p><text start=\"0\" dur=\"5\">Bot detected</text></body></html>",
+  '<html><body><p>Access Denied</p><text start="0" dur="5">Bot detected</text></body></html>',
   "<HTML><BODY>Too Many Requests</BODY></HTML>",
   "<!doctype html><div>Blocked</div>",
 ];
@@ -56,7 +56,9 @@ for (const html of htmlErrorResponses) {
   assert.strictEqual(result.format, "unknown");
   assert.strictEqual(result.cues.length, 0);
 }
-console.log("✅ PASS: parseRawCaptionData in captionParser.ts strictly rejects all HTML error responses");
+console.log(
+  "✅ PASS: parseRawCaptionData in captionParser.ts strictly rejects all HTML error responses",
+);
 
 // 3. Verify isValidJsonSubtitleResponse
 assert.strictEqual(isValidJsonSubtitleResponse(""), false);
@@ -73,7 +75,9 @@ assert.strictEqual(
   ),
   true,
 );
-console.log("✅ PASS: isValidJsonSubtitleResponse accepts authentic JSON3 and rejects HTML/malformed payloads");
+console.log(
+  "✅ PASS: isValidJsonSubtitleResponse accepts authentic JSON3 and rejects HTML/malformed payloads",
+);
 
 // 4. Verify caching refuses invalid or HTML responses and performs read-time eviction
 clearSubtitleCache();
@@ -87,20 +91,32 @@ assert.strictEqual(getCachedSubtitles(testVid), null, "Invalid cues must not be 
 // Test saveCachedRawJson3 with HTML
 const savedHtml = saveCachedRawJson3(testVid, "en", "<!DOCTYPE html><html>404</html>");
 assert.strictEqual(savedHtml, false, "saveCachedRawJson3 must return false and refuse HTML");
-assert.strictEqual(getCachedRawJson3(testVid, "en"), null, "getCachedRawJson3 must return null for HTML");
+assert.strictEqual(
+  getCachedRawJson3(testVid, "en"),
+  null,
+  "getCachedRawJson3 must return null for HTML",
+);
 
 // Test read-time eviction of corrupt entries in localStorage
 const targetKey = `yt_subtitles_${testVid}_he`;
 storage.set(targetKey, "<!DOCTYPE html><html>Corrupted entry</html>");
 const readEvicted = getCachedTargetSubtitles(testVid, "he");
 assert.strictEqual(readEvicted, null, "Corrupted entry must return null on read");
-assert.strictEqual(storage.has(targetKey), false, "Corrupted entry must be evicted from localStorage on read");
+assert.strictEqual(
+  storage.has(targetKey),
+  false,
+  "Corrupted entry must be evicted from localStorage on read",
+);
 
 const rawKey = `yt_subtitles_raw_${testVid}_es`;
 storage.set(rawKey, "<html><body>Invalid raw json</body></html>");
 const rawEvicted = getCachedRawJson3(testVid, "es");
 assert.strictEqual(rawEvicted, null, "Invalid raw JSON must return null on read");
-assert.strictEqual(storage.has(rawKey), false, "Invalid raw JSON must be evicted from localStorage on read");
+assert.strictEqual(
+  storage.has(rawKey),
+  false,
+  "Invalid raw JSON must be evicted from localStorage on read",
+);
 
 console.log("✅ PASS: SubtitleCache refuses invalid data and evicts corrupted entries on read");
 
@@ -138,7 +154,9 @@ assert(
   indexContent.includes("raw && isValidJsonSubtitleResponse(raw)"),
   "src/routes/index.tsx must guard fetchTranslatedCaptionsWithUrl with isValidJsonSubtitleResponse",
 );
-console.log("✅ PASS: src/routes/index.tsx guards all bridge subtitle ingestion with isValidJsonSubtitleResponse");
+console.log(
+  "✅ PASS: src/routes/index.tsx guards all bridge subtitle ingestion with isValidJsonSubtitleResponse",
+);
 
 console.log("==================================================================");
 console.log("🎉 ALL HTML RESPONSE GUARD AND CACHING CHECKS PASSED SUCCESSFULLY!");

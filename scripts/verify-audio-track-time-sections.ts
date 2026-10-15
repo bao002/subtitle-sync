@@ -82,7 +82,10 @@ const mockRows: MockRow[] = [
   { start: 6500, end: 9000, texts: { en: "Section 3", es: "Sección 3" } },
 ];
 
-function computeNextResumeTarget(candidateRow: number, rows: MockRow[]): {
+function computeNextResumeTarget(
+  candidateRow: number,
+  rows: MockRow[],
+): {
   action: "seek_and_play" | "pause";
   targetSec?: number;
   nextRowIdx?: number;
@@ -116,7 +119,9 @@ assert.notEqual(step1.targetSec, 3.5, "Must NOT repeat Section 1 start (3.5s)");
 // From Section 2 (final section) -> Must pause cleanly
 const step2 = computeNextResumeTarget(2, mockRows);
 assert.equal(step2.action, "pause", "Must pause cleanly after the last section");
-console.log("✅ PASS: Section progression strictly advances to next section without repeating current section");
+console.log(
+  "✅ PASS: Section progression strictly advances to next section without repeating current section",
+);
 
 // Test 2: Pre-seek guard in executeMultiVideoSegmentSync preventing premature resolution
 console.log("Test 2: Pre-seek guard in executeMultiVideoSegmentSync...");
@@ -144,7 +149,11 @@ const segmentPromise = executeMultiVideoSegmentSync({
 });
 
 // Immediately after call, seekTo(1.0) must have been called
-assert.equal(primaryPlayer.lastSeek, 1.0, "Player must have been instructed to seek to startMs (1.0s)");
+assert.equal(
+  primaryPlayer.lastSeek,
+  1.0,
+  "Player must have been instructed to seek to startMs (1.0s)",
+);
 assert.equal(syncCompleted, false, "Must NOT immediately resolve despite stale currentTime");
 
 // Simulate time advancing as player plays through segment
@@ -161,7 +170,9 @@ await new Promise((r) => setTimeout(r, 120));
 await segmentPromise;
 assert.equal(syncCompleted, true, "Must resolve once segment plays through to endMs");
 assert.equal(primaryPlayer.isPlaying, false, "Player must be paused after segment completion");
-console.log("✅ PASS: Pre-seek guard prevents premature termination and completes segment playback");
+console.log(
+  "✅ PASS: Pre-seek guard prevents premature termination and completes segment playback",
+);
 
 // Test 3: Fallback to base/primary language when audioTrackMode is enabled without spoken selection
 console.log("Test 3: Language eligibility and fallback in audioTrackMode...");
@@ -181,8 +192,7 @@ function resolveEligibleLangs(
   if (rowIdx < 0 || playedRecords.has(rowIdx)) return [];
   const matched = orderedLangs.filter((l) => spoken.includes(l.code));
   if (matched.length === 0 && isAudioTrackMode && spoken.length === 0) {
-    const fallback =
-      orderedLangs.find((l) => l.code === baseLanguage) ||
+    const fallback = orderedLangs.find((l) => l.code === baseLanguage) ||
       orderedLangs[0] || { code: "primary", tts: "en-US", name: "Primary" };
     return [fallback];
   }
@@ -192,7 +202,11 @@ function resolveEligibleLangs(
 // Case A: audioTrackMode ON, spoken empty -> falls back to baseLanguage
 const fallbackLangs = resolveEligibleLangs([], true, "he", new Set(), 0);
 assert.equal(fallbackLangs.length, 1);
-assert.equal(fallbackLangs[0].code, "he", "Should fallback to base language for native audio repeat");
+assert.equal(
+  fallbackLangs[0].code,
+  "he",
+  "Should fallback to base language for native audio repeat",
+);
 
 // Case B: audioTrackMode OFF, spoken empty -> empty (continuous playback without pause)
 const ttsEmptyLangs = resolveEligibleLangs([], false, "he", new Set(), 0);
@@ -202,7 +216,9 @@ assert.equal(ttsEmptyLangs.length, 0, "TTS mode with no spoken languages should 
 const explicitLangs = resolveEligibleLangs(["es"], true, "he", new Set(), 0);
 assert.equal(explicitLangs.length, 1);
 assert.equal(explicitLangs[0].code, "es");
-console.log("✅ PASS: Language resolution correctly falls back in audioTrackMode with empty spoken selection");
+console.log(
+  "✅ PASS: Language resolution correctly falls back in audioTrackMode with empty spoken selection",
+);
 
 // Test 4: Replayability via seek(r, i)
 console.log("Test 4: Replayability via seek(r, i) clears row from played records...");
@@ -214,7 +230,11 @@ function simulateSeekRow(rowIndex: number) {
   playedRecords.delete(rowIndex);
 }
 simulateSeekRow(1);
-assert.equal(playedRecords.has(1), false, "Row 1 should be eligible for repeat after user seeks to it");
+assert.equal(
+  playedRecords.has(1),
+  false,
+  "Row 1 should be eligible for repeat after user seeks to it",
+);
 console.log("✅ PASS: Manual row seek resets played state for replaying");
 
 // Test 5: Verify source code integration contracts

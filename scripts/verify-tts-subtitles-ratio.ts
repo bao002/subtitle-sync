@@ -218,7 +218,14 @@ console.log(
 console.log("5. Checking UI markup in src/routes/index.tsx...");
 
 const indexPath = path.resolve(__dirname, "../src/routes/index.tsx");
-const indexSource = fs.readFileSync(indexPath, "utf-8");
+const subtitleRowPath = path.resolve(__dirname, "../src/components/SubtitleRow.tsx");
+const subtitlesPanelPath = path.resolve(__dirname, "../src/components/SubtitlesTablePanel.tsx");
+const indexSource =
+  fs.readFileSync(indexPath, "utf-8") +
+  "\n" +
+  (fs.existsSync(subtitleRowPath) ? fs.readFileSync(subtitleRowPath, "utf-8") : "") +
+  "\n" +
+  (fs.existsSync(subtitlesPanelPath) ? fs.readFileSync(subtitlesPanelPath, "utf-8") : "");
 
 // Verify table column header
 assert.ok(

@@ -9,6 +9,7 @@ This specification defines the complete end-to-end (E2E) testing lifecycle for t
 The Android shell (`android-shell/`) wraps the web application in an Android WebView with native hardware acceleration, transparent TLS decompression, and background audio support.
 
 ### Parity with Web Architecture
+
 - **Identical Logic**: The React SPA bundled into `android-shell/app/src/main/assets/` runs the identical routing, parsing, alignment, and TTS state engine as the web version.
 - **No Synthetic Fixtures**: Subtitle requests must never rely on mocked, synthetic, or hardcoded fixture JSONs on Android. Subtitles are discovered dynamically via genuine YouTube player network traffic.
 - **Authentic Verification**: Automated tests must run against real Android runtimes (physical hardware or API 34 Google APIs emulators) and assert genuine operating system events, logcat telemetry, and display rendering.
@@ -87,6 +88,7 @@ Video proof of the E2E test running on the Android emulator is required to guara
 ```
 
 ### Video Recording Guidelines:
+
 1. **Start Before App Launch**: Start `screenrecord` before launching `MainActivity` so that the video captures the complete application boot sequence, asset hydration, and caption initialization.
 2. **Bitrate and Resolution**: Use `--bit-rate 4000000` (4 Mbps) and `--time-limit 180` to produce high-definition, compact MP4 files suitable for web streaming.
 3. **Clean Container Finalization**:
@@ -120,19 +122,20 @@ Understanding when and where the screencast video becomes available:
 ## 4. Expected E2E Report Structure on GitHub Pages
 
 The E2E test produces a rich, interactive report deployed to GitHub Pages at:
+
 - **`https://<owner>.github.io/<repo>/android/`** (or `android-emulator-report.html`)
 
 ### Key Components of the Report:
 
-| Section | UI Element | Contents & Purpose |
-| :--- | :--- | :--- |
-| **Header & Outcome Badge** | `#report-outcome-badge` | Visual indicator showing `Outcome: Verified` (green) or `Outcome: Failed` (red). |
-| **Cross-Report Navigation** | Navigation Links | Links to Mochawesome Test Report (`mochawesome.html`), Playwright Web Report (`playwright/index.html`), and Live Web Demo (`index.html`). |
-| **Hardware & Telemetry Card** | `#device-telemetry-card` | Live telemetry parsed from `android-emulator-device-info.json`: Device Model, Manufacturer, Android Version & SDK, ABI architecture, Display Resolution, Density (DPI), Serial, and Battery/Network Health. |
-| **Step-by-Step Workflow** | `.step-grid` | 5 visual step cards with milestone screenshots: <br>1. *Default Subtitles Detection* (`step1-default-subtitles-detected.png`)<br>2. *Favorite Languages Fetch* (`step2-favorite-languages-fetch.png`)<br>3. *YouTube API tlang/lang Fallback* (`step3-youtube-api-tlang-lang-fallback.png`)<br>4. *Network Panel Inspection* (`step4-network-panel-inspection.png`)<br>5. *Subtitles View Inspection* (`step5-subtitles-view-inspection.png`). |
-| **Screencast Video Presentation** | `<video controls autoplay muted loop playsinline>` | Embedded HTML5 video player streaming `./screenshots/android-emulator-video.mp4` with fallback messaging and download link. |
-| **Primary Captured Screenshot** | `<img>` | Full-resolution screenshot (`./screenshots/android-emulator-screenshot.png`) captured at test conclusion. |
-| **Logcat Telemetry Card** | `<pre>` | Filtered live logcat snippet displaying chronological `SUBTITLE_FETCH` lines and download link for full logcat. |
+| Section                           | UI Element                                         | Contents & Purpose                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| :-------------------------------- | :------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Header & Outcome Badge**        | `#report-outcome-badge`                            | Visual indicator showing `Outcome: Verified` (green) or `Outcome: Failed` (red).                                                                                                                                                                                                                                                                                                                                                               |
+| **Cross-Report Navigation**       | Navigation Links                                   | Links to Mochawesome Test Report (`mochawesome.html`), Playwright Web Report (`playwright/index.html`), and Live Web Demo (`index.html`).                                                                                                                                                                                                                                                                                                      |
+| **Hardware & Telemetry Card**     | `#device-telemetry-card`                           | Live telemetry parsed from `android-emulator-device-info.json`: Device Model, Manufacturer, Android Version & SDK, ABI architecture, Display Resolution, Density (DPI), Serial, and Battery/Network Health.                                                                                                                                                                                                                                    |
+| **Step-by-Step Workflow**         | `.step-grid`                                       | 5 visual step cards with milestone screenshots: <br>1. _Default Subtitles Detection_ (`step1-default-subtitles-detected.png`)<br>2. _Favorite Languages Fetch_ (`step2-favorite-languages-fetch.png`)<br>3. _YouTube API tlang/lang Fallback_ (`step3-youtube-api-tlang-lang-fallback.png`)<br>4. _Network Panel Inspection_ (`step4-network-panel-inspection.png`)<br>5. _Subtitles View Inspection_ (`step5-subtitles-view-inspection.png`). |
+| **Screencast Video Presentation** | `<video controls autoplay muted loop playsinline>` | Embedded HTML5 video player streaming `./screenshots/android-emulator-video.mp4` with fallback messaging and download link.                                                                                                                                                                                                                                                                                                                    |
+| **Primary Captured Screenshot**   | `<img>`                                            | Full-resolution screenshot (`./screenshots/android-emulator-screenshot.png`) captured at test conclusion.                                                                                                                                                                                                                                                                                                                                      |
+| **Logcat Telemetry Card**         | `<pre>`                                            | Filtered live logcat snippet displaying chronological `SUBTITLE_FETCH` lines and download link for full logcat.                                                                                                                                                                                                                                                                                                                                |
 
 ---
 

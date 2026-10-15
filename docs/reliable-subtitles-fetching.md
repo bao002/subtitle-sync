@@ -112,4 +112,3 @@ The application exposes flexible subtitle fetching strategies and granular switc
 - **Auto TTS-play fetched language name**: By default when a new subtitle track is fetched, the app invokes speech synthesis to announce the name of the fetched language (`speakLanguageNameOnFetch = true`).
 - **Default debug mode enabled**: Debug Mode is ON by default (`getDebugModeSetting() === true`), surfacing the real-time TTS queue, diagnostic dock, and network inspector.
 - **Default parser criteria**: By default all parsing criteria options are enabled (`DEFAULT_PARSER_CRITERIA`), combining syntax sentence breaks, speech pauses, timing consensus, punctuation voting, cue chunking, anchor alignment, and window constraints.
-

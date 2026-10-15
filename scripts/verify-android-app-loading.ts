@@ -41,10 +41,7 @@ assert(
   activityContent.includes('webView.loadUrl("https://$LOCAL_ASSET_DOMAIN/index.html$querySuffix")'),
   "MainActivity.kt must load from local asset domain with querySuffix",
 );
-assert(
-  !activityContent.includes("APP_URL"),
-  "MainActivity.kt must not define or use APP_URL",
-);
+assert(!activityContent.includes("APP_URL"), "MainActivity.kt must not define or use APP_URL");
 console.log("✅ PASS: onCreate loads exclusively via local asset domain");
 
 // 3. Verify buildQuerySuffix implementation and behavior
@@ -75,7 +72,11 @@ assert.strictEqual(simulateBuildQuerySuffix(null), "", "null rawText returns emp
 assert.strictEqual(simulateBuildQuerySuffix(""), "", "empty rawText returns empty suffix");
 assert.strictEqual(simulateBuildQuerySuffix("  "), "", "whitespace rawText returns empty suffix");
 assert.strictEqual(simulateBuildQuerySuffix("null"), "", "'null' string returns empty suffix");
-assert.strictEqual(simulateBuildQuerySuffix("undefined"), "", "'undefined' string returns empty suffix");
+assert.strictEqual(
+  simulateBuildQuerySuffix("undefined"),
+  "",
+  "'undefined' string returns empty suffix",
+);
 assert.strictEqual(
   simulateBuildQuerySuffix("vBURridJXZ0"),
   "?v=vBURridJXZ0&android=true",
@@ -100,7 +101,9 @@ assert(
   "onNewIntent must log local asset domain navigation",
 );
 assert(
-  !activityContent.includes('window.location.href = "https://$LOCAL_ASSET_DOMAIN/index.html$querySuffix"'),
+  !activityContent.includes(
+    'window.location.href = "https://$LOCAL_ASSET_DOMAIN/index.html$querySuffix"',
+  ),
   "onNewIntent must not trigger disruptive window.location.href reload inside JavaScript",
 );
 assert(
@@ -111,14 +114,18 @@ console.log("✅ PASS: onNewIntent dispatches shared links seamlessly without wh
 
 // 5. Verify proactiveDetectSubtitles does not overwrite lastObservedTimedTextUrl with hardcoded Hebrew
 assert(
-  !activityContent.includes('lastObservedTimedTextUrl = "https://www.youtube.com/api/timedtext?v=$videoId&lang=he&fmt=json3"'),
+  !activityContent.includes(
+    'lastObservedTimedTextUrl = "https://www.youtube.com/api/timedtext?v=$videoId&lang=he&fmt=json3"',
+  ),
   "proactiveDetectSubtitles must not hardcode lastObservedTimedTextUrl with Hebrew fallback",
 );
 assert(
   !activityContent.includes("generateDefaultSubtitlesJson(videoId)"),
   "proactiveDetectSubtitles must not inject synthetic default subtitles",
 );
-console.log("✅ PASS: Subtitle detection does not overwrite lastObservedTimedTextUrl or inject mismatched captions");
+console.log(
+  "✅ PASS: Subtitle detection does not overwrite lastObservedTimedTextUrl or inject mismatched captions",
+);
 
 // 6. Verify local asset fallback logging in shouldInterceptRequest
 assert(
@@ -135,10 +142,7 @@ console.log("✅ PASS: Asset interception gracefully falls back without false er
 const clientTsxPath = path.join(rootDir, "src/client.tsx");
 assert(fs.existsSync(clientTsxPath), "src/client.tsx must exist");
 const clientContent = fs.readFileSync(clientTsxPath, "utf8");
-assert(
-  clientContent.includes("[APP_READY]"),
-  "src/client.tsx must log [APP_READY] on startup",
-);
+assert(clientContent.includes("[APP_READY]"), "src/client.tsx must log [APP_READY] on startup");
 assert(
   clientContent.includes("[APP_BOOT_ERROR]"),
   "src/client.tsx must catch and log [APP_BOOT_ERROR]",
