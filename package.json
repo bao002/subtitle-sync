@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.25",
+  "version": "1.0.29",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -110,6 +110,8 @@
     "test:default-punctuation": "tsx scripts/verify-default-punctuation-splitting.ts",
     "test:parser-timing-lab": "tsx scripts/verify-parser-timing-lab.ts",
     "test:tokens-economy": "tsx scripts/verify-tokens-economy.ts",
+    "test:lean-tokens": "tsx scripts/verify-lean-tokens-economy.ts",
+    "test:direct-url-input": "tsx scripts/verify-direct-url-input-routing.ts",
     "test:android-e2e-spec": "tsx scripts/verify-android-e2e-spec.ts",
     "test:hotfix-workflow": "tsx scripts/verify-hotfix-and-done-workflow.ts",
     "test:screencast-availability": "tsx scripts/verify-screencast-availability.ts",

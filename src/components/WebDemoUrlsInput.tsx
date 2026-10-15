@@ -241,8 +241,111 @@ export function WebDemoUrlsInput({
     );
   };
 
-  const handlePrimarySubmit = (e: React.FormEvent) => {
+  const handlePrimarySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedInput = videoUrlInput.trim();
+    if (!trimmedInput) {
+      setStatusType("error");
+      setStatusMessage("Please enter a YouTube video URL or subtitle URL.");
+      return;
+    }
+
+    // Check if user entered a timedtext or direct subtitle JSON URL directly in main input
+    const isTimedTextOrSubtitleUrl =
+      trimmedInput.includes("/api/timedtext") ||
+      trimmedInput.endsWith(".json") ||
+      trimmedInput.includes("/fixtures/");
+
+    if (isTimedTextOrSubtitleUrl) {
+      setIsFetching(true);
+      setStatusType("info");
+      setStatusMessage("Fetching subtitles from URL...");
+
+      try {
+        let extractedVideoId = parseVideoId(trimmedInput);
+        if (!extractedVideoId) {
+          try {
+            const parsedUrl = new URL(trimmedInput, window.location.origin);
+            extractedVideoId = parsedUrl.searchParams.get("v") || currentVideoId;
+          } catch {
+            extractedVideoId = currentVideoId;
+          }
+        }
+        if (!extractedVideoId) {
+          extractedVideoId = currentVideoId || "vBURridJXZ0";
+        }
+
+        // Determine language code
+        let targetLang = "en";
+        try {
+          const parsedUrl = new URL(trimmedInput, window.location.origin);
+          targetLang =
+            parsedUrl.searchParams.get("tlang") ||
+            parsedUrl.searchParams.get("lang") ||
+            "en";
+          const pathMatch = parsedUrl.pathname.match(/\/([a-z]{2,3}(?:-[A-Za-z0-9]+)?)\.json$/i);
+          if (pathMatch) {
+            targetLang = pathMatch[1].toLowerCase();
+          }
+        } catch {
+          // ignore
+        }
+
+        let parsed: Json3 | null = null;
+
+        // Try direct fetch first
+        try {
+          const resp = await fetch(trimmedInput);
+          if (resp.ok) {
+            const text = await resp.text();
+            parsed = parseJson3(text);
+          }
+        } catch {
+          // Direct fetch failed (e.g. CORS)
+        }
+
+        // If direct fetch didn't yield valid json3 and it's an HTTP URL, try server proxy
+        if (!parsed || !isValidJsonSubtitleResponse(parsed)) {
+          if (trimmedInput.startsWith("http")) {
+            const proxyResp = await fetchViaServer(
+              trimmedInput,
+              serverConfig.fetchServerUrl || "http://localhost:3000/api/proxy",
+            );
+            if (proxyResp && proxyResp.status === 200 && proxyResp.body) {
+              parsed = parseJson3(proxyResp.body);
+            }
+          }
+        }
+
+        setIsFetching(false);
+
+        if (parsed && isValidJsonSubtitleResponse(parsed)) {
+          setStatusType("success");
+          setStatusMessage(
+            `Successfully loaded ${targetLang.toUpperCase()} subtitles (${parsed.events?.length || 0} cues) for video ${extractedVideoId}.`,
+          );
+          onLoadVideoAndSubtitles({
+            videoId: extractedVideoId,
+            tracks: { [targetLang]: parsed },
+            observedUrl: trimmedInput.startsWith("http") ? trimmedInput : undefined,
+          });
+          return;
+        } else {
+          setStatusType("error");
+          setStatusMessage("Fetched payload was not valid YouTube json3 subtitles.");
+          return;
+        }
+      } catch (err) {
+        setIsFetching(false);
+        setStatusType("error");
+        setStatusMessage(
+          `Error fetching subtitle URL: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        return;
+      }
+    }
+
+    // Standard YouTube video URL / ID handling
     const extractedVideoId = parseVideoId(videoUrlInput);
     if (!extractedVideoId) {
       setStatusType("error");
@@ -284,7 +387,7 @@ export function WebDemoUrlsInput({
           type="text"
           value={videoUrlInput}
           onChange={(e) => setVideoUrlInput(e.target.value)}
-          placeholder="Paste YouTube video link (e.g. https://www.youtube.com/watch?v=vBURridJXZ0)"
+          placeholder="Paste YouTube video link or subtitle URL (e.g. timedtext or json3)"
           className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
         />
         <Button
@@ -308,6 +411,29 @@ export function WebDemoUrlsInput({
           {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
         </Button>
       </form>
+
+      {/* Live Feedback Banner */}
+      {statusMessage && (
+        <div
+          data-testid="web-demo-status-banner"
+          className={`p-2 rounded-lg text-xs flex items-start gap-2 border ${
+            statusType === "success"
+              ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
+              : statusType === "error"
+                ? "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800"
+                : "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800"
+          }`}
+        >
+          {statusType === "success" ? (
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-600 mt-0.5" />
+          ) : statusType === "error" ? (
+            <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600 mt-0.5" />
+          ) : (
+            <RefreshCw className="w-3.5 h-3.5 shrink-0 text-blue-600 animate-spin mt-0.5" />
+          )}
+          <div className="flex-1 leading-relaxed">{statusMessage}</div>
+        </div>
+      )}
 
       {/* 2. Collapsible Custom Subtitles Input Drawer */}
       {isExpanded && (

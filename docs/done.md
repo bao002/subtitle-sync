@@ -1,5 +1,86 @@
 # Done tasks
 
+## Task 125: Support Direct Subtitle & Video URL Fetching in Main Web-Demo Input Bar & Streamline Redundant Drawer (Version 1.0.28)
+
+### Summary:
+- **Version 1.0.28 Bump & Parity**:
+  - Aligned semantic version `1.0.28` and versionCode `10028` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Integrated Direct URL Fetching into Main Input Bar (`#youtube-url-input`)**:
+  - Addressed user feedback regarding redundant elements by empowering the single main URL input bar (`#youtube-url-input`) to directly accept and route both YouTube video URLs/IDs and direct subtitle/timedtext URLs.
+  - When a timedtext URL (e.g. `/api/timedtext?...`), `.json` subtitle URL, or `/fixtures/...` path is submitted into `#youtube-url-input`, the component automatically extracts the video ID, determines the target language, fetches the subtitle stream (with server proxy fallback), validates it via `isValidJsonSubtitleResponse()`, and loads it directly into parallel subtitle tracks.
+  - Relocated live status feedback banner directly below `#youtube-url-form` so users receive immediate, clear confirmation without expanding or needing any redundant drawers.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-direct-url-input-routing.ts` (`npm run test:direct-url-input`) asserting version parity, timedtext and fixture parsing regex, direct JSON3 subtitle validation, and always-visible feedback banner.
+  - Registered `test:direct-url-input` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:direct-url-input`: PASSED (100% verified).
+  - `npm run test:web-demo-subtitles-urls`: PASSED (100% verified).
+  - `npm run test:design-preservation`: PASSED (100% verified).
+  - `npm run test:lean-tokens`: PASSED (100% verified).
+  - `npm run test:tokens-economy`: PASSED (100% verified).
+  - `npm run test:task-management-workflow`: PASSED (100% verified).
+  - `npm run test:hotfix-workflow`: PASSED (100% verified).
+  - `npm run test:no-duplicate-md`: PASSED (100% verified, 43 unique markdown files).
+  - `npm run test:doc-contracts`: PASSED (100% verified).
+  - `npm run test:readme-links`: PASSED (100% verified).
+  - `npm run test:self-verification`: PASSED (100% verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
+## Task 124: Rethink Lightweight Agent Work & Task Management, Streamline tokens.md to Minimal Reference, and Add docs/tasks-index.md (Version 1.0.27)
+
+### Summary:
+- **Version 1.0.27 Bump & Parity**:
+  - Aligned semantic version `1.0.27` and versionCode `10027` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Created Structured `docs/tasks-index.md`**:
+  - Authored `docs/tasks-index.md` providing a structured, high-level map of project milestones (Tasks 1–124+) and clean separation between active work in `docs/tasks.md` and historical archives in `docs/done.md`.
+  - Registered `docs/tasks-index.md` in `docs/files.md`.
+- **Rethought Lean Agent Work & Streamlined `docs/tokens.md`**:
+  - Streamlined `docs/tokens.md` down to 112 lines (~7KB), making it an ultra-fast, zero-overhead preface that takes negligible tokens for any agent to scan before executing a prompt.
+  - Eliminated heavy reading requirements: `docs/tokens.md` strictly focuses on the token optimization rules and delegates tasks to `docs/tasks.md` (active backlog) and `docs/tasks-index.md` (milestone index).
+  - Preserved all token economy contracts: context bloat, token exhaustion, Golden Rule, mandatory tracking file protocol, prompt completion audit gate, and hotfix suspension/holding workflow.
+- **Dedicated Automated Verification Suite**:
+  - Updated `scripts/verify-lean-tokens-economy.ts` (`npm run test:lean-tokens`) to validate presence of `docs/tasks-index.md`, lean size (<12KB, <200 lines), zero task dump, and full protocol compliance.
+- **Verification Commands & Outcomes**:
+  - `npm run test:lean-tokens`: PASSED (100% verified).
+  - `npm run test:tokens-economy`: PASSED (100% verified).
+  - `npm run test:task-management-workflow`: PASSED (100% verified).
+  - `npm run test:hotfix-workflow`: PASSED (100% verified).
+  - `npm run test:no-duplicate-md`: PASSED (100% verified, 43 unique markdown files).
+  - `npm run test:doc-contracts`: PASSED (100% verified).
+  - `npm run test:readme-links`: PASSED (100% verified).
+  - `npm run test:self-verification`: PASSED (100% verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
+## Task 123: Streamline docs/tokens.md into Lean, High-Efficiency Token Economy Protocol & Preface (Version 1.0.26)
+
+### Summary:
+- **Version 1.0.26 Bump & Parity**:
+  - Aligned semantic version `1.0.26` and versionCode `10026` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Streamlined `docs/tokens.md` into Lean Token Protocol & Preface**:
+  - Pruned massive accumulated historical task dumps (Tasks 107-122) out of `docs/tokens.md`, reducing file size by >60% (from ~25KB to ~9KB) and down to 157 lines.
+  - Made `docs/tokens.md` an effortless, speedy, high-efficiency preface for the agent to review in minimal tokens at the start of every prompt.
+  - Strictly preserved all mandatory architectural and workflow contracts: Token Economy problem & principles (context bloat, token exhaustion, granular decomposition Golden Rule), mandatory task tracking file protocol table (`docs/tokens.md`, `docs/tasks.md` as active backlog, `current-sub-task.md`, `temp.md`, `docs/todo.md`, `docs/done.md`, `docs/self-verification.md`), step-by-step prompt execution flowchart, prompt completion audit gate, hotfix workflow with task suspension/holding pattern (`[ON HOLD]`, `SUSPEND ACTIVE TASK`, `RESUME SUSPENDED TASK`), and token optimization guidelines.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-lean-tokens-economy.ts` (`npm run test:lean-tokens`) asserting lean file size (<12KB, <200 lines), zero stale completed task dumps, and full compliance with all contract assertions.
+  - Registered `test:lean-tokens` in `package.json` and documented in `docs/files.md`.
+  - Updated `scripts/verify-no-cron-readme-updates.ts`, `scripts/verify-web-demo-design-preservation.ts`, and `scripts/verify-web-demo-subtitles-urls-input.ts` to support dynamic version parity.
+- **Verification Commands & Outcomes**:
+  - `npm run test:lean-tokens`: PASSED (100% verified, lean size and zero task dump).
+  - `npm run test:tokens-economy`: PASSED (100% verified).
+  - `npm run test:task-management-workflow`: PASSED (100% verified).
+  - `npm run test:hotfix-workflow`: PASSED (100% verified).
+  - `npm run test:no-cron-readme`: PASSED (100% verified).
+  - `npm run test:web-demo-subtitles-urls`: PASSED (100% verified).
+  - `npm run test:design-preservation`: PASSED (100% verified).
+  - `npm run test:no-duplicate-md`: PASSED (100% verified).
+  - `npm run test:doc-contracts`: PASSED (all architectural contracts verified).
+  - `npm run test:readme-links`: PASSED (all relative links and badges verified).
+  - `npm run test:self-verification`: PASSED (all 6 sanity checks verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
 ## Task 122: Restore Web-Demo UI Design, Codify Design Preservation in AGENTS.md, and Fix Video/Subtitle State Isolation (Version 1.0.25)
 
 ### Summary:

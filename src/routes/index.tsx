@@ -7,6 +7,7 @@ import {
   ChevronUp,
   ExternalLink,
   LayoutList,
+  Link2,
   Loader2,
   Moon,
   RefreshCw,
@@ -64,6 +65,7 @@ import {
   setFavoriteLanguages,
 } from "@/utils/appSettings";
 import { LanguageBoxesSelector } from "@/components/LanguageBoxesSelector";
+import { LanguageSubtitleUrlModal } from "@/components/LanguageSubtitleUrlModal";
 import {
   getAudioTrackMode,
   setAudioTrackMode,
@@ -1372,6 +1374,7 @@ function Index() {
     });
   }, []);
   const [showVideoSubtitles, setShowVideoSubtitles] = useState(true);
+  const [urlModalLang, setUrlModalLang] = useState<string | null>(null);
   const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => PANELS.map((panel) => panel.id));
   const [openPanels, setOpenPanels] = useState<Record<PanelId, boolean>>({
     player: true,
@@ -2134,6 +2137,23 @@ function Index() {
       });
     },
     [videoId],
+  );
+
+  const handleSaveLanguageTrackFromModal = useCallback(
+    (lang: string, track: Json3, url?: string) => {
+      startSubtitlesTransition(() => {
+        setTracks((prev) => ({
+          ...(prev || {}),
+          [lang]: track,
+        }));
+        setShown((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
+        setTargetLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
+        if (url && typeof window !== "undefined") {
+          setObservedUrl(url);
+        }
+      });
+    },
+    [],
   );
 
   useEffect(() => {
