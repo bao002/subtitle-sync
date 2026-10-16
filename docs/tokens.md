@@ -4,6 +4,14 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+## Active Prompt: Task 130 — Basic Minimalist README.md with Docs, Demo, and Report Links (v1.0.35)
+
+- **Target 1**: Bump app version to 1.0.35 across all 5 version targets.
+- **Target 2**: Implement clean, basic README.md with direct links to: 1. Docs, 2. Demo website on GitHub Pages, 3. Reports on GitHub Pages.
+- **Target 3**: Update verify scripts to align with basic README and add dedicated test `scripts/verify-basic-readme.ts`.
+
+---
+
 ## 1. The Token Economy Problem: Why Big Tasks Fail
 
 In complex full-stack applications, processing broad or monolithic tasks directly in a single sprawling execution pass leads to critical failure modes:

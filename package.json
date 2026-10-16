@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.32",
+  "version": "1.0.34",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -138,6 +138,8 @@
     "test:favorite-checkboxes": "tsx scripts/verify-favorite-languages-default-checkboxes.ts",
     "test:github-import-migration": "tsx scripts/verify-github-import-migration.ts",
     "test:design-preservation": "tsx scripts/verify-web-demo-design-preservation.ts",
+    "test:video-controls": "tsx scripts/verify-video-playback-controls.ts",
+    "test:hotfix-active-init": "tsx scripts/verify-hotfix-active-initialization.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
