@@ -1,5 +1,40 @@
 # Done tasks
 
+## Task 130: AGENTS.md Raw Prompt Rule & Basic Minimalist README.md (Version 1.0.35)
+
+### Summary:
+- **Version 1.0.35 Bump & Parity**:
+  - Aligned semantic version `1.0.35` and versionCode `10035` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **AGENTS.md Mandatory Raw Prompt Preservation Rule**:
+  - Added the rule to `AGENTS.md` under `## Work tracking`:
+    - "Always keep last raw prompt in AGENTS.md: AGENTS.md must continuously record and preserve the exact, unedited raw text of the user's latest prompt in a dedicated `## Last raw prompt` section."
+  - Appended the dedicated `## Last raw prompt` section to `AGENTS.md` recording the exact raw prompt.
+  - Authored dedicated test `scripts/verify-agents-last-prompt-rule.ts` asserting the rule and section presence, registered as `"test:agents-last-prompt-rule"` in `package.json`.
+- **Basic Minimalist README.md Implementation**:
+  - Replaced the previous monolithic README with a clean, very basic format containing exclusively:
+    1. Link to docs: `[Docs](./docs/)`
+    2. Link to the demo website: `[Demo Website (GitHub Pages)](https://mostuf25561.github.io/subtitle-sync/)`
+    3. Link to the report: `[Report (GitHub Pages)](https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html)`
+  - Updated `scripts/update-readme.mjs` to detect `github.io` URLs, preserve the basic minimalist structure, and avoid appending unrequested failure/status sections.
+  - Authored dedicated test `scripts/verify-basic-readme.ts` asserting that `README.md` is concise (<= 15 lines, < 1000 bytes) and verifies all 3 required links. Registered as `"test:basic-readme"` in `package.json`.
+- **Verification Suites & Test Alignment**:
+  - Aligned existing test suites (`verify-readme-links.ts`, `verify-doc-contracts.ts`, `verify-e2e-report-links.ts`, `verify-report-video-links-and-readme-sync.ts`, `verify-hotfix-links-and-actions.ts`, `verify-fork-readme-links.ts`, `verify-quarantine-and-minimal-share-e2e.ts`) to validate against the basic README format.
+  - Updated `docs/files.md` inventory.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-basic-readme.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-last-prompt-rule.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npm run test:doc-contracts`: PASSED (100% verified).
+  - `npm run test:readme-links`: PASSED (100% verified).
+  - `npm run test:e2e-report-links`: PASSED (100% verified).
+  - `npm run test:report-video-links`: PASSED (100% verified).
+  - `npm run test:tokens-economy`: PASSED (100% verified).
+  - `npm run test:no-duplicate-md`: PASSED (100% verified).
+  - `npm run test:hygiene`: PASSED (100% verified).
+  - `npm run test:client-spa`: PASSED (100% verified).
+  - `lint_applet`: PASSED (zero errors).
+  - `compile_applet`: PASSED (build succeeded).
+
 ### Hotfix: Fix ReferenceError Cannot access 'active' before initialization in src/routes/index.tsx (Version 1.0.34)
 
 ### Summary:

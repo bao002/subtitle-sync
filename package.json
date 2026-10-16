@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.34",
+  "version": "1.0.36",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -43,6 +43,7 @@
     "test:commit-25131f0-parity": "tsx scripts/verify-android-commit-25131f0-parity.ts",
     "test:accordion-video-id-and-no-android-fixtures": "tsx scripts/verify-accordion-video-id-and-no-android-fixtures.ts",
     "test:agents-subtitles-spec": "tsx scripts/verify-agents-subtitles-spec.ts",
+    "test:agents-last-prompt-rule": "tsx scripts/verify-agents-last-prompt-rule.ts",
     "test:html-guard-caching": "tsx scripts/verify-html-response-guard-and-caching.ts",
     "test:strict-json3-validation": "tsx scripts/verify-strict-json3-only-validation.ts",
     "test:favorite-dynamic-fetch": "tsx scripts/verify-favorite-lang-dynamic-fetch.ts",
@@ -51,6 +52,7 @@
     "test:workflows": "tsx scripts/verify-workflows-alignment.ts",
     "test:doc-contracts": "tsx scripts/verify-doc-contracts.ts",
     "test:readme-links": "tsx scripts/verify-readme-links.ts",
+    "test:basic-readme": "tsx scripts/verify-basic-readme.ts",
     "test:e2e-report-links": "tsx scripts/verify-e2e-report-links.ts",
     "test:default-timing-base": "tsx scripts/verify-default-timing-base.ts",
     "test:default-subtitles-e2e": "tsx scripts/verify-default-video-subtitles-e2e.ts",

@@ -45,57 +45,38 @@ lines.forEach((line, index) => {
 });
 
 assert(
-  relativeLinksCount >= 10,
-  `Expected at least 10 relative links in README.md, found ${relativeLinksCount}`,
+  relativeLinksCount >= 1,
+  `Expected at least 1 relative link in README.md, found ${relativeLinksCount}`,
 );
 
-// 2. Verify all workflow badge links and target workflow files
+// 2. Verify all core workflow files exist
 const workflowBadges = ["release-apk.yml", "web.yml", "emulation.yml", "deploy-demo.yml"];
 
 for (const wf of workflowBadges) {
-  const badgeRef = `actions/workflows/${wf}`;
-  assert(readmeContent.includes(badgeRef), `README.md must contain badge for workflow: ${wf}`);
-
   const workflowPath = path.resolve(rootDir, ".github", "workflows", wf);
   assert(
     fs.existsSync(workflowPath),
-    `Target workflow file for badge must exist: .github/workflows/${wf}`,
+    `Target workflow file must exist: .github/workflows/${wf}`,
   );
-  console.log(`✅ PASS: Workflow badge ${wf} exists and points to valid .github/workflows/${wf}`);
+  console.log(`✅ PASS: Core workflow file exists: .github/workflows/${wf}`);
 }
 
-// 3. Verify curl install script reference points to update.apk.sh
-assert(
-  readmeContent.includes("update.apk.sh"),
-  "README.md must reference update.apk.sh in CLI install instructions",
-);
+// 3. Verify curl install script exists in repository root
 const updateApkPath = path.resolve(rootDir, "update.apk.sh");
 assert(fs.existsSync(updateApkPath), "update.apk.sh must exist in repository root");
-console.log("✅ PASS: update.apk.sh exists and is referenced in README.md");
+console.log("✅ PASS: update.apk.sh exists in repository root");
 
-// 4. Verify GitHub Pages links in README table and static assets
+// 4. Verify GitHub Pages demo and report links in README
 assert(
   /https:\/\/[a-zA-Z0-9_\-.]+\.github\.io\/(subtitle-sync|Youtubenet6)\/?/.test(readmeContent),
   "README.md must contain valid GitHub Pages demo URL",
 );
 assert(
-  readmeContent.includes("mochawesome.html"),
-  "README.md must contain Mochawesome E2E test report link",
-);
-assert(
-  readmeContent.includes("playwright"),
-  "README.md must contain Playwright E2E test report link",
-);
-assert(
   readmeContent.includes("android-emulator-report.html"),
-  "README.md must contain Android Emulator E2E test report link",
-);
-assert(
-  readmeContent.includes("android-emulator-screenshot.png"),
-  "README.md must contain emulator screenshot reference",
+  "README.md must contain Android Emulator E2E test report link on GitHub Pages",
 );
 console.log(
-  "✅ PASS: All E2E test report links (Mochawesome, Playwright, Android Emulator) verified in README.md",
+  "✅ PASS: Basic README contains GitHub Pages demo and report links",
 );
 
 const screenshotAsset = path.resolve(

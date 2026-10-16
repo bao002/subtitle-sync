@@ -64,7 +64,7 @@ export const SubtitleRow = memo(function SubtitleRow({
                 : ""
             }`}
           >
-            {tracks && !tracks[l.code] ? null : (
+            {tracks && !tracks[l.code] && !r.texts[l.code] ? null : (
               <div
                 data-testid={`sentence-container-${actualIndex}-${l.code}`}
                 data-tts-pronounced-highlight={isPronouncedHighlight ? "true" : "false"}

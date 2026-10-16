@@ -31,19 +31,16 @@ for (const relPath of requiredDocFiles) {
   console.log(`✅ PASS: ${relPath} exists (${stat.size} bytes)`);
 }
 
-// Verify that README.md references all 9 contracts
+// Verify that README.md links to docs/
 const readmePath = path.resolve(rootDir, "README.md");
 assert(fs.existsSync(readmePath), "README.md must exist");
 const readmeContent = fs.readFileSync(readmePath, "utf8");
 
-for (const relPath of requiredDocFiles) {
-  const linkRef = `./${relPath}`;
-  assert(
-    readmeContent.includes(linkRef) || readmeContent.includes(relPath),
-    `README.md must link to ${relPath}`,
-  );
-  console.log(`✅ PASS: README.md links to ${relPath}`);
-}
+assert(
+  readmeContent.includes("./docs/") || readmeContent.includes("docs/"),
+  "README.md must link to docs/",
+);
+console.log("✅ PASS: README.md links to docs/");
 
 // Verify docs/files.md registers all 9 contracts
 const filesMdPath = path.resolve(rootDir, "docs/files.md");

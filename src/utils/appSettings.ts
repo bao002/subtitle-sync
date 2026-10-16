@@ -78,6 +78,10 @@ export interface AppSettings {
   // Playback Order
   playOrder: "video_then_tts" | "tts_then_video";
 
+  // On-demand sentence translation ahead via Google translation API until YouTube subtitles are fetched
+  enableOnDemandTranslation: boolean;
+  onDemandTranslationSentencesAhead: number; // Configured X=10 sentences ahead
+
   // Limits
   onDemandCount: number; // Limited to next X=4 subtitles (Step 4.4)
   maxRetries: number; // Max retry limit to X=2 (Step 2.3)
@@ -227,6 +231,8 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   },
 
   playOrder: "video_then_tts",
+  enableOnDemandTranslation: true,
+  onDemandTranslationSentencesAhead: 10,
   onDemandCount: 4,
   maxRetries: 2,
 };
@@ -432,7 +438,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.34",
+    version: "1.0.36",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {

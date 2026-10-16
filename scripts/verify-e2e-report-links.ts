@@ -13,80 +13,27 @@ assert(fs.existsSync(readmePath), "README.md must exist in root");
 
 const readme = fs.readFileSync(readmePath, "utf8");
 
-// 1. Verify E2E Reports Section exists in README.md
-assert(
-  readme.includes("## 🌐 GitHub Pages Links"),
-  "README.md must contain ## 🌐 GitHub Pages Links section",
-);
-console.log("✅ PASS: GitHub Pages Links section present in README.md");
-
-// 2. Verify Mochawesome E2E Test Report Link
-const mochawesomeMatch = readme.match(
-  /\[\*\*Open Mochawesome Report\*\*\]\((https:\/\/[^/]+\.github\.io\/[^/]+\/mochawesome\.html)\)/,
-);
-assert(
-  mochawesomeMatch,
-  "README.md must contain [**Open Mochawesome Report**] link pointing to mochawesome.html",
-);
-console.log(`✅ PASS: Mochawesome report link verified: ${mochawesomeMatch[1]}`);
-
-// 3. Verify Playwright E2E Test Report Link
-const playwrightMatch = readme.match(
-  /\[\*\*Open Playwright Report\*\*\]\((https:\/\/[^/]+\.github\.io\/[^/]+\/playwright\/index\.html)\)/,
-);
-assert(
-  playwrightMatch,
-  "README.md must contain [**Open Playwright Report**] link pointing to playwright/index.html",
-);
-console.log(`✅ PASS: Playwright report link verified: ${playwrightMatch[1]}`);
-
-// 4. Verify Android Emulator E2E Test Report Link
+// 1. Verify Android Emulator E2E Test Report Link in README.md
 const emulatorReportMatch = readme.match(
-  /\[\*\*Open Android Emulator Report\*\*\]\((https:\/\/[^/]+\.github\.io\/[^/]+\/android-emulator-report\.html)\)/,
+  /\[([^\]]*report[^\]]*)\]\((https:\/\/[^/]+\.github\.io\/[^/]+\/android-emulator-report\.html)\)/i,
 );
 assert(
   emulatorReportMatch,
-  "README.md must contain [**Open Android Emulator Report**] link pointing to android-emulator-report.html",
+  "README.md must contain report link pointing to android-emulator-report.html on GitHub Pages",
 );
-console.log(`✅ PASS: Android Emulator report link verified: ${emulatorReportMatch[1]}`);
+console.log(`✅ PASS: Android Emulator report link verified in basic README: ${emulatorReportMatch[2]}`);
 
-// 5. Verify Android Emulator Screenshot Link
-const screenshotMatch = readme.match(
-  /\[\*\*View Latest Emulator Screenshot\*\*\]\((https:\/\/[^/]+\.github\.io\/[^/]+\/screenshots\/android-emulator-screenshot\.png)\)/,
-);
-assert(
-  screenshotMatch,
-  "README.md must contain [**View Latest Emulator Screenshot**] link pointing to android-emulator-screenshot.png",
-);
-console.log(`✅ PASS: Emulator screenshot link verified: ${screenshotMatch[1]}`);
+// 2. Verify public report artifact exists
+const reportFile = path.resolve(rootDir, "public/android-emulator-report.html");
+assert(fs.existsSync(reportFile), "public/android-emulator-report.html must exist");
+console.log("✅ PASS: public/android-emulator-report.html exists");
 
-// 5b. Verify Android Emulator Screencast Video Link & Size
-const videoMatch =
-  readme.match(
-    /\[\*\*View\/Download MP4 Screencast[^*]*\*\*\]\((https:\/\/[^/]+\.github\.io\/[^/]+\/screenshots\/android-emulator-video\.mp4)\)/,
-  ) ||
-  readme.match(
-    /⚠️\s*\[\*\*Broken Link \/ Missing Asset[^*]*\*\*\]\((https:\/\/[^/]+\.github\.io\/[^/]+\/android-emulator-report\.html)\)/,
-  ) ||
-  readme.match(
-    /⚠️\s*\[\*\*Missing Asset \/ HTTP 404\*\*\]\((https:\/\/[^/]+\.github\.io\/[^/]+\/screenshots\/android-emulator-video\.mp4)\)/,
-  );
-assert(
-  videoMatch,
-  "README.md must contain [**View/Download MP4 Screencast...**] link pointing to android-emulator-video.mp4 with size or missing asset indicator",
-);
-console.log(`✅ PASS: Emulator screencast video link verified: ${videoMatch[1]}`);
-
-// 6. Verify CI Workflow Links
-assert(
-  readme.includes("actions/workflows/web.yml"),
-  "README.md must link to Web E2E CI workflow actions/workflows/web.yml",
-);
-assert(
-  readme.includes("actions/workflows/emulation.yml"),
-  "README.md must link to Android Emulation CI workflow actions/workflows/emulation.yml",
-);
-console.log("✅ PASS: Live CI workflows for Web E2E and Emulation E2E linked in README.md");
+// 3. Verify workflow files exist
+const webWfPath = path.resolve(rootDir, ".github/workflows/web.yml");
+const emuWfPath = path.resolve(rootDir, ".github/workflows/emulation.yml");
+assert(fs.existsSync(webWfPath), ".github/workflows/web.yml must exist");
+assert(fs.existsSync(emuWfPath), ".github/workflows/emulation.yml must exist");
+console.log("✅ PASS: CI workflows exist: web.yml and emulation.yml");
 
 // 7. Verify workflows stage these report artifacts
 const webWorkflow = fs.readFileSync(path.resolve(rootDir, ".github/workflows/web.yml"), "utf8");
