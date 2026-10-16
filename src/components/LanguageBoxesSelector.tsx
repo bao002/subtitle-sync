@@ -1,11 +1,29 @@
 import React, { useMemo, useState } from "react";
-import { LayoutGrid, List, Check, Search, ArrowUp, ArrowDown } from "lucide-react";
+import {
+  LayoutGrid,
+  List,
+  Check,
+  Search,
+  ArrowUp,
+  ArrowDown,
+  Link2,
+  X,
+  FileText,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   type LanguageDisplayMode,
   getLanguageDisplayModeSetting,
   setLanguageDisplayModeSetting,
 } from "@/utils/appSettings";
+import { parseJson3 } from "../lib/native-captions";
+import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
+import { fetchViaServer } from "../lib/subtitle-fetch-plan";
+import serverConfig from "../config/server.json";
+import { Json3 } from "../types";
 
 export interface LanguageBoxesSelectorProps {
   catalog: Array<{ code: string; name: string }>;
@@ -13,6 +31,9 @@ export interface LanguageBoxesSelectorProps {
   onSelectionChange: (next: string[]) => void;
   isAndroid?: boolean;
   favoriteLanguages?: string[];
+  currentVideoId?: string;
+  loadedTracks?: Record<string, Json3> | null;
+  onSaveSubtitleUrl?: (langCode: string, track: Json3, url?: string) => void;
 }
 
 /**
@@ -20,6 +41,7 @@ export interface LanguageBoxesSelectorProps {
  * Presents languages with a button toggle between touch-friendly boxes and compact list.
  * In boxes mode, buttons have large click targets (min-h-[48px]) suitable for Android.
  * Clicked / selected languages are kept strictly at the top of the list.
+ * Provides dedicated expand buttons on each language button to input subtitle URLs per language.
  */
 export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
   catalog,
@@ -27,11 +49,19 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
   onSelectionChange,
   isAndroid = false,
   favoriteLanguages = [],
+  currentVideoId = "",
+  loadedTracks = null,
+  onSaveSubtitleUrl,
 }) => {
   const [displayMode, setDisplayMode] = useState<LanguageDisplayMode>(() =>
     getLanguageDisplayModeSetting(),
   );
   const [searchFilter, setSearchFilter] = useState("");
+  const [expandedLangUrl, setExpandedLangUrl] = useState<string | null>(null);
+  const [urlInputs, setUrlInputs] = useState<Record<string, string>>({});
+  const [fetchStatus, setFetchStatus] = useState<
+    Record<string, { loading: boolean; message: string | null; type: "info" | "success" | "error" }>
+  >({});
 
   const handleToggleMode = () => {
     const nextMode: LanguageDisplayMode = displayMode === "boxes" ? "list" : "boxes";
@@ -70,6 +100,84 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
     const next = [...selectedLanguages];
     [next[index], next[nextIdx]] = [next[nextIdx]!, next[index]!];
     onSelectionChange(next);
+  };
+
+  const handleFetchForLang = async (code: string, name: string) => {
+    const inputUrl = (urlInputs[code] || "").trim();
+    if (!inputUrl) return;
+
+    setFetchStatus((prev) => ({
+      ...prev,
+      [code]: { loading: true, message: `Fetching subtitles for ${name}…`, type: "info" },
+    }));
+
+    try {
+      let parsed: Json3 | null = null;
+      // 1. Direct fetch
+      try {
+        const resp = await fetch(inputUrl);
+        if (resp.ok) {
+          const text = await resp.text();
+          parsed = parseJson3(text);
+        }
+      } catch {
+        // Direct fetch failed
+      }
+
+      // 2. Server proxy if direct fetch failed
+      if (!parsed || !isValidJsonSubtitleResponse(parsed)) {
+        if (inputUrl.startsWith("http")) {
+          const serverUrl =
+            (serverConfig as { fetchServerUrl?: string; server_address?: string }).fetchServerUrl ||
+            (serverConfig as { fetchServerUrl?: string; server_address?: string }).server_address ||
+            "http://localhost:3000/api/proxy";
+          const proxyResp = await fetchViaServer(inputUrl, serverUrl);
+          if (proxyResp && proxyResp.status === 200 && proxyResp.body) {
+            parsed = parseJson3(proxyResp.body);
+          }
+        }
+      }
+
+      if (parsed && isValidJsonSubtitleResponse(parsed)) {
+        const cuesCount = parsed.events?.length || 0;
+        setFetchStatus((prev) => ({
+          ...prev,
+          [code]: {
+            loading: false,
+            message: `Successfully loaded ${cuesCount} cues for ${name}!`,
+            type: "success",
+          },
+        }));
+
+        // Ensure language is selected
+        if (!selectedLanguages.includes(code)) {
+          onSelectionChange([...selectedLanguages, code]);
+        }
+
+        if (onSaveSubtitleUrl) {
+          onSaveSubtitleUrl(code, parsed, inputUrl);
+        }
+      } else {
+        setFetchStatus((prev) => ({
+          ...prev,
+          [code]: {
+            loading: false,
+            message:
+              "Failed to parse valid YouTube JSON3 subtitles. Ensure payload contains { events: [...] }.",
+            type: "error",
+          },
+        }));
+      }
+    } catch (err) {
+      setFetchStatus((prev) => ({
+        ...prev,
+        [code]: {
+          loading: false,
+          message: `Error: ${err instanceof Error ? err.message : String(err)}`,
+          type: "error",
+        },
+      }));
+    }
   };
 
   return (
@@ -135,11 +243,15 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
               const langMeta = catalog.find((c) => c.code === code) || { code, name: code };
               const isFirst = idx === 0;
               const isLast = idx === selectedLanguages.length - 1;
+              const isExpanded = expandedLangUrl === code;
+              const cueCount = loadedTracks?.[code]?.events?.length;
               return (
                 <div
                   key={code}
                   data-testid={`selected-lang-priority-${code}`}
-                  className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs shadow-xs"
+                  className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow-xs transition-colors ${
+                    isExpanded ? "border-primary bg-primary/10" : "border-border bg-background"
+                  }`}
                 >
                   <span className="font-mono text-[10px] font-bold text-primary">#{idx + 1}</span>
                   <span className="font-medium text-foreground">{langMeta.name}</span>
@@ -152,6 +264,26 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                       ⭐
                     </span>
                   )}
+                  {cueCount ? (
+                    <span
+                      className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium"
+                      title={`${cueCount} subtitle cues loaded`}
+                    >
+                      {cueCount}
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    data-testid={`priority-chip-url-btn-${code}`}
+                    onClick={() => setExpandedLangUrl((cur) => (cur === code ? null : code))}
+                    className={`p-0.5 rounded hover:text-primary transition-colors ${
+                      isExpanded ? "text-primary font-bold" : "text-muted-foreground"
+                    }`}
+                    title={`Input subtitle URL for ${langMeta.name}`}
+                    aria-label={`Input subtitle URL for ${langMeta.name}`}
+                  >
+                    <Link2 className="h-3 w-3" />
+                  </button>
                   <div className="flex items-center ml-0.5">
                     <button
                       type="button"
@@ -202,53 +334,199 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
         <div
           id="language-boxes-grid"
           data-testid="language-boxes-grid"
-          className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 max-h-72 overflow-y-auto p-1 rounded-md border border-border bg-muted/10"
+          className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 max-h-80 overflow-y-auto p-1 rounded-md border border-border bg-muted/10"
         >
           {sortedCatalog.map((lang) => {
             const isSelected = selectedLanguages.includes(lang.code);
             const priorityIdx = selectedLanguages.indexOf(lang.code);
+            const isExpanded = expandedLangUrl === lang.code;
+            const cueCount = loadedTracks?.[lang.code]?.events?.length;
+            const status = fetchStatus[lang.code];
+
             return (
-              <button
+              <div
                 key={lang.code}
-                type="button"
-                id={`lang-box-${lang.code}`}
-                data-testid={`language-box-${lang.code}`}
-                data-selected={isSelected}
-                onClick={() => toggleLanguage(lang.code)}
-                className={`flex items-center justify-between rounded-lg border p-2.5 text-left text-sm font-medium transition-all min-h-[48px] select-none ${
-                  isSelected
-                    ? "border-primary bg-primary/15 text-primary shadow-sm ring-1 ring-primary/40 font-semibold"
-                    : "border-border bg-card hover:bg-accent/40 text-foreground"
-                }`}
-                title={
-                  isSelected
-                    ? `Unselect ${lang.name} (Priority #${priorityIdx + 1})`
-                    : `Select ${lang.name}`
-                }
+                className={`${
+                  isExpanded ? "col-span-2 sm:col-span-3 md:col-span-4" : ""
+                } flex flex-col transition-all`}
               >
-                <div className="truncate pr-1 flex items-center gap-1.5 min-w-0">
-                  {isSelected && (
-                    <span className="shrink-0 font-mono text-[10px] font-bold text-primary bg-primary/20 rounded px-1">
-                      #{priorityIdx + 1}
-                    </span>
-                  )}
-                  <span className="truncate text-xs sm:text-sm">{lang.name}</span>
-                  {favoriteLanguages.includes(lang.code) && (
-                    <span className="text-[10px] text-amber-500 shrink-0" title="Global Favorite">
-                      ⭐
-                    </span>
-                  )}
+                <div
+                  className={`flex items-center justify-between rounded-lg border p-1.5 sm:p-2 text-left text-sm font-medium transition-all min-h-[48px] select-none ${
+                    isSelected
+                      ? "border-primary bg-primary/15 text-primary shadow-xs ring-1 ring-primary/40 font-semibold"
+                      : "border-border bg-card hover:bg-accent/40 text-foreground"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    id={`lang-box-${lang.code}`}
+                    data-testid={`language-box-${lang.code}`}
+                    data-selected={isSelected}
+                    onClick={() => toggleLanguage(lang.code)}
+                    className="flex-1 flex items-center justify-between min-w-0 pr-1 text-left cursor-pointer"
+                    title={
+                      isSelected
+                        ? `Unselect ${lang.name} (Priority #${priorityIdx + 1})`
+                        : `Select ${lang.name}`
+                    }
+                  >
+                    <div className="truncate pr-1 flex items-center gap-1.5 min-w-0">
+                      {isSelected && (
+                        <span className="shrink-0 font-mono text-[10px] font-bold text-primary bg-primary/20 rounded px-1">
+                          #{priorityIdx + 1}
+                        </span>
+                      )}
+                      <span className="truncate text-xs sm:text-sm">{lang.name}</span>
+                      {favoriteLanguages.includes(lang.code) && (
+                        <span
+                          className="text-[10px] text-amber-500 shrink-0"
+                          title="Global Favorite"
+                        >
+                          ⭐
+                        </span>
+                      )}
+                      {cueCount ? (
+                        <span
+                          className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shrink-0 font-medium"
+                          title={`${cueCount} cues loaded`}
+                          data-testid={`cues-badge-${lang.code}`}
+                        >
+                          {cueCount}
+                        </span>
+                      ) : null}
+                    </div>
+                    {isSelected ? (
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        <Check className="h-3 w-3 stroke-[3]" />
+                      </span>
+                    ) : (
+                      <span className="shrink-0 rounded bg-muted px-1 py-0.5 font-mono text-[10px] uppercase text-muted-foreground">
+                        {lang.code}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Dedicated Subtitle URL Expand Button */}
+                  <button
+                    type="button"
+                    id={`expand-subtitles-url-${lang.code}`}
+                    data-testid={`expand-subtitles-url-${lang.code}`}
+                    aria-expanded={isExpanded}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedLangUrl((cur) => (cur === lang.code ? null : lang.code));
+                    }}
+                    className={`p-1.5 rounded-md hover:bg-background/80 transition-colors ml-1 text-xs shrink-0 cursor-pointer ${
+                      isExpanded
+                        ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title={`Input subtitle URL for ${lang.name}`}
+                    aria-label={`Input subtitle URL for ${lang.name}`}
+                  >
+                    <Link2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-                {isSelected ? (
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                    <Check className="h-3 w-3 stroke-[3]" />
-                  </span>
-                ) : (
-                  <span className="shrink-0 rounded bg-muted px-1 py-0.5 font-mono text-[10px] uppercase text-muted-foreground">
-                    {lang.code}
-                  </span>
+
+                {/* Inline Expandable Subtitle URL Drawer */}
+                {isExpanded && (
+                  <div
+                    data-testid={`inline-subtitle-url-panel-${lang.code}`}
+                    className="mt-1.5 p-3 rounded-lg border border-primary/30 bg-card shadow-sm space-y-2 text-xs text-card-foreground animate-in fade-in duration-150"
+                  >
+                    <div className="flex items-center justify-between border-b border-border/60 pb-1">
+                      <span className="font-semibold text-foreground flex items-center gap-1.5">
+                        <Link2 className="h-3.5 w-3.5 text-primary" />
+                        <span>
+                          Subtitle URL for {lang.name} ({lang.code})
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedLangUrl(null)}
+                        className="text-muted-foreground hover:text-foreground p-0.5 rounded text-xs"
+                        title="Close panel"
+                        aria-label="Close panel"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        id={`lang-box-url-input-${lang.code}`}
+                        data-testid={`lang-box-url-input-${lang.code}`}
+                        value={urlInputs[lang.code] ?? ""}
+                        onChange={(e) =>
+                          setUrlInputs((prev) => ({ ...prev, [lang.code]: e.target.value }))
+                        }
+                        placeholder={`e.g. /fixtures/${currentVideoId || "L2Ryrr6txwA"}/${lang.code}.json or https://...`}
+                        className="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        id={`lang-box-fetch-url-${lang.code}`}
+                        data-testid={`lang-box-fetch-url-${lang.code}`}
+                        disabled={status?.loading || !(urlInputs[lang.code] || "").trim()}
+                        onClick={() => handleFetchForLang(lang.code, lang.name)}
+                        className="h-8 text-xs shrink-0"
+                      >
+                        {status?.loading ? (
+                          <>
+                            <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                            Loading…
+                          </>
+                        ) : (
+                          "Load"
+                        )}
+                      </Button>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const sample = `/fixtures/${currentVideoId || "L2Ryrr6txwA"}/${lang.code}.json`;
+                          setUrlInputs((prev) => ({ ...prev, [lang.code]: sample }));
+                        }}
+                        className="text-primary hover:underline flex items-center gap-1"
+                      >
+                        <FileText className="h-3 w-3" />
+                        <span>Use sample fixture</span>
+                      </button>
+                      {cueCount ? (
+                        <span className="text-muted-foreground font-mono">
+                          Active: {cueCount} cues
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {status?.message && (
+                      <div
+                        data-testid={`lang-box-status-${lang.code}`}
+                        className={`p-2 rounded text-[11px] flex items-start gap-1.5 border ${
+                          status.type === "success"
+                            ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
+                            : status.type === "error"
+                              ? "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800"
+                              : "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800"
+                        }`}
+                      >
+                        {status.type === "success" ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                        ) : status.type === "error" ? (
+                          <AlertCircle className="h-3.5 w-3.5 text-rose-600 shrink-0 mt-0.5" />
+                        ) : (
+                          <RefreshCw className="h-3.5 w-3.5 text-blue-600 animate-spin shrink-0 mt-0.5" />
+                        )}
+                        <span className="flex-1">{status.message}</span>
+                      </div>
+                    )}
+                  </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>
@@ -284,8 +562,8 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
 
       <p className="text-xs text-muted-foreground">
         {isAndroid
-          ? "Tap any language box to add to favorites. Selected languages stay at the top and fetch in priority order."
-          : "Tap language boxes to toggle favorites. Selected languages stay at the top."}
+          ? "Tap any language box to add to favorites. Use the link icon on any language to input custom subtitle URLs."
+          : "Tap language boxes to toggle favorites. Click the link icon on any language to input custom subtitle URLs."}
       </p>
     </div>
   );

@@ -1,11 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { memo, useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import React, {
+  Fragment,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import {
   Activity,
   Check,
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  FileText,
   LayoutList,
   Link2,
   Loader2,
@@ -173,6 +183,7 @@ import {
 } from "@/utils/subtitleCache";
 import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
 import { STORAGE_KEYS, APP_VERSION, ALL_RELEASES_URL, DEFAULT_VIDEO_ID } from "@/config/appConfig";
+import serverConfig from "@/config/server.json";
 import { JSON3_RAW_MAP } from "../../test/fixtures/L2Ryrr6txwA/jsonStrings";
 
 const DEMO_VIDEO = "L2Ryrr6txwA";
@@ -1375,6 +1386,111 @@ function Index() {
   }, []);
   const [showVideoSubtitles, setShowVideoSubtitles] = useState(true);
   const [urlModalLang, setUrlModalLang] = useState<string | null>(null);
+  const [expandedTableUrlLang, setExpandedTableUrlLang] = useState<string | null>(null);
+  const [tableUrlInputs, setTableUrlInputs] = useState<Record<string, string>>({});
+  const [tableFetchStatus, setTableFetchStatus] = useState<
+    Record<string, { loading: boolean; message: string | null; type: "info" | "success" | "error" }>
+  >({});
+
+  const handleSaveTrackFromUrl = useCallback(
+    (langCode: string, track: Json3, url?: string) => {
+      setTracks((prev) => ({
+        ...(prev || {}),
+        [langCode]: track,
+      }));
+      setShown((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
+      setTargetLanguages((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
+      if (videoId) {
+        saveCachedRawJson3(videoId, langCode, track);
+      }
+      if (url && url.startsWith("http") && !observedUrl) {
+        setObservedUrl(url);
+      }
+      if (autoSpeakOnFetch) {
+        setSpoken((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
+      }
+      notifySubtitleFetch({
+        videoId: videoId || "active",
+        lang: langCode,
+        langName: getLanguageMeta(langCode).name,
+        cuesCount: track.events?.length || 0,
+      });
+    },
+    [videoId, observedUrl, autoSpeakOnFetch],
+  );
+
+  const handleFetchTableUrl = async (langCode: string, langName: string) => {
+    const inputUrl = (tableUrlInputs[langCode] || "").trim();
+    if (!inputUrl) return;
+
+    setTableFetchStatus((prev) => ({
+      ...prev,
+      [langCode]: {
+        loading: true,
+        message: `Fetching subtitles for ${langName}…`,
+        type: "info",
+      },
+    }));
+
+    try {
+      let parsed: Json3 | null = null;
+      try {
+        const resp = await fetch(inputUrl);
+        if (resp.ok) {
+          const text = await resp.text();
+          parsed = parseJson3(text);
+        }
+      } catch {
+        // Direct fetch failed
+      }
+
+      if (!parsed || !isValidJsonSubtitleResponse(parsed)) {
+        if (inputUrl.startsWith("http")) {
+          const serverUrl =
+            (serverConfig as { fetchServerUrl?: string; server_address?: string }).fetchServerUrl ||
+            (serverConfig as { fetchServerUrl?: string; server_address?: string }).server_address ||
+            "http://localhost:3000/api/proxy";
+          const proxyResp = await fetchViaServer(inputUrl, serverUrl);
+          if (proxyResp && proxyResp.status === 200 && proxyResp.body) {
+            parsed = parseJson3(proxyResp.body);
+          }
+        }
+      }
+
+      if (parsed && isValidJsonSubtitleResponse(parsed)) {
+        const cuesCount = parsed.events?.length || 0;
+        setTableFetchStatus((prev) => ({
+          ...prev,
+          [langCode]: {
+            loading: false,
+            message: `Loaded ${cuesCount} cues for ${langName}!`,
+            type: "success",
+          },
+        }));
+
+        handleSaveTrackFromUrl(langCode, parsed, inputUrl);
+      } else {
+        setTableFetchStatus((prev) => ({
+          ...prev,
+          [langCode]: {
+            loading: false,
+            message: "Invalid YouTube JSON3 subtitles. Expected { events: [...] }.",
+            type: "error",
+          },
+        }));
+      }
+    } catch (err) {
+      setTableFetchStatus((prev) => ({
+        ...prev,
+        [langCode]: {
+          loading: false,
+          message: `Error: ${err instanceof Error ? err.message : String(err)}`,
+          type: "error",
+        },
+      }));
+    }
+  };
+
   const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => PANELS.map((panel) => panel.id));
   const [openPanels, setOpenPanels] = useState<Record<PanelId, boolean>>({
     player: true,
@@ -4076,6 +4192,9 @@ function Index() {
                           onSelectionChange={handleTargetLanguagesChange}
                           isAndroid={isAndroid}
                           favoriteLanguages={favoriteLanguages}
+                          currentVideoId={videoId}
+                          loadedTracks={tracks}
+                          onSaveSubtitleUrl={handleSaveTrackFromUrl}
                         />
                         {(() => {
                           const pendingFetchAgainLangs =
@@ -4207,6 +4326,12 @@ function Index() {
                             >
                               TTS Ratio
                             </th>
+                            <th
+                              className="font-normal text-center"
+                              title="1 input per 1 favorite language for subtitle URL"
+                            >
+                              Subtitle URL
+                            </th>
                             <th className="font-normal text-center">Order</th>
                           </tr>
                         </thead>
@@ -4215,82 +4340,225 @@ function Index() {
                             const isSpoken = spoken.includes(l.code);
                             const ratio = ttsRatios[l.code] ?? 1;
                             const isFavorite = favoriteLanguages.includes(l.code);
+                            const isExpanded = expandedTableUrlLang === l.code;
+                            const cueCount = tracks?.[l.code]?.events?.length;
+                            const status = tableFetchStatus[l.code];
+
                             return (
-                              <tr key={l.code} data-testid={`language-row-${l.code}`}>
-                                <td className="py-1">
-                                  <span className="flex items-center gap-1">
-                                    <span>{l.name}</span>
-                                    {isFavorite && (
-                                      <span
-                                        title="Favorite language"
-                                        className="text-[10px] text-amber-500 font-bold"
-                                        data-testid={`fav-table-star-${l.code}`}
-                                      >
-                                        ⭐
-                                      </span>
-                                    )}
-                                  </span>
-                                </td>
-                                <td className="text-center">
-                                  <input
-                                    type="checkbox"
-                                    data-testid={`checkbox-present-in-table-${l.code}`}
-                                    aria-label={`Present in table: ${l.name}`}
-                                    title={`Present in table: ${l.name}`}
-                                    checked={shown.includes(l.code)}
-                                    onChange={() => toggle(shown, setShown, l.code)}
-                                  />
-                                </td>
-                                <td className="text-center">
-                                  <input
-                                    type="checkbox"
-                                    data-testid={`checkbox-tts-play-${l.code}`}
-                                    aria-label={`TTS-play: ${l.name}`}
-                                    title={`TTS-play: ${l.name}`}
-                                    checked={isSpoken}
-                                    onChange={() => toggle(spoken, setSpoken, l.code)}
-                                  />
-                                </td>
-                                <td className="text-center">
-                                  {isSpoken ? (
-                                    <span
-                                      data-testid={`tts-ratio-badge-${l.code}`}
-                                      className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-primary/10 text-primary border border-primary/20"
-                                      title={`1:${ratio} ratio (${ratio === 1 ? "All sentences" : `${Math.round(100 / ratio)}% of sentences`})`}
-                                    >
-                                      1:{ratio}
+                              <Fragment key={l.code}>
+                                <tr data-testid={`language-row-${l.code}`}>
+                                  <td className="py-1">
+                                    <span className="flex items-center gap-1">
+                                      <span>{l.name}</span>
+                                      {isFavorite && (
+                                        <span
+                                          title="Favorite language"
+                                          className="text-[10px] text-amber-500 font-bold"
+                                          data-testid={`fav-table-star-${l.code}`}
+                                        >
+                                          ⭐
+                                        </span>
+                                      )}
+                                      {cueCount ? (
+                                        <span
+                                          className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium"
+                                          title={`${cueCount} subtitle cues loaded`}
+                                        >
+                                          {cueCount}
+                                        </span>
+                                      ) : null}
                                     </span>
-                                  ) : (
-                                    <span className="text-[11px] text-muted-foreground">—</span>
-                                  )}
-                                </td>
-                                <td>
-                                  <div className="flex justify-center gap-1">
+                                  </td>
+                                  <td className="text-center">
+                                    <input
+                                      type="checkbox"
+                                      data-testid={`checkbox-present-in-table-${l.code}`}
+                                      aria-label={`Present in table: ${l.name}`}
+                                      title={`Present in table: ${l.name}`}
+                                      checked={shown.includes(l.code)}
+                                      onChange={() => toggle(shown, setShown, l.code)}
+                                    />
+                                  </td>
+                                  <td className="text-center">
+                                    <input
+                                      type="checkbox"
+                                      data-testid={`checkbox-tts-play-${l.code}`}
+                                      aria-label={`TTS-play: ${l.name}`}
+                                      title={`TTS-play: ${l.name}`}
+                                      checked={isSpoken}
+                                      onChange={() => toggle(spoken, setSpoken, l.code)}
+                                    />
+                                  </td>
+                                  <td className="text-center">
+                                    {isSpoken ? (
+                                      <span
+                                        data-testid={`tts-ratio-badge-${l.code}`}
+                                        className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-primary/10 text-primary border border-primary/20"
+                                        title={`1:${ratio} ratio (${ratio === 1 ? "All sentences" : `${Math.round(100 / ratio)}% of sentences`})`}
+                                      >
+                                        1:{ratio}
+                                      </span>
+                                    ) : (
+                                      <span className="text-[11px] text-muted-foreground">—</span>
+                                    )}
+                                  </td>
+                                  <td className="text-center">
                                     <Button
                                       type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      disabled={index === 0}
-                                      onClick={() => moveLanguage(l.code, -1)}
-                                      title={`Move ${l.name} earlier`}
-                                      aria-label={`Move ${l.name} earlier`}
+                                      variant={isExpanded ? "default" : "outline"}
+                                      size="sm"
+                                      id={`table-btn-subtitle-url-${l.code}`}
+                                      data-testid={`table-btn-subtitle-url-${l.code}`}
+                                      aria-expanded={isExpanded}
+                                      onClick={() =>
+                                        setExpandedTableUrlLang((cur) =>
+                                          cur === l.code ? null : l.code,
+                                        )
+                                      }
+                                      className="h-6 px-2 text-[11px] gap-1"
+                                      title={`Supply subtitle URL for ${l.name}`}
                                     >
-                                      <ChevronUp aria-hidden="true" />
+                                      <Link2 className="h-3 w-3" />
+                                      <span>{cueCount ? `${cueCount} cues` : "URL"}</span>
                                     </Button>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      disabled={index === orderedLangs.length - 1}
-                                      onClick={() => moveLanguage(l.code, 1)}
-                                      title={`Move ${l.name} later`}
-                                      aria-label={`Move ${l.name} later`}
-                                    >
-                                      <ChevronDown aria-hidden="true" />
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
+                                  </td>
+                                  <td>
+                                    <div className="flex justify-center gap-1">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        disabled={index === 0}
+                                        onClick={() => moveLanguage(l.code, -1)}
+                                        title={`Move ${l.name} earlier`}
+                                        aria-label={`Move ${l.name} earlier`}
+                                      >
+                                        <ChevronUp aria-hidden="true" />
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        disabled={index === orderedLangs.length - 1}
+                                        onClick={() => moveLanguage(l.code, 1)}
+                                        title={`Move ${l.name} later`}
+                                        aria-label={`Move ${l.name} later`}
+                                      >
+                                        <ChevronDown aria-hidden="true" />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {isExpanded && (
+                                  <tr
+                                    key={`${l.code}-url-drawer`}
+                                    data-testid={`url-input-row-${l.code}`}
+                                    className="bg-primary/5 border-y border-primary/20"
+                                  >
+                                    <td colSpan={6} className="p-2.5">
+                                      <div className="space-y-2 max-w-xl text-xs">
+                                        <div className="flex items-center justify-between">
+                                          <span className="font-semibold text-foreground flex items-center gap-1.5">
+                                            <Link2 className="h-3.5 w-3.5 text-primary" />
+                                            <span>
+                                              Subtitle URL for {l.name} ({l.code})
+                                            </span>
+                                          </span>
+                                          <button
+                                            type="button"
+                                            onClick={() => setExpandedTableUrlLang(null)}
+                                            className="text-muted-foreground hover:text-foreground text-[11px]"
+                                          >
+                                            ✕ Close
+                                          </button>
+                                        </div>
+
+                                        <div className="flex items-center gap-2">
+                                          <input
+                                            type="text"
+                                            id={`table-url-input-${l.code}`}
+                                            data-testid={`table-url-input-${l.code}`}
+                                            value={tableUrlInputs[l.code] ?? ""}
+                                            onChange={(e) =>
+                                              setTableUrlInputs((prev) => ({
+                                                ...prev,
+                                                [l.code]: e.target.value,
+                                              }))
+                                            }
+                                            placeholder={`e.g. /fixtures/${videoId || "L2Ryrr6txwA"}/${l.code}.json or https://...`}
+                                            className="flex-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                                          />
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            id={`table-fetch-url-${l.code}`}
+                                            data-testid={`table-fetch-url-${l.code}`}
+                                            disabled={
+                                              status?.loading ||
+                                              !(tableUrlInputs[l.code] || "").trim()
+                                            }
+                                            onClick={() => handleFetchTableUrl(l.code, l.name)}
+                                            className="h-7 text-xs px-2.5 shrink-0"
+                                          >
+                                            {status?.loading ? (
+                                              <>
+                                                <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                                Loading…
+                                              </>
+                                            ) : (
+                                              "Fetch Subtitles"
+                                            )}
+                                          </Button>
+                                        </div>
+
+                                        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                                          <button
+                                            type="button"
+                                            onClick={() => {
+                                              const sample = `/fixtures/${videoId || "L2Ryrr6txwA"}/${l.code}.json`;
+                                              setTableUrlInputs((prev) => ({
+                                                ...prev,
+                                                [l.code]: sample,
+                                              }));
+                                            }}
+                                            className="text-primary hover:underline flex items-center gap-1"
+                                          >
+                                            <FileText className="h-3 w-3" />
+                                            <span>Use sample fixture</span>
+                                          </button>
+                                          {cueCount ? (
+                                            <span className="text-muted-foreground font-mono">
+                                              Active track: {cueCount} cues
+                                            </span>
+                                          ) : null}
+                                        </div>
+
+                                        {status?.message && (
+                                          <div
+                                            data-testid={`table-url-status-${l.code}`}
+                                            className={`p-2 rounded text-[11px] flex items-start gap-1.5 border ${
+                                              status.type === "success"
+                                                ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
+                                                : status.type === "error"
+                                                  ? "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800"
+                                                  : "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800"
+                                            }`}
+                                          >
+                                            {status.type === "success" ? (
+                                              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                                            ) : status.type === "error" ? (
+                                              <AlertCircle className="h-3.5 w-3.5 text-rose-600 shrink-0 mt-0.5" />
+                                            ) : (
+                                              <RefreshCw className="h-3.5 w-3.5 text-blue-600 animate-spin shrink-0 mt-0.5" />
+                                            )}
+                                            <span className="flex-1">{status.message}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </Fragment>
                             );
                           })}
                         </tbody>
@@ -4493,6 +4761,15 @@ function Index() {
           onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
         />
       )}
+      <LanguageSubtitleUrlModal
+        isOpen={urlModalLang !== null}
+        onClose={() => setUrlModalLang(null)}
+        langCode={urlModalLang}
+        langName={urlModalLang ? getLanguageMeta(urlModalLang).name : ""}
+        currentVideoId={videoId}
+        onSaveTrack={handleSaveTrackFromUrl}
+        existingTrack={urlModalLang && tracks ? tracks[urlModalLang] : null}
+      />
       <ApkReleaseModal isOpen={apkModalOpen} onClose={() => setApkModalOpen(false)} />
       <SubtitleFetchToast
         onViewSubtitles={() => {

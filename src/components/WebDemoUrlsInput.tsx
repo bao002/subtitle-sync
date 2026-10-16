@@ -399,6 +399,8 @@ export function WebDemoUrlsInput({
           Load video
         </Button>
         <Button
+          id="toggle-web-demo-subtitles-drawer"
+          data-testid="toggle-web-demo-subtitles-drawer"
           type="button"
           variant="outline"
           size="sm"
@@ -435,15 +437,22 @@ export function WebDemoUrlsInput({
         </div>
       )}
 
-      {/* 2. Collapsible Custom Subtitles Input Drawer */}
+      {/* 2. Collapsible Custom Subtitles Input Drawer - Hidden by default */}
       {isExpanded && (
         <div
+          id="web-demo-subtitles-drawer"
+          data-testid="web-demo-subtitles-drawer"
           className="rounded-xl border border-border bg-card p-3 shadow-sm text-card-foreground text-xs space-y-2.5 animate-in fade-in duration-150"
         >
           <div className="flex items-center justify-between border-b border-border/60 pb-1.5">
-            <span className="font-medium text-foreground">
-              Provide Subtitle URLs per Language:
-            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="font-medium text-foreground">
+                Provide Subtitle URLs per Language:
+              </span>
+              <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                (or configure per language directly in the Languages table below)
+              </span>
+            </div>
             <button
               type="button"
               onClick={handleUseSampleFixtures}

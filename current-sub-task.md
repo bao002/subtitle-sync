@@ -1,12 +1,13 @@
 # Current Subtask (`current-sub-task.md`)
 
-## Active Subtask: Subtask 126.1 - Version Bump to 1.0.29 across Project Files
-- **Task**: Task 126 - Provide Per-Language Subtitle URL Input via Language Button & Clean Top Bar of Redundant Drawer (Version 1.0.29)
-- **Status**: [IN PROGRESS]
-- **Target Files**:
-  - `package.json` (version 1.0.29)
-  - `android-shell/app/build.gradle.kts` (versionCode 10029, versionName "1.0.29")
-  - `src/config/appConfig.ts` (APP_VERSION = "1.0.29")
-  - `src/utils/apkUpdater.ts` (CURRENT_APK_VERSION = "v1.0.29")
-  - `src/utils/appSettings.ts` (version: "1.0.29")
-- **Action**: Increment version across configuration files.
+## Active Subtask: None (Task 128 Completed & Verified)
+- **Task**: Task 128 - Hide Web Demo Subtitle URLs Drawer by Default & Preserve Clean Single-Row Input (Version 1.0.32)
+- **Status**: [COMPLETED]
+- **Verification**:
+  - `scripts/verify-web-demo-subtitles-drawer-hidden-by-default.ts`: PASSED
+  - `scripts/verify-agents-version-rule.ts`: PASSED
+  - `scripts/verify-language-button-subtitle-url.ts`: PASSED
+  - `scripts/verify-no-duplicate-md-files.ts`: PASSED
+  - `lint_applet`: PASSED (zero errors)
+  - `compile_applet`: PASSED (build succeeded)
+  - Migrated to `docs/done.md` under `## Task 128: Hide Web Demo Subtitle URLs Drawer by Default & Preserve Clean Single-Row Input (Version 1.0.32)`

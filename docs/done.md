@@ -1,5 +1,80 @@
 # Done tasks
 
+## Task 128: Hide Web Demo Subtitle URLs Drawer by Default & Preserve Clean Single-Row Input (Version 1.0.32)
+
+### Summary:
+- **Version 1.0.32 Bump & Parity**:
+  - Aligned semantic version `1.0.32` and versionCode `10032` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Hide Web Demo Subtitle URLs Drawer by Default**:
+  - In response to user feedback requesting that the subtitle URLs drawer in the web demo top bar (`div#root > div > div > div > div:nth-of-type(2)`) be hidden by default since alternative, convenient ways to input subtitle URLs per language exist (via the Languages accordion table and language buttons):
+  - Verified and ensured `isExpanded` is initialized to `false` in `src/components/WebDemoUrlsInput.tsx`.
+  - Added `id="web-demo-subtitles-drawer"` and `data-testid="web-demo-subtitles-drawer"` with conditional unmounting when collapsed so that no DOM clutter or space is occupied.
+  - Added `id="toggle-web-demo-subtitles-drawer"` and `data-testid="toggle-web-demo-subtitles-drawer"` with proper accessibility attribute `aria-expanded={isExpanded}`.
+  - Added descriptive guidance text in the drawer header informing users: `(or configure per language directly in the Languages table below)`.
+  - Preserved the clean single-row `#youtube-url-form` with `#youtube-url-input` and `#play-video-button`.
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-web-demo-subtitles-drawer-hidden-by-default.ts` asserting:
+    1. `isExpanded` initialized to `false` (drawer hidden by default).
+    2. Subtitle drawer conditionally rendered only when `isExpanded` is `true`.
+    3. Toggle button present with `aria-expanded` and test IDs.
+    4. Clean single-row form layout preserved.
+    5. Subtitle drawer guidance referencing Languages table below.
+    6. Alternative ways to input subtitle URLs per language verified: `LanguageBoxesSelector` expandable subtitle URL inputs on language buttons, and Languages table dedicated subtitle URL button & input per language row.
+  - Documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-web-demo-subtitles-drawer-hidden-by-default.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-language-button-subtitle-url.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED (100% verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
+### Hotfix: Fix React.Fragment ReferenceError in src/routes/index.tsx (Version 1.0.31)
+
+### Summary:
+- **Root Cause**: In `src/routes/index.tsx`, table rows rendered using `<React.Fragment key={l.code}>` threw `ReferenceError: React is not defined` because only named hooks were imported from `"react"`, leaving the bare `React` namespace undefined in scope.
+- **Resolution**:
+  - Explicitly imported `React` and `Fragment` from `"react"` at top level of `src/routes/index.tsx`.
+  - Replaced `<React.Fragment>` with cleanly scoped `<Fragment>`.
+- **Version 1.0.31 Bump & Parity**:
+  - Synchronized version `1.0.31` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10031`), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-hotfix-react-import.ts` asserting explicit React and Fragment imports and absence of unbound identifiers.
+  - Documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-hotfix-react-import.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-language-button-subtitle-url.ts`: PASSED (100% verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
+## Task 127: Provide 1 Subtitle URL Input per Favorite Language in Table and Expandable URL Input on Language Buttons (Version 1.0.30)
+
+### Summary:
+- **Version 1.0.30 Bump & Parity**:
+  - Aligned semantic version `1.0.30` and versionCode `10030` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Expandable Subtitle URL Inputs on Language Buttons (`LanguageBoxesSelector.tsx`)**:
+  - Enhanced `src/components/LanguageBoxesSelector.tsx` to add a dedicated URL expand button (`data-testid="expand-subtitles-url-${lang.code}"`) on each language box/button and priority chip (`data-testid="priority-chip-url-btn-${code}"`).
+  - When clicked, smoothly expands an inline drawer directly under the language box (`data-testid="inline-subtitle-url-panel-${lang.code}"`) containing an input field (`data-testid="lang-box-url-input-${lang.code}"`), a "Use sample fixture" button, a "Load" button (`data-testid="lang-box-fetch-url-${lang.code}"`), and live status feedback.
+  - Automatically fetches via direct fetch or server proxy, validates through `isValidJsonSubtitleResponse()`, and calls `onSaveSubtitleUrl` to update tracks.
+- **1 Subtitle URL Input per Favorite Language in Table (`src/routes/index.tsx`)**:
+  - Added a dedicated "Subtitle URL" column in the Languages table in `src/routes/index.tsx`.
+  - Added an action button (`data-testid="table-btn-subtitle-url-${l.code}"`) per language row displaying active cue count or "URL".
+  - When toggled, reveals an expandable drawer row (`data-testid="url-input-row-${l.code}"`) allowing direct input of the subtitle URL (`data-testid="table-url-input-${l.code}"`), sample fixture path button, and fetch button (`data-testid="table-fetch-url-${l.code}"`).
+  - Implemented `handleSaveTrackFromUrl` updating tracks, shown columns, targetLanguages, local storage caching (`saveCachedRawJson3`), and user notifications (`notifySubtitleFetch`).
+- **Clean Design Preservation**:
+  - Preserved the clean single-row YouTube video URL bar at the top of the web demo without cluttering.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-language-button-subtitle-url.ts` asserting component props, test IDs, expandable panels, table inputs, fixture parsing, and caching.
+  - Documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-language-button-subtitle-url.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-web-demo-design-preservation.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED (100% verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
 ## Task 125: Support Direct Subtitle & Video URL Fetching in Main Web-Demo Input Bar & Streamline Redundant Drawer (Version 1.0.28)
 
 ### Summary:
