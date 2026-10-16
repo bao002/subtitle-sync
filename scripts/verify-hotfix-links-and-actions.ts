@@ -41,10 +41,10 @@ assert(
   "README.md must contain valid GitHub Pages web demo link",
 );
 assert(
-  readmeContent.includes("screenshots/android-emulator-screenshot.png"),
-  "README.md must link to emulator screenshot",
+  readmeContent.includes("android-emulator-report.html"),
+  "README.md must link to emulator report",
 );
-console.log("✅ PASS: README.md contains GitHub Pages web demo and emulator screenshot links");
+console.log("✅ PASS: README.md contains GitHub Pages web demo and emulator report links");
 
 // 4. Verify authentic screenshot assets exist in public/ and will be copied to dist/
 const screenshotInPublic = path.resolve(

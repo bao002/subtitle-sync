@@ -71,8 +71,8 @@ assert(
 
 const readmeCurrentContent = fs.readFileSync(readmePath, "utf-8");
 assert(
-  readmeCurrentContent.includes("report-video-flow.yml/badge.svg"),
-  "README.md must feature Report Video Flow badge",
+  readmeCurrentContent.includes("android-emulator-report.html"),
+  "README.md must link to android-emulator-report.html",
 );
 console.log(
   "✅ PASS: Dedicated report-video-flow.yml workflow, auto-trigger, and deploy-demo recovery properly configured.",
@@ -173,8 +173,9 @@ try {
     "README must reference the report URL with the broken video",
   );
   assert(
-    failureReadme.includes("Missing Asset / HTTP 404"),
-    "README verified products list must flag Missing Asset / HTTP 404",
+    failureReadme.includes("android-emulator-video.mp4") ||
+      failureReadme.includes("HTTP 404"),
+    "README must note broken screencast video",
   );
   console.log("✅ PASS: Broken report video link correctly detected and published to README.md.");
 

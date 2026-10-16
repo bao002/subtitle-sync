@@ -4,11 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Task 130 — Basic Minimalist README.md with Docs, Demo, and Report Links (v1.0.35)
+## Active Prompt: Task 131 — On-Demand Translation Ahead (X=10 sentences) via Google Translate API (v1.0.36)
 
-- **Target 1**: Bump app version to 1.0.35 across all 5 version targets.
-- **Target 2**: Implement clean, basic README.md with direct links to: 1. Docs, 2. Demo website on GitHub Pages, 3. Reports on GitHub Pages.
-- **Target 3**: Update verify scripts to align with basic README and add dedicated test `scripts/verify-basic-readme.ts`.
+- **Target 1**: Bump app version to 1.0.36 across all 5 version targets.
+- **Target 2**: Implement `src/utils/onDemandTranslationManager.ts` with user-specified `translateWithGoogle` API, language normalization, caching, and lookahead queue (X=10 sentences ahead).
+- **Target 3**: Update `appSettings.ts` with `enableOnDemandTranslation` and `onDemandTranslationSentencesAhead` configuration.
+- **Target 4**: Integrate on-demand translation into `src/routes/index.tsx` for selected target languages pending YouTube timedtext fetch, reactively translating the next X=10 sentences as playback advances.
+- **Target 5**: Author dedicated test `scripts/verify-on-demand-translation.ts` and verify build and lints.
 
 ---
 

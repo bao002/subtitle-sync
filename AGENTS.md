@@ -44,6 +44,9 @@
     3. **Execute in isolation**: Implement minimal targeted fix, verify with dedicated automated test, compile (`compile_applet`), and lint (`lint_applet`).
     4. **Commit and document**: Perform a dedicated git commit (`fix(hotfix): <description>`), move the hotfix directly out of `current-sub-task.md`, `docs/todo.md`, and `docs/tasks.md` into `docs/done.md` under `### Hotfix: <issue>`.
     5. **Resume held task**: Only after the hotfix is verified and accomplished, restore the suspended task back to active status in `current-sub-task.md` and `docs/todo.md`, and resume work from where it was paused.
+- **Always keep last raw prompt in AGENTS.md**:
+  - `AGENTS.md` must continuously record and preserve the exact, unedited raw text of the user's latest prompt in a dedicated `## Last raw prompt` section.
+  - On EVERY single prompt received, before or alongside executing actions, the agent MUST update the `## Last raw prompt` section in `AGENTS.md` with the verbatim prompt received. This guarantees that user requirements and exact phrasing are never lost between prompt turns or context compressions.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
 - Check the last GitHub Actions result and fix failed flows: continuously monitor and verify GitHub Actions workflow outcomes (such as `web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, and `integrity.yml`), diagnose the root cause of any broken or failing CI steps, and fix failed workflows promptly.
 
@@ -156,3 +159,26 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
   - Only responses satisfying all "good" response criteria above are eligible for storage.
 - **Read-time eviction**: When reading cached data, if an entry is found to be corrupted, malformed, or contains zero cues, it must be purged and evicted from the cache immediately.
 - **Explicit cache management**: The application must provide explicit cache controls ("Clear cache" and "Fetch from scratch") allowing users to clear cached entries and re-fetch authentic subtitle data on demand.
+
+## Last raw prompt
+
+```
+up until translation is fetched from youtube api - use on demand translation (translate next configured X=10 sentences ahead) using a translation api:
+const translateWithGoogle = ({ text, fromLang, toLang }: { text: string; fromLang: string; toLang: string }): Promise<string> => {
+    const normalizedFromLang = normalizeLanguage(fromLang);
+    const normalizedToLang = normalizeLanguage(toLang);
+    const requestUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${normalizedFromLang}&tl=${normalizedToLang}&dt=t&q=${encodeURIComponent(text)}`;
+
+    return fetch(requestUrl)
+        .then(res => res.json())
+        .then(data => {
+            const translated = data?.translatedText || data?.[0]?.[0]?.[0] || '';
+            if (translated) {
+                return translated;
+            }
+            throw new Error('No translated text returned');
+        });
+};
+```
+
+

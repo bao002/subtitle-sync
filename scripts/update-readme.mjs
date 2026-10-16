@@ -32,9 +32,10 @@ let targetOwner = "mostuf2556";
 let targetRepo = "subtitle-sync";
 
 // Detect from existing README badges or links if not passed
-const ownerMatch = content.match(
-  /https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)\/actions/,
-);
+const ownerMatch =
+  content.match(/https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)\/actions/) ||
+  content.match(/https:\/\/([a-zA-Z0-9_\-]+)\.github\.io\/([a-zA-Z0-9_\-]+)/) ||
+  content.match(/https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)/);
 if (ownerMatch && ownerMatch[1] && ownerMatch[2]) {
   targetOwner = ownerMatch[1];
   targetRepo = ownerMatch[2];
@@ -423,7 +424,11 @@ if (statusSectionRegex.test(content)) {
   const marker = "## 📱 Live Android Emulator Verification Report";
   if (content.includes(marker)) {
     content = content.replace(marker, `${statusSection}\n\n---\n\n${marker}`);
-  } else {
+  } else if (
+    process.env.APPEND_CI_STATUS === "true" ||
+    process.env.REPORT_VIDEO_BROKEN === "true" ||
+    (process.env.CI_STATUS === "success" && process.env.VIDEO_SIZE_BYTES)
+  ) {
     content = `${content}\n\n${statusSection}\n`;
   }
 }

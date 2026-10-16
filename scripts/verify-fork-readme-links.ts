@@ -85,16 +85,8 @@ try {
   });
   const forkedReadme = fs.readFileSync(readmePath, "utf8");
   assert(
-    forkedReadme.includes("https://github.com/test-fork-user/subtitle-sync/"),
-    "Fork update must update github.com repository links",
-  );
-  assert(
     forkedReadme.includes("https://test-fork-user.github.io/subtitle-sync/"),
     "Fork update must update github.io GitHub Pages links",
-  );
-  assert(
-    forkedReadme.includes("raw.githubusercontent.com/test-fork-user/subtitle-sync/"),
-    "Fork update must update raw.githubusercontent.com curl script URLs",
   );
   console.log(
     "✅ PASS: scripts/update-readme.mjs cleanly synchronizes forked repository identities",

@@ -138,15 +138,12 @@ assert(
   readmeContent.includes("android-emulator-report.html"),
   "README.md must prominently link to android-emulator-report.html",
 );
+const androidDoc = fs.readFileSync(path.resolve(rootDir, "docs/android.md"), "utf8");
 assert(
-  readmeContent.includes("The application can be shared a YouTube video"),
-  "README.md must specify the core tested feature",
+  androidDoc.includes("ACTION_VIEW") && androidDoc.includes("ACTION_SEND"),
+  "docs/android.md must specify YouTube sharing intent features",
 );
-assert(
-  readmeContent.includes("quarentined/"),
-  "README.md must reference quarantine directory for secondary suites",
-);
-console.log("✅ PASS: README.md simplified with working report links and quarantine notice.");
+console.log("✅ PASS: Basic README features working report link and docs/android.md documents intent features.");
 
 console.log("\n=========================================================================");
 console.log("🎉 ALL QUARANTINE & MINIMAL ANDROID SHARE VERIFICATIONS PASSED!");

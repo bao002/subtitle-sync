@@ -96,29 +96,13 @@ console.log(`   Expected Pages URL:   ${expectedPagesBaseUrl}`);
 // -----------------------------------------------------------------------------
 console.log("\n--> [Step 2] Validating README.md Links against Repository Identity...");
 
-// 2.1 Emulation workflow badge or link
-const emulationWorkflowUrl = `${expectedActionsBaseUrl}/workflows/emulation.yml`;
+// 2.1 Emulation workflow file exists
+const emulationWorkflowFile = path.resolve(rootDir, ".github/workflows/emulation.yml");
 assert(
-  readmeContent.includes(emulationWorkflowUrl),
-  `README.md must link to Android Emulation workflow at: ${emulationWorkflowUrl}`,
+  fs.existsSync(emulationWorkflowFile),
+  `Workflow file must exist: ${emulationWorkflowFile}`,
 );
-console.log(`   ✓ Emulation workflow link verified in README: ${emulationWorkflowUrl}`);
-
-// 2.2 Web workflow badge or link
-const webWorkflowUrl = `${expectedActionsBaseUrl}/workflows/web.yml`;
-assert(
-  readmeContent.includes(webWorkflowUrl),
-  `README.md must link to Web E2E workflow at: ${webWorkflowUrl}`,
-);
-console.log(`   ✓ Web workflow link verified in README: ${webWorkflowUrl}`);
-
-// 2.3 Release APK workflow badge or link
-const releaseWorkflowUrl = `${expectedActionsBaseUrl}/workflows/release-apk.yml`;
-assert(
-  readmeContent.includes(releaseWorkflowUrl),
-  `README.md must link to Release APK workflow at: ${releaseWorkflowUrl}`,
-);
-console.log(`   ✓ Release APK workflow link verified in README: ${releaseWorkflowUrl}`);
+console.log(`   ✓ Emulation workflow file verified: .github/workflows/emulation.yml`);
 
 // 2.4 GitHub Pages links in README.md
 const emulatorReportUrl = `${expectedPagesBaseUrl}/android-emulator-report.html`;
@@ -128,30 +112,12 @@ assert(
 );
 console.log(`   ✓ Android Emulator Report link verified: ${emulatorReportUrl}`);
 
-const emulatorScreenshotUrl = `${expectedPagesBaseUrl}/screenshots/android-emulator-screenshot.png`;
+// 2.2 In basic README, verify link to docs and demo website
 assert(
-  readmeContent.includes(emulatorScreenshotUrl),
-  `README.md must include link to latest emulator screenshot at: ${emulatorScreenshotUrl}`,
+  readmeContent.includes("docs") && readmeContent.includes(expectedPagesBaseUrl),
+  "README.md must link to docs and GitHub Pages demo",
 );
-console.log(`   ✓ Emulator Screenshot link verified: ${emulatorScreenshotUrl}`);
-
-// 2.5 Screencast Video link & size in README.md
-const screencastVideoUrl = `${expectedPagesBaseUrl}/screenshots/android-emulator-video.mp4`;
-assert(
-  readmeContent.includes(screencastVideoUrl),
-  `README.md must include direct link to Android Emulator Screencast Video at: ${screencastVideoUrl}`,
-);
-assert(
-  readmeContent.includes("Android Emulator Screencast Video") &&
-    (readmeContent.includes("MB") ||
-      readmeContent.includes("bytes") ||
-      readmeContent.includes("HTTP 404") ||
-      readmeContent.includes("Missing Asset")),
-  "README.md must document the Android Emulator Screencast Video along with its video size or status",
-);
-console.log(
-  `   ✓ Android Emulator Screencast Video link & size verified in README: ${screencastVideoUrl}`,
-);
+console.log("   ✓ Basic README verified with docs and demo links.");
 
 // -----------------------------------------------------------------------------
 // 3. Inspect GitHub Actions Workflows (emulation.yml & deploy-demo.yml)
