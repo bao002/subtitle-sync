@@ -1,8 +1,38 @@
 # Done tasks
 
+## Task 131: On-Demand Translation Ahead (X=10 sentences) via Google Translate API (Version 1.0.36)
+
+### Summary:
+
+- **Version 1.0.36 Bump & Parity**:
+  - Aligned semantic version `1.0.36` and versionCode `10036` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **On-Demand Translation Manager (`src/utils/onDemandTranslationManager.ts`)**:
+  - Implemented `translateWithGoogle` using the user-specified Google Translate API (`client=gtx`, `sl`, `tl`, `dt=t`).
+  - Added robust response parsing handling nested array schemas (`data[0][0][0]`), multi-segment arrays, and `data.translatedText` object responses.
+  - Implemented language normalization (`normalizeLanguage`) supporting BCP-47 codes (`en-US` -> `en`, `zh-CN`, `zh-TW`, `iw` -> `he`, `ji` -> `yi`, `in` -> `id`).
+  - Implemented global sentence caching (`getCachedTranslation`, `setCachedTranslation`) and in-flight request deduplication to prevent redundant network requests.
+  - Implemented `translateSentencesAhead` translating the next configured X=10 sentences ahead from `startIndex` for target languages pending YouTube subtitles.
+  - Implemented `clearOnDemandTranslations` to purge on-demand translations when authentic YouTube timedtext arrives.
+- **App Settings Configuration (`src/utils/appSettings.ts`)**:
+  - Added `enableOnDemandTranslation: true` and `onDemandTranslationSentencesAhead: 10` to `DEFAULT_APP_SETTINGS`.
+  - Added persistence functions `getOnDemandTranslationSetting`, `setOnDemandTranslationSetting`, `getOnDemandTranslationSentencesAhead`, `setOnDemandTranslationSentencesAhead`.
+- **Reactive UI & Playback Integration (`src/routes/index.tsx`)**:
+  - Connected `onDemandTranslations` state to lookahead effect translating the next X=10 sentences ahead for target languages without YouTube timedtext.
+  - Augmented `rows` with on-demand translated sentences so the table, video subtitle overlay, and TTS narration render and speak translations in real-time before YouTube timedtext arrives.
+  - Enabled columns with on-demand translated cues to display in `cols` so parallel columns appear immediately.
+  - Added settings panel card with `on-demand-translation-settings-card`, `on-demand-translation-toggle`, and `on-demand-ahead-count-input`.
+- **Dedicated Automated Verification (`scripts/verify-on-demand-translation.ts`)**:
+  - Authored comprehensive test verifying language normalization, array/object schema parsing, caching, lookahead translation, clearing on arrival, settings persistence, index.tsx UI integration, and 1.0.36 version parity.
+  - Registered as `"test:on-demand-translation"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:on-demand-translation`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
 ## Task 130: AGENTS.md Raw Prompt Rule & Basic Minimalist README.md (Version 1.0.35)
 
 ### Summary:
+
 - **Version 1.0.35 Bump & Parity**:
   - Aligned semantic version `1.0.35` and versionCode `10035` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **AGENTS.md Mandatory Raw Prompt Preservation Rule**:
@@ -38,6 +68,7 @@
 ### Hotfix: Fix ReferenceError Cannot access 'active' before initialization in src/routes/index.tsx (Version 1.0.34)
 
 ### Summary:
+
 - **Root Cause**:
   - In `src/routes/index.tsx`, `handleReplaySection` (added as part of the video playback controls) closed over `active` in its `useCallback` dependency array `[active, handleSeek]`.
   - Because `handleReplaySection` was placed higher in the component body than `const [active, setActive] = useState(-1);`, JavaScript's Temporal Dead Zone (TDZ) triggered `ReferenceError: Cannot access 'active' before initialization` on initial component evaluation, rendering the router ErrorComponent ("This page didn't load").
@@ -60,6 +91,7 @@
 ## Task 129: Video Playback Controls Under Video & Center Play/Pause Overlay (Version 1.0.33)
 
 ### Summary:
+
 - **Version 1.0.33 Bump & Parity**:
   - Aligned semantic version `1.0.33` and versionCode `10033` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **Playback Control Buttons Under Presented Video (`src/components/VideoPlaybackControls.tsx`)**:
@@ -103,6 +135,7 @@
 ## Task 128: Hide Web Demo Subtitle URLs Drawer by Default & Preserve Clean Single-Row Input (Version 1.0.32)
 
 ### Summary:
+
 - **Version 1.0.32 Bump & Parity**:
   - Aligned semantic version `1.0.32` and versionCode `10032` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **Hide Web Demo Subtitle URLs Drawer by Default**:
@@ -132,6 +165,7 @@
 ### Hotfix: Fix React.Fragment ReferenceError in src/routes/index.tsx (Version 1.0.31)
 
 ### Summary:
+
 - **Root Cause**: In `src/routes/index.tsx`, table rows rendered using `<React.Fragment key={l.code}>` threw `ReferenceError: React is not defined` because only named hooks were imported from `"react"`, leaving the bare `React` namespace undefined in scope.
 - **Resolution**:
   - Explicitly imported `React` and `Fragment` from `"react"` at top level of `src/routes/index.tsx`.
@@ -151,6 +185,7 @@
 ## Task 127: Provide 1 Subtitle URL Input per Favorite Language in Table and Expandable URL Input on Language Buttons (Version 1.0.30)
 
 ### Summary:
+
 - **Version 1.0.30 Bump & Parity**:
   - Aligned semantic version `1.0.30` and versionCode `10030` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **Expandable Subtitle URL Inputs on Language Buttons (`LanguageBoxesSelector.tsx`)**:
@@ -178,6 +213,7 @@
 ## Task 125: Support Direct Subtitle & Video URL Fetching in Main Web-Demo Input Bar & Streamline Redundant Drawer (Version 1.0.28)
 
 ### Summary:
+
 - **Version 1.0.28 Bump & Parity**:
   - Aligned semantic version `1.0.28` and versionCode `10028` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **Integrated Direct URL Fetching into Main Input Bar (`#youtube-url-input`)**:
@@ -205,6 +241,7 @@
 ## Task 124: Rethink Lightweight Agent Work & Task Management, Streamline tokens.md to Minimal Reference, and Add docs/tasks-index.md (Version 1.0.27)
 
 ### Summary:
+
 - **Version 1.0.27 Bump & Parity**:
   - Aligned semantic version `1.0.27` and versionCode `10027` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **Created Structured `docs/tasks-index.md`**:
@@ -231,6 +268,7 @@
 ## Task 123: Streamline docs/tokens.md into Lean, High-Efficiency Token Economy Protocol & Preface (Version 1.0.26)
 
 ### Summary:
+
 - **Version 1.0.26 Bump & Parity**:
   - Aligned semantic version `1.0.26` and versionCode `10026` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **Streamlined `docs/tokens.md` into Lean Token Protocol & Preface**:
@@ -259,6 +297,7 @@
 ## Task 122: Restore Web-Demo UI Design, Codify Design Preservation in AGENTS.md, and Fix Video/Subtitle State Isolation (Version 1.0.25)
 
 ### Summary:
+
 - **Version 1.0.25 Bump & Parity**:
   - Aligned semantic version `1.0.25` and versionCode `10025` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **Codified Design Preservation Mandate in AGENTS.md**:
@@ -288,6 +327,7 @@
 ## Task 121: GitHub Import Migration & Environment Harmonization
 
 ### Summary:
+
 - **Environment & Lockfile Normalization**:
   - Deleted extraneous `bun.lock` file in compliance with the `github-import-migration` skill for Node.js runtimes.
   - Verified package manager configuration, ensuring no unsupported lockfiles or engines exist.
@@ -314,6 +354,7 @@
 ## Task 120: Web-Demo Mode Video & Subtitles URLs Input for Per-Language Subtitle Fetching (Version 1.0.24)
 
 ### Summary:
+
 - **Version 1.0.24 Bump & Strict Parity**:
   - Aligned semantic version `1.0.24` and versionCode `10024` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **Modular WebDemoUrlsInput Component**:

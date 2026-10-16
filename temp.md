@@ -1,2 +1,3 @@
 # Ephemeral Scratchpad (temp.md)
-*Clean - no active drafts.*
+
+_Clean - no active drafts._

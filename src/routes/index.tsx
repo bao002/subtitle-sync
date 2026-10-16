@@ -75,7 +75,17 @@ import {
   setSubtitleFetchWindowSeconds,
   getFavoriteLanguages,
   setFavoriteLanguages,
+  getOnDemandTranslationSetting,
+  setOnDemandTranslationSetting,
+  getOnDemandTranslationSentencesAhead,
+  setOnDemandTranslationSentencesAhead,
 } from "@/utils/appSettings";
+import {
+  translateSentencesAhead,
+  getStoredOnDemandTranslation,
+  getAllStoredOnDemandTranslations,
+  clearOnDemandTranslations,
+} from "@/utils/onDemandTranslationManager";
 import { LanguageBoxesSelector } from "@/components/LanguageBoxesSelector";
 import { LanguageSubtitleUrlModal } from "@/components/LanguageSubtitleUrlModal";
 import {
@@ -1372,6 +1382,23 @@ function Index() {
       setNetworkInspectorOpen(false);
     }
   };
+  const [onDemandTranslations, setOnDemandTranslations] = useState<
+    Record<string, Record<number, string>>
+  >({});
+  const [enableOnDemandTranslation, setEnableOnDemandTranslationState] = useState(() =>
+    typeof window !== "undefined" ? getOnDemandTranslationSetting() : true,
+  );
+  const [onDemandAheadCount, setOnDemandAheadCountState] = useState(() =>
+    typeof window !== "undefined" ? getOnDemandTranslationSentencesAhead() : 10,
+  );
+  const onEnableOnDemandTranslationChange = (enabled: boolean) => {
+    setEnableOnDemandTranslationState(enabled);
+    setOnDemandTranslationSetting(enabled);
+  };
+  const onOnDemandAheadCountChange = (count: number) => {
+    setOnDemandAheadCountState(count);
+    setOnDemandTranslationSentencesAhead(count);
+  };
   const [isSetupPaused, setIsSetupPaused] = useState(false);
   const toggleSetupPause = useCallback(() => {
     setIsSetupPaused((prev) => {
@@ -2212,11 +2239,99 @@ function Index() {
     };
   }, [isAndroid, videoId]);
 
-  const rows = useMemo<Row[]>(
+  const rawRows = useMemo<Row[]>(
     () =>
       tracks && baseLanguage ? align(tracks, baseLanguage, selectedCriteria, criteriaSettings) : [],
     [tracks, baseLanguage, selectedCriteria, criteriaSettings],
   );
+
+  const rows = useMemo<Row[]>(() => {
+    if (!rawRows || rawRows.length === 0) return rawRows;
+    const hasAnyOnDemand = Object.keys(onDemandTranslations).length > 0;
+    if (!hasAnyOnDemand) return rawRows;
+    return rawRows.map((r, idx) => {
+      let changed = false;
+      const texts = { ...r.texts };
+      for (const [lang, map] of Object.entries(onDemandTranslations)) {
+        if ((!texts[lang] || texts[lang].trim().length === 0) && map[idx]) {
+          texts[lang] = map[idx];
+          changed = true;
+        }
+      }
+      return changed ? { ...r, texts } : r;
+    });
+  }, [rawRows, onDemandTranslations]);
+
+  // Clear on-demand translations when full authentic YouTube subtitles arrive for a language
+  useEffect(() => {
+    if (tracks) {
+      Object.keys(tracks).forEach((code) => {
+        if (tracks[code]?.events && tracks[code]!.events!.length > 0) {
+          clearOnDemandTranslations(videoId, code);
+          setOnDemandTranslations((prev) => {
+            if (!prev[code]) return prev;
+            const next = { ...prev };
+            delete next[code];
+            return next;
+          });
+        }
+      });
+    }
+  }, [tracks, videoId]);
+
+  // Translate next X=10 sentences ahead on demand until YouTube timedtext subtitles arrive
+  useEffect(() => {
+    if (!enableOnDemandTranslation) return;
+    if (!videoId || !baseLanguage || !rawRows || rawRows.length === 0) return;
+
+    const pendingLangs = Array.from(new Set([...targetLanguages, ...spoken, ...shown])).filter(
+      (code) =>
+        code !== baseLanguage &&
+        (!tracks || !tracks[code] || !tracks[code]?.events || tracks[code]!.events!.length === 0),
+    );
+
+    if (pendingLangs.length === 0) return;
+
+    const sourceSentences = rawRows.map((r) => r.texts[baseLanguage] || "");
+    const startIndex = Math.max(0, active >= 0 ? active : 0);
+
+    pendingLangs.forEach((targetLang) => {
+      translateSentencesAhead({
+        videoId,
+        fromLang: baseLanguage,
+        toLang: targetLang,
+        sentences: sourceSentences,
+        startIndex,
+        sentencesAhead: onDemandAheadCount,
+        onSentenceTranslated: (idx, trans) => {
+          setOnDemandTranslations((prev) => {
+            const lMap = prev[targetLang] || {};
+            if (lMap[idx] === trans) return prev;
+            return {
+              ...prev,
+              [targetLang]: {
+                ...lMap,
+                [idx]: trans,
+              },
+            };
+          });
+        },
+      }).catch((err) => {
+        console.warn(`[OnDemandTranslation] Error translating ahead for ${targetLang}:`, err);
+      });
+    });
+  }, [
+    enableOnDemandTranslation,
+    videoId,
+    baseLanguage,
+    rawRows,
+    active,
+    targetLanguages,
+    spoken,
+    shown,
+    tracks,
+    onDemandAheadCount,
+  ]);
 
   const activeCatalog = useMemo(() => {
     if (!isAndroid) return LANGS;
@@ -2782,6 +2897,11 @@ function Index() {
       return false;
     };
 
+    const hasOnDemandCues = (code: string): boolean => {
+      const m = onDemandTranslations[code];
+      return Boolean(m && Object.keys(m).length > 0);
+    };
+
     // 1. If baseLanguage from video captions exists in tracks and is shown, display it first
     // Spec: verify base track cues (tracks[baseLanguage].length > 0 || hasTrackCues)
     if (
@@ -2794,14 +2914,14 @@ function Index() {
       addedCodes.add(baseLanguage);
     }
 
-    // 2. Add all ordered languages that have valid tracks, and are shown
+    // 2. Add all ordered languages that have valid tracks or on-demand translations, and are shown
     // Spec: verify ordered track cues (tracks[l.code].length > 0 || hasTrackCues)
     for (const l of orderedLangs) {
       if (
         !addedCodes.has(l.code) &&
         shown.includes(l.code) &&
-        (targetLanguages.includes(l.code) || (tracks ? Boolean(tracks[l.code]) : true)) &&
-        Boolean(tracks?.[l.code] && hasTrackCues(tracks[l.code]))
+        (targetLanguages.includes(l.code) || (tracks ? Boolean(tracks[l.code]) : true) || hasOnDemandCues(l.code)) &&
+        Boolean((tracks?.[l.code] && hasTrackCues(tracks[l.code])) || hasOnDemandCues(l.code))
       ) {
         list.push(l);
         addedCodes.add(l.code);
@@ -2830,7 +2950,7 @@ function Index() {
     }
 
     return list;
-  }, [tracks, baseLanguage, orderedLangs, shown, targetLanguages]);
+  }, [tracks, baseLanguage, orderedLangs, shown, targetLanguages, onDemandTranslations]);
 
   const hasLegitimateSubtitles = useMemo(() => {
     if (!tracks) return false;
@@ -3533,6 +3653,51 @@ function Index() {
                         />{" "}
                         Background audio &amp; lockscreen playback controls
                       </label>
+
+                      {/* On-Demand Translation Ahead via Google Translate API */}
+                      <div
+                        className="pt-2 border-t border-border/60 space-y-2"
+                        data-testid="on-demand-translation-settings-card"
+                      >
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            id="on-demand-translation-toggle"
+                            data-testid="on-demand-translation-toggle"
+                            type="checkbox"
+                            checked={enableOnDemandTranslation}
+                            onChange={(e) => onEnableOnDemandTranslationChange(e.target.checked)}
+                            className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                          />
+                          <span className="font-medium text-xs text-foreground">
+                            On-demand sentence translation ahead (until YouTube subtitles arrive)
+                          </span>
+                        </label>
+                        <p className="text-[11px] text-muted-foreground ml-6">
+                          Uses Google Translate API to pre-translate upcoming sentences ahead for selected target languages until authentic YouTube captions are fetched.
+                        </p>
+                        <div className="ml-6 flex items-center gap-2 pt-1 max-w-xs">
+                          <label
+                            htmlFor="on-demand-ahead-count-input"
+                            className="text-[11px] font-medium text-muted-foreground whitespace-nowrap"
+                          >
+                            Sentences ahead (X):
+                          </label>
+                          <input
+                            id="on-demand-ahead-count-input"
+                            data-testid="on-demand-ahead-count-input"
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={onDemandAheadCount}
+                            onChange={(e) =>
+                              onOnDemandAheadCountChange(
+                                Math.max(1, Math.min(50, parseInt(e.target.value, 10) || 10)),
+                              )
+                            }
+                            className="w-20 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
+                          />
+                        </div>
+                      </div>
 
                       {/* Alternative TTS Service (Google Translate TTS) */}
                       <div
