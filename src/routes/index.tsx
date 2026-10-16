@@ -20,6 +20,8 @@ import {
   Link2,
   Loader2,
   Moon,
+  Pause,
+  Play,
   RefreshCw,
   RotateCcw,
   SlidersHorizontal,
@@ -108,6 +110,7 @@ import {
   type YTPlayerLike,
 } from "@/utils/multiVideoPlayerManager";
 import { VideoInstancesSwiper } from "@/components/VideoInstancesSwiper";
+import { VideoPlaybackControls } from "@/components/VideoPlaybackControls";
 import { FloatingDraggablePauseButton } from "@/components/FloatingDraggablePauseButton";
 import { trackNetworkRequest, useNetworkRequests } from "@/utils/networkTracker";
 import { NetworkRequestsInspector } from "@/components/NetworkRequestsInspector";
@@ -223,6 +226,8 @@ type YTPlayer = {
   getAvailableAudioTracks?(): unknown[];
   setAudioTrack?(trackId: string): void;
   getAudioTrack?(): unknown;
+  setPlaybackRate?(rate: number): void;
+  getPlaybackRate?(): number;
 };
 declare global {
   interface Window {
@@ -1384,6 +1389,12 @@ function Index() {
       return next;
     });
   }, []);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [playbackCurrentTime, setPlaybackCurrentTime] = useState(0);
+  const [playbackDuration, setPlaybackDuration] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(1.0);
+  const [isPlayerHovered, setIsPlayerHovered] = useState(false);
+
   const [showVideoSubtitles, setShowVideoSubtitles] = useState(true);
   const [urlModalLang, setUrlModalLang] = useState<string | null>(null);
   const [expandedTableUrlLang, setExpandedTableUrlLang] = useState<string | null>(null);
@@ -1573,6 +1584,127 @@ function Index() {
   const [speechProgress, setSpeechProgress] = useState<SpeechProgress>(null);
   const [subtitlesLimit, setSubtitlesLimit] = useState<number>(() => (isAndroid ? 10 : 0));
   const [subtitlesPage, setSubtitlesPage] = useState<number>(1);
+
+  const handleTogglePlay = useCallback(() => {
+    const p = player.current;
+    if (!p) return;
+    try {
+      const state = p.getPlayerState?.();
+      if (state === 1) {
+        p.pauseVideo?.();
+        setIsVideoPlaying(false);
+      } else {
+        if (busy.current) {
+          cancelSpeech();
+          busy.current = false;
+        }
+        p.playVideo?.();
+        setIsVideoPlaying(true);
+      }
+    } catch (e) {
+      console.warn("Toggle play error:", e);
+    }
+  }, []);
+
+  const handleSeek = useCallback((seconds: number) => {
+    const p = player.current;
+    if (!p) return;
+    try {
+      p.seekTo?.(seconds, true);
+      setPlaybackCurrentTime(seconds);
+      lastMs.current = seconds * 1000;
+      handledRow.current = -1;
+    } catch (e) {
+      console.warn("Seek error:", e);
+    }
+  }, []);
+
+  const handleRewind = useCallback(
+    (seconds = 5) => {
+      const p = player.current;
+      if (!p?.getCurrentTime) return;
+      const cur = p.getCurrentTime();
+      handleSeek(Math.max(0, cur - seconds));
+    },
+    [handleSeek],
+  );
+
+  const handleFastForward = useCallback(
+    (seconds = 5) => {
+      const p = player.current;
+      if (!p?.getCurrentTime) return;
+      const cur = p.getCurrentTime();
+      const dur = p.getDuration?.() || Infinity;
+      handleSeek(Math.min(dur, cur + seconds));
+    },
+    [handleSeek],
+  );
+
+  const handlePrevSection = useCallback(() => {
+    const p = player.current;
+    if (!p?.getCurrentTime) return;
+    const curMs = p.getCurrentTime() * 1000;
+    const currentRows = st.current.rows;
+    if (currentRows.length === 0) return;
+    const prevCues = currentRows.filter((r) => r.start < curMs - 1200);
+    const targetCue = prevCues.length > 0 ? prevCues[prevCues.length - 1] : currentRows[0];
+    if (targetCue) {
+      handleSeek(targetCue.start / 1000);
+    }
+  }, [handleSeek]);
+
+  const handleNextSection = useCallback(() => {
+    const p = player.current;
+    if (!p?.getCurrentTime) return;
+    const curMs = p.getCurrentTime() * 1000;
+    const currentRows = st.current.rows;
+    if (currentRows.length === 0) return;
+    const nextCue = currentRows.find((r) => r.start > curMs + 400);
+    if (nextCue) {
+      handleSeek(nextCue.start / 1000);
+    }
+  }, [handleSeek]);
+
+  const handleReplaySection = useCallback(() => {
+    const p = player.current;
+    if (!p) return;
+    const currentRows = st.current.rows;
+    if (active >= 0 && currentRows[active]) {
+      handleSeek(currentRows[active].start / 1000);
+      try {
+        p.playVideo?.();
+        setIsVideoPlaying(true);
+      } catch {
+        // ignore
+      }
+    }
+  }, [active, handleSeek]);
+
+  const handleStop = useCallback(() => {
+    const p = player.current;
+    if (!p) return;
+    try {
+      cancelSpeech();
+      busy.current = false;
+      p.pauseVideo?.();
+      p.seekTo?.(0, true);
+      setIsVideoPlaying(false);
+      setPlaybackCurrentTime(0);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const handleRateChange = useCallback((rate: number) => {
+    setPlaybackRate(rate);
+    const p = player.current;
+    if (!p) return;
+    try {
+      p.setPlaybackRate?.(rate);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     const openLink = (link: string) => {
@@ -1911,6 +2043,7 @@ function Index() {
       onPlay: () => {
         try {
           player.current?.playVideo?.();
+          setIsVideoPlaying(true);
         } catch (_err) {
           // ignore playback error
         }
@@ -1918,6 +2051,7 @@ function Index() {
       onPause: () => {
         try {
           player.current?.pauseVideo?.();
+          setIsVideoPlaying(false);
         } catch (_err) {
           // ignore pause error
         }
@@ -2293,6 +2427,23 @@ function Index() {
           onReady: () => {
             if (player.current) {
               multiVideoPlayerRegistry.register("primary", player.current);
+              try {
+                const dur = player.current.getDuration?.() ?? 0;
+                if (dur > 0) setPlaybackDuration(dur);
+                const rate = player.current.getPlaybackRate?.() ?? 1.0;
+                if (rate > 0) setPlaybackRate(rate);
+                const state = player.current.getPlayerState?.();
+                setIsVideoPlaying(state === 1);
+              } catch {
+                // ignore
+              }
+            }
+          },
+          onStateChange: (event: { data: number }) => {
+            if (event.data === 1) {
+              setIsVideoPlaying(true);
+            } else if (event.data === 2 || event.data === 0 || event.data === -1) {
+              setIsVideoPlaying(false);
             }
           },
         },
@@ -2313,6 +2464,18 @@ function Index() {
       if (!p?.getCurrentTime || busy.current || st.current.isSetupPaused) return;
       if (activeTopTabRef.current === "playground") return;
       const ms = p.getCurrentTime() * 1000;
+      setPlaybackCurrentTime(ms / 1000);
+      try {
+        const curState = p.getPlayerState?.();
+        const curPlaying = curState === 1;
+        setIsVideoPlaying((prev) => (prev !== curPlaying ? curPlaying : prev));
+        const dur = p.getDuration?.() ?? 0;
+        if (dur > 0) {
+          setPlaybackDuration((prev) => (prev !== dur ? dur : prev));
+        }
+      } catch {
+        // ignore
+      }
       // Detect user manually seeking or scrubbing across playback timeline
       if (Math.abs(ms - lastMs.current) > 2500 || ms < lastMs.current - 1000) {
         handledRow.current = -1;
@@ -3044,8 +3207,37 @@ function Index() {
                         renderPlayerContainer={(instance) => {
                           if (instance.isPrimary) {
                             return (
-                              <div className="relative h-full w-full">
+                              <div
+                                className="relative h-full w-full group"
+                                onMouseEnter={() => setIsPlayerHovered(true)}
+                                onMouseLeave={() => setIsPlayerHovered(false)}
+                              >
                                 <div ref={playerEl} className="h-full w-full" />
+                                {/* Overlay Play/Pause Button over video (prominent on pause/stop and hover/tap) */}
+                                <div
+                                  data-testid="video-overlay-play-pause-container"
+                                  className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
+                                    !isVideoPlaying || isPlayerHovered ? "opacity-100" : "opacity-0"
+                                  }`}
+                                >
+                                  <button
+                                    type="button"
+                                    data-testid="video-overlay-play-pause-btn"
+                                    aria-label={isVideoPlaying ? "Pause video" : "Play video"}
+                                    title={isVideoPlaying ? "Pause video" : "Play video"}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleTogglePlay();
+                                    }}
+                                    className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
+                                  >
+                                    {isVideoPlaying ? (
+                                      <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
+                                    ) : (
+                                      <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
+                                    )}
+                                  </button>
+                                </div>
                                 {showVideoSubtitles && (
                                   <div
                                     className="pointer-events-none absolute inset-x-3 top-3 text-center"
@@ -3096,6 +3288,32 @@ function Index() {
                           );
                         }}
                       />
+                      {/* Video playback buttons under the presented video */}
+                      <div className="p-3 pt-2">
+                        <VideoPlaybackControls
+                          isPlaying={isVideoPlaying}
+                          currentTimeSec={playbackCurrentTime}
+                          durationSec={playbackDuration}
+                          playbackRate={playbackRate}
+                          activeSectionIndex={active}
+                          totalSections={rows.length}
+                          isPausedForSpeech={Boolean(speakingLang)}
+                          speakingLangName={
+                            speakingLang
+                              ? (LANGS.find((l) => l.code === speakingLang)?.name ?? speakingLang)
+                              : undefined
+                          }
+                          onTogglePlay={handleTogglePlay}
+                          onSeek={handleSeek}
+                          onRewind={handleRewind}
+                          onFastForward={handleFastForward}
+                          onPrevSection={handlePrevSection}
+                          onNextSection={handleNextSection}
+                          onReplaySection={handleReplaySection}
+                          onStop={handleStop}
+                          onRateChange={handleRateChange}
+                        />
+                      </div>
                       {isAndroid && (
                         <p role="status" className="px-3 py-2 text-sm text-muted-foreground">
                           {captionStatus}

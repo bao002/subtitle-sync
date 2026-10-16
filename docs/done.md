@@ -1,5 +1,70 @@
 # Done tasks
 
+### Hotfix: Fix ReferenceError Cannot access 'active' before initialization in src/routes/index.tsx (Version 1.0.34)
+
+### Summary:
+- **Root Cause**:
+  - In `src/routes/index.tsx`, `handleReplaySection` (added as part of the video playback controls) closed over `active` in its `useCallback` dependency array `[active, handleSeek]`.
+  - Because `handleReplaySection` was placed higher in the component body than `const [active, setActive] = useState(-1);`, JavaScript's Temporal Dead Zone (TDZ) triggered `ReferenceError: Cannot access 'active' before initialization` on initial component evaluation, rendering the router ErrorComponent ("This page didn't load").
+- **Resolution**:
+  - Repositioned `handleTogglePlay`, `handleSeek`, `handleRewind`, `handleFastForward`, `handlePrevSection`, `handleNextSection`, `handleReplaySection`, `handleStop`, and `handleRateChange` directly below `const [active, setActive] = useState(-1);` and related hook declarations.
+  - Retained `isVideoPlaying`, `playbackCurrentTime`, `playbackDuration`, `playbackRate`, and `isPlayerHovered` states in their proper scope.
+- **Version 1.0.34 Bump & Parity**:
+  - Aligned semantic version `1.0.34` and versionCode `10034` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-hotfix-active-initialization.ts` verifying that `const [active, setActive] = useState(-1);` strictly precedes `handleReplaySection` and that no premature references to `active` exist.
+  - Documented in `docs/files.md` and added `"test:hotfix-active-init"` script to `package.json`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-hotfix-active-initialization.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-video-playback-controls.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED (100% verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
+## Task 129: Video Playback Controls Under Video & Center Play/Pause Overlay (Version 1.0.33)
+
+### Summary:
+- **Version 1.0.33 Bump & Parity**:
+  - Aligned semantic version `1.0.33` and versionCode `10033` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Playback Control Buttons Under Presented Video (`src/components/VideoPlaybackControls.tsx`)**:
+  - Created a dedicated, mobile-first `VideoPlaybackControls` component under the presented video inside the player accordion panel (`panelId === "player"`).
+  - Addressed the user issue where tapping video controls on small screens was difficult by providing large, high-contrast touch targets (>44px):
+    - **Main Play / Pause Button** (`data-testid="player-control-play-pause"`): Prominent primary button with icon and text, toggling video playback and canceling hanging speech when resuming.
+    - **Rewind 5s Button** (`data-testid="player-control-rewind"`): Fast single-tap jump back 5 seconds (`-5s`).
+    - **Fast-Forward 5s Button** (`data-testid="player-control-forward"`): Fast single-tap jump forward 5 seconds (`+5s`).
+    - **Previous Section Button** (`data-testid="player-control-prev-section"`): Jumps directly to start of previous subtitle section.
+    - **Next Section Button** (`data-testid="player-control-next-section"`): Jumps directly to start of next subtitle section.
+    - **Replay Section Button** (`data-testid="player-control-replay-section"`): Replays the current active subtitle section from its beginning.
+    - **Stop Button** (`data-testid="player-control-stop"`): Halts playback and rewinds to 00:00.
+    - **Interactive Seekbar Scrubber** (`data-testid="player-control-seekbar"`): Touch-friendly slider for smooth scrubber navigation.
+    - **Formatted Timecode Display** (`data-testid="player-control-time-display"`): Displays formatted `MM:SS / MM:SS` (or `HH:MM:SS`) using pure `formatTimecode()` utility.
+    - **Section Indicator Badge** (`data-testid="player-control-section-badge"`): Shows `Section X of Y`.
+    - **Speed Rate Cycle Button** (`data-testid="player-control-speed"`): Cycles speed rates (0.5x, 0.75x, 1x, 1.25x, 1.5x, 2x).
+- **Center Play/Pause Video Overlay Over Video**:
+  - Resolved the bug where on Android or mobile when a video was stopped/paused there were no pause/play buttons visible or accessible over the video.
+  - Implemented a prominent, semi-transparent center Play/Pause overlay button (`data-testid="video-overlay-play-pause-btn"`, container `data-testid="video-overlay-play-pause-container"`) with `pointer-events-auto` over the video.
+  - When the video is stopped or paused, the large circular Play button is centered directly over the video, giving the user immediate 1-tap ability to play/resume.
+  - When the video is playing, hovering or tapping reveals the Pause button.
+- **Reactive Playback State Management**:
+  - Added React state variables in `src/routes/index.tsx`: `isVideoPlaying`, `playbackCurrentTime`, `playbackDuration`, `playbackRate`, `isPlayerHovered`.
+  - Registered `onStateChange` on the YouTube player instance to reactively capture PLAYING (1), PAUSED (2), ENDED (0), and UNSTARTED (-1) states.
+  - Added playback interval synchronization to maintain accurate timecode, duration, and playing state.
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-video-playback-controls.ts` verifying:
+    1. `formatTimecode` unit test coverage (0s, 5s, 65s, 599s, 3600s, 3665s, negative, NaN).
+    2. All 11 required data-testids in `VideoPlaybackControls.tsx`.
+    3. Mobile touch target sizes (height >= 40px/44px, min-width >= 90px for play/pause).
+    4. Integration in `src/routes/index.tsx` for `<VideoPlaybackControls` under video and `data-testid="video-overlay-play-pause-btn"` over video.
+    5. Inventory in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-video-playback-controls.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-web-demo-design-preservation.ts`: PASSED (100% verified).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Clean - zero errors.
+
 ## Task 128: Hide Web Demo Subtitle URLs Drawer by Default & Preserve Clean Single-Row Input (Version 1.0.32)
 
 ### Summary:
