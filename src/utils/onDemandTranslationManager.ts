@@ -81,12 +81,21 @@ function getCacheKey(fromLang: string, toLang: string, text: string): string {
   return `${normalizeLanguage(fromLang)}->${normalizeLanguage(toLang)}:${text.trim()}`;
 }
 
-export function getCachedTranslation(fromLang: string, toLang: string, text: string): string | null {
+export function getCachedTranslation(
+  fromLang: string,
+  toLang: string,
+  text: string,
+): string | null {
   const key = getCacheKey(fromLang, toLang, text);
   return sentenceCache.get(key) || null;
 }
 
-export function setCachedTranslation(fromLang: string, toLang: string, text: string, translation: string): void {
+export function setCachedTranslation(
+  fromLang: string,
+  toLang: string,
+  text: string,
+  translation: string,
+): void {
   const key = getCacheKey(fromLang, toLang, text);
   sentenceCache.set(key, translation);
 }
@@ -195,7 +204,10 @@ export async function translateSentencesAhead({
         })
         .catch((err) => {
           inFlightRequests.delete(cacheKey);
-          logWarn("onDemandTranslation", `Failed on-demand translate for index ${idx}: ${err?.message || err}`);
+          logWarn(
+            "onDemandTranslation",
+            `Failed on-demand translate for index ${idx}: ${err?.message || err}`,
+          );
           throw err;
         });
 

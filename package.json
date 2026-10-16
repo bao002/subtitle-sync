@@ -142,6 +142,7 @@
     "test:design-preservation": "tsx scripts/verify-web-demo-design-preservation.ts",
     "test:video-controls": "tsx scripts/verify-video-playback-controls.ts",
     "test:hotfix-active-init": "tsx scripts/verify-hotfix-active-initialization.ts",
+    "test:on-demand-translation": "tsx scripts/verify-on-demand-translation.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

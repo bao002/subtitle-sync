@@ -700,3 +700,49 @@ export function setLanguageDisplayModeSetting(mode: LanguageDisplayMode): void {
     // Ignore storage errors in restricted contexts
   }
 }
+
+export const ON_DEMAND_TRANSLATION_STORAGE_KEY = "yt_enable_on_demand_translation";
+export const ON_DEMAND_TRANSLATION_AHEAD_STORAGE_KEY = "yt_on_demand_translation_ahead";
+
+export function getOnDemandTranslationSetting(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return true;
+  }
+  try {
+    const val = window.localStorage.getItem(ON_DEMAND_TRANSLATION_STORAGE_KEY);
+    return val === null ? true : val === "true";
+  } catch {
+    return true;
+  }
+}
+
+export function setOnDemandTranslationSetting(enabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(ON_DEMAND_TRANSLATION_STORAGE_KEY, enabled ? "true" : "false");
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function getOnDemandTranslationSentencesAhead(): number {
+  if (typeof window === "undefined" || !window.localStorage) return 10;
+  try {
+    const val = window.localStorage.getItem(ON_DEMAND_TRANSLATION_AHEAD_STORAGE_KEY);
+    if (!val) return 10;
+    const num = parseInt(val, 10);
+    return isNaN(num) || num < 1 ? 10 : num;
+  } catch {
+    return 10;
+  }
+}
+
+export function setOnDemandTranslationSentencesAhead(count: number): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    const clamped = Math.max(1, Math.min(50, count));
+    window.localStorage.setItem(ON_DEMAND_TRANSLATION_AHEAD_STORAGE_KEY, String(clamped));
+  } catch {
+    // Ignore storage errors
+  }
+}
