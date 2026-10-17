@@ -6,7 +6,7 @@ import { EILFKSGNKDA_LANGUAGE_TRACKS } from "../../test/fixtures/eilfksgnkda";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "1.0.41";
+export const APP_VERSION = "1.0.42";
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 
 export const DEFAULT_VIDEO_ID = "vBURridJXZ0";

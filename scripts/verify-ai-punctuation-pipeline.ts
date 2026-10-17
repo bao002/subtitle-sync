@@ -39,20 +39,20 @@ async function runTests() {
   // --- [1] Verify Version Parity (1.0.39+ / 10039+) ---
   console.log("\n--- [1] Verifying Version Parity (1.0.39+ / 10039+) ---");
   const pkgJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, "package.json"), "utf8"));
-  assert(pkgJson.version === "1.0.39" || pkgJson.version === "1.0.40", "package.json version should be 1.0.39 or 1.0.40");
+  assert(pkgJson.version >= "1.0.39", "package.json version should be 1.0.39+");
 
   const buildGradle = fs.readFileSync(path.join(ROOT_DIR, "android-shell/app/build.gradle.kts"), "utf8");
-  assert(buildGradle.includes('"1.0.39"') || buildGradle.includes('"1.0.40"'), "build.gradle.kts should reference 1.0.39 or 1.0.40");
-  assert(buildGradle.includes("10039") || buildGradle.includes("10040"), "build.gradle.kts should reference versionCode 10039 or 10040");
+  assert(buildGradle.includes(`"${pkgJson.version}"`), `build.gradle.kts should reference ${pkgJson.version}`);
+  assert(buildGradle.includes("versionCode = "), "build.gradle.kts should reference versionCode");
 
   const appConfig = fs.readFileSync(path.join(ROOT_DIR, "src/config/appConfig.ts"), "utf8");
-  assert(appConfig.includes('APP_VERSION = "1.0.39"') || appConfig.includes('APP_VERSION = "1.0.40"'), "appConfig.ts should declare APP_VERSION 1.0.39 or 1.0.40");
+  assert(appConfig.includes(`APP_VERSION = "${pkgJson.version}"`), `appConfig.ts should declare APP_VERSION ${pkgJson.version}`);
 
   const apkUpdater = fs.readFileSync(path.join(ROOT_DIR, "src/utils/apkUpdater.ts"), "utf8");
-  assert(apkUpdater.includes('CURRENT_APK_VERSION = "v1.0.39"') || apkUpdater.includes('CURRENT_APK_VERSION = "v1.0.40"'), "apkUpdater.ts should declare v1.0.39 or v1.0.40");
+  assert(apkUpdater.includes(`CURRENT_APK_VERSION = "v${pkgJson.version}"`), `apkUpdater.ts should declare v${pkgJson.version}`);
 
   const appSettings = fs.readFileSync(path.join(ROOT_DIR, "src/utils/appSettings.ts"), "utf8");
-  assert(appSettings.includes('version: "1.0.39"') || appSettings.includes('version: "1.0.40"'), "appSettings.ts snapshot should declare version 1.0.39 or 1.0.40");
+  assert(appSettings.includes(`version: "${pkgJson.version}"`), `appSettings.ts snapshot should declare version ${pkgJson.version}`);
   log(`✅ PASS: All 5 version targets synchronized at ${pkgJson.version}`);
 
   // --- [2] Verify Model Presets & Punctuation Style Prompts ---

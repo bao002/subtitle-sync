@@ -1,5 +1,34 @@
 # Done tasks
 
+## Task 138: Clean Subtitles Table on Video Switch & Cache/Load AI Subtitles (Version 1.0.42)
+
+### Summary:
+
+- **Subtitles Table View Clean Reset on Video Change (`src/routes/index.tsx`)**:
+  - Implemented `previousVideoIdRef` tracking in `src/routes/index.tsx` to detect video transitions across all loading vectors (top YouTube URL form submit, Android player form submit, Video Library selection, WebDemoUrlsInput apply, VideoPlayground ID change, Android share intent, and browser popstate navigation).
+  - On video transition (`isVideoChanged`), cleanly flushes `tracks` to `null`, resets `subtitlesPage` to `1`, `active` to `-1`, `speakingLang` to `null`, `speakingRow` to `-1`, `speechProgress` to `null`, clears `playedTtsRecords.current`, resets `playedRecordsCount` to `0`, flushes `onDemandTranslations` to `{}`, clears `detectedPlaygroundTracks` to `{}`, and resets `observedUrl` and `defaultCaptionsLoaded`.
+  - When hydrating cached tracks for the new video, strictly sets `tracks` to the new video's hydrated tracks without merging previous video tracks (`setTracks(hydratedTracks)`), preventing obsolete subtitle tracks and table rows from previous videos from lingering.
+- **AI Subtitle Caching & Loading Controls (`src/components/AiSubtitlePunctuationTab.tsx`, `src/components/SubtitlesTablePanel.tsx`, `src/routes/index.tsx`, `src/utils/subtitleCache.ts`)**:
+  - Integrated `saveCachedAiSubtitles`, `getCachedAiSubtitles`, `hasCachedAiSubtitles`, and `clearCachedAiSubtitles` from `src/utils/subtitleCache.ts` into `AiSubtitlePunctuationTab.tsx`.
+  - Automatically caches returned AI subtitles upon successful OpenRouter punctuation completion under `videoId` and `baseLanguage` with model, style, latency, timestamp, and segment counts.
+  - Added dedicated interactive UI card in `AiSubtitlePunctuationTab.tsx` (`data-testid="cached-ai-subtitles-card"`) displaying cache metadata, "Load & Apply" button (`data-testid="load-cached-ai-subtitles-btn"`), "Preview Diff" button (`data-testid="preview-cached-ai-subtitles-btn"`), and "Clear" button (`data-testid="clear-cached-ai-subtitles-btn"`).
+  - Integrated `hasCachedAi` indicator badge (`data-testid="tab-ai-cached-indicator"`) on the "AI Punctuation" top tab button in `src/routes/index.tsx`.
+  - Added "Load Cached AI Subtitles" action button (`data-testid="load-cached-ai-subtitles-viewer-btn"`) directly in `SubtitlesTablePanel.tsx` (supported on both Android and Web/desktop), enabling users to restore and apply cached AI-punctuated subtitles directly in the viewer with one click.
+- **Version 1.0.42 Bump & Parity**:
+  - Synchronized semantic version `1.0.42` and versionCode `10042` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification (`scripts/verify-video-switch-table-reset-and-ai-cache.ts`)**:
+  - Authored automated verification suite validating video transition clean reset in `src/routes/index.tsx`, AI subtitle caching & loading controls in `AiSubtitlePunctuationTab.tsx` and `SubtitlesTablePanel.tsx`, functional cache save/retrieve/isolate/clear operations in `subtitleCache.ts`, and version 1.0.42 synchronization across all 5 targets.
+  - Registered script as `"test:video-switch-table-reset-and-ai-cache"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:video-switch-table-reset-and-ai-cache`: PASSED (100% verified).
+  - `npm run test:subtitles-table-visibility`: PASSED (100% verified).
+  - `npm run test:ai-subtitle-punctuation`: PASSED (100% verified).
+  - `npm run test:ai-punctuation-pipeline`: PASSED (100% verified).
+  - `npm run test:favorite-languages-and-ai-tab`: PASSED (100% verified).
+  - `npm run test:apk-version`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
 ## Task 137: Fix Android TTS Playback & Subtitles Table Page Flipping (Version 1.0.41)
 
 ### Summary:

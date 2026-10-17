@@ -1,5 +1,5 @@
 import React from "react";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { type Row, type Json3 } from "@/lib/subtitles";
 import { SubtitleRow, type SubtitleColumn } from "@/components/SubtitleRow";
 import { type SpeechProgress } from "@/components/HighlightedSubtitle";
@@ -21,6 +21,8 @@ export interface SubtitlesTablePanelProps {
   onSeek: (r: Row, index: number) => void;
   spokenLangs: string[];
   ttsRatios: Record<string, number>;
+  onLoadCachedAiSubtitles?: () => void;
+  hasCachedAi?: boolean;
 }
 
 export function SubtitlesTablePanel({
@@ -40,6 +42,8 @@ export function SubtitlesTablePanel({
   onSeek,
   spokenLangs,
   ttsRatios,
+  onLoadCachedAiSubtitles,
+  hasCachedAi,
 }: SubtitlesTablePanelProps) {
   return (
     <div
@@ -74,6 +78,18 @@ export function SubtitlesTablePanel({
                 <Check className="h-3 w-3" />
                 Favorites Aligned ({targetLanguages.length})
               </span>
+            )}
+            {hasCachedAi && onLoadCachedAiSubtitles && (
+              <button
+                type="button"
+                data-testid="load-cached-ai-subtitles-viewer-btn"
+                onClick={onLoadCachedAiSubtitles}
+                className="inline-flex items-center gap-1 rounded bg-primary/10 hover:bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary transition-colors cursor-pointer"
+                title="Load and apply cached AI-punctuated subtitles"
+              >
+                <Sparkles className="h-3 w-3" />
+                <span>Load Cached AI</span>
+              </button>
             )}
           </div>
           <div className="flex items-center gap-3">
@@ -124,6 +140,27 @@ export function SubtitlesTablePanel({
               </div>
             )}
           </div>
+        </div>
+      )}
+      {!isAndroid && rows.length > 0 && hasCachedAi && onLoadCachedAiSubtitles && (
+        <div
+          data-testid="web-subtitles-cached-ai-bar"
+          className="flex items-center justify-between border-b border-border bg-primary/5 px-3 py-1.5 text-xs"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
+            <span className="font-medium text-foreground">Cached AI Subtitles Available</span>
+          </div>
+          <button
+            type="button"
+            data-testid="load-cached-ai-subtitles-viewer-btn"
+            onClick={onLoadCachedAiSubtitles}
+            className="inline-flex items-center gap-1.5 rounded bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
+            title="Load and apply cached AI-punctuated subtitles"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Load Cached AI Subtitles</span>
+          </button>
         </div>
       )}
       <table className="w-full border-collapse text-sm">

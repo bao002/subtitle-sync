@@ -1,5 +1,3 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 138.1 - Clean Subtitles Table View on Video Change
-- **Description**: Ensure subtitles table view is completely cleared and reset when a video is loaded after another. When `videoId` transitions, flush `tracks`, `rawTracks`, `rows`, `active`, `playedTtsRecords`, and `subtitlesPage` so previous video subtitles never linger in the table while the new video is loading or if the new video has no subtitles.
-- **Status**: IN PROGRESS.
+*No active subtasks in progress. All subtasks for Task 138 (Subtask 138.1, Subtask 138.2, Subtask 138.3) are fully completed, verified with automated tests, and migrated to `docs/done.md`.*

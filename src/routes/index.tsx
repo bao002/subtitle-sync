@@ -195,6 +195,8 @@ import {
   getCachedRawJson3,
   removeCachedTargetSubtitles,
   clearVideoSubtitleCache,
+  getCachedAiSubtitles,
+  hasCachedAiSubtitles,
 } from "@/utils/subtitleCache";
 import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
 import { STORAGE_KEYS, APP_VERSION, ALL_RELEASES_URL, DEFAULT_VIDEO_ID } from "@/config/appConfig";
@@ -1596,6 +1598,9 @@ function Index() {
     setSpeechProgress(null);
     setPlayedRecordsCount(0);
     playedTtsRecords.current.clear();
+    setSubtitlesPage(1);
+    setOnDemandTranslations({});
+    setDetectedPlaygroundTracks({});
     setVideoId(newId);
     setVideoInput(newId);
     if (typeof window !== "undefined") {
@@ -1611,7 +1616,30 @@ function Index() {
     }
   };
 
+  const previousVideoIdRef = useRef<string>(videoId);
+
   useEffect(() => {
+    const isVideoChanged = previousVideoIdRef.current !== videoId;
+    if (isVideoChanged) {
+      previousVideoIdRef.current = videoId;
+      // Immediately and cleanly reset all state belonging to the previous video
+      cancelSpeech();
+      startSubtitlesTransition(() => {
+        setTracks(null);
+        setSubtitlesPage(1);
+        setActive(-1);
+        setSpeakingLang(null);
+        setSpeakingRow(-1);
+        setSpeechProgress(null);
+        setPlayedRecordsCount(0);
+        playedTtsRecords.current.clear();
+        setOnDemandTranslations({});
+        setDetectedPlaygroundTracks({});
+        setObservedUrl("");
+        setDefaultCaptionsLoaded(false);
+      });
+    }
+
     if (videoId) {
       subtitleRequestQueue.setVideoContext(videoId);
       recordVideoWatch({
@@ -1634,7 +1662,12 @@ function Index() {
       });
       if (Object.keys(hydratedTracks).length > 0) {
         startSubtitlesTransition(() => {
-          setTracks((prev) => ({ ...(prev || {}), ...hydratedTracks }));
+          // When video changed, do NOT merge with prev (which belonged to previous video)
+          if (isVideoChanged) {
+            setTracks(hydratedTracks);
+          } else {
+            setTracks((prev) => ({ ...(prev || {}), ...hydratedTracks }));
+          }
           setShown((prev) => Array.from(new Set([...prev, ...Object.keys(hydratedTracks)])));
         });
       }
@@ -2545,6 +2578,19 @@ function Index() {
     [baseLanguage, videoId],
   );
 
+  const hasCachedAi = useMemo(
+    () => Boolean(videoId && hasCachedAiSubtitles(videoId, baseLanguage || "en")),
+    [videoId, baseLanguage],
+  );
+
+  const handleLoadCachedAiFromViewer = useCallback(() => {
+    if (!videoId) return;
+    const cached = getCachedAiSubtitles(videoId, baseLanguage || "en");
+    if (cached?.punctuatedJson3) {
+      handleApplyPunctuatedBaseTrack(cached.punctuatedJson3, false);
+    }
+  }, [videoId, baseLanguage, handleApplyPunctuatedBaseTrack]);
+
   const handleWebDemoLoadVideoAndSubtitles = useCallback(
     ({
       videoId: newVideoId,
@@ -2563,6 +2609,11 @@ function Index() {
           setSpeakingRow(-1);
           setSpeechProgress(null);
           cancelSpeech();
+          playedTtsRecords.current.clear();
+          setPlayedRecordsCount(0);
+          setSubtitlesPage(1);
+          setOnDemandTranslations({});
+          setDetectedPlaygroundTracks({});
           if (typeof window !== "undefined") {
             const currentSearch = new URLSearchParams(window.location.search);
             if (currentSearch.get("v") !== newVideoId) {
@@ -3019,7 +3070,7 @@ function Index() {
     }
 
     // 2. Add all ordered languages that are shown in the table
-    // Spec: include any shown languages from targetLanguages, favoriteLanguages, loaded tracks, or on-demand translations
+    // Spec: include any shown languages from targetLanguages, favoriteLanguages, loaded tracks (tracks[l.code].length > 0 || hasTrackCues), or on-demand translations
     for (const l of orderedLangs) {
       if (
         !addedCodes.has(l.code) &&
@@ -3221,6 +3272,15 @@ function Index() {
           >
             <Sparkles className="h-3.5 w-3.5" />
             <span>AI Punctuation</span>
+            {hasCachedAi && (
+              <span
+                data-testid="tab-ai-cached-indicator"
+                className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold"
+                title="Cached AI subtitles available"
+              >
+                Cached
+              </span>
+            )}
           </button>
         </div>
 
@@ -3361,6 +3421,11 @@ function Index() {
                       setSpeakingRow(-1);
                       setSpeechProgress(null);
                       cancelSpeech();
+                      playedTtsRecords.current.clear();
+                      setPlayedRecordsCount(0);
+                      setSubtitlesPage(1);
+                      setOnDemandTranslations({});
+                      setDetectedPlaygroundTracks({});
                       if (typeof window !== "undefined") {
                         const currentSearch = new URLSearchParams(window.location.search);
                         if (currentSearch.get("v") !== id) {
@@ -5267,6 +5332,8 @@ function Index() {
                         onSeek={seek}
                         spokenLangs={spoken}
                         ttsRatios={ttsRatios}
+                        hasCachedAi={hasCachedAi}
+                        onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
                       />
                     ))}
                 </AccordionSection>
