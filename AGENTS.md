@@ -163,7 +163,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-allow to share a link which contain the default subtitles and the openrouter API key and the target language for translation for quick loading the same state via a sharable link
+This app was imported from GitHub repository bao002/subtitle-sync.
 ```
 
 

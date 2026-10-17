@@ -81,7 +81,11 @@ import {
   setOnDemandTranslationSetting,
   getOnDemandTranslationSentencesAhead,
   setOnDemandTranslationSentencesAhead,
+  getOpenRouterApiKeySetting,
+  setOpenRouterApiKeySetting,
 } from "@/utils/appSettings";
+import { getAppStateFromUrl } from "@/utils/urlStateManager";
+import { ShareStateModal } from "@/components/ShareStateModal";
 import {
   translateSentencesAhead,
   getStoredOnDemandTranslation,
@@ -946,6 +950,7 @@ function Index() {
 
   const [networkInspectorOpen, setNetworkInspectorOpen] = useState(false);
   const [apkModalOpen, setApkModalOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const networkRequests = useNetworkRequests();
   const apkReleaseLinks = useMemo(() => getApkReleaseLinks(), []);
 
@@ -1859,6 +1864,50 @@ function Index() {
     const query = params.get("v") || params.get("url");
     if (query) openLink(query);
 
+    const appState = getAppStateFromUrl();
+    if (appState.openRouterApiKey) {
+      setOpenRouterApiKeySetting(appState.openRouterApiKey);
+    }
+    if (appState.targetLang) {
+      const code = appState.targetLang.toLowerCase().trim();
+      setTargetLanguages((prev) => (prev.includes(code) ? prev : [...prev, code]));
+      setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
+    }
+    if (appState.subUrl) {
+      setObservedUrl(appState.subUrl);
+      const subLang = appState.subLang || "en";
+      fetch(appState.subUrl)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((parsed) => {
+          if (parsed && isValidJsonSubtitleResponse(parsed)) {
+            setTracks((prev) => ({
+              ...(prev || {}),
+              [subLang]: parsed,
+            }));
+            setDefaultCaptionsLoaded(true);
+            saveCachedSubtitles(videoId, subLang, parsed);
+          }
+        })
+        .catch((err) => {
+          console.warn("[UrlState] Failed to fetch subUrl:", err);
+        });
+    } else if (appState.subData) {
+      try {
+        const decoded = decodeURIComponent(appState.subData);
+        const parsed = JSON.parse(decoded);
+        if (isValidJsonSubtitleResponse(parsed)) {
+          const subLang = appState.subLang || "en";
+          setTracks((prev) => ({
+            ...(prev || {}),
+            [subLang]: parsed,
+          }));
+          setDefaultCaptionsLoaded(true);
+        }
+      } catch (err) {
+        console.warn("[UrlState] Failed to decode subData:", err);
+      }
+    }
+
     const shell = nativeShell();
     if (shell) {
       setIsAndroid(true);
@@ -1883,6 +1932,10 @@ function Index() {
         setApkModalOpen(false);
         return true;
       }
+      if (shareModalOpen) {
+        setShareModalOpen(false);
+        return true;
+      }
       return false;
     };
 
@@ -1894,6 +1947,10 @@ function Index() {
       }
       if (apkModalOpen) {
         setApkModalOpen(false);
+        return;
+      }
+      if (shareModalOpen) {
+        setShareModalOpen(false);
         return;
       }
 
@@ -1925,7 +1982,7 @@ function Index() {
       delete (window as Window & { __handleAndroidBack?: () => boolean }).__handleAndroidBack;
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [networkInspectorOpen, apkModalOpen]);
+  }, [networkInspectorOpen, apkModalOpen, shareModalOpen]);
 
   useEffect(() => {
     if (!isAndroid) return;
@@ -3352,6 +3409,19 @@ function Index() {
         >
           <Smartphone className="h-4 w-4 text-emerald-500" />
           <span className="hidden sm:inline">Latest APK</span>
+        </Button>
+        <Button
+          id="open-share-modal-button"
+          data-testid="open-share-modal-button"
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => setShareModalOpen(true)}
+          className="gap-1.5 border-primary/40 hover:bg-primary/10 text-primary"
+          title="Share application state with default subtitles, OpenRouter key, and target language"
+        >
+          <Share2 className="h-4 w-4" />
+          <span className="hidden sm:inline">Share</span>
         </Button>
       </header>
 
@@ -5374,6 +5444,16 @@ function Index() {
         existingTrack={urlModalLang && tracks ? tracks[urlModalLang] : null}
       />
       <ApkReleaseModal isOpen={apkModalOpen} onClose={() => setApkModalOpen(false)} />
+      <ShareStateModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        videoId={videoId}
+        targetLanguages={targetLanguages}
+        baseLanguage={baseLanguage}
+        observedUrl={observedUrl}
+        rawJson3Track={tracks && baseLanguage ? tracks[baseLanguage] : null}
+        openRouterApiKey={getOpenRouterApiKeySetting()}
+      />
       <SubtitleFetchToast
         onViewSubtitles={() => {
           setOpenPanels((prev) => ({ ...prev, subtitles: true }));

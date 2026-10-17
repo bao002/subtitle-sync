@@ -4,11 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Shareable State Link with Default Subtitles, OpenRouter API Key & Target Translation Language
+## Active Prompt: GitHub Import Migration & Shareable State Finalization
 
-- **Target 1**: Build shareable link serialization and parsing in `src/utils/urlStateManager.ts`: support `sub_url` (default subtitles URL), `sub_data` (default subtitles payload), `openrouter_key` (OpenRouter API key), and `target_lang` (target language for translation) alongside `v` (videoId).
-- **Target 2**: Implement hydration of shareable link parameters in `src/routes/index.tsx`: hydrate default subtitles, store OpenRouter API key in app settings, and activate target language for translation on link load; build dedicated `ShareStateModal.tsx` with copy-to-clipboard action.
-- **Target 3**: Bump version to 1.0.43 across all 5 targets, author dedicated automated test `scripts/verify-sharable-state-link.ts`, update `docs/files.md`, verify with compile/lint, commit, and migrate to `docs/done.md`.
+- **Target 1**: Project normalization & environment harmonization per `github-import-migration` skill: remove forbidden lockfiles (`bun.lock`), generate comprehensive `.env.example`, assert Vite port 3000 host 0.0.0.0.
+- **Target 2**: Finalize shareable state link hydration and UI sharing controls in `src/routes/index.tsx`, connecting `ShareStateModal.tsx`.
+- **Target 3**: Bump version to 1.0.43 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`), verify with `npm run test:github-import-migration` and `scripts/verify-sharable-state-link.ts`, compile, lint, commit, and migrate to `docs/done.md`.
 
 
 
