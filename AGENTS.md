@@ -163,8 +163,13 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-This app was imported from GitHub repository ofershaham1-cyber/subtitle-sync.
+1. add to .gitignore:
+bun.lock
+.env.example
+
+2. go on
 ```
+
 
 
 

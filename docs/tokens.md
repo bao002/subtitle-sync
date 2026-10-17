@@ -4,14 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Task 135 — GitHub Import Migration & Environment Harmonization Protocol (v1.0.39)
+## Active Prompt: Task 136 — Add bun.lock & .env.example to .gitignore, Bump Version 1.0.40 & Automated Verification
 
-- **Target 1**: Execute Phase 1 normalization (clean lockfiles, npm package manager enforcement, dev script 0.0.0.0:3000).
-- **Target 2**: Execute Phase 2 dependency review & database stubs (ensure zero native build blockers, verify client SPA architecture).
-- **Target 3**: Execute Phase 3 framework configuration (Vite server host/port binding, client SPA entry point verification).
-- **Target 4**: Execute Phase 4 integration & env scan (validate .env.example contains all required environment variables).
-- **Target 5**: Author/run dedicated automated verification `scripts/verify-github-import-migration.ts` (`npm run test:github-import-migration`).
-- **Target 6**: Test, compile (`compile_applet`), lint (`lint_applet`), and migrate completed items to `docs/done.md`.
+- **Target 1**: Bump semantic version to 1.0.40 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+- **Target 2**: Add `bun.lock` and `.env.example` to `.gitignore`.
+- **Target 3**: Author dedicated automated test `scripts/verify-gitignore-entries.ts`, register in `package.json` (`test:gitignore-entries`), and document in `docs/files.md`.
+- **Target 4**: Verify tests (`npm run test:gitignore-entries`, `npm run test:github-import-migration`), compile (`compile_applet`), lint (`lint_applet`), and migrate completed items to `docs/done.md`.
+
 
 
 ---

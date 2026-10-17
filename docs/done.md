@@ -1,5 +1,26 @@
 # Done tasks
 
+## Task 136: Add bun.lock & .env.example to .gitignore, Bump Version 1.0.40 & Automated Verification (Version 1.0.40)
+
+### Summary:
+
+- **Gitignore Configuration (`.gitignore`)**:
+  - Added `bun.lock` and `bun.lockb` under `# Dependencies` to prevent unwanted lockfiles from committing.
+  - Added `.env.example` under `# Environment & local settings` as requested.
+  - Removed forbidden `bun.lock` artifact from root directory.
+- **Version 1.0.40 Bump & Parity**:
+  - Synchronized semantic version `1.0.40` and versionCode `10040` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification (`scripts/verify-gitignore-entries.ts`)**:
+  - Authored dedicated automated test asserting `bun.lock`, `bun.lockb`, and `.env.example` are present in `.gitignore`.
+  - Validated absence of forbidden lockfiles on disk.
+  - Verified environment template integrity and version 1.0.40 parity across all 5 targets.
+  - Registered script as `"test:gitignore-entries"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:gitignore-entries`: PASSED (100% verified).
+  - `npm run test:github-import-migration`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
 ## Task 135: GitHub Import Migration & Environment Harmonization Protocol (Version 1.0.39)
 
 ### Summary:
