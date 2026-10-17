@@ -163,12 +163,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. add to .gitignore:
-bun.lock
-.env.example
-
-2. go on
+what is left to do ?
 ```
+
 
 
 

@@ -4,12 +4,12 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Task 136 — Add bun.lock & .env.example to .gitignore, Bump Version 1.0.40 & Automated Verification
+## Active Prompt: Project Status & Remaining Scope Audit
 
-- **Target 1**: Bump semantic version to 1.0.40 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-- **Target 2**: Add `bun.lock` and `.env.example` to `.gitignore`.
-- **Target 3**: Author dedicated automated test `scripts/verify-gitignore-entries.ts`, register in `package.json` (`test:gitignore-entries`), and document in `docs/files.md`.
-- **Target 4**: Verify tests (`npm run test:gitignore-entries`, `npm run test:github-import-migration`), compile (`compile_applet`), lint (`lint_applet`), and migrate completed items to `docs/done.md`.
+- **Target 1**: Audit active backlog, completed milestones in `docs/done.md`, and roadmap.
+- **Target 2**: Verify repository health, compilation (`compile_applet`), and test coverage.
+- **Target 3**: Provide structured status overview of current capabilities and potential next directions.
+
 
 
 
