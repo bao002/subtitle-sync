@@ -4,10 +4,14 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Task 133 — Fix Favorite Languages Selection for On-Demand Translation & Subtitles Table, and Complete AI Subtitle Punctuation Tab (v1.0.38) [COMPLETED]
+## Active Prompt: Task 134 — Multi-Batch AI Subtitle Punctuation, Robust Free Tier Rate-Limit Handling & Solely-Punctuation Translation Integration (v1.0.39)
 
-- **Summary**: All planned sub-tasks for Task 133 have been fully completed, verified with dedicated test suites (`test:favorite-languages-and-ai-tab`, `test:on-demand-translation`, `test:ai-subtitle-punctuation`), compiled cleanly with `compile_applet`, lint-verified with `lint_applet`, and migrated to `docs/done.md`.
-- **Status**: Backlog clean. Ready for next prompt.
+- **Target 1**: Bump app version to 1.0.39 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+- **Target 2**: Implement sliding-window chunked batching with progress tracking and rate-limit backoff in `src/utils/openRouterAiService.ts`.
+- **Target 3**: Deepen solely-punctuation alignment & sentence segmentation in `src/utils/onDemandTranslationManager.ts` and `src/components/AiSubtitlePunctuationTab.tsx`.
+- **Target 4**: Add quick-select model presets, live latency indicators, and abort cancellation in `src/components/AiSubtitlePunctuationTab.tsx`.
+- **Target 5**: Author dedicated verification script `scripts/verify-ai-punctuation-pipeline.ts`, register in `package.json` and `docs/files.md`.
+- **Target 6**: Test, compile (`compile_applet`), lint (`lint_applet`), and migrate completed items to `docs/done.md`.
 
 ---
 

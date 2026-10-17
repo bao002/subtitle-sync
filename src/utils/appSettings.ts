@@ -85,6 +85,7 @@ export interface AppSettings {
   // OpenRouter Free Models & AI Punctuation Settings
   openRouterModel?: string;
   openRouterApiKey?: string;
+  openRouterPunctuationStyle?: "conversational" | "formal" | "short_sentences";
   aiPunctuateAutoApply?: boolean;
 
   // Limits
@@ -240,6 +241,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   onDemandTranslationSentencesAhead: 10,
   openRouterModel: "openrouter/auto:free",
   openRouterApiKey: "",
+  openRouterPunctuationStyle: "conversational",
   aiPunctuateAutoApply: false,
   onDemandCount: 4,
   maxRetries: 2,
@@ -446,7 +448,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.37",
+    version: "1.0.39",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -810,10 +812,25 @@ export function getAiPunctuateAutoApplySetting(): boolean {
   }
 }
 
-export function setAiPunctuateAutoApplySetting(enabled: boolean): void {
+export const OPENROUTER_PUNCTUATION_STYLE_STORAGE_KEY = "yt_openrouter_punct_style";
+
+export function getOpenRouterPunctuationStyleSetting(): "conversational" | "formal" | "short_sentences" {
+  if (typeof window === "undefined" || !window.localStorage) return "conversational";
+  try {
+    const val = window.localStorage.getItem(OPENROUTER_PUNCTUATION_STYLE_STORAGE_KEY);
+    if (val === "formal" || val === "short_sentences" || val === "conversational") {
+      return val;
+    }
+    return "conversational";
+  } catch {
+    return "conversational";
+  }
+}
+
+export function setOpenRouterPunctuationStyleSetting(style: "conversational" | "formal" | "short_sentences"): void {
   if (typeof window === "undefined" || !window.localStorage) return;
   try {
-    window.localStorage.setItem(AI_PUNCTUATE_AUTO_APPLY_STORAGE_KEY, enabled ? "true" : "false");
+    window.localStorage.setItem(OPENROUTER_PUNCTUATION_STYLE_STORAGE_KEY, style);
   } catch {
     // Ignore storage errors
   }

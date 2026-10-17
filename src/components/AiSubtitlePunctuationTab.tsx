@@ -25,6 +25,8 @@ import {
   fetchOpenRouterFreeModels,
   punctuateSubtitlesWithOpenRouter,
   testOpenRouterConnection,
+  getCuratedFreeModelPresets,
+  type PunctuationStyle,
   type PunctuatedSubtitleResult,
   type PunctuatedSegment,
 } from "@/utils/openRouterAiService";
@@ -33,6 +35,8 @@ import {
   setOpenRouterModelSetting,
   getOpenRouterApiKeySetting,
   setOpenRouterApiKeySetting,
+  getOpenRouterPunctuationStyleSetting,
+  setOpenRouterPunctuationStyleSetting,
   getAiPunctuateAutoApplySetting,
   setAiPunctuateAutoApplySetting,
 } from "@/utils/appSettings";
@@ -43,6 +47,8 @@ export interface AiSubtitlePunctuationTabProps {
   onApplyPunctuatedTrack: (punctuatedJson3: Json3, relySolelyOnPunctuation?: boolean) => void;
   onSwitchToViewer: () => void;
   videoId?: string;
+  isSolelyPunctuationActive?: boolean;
+  onRevertCriteria?: () => void;
 }
 
 export function AiSubtitlePunctuationTab({
@@ -51,6 +57,8 @@ export function AiSubtitlePunctuationTab({
   onApplyPunctuatedTrack,
   onSwitchToViewer,
   videoId,
+  isSolelyPunctuationActive = false,
+  onRevertCriteria,
 }: AiSubtitlePunctuationTabProps) {
   // Model & API Key State
   const [selectedModel, setSelectedModel] = useState<string>(() => getOpenRouterModelSetting());
@@ -59,12 +67,18 @@ export function AiSubtitlePunctuationTab({
   const [modelsFilter, setModelsFilter] = useState<string>("");
   const [isLoadingModels, setIsLoadingModels] = useState<boolean>(false);
   const [autoApply, setAutoApply] = useState<boolean>(() => getAiPunctuateAutoApplySetting());
+  const [punctuationStyle, setPunctuationStyle] = useState<PunctuationStyle>(() =>
+    getOpenRouterPunctuationStyleSetting(),
+  );
+
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // Test Connection State
   const [isTestingKey, setIsTestingKey] = useState<boolean>(false);
   const [testStatus, setTestStatus] = useState<{
     success?: boolean;
     message?: string;
+    latencyMs?: number;
   } | null>(null);
 
   // Processing State
@@ -78,6 +92,8 @@ export function AiSubtitlePunctuationTab({
   const [viewMode, setViewMode] = useState<"side-by-side" | "diff">("side-by-side");
   const [searchFilter, setSearchFilter] = useState<string>("");
   const [, startTransition] = useTransition();
+
+  const presets = useMemo(() => getCuratedFreeModelPresets(), []);
 
   // Load models dynamically on mount
   useEffect(() => {
@@ -101,6 +117,11 @@ export function AiSubtitlePunctuationTab({
   const handleModelChange = (modelId: string) => {
     setSelectedModel(modelId);
     setOpenRouterModelSetting(modelId);
+  };
+
+  const handlePunctuationStyleChange = (style: PunctuationStyle) => {
+    setPunctuationStyle(style);
+    setOpenRouterPunctuationStyleSetting(style);
   };
 
   const handleApiKeyChange = (key: string) => {
@@ -137,6 +158,15 @@ export function AiSubtitlePunctuationTab({
     setAiPunctuateAutoApplySetting(enabled);
   };
 
+  const handleCancelProcessing = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsProcessing(false);
+    setProgressMessage("Cancelled by user.");
+  };
+
   // Extract raw cues from input Json3
   const rawCues = useMemo<Cue[]>(() => {
     if (!rawJson3) return [];
@@ -162,6 +192,9 @@ export function AiSubtitlePunctuationTab({
       return;
     }
 
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     setIsProcessing(true);
     setProgressPercent(5);
     setProgressMessage("Initiating OpenRouter AI subtitle punctuation…");
@@ -173,6 +206,8 @@ export function AiSubtitlePunctuationTab({
         model: selectedModel,
         apiKey: apiKey.trim(),
         temperature: 0.2,
+        style: punctuationStyle,
+        signal: abortController.signal,
         onProgress: (percent, msg) => {
           setProgressPercent(percent);
           setProgressMessage(msg);
@@ -187,9 +222,14 @@ export function AiSubtitlePunctuationTab({
         onApplyPunctuatedTrack(res.punctuatedJson3, false);
       }
     } catch (err: any) {
-      setErrorNotice(err?.message || "Failed to process subtitles with OpenRouter AI.");
+      if (err?.message?.includes("cancelled")) {
+        setProgressMessage("Processing cancelled.");
+      } else {
+        setErrorNotice(err?.message || "Failed to process subtitles with OpenRouter AI.");
+      }
     } finally {
       setIsProcessing(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -310,6 +350,31 @@ export function AiSubtitlePunctuationTab({
               />
             </div>
 
+            {/* Quick Model Presets Pills */}
+            <div className="space-y-1">
+              <span className="text-[10px] text-muted-foreground">Quick Presets:</span>
+              <div className="flex flex-wrap items-center gap-1.5" data-testid="ai-model-presets-container">
+                {presets.map((p) => {
+                  const isSelected = selectedModel === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      data-testid={`ai-preset-${p.id.replace(/[^a-zA-Z0-9]/g, "-")}`}
+                      onClick={() => handleModelChange(p.id)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-all ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground border-primary font-semibold shadow-xs"
+                          : "bg-muted/60 text-muted-foreground hover:text-foreground border-border"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Dropdown Selection */}
             <select
               id="ai-model-select"
@@ -328,6 +393,52 @@ export function AiSubtitlePunctuationTab({
             <p className="text-[11px] text-muted-foreground">
               Default is <code className="bg-muted px-1 rounded font-mono">openrouter/auto:free</code>, which automatically selects the most capable available free model.
             </p>
+          </div>
+
+          {/* Punctuation Style Selector */}
+          <div className="space-y-1.5 pt-2 border-t border-border/60">
+            <label className="text-xs font-medium text-foreground flex items-center justify-between">
+              <span>Punctuation Style</span>
+              <span className="text-[10px] text-muted-foreground font-mono">AI formatting</span>
+            </label>
+            <div className="grid grid-cols-3 gap-1.5 text-xs" data-testid="ai-punctuation-style-selector">
+              <button
+                type="button"
+                data-testid="ai-style-conversational-btn"
+                onClick={() => handlePunctuationStyleChange("conversational")}
+                className={`py-1 px-1.5 rounded-md border text-center text-[11px] transition-all ${
+                  punctuationStyle === "conversational"
+                    ? "border-primary bg-primary/10 text-primary font-semibold"
+                    : "border-input bg-background text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Conversational
+              </button>
+              <button
+                type="button"
+                data-testid="ai-style-formal-btn"
+                onClick={() => handlePunctuationStyleChange("formal")}
+                className={`py-1 px-1.5 rounded-md border text-center text-[11px] transition-all ${
+                  punctuationStyle === "formal"
+                    ? "border-primary bg-primary/10 text-primary font-semibold"
+                    : "border-input bg-background text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Formal
+              </button>
+              <button
+                type="button"
+                data-testid="ai-style-short_sentences-btn"
+                onClick={() => handlePunctuationStyleChange("short_sentences")}
+                className={`py-1 px-1.5 rounded-md border text-center text-[11px] transition-all ${
+                  punctuationStyle === "short_sentences"
+                    ? "border-primary bg-primary/10 text-primary font-semibold"
+                    : "border-input bg-background text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Short
+              </button>
+            </div>
           </div>
 
           {/* Custom Model ID Input */}
@@ -438,6 +549,33 @@ export function AiSubtitlePunctuationTab({
               </div>
             </div>
 
+            {/* Solely Punctuation Active Indicator */}
+            {isSolelyPunctuationActive && (
+              <div
+                data-testid="ai-solely-punctuation-badge"
+                className="flex items-center justify-between rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300"
+              >
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <span className="font-semibold">
+                    Player is currently relying solely on sentence punctuation marks for alignment &amp; lookahead translation!
+                  </span>
+                </div>
+                {onRevertCriteria && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    data-testid="ai-revert-criteria-btn"
+                    onClick={onRevertCriteria}
+                    className="h-6 text-[11px] px-2 border-emerald-500/30 hover:bg-emerald-500/20"
+                  >
+                    Reset Alignment
+                  </Button>
+                )}
+              </div>
+            )}
+
             {/* Error Notice */}
             {errorNotice && (
               <div
@@ -457,7 +595,19 @@ export function AiSubtitlePunctuationTab({
                     <RefreshCw className="h-3 w-3 animate-spin text-primary" />
                     {progressMessage}
                   </span>
-                  <span className="font-mono font-bold text-primary">{progressPercent}%</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-primary">{progressPercent}%</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCancelProcessing}
+                      data-testid="ai-cancel-processing-btn"
+                      className="h-6 px-2 text-[10px] text-destructive border-destructive/40 hover:bg-destructive/10"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                   <div
@@ -473,7 +623,7 @@ export function AiSubtitlePunctuationTab({
             {result && !isProcessing && (
               <div
                 data-testid="ai-stats-card"
-                className="grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4"
+                className="grid grid-cols-2 sm:grid-cols-5 gap-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4"
               >
                 <div>
                   <div className="text-[10px] text-muted-foreground uppercase font-medium">
@@ -497,6 +647,14 @@ export function AiSubtitlePunctuationTab({
                   </div>
                   <div className="text-base font-bold text-blue-600 dark:text-blue-400">
                     +{result.stats.capitalizedWordsCount} words
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-muted-foreground uppercase font-medium">
+                    Batches &amp; Latency
+                  </div>
+                  <div className="text-sm font-bold text-foreground" data-testid="ai-stats-latency">
+                    {result.stats.batchesCount} b · {(result.stats.totalLatencyMs / 1000).toFixed(1)}s
                   </div>
                 </div>
                 <div>
