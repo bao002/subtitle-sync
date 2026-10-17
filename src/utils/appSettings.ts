@@ -448,7 +448,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.39",
+    version: "1.0.40",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -809,6 +809,15 @@ export function getAiPunctuateAutoApplySetting(): boolean {
     return window.localStorage.getItem(AI_PUNCTUATE_AUTO_APPLY_STORAGE_KEY) === "true";
   } catch {
     return false;
+  }
+}
+
+export function setAiPunctuateAutoApplySetting(autoApply: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(AI_PUNCTUATE_AUTO_APPLY_STORAGE_KEY, String(autoApply));
+  } catch {
+    // Ignore storage errors
   }
 }
 

@@ -9,6 +9,8 @@ lerna-debug.log*
 
 # Dependencies
 node_modules/
+bun.lock
+bun.lockb
 
 # Web build outputs
 dist/
@@ -34,6 +36,7 @@ release-artifacts/
 .env
 .env.local
 .env.*.local
+.env.example
 .dev.vars
 
 # Cloudflare / Hosting

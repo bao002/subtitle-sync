@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.39",
+  "version": "1.0.40",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -144,7 +144,9 @@
     "test:hotfix-active-init": "tsx scripts/verify-hotfix-active-initialization.ts",
     "test:on-demand-translation": "tsx scripts/verify-on-demand-translation.ts",
     "test:ai-subtitle-punctuation": "tsx scripts/verify-ai-subtitle-punctuation.ts",
+    "test:ai-punctuation-pipeline": "tsx scripts/verify-ai-punctuation-pipeline.ts",
     "test:favorite-languages-and-ai-tab": "tsx scripts/verify-favorite-languages-and-ai-tab.ts",
+    "test:gitignore-entries": "tsx scripts/verify-gitignore-entries.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

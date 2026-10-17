@@ -3302,7 +3302,9 @@ function Index() {
           onApplyPunctuatedTrack={handleApplyPunctuatedBaseTrack}
           onSwitchToViewer={() => setActiveTopTab("viewer")}
           videoId={videoId}
-          isSolelyPunctuationActive={selectedCriteria.length === 1 && selectedCriteria[0] === "sentence"}
+          isSolelyPunctuationActive={
+            selectedCriteria.length === 1 && selectedCriteria[0] === "sentence"
+          }
           onRevertCriteria={() => setSelectedCriteria(["time", "word", "sentence"])}
         />
       ) : (

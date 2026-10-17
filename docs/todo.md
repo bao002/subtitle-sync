@@ -1,6 +1,12 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 134.5 - Author Dedicated Verification Script `scripts/verify-ai-punctuation-pipeline.ts`
-- **Task**: Author automated verification suite testing version 1.0.39 parity, OpenRouter multi-batch chunking, AbortSignal cancellation, exponential backoff, punctuation styles, presets, and UI component attributes, register script in `package.json` and document in `docs/files.md`.
-- **Status**: [IN PROGRESS]
-- **Verification**: Run `npm run test:ai-punctuation-pipeline` and assert 100% pass rate.
+## Status: All Tasks Completed & Verified
+- **Completed**: Task 136 (Add `bun.lock` & `.env.example` to `.gitignore`, bump version to 1.0.40, author automated verification `scripts/verify-gitignore-entries.ts`).
+- **Verification**: `npm run test:gitignore-entries`, `npm run test:github-import-migration`, `compile_applet`, and `lint_applet` all passing with 100% success.
+- **Backlog**: Clean. Awaiting next prompt instructions.
+
+
+
+
+
+
