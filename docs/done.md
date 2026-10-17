@@ -1,5 +1,46 @@
 # Done tasks
 
+## Task 140: GitHub Import Migration & Environment Harmonization (Version 1.0.43)
+
+### Summary:
+
+- **Project Normalization & Environment Harmonization (`.env.example`, `.gitignore`, `package.json`, `vite.config.ts`)**:
+  - Executed project triage per `github-import-migration` skill: verified Node.js 22 runtime, pure client SPA Vite + React configuration on port 3000 (`host: 0.0.0.0`).
+  - Purged forbidden lockfiles (`bun.lock`) from filesystem while maintaining `.gitignore` rules.
+  - Generated comprehensive `.env.example` declaring all scanned environment variables (`GITHUB_REPOSITORY`, `GITHUB_REPOSITORY_OWNER`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `GEMINI_API_KEY`) without committing secrets.
+  - Verified package scripts and dev server bindings on `0.0.0.0:3000`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:github-import-migration`: PASSED (100% verified).
+  - `npm run test:gitignore-entries`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
+## Task 139: Shareable Link with Default Subtitles, OpenRouter API Key & Target Language for Translation (Version 1.0.43)
+
+### Summary:
+
+- **URL State Manager Serialization & Parsing (`src/utils/urlStateManager.ts`)**:
+  - Extended `UrlAppState` and `CreateShareableLinkOptions` to support rich state parameters: `sub_url` (default subtitles timedtext/fixture URL), `sub_data` (direct JSON3 string payload), `sub_lang` (default subtitles language code), `openrouter_key` (OpenRouter API key), and `target_lang` / `tlang` (target translation language), alongside `v` (videoId) and `t` (playback time).
+  - Enhanced `getAppStateFromUrl()` to parse all variations of URL query parameters (`openrouter_key`, `openrouter_api_key`, `ai_key`, `sub_url`, `subs_url`, `sub_data`, `target_lang`, `tlang`, `target`).
+  - Implemented `createShareableLink(options)` to construct clean sharable URLs.
+- **State Hydration & ShareStateModal Component (`src/components/ShareStateModal.tsx`, `src/routes/index.tsx`)**:
+  - Built dedicated `ShareStateModal.tsx` (`data-testid="share-state-dialog"`) with options to selectively include/exclude default subtitles, OpenRouter API key, target translation language, and current video playback position, with a 1-click "Copy Share Link" button (`data-testid="copy-share-link-btn"`) and feedback badges.
+  - Added dedicated Share button (`data-testid="open-share-modal-button"`) in the top navigation header toolbar in `src/routes/index.tsx`.
+  - Implemented mount-time URL state hydration in `src/routes/index.tsx`: persists `openRouterApiKey` in application settings via `setOpenRouterApiKeySetting`, adds/activates `targetLang` in target languages and shown columns, and fetches/hydrates `sub_url` or decodes `sub_data` into active subtitle tracks (`setTracks`, `setDefaultCaptionsLoaded`, `saveCachedSubtitles`).
+  - Wired `shareModalOpen` to browser popstate and Android hardware back button gesture handlers.
+- **Version 1.0.43 Bump & Parity**:
+  - Synchronized semantic version `1.0.43` and versionCode `10043` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification (`scripts/verify-sharable-state-link.ts`)**:
+  - Authored automated verification suite validating URL serialization, `ShareStateModal` component structure and testids, `src/routes/index.tsx` integration and hydration on load, and version 1.0.43 parity across all 5 targets.
+  - Registered script as `"test:sharable-state-link"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:sharable-state-link`: PASSED (100% verified).
+  - `npm run test:github-import-migration`: PASSED (100% verified).
+  - `npm run test:gitignore-entries`: PASSED (100% verified).
+  - `npm run test:apk-version`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
 ## Task 138: Clean Subtitles Table on Video Switch & Cache/Load AI Subtitles (Version 1.0.42)
 
 ### Summary:
