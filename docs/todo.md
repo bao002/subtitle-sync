@@ -1,5 +1,5 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: None (All Tasks Completed)
-- **Status**: Completed
-- **Verification**: Verified with `npm run test:on-demand-translation`, `lint_applet`, and `compile_applet`.
+## Active Subtask: Subtask 132.7 - Migrate Completed Task 132 to docs/done.md
+- **Task**: Document completion of Task 132 in `docs/done.md`, clear active backlog in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+- **Status**: [IN PROGRESS]

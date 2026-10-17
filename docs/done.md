@@ -1,5 +1,38 @@
 # Done tasks
 
+## Task 132: AI Subtitle Punctuation Processing Tab via OpenRouter Free Models (Version 1.0.37)
+
+### Summary:
+
+- **Version 1.0.37 Bump & Parity**:
+  - Aligned semantic version `1.0.37` and versionCode `10037` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **OpenRouter AI Service (`src/utils/openRouterAiService.ts`)**:
+  - Implemented OpenRouter integration targeting free models, defaulting to `openrouter/auto:free` with fallback to `openrouter/free`, `meta-llama/llama-3.3-70b-instruct:free`, `meta-llama/llama-3.1-8b-instruct:free`, `google/gemma-4-31b:free`, `google/gemma-4-26b-a4b:free`, `mistralai/mistral-7b-instruct:free`, and `qwen/qwen-2.5-coder-32b-instruct:free`.
+  - Implemented dynamic model catalogue fetching from `https://openrouter.ai/api/v1/models` filtering for free models (`isFree` check via zero pricing or `:free` suffix).
+  - Implemented `punctuateSubtitlesWithOpenRouter` pipeline formatting input cues into indexed lines, querying OpenRouter chat completion, parsing output lines back into cues with exact preserved start and duration timestamps (`tStartMs`, `dDurationMs`), and assembling complete `Json3` events.
+- **OpenRouter App Settings (`src/utils/appSettings.ts`)**:
+  - Added `openRouterModel: "openrouter/auto:free"`, `openRouterApiKey: ""`, and `aiPunctuateAutoApply: false` to `DEFAULT_APP_SETTINGS`.
+  - Added persistence functions `getOpenRouterModelSetting`, `setOpenRouterModelSetting`, `getOpenRouterApiKeySetting`, `setOpenRouterApiKeySetting`, `getAiPunctuateAutoApplySetting`, `setAiPunctuateAutoApplySetting`.
+- **AI Subtitle Punctuation Tab Component (`src/components/AiSubtitlePunctuationTab.tsx`)**:
+  - Created standalone tab component matching the application design system with:
+    - Searchable and filterable free models dropdown defaulting to `openrouter/auto:free`.
+    - Optional OpenRouter API key input with show/hide toggle and local persistence.
+    - Refresh models button to fetch live free models from OpenRouter API.
+    - Punctuation processing trigger with loading state and progress spinner.
+    - Side-by-side / diff preview comparing raw default subtitles vs enriched punctuated subtitles.
+    - "Apply Punctuated Subtitles" button that injects the punctuated track into the active player state and prompts switching to the Synchronized Viewer.
+    - Auto-apply checkbox toggle.
+- **Index Route Navigation Tab Integration (`src/routes/index.tsx`)**:
+  - Added `ai-punctuation` to `activeTopTab` navigation (`Viewer`, `Playground`, and `AI Punctuation`).
+  - Mounted `<AiSubtitlePunctuationTab>` connecting active track cues, `baseLanguage`, and callback `handleApplyPunctuatedBaseTrack` to update tracks so subtitle alignment and on-demand translation rely on restored punctuation.
+- **Dedicated Automated Verification (`scripts/verify-ai-subtitle-punctuation.ts`)**:
+  - Authored comprehensive test suite asserting free models catalogue and `openrouter/auto:free` default, prompt formatting, response parsing, OpenRouter pipeline execution, settings persistence, UI tab structure and route integration, and 1.0.37 version synchronization.
+  - Registered as `"test:ai-subtitle-punctuation"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:ai-subtitle-punctuation`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
 ## Task 131: On-Demand Translation Ahead (X=10 sentences) via Google Translate API (Version 1.0.36)
 
 ### Summary:

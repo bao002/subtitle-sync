@@ -4,19 +4,22 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Task 131 — On-Demand Translation Ahead (X=10 sentences) via Google Translate API (v1.0.36)
+## Active Prompt: Task 132 — AI Subtitle Punctuation Processing Tab via OpenRouter Free Models (v1.0.37)
 
-- **Target 1**: Bump app version to 1.0.36 across all 5 version targets.
-- **Target 2**: Implement `src/utils/onDemandTranslationManager.ts` with user-specified `translateWithGoogle` API, language normalization, caching, and lookahead queue (X=10 sentences ahead).
-- **Target 3**: Update `appSettings.ts` with `enableOnDemandTranslation` and `onDemandTranslationSentencesAhead` configuration.
-- **Target 4**: Integrate on-demand translation into `src/routes/index.tsx` for selected target languages pending YouTube timedtext fetch, reactively translating the next X=10 sentences as playback advances.
-- **Target 5**: Author dedicated test `scripts/verify-on-demand-translation.ts` and verify build and lints.
+- **Target 1**: Bump app version to 1.0.37 across all 5 version targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+- **Target 2**: Implement `src/utils/openRouterAiService.ts` for OpenRouter API, listing and filtering free models, fetching model catalogs (`https://openrouter.ai/api/v1/models`), handling API key persistence, defaulting to `openrouter/auto:free`, and calling chat completion for subtitle punctuation enrichment.
+- **Target 3**: Update `appSettings.ts` with OpenRouter model and key preferences (`openRouterModel`, `openRouterApiKey`, `aiPunctuateAutoApply`).
+- **Target 4**: Implement `src/components/AiSubtitlePunctuationTab.tsx` with searchable/filterable free model dropdown, API key input, cue punctuation processor, side-by-side preview, diff view, and "Apply Punctuated Subtitles" button.
+- **Target 5**: Integrate AI Subtitle Processing top tab (`tab-ai-punctuation`) in `src/routes/index.tsx` alongside `viewer` and `playground`.
+- **Target 6**: Author dedicated automated test `scripts/verify-ai-subtitle-punctuation.ts`, register in `package.json` and `docs/files.md`, run tests, compile and lint.
+- **Target 7**: Migrate completed Task 132 to `docs/done.md`.
 
 ---
 
 ## 1. The Token Economy Problem: Why Big Tasks Fail
 
 In complex full-stack applications, processing broad or monolithic tasks directly in a single sprawling execution pass leads to critical failure modes:
+
 1. **Context Bloat & Token Exhaustion**: Loading massive files, long task histories, and sprawling outputs rapidly burns context windows.
 2. **Abrupt Execution Termination**: Running out of tokens mid-turn leaves unfinished edits and a broken repository.
 3. **Compound Regression Cascades**: Changing multiple distinct subsystems simultaneously makes diagnosis expensive in tokens.
@@ -83,6 +86,7 @@ To guarantee token economy without heavy processing, maintain the following file
 ```
 
 ### Protocol Requirements:
+
 - **Activate Token Economy on Prompt Entry**: Acknowledge `tokens.md` as an ultra-fast preface; never begin un-staged source edits.
 - **Atomic Sub-tasks in Backlog**: Numbered sub-tasks belong in `docs/tasks.md`.
 - **Stage `current-sub-task.md`**: Focus exclusively on the active sub-task.
@@ -94,6 +98,7 @@ To guarantee token economy without heavy processing, maintain the following file
 ## 5. Hotfix Workflow: Keeping Active Tasks on Hold
 
 When an unexpected defect, broken build, regression, or failing CI flow arises during active development:
+
 1. **SUSPEND ACTIVE TASK**: Place the active task/sub-task in `current-sub-task.md` **ON HOLD** (marked `[ON HOLD]`).
 2. **STAGE HOTFIX**: Create `Hotfix: <issue>` in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
 3. **EXECUTE IN ISOLATION**: Implement minimal targeted fix, verify with dedicated test, compile, and lint.

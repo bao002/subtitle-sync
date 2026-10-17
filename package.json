@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.36",
+  "version": "1.0.37",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -143,6 +143,7 @@
     "test:video-controls": "tsx scripts/verify-video-playback-controls.ts",
     "test:hotfix-active-init": "tsx scripts/verify-hotfix-active-initialization.ts",
     "test:on-demand-translation": "tsx scripts/verify-on-demand-translation.ts",
+    "test:ai-subtitle-punctuation": "tsx scripts/verify-ai-subtitle-punctuation.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
