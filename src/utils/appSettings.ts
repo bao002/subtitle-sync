@@ -812,6 +812,15 @@ export function getAiPunctuateAutoApplySetting(): boolean {
   }
 }
 
+export function setAiPunctuateAutoApplySetting(autoApply: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(AI_PUNCTUATE_AUTO_APPLY_STORAGE_KEY, String(autoApply));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 export const OPENROUTER_PUNCTUATION_STYLE_STORAGE_KEY = "yt_openrouter_punct_style";
 
 export function getOpenRouterPunctuationStyleSetting(): "conversational" | "formal" | "short_sentences" {

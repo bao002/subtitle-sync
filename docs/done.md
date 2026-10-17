@@ -1,5 +1,45 @@
 # Done tasks
 
+## Task 135: GitHub Import Migration & Environment Harmonization Protocol (Version 1.0.39)
+
+### Summary:
+
+- **GitHub Import Migration Execution (`references/web.md`)**:
+  - Triage classified the project into Category C: Web / Node.js Compatible (pure client Vite React SPA with TanStack Router).
+  - Executed Phase 1 project normalization: Cleaned forbidden lockfiles (`bun.lock`), validated npm package manager enforcement, verified `dev` script binds to `0.0.0.0:3000`.
+  - Executed Phase 2 dependencies check: No native addons or build blockers, verified client SPA architecture.
+  - Executed Phase 3 framework configuration: Verified `vite.config.ts` binds `server: { host: '0.0.0.0', port: 3000, allowedHosts: true }` and client entry point mounts `src/client.tsx`.
+  - Executed Phase 4 secrets and env scan: Verified `.env.example` contains all required variables (`GITHUB_REPOSITORY`, `GITHUB_REPOSITORY_OWNER`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`).
+  - Fixed missing `setAiPunctuateAutoApplySetting` export in `src/utils/appSettings.ts` and prettier formatting in `src/routes/index.tsx`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:github-import-migration`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
+## Task 134: Multi-Batch AI Subtitle Punctuation, Robust Free Tier Rate-Limit Handling & Solely-Punctuation Translation Integration (Version 1.0.39)
+
+### Summary:
+
+- **Version 1.0.39 Bump & Parity**:
+  - Aligned semantic version `1.0.39` and versionCode `10039` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Multi-Batch Chunking & Punctuation Pipeline (`src/utils/openRouterAiService.ts`)**:
+  - Implemented sliding-window batching (`batchSize`, default 15) with progress tracking and latency metrics.
+  - Added exponential backoff retry for free tier rate limits (HTTP 429/503).
+  - Added `AbortSignal` cancellation support in `punctuateSubtitlesWithOpenRouter`.
+  - Implemented curated free model presets and custom punctuation styles ("conversational", "formal", "short_sentences").
+- **Solely-Punctuation Translation & UI (`src/utils/onDemandTranslationManager.ts`, `src/components/AiSubtitlePunctuationTab.tsx`, `src/routes/index.tsx`)**:
+  - Added sentence boundary lookahead segmentation and UI indicators for solely-punctuation alignment mode.
+  - Added quick-select model presets, live latency indicators, and cancel processing button in `AiSubtitlePunctuationTab`.
+- **Dedicated Automated Verification (`scripts/verify-ai-punctuation-pipeline.ts`)**:
+  - Authored automated verification testing version 1.0.39 parity, OpenRouter multi-batch chunking, AbortSignal cancellation, exponential backoff, punctuation styles, presets, settings persistence, and UI component attributes.
+  - Registered as `"test:ai-punctuation-pipeline"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:ai-punctuation-pipeline`: PASSED (100% verified).
+  - `npm run test:ai-subtitle-punctuation`: PASSED (100% verified).
+  - `npm run test:favorite-languages-and-ai-tab`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
 ## Task 133: Fix Favorite Languages Selection for On-Demand Translation & Subtitles Table, and Complete AI Subtitle Punctuation Tab (Version 1.0.38)
 
 ### Summary:

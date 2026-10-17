@@ -25,7 +25,7 @@ import {
   setOpenRouterPunctuationStyleSetting,
 } from "../src/utils/appSettings";
 
-const ROOT_DIR = path.resolve(__dirname, "..");
+const ROOT_DIR = process.cwd();
 
 function log(msg: string) {
   console.log(`[TEST-AI-PUNCT-PIPELINE] ${msg}`);
@@ -154,6 +154,15 @@ async function runTests() {
 
   // --- [5] Verify App Settings Persistence ---
   console.log("\n--- [5] Verifying Punctuation Style Settings Persistence ---");
+  const mockStorage = new Map<string, string>();
+  (globalThis as any).window = {
+    localStorage: {
+      getItem: (key: string) => mockStorage.get(key) ?? null,
+      setItem: (key: string, val: string) => mockStorage.set(key, val),
+      removeItem: (key: string) => mockStorage.delete(key),
+    },
+  };
+
   setOpenRouterPunctuationStyleSetting("formal");
   assert.strictEqual(getOpenRouterPunctuationStyleSetting(), "formal", "Should persist formal style");
   setOpenRouterPunctuationStyleSetting("short_sentences");

@@ -300,5 +300,7 @@ This document serves as the master catalog and directory of all repository docum
 | `src/components/AiSubtitlePunctuationTab.tsx`                   | AI Subtitle Punctuation Processing Tab Component               | Full interactive tab allowing users to restore punctuation to default subtitles via OpenRouter free models, live preview diffs, and apply enriched punctuation to active subtitle tracks.           |
 | `scripts/verify-ai-subtitle-punctuation.ts`                     | AI Subtitle Punctuation Verification Suite                     | Asserts version 1.0.37 parity, OpenRouter free models list and auto:free default, punctuation prompt/output parsing, execution pipeline, app settings persistence, and index route integration.     |
 | `scripts/verify-favorite-languages-and-ai-tab.ts`               | Favorite Languages Reactivity & AI Tab Verification Suite      | Asserts version 1.0.38 parity, subtitles table reactivity upon selecting favorite/target languages, on-demand translation candidate inclusion, OpenRouter test connection, and solely punctuation apply mode. |
+| `scripts/verify-ai-punctuation-pipeline.ts`                     | AI Punctuation Pipeline & Workflow Verification Suite          | Asserts version 1.0.39 parity across all 5 targets, OpenRouter punctuation styles, curated presets, multi-batch sliding-window chunking, AbortSignal cancellation, settings persistence, and UI integration. |
+
 
 

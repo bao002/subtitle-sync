@@ -163,8 +163,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on
+This app was imported from GitHub repository ofershaham1-cyber/subtitle-sync.
 ```
+
 
 
 

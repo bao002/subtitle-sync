@@ -1,6 +1,7 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 134.5 - Author Dedicated Verification Script `scripts/verify-ai-punctuation-pipeline.ts`
-- **Task**: Author automated verification suite testing version 1.0.39 parity, OpenRouter multi-batch chunking, AbortSignal cancellation, exponential backoff, punctuation styles, presets, and UI component attributes, register script in `package.json` and document in `docs/files.md`.
-- **Status**: [IN PROGRESS]
-- **Verification**: Run `npm run test:ai-punctuation-pipeline` and assert 100% pass rate.
+## Status: All Tasks Completed & Verified
+- **Completed**: Task 134 (AI Punctuation Pipeline & Solely-Punctuation Workflow) and Task 135 (GitHub Import Migration & Environment Harmonization Protocol).
+- **Verification**: `npm run test:github-import-migration`, `npm run test:ai-punctuation-pipeline`, `npm run test:ai-subtitle-punctuation`, `npm run test:favorite-languages-and-ai-tab`, `compile_applet`, and `lint_applet` all passing with 100% success.
+- **Backlog**: Clean. Awaiting next prompt instructions.
+

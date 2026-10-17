@@ -4,14 +4,15 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Task 134 — Multi-Batch AI Subtitle Punctuation, Robust Free Tier Rate-Limit Handling & Solely-Punctuation Translation Integration (v1.0.39)
+## Active Prompt: Task 135 — GitHub Import Migration & Environment Harmonization Protocol (v1.0.39)
 
-- **Target 1**: Bump app version to 1.0.39 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-- **Target 2**: Implement sliding-window chunked batching with progress tracking and rate-limit backoff in `src/utils/openRouterAiService.ts`.
-- **Target 3**: Deepen solely-punctuation alignment & sentence segmentation in `src/utils/onDemandTranslationManager.ts` and `src/components/AiSubtitlePunctuationTab.tsx`.
-- **Target 4**: Add quick-select model presets, live latency indicators, and abort cancellation in `src/components/AiSubtitlePunctuationTab.tsx`.
-- **Target 5**: Author dedicated verification script `scripts/verify-ai-punctuation-pipeline.ts`, register in `package.json` and `docs/files.md`.
+- **Target 1**: Execute Phase 1 normalization (clean lockfiles, npm package manager enforcement, dev script 0.0.0.0:3000).
+- **Target 2**: Execute Phase 2 dependency review & database stubs (ensure zero native build blockers, verify client SPA architecture).
+- **Target 3**: Execute Phase 3 framework configuration (Vite server host/port binding, client SPA entry point verification).
+- **Target 4**: Execute Phase 4 integration & env scan (validate .env.example contains all required environment variables).
+- **Target 5**: Author/run dedicated automated verification `scripts/verify-github-import-migration.ts` (`npm run test:github-import-migration`).
 - **Target 6**: Test, compile (`compile_applet`), lint (`lint_applet`), and migrate completed items to `docs/done.md`.
+
 
 ---
 
