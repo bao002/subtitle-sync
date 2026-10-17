@@ -163,10 +163,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-different next 2 tasks:
-1. subtitles table view - if a video loaded after another it still doesnt clean the previous table
-2. cache the subtitles returned from the AI. and allow to load it
+allow to share a link which contain the default subtitles and the openrouter API key and the target language for translation for quick loading the same state via a sharable link
 ```
+
+
 
 
 

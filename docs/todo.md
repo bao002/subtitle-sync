@@ -1,5 +1,5 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 138.1 - Clean Subtitles Table View on Video Change
-- **Description**: Ensure subtitles table view is completely cleared and reset when a video is loaded after another. When `videoId` transitions, flush `tracks`, `rawTracks`, `rows`, `active`, `playedTtsRecords`, and `subtitlesPage` so previous video subtitles never linger in the table while the new video is loading or if the new video has no subtitles.
+## Active Subtask: Subtask 139.2 - State Hydration & ShareStateModal Component
+- **Description**: Build dedicated component `src/components/ShareStateModal.tsx` and integrate it into `src/routes/index.tsx`. Implement URL query hydration on load for `sub_url`, `sub_data`, `openrouter_key`, and `target_lang`, and provide a clean "Share" button in the top navigation/header opening `ShareStateModal` to copy the state link to clipboard.
 - **Status**: IN PROGRESS.

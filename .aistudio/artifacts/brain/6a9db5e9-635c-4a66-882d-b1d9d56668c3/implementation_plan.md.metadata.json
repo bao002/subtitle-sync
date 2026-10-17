@@ -1,0 +1,6 @@
+{
+  "summary": "Implementation plan for Task 126: Providing per-language subtitle URL inputs via direct language buttons in the Languages table, removing the redundant top-bar drawer to preserve the clean web demo UI, and updating the version to 1.0.29.",
+  "updatedAt": "2026-10-15T04:12:47.043914763Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

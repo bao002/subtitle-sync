@@ -4,11 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Clean Subtitles Table on Video Switch & AI Subtitles Cache/Load
+## Active Prompt: Shareable State Link with Default Subtitles, OpenRouter API Key & Target Translation Language
 
-- **Target 1**: Ensure subtitles table view is completely cleared and reset when a video is loaded after another (reset tracks, rows, active states, page, and UI table display on videoId change).
-- **Target 2**: Implement caching for subtitles returned from the AI (in subtitleCache / localStorage under videoId and language code with AI metadata), and allow loading cached AI subtitles directly in the UI.
-- **Target 3**: Bump version to 1.0.42 across all 5 targets, author dedicated automated test `scripts/verify-video-switch-table-reset-and-ai-cache.ts`, run full verification, commit/migrate to `docs/done.md`.
+- **Target 1**: Build shareable link serialization and parsing in `src/utils/urlStateManager.ts`: support `sub_url` (default subtitles URL), `sub_data` (default subtitles payload), `openrouter_key` (OpenRouter API key), and `target_lang` (target language for translation) alongside `v` (videoId).
+- **Target 2**: Implement hydration of shareable link parameters in `src/routes/index.tsx`: hydrate default subtitles, store OpenRouter API key in app settings, and activate target language for translation on link load; build dedicated `ShareStateModal.tsx` with copy-to-clipboard action.
+- **Target 3**: Bump version to 1.0.43 across all 5 targets, author dedicated automated test `scripts/verify-sharable-state-link.ts`, update `docs/files.md`, verify with compile/lint, commit, and migrate to `docs/done.md`.
 
 
 

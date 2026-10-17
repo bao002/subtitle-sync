@@ -14,10 +14,20 @@ import {
   Cpu,
   Layers,
   Wand2,
+  Database,
+  Trash2,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { type Json3, type Cue, parseCues, fmt } from "@/lib/subtitles";
+import {
+  saveCachedAiSubtitles,
+  getCachedAiSubtitles,
+  hasCachedAiSubtitles,
+  clearCachedAiSubtitles,
+  type CachedAiSubtitleData,
+} from "@/utils/subtitleCache";
 import {
   type OpenRouterModel,
   DEFAULT_OPENROUTER_MODEL,
@@ -49,6 +59,7 @@ export interface AiSubtitlePunctuationTabProps {
   videoId?: string;
   isSolelyPunctuationActive?: boolean;
   onRevertCriteria?: () => void;
+  onOpenShareModal?: () => void;
 }
 
 export function AiSubtitlePunctuationTab({
@@ -59,6 +70,7 @@ export function AiSubtitlePunctuationTab({
   videoId,
   isSolelyPunctuationActive = false,
   onRevertCriteria,
+  onOpenShareModal,
 }: AiSubtitlePunctuationTabProps) {
   // Model & API Key State
   const [selectedModel, setSelectedModel] = useState<string>(() => getOpenRouterModelSetting());
@@ -87,6 +99,15 @@ export function AiSubtitlePunctuationTab({
   const [progressMessage, setProgressMessage] = useState<string>("");
   const [errorNotice, setErrorNotice] = useState<string | null>(null);
   const [result, setResult] = useState<PunctuatedSubtitleResult | null>(null);
+
+  // Cached AI Subtitles State
+  const [cachedAiData, setCachedAiData] = useState<CachedAiSubtitleData | null>(() =>
+    getCachedAiSubtitles(videoId || "current", baseLanguage || "en"),
+  );
+
+  useEffect(() => {
+    setCachedAiData(getCachedAiSubtitles(videoId || "current", baseLanguage || "en"));
+  }, [videoId, baseLanguage]);
 
   // View state
   const [viewMode, setViewMode] = useState<"side-by-side" | "diff">("side-by-side");
@@ -216,7 +237,22 @@ export function AiSubtitlePunctuationTab({
 
       setResult(res);
       setProgressPercent(100);
-      setProgressMessage("AI punctuation complete!");
+      setProgressMessage("AI punctuation complete & cached!");
+
+      // Persist in AI subtitle cache under videoId and language code
+      saveCachedAiSubtitles({
+        videoId: videoId || "current",
+        lang: baseLanguage || "en",
+        punctuatedJson3: res.punctuatedJson3,
+        segments: res.segments,
+        modelUsed: selectedModel,
+        style: punctuationStyle,
+        timestamp: Date.now(),
+        latencyMs: res.stats.totalLatencyMs,
+        rawCount: rawCues.length,
+        punctuatedCount: res.punctuatedCount,
+      });
+      setCachedAiData(getCachedAiSubtitles(videoId || "current", baseLanguage || "en"));
 
       if (autoApply) {
         onApplyPunctuatedTrack(res.punctuatedJson3, false);
@@ -236,6 +272,46 @@ export function AiSubtitlePunctuationTab({
   const handleApplyPunctuated = (relySolelyOnPunctuation = false) => {
     if (!result?.punctuatedJson3) return;
     onApplyPunctuatedTrack(result.punctuatedJson3, relySolelyOnPunctuation);
+  };
+
+  const handleLoadCachedAiSubtitles = (relySolelyOnPunctuation = false) => {
+    if (!cachedAiData?.punctuatedJson3) return;
+    setResult({
+      punctuatedJson3: cachedAiData.punctuatedJson3,
+      punctuatedCount: cachedAiData.punctuatedCount || 0,
+      segments: cachedAiData.segments || [],
+      stats: {
+        totalSegments: cachedAiData.rawCount || 0,
+        punctuationMarksAdded: cachedAiData.punctuatedCount || 0,
+        capitalizedWordsCount: 0,
+        batchesCount: 1,
+        totalLatencyMs: cachedAiData.latencyMs || 0,
+        modelUsed: cachedAiData.modelUsed || "cached-ai",
+      },
+    });
+    onApplyPunctuatedTrack(cachedAiData.punctuatedJson3, relySolelyOnPunctuation);
+  };
+
+  const handlePreviewCachedAiSubtitles = () => {
+    if (!cachedAiData?.punctuatedJson3) return;
+    setResult({
+      punctuatedJson3: cachedAiData.punctuatedJson3,
+      punctuatedCount: cachedAiData.punctuatedCount || 0,
+      segments: cachedAiData.segments || [],
+      stats: {
+        totalSegments: cachedAiData.rawCount || 0,
+        punctuationMarksAdded: cachedAiData.punctuatedCount || 0,
+        capitalizedWordsCount: 0,
+        batchesCount: 1,
+        totalLatencyMs: cachedAiData.latencyMs || 0,
+        modelUsed: cachedAiData.modelUsed || "cached-ai",
+      },
+    });
+  };
+
+  const handleClearCachedAiSubtitles = () => {
+    clearCachedAiSubtitles(videoId || "current", baseLanguage || "en");
+    setCachedAiData(null);
   };
 
   // Filtered segments for display
@@ -286,6 +362,20 @@ export function AiSubtitlePunctuationTab({
           </div>
 
           <div className="flex items-center gap-2">
+            {onOpenShareModal && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onOpenShareModal}
+                className="gap-1.5 text-xs"
+                data-testid="ai-tab-share-link-btn"
+                title="Share link with default subtitles, OpenRouter key, and target translation language"
+              >
+                <Share2 className="h-3.5 w-3.5 text-primary" />
+                <span>Share Setup</span>
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"
@@ -548,6 +638,70 @@ export function AiSubtitlePunctuationTab({
                 </span>
               </div>
             </div>
+
+            {/* Cached AI Subtitles Card */}
+            {cachedAiData && (
+              <div
+                data-testid="cached-ai-subtitles-card"
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3.5 text-xs shadow-xs"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Database className="h-4 w-4 text-primary" />
+                    <span className="font-semibold text-foreground">
+                      Cached AI Subtitles Available
+                    </span>
+                    <Badge variant="secondary" className="text-[10px] font-mono">
+                      {cachedAiData.modelUsed || "AI model"}
+                    </Badge>
+                    {cachedAiData.punctuatedCount !== undefined && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                        +{cachedAiData.punctuatedCount} marks
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Saved on {new Date(cachedAiData.timestamp).toLocaleString()} for {(cachedAiData.lang || baseLanguage).toUpperCase()} · Video {cachedAiData.videoId}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="default"
+                    data-testid="load-cached-ai-subtitles-btn"
+                    onClick={() => handleLoadCachedAiSubtitles(false)}
+                    className="h-7 px-2.5 text-xs gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                  >
+                    <FileCheck className="h-3.5 w-3.5" />
+                    <span>Load &amp; Apply</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    data-testid="preview-cached-ai-subtitles-btn"
+                    onClick={handlePreviewCachedAiSubtitles}
+                    className="h-7 px-2.5 text-xs gap-1.5"
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    <span>Preview Diff</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    data-testid="clear-cached-ai-subtitles-btn"
+                    onClick={handleClearCachedAiSubtitles}
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive gap-1"
+                    title="Clear cached AI subtitles for this video"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    <span>Clear</span>
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Solely Punctuation Active Indicator */}
             {isSolelyPunctuationActive && (

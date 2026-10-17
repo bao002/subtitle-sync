@@ -303,6 +303,7 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-ai-punctuation-pipeline.ts`                     | AI Punctuation Pipeline & Workflow Verification Suite          | Asserts version 1.0.39 parity across all 5 targets, OpenRouter punctuation styles, curated presets, multi-batch sliding-window chunking, AbortSignal cancellation, settings persistence, and UI integration. |
 | `scripts/verify-gitignore-entries.ts`                           | .gitignore Entries & Version 1.0.40 Verification Suite         | Asserts bun.lock, bun.lockb, and .env.example are in .gitignore, absence of forbidden lockfiles on disk, template integrity, and version 1.0.40 parity across all 5 targets. |
 | `scripts/verify-tts-play-and-table-page-flipping.ts`           | TTS Play & Subtitles Table Page Flipping Verification Suite    | Asserts AndroidManifest.xml TTS queries, MainActivity.kt audio attributes and isTtsReady bridge, index.tsx native TTS prioritization, spoken state sync, automatic table page flipping across page boundaries, and version 1.0.41 parity across all 5 targets. |
+| `scripts/verify-video-switch-table-reset-and-ai-cache.ts`      | Video Switch Table Clean Reset & AI Subtitle Cache Test Suite  | Asserts clean flush of tracks, rows, pagination, and state when video changes, AI subtitle caching and loading controls, and version 1.0.42 synchronization across all 5 targets. |
 
 
 
