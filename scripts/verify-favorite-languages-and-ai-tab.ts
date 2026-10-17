@@ -35,8 +35,14 @@ assert.ok(packageJson.version >= "1.0.38", "package.json version must be 1.0.38+
 assert.ok(APP_VERSION >= "1.0.38", "appConfig.ts APP_VERSION must be 1.0.38+");
 assert.ok(CURRENT_APK_VERSION >= "v1.0.38", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.38+");
 
-const gradleContent = fs.readFileSync(path.join(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(gradleContent.includes(`versionName = "${packageJson.version}"`), "build.gradle.kts versionName must match package.json");
+const gradleContent = fs.readFileSync(
+  path.join(rootDir, "android-shell/app/build.gradle.kts"),
+  "utf-8",
+);
+assert.ok(
+  gradleContent.includes(`versionName = "${packageJson.version}"`),
+  "build.gradle.kts versionName must match package.json",
+);
 assert.ok(gradleContent.includes("versionCode = "), "build.gradle.kts versionCode must be present");
 console.log(`✅ PASS: All 5 version targets synchronized at ${packageJson.version}`);
 
@@ -49,7 +55,9 @@ const indexContent = fs.readFileSync(path.join(rootDir, "src/routes/index.tsx"),
 
 // Check handleUpdateFavoriteLanguages synchronizes targetLanguages and triggers fetch
 assert.ok(
-  indexContent.includes("setTargetLanguages((prev) => Array.from(new Set([...prev, ...addedFavs])))"),
+  indexContent.includes(
+    "setTargetLanguages((prev) => Array.from(new Set([...prev, ...addedFavs])))",
+  ),
   "handleUpdateFavoriteLanguages must add new favorites to targetLanguages",
 );
 assert.ok(
@@ -73,7 +81,9 @@ assert.ok(
 
 // Check cols computation includes shown languages from targetLanguages or favoriteLanguages
 assert.ok(
-  indexContent.includes("targetLanguages.includes(l.code) ||\n          favoriteLanguages.includes(l.code)"),
+  indexContent.includes(
+    "targetLanguages.includes(l.code) ||\n          favoriteLanguages.includes(l.code)",
+  ),
   "cols useMemo must include favoriteLanguages in candidate check",
 );
 
@@ -83,7 +93,9 @@ assert.ok(
   "orderedLangs must include favoriteLanguages in candidate codes",
 );
 
-console.log("✅ PASS: Favorite languages properly connected to on-demand translation and subtitles table cols");
+console.log(
+  "✅ PASS: Favorite languages properly connected to on-demand translation and subtitles table cols",
+);
 
 // ============================================================================
 // 3. OpenRouter Free Models & testOpenRouterConnection
@@ -134,14 +146,19 @@ assert.ok(
   "Must include apply & rely solely on punctuation button",
 );
 assert.ok(tabContent.includes("start-ai-punctuation-btn"), "Must include start punctuation button");
-console.log("✅ PASS: AiSubtitlePunctuationTab component defines all required interactive elements");
+console.log(
+  "✅ PASS: AiSubtitlePunctuationTab component defines all required interactive elements",
+);
 
 // ============================================================================
 // 5. Index Route Tab Mount & relySolelyOnPunctuation Support
 // ============================================================================
 console.log("\n--- [5] Verifying index.tsx Integration ---");
 
-assert.ok(indexContent.includes("tab-ai-punctuation"), "index.tsx must render tab-ai-punctuation button");
+assert.ok(
+  indexContent.includes("tab-ai-punctuation"),
+  "index.tsx must render tab-ai-punctuation button",
+);
 assert.ok(
   indexContent.includes('activeTopTab === "ai-punctuation"'),
   "index.tsx must mount AiSubtitlePunctuationTab for ai-punctuation tab",

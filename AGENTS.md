@@ -163,14 +163,16 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-This app was imported from GitHub repository bao002/subtitle-sync.
+plan/sub-task managment the following:
+
+create an alternative design for begginer-mode running the android app with the features which works best (default subtitles fetch detection):
+
+
+* mv to tab based flow (disable next tabs until the requirement is satisfied)
+1. start from the video screen (where a user ends up after choosing to share the youtube link with this app). here there is a youtube input url control. +a link to the library tab.
+2. the video screen asks the user to enable the captions and list the observed subtitles based on intercepting youtube api calls and caching the api request and the response (local-storing the subtitles)
+3. the user can choose which of the default subtitles to be used as base.
+once this is setup -> enable the next tab/s
+4. choose order, tts-speed, tts-voice, subtitles-ratio, which favorite languages to use ( or extend the list ) (support on-demand adjustment)
+5. subtitles parsing - default to split by sentences panctuation - allow to choose which panctuation chars to include. some chars should be rename/removed (example remove char:  ">" )
 ```
-
-
-
-
-
-
-
-
-

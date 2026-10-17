@@ -27,7 +27,10 @@ const mockStorage: Record<string, string> = {};
 console.log("\n📦 Section 1: Version Parity Check");
 const pkg = JSON.parse(fs.readFileSync(path.resolve("package.json"), "utf-8"));
 const currentVersion = pkg.version;
-assert.ok(currentVersion && currentVersion.startsWith("1.0."), "package.json version must be valid 1.0.x");
+assert.ok(
+  currentVersion && currentVersion.startsWith("1.0."),
+  "package.json version must be valid 1.0.x",
+);
 
 const buildGradle = fs.readFileSync(path.resolve("android-shell/app/build.gradle.kts"), "utf-8");
 assert.ok(

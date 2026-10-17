@@ -98,9 +98,7 @@ export const LanguageSubtitleUrlModal: React.FC<LanguageSubtitleUrlModalProps> =
     } catch (err) {
       setIsFetching(false);
       setStatusType("error");
-      setStatusMessage(
-        `Error: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      setStatusMessage(`Error: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -145,10 +143,7 @@ export const LanguageSubtitleUrlModal: React.FC<LanguageSubtitleUrlModalProps> =
           </p>
 
           <div className="space-y-1.5">
-            <label
-              htmlFor="lang-subtitle-url-input"
-              className="font-medium text-foreground block"
-            >
+            <label htmlFor="lang-subtitle-url-input" className="font-medium text-foreground block">
               Subtitle URL or Path:
             </label>
             <textarea
@@ -201,13 +196,7 @@ export const LanguageSubtitleUrlModal: React.FC<LanguageSubtitleUrlModalProps> =
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-border pt-3">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            disabled={isFetching}
-          >
+          <Button type="button" variant="ghost" size="sm" onClick={onClose} disabled={isFetching}>
             Cancel
           </Button>
           <Button

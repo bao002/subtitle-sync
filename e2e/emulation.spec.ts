@@ -78,4 +78,3 @@ test.describe("Android Emulator E2E — YouTube Video Share Feature", () => {
     await expect(page.locator("header")).toBeVisible();
   });
 });
-

@@ -5,7 +5,14 @@ import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
 import { fetchViaServer } from "../lib/subtitle-fetch-plan";
 import serverConfig from "../config/server.json";
 import { Json3 } from "../types";
-import { RefreshCw, CheckCircle2, AlertCircle, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 export interface WebDemoUrlsInputProps {
   currentVideoId: string;
@@ -58,7 +65,9 @@ export function WebDemoUrlsInput({
     if (!trimmed || trimmed.startsWith("#")) return null;
 
     // 1. Explicit prefix format: "lang: url" or "lang=url"
-    const prefixMatch = trimmed.match(/^([a-z]{2,3}(?:-[A-Za-z0-9]+)?)\s*[:=]\s*(https?:\/\/.+|\/.+)$/i);
+    const prefixMatch = trimmed.match(
+      /^([a-z]{2,3}(?:-[A-Za-z0-9]+)?)\s*[:=]\s*(https?:\/\/.+|\/.+)$/i,
+    );
     if (prefixMatch) {
       return { lang: prefixMatch[1].toLowerCase(), url: prefixMatch[2].trim() };
     }
@@ -98,7 +107,9 @@ export function WebDemoUrlsInput({
         tracks: {},
       });
       setStatusType("info");
-      setStatusMessage(`Video ${extractedVideoId} loaded. Enter subtitle URLs below to fetch captions.`);
+      setStatusMessage(
+        `Video ${extractedVideoId} loaded. Enter subtitle URLs below to fetch captions.`,
+      );
       return;
     }
 
@@ -106,7 +117,10 @@ export function WebDemoUrlsInput({
     setStatusType("info");
     setStatusMessage("Fetching and validating subtitle streams per language…");
 
-    const lines = trimmedSubtitlesInput.split("\n").map((l) => l.trim()).filter(Boolean);
+    const lines = trimmedSubtitlesInput
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
     const entriesToFetch: ParsedUrlEntry[] = [];
 
     // Check if input is a single timedtext URL template
@@ -228,7 +242,9 @@ export function WebDemoUrlsInput({
     );
     setSelectedLangs(["en", "he", "es", "de"]);
     setStatusType("info");
-    setStatusMessage("Populated sample local fixtures. Click 'Fetch Subtitles per Language' to load.");
+    setStatusMessage(
+      "Populated sample local fixtures. Click 'Fetch Subtitles per Language' to load.",
+    );
   }, []);
 
   const handleToggleLang = (code: string) => {
@@ -280,9 +296,7 @@ export function WebDemoUrlsInput({
         try {
           const parsedUrl = new URL(trimmedInput, window.location.origin);
           targetLang =
-            parsedUrl.searchParams.get("tlang") ||
-            parsedUrl.searchParams.get("lang") ||
-            "en";
+            parsedUrl.searchParams.get("tlang") || parsedUrl.searchParams.get("lang") || "en";
           const pathMatch = parsedUrl.pathname.match(/\/([a-z]{2,3}(?:-[A-Za-z0-9]+)?)\.json$/i);
           if (pathMatch) {
             targetLang = pathMatch[1].toLowerCase();
@@ -390,12 +404,7 @@ export function WebDemoUrlsInput({
           placeholder="Paste YouTube video link or subtitle URL (e.g. timedtext or json3)"
           className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
         />
-        <Button
-          id="play-video-button"
-          data-testid="play-video-button"
-          type="submit"
-          size="sm"
-        >
+        <Button id="play-video-button" data-testid="play-video-button" type="submit" size="sm">
           Load video
         </Button>
         <Button
@@ -410,7 +419,11 @@ export function WebDemoUrlsInput({
           aria-expanded={isExpanded}
         >
           <span>Subtitles</span>
-          {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          {isExpanded ? (
+            <ChevronUp className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5" />
+          )}
         </Button>
       </form>
 
@@ -473,7 +486,8 @@ export function WebDemoUrlsInput({
               className="w-full font-mono text-xs rounded-md border border-input bg-background p-2 focus:outline-none focus:ring-1 focus:ring-ring resize-y"
             />
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Formats: <code>lang: URL</code> (e.g. <code>he: https://...</code>), relative fixture path, or YouTube timedtext URL.
+              Formats: <code>lang: URL</code> (e.g. <code>he: https://...</code>), relative fixture
+              path, or YouTube timedtext URL.
             </p>
           </div>
 

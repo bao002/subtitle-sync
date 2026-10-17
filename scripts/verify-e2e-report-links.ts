@@ -21,7 +21,9 @@ assert(
   emulatorReportMatch,
   "README.md must contain report link pointing to android-emulator-report.html on GitHub Pages",
 );
-console.log(`✅ PASS: Android Emulator report link verified in basic README: ${emulatorReportMatch[2]}`);
+console.log(
+  `✅ PASS: Android Emulator report link verified in basic README: ${emulatorReportMatch[2]}`,
+);
 
 // 2. Verify public report artifact exists
 const reportFile = path.resolve(rootDir, "public/android-emulator-report.html");

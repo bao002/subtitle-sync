@@ -13,17 +13,25 @@ const indexContent = fs.readFileSync(indexFilePath, "utf8");
 
 // 1. Locate positions of active hook declaration and handleReplaySection
 const activeHookIndex = indexContent.indexOf("const [active, setActive] = useState(-1);");
-assert(activeHookIndex !== -1, "index.tsx must contain 'const [active, setActive] = useState(-1);'");
+assert(
+  activeHookIndex !== -1,
+  "index.tsx must contain 'const [active, setActive] = useState(-1);'",
+);
 
 const handleReplaySectionIndex = indexContent.indexOf("const handleReplaySection = useCallback(");
-assert(handleReplaySectionIndex !== -1, "index.tsx must contain 'const handleReplaySection = useCallback('");
+assert(
+  handleReplaySectionIndex !== -1,
+  "index.tsx must contain 'const handleReplaySection = useCallback('",
+);
 
 // 2. Assert active hook is declared strictly BEFORE handleReplaySection to eliminate TDZ error
 assert(
   activeHookIndex < handleReplaySectionIndex,
   `'const [active, setActive]' (pos ${activeHookIndex}) must be declared BEFORE 'handleReplaySection' (pos ${handleReplaySectionIndex}) to prevent TDZ ReferenceError`,
 );
-console.log(`✅ PASS: active hook (index ${activeHookIndex}) precedes handleReplaySection (index ${handleReplaySectionIndex})`);
+console.log(
+  `✅ PASS: active hook (index ${activeHookIndex}) precedes handleReplaySection (index ${handleReplaySectionIndex})`,
+);
 
 // 3. Verify no other premature references to active exist before its declaration
 const contentBeforeActive = indexContent.slice(0, activeHookIndex);
@@ -50,7 +58,9 @@ const handlers = [
 for (const h of handlers) {
   assert(indexContent.includes(h), `index.tsx must include handler ${h}`);
 }
-console.log(`✅ PASS: All ${handlers.length} playback control handlers properly defined and ordered`);
+console.log(
+  `✅ PASS: All ${handlers.length} playback control handlers properly defined and ordered`,
+);
 
 console.log("====================================================");
 console.log("🎉 Hotfix Active Initialization Verification PASSED successfully!");

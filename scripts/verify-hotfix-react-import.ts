@@ -13,13 +13,10 @@ const indexContent = fs.readFileSync(indexRoutePath, "utf8");
 
 // 1. Verify React and Fragment are imported from "react"
 assert(
-  indexContent.includes('import React, {') || indexContent.includes('import React from "react"'),
+  indexContent.includes("import React, {") || indexContent.includes('import React from "react"'),
   "src/routes/index.tsx must import React to prevent ReferenceError: React is not defined",
 );
-assert(
-  indexContent.includes("Fragment"),
-  "src/routes/index.tsx must import Fragment",
-);
+assert(indexContent.includes("Fragment"), "src/routes/index.tsx must import Fragment");
 console.log("✅ PASS: React and Fragment are explicitly imported in src/routes/index.tsx");
 
 // 2. Verify Fragment key usage in table rows

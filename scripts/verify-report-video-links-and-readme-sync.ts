@@ -173,8 +173,7 @@ try {
     "README must reference the report URL with the broken video",
   );
   assert(
-    failureReadme.includes("android-emulator-video.mp4") ||
-      failureReadme.includes("HTTP 404"),
+    failureReadme.includes("android-emulator-video.mp4") || failureReadme.includes("HTTP 404"),
     "README must note broken screencast video",
   );
   console.log("✅ PASS: Broken report video link correctly detected and published to README.md.");

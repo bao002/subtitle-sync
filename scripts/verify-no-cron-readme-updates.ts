@@ -74,7 +74,9 @@ for (const wfFile of workflowFiles) {
     `Workflow ${wfFile} contains a 'cron:' configuration! All GitHub Actions cron jobs are strictly prohibited across all workflows.`,
   );
 }
-console.log("✅ PASS: Zero scheduled/cron workflows exist across the entire repository (100% event-driven).");
+console.log(
+  "✅ PASS: Zero scheduled/cron workflows exist across the entire repository (100% event-driven).",
+);
 
 // 3. Specifically verify report-video-flow.yml does NOT contain schedule trigger
 console.log("\n🛡️ Section 3: Verify report-video-flow.yml Trigger & Conflict-Free Architecture");

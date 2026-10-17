@@ -2,5 +2,6 @@
 
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
-_No active or pending tasks. All prompt tasks fully completed, tested, and archived in `docs/done.md`._
+## Active Backlog
 
+*(All tasks for the current prompt have been fully accomplished and verified in `docs/done.md`.)*

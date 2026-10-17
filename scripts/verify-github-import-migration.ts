@@ -32,10 +32,7 @@ for (const file of forbiddenFiles) {
       // ignore
     }
   }
-  assert(
-    !fs.existsSync(targetPath),
-    `Forbidden lockfile/config must not exist: ${file}`,
-  );
+  assert(!fs.existsSync(targetPath), `Forbidden lockfile/config must not exist: ${file}`);
 }
 
 const pkgPath = path.resolve(rootDir, "package.json");
@@ -44,7 +41,10 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
 
 assert(!pkg.packageManager, "package.json must not specify packageManager");
 assert(
-  pkg.scripts && pkg.scripts.dev && pkg.scripts.dev.includes("3000") && pkg.scripts.dev.includes("0.0.0.0"),
+  pkg.scripts &&
+    pkg.scripts.dev &&
+    pkg.scripts.dev.includes("3000") &&
+    pkg.scripts.dev.includes("0.0.0.0"),
   "package.json dev script must bind to 0.0.0.0 and port 3000",
 );
 console.log("✅ PASS: Package manager, scripts, and lockfiles are 100% compliant.");
@@ -73,10 +73,7 @@ const requiredEnvVars = [
 ];
 
 for (const envVar of requiredEnvVars) {
-  assert(
-    envExample.includes(envVar),
-    `.env.example must declare scanned variable ${envVar}`,
-  );
+  assert(envExample.includes(envVar), `.env.example must declare scanned variable ${envVar}`);
   console.log(`✅ PASS: .env.example declares ${envVar}`);
 }
 

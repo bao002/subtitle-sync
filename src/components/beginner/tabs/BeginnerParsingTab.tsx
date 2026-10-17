@@ -1,0 +1,465 @@
+import React, { useState, useMemo } from "react";
+import {
+  Split,
+  Scissors,
+  Check,
+  Plus,
+  Trash2,
+  ArrowRight,
+  Eye,
+  RefreshCw,
+  Sparkles,
+  Layers,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+
+export interface CustomCharRule {
+  id: string;
+  target: string;
+  replacement: string;
+}
+
+export interface BeginnerParsingTabProps {
+  splitByPunctuation: boolean;
+  onSplitByPunctuationChange: (enabled: boolean) => void;
+  punctuationChars: string[];
+  onPunctuationCharsChange: (chars: string[]) => void;
+  stripSpeakerBrackets: boolean;
+  onStripSpeakerBracketsChange: (enabled: boolean) => void;
+  removeChars: string[];
+  onRemoveCharsChange: (chars: string[]) => void;
+  sampleCues?: Array<{ text: string; start: number; duration: number }>;
+  onApplyParsing?: () => void;
+  onContinueToNextTab?: () => void;
+}
+
+export function cleanSubtitleText(
+  text: string,
+  options: {
+    stripSpeakerBrackets: boolean;
+    removeChars: string[];
+    customRules?: CustomCharRule[];
+  },
+): string {
+  if (!text) return "";
+  let result = text;
+
+  // 1. Strip speaker brackets like [Applause], (Music), [SPEAKER 1]:
+  if (options.stripSpeakerBrackets) {
+    result = result.replace(/\[[^\]]*\]/g, "");
+    result = result.replace(/\([^)]*\)/g, "");
+  }
+
+  // 2. Remove specified characters/prefixes (e.g., ">", ">>")
+  for (const char of options.removeChars) {
+    if (char) {
+      result = result.split(char).join("");
+    }
+  }
+
+  // 3. Apply custom rename/replacement rules
+  if (options.customRules) {
+    for (const rule of options.customRules) {
+      if (rule.target) {
+        result = result.split(rule.target).join(rule.replacement);
+      }
+    }
+  }
+
+  // 4. Normalize excess whitespace
+  return result.replace(/\s+/g, " ").trim();
+}
+
+export function splitTextByPunctuation(text: string, punctuationChars: string[]): string[] {
+  if (!text) return [];
+  if (!punctuationChars || punctuationChars.length === 0) return [text];
+
+  // Escape special regex characters in punctuationChars
+  const escaped = punctuationChars
+    .map((c) => (/[.*+?^${}()|[\]\\]/.test(c) ? `\\${c}` : c))
+    .join("");
+
+  const regex = new RegExp(`([^${escaped}]+[${escaped}]+)`, "g");
+  const matches = text.match(regex);
+  if (!matches) return [text];
+
+  // Collect segments and remaining trailing text
+  const segments: string[] = [];
+  let lastIndex = 0;
+  for (const m of matches) {
+    const trimmed = m.trim();
+    if (trimmed) segments.push(trimmed);
+    lastIndex = text.indexOf(m, lastIndex) + m.length;
+  }
+
+  const remainder = text.slice(lastIndex).trim();
+  if (remainder) segments.push(remainder);
+
+  return segments.length > 0 ? segments : [text];
+}
+
+export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
+  splitByPunctuation,
+  onSplitByPunctuationChange,
+  punctuationChars,
+  onPunctuationCharsChange,
+  stripSpeakerBrackets,
+  onStripSpeakerBracketsChange,
+  removeChars,
+  onRemoveCharsChange,
+  sampleCues = [],
+  onApplyParsing,
+  onContinueToNextTab,
+}) => {
+  const [newCharInput, setNewCharInput] = useState("");
+  const [newReplacementInput, setNewReplacementInput] = useState("");
+  const [customRules, setCustomRules] = useState<CustomCharRule[]>([
+    { id: "rule-gt", target: ">", replacement: "" },
+    { id: "rule-dgt", target: ">>", replacement: "" },
+  ]);
+
+  const defaultPunctuationMarks = [
+    { char: ".", label: "Period (.)" },
+    { char: "!", label: "Exclamation (!)" },
+    { char: "?", label: "Question (?)" },
+    { char: ",", label: "Comma (,)" },
+    { char: ";", label: "Semicolon (;)" },
+    { char: ":", label: "Colon (:)" },
+  ];
+
+  const handleTogglePunctuation = (char: string) => {
+    if (punctuationChars.includes(char)) {
+      onPunctuationCharsChange(punctuationChars.filter((c) => c !== char));
+    } else {
+      onPunctuationCharsChange([...punctuationChars, char]);
+    }
+  };
+
+  const handleAddRemoveChar = (charToAdd: string) => {
+    if (!charToAdd) return;
+    const trimmed = charToAdd.trim();
+    if (trimmed && !removeChars.includes(trimmed)) {
+      onRemoveCharsChange([...removeChars, trimmed]);
+    }
+    setNewCharInput("");
+  };
+
+  const handleRemoveCharFromList = (charToRemove: string) => {
+    onRemoveCharsChange(removeChars.filter((c) => c !== charToRemove));
+  };
+
+  const handleAddCustomRule = () => {
+    if (!newCharInput.trim()) return;
+    const rule: CustomCharRule = {
+      id: `rule-${Date.now()}`,
+      target: newCharInput.trim(),
+      replacement: newReplacementInput,
+    };
+    setCustomRules([...customRules, rule]);
+    if (newReplacementInput === "" && !removeChars.includes(rule.target)) {
+      onRemoveCharsChange([...removeChars, rule.target]);
+    }
+    setNewCharInput("");
+    setNewReplacementInput("");
+  };
+
+  const handleRemoveCustomRule = (id: string) => {
+    const found = customRules.find((r) => r.id === id);
+    if (found && found.replacement === "") {
+      handleRemoveCharFromList(found.target);
+    }
+    setCustomRules(customRules.filter((r) => r.id !== id));
+  };
+
+  // Preview data
+  const fallbackSamples = useMemo(
+    () => [
+      {
+        text: ">> [Music] Hello and welcome to this video! Today we'll learn subtitles.",
+        start: 0,
+        duration: 4,
+      },
+      {
+        text: "> [Applause] Here is sentence one. And here is sentence two; it's quite clear!",
+        start: 4,
+        duration: 5,
+      },
+      {
+        text: ">> Can you hear the difference? Let's check how clean this looks.",
+        start: 9,
+        duration: 4,
+      },
+    ],
+    [],
+  );
+
+  const previewSource = sampleCues.length > 0 ? sampleCues.slice(0, 4) : fallbackSamples;
+
+  const processedPreview = useMemo(() => {
+    return previewSource.map((cue) => {
+      const cleaned = cleanSubtitleText(cue.text, {
+        stripSpeakerBrackets,
+        removeChars,
+        customRules,
+      });
+      const sentences = splitByPunctuation
+        ? splitTextByPunctuation(cleaned, punctuationChars)
+        : [cleaned];
+      return {
+        raw: cue.text,
+        cleaned,
+        sentences,
+      };
+    });
+  }, [
+    previewSource,
+    stripSpeakerBrackets,
+    removeChars,
+    customRules,
+    splitByPunctuation,
+    punctuationChars,
+  ]);
+
+  return (
+    <div className="space-y-4 max-w-4xl mx-auto p-3" data-testid="beginner-parsing-tab">
+      {/* Tab Header */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm space-y-1">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-700/60 flex items-center justify-center text-emerald-400">
+            <Split className="w-4 h-4" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-slate-100">
+              Step 3: Subtitle Parsing & Cleanup
+            </h2>
+            <p className="text-xs text-slate-400">
+              Configure sentence splitting rules and automatically remove speaker labels or arrows
+              (such as &gt;).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 1. Sentence Splitting Toggle & Punctuation Selectors */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xs font-semibold text-slate-200">Sentence Punctuation Splitting</h3>
+            <p className="text-[11px] text-slate-400">
+              Default to splitting long subtitle blocks into natural sentences at punctuation marks.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-slate-400">
+              {splitByPunctuation ? "Enabled" : "Disabled"}
+            </span>
+            <Switch
+              checked={splitByPunctuation}
+              onCheckedChange={onSplitByPunctuationChange}
+              data-testid="toggle-split-punctuation"
+            />
+          </div>
+        </div>
+
+        {splitByPunctuation && (
+          <div className="pt-2 border-t border-slate-800/80 space-y-2">
+            <span className="text-xs text-slate-300 font-medium">
+              Choose punctuation marks to split on:
+            </span>
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+              data-testid="punctuation-checkboxes"
+            >
+              {defaultPunctuationMarks.map((p) => {
+                const isChecked = punctuationChars.includes(p.char);
+                return (
+                  <label
+                    key={p.char}
+                    className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
+                      isChecked
+                        ? "bg-slate-800/90 border-emerald-500/70 text-slate-100"
+                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => handleTogglePunctuation(p.char)}
+                    />
+                    <span className="font-mono font-semibold text-emerald-400">{p.char}</span>
+                    <span>{p.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 2. Character Removal & Renaming (stripping > and speaker tags) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm space-y-3">
+        <div className="flex items-center gap-2">
+          <Scissors className="w-4 h-4 text-emerald-400" />
+          <h3 className="text-xs font-semibold text-slate-200">Character Removal & Rename Rules</h3>
+        </div>
+        <p className="text-[11px] text-slate-400">
+          Clean unwanted artifacts, noise indicators, or speaker prefixes before subtitle rendering
+          and TTS speech.
+        </p>
+
+        {/* Preset 1: Speaker Brackets & Greater-than symbols */}
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+          <div className="space-y-0.5">
+            <span className="text-xs font-medium text-slate-200">
+              Strip Speaker Brackets &amp; Arrows
+            </span>
+            <p className="text-[11px] text-slate-400">
+              Removes [Applause], (Music), and &gt; or &gt;&gt; speaker tags automatically.
+            </p>
+          </div>
+          <Switch
+            checked={stripSpeakerBrackets}
+            onCheckedChange={onStripSpeakerBracketsChange}
+            data-testid="toggle-strip-brackets"
+          />
+        </div>
+
+        {/* Active Remove Characters Chips */}
+        <div className="space-y-1.5 pt-1">
+          <span className="text-xs text-slate-300 font-medium">
+            Characters removed from subtitles:
+          </span>
+          <div className="flex flex-wrap gap-1.5" data-testid="remove-chars-chips">
+            {removeChars.map((char) => (
+              <Badge
+                key={char}
+                variant="secondary"
+                className="bg-slate-950 border border-slate-700 text-slate-200 font-mono text-xs pl-2.5 pr-1 py-1 flex items-center gap-1.5"
+                data-testid={`remove-char-${char}`}
+              >
+                <span>&quot;{char}&quot;</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveCharFromList(char)}
+                  className="w-4 h-4 rounded hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200"
+                  aria-label={`Keep ${char}`}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom Rule Input */}
+        <div className="space-y-2 pt-1 border-t border-slate-800/80">
+          <span className="text-xs text-slate-300 font-medium">
+            Add custom character removal / rename:
+          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              type="text"
+              value={newCharInput}
+              onChange={(e) => setNewCharInput(e.target.value)}
+              placeholder="Char to remove (e.g. >)"
+              className="h-8 text-xs bg-slate-950 border-slate-800 text-slate-200 w-36"
+              data-testid="input-remove-char"
+            />
+            <Input
+              type="text"
+              value={newReplacementInput}
+              onChange={(e) => setNewReplacementInput(e.target.value)}
+              placeholder="Replace with (leave blank to remove)"
+              className="h-8 text-xs bg-slate-950 border-slate-800 text-slate-200 w-48"
+              data-testid="input-replace-char"
+            />
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleAddCustomRule}
+              className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
+              data-testid="btn-add-char-rule"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              Add Rule
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Live Preview Card */}
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Eye className="w-4 h-4 text-emerald-400" />
+            <h3 className="text-xs font-semibold text-slate-200">
+              Real-Time Parsing & Cleanup Preview
+            </h3>
+          </div>
+          <Badge variant="outline" className="text-[10px] text-slate-400 border-slate-700">
+            {processedPreview.reduce((acc, p) => acc + p.sentences.length, 0)} split sentences
+          </Badge>
+        </div>
+
+        <div className="space-y-2" data-testid="parsing-live-preview">
+          {processedPreview.map((item, idx) => (
+            <div
+              key={idx}
+              className="bg-slate-950 border border-slate-800/80 rounded-lg p-2.5 space-y-1.5 text-xs"
+            >
+              <div className="text-slate-500 line-through text-[11px] font-mono">
+                Original: {item.raw}
+              </div>
+              <div className="space-y-1">
+                {item.sentences.map((sentence, sIdx) => (
+                  <div
+                    key={sIdx}
+                    className="flex items-center gap-2 text-slate-100 font-medium bg-slate-900/80 px-2 py-1 rounded border border-slate-800"
+                  >
+                    <span className="text-[10px] text-emerald-400 font-mono">#{sIdx + 1}</span>
+                    <span>{sentence}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Navigation Footer */}
+      <div className="pt-2 flex items-center justify-between gap-3">
+        {onApplyParsing ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onApplyParsing}
+            className="h-8 px-3 text-xs border-emerald-700/60 text-emerald-300 hover:bg-emerald-950/40"
+            data-testid="btn-apply-parsing"
+          >
+            <Sparkles className="w-3.5 h-3.5 mr-1" />
+            Apply Rules to Active Video
+          </Button>
+        ) : (
+          <div />
+        )}
+
+        {onContinueToNextTab && (
+          <Button
+            type="button"
+            size="sm"
+            onClick={onContinueToNextTab}
+            className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium flex items-center gap-1.5"
+            data-testid="btn-continue-to-player"
+          >
+            <span>Next: Synchronized Player</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+};

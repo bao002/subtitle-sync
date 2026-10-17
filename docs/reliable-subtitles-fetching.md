@@ -123,4 +123,3 @@ In web browser mode (`!isAndroid`), native WebView network interception is not a
 2. **Per-Language Extraction & Fetching**:
    - Automatically parses language metadata from URL query parameters (`lang=` or `tlang=`), line prefixes (`en: https://...`), or JSON filenames (`.../he.json`).
    - Fetches each stream, validates the response with `isValidJsonSubtitleResponse` / `parseJson3`, routes through proxy if CORS occurs on timedtext endpoints, and immediately hydrates `tracks` and opens the parallel subtitles table.
-

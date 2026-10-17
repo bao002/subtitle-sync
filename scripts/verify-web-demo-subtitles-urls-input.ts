@@ -69,11 +69,11 @@ assert.ok(
   "WebDemoUrlsInput must manage subtitlesUrlsInput state",
 );
 assert.ok(
-  componentSource.includes("data-testid=\"web-demo-subtitles-urls-input\""),
+  componentSource.includes('data-testid="web-demo-subtitles-urls-input"'),
   "WebDemoUrlsInput must render subtitles URLs input with data-testid='web-demo-subtitles-urls-input'",
 );
 assert.ok(
-  componentSource.includes("data-testid=\"fetch-web-demo-subtitles-button\""),
+  componentSource.includes('data-testid="fetch-web-demo-subtitles-button"'),
   "WebDemoUrlsInput must render fetch button with data-testid='fetch-web-demo-subtitles-button'",
 );
 assert.ok(
@@ -96,7 +96,7 @@ const indexTsxPath = path.resolve(rootDir, "src/routes/index.tsx");
 const indexSource = fs.readFileSync(indexTsxPath, "utf-8");
 
 assert.ok(
-  indexSource.includes("import { WebDemoUrlsInput } from \"@/components/WebDemoUrlsInput\""),
+  indexSource.includes('import { WebDemoUrlsInput } from "@/components/WebDemoUrlsInput"'),
   "src/routes/index.tsx must import WebDemoUrlsInput",
 );
 assert.ok(
@@ -123,14 +123,22 @@ assert.strictEqual(u1.searchParams.get("lang"), "en", "Must extract lang=en from
 // Test extracting language from translated timedtext URL
 const sampleTranslatedUrl = "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&tlang=he";
 const u2 = new URL(sampleTranslatedUrl);
-assert.strictEqual(u2.searchParams.get("tlang"), "he", "Must extract tlang=he from translation URL");
+assert.strictEqual(
+  u2.searchParams.get("tlang"),
+  "he",
+  "Must extract tlang=he from translation URL",
+);
 
 // Test explicit prefix regex
 const prefixLine = "es: https://example.com/subtitles_es.json";
 const match = prefixLine.match(/^([a-z]{2,3}(?:-[A-Za-z0-9]+)?)\s*[:=]\s*(.+)$/i);
 assert.ok(match, "Prefix regex must match 'es: https://...'");
 assert.strictEqual(match[1].toLowerCase(), "es", "Prefix regex must capture language code 'es'");
-assert.strictEqual(match[2].trim(), "https://example.com/subtitles_es.json", "Prefix regex must capture URL");
+assert.strictEqual(
+  match[2].trim(),
+  "https://example.com/subtitles_es.json",
+  "Prefix regex must capture URL",
+);
 
 console.log("✅ PASS: Language extraction patterns verified across all formats.");
 

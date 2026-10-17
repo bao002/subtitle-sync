@@ -316,3 +316,4 @@ To prevent infinite workflow recursion:
   - `workflow_dispatch` (manual developer triggers)
 - **Rationale**: Scheduled cron jobs run unpredictably in the background, incur unnecessary runner hours, generate unwanted automated commits, risk merge conflicts with active local development, and introduce non-deterministic state. Real-time issue reporting is handled via event-driven workflow runs and badge indicators, guaranteeing 100% deterministic operation.
 
+```

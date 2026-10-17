@@ -25,7 +25,10 @@ assert(
 console.log("✓ Verified AndroidManifest.xml package visibility queries for TTS service");
 
 // --- 2. Verify MainActivity.kt TTS Engine configuration and bridge ---
-const mainActivityPath = resolve(process.cwd(), "android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt");
+const mainActivityPath = resolve(
+  process.cwd(),
+  "android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt",
+);
 assert(existsSync(mainActivityPath), "MainActivity.kt must exist");
 const mainActivityContent = readFileSync(mainActivityPath, "utf-8");
 
@@ -41,7 +44,9 @@ assert(
   mainActivityContent.includes('Locale("iw", "IL")') || mainActivityContent.includes('"iw"'),
   "MainActivity.kt speak() must support Hebrew locale alias fallback",
 );
-console.log("✓ Verified MainActivity.kt audio attributes, isTtsReady() bridge, and locale handling");
+console.log(
+  "✓ Verified MainActivity.kt audio attributes, isTtsReady() bridge, and locale handling",
+);
 
 // --- 3. Verify src/types.ts bridge interface ---
 const typesPath = resolve(process.cwd(), "src/types.ts");
@@ -60,7 +65,9 @@ const indexContent = readFileSync(indexPath, "utf-8");
 
 assert(
   indexContent.includes("window.AndroidNativeShell?.speak") &&
-    !indexContent.includes("!chosenVoice && typeof window !== \"undefined\" && window.AndroidNativeShell?.speak"),
+    !indexContent.includes(
+      '!chosenVoice && typeof window !== "undefined" && window.AndroidNativeShell?.speak',
+    ),
   "speak() in src/routes/index.tsx must prioritize AndroidNativeShell without !chosenVoice bypass",
 );
 
@@ -73,7 +80,9 @@ assert(
   indexContent.includes("setSpoken((prev) => Array.from(new Set([...prev, ...savedLangs])));"),
   "src/routes/index.tsx must synchronize spoken state on hydration with saved user learning languages",
 );
-console.log("✓ Verified src/routes/index.tsx TTS prioritization, event listener, and hydration sync");
+console.log(
+  "✓ Verified src/routes/index.tsx TTS prioritization, event listener, and hydration sync",
+);
 
 // --- 5. Verify Subtitles Table View Page Flipping ---
 assert(
@@ -92,7 +101,8 @@ assert(
 );
 
 // Verify page flipping is NOT gated on autoFocus
-const pageFlipEffectRegex = /useEffect\(\(\) => \{\s*const currentActive = active >= 0 \? active : speakingRow;\s*if \(!isSetupPaused && currentActive >= 0 && subtitlesLimit > 0\)/;
+const pageFlipEffectRegex =
+  /useEffect\(\(\) => \{\s*const currentActive = active >= 0 \? active : speakingRow;\s*if \(!isSetupPaused && currentActive >= 0 && subtitlesLimit > 0\)/;
 assert(
   pageFlipEffectRegex.test(indexContent),
   "Subtitles table view page flipping must NOT be gated on autoFocus setting",
@@ -118,7 +128,11 @@ for (let i = 10; i <= 19; i++) {
 assert.strictEqual(simulatePageFlip(20, 10), 3, "Record 20 should flip table to page 3");
 
 // Seeking back to record 5 -> flips to page 1
-assert.strictEqual(simulatePageFlip(5, 10), 1, "Seeking back to record 5 should flip table to page 1");
+assert.strictEqual(
+  simulatePageFlip(5, 10),
+  1,
+  "Seeking back to record 5 should flip table to page 1",
+);
 
 console.log("✓ Verified subtitles table view page flipping algorithm and state transitions");
 
@@ -126,12 +140,21 @@ console.log("✓ Verified subtitles table view page flipping algorithm and state
 const packageJson = JSON.parse(readFileSync(resolve(process.cwd(), "package.json"), "utf-8"));
 assert.strictEqual(packageJson.version, "1.0.41", "package.json version must be 1.0.41");
 
-const buildGradle = readFileSync(resolve(process.cwd(), "android-shell/app/build.gradle.kts"), "utf-8");
-assert(buildGradle.includes('versionCode = 10041'), "build.gradle.kts versionCode must be 10041");
-assert(buildGradle.includes('versionName = "1.0.41"'), "build.gradle.kts versionName must be 1.0.41");
+const buildGradle = readFileSync(
+  resolve(process.cwd(), "android-shell/app/build.gradle.kts"),
+  "utf-8",
+);
+assert(buildGradle.includes("versionCode = 10041"), "build.gradle.kts versionCode must be 10041");
+assert(
+  buildGradle.includes('versionName = "1.0.41"'),
+  "build.gradle.kts versionName must be 1.0.41",
+);
 
 const apkUpdater = readFileSync(resolve(process.cwd(), "src/utils/apkUpdater.ts"), "utf-8");
-assert(apkUpdater.includes('CURRENT_APK_VERSION = "v1.0.41"'), "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.41");
+assert(
+  apkUpdater.includes('CURRENT_APK_VERSION = "v1.0.41"'),
+  "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.41",
+);
 
 const appSettings = readFileSync(resolve(process.cwd(), "src/utils/appSettings.ts"), "utf-8");
 assert(appSettings.includes('version: "1.0.41"'), "appSettings.ts version must be 1.0.41");
@@ -140,4 +163,6 @@ const appConfig = readFileSync(resolve(process.cwd(), "src/config/appConfig.ts")
 assert(appConfig.includes('APP_VERSION = "1.0.41"'), "appConfig.ts APP_VERSION must be 1.0.41");
 
 console.log("✓ Verified version 1.0.41 and versionCode 10041 across all 5 targets");
-console.log("All verifications for TTS Play and Subtitles Table Page Flipping passed successfully (100% verified)!");
+console.log(
+  "All verifications for TTS Play and Subtitles Table Page Flipping passed successfully (100% verified)!",
+);

@@ -54,10 +54,7 @@ const workflowBadges = ["release-apk.yml", "web.yml", "emulation.yml", "deploy-d
 
 for (const wf of workflowBadges) {
   const workflowPath = path.resolve(rootDir, ".github", "workflows", wf);
-  assert(
-    fs.existsSync(workflowPath),
-    `Target workflow file must exist: .github/workflows/${wf}`,
-  );
+  assert(fs.existsSync(workflowPath), `Target workflow file must exist: .github/workflows/${wf}`);
   console.log(`✅ PASS: Core workflow file exists: .github/workflows/${wf}`);
 }
 
@@ -75,9 +72,7 @@ assert(
   readmeContent.includes("android-emulator-report.html"),
   "README.md must contain Android Emulator E2E test report link on GitHub Pages",
 );
-console.log(
-  "✅ PASS: Basic README contains GitHub Pages demo and report links",
-);
+console.log("✅ PASS: Basic README contains GitHub Pages demo and report links");
 
 const screenshotAsset = path.resolve(
   rootDir,

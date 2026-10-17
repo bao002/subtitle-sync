@@ -348,7 +348,9 @@ export function VideoPlayground({
                       size="sm"
                       onClick={() => handleSetPlaybackRate(rate)}
                       className={`h-7 px-2 text-xs font-mono ${
-                        isActive ? "font-bold shadow-sm" : "text-muted-foreground hover:text-foreground"
+                        isActive
+                          ? "font-bold shadow-sm"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                       title={`Set video playback speed to ${rate}x`}
                     >

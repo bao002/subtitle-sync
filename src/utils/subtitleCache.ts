@@ -763,10 +763,7 @@ export function listCachedAiSubtitles(videoId?: string): CachedAiSubtitleData[] 
 export function clearCachedAiSubtitles(videoId?: string, lang?: string): void {
   const cleanLang = lang ? lang.toLowerCase().split("-")[0] : undefined;
   for (const [k, v] of Array.from(aiSubtitlesMemoryCache.entries())) {
-    if (
-      (!videoId || v.videoId === videoId) &&
-      (!cleanLang || v.lang.toLowerCase() === cleanLang)
-    ) {
+    if ((!videoId || v.videoId === videoId) && (!cleanLang || v.lang.toLowerCase() === cleanLang)) {
       aiSubtitlesMemoryCache.delete(k);
     }
   }

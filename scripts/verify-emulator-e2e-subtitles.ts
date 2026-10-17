@@ -263,7 +263,9 @@ assert(
 console.log("✅ PASS: Playwright emulation test contains all 5 steps and screenshots");
 
 // 6.2 Check Cypress E2E spec (cypress/e2e/emulation.cy.ts or quarentined/cypress/e2e/emulation.cy.ts)
-const cypressSpecPath = fs.existsSync(path.resolve(rootDir, "quarentined/cypress/e2e/emulation.cy.ts"))
+const cypressSpecPath = fs.existsSync(
+  path.resolve(rootDir, "quarentined/cypress/e2e/emulation.cy.ts"),
+)
   ? path.resolve(rootDir, "quarentined/cypress/e2e/emulation.cy.ts")
   : path.resolve(rootDir, "cypress/e2e/emulation.cy.ts");
 assert(fs.existsSync(cypressSpecPath), "Cypress emulation spec must exist");

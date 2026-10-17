@@ -44,7 +44,9 @@ for (const testId of requiredTestIds) {
     `VideoPlaybackControls must contain data-testid="${testId}"`,
   );
 }
-console.log(`✅ PASS: VideoPlaybackControls defines all ${requiredTestIds.length} required playback controls testids`);
+console.log(
+  `✅ PASS: VideoPlaybackControls defines all ${requiredTestIds.length} required playback controls testids`,
+);
 
 // 3. Verify VideoPlaybackControls includes touch-friendly sizing and visual indicators
 assert(
@@ -65,7 +67,9 @@ const indexContent = fs.readFileSync(indexFilePath, "utf8");
 
 // A. Check VideoPlaybackControls component is imported and rendered under the video
 assert(
-  indexContent.includes("import { VideoPlaybackControls } from \"@/components/VideoPlaybackControls\""),
+  indexContent.includes(
+    'import { VideoPlaybackControls } from "@/components/VideoPlaybackControls"',
+  ),
   "index.tsx must import VideoPlaybackControls",
 );
 assert(
@@ -75,11 +79,11 @@ assert(
 
 // B. Check center video overlay play/pause controls over the video
 assert(
-  indexContent.includes("data-testid=\"video-overlay-play-pause-btn\""),
+  indexContent.includes('data-testid="video-overlay-play-pause-btn"'),
   "index.tsx must render center play/pause button overlay over the video (video-overlay-play-pause-btn)",
 );
 assert(
-  indexContent.includes("data-testid=\"video-overlay-play-pause-container\""),
+  indexContent.includes('data-testid="video-overlay-play-pause-container"'),
   "index.tsx must render video overlay play/pause container (video-overlay-play-pause-container)",
 );
 
@@ -99,7 +103,9 @@ assert(
     indexContent.includes("handleFastForward"),
   "index.tsx must provide playback handlers: togglePlay, seek, rewind, fastForward",
 );
-console.log("✅ PASS: index.tsx integrates VideoPlaybackControls under video and center play/pause overlay over video");
+console.log(
+  "✅ PASS: index.tsx integrates VideoPlaybackControls under video and center play/pause overlay over video",
+);
 
 // 5. Verify docs/files.md inventory
 const filesDocPath = path.join(rootDir, "docs/files.md");

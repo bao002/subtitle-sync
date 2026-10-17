@@ -53,11 +53,13 @@ Provide an intuitive per-language subtitle URL modal directly from each language
 ## 3. Key Product Decisions & Trade-Offs
 
 ### Decision 1: Per-Language Modal vs. Global Multi-URL Drawer
+
 - **Chosen Approach**: Modal dialog triggered per language from the Languages table.
 - **Why**: Language-specific configuration naturally belongs in the Languages section. It avoids error-prone multi-line prefix parsing (e.g. `he: https://...`) and keeps the primary video URL input bar pristine.
 - **Alternatives Considered**: Global drawer in top bar (rejected: violates UI preservation mandate and causes layout shifts).
 
 ### Decision 2: Re-use of Core Validation & Anti-Bot Architecture
+
 - **Chosen Approach**: Use existing `isValidJsonSubtitleResponse` and `fetchViaServer` / native fetch mechanisms.
 - **Why**: Ensures no invalid, empty, or HTML error responses ever enter state or cache, adhering strictly to AGENTS.md Section 3 & 4.
 

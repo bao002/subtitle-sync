@@ -28,7 +28,8 @@ export const CURATED_FREE_MODELS: OpenRouterModel[] = [
   {
     id: "openrouter/auto:free",
     name: "OpenRouter Auto (Free Router - Default)",
-    description: "Automatically selects the best available free model on OpenRouter for your prompt.",
+    description:
+      "Automatically selects the best available free model on OpenRouter for your prompt.",
     isFree: true,
   },
   {
@@ -40,7 +41,8 @@ export const CURATED_FREE_MODELS: OpenRouterModel[] = [
   {
     id: "meta-llama/llama-3.3-70b-instruct:free",
     name: "Meta: Llama 3.3 70B Instruct (Free)",
-    description: "State-of-the-art open weights 70B model with exceptional reasoning and punctuation.",
+    description:
+      "State-of-the-art open weights 70B model with exceptional reasoning and punctuation.",
     isFree: true,
   },
   {
@@ -76,7 +78,8 @@ export const CURATED_FREE_MODELS: OpenRouterModel[] = [
   {
     id: "qwen/qwen3.8-27b:free",
     name: "Qwen: Qwen 3.8 27B (Free)",
-    description: "Alibaba Cloud's multilingual foundation model with excellent punctuation support.",
+    description:
+      "Alibaba Cloud's multilingual foundation model with excellent punctuation support.",
     isFree: true,
   },
   {
@@ -101,7 +104,10 @@ export async function fetchOpenRouterFreeModels(apiKey?: string): Promise<OpenRo
   }
 
   const headers: Record<string, string> = {
-    "HTTP-Referer": typeof window !== "undefined" ? window.location.origin : "https://github.com/mostuf2556/subtitle-sync",
+    "HTTP-Referer":
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://github.com/mostuf2556/subtitle-sync",
     "X-Title": "Parallel Subtitles AI Punctuation",
   };
   if (apiKey) {
@@ -128,9 +134,12 @@ export async function fetchOpenRouterFreeModels(apiKey?: string): Promise<OpenRo
       if (!m || typeof m.id !== "string") continue;
       const id = m.id.toLowerCase();
       const promptPrice = m.pricing?.prompt !== undefined ? Number(m.pricing.prompt) : null;
-      const completionPrice = m.pricing?.completion !== undefined ? Number(m.pricing.completion) : null;
+      const completionPrice =
+        m.pricing?.completion !== undefined ? Number(m.pricing.completion) : null;
 
-      const isZeroPrice = (promptPrice === 0 || promptPrice === null) && (completionPrice === 0 || completionPrice === null);
+      const isZeroPrice =
+        (promptPrice === 0 || promptPrice === null) &&
+        (completionPrice === 0 || completionPrice === null);
       const isFreeTag = id.endsWith(":free") || id.includes("/free") || id.includes(":free");
 
       if (isZeroPrice || isFreeTag) {
@@ -158,7 +167,10 @@ export async function fetchOpenRouterFreeModels(apiKey?: string): Promise<OpenRo
     lastModelsFetchTime = now;
     return freeList;
   } catch (err: any) {
-    logWarn("OpenRouter", `Failed to fetch dynamic models: ${err?.message || err}. Using curated free models.`);
+    logWarn(
+      "OpenRouter",
+      `Failed to fetch dynamic models: ${err?.message || err}. Using curated free models.`,
+    );
     return CURATED_FREE_MODELS;
   }
 }
@@ -209,8 +221,8 @@ export function buildPunctuationPrompt(
     style === "formal"
       ? "Use formal, grammatically strict punctuation with complete sentences, standard capitalization, and appropriate commas."
       : style === "short_sentences"
-      ? "Break long run-on phrases into concise, short sentences with periods and question marks where natural pauses occur."
-      : "Restore natural conversational punctuation (commas, periods, question marks, exclamation marks) and proper sentence capitalization.";
+        ? "Break long run-on phrases into concise, short sentences with periods and question marks where natural pauses occur."
+        : "Restore natural conversational punctuation (commas, periods, question marks, exclamation marks) and proper sentence capitalization.";
 
   return `You are a subtitle punctuation restoration engine.
 The following subtitle segments lack proper punctuation and sentence capitalization.
@@ -233,7 +245,10 @@ export function parsePunctuationOutput(
   expectedCount: number,
 ): Map<number, string> {
   const result = new Map<number, string>();
-  const lines = rawAiOutput.split(/\r?\n/).map((l) => l.trim()).filter((l) => l.length > 0);
+  const lines = rawAiOutput
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
 
   for (const line of lines) {
     const match = line.match(/^(\d+)[\s:.\-\)]+(.+)$/);
@@ -292,7 +307,10 @@ export async function punctuateSubtitlesWithOpenRouter({
 
   const startTime = Date.now();
   const effectiveModel = model.trim() || DEFAULT_OPENROUTER_MODEL;
-  onProgress?.(10, `Preparing ${cues.length} subtitle segments for AI punctuation with ${effectiveModel}…`);
+  onProgress?.(
+    10,
+    `Preparing ${cues.length} subtitle segments for AI punctuation with ${effectiveModel}…`,
+  );
 
   // Ensure batch size is within sensible boundaries
   const effectiveBatchSize = Math.max(10, Math.min(100, batchSize));
@@ -300,7 +318,10 @@ export async function punctuateSubtitlesWithOpenRouter({
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "HTTP-Referer": typeof window !== "undefined" ? window.location.origin : "https://github.com/mostuf2556/subtitle-sync",
+    "HTTP-Referer":
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://github.com/mostuf2556/subtitle-sync",
     "X-Title": "Parallel Subtitles AI Punctuation",
   };
   if (apiKey && apiKey.trim().length > 0) {
@@ -336,7 +357,8 @@ export async function punctuateSubtitlesWithOpenRouter({
       messages: [
         {
           role: "system",
-          content: "You are a professional subtitle punctuation restoration specialist. You add clean punctuation and capitalization while preserving exact wording.",
+          content:
+            "You are a professional subtitle punctuation restoration specialist. You add clean punctuation and capitalization while preserving exact wording.",
         },
         {
           role: "user",
@@ -391,10 +413,15 @@ export async function punctuateSubtitlesWithOpenRouter({
           throw new Error("AI punctuation was cancelled.");
         }
         if (attempt >= maxAttempts) {
-          logError("OpenRouter", `Batch ${batchIdx + 1} failed after ${maxAttempts} attempts: ${err?.message || err}`);
+          logError(
+            "OpenRouter",
+            `Batch ${batchIdx + 1} failed after ${maxAttempts} attempts: ${err?.message || err}`,
+          );
           // Fallback: keep original text with basic sentence capitalization if AI request fails
           inputLines.forEach((item) => {
-            const fallbackText = item.text ? item.text.charAt(0).toUpperCase() + item.text.slice(1) : "";
+            const fallbackText = item.text
+              ? item.text.charAt(0).toUpperCase() + item.text.slice(1)
+              : "";
             punctuatedSegments.push({
               index: item.index,
               start: cues[item.index]?.start ?? 0,
@@ -437,12 +464,12 @@ export async function punctuateSubtitlesWithOpenRouter({
     const origPunct = (seg.originalText.match(/[.,?!;:]/g) || []).length;
     const newPunct = (seg.punctuatedText.match(/[.,?!;:]/g) || []).length;
     if (newPunct > origPunct) {
-      punctuationCount += (newPunct - origPunct);
+      punctuationCount += newPunct - origPunct;
     }
     const origCaps = (seg.originalText.match(/[A-Z]/g) || []).length;
     const newCaps = (seg.punctuatedText.match(/[A-Z]/g) || []).length;
     if (newCaps > origCaps) {
-      capitalizedWords += (newCaps - origCaps);
+      capitalizedWords += newCaps - origCaps;
     }
   }
 
@@ -456,7 +483,10 @@ export async function punctuateSubtitlesWithOpenRouter({
   };
 
   const totalLatencyMs = Date.now() - startTime;
-  onProgress?.(100, `Successfully punctuated ${punctuatedSegments.length} subtitle segments in ${(totalLatencyMs / 1000).toFixed(1)}s!`);
+  onProgress?.(
+    100,
+    `Successfully punctuated ${punctuatedSegments.length} subtitle segments in ${(totalLatencyMs / 1000).toFixed(1)}s!`,
+  );
 
   return {
     segments: punctuatedSegments,
@@ -530,4 +560,3 @@ export async function testOpenRouterConnection(
     };
   }
 }
-

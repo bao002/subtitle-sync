@@ -88,6 +88,19 @@ export interface AppSettings {
   openRouterPunctuationStyle?: "conversational" | "formal" | "short_sentences";
   aiPunctuateAutoApply?: boolean;
 
+  // Beginner Mode Tab-Based Flow Settings
+  workflowMode?: "beginner" | "expert";
+  beginnerActiveTab?: "video" | "preferences" | "parsing" | "player";
+  beginnerSelectedBaseLang?: string;
+  beginnerTtsSpeed?: number;
+  beginnerTtsVoice?: string;
+  beginnerSubtitlesRatio?: number;
+  beginnerFavoriteLangs?: string[];
+  beginnerSplitByPunctuation?: boolean;
+  beginnerPunctuationChars?: string[];
+  beginnerRemoveChars?: string[];
+  beginnerStripSpeakerBrackets?: boolean;
+
   // Limits
   onDemandCount: number; // Limited to next X=4 subtitles (Step 4.4)
   maxRetries: number; // Max retry limit to X=2 (Step 2.3)
@@ -171,6 +184,8 @@ export const SUPPORTED_LANGUAGES_CATALOG: { code: string; name: string }[] = [
   { code: "yi", name: "Yiddish (ייִדיש)" },
 ];
 
+export const ALL_KNOWN_LANGUAGES = SUPPORTED_LANGUAGES_CATALOG;
+
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   // Default compact density is required by AGENTS.md across both hosts.
   compactView: true,
@@ -245,6 +260,19 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   aiPunctuateAutoApply: false,
   onDemandCount: 4,
   maxRetries: 2,
+
+  // Beginner Mode Defaults
+  workflowMode: "beginner",
+  beginnerActiveTab: "video",
+  beginnerSelectedBaseLang: "",
+  beginnerTtsSpeed: 1.0,
+  beginnerTtsVoice: "",
+  beginnerSubtitlesRatio: 1.0,
+  beginnerFavoriteLangs: ["he", "en", "es", "fr", "ar", "ru"],
+  beginnerSplitByPunctuation: true,
+  beginnerPunctuationChars: [".", "!", "?", ",", ";", ":"],
+  beginnerRemoveChars: [">", ">>"],
+  beginnerStripSpeakerBrackets: true,
 };
 
 const SETTINGS_STORAGE_KEY = STORAGE_KEYS.SETTINGS_STORAGE_KEY;
@@ -448,7 +476,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.43",
+    version: "1.0.44",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -823,7 +851,8 @@ export function setAiPunctuateAutoApplySetting(autoApply: boolean): void {
 
 export const OPENROUTER_PUNCTUATION_STYLE_STORAGE_KEY = "yt_openrouter_punct_style";
 
-export function getOpenRouterPunctuationStyleSetting(): "conversational" | "formal" | "short_sentences" {
+export function getOpenRouterPunctuationStyleSetting():
+  "conversational" | "formal" | "short_sentences" {
   if (typeof window === "undefined" || !window.localStorage) return "conversational";
   try {
     const val = window.localStorage.getItem(OPENROUTER_PUNCTUATION_STYLE_STORAGE_KEY);
@@ -836,7 +865,9 @@ export function getOpenRouterPunctuationStyleSetting(): "conversational" | "form
   }
 }
 
-export function setOpenRouterPunctuationStyleSetting(style: "conversational" | "formal" | "short_sentences"): void {
+export function setOpenRouterPunctuationStyleSetting(
+  style: "conversational" | "formal" | "short_sentences",
+): void {
   if (typeof window === "undefined" || !window.localStorage) return;
   try {
     window.localStorage.setItem(OPENROUTER_PUNCTUATION_STYLE_STORAGE_KEY, style);
@@ -844,4 +875,3 @@ export function setOpenRouterPunctuationStyleSetting(style: "conversational" | "
     // Ignore storage errors
   }
 }
-

@@ -98,10 +98,7 @@ console.log("\n--> [Step 2] Validating README.md Links against Repository Identi
 
 // 2.1 Emulation workflow file exists
 const emulationWorkflowFile = path.resolve(rootDir, ".github/workflows/emulation.yml");
-assert(
-  fs.existsSync(emulationWorkflowFile),
-  `Workflow file must exist: ${emulationWorkflowFile}`,
-);
+assert(fs.existsSync(emulationWorkflowFile), `Workflow file must exist: ${emulationWorkflowFile}`);
 console.log(`   ✓ Emulation workflow file verified: .github/workflows/emulation.yml`);
 
 // 2.4 GitHub Pages links in README.md

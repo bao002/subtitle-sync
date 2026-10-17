@@ -1,5 +1,30 @@
 # Done tasks
 
+## Task 141: Alternative Design & Tab-Based Flow for Beginner-Mode on Android (Version 1.0.44)
+
+### Summary:
+
+- **Mode Switcher Header (`src/components/ModeSwitcherHeader.tsx`, `src/routes/index.tsx`)**:
+  - Implemented persistent mode toggle in the application header: `Beginner Mode` vs `Advanced Studio`.
+  - Saved to `localStorage` under `app_workflow_mode: "beginner" | "expert"` so the preference persists across sessions and shared intents.
+  - Zero disruption to the existing web demo layout, Android bridge hooks, or expert studio accordions.
+- **4-Step Tab-Based Guided Navigation (`src/components/beginner/BeginnerTabNav.tsx`, `src/components/beginner/BeginnerFlowContainer.tsx`)**:
+  - **Tab 1: Video & Captions Setup (`src/components/beginner/tabs/BeginnerVideoTab.tsx`)**: Single-row YouTube URL input bar (supports paste and load), quick link button to Saved Video Library (`VideoLibraryPanel`), embedded video preview container, CC enable guidance prompt, and list of observed intercepted timedtext subtitles with local storage cache status. Choosing a base subtitle unlocks downstream tabs.
+  - **Tab 2: Voice & Preferences (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`)**: Audio playback order toggle ("Video First" vs "TTS First"), fine-grained TTS speed slider (0.5x to 2.0x) with live voice test audition, speech synthesis voice selector filtered by language, subtitle sizing ratio slider with visual preview, and favorite target languages chips with add/remove selector.
+  - **Tab 3: Subtitle Parsing & Cleanup (`src/components/beginner/tabs/BeginnerParsingTab.tsx`)**: Sentence punctuation splitting toggle and customizable punctuation marks (`.`, `!`, `?`, `,`, `;`, `:`), preset for automatic stripping of speaker brackets (`[ ... ]`, `( ... )`) and arrow prefixes (`>`, `>>`), custom character removal/rename rules table, and real-time before/after parsing preview.
+  - **Tab 4: Synchronized Player (`src/components/beginner/tabs/BeginnerPlayerTab.tsx`)**: Dual/multi-language synchronized subtitle table with active cue highlight, click-to-seek video position, and transport controls.
+  - **Tab Navigation Freedom**: Once unlocked by selecting a base subtitle, users can jump freely between tabs without state reset.
+- **Version 1.0.44 Bump & Parity**:
+  - Bumped version to `1.0.44` / `10044` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Automated Verification**:
+  - Authored automated tests in `test/beginner-mode-tab-flow.spec.ts` (10 passing vitest tests) and `scripts/verify-beginner-mode-tab-flow.ts` (npm run test:beginner-mode).
+- **Verification Commands & Outcomes**:
+  - `npm run test:beginner-mode`: PASSED (100% verified).
+  - `npm run test:md`: PASSED (46 markdown files, all cross-references valid).
+  - `npm run test:hygiene`: PASSED (clean repository hygiene verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
 ## Task 140: GitHub Import Migration & Environment Harmonization (Version 1.0.43)
 
 ### Summary:

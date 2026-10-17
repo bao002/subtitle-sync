@@ -1,0 +1,6 @@
+{
+  "summary": "Implementation plan for the alternative beginner-mode tab-based workflow for the Android app and web demo. Outlines the 4-phase sequential tab flow (Video & Captions Setup, Audio & Playback Preferences, Subtitle Parsing & Punctuation Rules, Synchronized Player), persistent mode toggle in the header, authentic timedtext API interception and local caching, gate unlock conditions, TTS and language customization, and configurable sentence splitting with character removal (stripping '>' and speaker tags).",
+  "updatedAt": "2026-10-17T23:12:14.884635507Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

@@ -143,7 +143,9 @@ assert(
   androidDoc.includes("ACTION_VIEW") && androidDoc.includes("ACTION_SEND"),
   "docs/android.md must specify YouTube sharing intent features",
 );
-console.log("✅ PASS: Basic README features working report link and docs/android.md documents intent features.");
+console.log(
+  "✅ PASS: Basic README features working report link and docs/android.md documents intent features.",
+);
 
 console.log("\n=========================================================================");
 console.log("🎉 ALL QUARANTINE & MINIMAL ANDROID SHARE VERIFICATIONS PASSED!");

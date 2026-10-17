@@ -26,18 +26,14 @@ assert.ok(
   handleSwitchLineIdx > 0,
   "Must locate `handleSwitchToViewerAtTime` definition in index.tsx",
 );
-console.log(
-  `✅ PASS: Located 'handleSwitchToViewerAtTime' at line ${handleSwitchLineIdx + 1}`,
-);
+console.log(`✅ PASS: Located 'handleSwitchToViewerAtTime' at line ${handleSwitchLineIdx + 1}`);
 
 // 3. Assert that handleSwitchToViewerAtTime occurs strictly AFTER rows declaration
 assert.ok(
   handleSwitchLineIdx > rowsDeclLineIdx,
   `handleSwitchToViewerAtTime (line ${handleSwitchLineIdx + 1}) must be defined AFTER rows declaration (line ${rowsDeclLineIdx + 1}) to avoid Temporal Dead Zone (TDZ) ReferenceError`,
 );
-console.log(
-  "✅ PASS: handleSwitchToViewerAtTime is positioned safely after rows declaration.",
-);
+console.log("✅ PASS: handleSwitchToViewerAtTime is positioned safely after rows declaration.");
 
 // 4. Verify that NO hook dependency array prior to rows declaration references `rows`
 for (let i = 0; i < rowsDeclLineIdx; i++) {
@@ -48,7 +44,10 @@ for (let i = 0; i < rowsDeclLineIdx; i++) {
     );
   }
 }
-console.log("✅ PASS: Zero premature hook dependency references to 'rows' before line " + (rowsDeclLineIdx + 1));
+console.log(
+  "✅ PASS: Zero premature hook dependency references to 'rows' before line " +
+    (rowsDeclLineIdx + 1),
+);
 
 // 5. Verify that player.current is referenced rather than undeclared playerRef
 const handleSwitchBlock = lines.slice(handleSwitchLineIdx, handleSwitchLineIdx + 30).join("\n");

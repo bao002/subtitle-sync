@@ -68,7 +68,9 @@ assert(
   indexContent.includes("onSaveSubtitleUrl={handleSaveTrackFromUrl}"),
   "src/routes/index.tsx must pass handleSaveTrackFromUrl to LanguageBoxesSelector",
 );
-console.log("✅ PASS: src/routes/index.tsx has 1 subtitle URL input per favorite language in table");
+console.log(
+  "✅ PASS: src/routes/index.tsx has 1 subtitle URL input per favorite language in table",
+);
 
 // 3. Verify LanguageSubtitleUrlModal.tsx exists and is exported
 const modalPath = path.join(rootDir, "src/components/LanguageSubtitleUrlModal.tsx");

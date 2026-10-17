@@ -171,11 +171,19 @@ const resMap = await translateSentencesAhead({
 });
 
 // Should have translated indices 2 through 12 (11 sentences)
-assert.strictEqual(resMap.size, 11, "Must have translated exactly 11 sentences (indices 2 through 12)");
+assert.strictEqual(
+  resMap.size,
+  11,
+  "Must have translated exactly 11 sentences (indices 2 through 12)",
+);
 assert.strictEqual(translatedLog.length, 11, "onSentenceTranslated callback invoked 11 times");
 assert.strictEqual(getStoredOnDemandTranslation(videoId, targetLang, 2), "[he] Sentence two");
 assert.strictEqual(getStoredOnDemandTranslation(videoId, targetLang, 12), "[he] Sentence twelve");
-assert.strictEqual(getStoredOnDemandTranslation(videoId, targetLang, 0), null, "Sentence 0 not translated yet");
+assert.strictEqual(
+  getStoredOnDemandTranslation(videoId, targetLang, 0),
+  null,
+  "Sentence 0 not translated yet",
+);
 
 // Second call: indices should be returned from cache without re-fetching
 const previousCount = fetchCallCount;
@@ -187,12 +195,20 @@ await translateSentencesAhead({
   startIndex: 2,
   sentencesAhead: 5,
 });
-assert.strictEqual(fetchCallCount, previousCount, "Subsequent lookahead must read from cache without network calls");
+assert.strictEqual(
+  fetchCallCount,
+  previousCount,
+  "Subsequent lookahead must read from cache without network calls",
+);
 console.log("✅ PASS: translateSentencesAhead translated X=10 sentences ahead and cached results");
 
 // Clear on authentic YouTube subtitles arrival
 clearOnDemandTranslations(videoId, targetLang);
-assert.strictEqual(getStoredOnDemandTranslation(videoId, targetLang, 2), null, "Translations cleared on subtitle arrival");
+assert.strictEqual(
+  getStoredOnDemandTranslation(videoId, targetLang, 2),
+  null,
+  "Translations cleared on subtitle arrival",
+);
 console.log("✅ PASS: clearOnDemandTranslations cleanly clears on-demand entries");
 
 // Restore fetch
@@ -234,7 +250,9 @@ setOnDemandTranslationSentencesAhead(15);
 assert.strictEqual(mockStorage.get(ON_DEMAND_TRANSLATION_AHEAD_STORAGE_KEY), "15");
 assert.strictEqual(getOnDemandTranslationSentencesAhead(), 15);
 
-console.log("✅ PASS: App settings getters/setters correctly persist on-demand translation configuration");
+console.log(
+  "✅ PASS: App settings getters/setters correctly persist on-demand translation configuration",
+);
 
 // ============================================================================
 // 5. Source Code Verification: index.tsx Integration
@@ -268,7 +286,9 @@ assert.ok(
   "index.tsx cols must include languages that have on-demand translation cues",
 );
 
-console.log("✅ PASS: index.tsx source code correctly implements on-demand translation lookahead integration");
+console.log(
+  "✅ PASS: index.tsx source code correctly implements on-demand translation lookahead integration",
+);
 
 // ============================================================================
 // 6. Version Parity Check (1.0.36)
@@ -277,10 +297,20 @@ console.log("\n--- [6] Verifying Version Parity across targets ---");
 
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf-8"));
 assert.strictEqual(packageJson.version, APP_VERSION, "package.json must match APP_VERSION");
-assert.strictEqual(CURRENT_APK_VERSION, `v${APP_VERSION}`, "apkUpdater.ts CURRENT_APK_VERSION must match vAPP_VERSION");
+assert.strictEqual(
+  CURRENT_APK_VERSION,
+  `v${APP_VERSION}`,
+  "apkUpdater.ts CURRENT_APK_VERSION must match vAPP_VERSION",
+);
 
-const gradleContent = fs.readFileSync(path.join(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(gradleContent.includes(`versionName = "${APP_VERSION}"`), "build.gradle.kts versionName must match APP_VERSION");
+const gradleContent = fs.readFileSync(
+  path.join(rootDir, "android-shell/app/build.gradle.kts"),
+  "utf-8",
+);
+assert.ok(
+  gradleContent.includes(`versionName = "${APP_VERSION}"`),
+  "build.gradle.kts versionName must match APP_VERSION",
+);
 
 console.log(`✅ PASS: All 5 version targets synchronized at ${APP_VERSION}`);
 

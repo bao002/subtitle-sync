@@ -4,14 +4,12 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: GitHub Import Migration & Shareable State Finalization
+## Active Prompt: Beginner-Mode Tab-Based Flow Implementation (Task 141)
 
-- **Target 1**: Project normalization & environment harmonization per `github-import-migration` skill: remove forbidden lockfiles (`bun.lock`), generate comprehensive `.env.example`, assert Vite port 3000 host 0.0.0.0.
-- **Target 2**: Finalize shareable state link hydration and UI sharing controls in `src/routes/index.tsx`, connecting `ShareStateModal.tsx`.
-- **Target 3**: Bump version to 1.0.43 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`), verify with `npm run test:github-import-migration` and `scripts/verify-sharable-state-link.ts`, compile, lint, commit, and migrate to `docs/done.md`.
-
-
-
+- **Target 1**: Bump app version to 1.0.44 across all 4 files and add Beginner Mode state model.
+- **Target 2**: Implement modular components under `src/components/beginner/` for the 4 tabs and header toggle.
+- **Target 3**: Integrate with `src/routes/index.tsx` ensuring zero regression to expert mode.
+- **Target 4**: Validate with dedicated tests (`test/beginner-mode-tab-flow.spec.ts`), `compile_applet`, `lint_applet`, commit and push.
 
 ---
 

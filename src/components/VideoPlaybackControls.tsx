@@ -261,7 +261,9 @@ export const VideoPlaybackControls: React.FC<VideoPlaybackControlsProps> = ({
           aria-label="Next section"
           title="Jump to next subtitle section"
           onClick={onNextSection}
-          disabled={!onNextSection || (totalSections > 0 && activeSectionIndex >= totalSections - 1)}
+          disabled={
+            !onNextSection || (totalSections > 0 && activeSectionIndex >= totalSections - 1)
+          }
           className="h-10 px-2 sm:px-3 text-xs gap-1 min-w-[36px]"
         >
           <span className="hidden md:inline">Next Sec</span>

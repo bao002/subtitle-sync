@@ -95,8 +95,12 @@ assert(
   content.includes("Step-by-Step Prompt Execution Flow") &&
     content.includes("Prompt Completion Audit Gate") &&
     content.includes("EVERY task and subtask") &&
-    content.includes("Move the completed subtask/task completely out of `current-sub-task.md`, `docs/todo.md`, and `docs/tasks.md` into `docs/done.md`") &&
-    content.includes("keep `docs/tasks.md` strictly as the active backlog of pending and upcoming items"),
+    content.includes(
+      "Move the completed subtask/task completely out of `current-sub-task.md`, `docs/todo.md`, and `docs/tasks.md` into `docs/done.md`",
+    ) &&
+    content.includes(
+      "keep `docs/tasks.md` strictly as the active backlog of pending and upcoming items",
+    ),
   "Section 4: Must specify prompt execution flow, audit gate, and done.md migration",
 );
 

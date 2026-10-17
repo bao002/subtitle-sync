@@ -204,7 +204,8 @@ export function ShareStateModal({
               <div className="flex items-start gap-1.5 rounded bg-amber-500/10 p-2 text-[11px] text-amber-700 dark:text-amber-300">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
                 <span>
-                  The recipient will receive your API key in the link to instantly run AI punctuation without setting up an account.
+                  The recipient will receive your API key in the link to instantly run AI
+                  punctuation without setting up an account.
                 </span>
               </div>
             )}

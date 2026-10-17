@@ -71,16 +71,25 @@ assert.ok(
   "WebDemoUrlsInput must parse and validate subtitle responses directly from main input",
 );
 assert.ok(
-  componentSource.includes("data-testid=\"web-demo-status-banner\""),
+  componentSource.includes('data-testid="web-demo-status-banner"'),
   "WebDemoUrlsInput must render live status banner directly below form",
 );
 
 // 3. Test URL Extraction Logic on Sample TimedText and Fixture URLs
 console.log("\n🔍 Section 3: Subtitle URL Parsing Assertions");
-const sampleTimedText = "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&tlang=he&fmt=json3";
+const sampleTimedText =
+  "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&tlang=he&fmt=json3";
 const parsedTimedText = new URL(sampleTimedText);
-assert.strictEqual(parsedTimedText.searchParams.get("v"), "L2Ryrr6txwA", "Must extract videoId from timedtext URL");
-assert.strictEqual(parsedTimedText.searchParams.get("tlang"), "he", "Must extract tlang from timedtext URL");
+assert.strictEqual(
+  parsedTimedText.searchParams.get("v"),
+  "L2Ryrr6txwA",
+  "Must extract videoId from timedtext URL",
+);
+assert.strictEqual(
+  parsedTimedText.searchParams.get("tlang"),
+  "he",
+  "Must extract tlang from timedtext URL",
+);
 
 const sampleFixture = "/fixtures/L2Ryrr6txwA/es.json";
 const fixtureMatch = sampleFixture.match(/\/([a-z]{2,3}(?:-[A-Za-z0-9]+)?)\.json$/i);

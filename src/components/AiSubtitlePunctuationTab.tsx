@@ -209,7 +209,9 @@ export function AiSubtitlePunctuationTab({
   // Execute AI Punctuation Processing
   const handleStartProcessing = async () => {
     if (rawCues.length === 0) {
-      setErrorNotice("No subtitles available to punctuate. Please load a video with subtitles first.");
+      setErrorNotice(
+        "No subtitles available to punctuate. Please load a video with subtitles first.",
+      );
       return;
     }
 
@@ -316,13 +318,15 @@ export function AiSubtitlePunctuationTab({
 
   // Filtered segments for display
   const displayedSegments = useMemo(() => {
-    const list = result?.segments || rawCues.map((c, i) => ({
-      index: i,
-      start: c.start,
-      end: c.end,
-      originalText: c.text,
-      punctuatedText: "",
-    }));
+    const list =
+      result?.segments ||
+      rawCues.map((c, i) => ({
+        index: i,
+        start: c.start,
+        end: c.end,
+        originalText: c.text,
+        punctuatedText: "",
+      }));
 
     if (!searchFilter.trim()) return list;
     const q = searchFilter.toLowerCase();
@@ -356,8 +360,9 @@ export function AiSubtitlePunctuationTab({
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
-              Adds missing punctuation (periods, commas, question marks) and capitalization to raw default subtitles.
-              Clean punctuation allows our sentence parser and lookahead on-demand translation to produce high-fidelity translations.
+              Adds missing punctuation (periods, commas, question marks) and capitalization to raw
+              default subtitles. Clean punctuation allows our sentence parser and lookahead
+              on-demand translation to produce high-fidelity translations.
             </p>
           </div>
 
@@ -443,7 +448,10 @@ export function AiSubtitlePunctuationTab({
             {/* Quick Model Presets Pills */}
             <div className="space-y-1">
               <span className="text-[10px] text-muted-foreground">Quick Presets:</span>
-              <div className="flex flex-wrap items-center gap-1.5" data-testid="ai-model-presets-container">
+              <div
+                className="flex flex-wrap items-center gap-1.5"
+                data-testid="ai-model-presets-container"
+              >
                 {presets.map((p) => {
                   const isSelected = selectedModel === p.id;
                   return (
@@ -481,7 +489,9 @@ export function AiSubtitlePunctuationTab({
             </select>
 
             <p className="text-[11px] text-muted-foreground">
-              Default is <code className="bg-muted px-1 rounded font-mono">openrouter/auto:free</code>, which automatically selects the most capable available free model.
+              Default is{" "}
+              <code className="bg-muted px-1 rounded font-mono">openrouter/auto:free</code>, which
+              automatically selects the most capable available free model.
             </p>
           </div>
 
@@ -491,7 +501,10 @@ export function AiSubtitlePunctuationTab({
               <span>Punctuation Style</span>
               <span className="text-[10px] text-muted-foreground font-mono">AI formatting</span>
             </label>
-            <div className="grid grid-cols-3 gap-1.5 text-xs" data-testid="ai-punctuation-style-selector">
+            <div
+              className="grid grid-cols-3 gap-1.5 text-xs"
+              data-testid="ai-punctuation-style-selector"
+            >
               <button
                 type="button"
                 data-testid="ai-style-conversational-btn"
@@ -602,7 +615,8 @@ export function AiSubtitlePunctuationTab({
               </div>
             )}
             <p className="text-[11px] text-muted-foreground">
-              Free models can be accessed without a key. Providing your free OpenRouter API key prevents anonymous rate-limit throttling.
+              Free models can be accessed without a key. Providing your free OpenRouter API key
+              prevents anonymous rate-limit throttling.
             </p>
           </div>
 
@@ -661,7 +675,9 @@ export function AiSubtitlePunctuationTab({
                     )}
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Saved on {new Date(cachedAiData.timestamp).toLocaleString()} for {(cachedAiData.lang || baseLanguage).toUpperCase()} · Video {cachedAiData.videoId}
+                    Saved on {new Date(cachedAiData.timestamp).toLocaleString()} for{" "}
+                    {(cachedAiData.lang || baseLanguage).toUpperCase()} · Video{" "}
+                    {cachedAiData.videoId}
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -712,7 +728,8 @@ export function AiSubtitlePunctuationTab({
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                   <span className="font-semibold">
-                    Player is currently relying solely on sentence punctuation marks for alignment &amp; lookahead translation!
+                    Player is currently relying solely on sentence punctuation marks for alignment
+                    &amp; lookahead translation!
                   </span>
                 </div>
                 {onRevertCriteria && (
@@ -808,7 +825,8 @@ export function AiSubtitlePunctuationTab({
                     Batches &amp; Latency
                   </div>
                   <div className="text-sm font-bold text-foreground" data-testid="ai-stats-latency">
-                    {result.stats.batchesCount} b · {(result.stats.totalLatencyMs / 1000).toFixed(1)}s
+                    {result.stats.batchesCount} b ·{" "}
+                    {(result.stats.totalLatencyMs / 1000).toFixed(1)}s
                   </div>
                 </div>
                 <div>
@@ -839,8 +857,8 @@ export function AiSubtitlePunctuationTab({
                   {isProcessing
                     ? "Processing AI Punctuation…"
                     : result
-                    ? "Re-Process with AI"
-                    : "Start AI Punctuation Processing"}
+                      ? "Re-Process with AI"
+                      : "Start AI Punctuation Processing"}
                 </span>
               </Button>
 
@@ -873,7 +891,9 @@ export function AiSubtitlePunctuationTab({
           </div>
 
           <div className="rounded-md bg-muted/40 p-3 text-xs text-muted-foreground">
-            <strong>How this works:</strong> Standard YouTube subtitles lack sentence-ending punctuation. Once punctuated by the AI, sentences are split cleanly by punctuation. Then, the lookahead translation engine translates each full sentence ahead on demand.
+            <strong>How this works:</strong> Standard YouTube subtitles lack sentence-ending
+            punctuation. Once punctuated by the AI, sentences are split cleanly by punctuation.
+            Then, the lookahead translation engine translates each full sentence ahead on demand.
           </div>
         </div>
       </div>
@@ -971,9 +991,7 @@ export function AiSubtitlePunctuationTab({
                             {seg.punctuatedText}
                           </span>
                         ) : (
-                          <span className="text-foreground font-medium">
-                            {seg.punctuatedText}
-                          </span>
+                          <span className="text-foreground font-medium">{seg.punctuatedText}</span>
                         )
                       ) : (
                         <span className="text-muted-foreground italic">

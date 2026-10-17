@@ -254,10 +254,7 @@ assert(
   buildGradle.includes('versionName = "1.0.42"'),
   "build.gradle.kts versionName must be 1.0.42",
 );
-assert(
-  buildGradle.includes("versionCode = 10042"),
-  "build.gradle.kts versionCode must be 10042",
-);
+assert(buildGradle.includes("versionCode = 10042"), "build.gradle.kts versionCode must be 10042");
 
 assert.strictEqual(
   CURRENT_APK_VERSION,
@@ -265,16 +262,9 @@ assert.strictEqual(
   "src/utils/apkUpdater.ts CURRENT_APK_VERSION must be v1.0.42",
 );
 
-assert.strictEqual(
-  APP_VERSION,
-  "1.0.42",
-  "src/config/appConfig.ts APP_VERSION must be 1.0.42",
-);
+assert.strictEqual(APP_VERSION, "1.0.42", "src/config/appConfig.ts APP_VERSION must be 1.0.42");
 
-const appSettingsContent = fs.readFileSync(
-  path.join(rootDir, "src/utils/appSettings.ts"),
-  "utf8",
-);
+const appSettingsContent = fs.readFileSync(path.join(rootDir, "src/utils/appSettings.ts"), "utf8");
 assert(
   appSettingsContent.includes('version: "1.0.42"'),
   "src/utils/appSettings.ts default snapshot must be 1.0.42",

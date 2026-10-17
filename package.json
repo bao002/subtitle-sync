@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.43",
+  "version": "1.0.44",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -14,6 +14,7 @@
     "lint": "eslint src/lib src/routes",
     "format": "prettier --write .",
     "test:e2e": "playwright test",
+    "test:beginner-mode": "tsx scripts/verify-beginner-mode-tab-flow.ts",
     "test:e2e:web": "playwright test e2e/web.spec.ts",
     "test:e2e:emulation": "playwright test e2e/emulation.spec.ts",
     "test:e2e:all": "playwright test",

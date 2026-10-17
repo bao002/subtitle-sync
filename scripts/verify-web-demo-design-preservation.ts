@@ -97,7 +97,9 @@ assert.ok(
   componentSource.includes('data-testid="fetch-web-demo-subtitles-button"'),
   "WebDemoUrlsInput must provide fetch subtitles button",
 );
-console.log("✅ PASS: WebDemoUrlsInput preserves original clean single-row design with collapsible drawer.");
+console.log(
+  "✅ PASS: WebDemoUrlsInput preserves original clean single-row design with collapsible drawer.",
+);
 
 // 4. Subtitle Isolation & No Default Video Subtitles Introduction
 console.log("\n🛡️ Section 4: Subtitle Isolation in src/routes/index.tsx");
@@ -119,7 +121,9 @@ assert.ok(
   indexSource.includes("setTargetLanguages(trackLangs);"),
   "index.tsx must setTargetLanguages strictly to new trackLangs",
 );
-console.log("✅ PASS: Subtitles isolation logic verified; default video subtitles are never introduced into alternative videos.");
+console.log(
+  "✅ PASS: Subtitles isolation logic verified; default video subtitles are never introduced into alternative videos.",
+);
 
 console.log("=========================================================================");
 console.log("🎉 ALL WEB-DEMO DESIGN PRESERVATION & TRACK ISOLATION CHECKS PASSED 100%!");

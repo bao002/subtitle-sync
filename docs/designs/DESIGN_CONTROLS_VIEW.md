@@ -113,5 +113,3 @@ In Version 1.0.24, the web companion introduces a dedicated input component for 
 - **Per-Language URL Resolution & Extraction**: Detects language codes from URL query parameters (`lang=`, `tlang=`), line prefixes (`en: https://...`), or JSON filenames (`.../he.json`).
 - **Resilient Direct & Server Proxy Fetch**: Attempts direct fetch for local/CORS-enabled endpoints, falling back to server proxy execution for YouTube timedtext URLs.
 - **Immediate Parallel Catalog Hydration**: Validates payloads with `isValidJsonSubtitleResponse` / `parseJson3` and updates `tracks`, `shown`, `targetLanguages`, and `spoken` to immediately display the multi-language table.
-
-

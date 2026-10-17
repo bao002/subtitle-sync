@@ -5,15 +5,18 @@ This index provides a structured, high-level map of project tasks and milestones
 ---
 
 ## Active & Pending Tasks
+
 - **Active Backlog**: See [`docs/tasks.md`](tasks.md) for the active, pending, and upcoming tasks for the current prompt.
 - **Active Staging Indicator**: See [`current-sub-task.md`](../current-sub-task.md) for the single sub-task currently being executed.
 
 ---
 
 ## Completed Tasks Archive
+
 All completed tasks with their detailed summaries, code changes, and test verification outcomes are permanently preserved in [`docs/done.md`](done.md).
 
 ### High-Level Milestone Groupings in `docs/done.md`:
+
 1. **Core TimedText Caption Discovery & Interception (Tasks 1–40)**:
    - YouTube json3 timedtext interception, WebView bridge, OkHttp session replay, and raw subtitle acquisition.
 2. **Subtitle Parsing, Phonetic Alignment & Punctuation (Tasks 41–70)**:
@@ -30,5 +33,6 @@ All completed tasks with their detailed summaries, code changes, and test verifi
 ---
 
 ## Agent Guidance
+
 - **Token Efficiency**: Do NOT read full task histories during routine prompt preface.
 - **On-Demand Context**: Only look up specific past tasks in `docs/done.md` if directly relevant to a bug investigation or requirement inquiry.

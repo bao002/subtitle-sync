@@ -41,25 +41,46 @@ async function runTests() {
   const pkgJson = JSON.parse(fs.readFileSync(path.join(ROOT_DIR, "package.json"), "utf8"));
   assert(pkgJson.version >= "1.0.39", "package.json version should be 1.0.39+");
 
-  const buildGradle = fs.readFileSync(path.join(ROOT_DIR, "android-shell/app/build.gradle.kts"), "utf8");
-  assert(buildGradle.includes(`"${pkgJson.version}"`), `build.gradle.kts should reference ${pkgJson.version}`);
+  const buildGradle = fs.readFileSync(
+    path.join(ROOT_DIR, "android-shell/app/build.gradle.kts"),
+    "utf8",
+  );
+  assert(
+    buildGradle.includes(`"${pkgJson.version}"`),
+    `build.gradle.kts should reference ${pkgJson.version}`,
+  );
   assert(buildGradle.includes("versionCode = "), "build.gradle.kts should reference versionCode");
 
   const appConfig = fs.readFileSync(path.join(ROOT_DIR, "src/config/appConfig.ts"), "utf8");
-  assert(appConfig.includes(`APP_VERSION = "${pkgJson.version}"`), `appConfig.ts should declare APP_VERSION ${pkgJson.version}`);
+  assert(
+    appConfig.includes(`APP_VERSION = "${pkgJson.version}"`),
+    `appConfig.ts should declare APP_VERSION ${pkgJson.version}`,
+  );
 
   const apkUpdater = fs.readFileSync(path.join(ROOT_DIR, "src/utils/apkUpdater.ts"), "utf8");
-  assert(apkUpdater.includes(`CURRENT_APK_VERSION = "v${pkgJson.version}"`), `apkUpdater.ts should declare v${pkgJson.version}`);
+  assert(
+    apkUpdater.includes(`CURRENT_APK_VERSION = "v${pkgJson.version}"`),
+    `apkUpdater.ts should declare v${pkgJson.version}`,
+  );
 
   const appSettings = fs.readFileSync(path.join(ROOT_DIR, "src/utils/appSettings.ts"), "utf8");
-  assert(appSettings.includes(`version: "${pkgJson.version}"`), `appSettings.ts snapshot should declare version ${pkgJson.version}`);
+  assert(
+    appSettings.includes(`version: "${pkgJson.version}"`),
+    `appSettings.ts snapshot should declare version ${pkgJson.version}`,
+  );
   log(`✅ PASS: All 5 version targets synchronized at ${pkgJson.version}`);
 
   // --- [2] Verify Model Presets & Punctuation Style Prompts ---
   console.log("\n--- [2] Verifying Model Presets & Punctuation Styles ---");
   const presets = getCuratedFreeModelPresets();
-  assert(Array.isArray(presets) && presets.length >= 4, "Should provide at least 4 curated free presets");
-  assert(presets.some((p) => p.id === DEFAULT_OPENROUTER_MODEL), "Presets must include default model router");
+  assert(
+    Array.isArray(presets) && presets.length >= 4,
+    "Should provide at least 4 curated free presets",
+  );
+  assert(
+    presets.some((p) => p.id === DEFAULT_OPENROUTER_MODEL),
+    "Presets must include default model router",
+  );
 
   const sampleLines = [
     { index: 0, text: "hello world welcome to the video" },
@@ -67,13 +88,19 @@ async function runTests() {
   ];
 
   const promptConv = buildPunctuationPrompt(sampleLines, "conversational");
-  assert(promptConv.includes("conversational"), "Conversational prompt should mention conversational style");
+  assert(
+    promptConv.includes("conversational"),
+    "Conversational prompt should mention conversational style",
+  );
 
   const promptFormal = buildPunctuationPrompt(sampleLines, "formal");
   assert(promptFormal.includes("formal"), "Formal prompt should mention formal style");
 
   const promptShort = buildPunctuationPrompt(sampleLines, "short_sentences");
-  assert(promptShort.includes("short sentences"), "Short sentences prompt should mention short sentences");
+  assert(
+    promptShort.includes("short sentences"),
+    "Short sentences prompt should mention short sentences",
+  );
   log("✅ PASS: Punctuation style prompts and preset models verified");
 
   // --- [3] Verify Multi-Batch Chunking & Progress Tracking ---
@@ -164,25 +191,58 @@ async function runTests() {
   };
 
   setOpenRouterPunctuationStyleSetting("formal");
-  assert.strictEqual(getOpenRouterPunctuationStyleSetting(), "formal", "Should persist formal style");
+  assert.strictEqual(
+    getOpenRouterPunctuationStyleSetting(),
+    "formal",
+    "Should persist formal style",
+  );
   setOpenRouterPunctuationStyleSetting("short_sentences");
-  assert.strictEqual(getOpenRouterPunctuationStyleSetting(), "short_sentences", "Should persist short_sentences style");
+  assert.strictEqual(
+    getOpenRouterPunctuationStyleSetting(),
+    "short_sentences",
+    "Should persist short_sentences style",
+  );
   setOpenRouterPunctuationStyleSetting("conversational");
-  assert.strictEqual(getOpenRouterPunctuationStyleSetting(), "conversational", "Should persist conversational style");
+  assert.strictEqual(
+    getOpenRouterPunctuationStyleSetting(),
+    "conversational",
+    "Should persist conversational style",
+  );
   log("✅ PASS: Punctuation style settings persistence verified");
 
   // --- [6] Verify UI Component Test IDs & Route Integration ---
   console.log("\n--- [6] Verifying UI Component Test IDs & Route Integration ---");
-  const tabSource = fs.readFileSync(path.join(ROOT_DIR, "src/components/AiSubtitlePunctuationTab.tsx"), "utf8");
-  assert(tabSource.includes('data-testid="ai-model-presets-container"'), "Tab must include presets container");
-  assert(tabSource.includes('data-testid="ai-cancel-processing-btn"'), "Tab must include cancel processing button");
+  const tabSource = fs.readFileSync(
+    path.join(ROOT_DIR, "src/components/AiSubtitlePunctuationTab.tsx"),
+    "utf8",
+  );
+  assert(
+    tabSource.includes('data-testid="ai-model-presets-container"'),
+    "Tab must include presets container",
+  );
+  assert(
+    tabSource.includes('data-testid="ai-cancel-processing-btn"'),
+    "Tab must include cancel processing button",
+  );
   assert(tabSource.includes('data-testid="ai-stats-latency"'), "Tab must include latency display");
-  assert(tabSource.includes('data-testid="ai-solely-punctuation-badge"'), "Tab must include solely punctuation badge");
-  assert(tabSource.includes('data-testid="ai-revert-criteria-btn"'), "Tab must include revert criteria button");
-  assert(tabSource.includes('data-testid="ai-punctuation-style-selector"'), "Tab must include style selector");
+  assert(
+    tabSource.includes('data-testid="ai-solely-punctuation-badge"'),
+    "Tab must include solely punctuation badge",
+  );
+  assert(
+    tabSource.includes('data-testid="ai-revert-criteria-btn"'),
+    "Tab must include revert criteria button",
+  );
+  assert(
+    tabSource.includes('data-testid="ai-punctuation-style-selector"'),
+    "Tab must include style selector",
+  );
 
   const indexSource = fs.readFileSync(path.join(ROOT_DIR, "src/routes/index.tsx"), "utf8");
-  assert(indexSource.includes("isSolelyPunctuationActive="), "index.tsx must pass isSolelyPunctuationActive");
+  assert(
+    indexSource.includes("isSolelyPunctuationActive="),
+    "index.tsx must pass isSolelyPunctuationActive",
+  );
   assert(indexSource.includes("onRevertCriteria="), "index.tsx must pass onRevertCriteria");
   log("✅ PASS: UI components and route integration verified");
 

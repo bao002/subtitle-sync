@@ -42,11 +42,10 @@ console.log(`✅ PASS: Requirement 1 verified - link to docs: "${docsMatch[0]}"`
 const demoMatch = content.match(
   /\[([^\]]*demo[^\]]*)\]\((https:\/\/[a-zA-Z0-9_\-.]+\.github\.io\/[a-zA-Z0-9_\-.]+\/?)\)/i,
 );
-assert(
-  demoMatch,
-  "README.md must contain a link to the demo website hosted on github-pages",
+assert(demoMatch, "README.md must contain a link to the demo website hosted on github-pages");
+console.log(
+  `✅ PASS: Requirement 2 verified - demo website link on GitHub Pages: "${demoMatch[2]}"`,
 );
-console.log(`✅ PASS: Requirement 2 verified - demo website link on GitHub Pages: "${demoMatch[2]}"`);
 
 // 5. Verify Requirement 3: Link to the report on github-pages
 const reportMatch = content.match(
