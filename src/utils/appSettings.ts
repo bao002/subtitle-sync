@@ -101,6 +101,9 @@ export interface AppSettings {
   beginnerRemoveChars?: string[];
   beginnerStripSpeakerBrackets?: boolean;
 
+  // By default exclude the default subtitles from tts-play
+  excludeDefaultSubtitlesFromTTS?: boolean;
+
   // Limits
   onDemandCount: number; // Limited to next X=4 subtitles (Step 4.4)
   maxRetries: number; // Max retry limit to X=2 (Step 2.3)
@@ -273,6 +276,9 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   beginnerPunctuationChars: [".", "!", "?", ",", ";", ":"],
   beginnerRemoveChars: [">", ">>"],
   beginnerStripSpeakerBrackets: true,
+
+  // By default exclude the default subtitles from tts-play
+  excludeDefaultSubtitlesFromTTS: true,
 };
 
 const SETTINGS_STORAGE_KEY = STORAGE_KEYS.SETTINGS_STORAGE_KEY;
@@ -476,7 +482,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.44",
+    version: "1.0.45",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -871,6 +877,39 @@ export function setOpenRouterPunctuationStyleSetting(
   if (typeof window === "undefined" || !window.localStorage) return;
   try {
     window.localStorage.setItem(OPENROUTER_PUNCTUATION_STYLE_STORAGE_KEY, style);
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export const EXCLUDE_DEFAULT_SUBTITLES_TTS_STORAGE_KEY = "yt_exclude_default_subs_tts";
+
+/**
+ * Get whether default subtitles should be excluded from TTS play by default.
+ * Defaults to true.
+ */
+export function getExcludeDefaultSubtitlesFromTTSSetting(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return true;
+  }
+  try {
+    const val = window.localStorage.getItem(EXCLUDE_DEFAULT_SUBTITLES_TTS_STORAGE_KEY);
+    return val === null ? true : val === "true";
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Persist setting to exclude default subtitles from TTS play by default.
+ */
+export function setExcludeDefaultSubtitlesFromTTSSetting(enabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(
+      EXCLUDE_DEFAULT_SUBTITLES_TTS_STORAGE_KEY,
+      enabled ? "true" : "false",
+    );
   } catch {
     // Ignore storage errors
   }

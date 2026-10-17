@@ -4,12 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Beginner-Mode Tab-Based Flow Implementation (Task 141)
+## Active Prompt: Exclude Default Subtitles from TTS-Play by Default (Task 142)
 
-- **Target 1**: Bump app version to 1.0.44 across all 4 files and add Beginner Mode state model.
-- **Target 2**: Implement modular components under `src/components/beginner/` for the 4 tabs and header toggle.
-- **Target 3**: Integrate with `src/routes/index.tsx` ensuring zero regression to expert mode.
-- **Target 4**: Validate with dedicated tests (`test/beginner-mode-tab-flow.spec.ts`), `compile_applet`, `lint_applet`, commit and push.
+- **Target 1**: Bump app version to 1.0.45 across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Target 2**: Add `excludeDefaultSubtitlesFromTTS` setting (default `true`) to `AppSettings` with storage helpers.
+- **Target 3**: Update `src/routes/index.tsx` so default subtitles / baseLanguage is excluded from `spoken` TTS-play by default upon detection or track loading.
+- **Target 4**: Update `BeginnerFlowContainer.tsx` to exclude base language from spoken TTS / favorite target languages by default.
+- **Target 5**: Implement dedicated automated verification script (`scripts/verify-exclude-default-subtitles-tts.ts`), run compilation, lint, git commit, and log to `docs/done.md`.
 
 ---
 
