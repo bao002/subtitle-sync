@@ -4,14 +4,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Task 133 — Fix Favorite Languages Selection for On-Demand Translation & Subtitles Table, and Complete AI Subtitle Punctuation Tab (v1.0.38)
+## Active Prompt: Task 133 — Fix Favorite Languages Selection for On-Demand Translation & Subtitles Table, and Complete AI Subtitle Punctuation Tab (v1.0.38) [COMPLETED]
 
-- **Target 1**: Bump app version to 1.0.38 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-- **Target 2**: Fix favorite languages selection and subtitles table reactivity: ensure newly selected languages in `targetLanguages`, `favoriteLanguages`, or `shown` immediately appear in `cols` and update the subtitles table; include `favoriteLanguages` in lookahead on-demand translation pending set and dependency array.
-- **Target 3**: Enhance AI Subtitle Punctuation tab (`AiSubtitlePunctuationTab.tsx`) and OpenRouter service (`openRouterAiService.ts`) with searchable free models list defaulting to `openrouter/auto:free`, API key test connection, and "Apply & Rely Solely on Punctuation" mode that triggers sentence punctuation alignment and on-demand translation.
-- **Target 4**: Author dedicated test `scripts/verify-favorite-languages-and-ai-tab.ts`, register in `package.json` and `docs/files.md`.
-- **Target 5**: Test execution, applet compilation (`compile_applet`), and lint verification (`lint_applet`).
-- **Target 6**: Git checkpoint, push attempt, and migrate Task 133 to `docs/done.md`.
+- **Summary**: All planned sub-tasks for Task 133 have been fully completed, verified with dedicated test suites (`test:favorite-languages-and-ai-tab`, `test:on-demand-translation`, `test:ai-subtitle-punctuation`), compiled cleanly with `compile_applet`, lint-verified with `lint_applet`, and migrated to `docs/done.md`.
+- **Status**: Backlog clean. Ready for next prompt.
 
 ---
 

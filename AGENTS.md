@@ -163,19 +163,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. fix:
-- on demand translation:
-it is currently oblivious to the selection from the favorites languages.
-the subtitles table doesnt get updated after selecting more languages.
-
-2. continue:
-
-prepare the next task , divided to sub-categories and checked on every sub-task before proceeding to next:
-create another tab spacially for AI subtitle procesing which add more punctuation to the default subtitles. in this case we will be able to rely solely on punctuation and on on-demand translation
-the AI will be based on openrouter free models. the user would be able to set any of the given options (drop-down+filterable list) and default to openrouter/auto:free 
-learn from the following implementation of AI setup:
-https://github.com/ofer-shaham/receipt-magic-sort
+go on
 ```
+
 
 
 
