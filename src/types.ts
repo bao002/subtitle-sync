@@ -122,6 +122,7 @@ declare global {
     AndroidNativeShell?: {
       isNativeShell: () => boolean;
       showToast: (msg: string) => void;
+      isTtsReady?: () => boolean;
       speak?: (text: string, lang: string, rate: number, utteranceId: string) => boolean;
       stopSpeaking?: () => void;
       isSpeaking?: () => boolean;

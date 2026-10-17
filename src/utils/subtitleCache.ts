@@ -657,3 +657,143 @@ export function clearSubtitleCache(): void {
     keysToRemove.forEach((k) => localStorage.removeItem(k));
   } catch {}
 }
+
+/**
+ * AI-Enriched Subtitle Caching
+ * Caches subtitles returned from AI (e.g. OpenRouter AI punctuation pipeline)
+ * allowing users to load and apply them across sessions without repeated API calls.
+ */
+export const AI_SUBTITLE_CACHE_PREFIX = "yt_ai_subtitles_";
+
+export interface CachedAiSubtitleData {
+  videoId: string;
+  lang: string;
+  punctuatedJson3: any;
+  segments?: any[];
+  modelUsed?: string;
+  style?: string;
+  timestamp: number;
+  latencyMs?: number;
+  rawCount?: number;
+  punctuatedCount?: number;
+}
+
+const aiSubtitlesMemoryCache = new Map<string, CachedAiSubtitleData>();
+
+export function saveCachedAiSubtitles(data: CachedAiSubtitleData): void {
+  if (!data || !data.videoId || !data.lang || !data.punctuatedJson3) return;
+  const cleanLang = data.lang.toLowerCase().split("-")[0];
+  const key = `${AI_SUBTITLE_CACHE_PREFIX}${data.videoId}_${cleanLang}`;
+  const payload: CachedAiSubtitleData = {
+    ...data,
+    lang: cleanLang,
+    timestamp: data.timestamp || Date.now(),
+  };
+  aiSubtitlesMemoryCache.set(key, payload);
+  if (!isStorageAvailable()) return;
+  try {
+    localStorage.setItem(key, JSON.stringify(payload));
+  } catch (err) {
+    console.warn("[SubtitleCache] Failed to save cached AI subtitles to localStorage:", err);
+  }
+}
+
+export function getCachedAiSubtitles(videoId: string, lang: string): CachedAiSubtitleData | null {
+  if (!videoId || !lang) return null;
+  const cleanLang = lang.toLowerCase().split("-")[0];
+  const key = `${AI_SUBTITLE_CACHE_PREFIX}${videoId}_${cleanLang}`;
+  if (aiSubtitlesMemoryCache.has(key)) {
+    return aiSubtitlesMemoryCache.get(key)!;
+  }
+  if (!isStorageAvailable()) return null;
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.punctuatedJson3) {
+        aiSubtitlesMemoryCache.set(key, parsed);
+        return parsed;
+      }
+    }
+  } catch (err) {
+    console.warn("[SubtitleCache] Failed to read cached AI subtitles:", err);
+  }
+  return null;
+}
+
+export function hasCachedAiSubtitles(videoId: string, lang: string): boolean {
+  return getCachedAiSubtitles(videoId, lang) !== null;
+}
+
+export function listCachedAiSubtitles(videoId?: string): CachedAiSubtitleData[] {
+  const results: CachedAiSubtitleData[] = [];
+  const seenKeys = new Set<string>();
+
+  for (const [k, v] of aiSubtitlesMemoryCache.entries()) {
+    if (!videoId || v.videoId === videoId) {
+      results.push(v);
+      seenKeys.add(k);
+    }
+  }
+
+  if (!isStorageAvailable()) {
+    return results.sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(AI_SUBTITLE_CACHE_PREFIX) && !seenKeys.has(k)) {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(k) || "");
+          if (parsed && parsed.punctuatedJson3) {
+            if (!videoId || parsed.videoId === videoId) {
+              results.push(parsed);
+              seenKeys.add(k);
+            }
+          }
+        } catch {}
+      }
+    }
+  } catch {}
+
+  return results.sort((a, b) => b.timestamp - a.timestamp);
+}
+
+export function clearCachedAiSubtitles(videoId?: string, lang?: string): void {
+  const cleanLang = lang ? lang.toLowerCase().split("-")[0] : undefined;
+  for (const [k, v] of Array.from(aiSubtitlesMemoryCache.entries())) {
+    if (
+      (!videoId || v.videoId === videoId) &&
+      (!cleanLang || v.lang.toLowerCase() === cleanLang)
+    ) {
+      aiSubtitlesMemoryCache.delete(k);
+    }
+  }
+
+  if (!isStorageAvailable()) return;
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(AI_SUBTITLE_CACHE_PREFIX)) {
+        if (!videoId && !cleanLang) {
+          keysToRemove.push(k);
+        } else {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(k) || "{}");
+            if (
+              (!videoId || parsed.videoId === videoId) &&
+              (!cleanLang || parsed.lang?.toLowerCase() === cleanLang)
+            ) {
+              keysToRemove.push(k);
+            }
+          } catch {
+            keysToRemove.push(k);
+          }
+        }
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+  } catch {}
+}

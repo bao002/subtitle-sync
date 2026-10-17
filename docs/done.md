@@ -1,5 +1,37 @@
 # Done tasks
 
+## Task 137: Fix Android TTS Playback & Subtitles Table Page Flipping (Version 1.0.41)
+
+### Summary:
+
+- **Android Native TextToSpeech Architecture & Package Visibility (`android-shell/app/src/main/AndroidManifest.xml`, `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt`, `src/types.ts`)**:
+  - Declared `<queries><intent><action android:name="android.intent.action.TTS_SERVICE"/></intent></queries>` in `AndroidManifest.xml` to fix Android 11+ (API 30+) package visibility restrictions that prevented binding to TextToSpeech engines.
+  - Configured `AudioAttributes` with `USAGE_MEDIA` and `CONTENT_TYPE_SPEECH` on `TextToSpeech` in `MainActivity.kt`, ensuring synthesized audio is routed into the primary media stream without ducking.
+  - Exposed `isTtsReady()` in `AndroidNativeBridge` and added on-demand `TextToSpeech` initialization in `speak()`.
+  - Added locale alias fallbacks for Hebrew (`"iw"`, `"IL"`) and Indonesian (`"in"`, `"ID"`).
+  - Added `isTtsReady?: () => boolean` definition to `AndroidNativeShell` in `src/types.ts`.
+- **Web App TTS Prioritization, Event Hookup & Spoken State Sync (`src/routes/index.tsx`)**:
+  - Removed the `!chosenVoice` guard that was bypassing `window.AndroidNativeShell.speak` whenever Web Speech voices were enumerated, ensuring native Android TTS is always prioritized on Android devices.
+  - Hooked up `window.onNativeTTSDone` and `window.onNativeTTSError` callbacks to cleanly resolve utterance promises upon native speech completion with a duration timeout safety fallback.
+  - Synchronized `spoken` state on hydration alongside `shown` when loading saved user learning languages (`getUserLearningLanguages()`).
+- **Subtitles Table View Page Flipping (`src/routes/index.tsx`)**:
+  - Decoupled subtitles table view page flipping from `autoFocus`, ensuring the table always flips to the page containing the active or speaking subtitle record.
+  - Updated page calculation to track `currentActive = active >= 0 ? active : speakingRow`.
+  - Set `setActive(nextRowIdx)` immediately after playing the candidate row in the video playback loop, ensuring the table flips to the next page as soon as the last record of a page finishes playing.
+  - Added `setActive(i)` to `seek(r, i)` so manual row selections immediately synchronize page flipping.
+- **Version 1.0.41 Bump & Parity**:
+  - Synchronized semantic version `1.0.41` and versionCode `10041` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification (`scripts/verify-tts-play-and-table-page-flipping.ts`)**:
+  - Authored automated verification asserting AndroidManifest.xml package visibility queries, MainActivity.kt audio attributes and bridge methods, src/types.ts declarations, src/routes/index.tsx TTS prioritization and event hookups, subtitles table page flipping algorithm and state transitions across page boundaries, and version 1.0.41 parity across all 5 targets.
+  - Registered script as `"test:tts-play-and-table-page-flipping"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:tts-play-and-table-page-flipping`: PASSED (100% verified).
+  - `npm run test:favorite-languages-and-ai-tab`: PASSED (100% verified).
+  - `npm run test:gitignore-entries`: PASSED (100% verified).
+  - `npm run test:apk-version`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
 ## Task 136: Add bun.lock & .env.example to .gitignore, Bump Version 1.0.40 & Automated Verification (Version 1.0.40)
 
 ### Summary:
