@@ -4,15 +4,14 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Task 132 — AI Subtitle Punctuation Processing Tab via OpenRouter Free Models (v1.0.37)
+## Active Prompt: Task 134 — Multi-Batch AI Subtitle Punctuation, Robust Free Tier Rate-Limit Handling & Solely-Punctuation Translation Integration (v1.0.39)
 
-- **Target 1**: Bump app version to 1.0.37 across all 5 version targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-- **Target 2**: Implement `src/utils/openRouterAiService.ts` for OpenRouter API, listing and filtering free models, fetching model catalogs (`https://openrouter.ai/api/v1/models`), handling API key persistence, defaulting to `openrouter/auto:free`, and calling chat completion for subtitle punctuation enrichment.
-- **Target 3**: Update `appSettings.ts` with OpenRouter model and key preferences (`openRouterModel`, `openRouterApiKey`, `aiPunctuateAutoApply`).
-- **Target 4**: Implement `src/components/AiSubtitlePunctuationTab.tsx` with searchable/filterable free model dropdown, API key input, cue punctuation processor, side-by-side preview, diff view, and "Apply Punctuated Subtitles" button.
-- **Target 5**: Integrate AI Subtitle Processing top tab (`tab-ai-punctuation`) in `src/routes/index.tsx` alongside `viewer` and `playground`.
-- **Target 6**: Author dedicated automated test `scripts/verify-ai-subtitle-punctuation.ts`, register in `package.json` and `docs/files.md`, run tests, compile and lint.
-- **Target 7**: Migrate completed Task 132 to `docs/done.md`.
+- **Target 1**: Bump app version to 1.0.39 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+- **Target 2**: Implement sliding-window chunked batching with progress tracking and rate-limit backoff in `src/utils/openRouterAiService.ts`.
+- **Target 3**: Deepen solely-punctuation alignment & sentence segmentation in `src/utils/onDemandTranslationManager.ts` and `src/components/AiSubtitlePunctuationTab.tsx`.
+- **Target 4**: Add quick-select model presets, live latency indicators, and abort cancellation in `src/components/AiSubtitlePunctuationTab.tsx`.
+- **Target 5**: Author dedicated verification script `scripts/verify-ai-punctuation-pipeline.ts`, register in `package.json` and `docs/files.md`.
+- **Target 6**: Test, compile (`compile_applet`), lint (`lint_applet`), and migrate completed items to `docs/done.md`.
 
 ---
 

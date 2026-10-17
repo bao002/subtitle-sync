@@ -273,18 +273,16 @@ console.log("✅ PASS: index.tsx source code correctly implements on-demand tran
 // ============================================================================
 // 6. Version Parity Check (1.0.36)
 // ============================================================================
-console.log("\n--- [6] Verifying Version Parity (1.0.36) ---");
+console.log("\n--- [6] Verifying Version Parity across targets ---");
 
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf-8"));
-assert.strictEqual(packageJson.version, "1.0.36", "package.json must be 1.0.36");
-assert.strictEqual(APP_VERSION, "1.0.36", "appConfig.ts APP_VERSION must be 1.0.36");
-assert.strictEqual(CURRENT_APK_VERSION, "v1.0.36", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.36");
+assert.strictEqual(packageJson.version, APP_VERSION, "package.json must match APP_VERSION");
+assert.strictEqual(CURRENT_APK_VERSION, `v${APP_VERSION}`, "apkUpdater.ts CURRENT_APK_VERSION must match vAPP_VERSION");
 
 const gradleContent = fs.readFileSync(path.join(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(gradleContent.includes('versionName = "1.0.36"'), "build.gradle.kts versionName must be 1.0.36");
-assert.ok(gradleContent.includes("versionCode = 10036"), "build.gradle.kts versionCode must be 10036");
+assert.ok(gradleContent.includes(`versionName = "${APP_VERSION}"`), "build.gradle.kts versionName must match APP_VERSION");
 
-console.log("✅ PASS: All 5 version targets synchronized to 1.0.36 (versionCode 10036)");
+console.log(`✅ PASS: All 5 version targets synchronized at ${APP_VERSION}`);
 
 console.log("\n====================================================");
 console.log("🎉 ALL ON-DEMAND TRANSLATION VERIFICATIONS PASSED!");

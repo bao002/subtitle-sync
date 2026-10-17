@@ -1,5 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 132.7 - Migrate Completed Task 132 to docs/done.md
-- **Task**: Document completion of Task 132 in `docs/done.md`, clear active backlog in `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
+## Active Subtask: Subtask 134.5 - Author Dedicated Verification Script `scripts/verify-ai-punctuation-pipeline.ts`
+- **Task**: Author automated verification suite testing version 1.0.39 parity, OpenRouter multi-batch chunking, AbortSignal cancellation, exponential backoff, punctuation styles, presets, and UI component attributes, register script in `package.json` and document in `docs/files.md`.
 - **Status**: [IN PROGRESS]
+- **Verification**: Run `npm run test:ai-punctuation-pipeline` and assert 100% pass rate.

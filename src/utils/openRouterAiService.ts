@@ -163,11 +163,16 @@ export async function fetchOpenRouterFreeModels(apiKey?: string): Promise<OpenRo
   }
 }
 
+export type PunctuationStyle = "conversational" | "formal" | "short_sentences";
+
 export interface PunctuateSubtitlesOptions {
   cues: Array<{ start: number; end: number; text: string }>;
   model?: string;
   apiKey?: string;
   temperature?: number;
+  batchSize?: number;
+  style?: PunctuationStyle;
+  signal?: AbortSignal;
   onProgress?: (progressPercent: number, statusMessage: string) => void;
 }
 
@@ -187,17 +192,29 @@ export interface PunctuatedSubtitleResult {
     punctuationMarksAdded: number;
     capitalizedWordsCount: number;
     modelUsed: string;
+    totalLatencyMs: number;
+    batchesCount: number;
   };
 }
 
 /**
  * Builds the AI prompt for punctuating a batch of subtitle lines
  */
-export function buildPunctuationPrompt(lines: Array<{ index: number; text: string }>): string {
+export function buildPunctuationPrompt(
+  lines: Array<{ index: number; text: string }>,
+  style: PunctuationStyle = "conversational",
+): string {
   const formattedLines = lines.map((l) => `${l.index}: ${l.text}`).join("\n");
+  const styleInstruction =
+    style === "formal"
+      ? "Use formal, grammatically strict punctuation with complete sentences, standard capitalization, and appropriate commas."
+      : style === "short_sentences"
+      ? "Break long run-on phrases into concise, short sentences with periods and question marks where natural pauses occur."
+      : "Restore natural conversational punctuation (commas, periods, question marks, exclamation marks) and proper sentence capitalization.";
+
   return `You are a subtitle punctuation restoration engine.
 The following subtitle segments lack proper punctuation and sentence capitalization.
-Restore natural punctuation (commas, periods, question marks, exclamation marks) and proper capitalization (start of sentences, proper nouns).
+${styleInstruction}
 
 CRITICAL RULES:
 1. DO NOT change, add, or omit words. Keep the exact sequence of words intact.
@@ -240,6 +257,19 @@ export function parsePunctuationOutput(
 }
 
 /**
+ * Curated preset models for rapid 1-click selection pills in UI
+ */
+export function getCuratedFreeModelPresets(): Array<{ id: string; label: string }> {
+  return [
+    { id: "openrouter/auto:free", label: "Auto (Default)" },
+    { id: "meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 70B" },
+    { id: "google/gemma-4-31b:free", label: "Gemma 4 31B" },
+    { id: "mistralai/mistral-7b-instruct:free", label: "Mistral 7B" },
+    { id: "qwen/qwen3.8-27b:free", label: "Qwen 3.8 27B" },
+  ];
+}
+
+/**
  * Core function to punctuate subtitle cues using OpenRouter's free AI models
  */
 export async function punctuateSubtitlesWithOpenRouter({
@@ -247,17 +277,25 @@ export async function punctuateSubtitlesWithOpenRouter({
   model = DEFAULT_OPENROUTER_MODEL,
   apiKey,
   temperature = 0.2,
+  batchSize = 50,
+  style = "conversational",
+  signal,
   onProgress,
 }: PunctuateSubtitlesOptions): Promise<PunctuatedSubtitleResult> {
   if (!cues || cues.length === 0) {
     throw new Error("No subtitle cues provided for punctuation processing.");
   }
 
+  if (signal?.aborted) {
+    throw new Error("AI punctuation was cancelled.");
+  }
+
+  const startTime = Date.now();
   const effectiveModel = model.trim() || DEFAULT_OPENROUTER_MODEL;
   onProgress?.(10, `Preparing ${cues.length} subtitle segments for AI punctuation with ${effectiveModel}…`);
 
-  // Split into manageable batches of 40 lines to avoid token context limits
-  const BATCH_SIZE = 40;
+  // Ensure batch size is within sensible boundaries
+  const effectiveBatchSize = Math.max(10, Math.min(100, batchSize));
   const punctuatedSegments: PunctuatedSegment[] = [];
 
   const headers: Record<string, string> = {
@@ -269,11 +307,15 @@ export async function punctuateSubtitlesWithOpenRouter({
     headers["Authorization"] = `Bearer ${apiKey.trim()}`;
   }
 
-  const totalBatches = Math.ceil(cues.length / BATCH_SIZE);
+  const totalBatches = Math.ceil(cues.length / effectiveBatchSize);
 
   for (let batchIdx = 0; batchIdx < totalBatches; batchIdx++) {
-    const startIdx = batchIdx * BATCH_SIZE;
-    const endIdx = Math.min(cues.length, startIdx + BATCH_SIZE);
+    if (signal?.aborted) {
+      throw new Error("AI punctuation was cancelled.");
+    }
+
+    const startIdx = batchIdx * effectiveBatchSize;
+    const endIdx = Math.min(cues.length, startIdx + effectiveBatchSize);
     const batchCues = cues.slice(startIdx, endIdx);
 
     const inputLines = batchCues.map((c, i) => ({
@@ -281,7 +323,7 @@ export async function punctuateSubtitlesWithOpenRouter({
       text: c.text,
     }));
 
-    const userPrompt = buildPunctuationPrompt(inputLines);
+    const userPrompt = buildPunctuationPrompt(inputLines, style);
 
     onProgress?.(
       Math.round(15 + (batchIdx / totalBatches) * 75),
@@ -304,51 +346,84 @@ export async function punctuateSubtitlesWithOpenRouter({
     };
 
     let aiContent = "";
-    try {
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(requestPayload),
-      });
+    let attempt = 0;
+    const maxAttempts = 3;
+    let batchSuccess = false;
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`OpenRouter API error ${response.status}: ${errorText}`);
+    while (attempt < maxAttempts && !batchSuccess) {
+      if (signal?.aborted) {
+        throw new Error("AI punctuation was cancelled.");
       }
+      attempt++;
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers,
+          body: JSON.stringify(requestPayload),
+          signal,
+        });
 
-      const responseData = await response.json();
-      aiContent = responseData?.choices?.[0]?.message?.content || "";
-      if (!aiContent || aiContent.trim().length === 0) {
-        throw new Error("Empty response returned from OpenRouter model.");
+        if (response.status === 429 || response.status === 503) {
+          if (attempt < maxAttempts) {
+            const backoffMs = attempt * 1500;
+            onProgress?.(
+              Math.round(15 + (batchIdx / totalBatches) * 75),
+              `Rate limited (HTTP ${response.status}). Backing off for ${(backoffMs / 1000).toFixed(1)}s (retry ${attempt}/${maxAttempts})…`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, backoffMs));
+            continue;
+          }
+        }
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`OpenRouter API error ${response.status}: ${errorText}`);
+        }
+
+        const responseData = await response.json();
+        aiContent = responseData?.choices?.[0]?.message?.content || "";
+        if (!aiContent || aiContent.trim().length === 0) {
+          throw new Error("Empty response returned from OpenRouter model.");
+        }
+        batchSuccess = true;
+      } catch (err: any) {
+        if (signal?.aborted || err?.name === "AbortError" || err?.message?.includes("cancelled")) {
+          throw new Error("AI punctuation was cancelled.");
+        }
+        if (attempt >= maxAttempts) {
+          logError("OpenRouter", `Batch ${batchIdx + 1} failed after ${maxAttempts} attempts: ${err?.message || err}`);
+          // Fallback: keep original text with basic sentence capitalization if AI request fails
+          inputLines.forEach((item) => {
+            const fallbackText = item.text ? item.text.charAt(0).toUpperCase() + item.text.slice(1) : "";
+            punctuatedSegments.push({
+              index: item.index,
+              start: cues[item.index]?.start ?? 0,
+              end: cues[item.index]?.end ?? 0,
+              originalText: item.text,
+              punctuatedText: fallbackText || item.text,
+            });
+          });
+          break;
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+        }
       }
-    } catch (err: any) {
-      logError("OpenRouter", `Batch ${batchIdx + 1} failed: ${err?.message || err}`);
-      // Fallback: keep original text with basic sentence capitalization if AI request fails
+    }
+
+    if (batchSuccess && aiContent) {
+      const parsedMap = parsePunctuationOutput(aiContent, batchCues.length);
+
       inputLines.forEach((item) => {
-        const fallbackText = item.text ? item.text.charAt(0).toUpperCase() + item.text.slice(1) : "";
+        const punctuated = parsedMap.get(item.index) || item.text;
         punctuatedSegments.push({
           index: item.index,
           start: cues[item.index]?.start ?? 0,
           end: cues[item.index]?.end ?? 0,
           originalText: item.text,
-          punctuatedText: fallbackText || item.text,
+          punctuatedText: punctuated,
         });
       });
-      continue;
     }
-
-    const parsedMap = parsePunctuationOutput(aiContent, batchCues.length);
-
-    inputLines.forEach((item) => {
-      const punctuated = parsedMap.get(item.index) || item.text;
-      punctuatedSegments.push({
-        index: item.index,
-        start: cues[item.index]?.start ?? 0,
-        end: cues[item.index]?.end ?? 0,
-        originalText: item.text,
-        punctuatedText: punctuated,
-      });
-    });
   }
 
   // Sort by index
@@ -380,7 +455,8 @@ export async function punctuateSubtitlesWithOpenRouter({
     })),
   };
 
-  onProgress?.(100, `Successfully punctuated ${punctuatedSegments.length} subtitle segments!`);
+  const totalLatencyMs = Date.now() - startTime;
+  onProgress?.(100, `Successfully punctuated ${punctuatedSegments.length} subtitle segments in ${(totalLatencyMs / 1000).toFixed(1)}s!`);
 
   return {
     segments: punctuatedSegments,
@@ -390,6 +466,68 @@ export async function punctuateSubtitlesWithOpenRouter({
       punctuationMarksAdded: punctuationCount,
       capitalizedWordsCount: capitalizedWords,
       modelUsed: effectiveModel,
+      totalLatencyMs,
+      batchesCount: totalBatches,
     },
   };
 }
+
+/**
+ * Tests OpenRouter connection and validates API key / model availability
+ */
+export async function testOpenRouterConnection(
+  apiKey?: string,
+  model = DEFAULT_OPENROUTER_MODEL,
+): Promise<{ success: boolean; message: string; model: string; latencyMs: number }> {
+  const startTime = Date.now();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "HTTP-Referer": "https://github.com/mostuf2556/subtitle-sync",
+    "X-Title": "Parallel Subtitles AI Punctuation",
+  };
+  if (apiKey && apiKey.trim().length > 0) {
+    headers["Authorization"] = `Bearer ${apiKey.trim()}`;
+  }
+
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: "Say OK" }],
+        max_tokens: 5,
+        temperature: 0,
+      }),
+    });
+
+    const latencyMs = Date.now() - startTime;
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      return {
+        success: false,
+        message: `HTTP ${res.status}: ${errBody.slice(0, 120)}`,
+        model,
+        latencyMs,
+      };
+    }
+
+    const data = await res.json();
+    const reply = data?.choices?.[0]?.message?.content || "Connected";
+    return {
+      success: true,
+      message: `Connection successful (${latencyMs}ms)! Response: "${reply.trim()}"`,
+      model,
+      latencyMs,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err?.message || String(err),
+      model,
+      latencyMs: Date.now() - startTime,
+    };
+  }
+}
+

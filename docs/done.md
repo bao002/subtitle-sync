@@ -1,5 +1,29 @@
 # Done tasks
 
+## Task 133: Fix Favorite Languages Selection for On-Demand Translation & Subtitles Table, and Complete AI Subtitle Punctuation Tab (Version 1.0.38)
+
+### Summary:
+
+- **Version 1.0.38 Bump & Parity**:
+  - Aligned semantic version `1.0.38` and versionCode `10038` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Fix Favorite Languages Selection & Subtitles Table Reactivity (`src/routes/index.tsx`)**:
+  - **Subtitles Table Immediate Update**: Fixed `cols` useMemo so any shown language (including newly selected target or favorite languages) is immediately included in the table column list rather than being blocked by absence of cues. Columns populate immediately, displaying authentic YouTube timedtext, on-demand sentence translations as they arrive, or active translation states.
+  - **Favorite Languages On-Demand Translation Inclusion**: Included `favoriteLanguages` in `pendingLangs` of the lookahead on-demand translation `useEffect` and in its dependency array. Selecting or modifying favorite languages now immediately triggers Google Translate lookahead for the upcoming X=10 sentences.
+  - **Global & Target Candidate Aggregation (`orderedLangs`)**: Unified candidate language collection to include `targetLanguages`, `favoriteLanguages`, `shown`, `spoken`, `baseLanguage`, `tracks`, and `onDemandTranslations` across all platforms, ensuring languages added in the web demo or Android are never omitted from ordering.
+  - **Synchronization in `handleUpdateFavoriteLanguages`**: Synced `targetLanguages`, `targetLanguagesRef.current`, `shown`, and `spoken` when favorite languages are modified, saved them to video-specific settings, and triggered Android live subtitle fetching.
+- **OpenRouter AI Service & AI Punctuation Tab (`src/utils/openRouterAiService.ts`, `src/components/AiSubtitlePunctuationTab.tsx`)**:
+  - **Test Connection Capability**: Added `testOpenRouterConnection` verifying OpenRouter chat completion connectivity with the selected model and API key, surfaced in the tab via the "Test Key" button (`data-testid="ai-test-api-key-btn"`) with interactive status feedback.
+  - **Apply & Rely Solely on Punctuation**: Added "Apply & Rely Solely on Punctuation" mode (`data-testid="apply-ai-subtitles-solely-punctuation-btn"`), allowing users to inject AI-punctuated subtitles into the active player and switch alignment criteria solely to sentence marks (`["sentence"]`), seamlessly driving lookahead on-demand translation for all selected languages.
+- **Dedicated Automated Verification (`scripts/verify-favorite-languages-and-ai-tab.ts`)**:
+  - Authored comprehensive automated test verifying version 1.0.38 parity across all 5 targets, subtitles table reactivity, on-demand translation candidate inclusion for favorite languages, OpenRouter service and test connection, and component test IDs.
+  - Registered as `"test:favorite-languages-and-ai-tab"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:favorite-languages-and-ai-tab`: PASSED (100% verified).
+  - `npm run test:on-demand-translation`: PASSED (100% verified).
+  - `npm run test:ai-subtitle-punctuation`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (zero errors).
+
 ## Task 132: AI Subtitle Punctuation Processing Tab via OpenRouter Free Models (Version 1.0.37)
 
 ### Summary:
