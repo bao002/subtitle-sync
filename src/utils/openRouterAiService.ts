@@ -393,3 +393,57 @@ export async function punctuateSubtitlesWithOpenRouter({
     },
   };
 }
+
+/**
+ * Tests OpenRouter connection and validates API key / model availability
+ */
+export async function testOpenRouterConnection(
+  apiKey?: string,
+  model = DEFAULT_OPENROUTER_MODEL,
+): Promise<{ success: boolean; message: string; model: string }> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "HTTP-Referer": "https://github.com/mostuf2556/subtitle-sync",
+    "X-Title": "Parallel Subtitles AI Punctuation",
+  };
+  if (apiKey && apiKey.trim().length > 0) {
+    headers["Authorization"] = `Bearer ${apiKey.trim()}`;
+  }
+
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: "Say OK" }],
+        max_tokens: 5,
+        temperature: 0,
+      }),
+    });
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      return {
+        success: false,
+        message: `HTTP ${res.status}: ${errBody.slice(0, 120)}`,
+        model,
+      };
+    }
+
+    const data = await res.json();
+    const reply = data?.choices?.[0]?.message?.content || "Connected";
+    return {
+      success: true,
+      message: `Connection successful! Response: "${reply.trim()}"`,
+      model,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      message: err?.message || String(err),
+      model,
+    };
+  }
+}
+

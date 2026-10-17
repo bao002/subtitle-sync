@@ -222,17 +222,17 @@ console.log("✅ PASS: index.tsx seamlessly mounts and connects AI Subtitle Punc
 // ============================================================================
 // 6. Version 1.0.37 Synchronization
 // ============================================================================
-console.log("\n--- [6] Verifying Version Parity (1.0.37) ---");
+console.log("\n--- [6] Verifying Version Parity (1.0.38) ---");
 
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf-8"));
-assert.strictEqual(packageJson.version, "1.0.37", "package.json version must be 1.0.37");
-assert.strictEqual(APP_VERSION, "1.0.37", "appConfig.ts APP_VERSION must be 1.0.37");
-assert.strictEqual(CURRENT_APK_VERSION, "v1.0.37", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.37");
+assert.strictEqual(packageJson.version, "1.0.38", "package.json version must be 1.0.38");
+assert.strictEqual(APP_VERSION, "1.0.38", "appConfig.ts APP_VERSION must be 1.0.38");
+assert.strictEqual(CURRENT_APK_VERSION, "v1.0.38", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.38");
 
 const gradleContent = fs.readFileSync(path.join(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(gradleContent.includes('versionName = "1.0.37"'), "build.gradle.kts versionName must be 1.0.37");
-assert.ok(gradleContent.includes("versionCode = 10037"), "build.gradle.kts versionCode must be 10037");
-console.log("✅ PASS: All 5 version targets synchronized at 1.0.37 (versionCode 10037)");
+assert.ok(gradleContent.includes('versionName = "1.0.38"'), "build.gradle.kts versionName must be 1.0.38");
+assert.ok(gradleContent.includes("versionCode = 10038"), "build.gradle.kts versionCode must be 10038");
+console.log("✅ PASS: All 5 version targets synchronized at 1.0.38 (versionCode 10038)");
 
 console.log("\n====================================================");
 console.log("🎉 ALL AI SUBTITLE PUNCTUATION VERIFICATIONS PASSED!");

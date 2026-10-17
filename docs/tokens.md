@@ -4,15 +4,14 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Task 132 — AI Subtitle Punctuation Processing Tab via OpenRouter Free Models (v1.0.37)
+## Active Prompt: Task 133 — Fix Favorite Languages Selection for On-Demand Translation & Subtitles Table, and Complete AI Subtitle Punctuation Tab (v1.0.38)
 
-- **Target 1**: Bump app version to 1.0.37 across all 5 version targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-- **Target 2**: Implement `src/utils/openRouterAiService.ts` for OpenRouter API, listing and filtering free models, fetching model catalogs (`https://openrouter.ai/api/v1/models`), handling API key persistence, defaulting to `openrouter/auto:free`, and calling chat completion for subtitle punctuation enrichment.
-- **Target 3**: Update `appSettings.ts` with OpenRouter model and key preferences (`openRouterModel`, `openRouterApiKey`, `aiPunctuateAutoApply`).
-- **Target 4**: Implement `src/components/AiSubtitlePunctuationTab.tsx` with searchable/filterable free model dropdown, API key input, cue punctuation processor, side-by-side preview, diff view, and "Apply Punctuated Subtitles" button.
-- **Target 5**: Integrate AI Subtitle Processing top tab (`tab-ai-punctuation`) in `src/routes/index.tsx` alongside `viewer` and `playground`.
-- **Target 6**: Author dedicated automated test `scripts/verify-ai-subtitle-punctuation.ts`, register in `package.json` and `docs/files.md`, run tests, compile and lint.
-- **Target 7**: Migrate completed Task 132 to `docs/done.md`.
+- **Target 1**: Bump app version to 1.0.38 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+- **Target 2**: Fix favorite languages selection and subtitles table reactivity: ensure newly selected languages in `targetLanguages`, `favoriteLanguages`, or `shown` immediately appear in `cols` and update the subtitles table; include `favoriteLanguages` in lookahead on-demand translation pending set and dependency array.
+- **Target 3**: Enhance AI Subtitle Punctuation tab (`AiSubtitlePunctuationTab.tsx`) and OpenRouter service (`openRouterAiService.ts`) with searchable free models list defaulting to `openrouter/auto:free`, API key test connection, and "Apply & Rely Solely on Punctuation" mode that triggers sentence punctuation alignment and on-demand translation.
+- **Target 4**: Author dedicated test `scripts/verify-favorite-languages-and-ai-tab.ts`, register in `package.json` and `docs/files.md`.
+- **Target 5**: Test execution, applet compilation (`compile_applet`), and lint verification (`lint_applet`).
+- **Target 6**: Git checkpoint, push attempt, and migrate Task 133 to `docs/done.md`.
 
 ---
 

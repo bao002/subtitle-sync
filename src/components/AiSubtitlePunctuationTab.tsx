@@ -24,6 +24,7 @@ import {
   CURATED_FREE_MODELS,
   fetchOpenRouterFreeModels,
   punctuateSubtitlesWithOpenRouter,
+  testOpenRouterConnection,
   type PunctuatedSubtitleResult,
   type PunctuatedSegment,
 } from "@/utils/openRouterAiService";
@@ -39,7 +40,7 @@ import {
 export interface AiSubtitlePunctuationTabProps {
   rawJson3: Json3 | null;
   baseLanguage: string;
-  onApplyPunctuatedTrack: (punctuatedJson3: Json3) => void;
+  onApplyPunctuatedTrack: (punctuatedJson3: Json3, relySolelyOnPunctuation?: boolean) => void;
   onSwitchToViewer: () => void;
   videoId?: string;
 }
@@ -58,6 +59,13 @@ export function AiSubtitlePunctuationTab({
   const [modelsFilter, setModelsFilter] = useState<string>("");
   const [isLoadingModels, setIsLoadingModels] = useState<boolean>(false);
   const [autoApply, setAutoApply] = useState<boolean>(() => getAiPunctuateAutoApplySetting());
+
+  // Test Connection State
+  const [isTestingKey, setIsTestingKey] = useState<boolean>(false);
+  const [testStatus, setTestStatus] = useState<{
+    success?: boolean;
+    message?: string;
+  } | null>(null);
 
   // Processing State
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -98,6 +106,20 @@ export function AiSubtitlePunctuationTab({
   const handleApiKeyChange = (key: string) => {
     setApiKey(key);
     setOpenRouterApiKeySetting(key);
+    setTestStatus(null);
+  };
+
+  const handleTestConnection = async () => {
+    setIsTestingKey(true);
+    setTestStatus(null);
+    try {
+      const res = await testOpenRouterConnection(apiKey, selectedModel);
+      setTestStatus(res);
+    } catch (err: any) {
+      setTestStatus({ success: false, message: err?.message || String(err) });
+    } finally {
+      setIsTestingKey(false);
+    }
   };
 
   const handleRefreshModels = async () => {
@@ -162,7 +184,7 @@ export function AiSubtitlePunctuationTab({
       setProgressMessage("AI punctuation complete!");
 
       if (autoApply) {
-        onApplyPunctuatedTrack(res.punctuatedJson3);
+        onApplyPunctuatedTrack(res.punctuatedJson3, false);
       }
     } catch (err: any) {
       setErrorNotice(err?.message || "Failed to process subtitles with OpenRouter AI.");
@@ -171,9 +193,9 @@ export function AiSubtitlePunctuationTab({
     }
   };
 
-  const handleApplyPunctuated = () => {
+  const handleApplyPunctuated = (relySolelyOnPunctuation = false) => {
     if (!result?.punctuatedJson3) return;
-    onApplyPunctuatedTrack(result.punctuatedJson3);
+    onApplyPunctuatedTrack(result.punctuatedJson3, relySolelyOnPunctuation);
   };
 
   // Filtered segments for display
@@ -339,15 +361,45 @@ export function AiSubtitlePunctuationTab({
               </span>
               <span className="text-[10px] text-muted-foreground">Private & Local</span>
             </label>
-            <input
-              id="ai-api-key-input"
-              data-testid="ai-api-key-input"
-              type="password"
-              placeholder="sk-or-v1-..."
-              value={apiKey}
-              onChange={(e) => handleApiKeyChange(e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-            />
+            <div className="flex items-center gap-2">
+              <input
+                id="ai-api-key-input"
+                data-testid="ai-api-key-input"
+                type="password"
+                placeholder="sk-or-v1-..."
+                value={apiKey}
+                onChange={(e) => handleApiKeyChange(e.target.value)}
+                className="flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              />
+              <Button
+                type="button"
+                data-testid="ai-test-api-key-btn"
+                variant="outline"
+                size="sm"
+                onClick={handleTestConnection}
+                disabled={isTestingKey}
+                className="h-8 text-xs shrink-0"
+                title="Test connection to OpenRouter with current key and model"
+              >
+                {isTestingKey ? (
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                ) : (
+                  <span>Test Key</span>
+                )}
+              </Button>
+            </div>
+            {testStatus && (
+              <div
+                data-testid="ai-test-connection-result"
+                className={`text-[11px] p-2 rounded border ${
+                  testStatus.success
+                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "border-destructive/30 bg-destructive/10 text-destructive"
+                }`}
+              >
+                {testStatus.message}
+              </div>
+            )}
             <p className="text-[11px] text-muted-foreground">
               Free models can be accessed without a key. Providing your free OpenRouter API key prevents anonymous rate-limit throttling.
             </p>
@@ -481,16 +533,29 @@ export function AiSubtitlePunctuationTab({
               </Button>
 
               {result && (
-                <Button
-                  type="button"
-                  data-testid="apply-ai-subtitles-btn"
-                  onClick={handleApplyPunctuated}
-                  variant="default"
-                  className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
-                >
-                  <FileCheck className="h-4 w-4" />
-                  <span>Apply Punctuated Subtitles to Player</span>
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    data-testid="apply-ai-subtitles-btn"
+                    onClick={() => handleApplyPunctuated(false)}
+                    variant="default"
+                    className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
+                  >
+                    <FileCheck className="h-4 w-4" />
+                    <span>Apply Punctuated Subtitles</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    data-testid="apply-ai-subtitles-solely-punctuation-btn"
+                    onClick={() => handleApplyPunctuated(true)}
+                    variant="outline"
+                    className="gap-2 border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium"
+                    title="Apply punctuated subtitles and switch division criteria to rely solely on sentence punctuation marks"
+                  >
+                    <Split className="h-4 w-4" />
+                    <span>Apply &amp; Rely Solely on Punctuation</span>
+                  </Button>
+                </>
               )}
             </div>
           </div>

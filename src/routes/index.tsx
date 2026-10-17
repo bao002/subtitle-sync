@@ -701,11 +701,29 @@ function Index() {
       setShown((prev) => Array.from(new Set([...prev, ...addedFavs])));
       setSpoken((prev) => Array.from(new Set([...prev, ...addedFavs])));
       setTargetLanguages((prev) => Array.from(new Set([...prev, ...addedFavs])));
+      targetLanguagesRef.current = Array.from(new Set([...targetLanguages, ...addedFavs]));
+      if (videoId) {
+        saveVideoSettings(videoId, {
+          targetLanguages: Array.from(new Set([...targetLanguages, ...addedFavs])),
+        });
+      }
+      if (isAndroid) {
+        setCaptionStatus(
+          `Fetching live subtitles for added favorite language: ${addedFavs.join(", ")}…`,
+        );
+        void fetchFavoriteLanguageSubtitles(addedFavs);
+      }
     }
     if (removedFavs.length > 0) {
       setShown((prev) => prev.filter((c) => !removedFavs.includes(c)));
       setSpoken((prev) => prev.filter((c) => !removedFavs.includes(c)));
       setTargetLanguages((prev) => prev.filter((c) => !removedFavs.includes(c)));
+      targetLanguagesRef.current = targetLanguages.filter((c) => !removedFavs.includes(c));
+      if (videoId) {
+        saveVideoSettings(videoId, {
+          targetLanguages: targetLanguages.filter((c) => !removedFavs.includes(c)),
+        });
+      }
     }
   };
 
@@ -716,6 +734,9 @@ function Index() {
       // For any favorite language - by default do checkbox on for both options: present in table & tts-play
       setShown((prev) => Array.from(new Set([...prev, ...favs])));
       setSpoken((prev) => Array.from(new Set([...prev, ...favs])));
+      if (isAndroid) {
+        void fetchFavoriteLanguageSubtitles(favs);
+      }
     }
   };
 
@@ -2288,7 +2309,9 @@ function Index() {
     if (!enableOnDemandTranslation) return;
     if (!videoId || !baseLanguage || !rawRows || rawRows.length === 0) return;
 
-    const pendingLangs = Array.from(new Set([...targetLanguages, ...spoken, ...shown])).filter(
+    const pendingLangs = Array.from(
+      new Set([...targetLanguages, ...favoriteLanguages, ...spoken, ...shown]),
+    ).filter(
       (code) =>
         code !== baseLanguage &&
         (!tracks || !tracks[code] || !tracks[code]?.events || tracks[code]!.events!.length === 0),
@@ -2331,6 +2354,7 @@ function Index() {
     rawRows,
     active,
     targetLanguages,
+    favoriteLanguages,
     spoken,
     shown,
     tracks,
@@ -2351,35 +2375,52 @@ function Index() {
 
   useEffect(() => {
     setLanguageOrder((prev) => {
-      const targetSet = new Set(targetLanguages);
+      const targetSet = new Set([...targetLanguages, ...favoriteLanguages]);
       const remaining = prev.filter((c) => !targetSet.has(c));
-      return [...targetLanguages, ...remaining];
+      return [...Array.from(targetSet), ...remaining];
     });
-  }, [targetLanguages]);
+  }, [targetLanguages, favoriteLanguages]);
 
   // Main screen presents favorite languages and intercepted tracks for show/hide, speech toggles, ordering, and per-language TTS controls
   const orderedLangs = useMemo(() => {
-    let list: Array<{ code: string; name: string; tts: string }>;
-    if (!isAndroid) {
-      list = languageOrder
-        .filter((code) => LANGS.some((l) => l.code === code))
-        .map((code) => getLanguageMeta(code));
-    } else {
-      const favoriteSet = new Set(targetLanguages);
-      const combinedSet = new Set([
-        ...favoriteSet,
-        ...(baseLanguage ? [baseLanguage] : []),
-        ...(tracks ? Object.keys(tracks) : []),
-      ]);
-      list = languageOrder
-        .filter((code) => combinedSet.has(code))
-        .map((code) => getLanguageMeta(code));
-    }
+    // Collect all active language codes across selections and loaded state
+    const activeLanguageCodes = new Set<string>([
+      ...targetLanguages,
+      ...favoriteLanguages,
+      ...shown,
+      ...spoken,
+      ...(baseLanguage ? [baseLanguage] : []),
+      ...(tracks ? Object.keys(tracks) : []),
+      ...Object.keys(onDemandTranslations),
+      ...(isAndroid ? [] : LANGS.map((l) => l.code)),
+    ]);
+
+    const list = languageOrder
+      .filter((code) => activeLanguageCodes.has(code))
+      .map((code) => getLanguageMeta(code));
+
+    // Append any active languages not yet present in languageOrder
+    activeLanguageCodes.forEach((code) => {
+      if (!list.some((l) => l.code === code)) {
+        list.push(getLanguageMeta(code));
+      }
+    });
+
     // Keep clicked / selected favorite languages strictly on top
     const selected = list.filter((l) => targetLanguages.includes(l.code));
     const unselected = list.filter((l) => !targetLanguages.includes(l.code));
     return [...selected, ...unselected];
-  }, [isAndroid, languageOrder, targetLanguages, baseLanguage, tracks]);
+  }, [
+    isAndroid,
+    languageOrder,
+    targetLanguages,
+    favoriteLanguages,
+    shown,
+    spoken,
+    baseLanguage,
+    tracks,
+    onDemandTranslations,
+  ]);
   const st = useRef({
     rows,
     spoken,
@@ -2448,7 +2489,7 @@ function Index() {
   );
 
   const handleApplyPunctuatedBaseTrack = useCallback(
-    (punctuatedJson3: Json3) => {
+    (punctuatedJson3: Json3, relySolelyOnPunctuation = false) => {
       const activeBase = baseLanguage || "en";
       startSubtitlesTransition(() => {
         setTracks((prev) => ({
@@ -2457,12 +2498,25 @@ function Index() {
         }));
         setShown((prev) => (prev.includes(activeBase) ? prev : [...prev, activeBase]));
       });
+      if (relySolelyOnPunctuation) {
+        setSelectedCriteria(["sentence"]);
+        try {
+          localStorage.setItem(
+            STORAGE_KEYS.PARSER_CRITERIA_STORAGE_KEY,
+            JSON.stringify(["sentence"]),
+          );
+        } catch {
+          // ignore
+        }
+      }
       if (videoId) {
         saveCachedRawJson3(videoId, activeBase, JSON.stringify(punctuatedJson3));
       }
       notifySubtitleFetch(
         "completed",
-        `Applied AI-punctuated subtitles to ${activeBase}!`,
+        relySolelyOnPunctuation
+          ? `Applied AI-punctuated subtitles to ${activeBase} & relying solely on punctuation!`
+          : `Applied AI-punctuated subtitles to ${activeBase}!`,
         activeBase,
       );
       setActiveTopTab("viewer");
@@ -2941,16 +2995,16 @@ function Index() {
       addedCodes.add(baseLanguage);
     }
 
-    // 2. Add all ordered languages that have valid tracks or on-demand translations, and are shown
-    // Spec: verify ordered track cues (tracks[l.code].length > 0 || hasTrackCues)
+    // 2. Add all ordered languages that are shown in the table
+    // Spec: include any shown languages from targetLanguages, favoriteLanguages, loaded tracks, or on-demand translations
     for (const l of orderedLangs) {
       if (
         !addedCodes.has(l.code) &&
         shown.includes(l.code) &&
         (targetLanguages.includes(l.code) ||
+          favoriteLanguages.includes(l.code) ||
           (tracks ? Boolean(tracks[l.code]) : true) ||
-          hasOnDemandCues(l.code)) &&
-        Boolean((tracks?.[l.code] && hasTrackCues(tracks[l.code])) || hasOnDemandCues(l.code))
+          hasOnDemandCues(l.code))
       ) {
         list.push(l);
         addedCodes.add(l.code);
@@ -2979,7 +3033,15 @@ function Index() {
     }
 
     return list;
-  }, [tracks, baseLanguage, orderedLangs, shown, targetLanguages, onDemandTranslations]);
+  }, [
+    tracks,
+    baseLanguage,
+    orderedLangs,
+    shown,
+    targetLanguages,
+    favoriteLanguages,
+    onDemandTranslations,
+  ]);
 
   const hasLegitimateSubtitles = useMemo(() => {
     if (!tracks) return false;
