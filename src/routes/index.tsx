@@ -349,14 +349,10 @@ function speak(
       const chosenVoice =
         voiceURI && voices.length > 0 ? findVoiceByUriOrName(voices, voiceURI) : undefined;
 
-      if (!chosenVoice && typeof window !== "undefined" && window.AndroidNativeShell?.speak) {
+      if (typeof window !== "undefined" && window.AndroidNativeShell?.speak) {
         try {
-          const handled = window.AndroidNativeShell.speak(
-            text,
-            lang,
-            normalizedRate,
-            `row-${row}-${lang}`,
-          );
+          const utteranceId = `row-${row}-${lang}-${Date.now()}`;
+          const handled = window.AndroidNativeShell.speak(text, lang, normalizedRate, utteranceId);
           if (handled) {
             onProgress({
               lang: lang.slice(0, 2),
@@ -364,14 +360,38 @@ function speak(
               start: 0,
               end: text.length,
             });
+            let resolved = false;
+            let timer: ReturnType<typeof setTimeout> | null = null;
+            const finish = () => {
+              if (resolved) return;
+              resolved = true;
+              if (timer) clearTimeout(timer);
+              onProgress(null);
+              res();
+            };
+            const prevDone = window.onNativeTTSDone;
+            window.onNativeTTSDone = (uid: string) => {
+              if (uid === utteranceId) {
+                window.onNativeTTSDone = prevDone;
+                finish();
+              } else if (prevDone) {
+                prevDone(uid);
+              }
+            };
+            const prevErr = window.onNativeTTSError;
+            window.onNativeTTSError = (uid: string, err?: string) => {
+              if (uid === utteranceId) {
+                window.onNativeTTSError = prevErr;
+                finish();
+              } else if (prevErr) {
+                prevErr(uid, err);
+              }
+            };
             const estDurationMs = Math.max(
               800,
               (text.length / 10) * (1000 / (normalizedRate || 0.5)),
             );
-            setTimeout(() => {
-              onProgress(null);
-              res();
-            }, estDurationMs);
+            timer = setTimeout(finish, estDurationMs);
             return;
           }
         } catch (e) {
@@ -2067,6 +2087,7 @@ function Index() {
     if (savedLangs && savedLangs.length > 0) {
       setTargetLanguages(savedLangs);
       setShown((prev) => Array.from(new Set([...prev, ...savedLangs])));
+      setSpoken((prev) => Array.from(new Set([...prev, ...savedLangs])));
     }
     setAudioTrackModeState(getAudioTrackMode());
     setAutoFocusState(getAutoScrollSetting());
@@ -2835,6 +2856,7 @@ function Index() {
               const resumeTarget = nextRow.start / 1000;
               lastMs.current = resumeTarget * 1000;
               lastRow.current = nextRowIdx;
+              setActive(nextRowIdx);
               multiVideoPlayerRegistry.unmuteOnly("primary");
               p.seekTo(resumeTarget, true);
               p.playVideo();
@@ -2920,6 +2942,7 @@ function Index() {
     handledRow.current = -1;
     playedTtsRecords.current.delete(i);
     lastMs.current = r.start;
+    setActive(i);
     player.current?.seekTo(r.start / 1000, true);
     player.current?.playVideo();
   };
@@ -3089,13 +3112,14 @@ function Index() {
   }, [rows, isAndroid, subtitlesLimit, subtitlesPage]);
 
   useEffect(() => {
-    if (isAndroid && autoFocus && !isSetupPaused && active >= 0 && subtitlesLimit > 0) {
-      const targetPage = Math.floor(active / subtitlesLimit) + 1;
+    const currentActive = active >= 0 ? active : speakingRow;
+    if (!isSetupPaused && currentActive >= 0 && subtitlesLimit > 0) {
+      const targetPage = Math.floor(currentActive / subtitlesLimit) + 1;
       if (targetPage !== subtitlesPage) {
         setSubtitlesPage(targetPage);
       }
     }
-  }, [active, autoFocus, isSetupPaused, isAndroid, subtitlesLimit, subtitlesPage]);
+  }, [active, speakingRow, isSetupPaused, subtitlesLimit, subtitlesPage]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">

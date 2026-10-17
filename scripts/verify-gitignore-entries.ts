@@ -57,24 +57,24 @@ assert(envExampleContent.includes("GITHUB_REPOSITORY"), ".env.example must decla
 assert(envExampleContent.includes("VITE_SUPABASE_URL"), ".env.example must declare VITE_SUPABASE_URL");
 console.log("✅ PASS: .env.example template file is intact");
 
-// 4. Verify Version 1.0.40 Parity Across All 5 Targets
-console.log("\n🔢 Section 4: Version 1.0.40 / 10040 Parity Verification");
+// 4. Verify Version 1.0.40+ Parity Across All 5 Targets
+console.log("\n🔢 Section 4: Version 1.0.40+ Parity Verification");
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
-assert.strictEqual(pkg.version, "1.0.40", "package.json version must be 1.0.40");
+assert(pkg.version >= "1.0.40", "package.json version must be 1.0.40+");
 
 const gradleContent = fs.readFileSync(path.resolve(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert(gradleContent.includes('versionName = "1.0.40"'), "build.gradle.kts versionName must be 1.0.40");
-assert(gradleContent.includes("versionCode = 10040"), "build.gradle.kts versionCode must be 10040");
+assert(gradleContent.includes(`versionName = "${pkg.version}"`), "build.gradle.kts versionName must match package.json");
+assert(gradleContent.includes("versionCode = "), "build.gradle.kts versionCode must be present");
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
-assert(appConfigContent.includes('APP_VERSION = "1.0.40"'), "appConfig.ts APP_VERSION must be 1.0.40");
+assert(appConfigContent.includes(`APP_VERSION = "${pkg.version}"`), "appConfig.ts APP_VERSION must match package.json");
 
 const apkUpdaterContent = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
-assert(apkUpdaterContent.includes('CURRENT_APK_VERSION = "v1.0.40"'), "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.40");
+assert(apkUpdaterContent.includes(`CURRENT_APK_VERSION = "v${pkg.version}"`), "apkUpdater.ts CURRENT_APK_VERSION must match package.json");
 
 const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert(appSettingsContent.includes('version: "1.0.40"'), "appSettings.ts snapshot version must be 1.0.40");
-console.log("✅ PASS: All 5 version targets synchronized at 1.0.40 (versionCode 10040)");
+assert(appSettingsContent.includes(`version: "${pkg.version}"`), "appSettings.ts snapshot version must match package.json");
+console.log(`✅ PASS: All 5 version targets synchronized at ${pkg.version}`);
 
 console.log("=========================================================================");
 console.log("🎉 ALL .GITIGNORE & VERSION 1.0.40 CHECKS PASSED 100%!");

@@ -138,24 +138,36 @@ export function SubtitlesTablePanel({
           </tr>
         </thead>
         <tbody>
-          {displayedRows.map((r, i) => {
-            const actualIndex =
-              isAndroid && subtitlesLimit > 0 ? (subtitlesPage - 1) * subtitlesLimit + i : i;
-            return (
-              <SubtitleRow
-                key={actualIndex}
-                r={r}
-                actualIndex={actualIndex}
-                isActive={actualIndex === active}
-                cols={cols}
-                speechProgress={speechProgress}
-                tracks={tracks}
-                onSeek={onSeek}
-                spokenLangs={spokenLangs}
-                ttsRatios={ttsRatios}
-              />
-            );
-          })}
+          {displayedRows.length === 0 ? (
+            <tr>
+              <td
+                colSpan={Math.max(1, cols.length + 1)}
+                className="py-12 text-center text-sm text-muted-foreground"
+                data-testid="subtitles-table-empty-notice"
+              >
+                No subtitles loaded for this video.
+              </td>
+            </tr>
+          ) : (
+            displayedRows.map((r, i) => {
+              const actualIndex =
+                isAndroid && subtitlesLimit > 0 ? (subtitlesPage - 1) * subtitlesLimit + i : i;
+              return (
+                <SubtitleRow
+                  key={actualIndex}
+                  r={r}
+                  actualIndex={actualIndex}
+                  isActive={actualIndex === active}
+                  cols={cols}
+                  speechProgress={speechProgress}
+                  tracks={tracks}
+                  onSeek={onSeek}
+                  spokenLangs={spokenLangs}
+                  ttsRatios={ttsRatios}
+                />
+              );
+            })
+          )}
         </tbody>
       </table>
     </div>

@@ -4,11 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Project Status & Remaining Scope Audit
+## Active Prompt: Clean Subtitles Table on Video Switch & AI Subtitles Cache/Load
 
-- **Target 1**: Audit active backlog, completed milestones in `docs/done.md`, and roadmap.
-- **Target 2**: Verify repository health, compilation (`compile_applet`), and test coverage.
-- **Target 3**: Provide structured status overview of current capabilities and potential next directions.
+- **Target 1**: Ensure subtitles table view is completely cleared and reset when a video is loaded after another (reset tracks, rows, active states, page, and UI table display on videoId change).
+- **Target 2**: Implement caching for subtitles returned from the AI (in subtitleCache / localStorage under videoId and language code with AI metadata), and allow loading cached AI subtitles directly in the UI.
+- **Target 3**: Bump version to 1.0.42 across all 5 targets, author dedicated automated test `scripts/verify-video-switch-table-reset-and-ai-cache.ts`, run full verification, commit/migrate to `docs/done.md`.
 
 
 

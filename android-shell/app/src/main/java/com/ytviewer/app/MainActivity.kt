@@ -636,6 +636,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
             isTtsReady = true
+            try {
+                val audioAttributes = android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build()
+                textToSpeech?.setAudioAttributes(audioAttributes)
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not set audio attributes for TextToSpeech: ${e.message}")
+            }
             textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
                 override fun onStart(utteranceId: String?) {
                     Log.d(TAG, "Native TTS started utterance: $utteranceId")
@@ -834,7 +843,20 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         @JavascriptInterface
+        fun isTtsReady(): Boolean {
+            return isTtsReady && textToSpeech != null
+        }
+
+        @JavascriptInterface
         fun speak(text: String, lang: String, rate: Float, utteranceId: String): Boolean {
+            if (textToSpeech == null) {
+                try {
+                    textToSpeech = TextToSpeech(context, this@MainActivity)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error creating TextToSpeech on demand: ${e.message}", e)
+                }
+            }
+
             if (!isTtsReady || textToSpeech == null) {
                 Log.w(TAG, "TTS requested but engine is not ready (isTtsReady=$isTtsReady)")
                 return false
@@ -855,7 +877,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         "zh", "zh-cn" -> Locale.SIMPLIFIED_CHINESE
                         "zh-tw" -> Locale.TRADITIONAL_CHINESE
                         "ar" -> Locale("ar")
-                        "he" -> Locale("he")
+                        "he", "iw" -> Locale("he")
                         "hi" -> Locale("hi", "IN")
                         "tr" -> Locale("tr", "TR")
                         "nl" -> Locale("nl", "NL")
@@ -868,7 +890,14 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         else -> Locale(lang)
                     }
 
-                    textToSpeech?.language = locale
+                    val res = textToSpeech?.setLanguage(locale)
+                    if (res == TextToSpeech.LANG_MISSING_DATA || res == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        if (lang.lowercase() == "he" || lang.lowercase() == "iw") {
+                            textToSpeech?.setLanguage(Locale("iw", "IL"))
+                        } else if (lang.lowercase() == "id" || lang.lowercase() == "in") {
+                            textToSpeech?.setLanguage(Locale("in", "ID"))
+                        }
+                    }
                     textToSpeech?.setSpeechRate(rate)
                     val params = Bundle()
                     textToSpeech?.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
