@@ -163,25 +163,14 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-up until translation is fetched from youtube api - use on demand translation (translate next configured X=10 sentences ahead) using a translation api:
-const translateWithGoogle = ({ text, fromLang, toLang }: { text: string; fromLang: string; toLang: string }): Promise<string> => {
-    const normalizedFromLang = normalizeLanguage(fromLang);
-    const normalizedToLang = normalizeLanguage(toLang);
-    const requestUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${normalizedFromLang}&tl=${normalizedToLang}&dt=t&q=${encodeURIComponent(text)}`;
+prepare the next task , divided to sub-categories and checked on every sub-task before proceeding to next:
 
-    return fetch(requestUrl)
-        .then(res => res.json())
-        .then(data => {
-            const translated = data?.translatedText || data?.[0]?.[0]?.[0] || '';
-            if (translated) {
-                return translated;
-            }
-            throw new Error('No translated text returned');
-        });
-};
+create another tab spacially for AI subtitle procesing which add more punctuation to the default subtitles. in this case we will be able to rely solely on punctuation and on on-demand translation
+
+the AI will be based on openrouter free models. the user would be able to set any of the given options (drop-down+filterable list) and default to openrouter/auto:free 
+
+learn from the following implementation of AI setup:
+https://github.com/ofer-shaham/receipt-magic-sort
 ```
 
-```
-accomplish work
-```
 

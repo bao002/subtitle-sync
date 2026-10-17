@@ -82,6 +82,11 @@ export interface AppSettings {
   enableOnDemandTranslation: boolean;
   onDemandTranslationSentencesAhead: number; // Configured X=10 sentences ahead
 
+  // OpenRouter Free Models & AI Punctuation Settings
+  openRouterModel?: string;
+  openRouterApiKey?: string;
+  aiPunctuateAutoApply?: boolean;
+
   // Limits
   onDemandCount: number; // Limited to next X=4 subtitles (Step 4.4)
   maxRetries: number; // Max retry limit to X=2 (Step 2.3)
@@ -233,6 +238,9 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   playOrder: "video_then_tts",
   enableOnDemandTranslation: true,
   onDemandTranslationSentencesAhead: 10,
+  openRouterModel: "openrouter/auto:free",
+  openRouterApiKey: "",
+  aiPunctuateAutoApply: false,
   onDemandCount: 4,
   maxRetries: 2,
 };
@@ -438,7 +446,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.36",
+    version: "1.0.37",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -746,3 +754,68 @@ export function setOnDemandTranslationSentencesAhead(count: number): void {
     // Ignore storage errors
   }
 }
+
+export const OPENROUTER_MODEL_STORAGE_KEY = "yt_openrouter_model";
+export const OPENROUTER_API_KEY_STORAGE_KEY = "yt_openrouter_api_key";
+export const AI_PUNCTUATE_AUTO_APPLY_STORAGE_KEY = "yt_ai_punctuate_auto_apply";
+
+export function getOpenRouterModelSetting(): string {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return "openrouter/auto:free";
+  }
+  try {
+    const val = window.localStorage.getItem(OPENROUTER_MODEL_STORAGE_KEY);
+    return val && val.trim().length > 0 ? val.trim() : "openrouter/auto:free";
+  } catch {
+    return "openrouter/auto:free";
+  }
+}
+
+export function setOpenRouterModelSetting(model: string): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(
+      OPENROUTER_MODEL_STORAGE_KEY,
+      model.trim() || "openrouter/auto:free",
+    );
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function getOpenRouterApiKeySetting(): string {
+  if (typeof window === "undefined" || !window.localStorage) return "";
+  try {
+    return window.localStorage.getItem(OPENROUTER_API_KEY_STORAGE_KEY) || "";
+  } catch {
+    return "";
+  }
+}
+
+export function setOpenRouterApiKeySetting(key: string): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(OPENROUTER_API_KEY_STORAGE_KEY, key.trim());
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function getAiPunctuateAutoApplySetting(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) return false;
+  try {
+    return window.localStorage.getItem(AI_PUNCTUATE_AUTO_APPLY_STORAGE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setAiPunctuateAutoApplySetting(enabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(AI_PUNCTUATE_AUTO_APPLY_STORAGE_KEY, enabled ? "true" : "false");
+  } catch {
+    // Ignore storage errors
+  }
+}
+

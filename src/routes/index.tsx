@@ -26,6 +26,7 @@ import {
   RotateCcw,
   SlidersHorizontal,
   Smartphone,
+  Sparkles,
   Subtitles,
   Sun,
   Tv,
@@ -129,6 +130,7 @@ import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 import { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 import { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
 import { VideoPlayground, type DetectedSubtitleTrack } from "@/components/VideoPlayground";
+import { AiSubtitlePunctuationTab } from "@/components/AiSubtitlePunctuationTab";
 import { WebDemoUrlsInput } from "@/components/WebDemoUrlsInput";
 import { ParserTimingLab } from "@/components/ParserTimingLab";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
@@ -514,7 +516,9 @@ function Index() {
     }
     return DEMO_VIDEO;
   });
-  const [activeTopTab, setActiveTopTab] = useState<"viewer" | "playground">("viewer");
+  const [activeTopTab, setActiveTopTab] = useState<"viewer" | "playground" | "ai-punctuation">(
+    "viewer",
+  );
   const activeTopTabRef = useRef(activeTopTab);
   activeTopTabRef.current = activeTopTab;
 
@@ -2443,6 +2447,29 @@ function Index() {
     [rows],
   );
 
+  const handleApplyPunctuatedBaseTrack = useCallback(
+    (punctuatedJson3: Json3) => {
+      const activeBase = baseLanguage || "en";
+      startSubtitlesTransition(() => {
+        setTracks((prev) => ({
+          ...(prev || {}),
+          [activeBase]: punctuatedJson3,
+        }));
+        setShown((prev) => (prev.includes(activeBase) ? prev : [...prev, activeBase]));
+      });
+      if (videoId) {
+        saveCachedRawJson3(videoId, activeBase, JSON.stringify(punctuatedJson3));
+      }
+      notifySubtitleFetch(
+        "completed",
+        `Applied AI-punctuated subtitles to ${activeBase}!`,
+        activeBase,
+      );
+      setActiveTopTab("viewer");
+    },
+    [baseLanguage, videoId],
+  );
+
   const handleWebDemoLoadVideoAndSubtitles = useCallback(
     ({
       videoId: newVideoId,
@@ -2920,7 +2947,9 @@ function Index() {
       if (
         !addedCodes.has(l.code) &&
         shown.includes(l.code) &&
-        (targetLanguages.includes(l.code) || (tracks ? Boolean(tracks[l.code]) : true) || hasOnDemandCues(l.code)) &&
+        (targetLanguages.includes(l.code) ||
+          (tracks ? Boolean(tracks[l.code]) : true) ||
+          hasOnDemandCues(l.code)) &&
         Boolean((tracks?.[l.code] && hasTrackCues(tracks[l.code])) || hasOnDemandCues(l.code))
       ) {
         list.push(l);
@@ -3083,6 +3112,30 @@ function Index() {
               </span>
             )}
           </button>
+          <button
+            id="tab-ai-punctuation"
+            data-testid="tab-ai-punctuation"
+            role="tab"
+            aria-selected={activeTopTab === "ai-punctuation"}
+            type="button"
+            onClick={() => {
+              setActiveTopTab("ai-punctuation");
+              cancelSpeech();
+              try {
+                player.current?.pauseVideo?.();
+              } catch {
+                // ignore
+              }
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+              activeTopTab === "ai-punctuation"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>AI Punctuation</span>
+          </button>
         </div>
 
         <div
@@ -3179,6 +3232,14 @@ function Index() {
           onSwitchToViewerAtTime={handleSwitchToViewerAtTime}
           isAndroid={isAndroid}
           observedUrl={observedUrl}
+        />
+      ) : activeTopTab === "ai-punctuation" ? (
+        <AiSubtitlePunctuationTab
+          rawJson3={tracks && baseLanguage ? tracks[baseLanguage] : null}
+          baseLanguage={baseLanguage || "en"}
+          onApplyPunctuatedTrack={handleApplyPunctuatedBaseTrack}
+          onSwitchToViewer={() => setActiveTopTab("viewer")}
+          videoId={videoId}
         />
       ) : (
         <>
@@ -3673,7 +3734,8 @@ function Index() {
                           </span>
                         </label>
                         <p className="text-[11px] text-muted-foreground ml-6">
-                          Uses Google Translate API to pre-translate upcoming sentences ahead for selected target languages until authentic YouTube captions are fetched.
+                          Uses Google Translate API to pre-translate upcoming sentences ahead for
+                          selected target languages until authentic YouTube captions are fetched.
                         </p>
                         <div className="ml-6 flex items-center gap-2 pt-1 max-w-xs">
                           <label
