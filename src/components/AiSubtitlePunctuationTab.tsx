@@ -16,6 +16,7 @@ import {
   Wand2,
   Database,
   Trash2,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -58,6 +59,7 @@ export interface AiSubtitlePunctuationTabProps {
   videoId?: string;
   isSolelyPunctuationActive?: boolean;
   onRevertCriteria?: () => void;
+  onOpenShareModal?: () => void;
 }
 
 export function AiSubtitlePunctuationTab({
@@ -68,6 +70,7 @@ export function AiSubtitlePunctuationTab({
   videoId,
   isSolelyPunctuationActive = false,
   onRevertCriteria,
+  onOpenShareModal,
 }: AiSubtitlePunctuationTabProps) {
   // Model & API Key State
   const [selectedModel, setSelectedModel] = useState<string>(() => getOpenRouterModelSetting());
@@ -359,6 +362,20 @@ export function AiSubtitlePunctuationTab({
           </div>
 
           <div className="flex items-center gap-2">
+            {onOpenShareModal && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onOpenShareModal}
+                className="gap-1.5 text-xs"
+                data-testid="ai-tab-share-link-btn"
+                title="Share link with default subtitles, OpenRouter key, and target translation language"
+              >
+                <Share2 className="h-3.5 w-3.5 text-primary" />
+                <span>Share Setup</span>
+              </Button>
+            )}
             <Button
               type="button"
               variant="outline"

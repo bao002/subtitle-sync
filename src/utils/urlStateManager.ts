@@ -16,6 +16,22 @@ export interface UrlAppState {
   autoTTS?: boolean;
   captionsEnabled?: boolean;
   mode?: "compact" | "expanded";
+  // Rich sharable link parameters
+  subUrl?: string; // Default subtitles URL (timedtext URL or fixture link)
+  subData?: string; // Direct JSON3 / cues string payload
+  subLang?: string; // Language code of default subtitles (e.g. "en")
+  openRouterApiKey?: string; // OpenRouter API key for quick AI restoration
+}
+
+export interface CreateShareableLinkOptions {
+  videoId?: string;
+  targetLang?: string;
+  subUrl?: string;
+  subData?: string;
+  subLang?: string;
+  openRouterApiKey?: string;
+  time?: number;
+  baseUrl?: string;
 }
 
 /**
@@ -152,9 +168,45 @@ export function getAppStateFromUrl(): UrlAppState {
     }
 
     // Target Language
-    const lang = params.get("lang") || params.get("tlang") || params.get("target");
+    const lang =
+      params.get("target_lang") ||
+      params.get("target") ||
+      params.get("tlang") ||
+      params.get("lang");
     if (lang) {
       state.targetLang = lang.toLowerCase().trim();
+    }
+
+    // Default Subtitles URL
+    const subUrl =
+      params.get("sub_url") ||
+      params.get("subs_url") ||
+      params.get("caption_url") ||
+      params.get("observed_url");
+    if (subUrl) {
+      state.subUrl = subUrl.trim();
+    }
+
+    // Default Subtitles Data
+    const subData = params.get("sub_data") || params.get("subs_data");
+    if (subData) {
+      state.subData = subData.trim();
+    }
+
+    // Default Subtitles Language
+    const subLang = params.get("sub_lang") || params.get("base_lang");
+    if (subLang) {
+      state.subLang = subLang.toLowerCase().trim();
+    }
+
+    // OpenRouter API Key
+    const openRouterApiKey =
+      params.get("openrouter_key") ||
+      params.get("openrouter_api_key") ||
+      params.get("ai_key") ||
+      params.get("openrouterKey");
+    if (openRouterApiKey) {
+      state.openRouterApiKey = openRouterApiKey.trim();
     }
 
     // Auto-TTS
@@ -180,6 +232,43 @@ export function getAppStateFromUrl(): UrlAppState {
     console.warn("[UrlStateManager] Error parsing URL app state:", err);
     return {};
   }
+}
+
+/**
+ * Creates a rich shareable link containing videoId, default subtitles URL/data, OpenRouter API key, and target language
+ */
+export function createShareableLink(options: CreateShareableLinkOptions): string {
+  const origin =
+    options.baseUrl ||
+    (typeof window !== "undefined" && window.location
+      ? `${window.location.origin}${window.location.pathname}`
+      : "");
+  const params = new URLSearchParams();
+
+  if (options.videoId) {
+    params.set("v", options.videoId);
+  }
+  if (options.targetLang) {
+    params.set("target_lang", options.targetLang.toLowerCase().trim());
+  }
+  if (options.subUrl) {
+    params.set("sub_url", options.subUrl.trim());
+  }
+  if (options.subLang) {
+    params.set("sub_lang", options.subLang.toLowerCase().trim());
+  }
+  if (options.subData) {
+    params.set("sub_data", options.subData.trim());
+  }
+  if (options.openRouterApiKey && options.openRouterApiKey.trim()) {
+    params.set("openrouter_key", options.openRouterApiKey.trim());
+  }
+  if (typeof options.time === "number" && options.time > 0) {
+    params.set("t", Math.floor(options.time).toString());
+  }
+
+  const query = params.toString();
+  return query ? `${origin}?${query}` : origin;
 }
 
 let updateDebounceTimer: NodeJS.Timeout | null = null;

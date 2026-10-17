@@ -1,3 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-*No active subtasks in progress. All subtasks for Task 138 (Subtask 138.1, Subtask 138.2, Subtask 138.3) are fully completed, verified with automated tests, and migrated to `docs/done.md`.*
+## Active Subtask: Subtask 139.2 - State Hydration & ShareStateModal Component
+- **Description**: Build dedicated component `src/components/ShareStateModal.tsx` and integrate it into `src/routes/index.tsx`. Implement URL query hydration on load for `sub_url`, `sub_data`, `openrouter_key`, and `target_lang`, and provide a clean "Share" button in the top navigation/header opening `ShareStateModal` to copy the state link to clipboard.
+- **Status**: IN PROGRESS.
