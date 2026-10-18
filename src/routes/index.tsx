@@ -117,9 +117,16 @@ import {
   setUseAlternativeTts,
   getAlternativeTtsMode,
   setAlternativeTtsMode,
+  getAlternativeTtsEngine,
+  setAlternativeTtsEngine,
+  getLovableTtsProvider,
+  setLovableTtsProvider,
   playAlternativeTtsAudio,
   cancelAlternativeTtsAudio,
+  LOVABLE_TTS_OPENAPI_URL,
   type AlternativeTtsMode,
+  type AlternativeTtsEngine,
+  type LovableTtsProvider,
 } from "@/lib/alternative-tts";
 import {
   computeVideoInstances,
@@ -214,6 +221,7 @@ import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
 import { STORAGE_KEYS, APP_VERSION, ALL_RELEASES_URL, DEFAULT_VIDEO_ID } from "@/config/appConfig";
 import serverConfig from "@/config/server.json";
 import { JSON3_RAW_MAP } from "../../test/fixtures/L2Ryrr6txwA/jsonStrings";
+import { fetchAndCacheSubtitleUrl } from "@/utils/subtitleUrlDetector";
 
 const DEMO_VIDEO = "L2Ryrr6txwA";
 
@@ -585,6 +593,7 @@ function Index() {
   >({});
 
   const [videoInput, setVideoInput] = useState("");
+  const [manualSubtitlesUrl, setManualSubtitlesUrl] = useState("");
   const [captionStatus, setCaptionStatus] = useState("");
   const [observedUrl, setObservedUrl] = useState("");
   const [defaultCaptionsLoaded, setDefaultCaptionsLoaded] = useState(false);
@@ -845,6 +854,13 @@ function Index() {
   const [alternativeTtsModeState, setAlternativeTtsModeState] = useState<AlternativeTtsMode>(() =>
     typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only",
   );
+  const [alternativeTtsEngineState, setAlternativeTtsEngineState] = useState<AlternativeTtsEngine>(
+    () => (typeof window !== "undefined" ? getAlternativeTtsEngine() : "lovable"),
+  );
+  const [lovableTtsProviderState, setLovableTtsProviderState] = useState<LovableTtsProvider>(() =>
+    typeof window !== "undefined" ? getLovableTtsProvider() : "google",
+  );
+  const [isTestingAltTts, setIsTestingAltTts] = useState<boolean>(false);
   const [voiceSelections, setVoiceSelections] = useState<Record<string, string>>({});
   useEffect(() => {
     try {
@@ -3391,6 +3407,19 @@ function Index() {
             const newId = parsed || submittedUrl.trim();
             handleSelectLibraryVideo(newId, submittedUrl);
           }}
+          subtitlesUrl={manualSubtitlesUrl}
+          onSubtitlesUrlChange={(newSubUrl) => setManualSubtitlesUrl(newSubUrl)}
+          onSubmitSubtitlesUrl={async (submittedSubUrl) => {
+            const result = await fetchAndCacheSubtitleUrl(submittedSubUrl, videoId);
+            setObservedUrl(submittedSubUrl);
+            startSubtitlesTransition(() => {
+              setTracks((prev) => ({ ...prev, [result.lang]: result.json }));
+              setShown((prev) => (prev.includes(result.lang) ? prev : [...prev, result.lang]));
+            });
+            if (autoSpeakOnFetch) {
+              setSpoken((prev) => (prev.includes(result.lang) ? prev : [...prev, result.lang]));
+            }
+          }}
           observedUrl={observedUrl}
           rawTracks={tracks || {}}
           currentTime={playbackCurrentTime}
@@ -4301,9 +4330,9 @@ function Index() {
                             </div>
                           </div>
 
-                          {/* Alternative TTS Service (Google Translate TTS) */}
+                          {/* Alternative TTS Service (Lovable Speak API & Google Translate) */}
                           <div
-                            className="pt-2 border-t border-border/60 space-y-2"
+                            className="pt-2 border-t border-border/60 space-y-2.5"
                             data-testid="alternative-tts-settings-card"
                           >
                             <label className="flex items-center gap-2 cursor-pointer">
@@ -4320,59 +4349,183 @@ function Index() {
                                 className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                               />
                               <span className="font-medium text-xs text-foreground">
-                                Alternative TTS Service (Google Translate TTS)
+                                Alternative TTS Service (Lovable Speak API / Google Translate)
                               </span>
-                              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                                Off by default
+                              <span className="text-[10px] font-mono text-muted-foreground">
+                                · Off by default
                               </span>
                             </label>
+
                             <p className="text-[11px] text-muted-foreground ml-6">
-                              Endpoint:{" "}
-                              <code className="bg-muted px-1 py-0.5 rounded text-[10px]">
-                                https://translate.google.com/translate_tts?ie=UTF-8&amp;client=gtx&amp;tl=en&amp;q=Hello%20world
-                              </code>
+                              Modern alternative speech synthesis with multi-provider audio stream
+                              support and CORS enabled.
                             </p>
+
                             {useAlternativeTtsState && (
-                              <div className="ml-6 space-y-2 pt-1">
-                                <div className="flex flex-wrap items-center gap-4">
-                                  <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                                    <input
-                                      type="radio"
-                                      name="alternative-tts-mode"
-                                      data-testid="alternative-tts-mode-fallback"
-                                      value="fallback_only"
-                                      checked={alternativeTtsModeState === "fallback_only"}
-                                      onChange={() => {
-                                        setAlternativeTtsModeState("fallback_only");
-                                        setAlternativeTtsMode("fallback_only");
-                                      }}
-                                    />
-                                    Use as fallback when Web Speech fails / errors
-                                  </label>
-                                  <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                                    <input
-                                      type="radio"
-                                      name="alternative-tts-mode"
-                                      data-testid="alternative-tts-mode-always"
-                                      value="always"
-                                      checked={alternativeTtsModeState === "always"}
-                                      onChange={() => {
-                                        setAlternativeTtsModeState("always");
-                                        setAlternativeTtsMode("always");
-                                      }}
-                                    />
-                                    Use as alternative primary TTS engine
-                                  </label>
+                              <div className="ml-6 space-y-3 pt-1">
+                                {/* Engine Selector */}
+                                <div className="space-y-1.5">
+                                  <span className="text-[11px] font-medium text-foreground">
+                                    Alternative Engine:
+                                  </span>
+                                  <div className="flex flex-wrap items-center gap-4">
+                                    <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="alternative-tts-engine"
+                                        data-testid="alternative-tts-engine-lovable"
+                                        value="lovable"
+                                        checked={alternativeTtsEngineState === "lovable"}
+                                        onChange={() => {
+                                          setAlternativeTtsEngineState("lovable");
+                                          setAlternativeTtsEngine("lovable");
+                                        }}
+                                      />
+                                      Lovable Speak API (OpenAPI 3.1 · CORS Enabled)
+                                    </label>
+                                    <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="alternative-tts-engine"
+                                        data-testid="alternative-tts-engine-google"
+                                        value="google_translate"
+                                        checked={alternativeTtsEngineState === "google_translate"}
+                                        onChange={() => {
+                                          setAlternativeTtsEngineState("google_translate");
+                                          setAlternativeTtsEngine("google_translate");
+                                        }}
+                                      />
+                                      Google Translate TTS (Legacy)
+                                    </label>
+                                  </div>
                                 </div>
+
+                                {alternativeTtsEngineState === "lovable" ? (
+                                  <div className="rounded-md border border-border/70 bg-muted/30 p-2.5 space-y-2 text-xs">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-semibold text-foreground text-[11px]">
+                                          Lovable Speak API Endpoint
+                                        </span>
+                                        <span className="text-[10px] text-muted-foreground">
+                                          · Endpoint:{" "}
+                                          <code className="font-mono">
+                                            https://tts2.lovable.app/api/public/tts
+                                          </code>
+                                        </span>
+                                      </div>
+                                      <a
+                                        href={LOVABLE_TTS_OPENAPI_URL}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-mono"
+                                      >
+                                        <ExternalLink className="h-3 w-3" />
+                                        OpenAPI Spec (JSON)
+                                      </a>
+                                    </div>
+
+                                    {/* Lovable Provider Selection */}
+                                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                                      <span className="text-[11px] text-muted-foreground">
+                                        Provider:
+                                      </span>
+                                      {(["google", "lovable", "openrouter"] as const).map(
+                                        (prov) => (
+                                          <label
+                                            key={prov}
+                                            className={`flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer border text-[11px] ${
+                                              lovableTtsProviderState === prov
+                                                ? "border-primary bg-primary/10 text-primary font-medium"
+                                                : "border-border text-muted-foreground hover:text-foreground"
+                                            }`}
+                                          >
+                                            <input
+                                              type="radio"
+                                              name="lovable-tts-provider"
+                                              value={prov}
+                                              checked={lovableTtsProviderState === prov}
+                                              onChange={() => {
+                                                setLovableTtsProviderState(prov);
+                                                setLovableTtsProvider(prov);
+                                              }}
+                                              className="sr-only"
+                                            />
+                                            {prov}
+                                          </label>
+                                        ),
+                                      )}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="rounded-md border border-border/70 bg-muted/30 p-2.5 text-xs text-muted-foreground">
+                                    Endpoint:{" "}
+                                    <code className="font-mono text-[10px]">
+                                      https://translate.google.com/translate_tts?ie=UTF-8&amp;client=gtx&amp;tl=en&amp;q=Hello%20world
+                                    </code>
+                                  </div>
+                                )}
+
+                                {/* Mode Selection */}
+                                <div className="space-y-1.5">
+                                  <span className="text-[11px] font-medium text-foreground">
+                                    Execution Mode:
+                                  </span>
+                                  <div className="flex flex-wrap items-center gap-4">
+                                    <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="alternative-tts-mode"
+                                        data-testid="alternative-tts-mode-fallback"
+                                        value="fallback_only"
+                                        checked={alternativeTtsModeState === "fallback_only"}
+                                        onChange={() => {
+                                          setAlternativeTtsModeState("fallback_only");
+                                          setAlternativeTtsMode("fallback_only");
+                                        }}
+                                      />
+                                      Use as fallback when Web Speech fails / errors
+                                    </label>
+                                    <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                                      <input
+                                        type="radio"
+                                        name="alternative-tts-mode"
+                                        data-testid="alternative-tts-mode-always"
+                                        value="always"
+                                        checked={alternativeTtsModeState === "always"}
+                                        onChange={() => {
+                                          setAlternativeTtsModeState("always");
+                                          setAlternativeTtsMode("always");
+                                        }}
+                                      />
+                                      Use as alternative primary TTS engine
+                                    </label>
+                                  </div>
+                                </div>
+
+                                {/* Test Button */}
                                 <button
                                   type="button"
                                   data-testid="test-alternative-tts-btn"
-                                  onClick={() => {
-                                    void playAlternativeTtsAudio("Hello world", "en", 0.5);
+                                  disabled={isTestingAltTts}
+                                  onClick={async () => {
+                                    setIsTestingAltTts(true);
+                                    try {
+                                      await playAlternativeTtsAudio("Hello world", "en", 0.5);
+                                    } finally {
+                                      setIsTestingAltTts(false);
+                                    }
                                   }}
-                                  className="px-2 py-0.5 rounded border border-input bg-background hover:bg-muted text-xs font-mono"
+                                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono transition-colors disabled:opacity-50"
                                 >
-                                  ▶ Test Alternative TTS ("Hello world")
+                                  {isTestingAltTts ? (
+                                    <>
+                                      <RefreshCw className="h-3 w-3 animate-spin" />
+                                      Playing audio...
+                                    </>
+                                  ) : (
+                                    <>▶ Test Alternative TTS ("Hello world")</>
+                                  )}
                                 </button>
                               </div>
                             )}

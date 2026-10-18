@@ -22,6 +22,11 @@ import {
   SpeechVoiceLike,
 } from "@/utils/speechVoiceUtils";
 import { ALL_KNOWN_LANGUAGES } from "@/utils/appSettings";
+import {
+  playAlternativeTtsAudio,
+  getUseAlternativeTts,
+  getAlternativeTtsMode,
+} from "@/lib/alternative-tts";
 
 export interface BeginnerPreferencesTabProps {
   order: "video-first" | "tts-first";
@@ -76,13 +81,35 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   const filteredVoices = voices.length > 0 ? getLanguageVoices(voices, baseLanguage, true) : [];
 
   const handleTestVoice = () => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (typeof window === "undefined") return;
+    const text =
+      baseLanguage === "he"
+        ? "שלום, זו בדיקת קול עבור כתוביות"
+        : "Hello, this is a subtitle voice preview.";
+
+    const useAltTts = getUseAlternativeTts();
+    const altMode = getAlternativeTtsMode();
+
+    if (useAltTts && altMode === "always") {
+      setIsAuditioning(true);
+      playAlternativeTtsAudio(text, baseLanguage, ttsSpeed)
+        .catch(() => {})
+        .finally(() => setIsAuditioning(false));
+      return;
+    }
+
+    if (!("speechSynthesis" in window)) {
+      if (useAltTts) {
+        setIsAuditioning(true);
+        playAlternativeTtsAudio(text, baseLanguage, ttsSpeed)
+          .catch(() => {})
+          .finally(() => setIsAuditioning(false));
+      }
+      return;
+    }
+
     try {
       window.speechSynthesis.cancel();
-      const text =
-        baseLanguage === "he"
-          ? "שלום, זו בדיקת קול עבור כתוביות"
-          : "Hello, this is a subtitle voice preview.";
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = ttsSpeed;
       if (ttsVoice) {
@@ -94,11 +121,25 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         }
       }
       utterance.onend = () => setIsAuditioning(false);
-      utterance.onerror = () => setIsAuditioning(false);
+      utterance.onerror = () => {
+        if (useAltTts) {
+          playAlternativeTtsAudio(text, baseLanguage, ttsSpeed)
+            .catch(() => {})
+            .finally(() => setIsAuditioning(false));
+        } else {
+          setIsAuditioning(false);
+        }
+      };
       setIsAuditioning(true);
       window.speechSynthesis.speak(utterance);
     } catch {
-      setIsAuditioning(false);
+      if (useAltTts) {
+        playAlternativeTtsAudio(text, baseLanguage, ttsSpeed)
+          .catch(() => {})
+          .finally(() => setIsAuditioning(false));
+      } else {
+        setIsAuditioning(false);
+      }
     }
   };
 

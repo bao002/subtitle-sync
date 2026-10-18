@@ -139,6 +139,7 @@ This document serves as the master catalog and directory of all repository docum
 | `src/utils/backgroundMediaManager.ts`      | Background Media & MediaSession Coordinator | Synchronizes playback state, lockscreen MediaSession controls, and Android BackgroundAudioService notifications.                |
 | `src/utils/onDemandTranslationManager.ts`  | On-Demand Lookahead Translation Manager     | Pre-translates upcoming sentences ahead (configured X=10) via Google Translate API on demand until YouTube subtitles arrive.    |
 | `src/utils/favoriteLanguagesRules.ts`      | Video Sharing Favorite Rules Manager        | Enforces favorite language placement, top language selection, localStorage persistence, and multi-selection upon video sharing.  |
+| `src/utils/subtitleUrlDetector.ts`         | Subtitle URL & Language Detector            | Identifies subtitle language (`tlang` priority -> `lang` fallback), fetches with web demo fallback, and validates JSON3 payloads. |
 
 ## Configuration & Data Fixtures (`src/config/`)
 
@@ -323,6 +324,4 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-no-floating-notifications-tab.ts`               | No Floating Notifications & Dedicated Tab Test Suite           | Asserts version 1.0.48 parity across all 5 targets, complete removal of root floating overlays, tab-notifications button integration, and non-floating indicator embedding.                                                                                      |
 | `scripts/verify-video-sharing-favorite-rules.ts`                | Video Sharing Favorite Rules Test Suite                        | Asserts version 1.0.49 parity across all 5 targets, default/detected language at bottom, top language tts-play checkbox selection, localStorage persistence, and multi-selection support.                                                                           |
 | `scripts/verify-hotfix-maximum-update-depth.ts`                 | Maximum Update Depth Exceeded Hotfix Verification Suite        | Asserts version 1.0.50 parity across all 5 targets, baseLanguage effect ref guards, state equality checks on favoriteLanguages/spoken/shown/order, and zero infinite loop re-renders.                                                                            |
-
-
-
+| `scripts/verify-e2e-and-download-links.ts`                      | E2E Test & Download Links Verification Suite (Task 148)        | Asserts version 1.0.51 parity across all 5 targets, active Playwright E2E targets in package.json & web.yml, valid YAML across all workflows, guaranteed download files in dist/, and client-side resilient download handlers in report HTMLs.                  |

@@ -1,5 +1,130 @@
 # Done tasks
 
+## Task 150: Alternative TTS Service with Lovable Speak API Integration (Version 1.0.54)
+
+### Summary:
+- **Lovable Speak API Integration (`src/lib/alternative-tts.ts`)**:
+  - Integrated Lovable Speak API adhering to the OpenAPI 3.1.0 specification (`https://tts2.lovable.app/api/public/openapi.json`) with primary endpoint `https://tts2.lovable.app/api/public/tts`.
+  - Added full CORS compatibility (`access-control-allow-origin: *`) and binary streaming (`format=binary` returning `audio/mpeg` or `audio/wav`).
+  - Added URL generation with parameter serialization: `text` (clamped to OpenAPI 5000 chars limit), normalized `lang` codes, `provider` (`"google"`, `"lovable"`, `"openrouter"`), `voice`, and `format`.
+  - Provided dual engine selection: `"lovable"` (Lovable Speak API) and `"google_translate"` (Google Translate TTS).
+  - Implemented automatic fallback chain in `playAlternativeTtsAudio`: attempts Lovable Speak API; if network or audio error arises, falls back gracefully to Google Translate TTS or resolves cleanly.
+- **Settings UI Enhancement (`src/routes/index.tsx`)**:
+  - Updated the Alternative TTS Service card in Advanced Settings with engine radio selectors ("Lovable Speak API (OpenAPI 3.1 · CORS Enabled)" vs "Google Translate TTS (Legacy)").
+  - Displayed live endpoint details and direct link to the OpenAPI Spec (`https://tts2.lovable.app/api/public/openapi.json`).
+  - Added Lovable provider selector badges (`google`, `lovable`, `openrouter`).
+  - Added interactive "▶ Test Alternative TTS ('Hello world')" button with active playback loading spinner.
+- **Beginner Mode Coordination (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`)**:
+  - Updated `handleTestVoice` in Beginner Mode to route audition playback through `playAlternativeTtsAudio` when alternative TTS is active or when native `speechSynthesis` lacks voice assets.
+- **Dedicated Automated Test Suite (`scripts/verify-lovable-alternative-tts.ts`, `package.json`)**:
+  - Added dedicated test `npm run test:alternative-tts` validating:
+    1. OpenAPI specification constants and endpoints.
+    2. Language code normalization.
+    3. Lovable Speak API parameter serialization (`text`, `lang`, `format=binary`).
+    4. Custom parameters (`provider`, `voice`, `target_lang`).
+    5. Engine dispatch between Lovable and Google Translate.
+    6. Text truncation up to 5000 character limit.
+    7. Storage helper resilience in headless/server environments.
+- **Version Bump (1.0.54 / 10054)**:
+  - Updated application semantic version to `1.0.54` and versionCode to `10054` across all 4 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Verification**:
+  - `npm run test:alternative-tts` passed.
+  - `npm run test:beginner-subtitles-input` passed.
+  - `npm run test:beginner-mode` passed.
+  - `scripts/verify-agents-version-rule.ts` passed.
+  - `scripts/verify-agents-last-prompt-rule.ts` passed.
+  - `compile_applet` passed.
+  - `lint_applet` passed with 0 errors.
+
+## Hotfix: Fix missing useMemo import in BeginnerVideoTab.tsx (Version 1.0.53)
+
+### Summary:
+- **Root Cause Analysis**:
+  - `ReferenceError: useMemo is not defined` occurred at `BeginnerVideoTab (src/components/beginner/tabs/BeginnerVideoTab.tsx:16:27)`.
+  - `useMemo` was referenced at line 73 (`const detectedLanguage = useMemo(...)`) to compute the real-time detected subtitle language from the input URL, but only `{ useState }` had been imported from `"react"`.
+- **Targeted Resolution**:
+  - Updated React import in `src/components/beginner/tabs/BeginnerVideoTab.tsx` to `import React, { useState, useMemo } from "react";`.
+  - Added dedicated assertion to `scripts/verify-beginner-subtitles-input.ts` dynamically verifying that `BeginnerVideoTab` imports cleanly as a valid React component without undefined hook references.
+  - Bumped version to `1.0.53` (code `10053`) across `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Test Command**:
+  - `npm run test:beginner-subtitles-input && npm run test:beginner-mode && npx tsx scripts/verify-agents-version-rule.ts`
+- **Verification Outcome**:
+  - All automated test assertions passed.
+  - `compile_applet` succeeded.
+  - `lint_applet` passed with 0 errors.
+
+## Task 149: Beginner Mode Subtitles Input, Android Interception & Language Identification (Version 1.0.52)
+
+### Summary:
+
+- **Language Identification Prioritizing `tlang` with `lang` Fallback (`src/utils/subtitleUrlDetector.ts`)**:
+  - Implemented `identifySubtitleLanguage(url)` to extract subtitle languages strictly following the specification: `tlang` (machine translation parameter) is checked first; if missing or empty, it falls back to `lang` (uploaded caption track parameter).
+  - Handles full URLs, relative URLs, and raw query strings, supporting URL decoding and fallback regex parsing.
+  - Implemented `extractVideoIdFromSubtitleUrl(url)` to identify the associated video ID (`v` parameter).
+  - Implemented `fetchAndCacheSubtitleUrl(url, videoId)` with pre-cache validation gate (`isValidJsonSubtitleResponse`), offline caching in `saveCachedRawJson3`, and seamless local fixture fallback for web demo browser environments subject to CORS restrictions.
+- **Beginner Mode Web Demo Subtitle URL Input Form (`src/components/beginner/tabs/BeginnerVideoTab.tsx`)**:
+  - Added dedicated Subtitles URL input form directly on the first tab ("Step 1: YouTube Video & Subtitle Discovery"), positioned immediately under the Video URL input.
+  - Features real-time language detection badges as the user types/pastes, indicating detected language and parameter source (e.g., `Language: HE (via tlang)` or `Language: EN (via lang)`).
+  - Includes paste button, "Load Subtitles" trigger button with loading states, and responsive success/error feedback alerts.
+- **Base Track Auto-Selection & State Coordination (`src/components/beginner/BeginnerFlowContainer.tsx`, `src/routes/index.tsx`)**:
+  - Updated base track selection rule: whenever a new subtitle track is detected, loaded, or intercepted, if no base language is currently selected, it automatically selects that track as the active base subtitle track (`setSelectedBaseLang(first)` and persists to `beginnerSelectedBaseLang`).
+  - Seamlessly unlocks downstream beginner tabs (Preferences, Parsing, Player) upon loading subtitles.
+  - Integrated with Android native timedtext caption interception in `src/routes/index.tsx`, ensuring live player interceptions auto-select the base track in beginner mode.
+- **Version Bump (1.0.52 / 10052)**:
+  - Updated application semantic version to `1.0.52` and versionCode to `10052` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Automated Verification**:
+  - Authored dedicated test suite `scripts/verify-beginner-subtitles-input.ts` (`npm run test:beginner-subtitles-input`) validating:
+    1. Language identification prioritizing `tlang` over `lang`.
+    2. Fallback to `lang` when `tlang` is missing.
+    3. Handling of relative query strings and parameter variations.
+    4. Rejection of URLs lacking valid language parameters.
+    5. Video ID extraction from timedtext query strings.
+    6. Subtitle fetch, JSON3 validation, and caching.
+    7. Base track auto-selection when unselected and preservation of existing base selection.
+  - Verified `npm run test:beginner-mode`, `npm run test:tokens-economy`, `npm run test:e2e-download-links`, `compile_applet`, and `lint_applet` (all 100% passing with 0 errors).
+
+
+
+### Summary:
+
+- **E2E Test Workflow & Target Alignment (`.github/workflows/web.yml`, `package.json`)**:
+  - Aligned the active E2E test commands in `package.json` (`test:e2e`, `test:e2e:web`, `test:e2e:emulation`, `test:e2e:all`) and `.github/workflows/web.yml` to target the active, authentic Playwright spec `e2e/emulation.spec.ts`.
+  - Verified 4/4 passing Playwright test execution covering Android intent sharing (`ACTION_VIEW` and `ACTION_SEND`), video ID switching, and viewport responsiveness.
+- **Workflow YAML Syntax Fix & Artifact Preservation (`.github/workflows/deploy-demo.yml`)**:
+  - Diagnosed and resolved the YAML parsing error in `.github/workflows/deploy-demo.yml` caused by unindented here-doc lines (`--------- beginning of main`) terminating the YAML block scalar.
+  - Replaced unindented here-doc with properly indented, robust `printf "%s\n"` commands, restoring 100% valid YAML across all `.github/workflows/*.yml`.
+  - Added artifact extraction and staging for `android-emulator-logcat.txt`, `android-emulator-video.mp4`, and `android-emulator-device-info.json` so GitHub Pages deployments always preserve and publish authentic verification assets.
+- **Guaranteed Build-Time Download Artifacts (`scripts/normalize-web-assets.mjs`)**:
+  - Enhanced `scripts/normalize-web-assets.mjs` so that `npm run build` deterministically creates and verifies `dist/screenshots/android-emulator-logcat.txt`, `dist/screenshots/android-emulator-device-info.json`, `dist/screenshots/android-emulator-video.mp4`, and `dist/android/index.html`.
+  - Integrated automatic MP4 screencast synthesis from `android-emulator-screenshot.png` via `ffmpeg`, ensuring non-empty video files are present in `dist/` while strictly keeping the `main` git branch clean.
+- **Client-Side Resilient Download Handlers (`public/android-emulator-report.html`, `public/android/index.html`)**:
+  - Eliminated the race condition where asynchronous `fetch` inside download link clicks allowed browsers to trigger immediate 404 navigations before `e.preventDefault()` could run.
+  - Implemented synchronous `e.preventDefault()` click interception on all logcat and screencast download buttons.
+  - Added in-memory `Blob` and `URL.createObjectURL` client-side generators for logcat downloads, guaranteeing downloads never fail even if static files are not yet deployed.
+  - Added multi-path candidate URL probing (`./screenshots/`, `../screenshots/`, `./`, `../`) and in-page notifications for screencast downloads, completely avoiding `window.alert` or `window.open`.
+- **Application Version Synchronization (1.0.51 / 10051)**:
+  - Synchronized semantic version `1.0.51` and versionCode `10051` across all 5 version targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Automated Verification**:
+  - Authored dedicated test suite `scripts/verify-e2e-and-download-links.ts` (`npm run test:e2e-download-links`) asserting:
+    1. Active E2E test targets in `package.json` and `web.yml`.
+    2. Valid YAML across all 8 GitHub Actions workflows (`deploy-demo.yml`, `emulation.yml`, `web.yml`, etc.).
+    3. Resilient download handlers, synchronous `preventDefault()`, and fallback blob generators in both `public/android-emulator-report.html` and `public/android/index.html`.
+    4. Deterministic existence and non-empty size of `android-emulator-logcat.txt`, `android-emulator-device-info.json`, and `android-emulator-video.mp4` in `dist/screenshots/`.
+    5. Version parity across all 5 targets (`1.0.51` / `10051`).
+  - Registered `test:e2e-download-links` in `package.json` and cataloged in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:e2e-download-links`: PASSED (100% verified, 5/5 sections).
+  - `npm run test:e2e-report-links`: PASSED (100% verified).
+  - `npm run test:workflows`: PASSED (100% verified).
+  - `npm run test:quarantine-minimal-share`: PASSED (100% verified).
+  - `npm run test:screencast-availability`: PASSED (100% verified).
+  - `npm run test:self-verification`: PASSED (100% verified).
+  - `npm run test:hygiene`: PASSED (100% verified).
+  - `npm run test:gitignore-entries`: PASSED (100% verified).
+  - `npm run test:apk-version`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
 ## Task 147: Hotfix: Maximum Update Depth Exceeded in React useEffect Loop (Version 1.0.50)
 
 ### Summary:

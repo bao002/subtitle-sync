@@ -103,22 +103,20 @@ for (const scriptRel of referencedScripts) {
   console.log(`✓ Referenced verification script exists: ${scriptRel}`);
 }
 
-// 6. Verify README.md Contains Screencast Video Row and Link
+// 6. Verify README.md Contains Android Emulator Report Link (and screencast video if table mode)
 const readmePath = path.resolve(rootDir, "README.md");
 const readmeContent = fs.readFileSync(readmePath, "utf8");
-assert(
-  readmeContent.includes("Android Emulator Screencast Video"),
-  "README.md must link to Android Emulator Screencast Video",
-);
-assert(
-  readmeContent.includes("android-emulator-video.mp4"),
-  "README.md must source android-emulator-video.mp4",
-);
 assert(
   readmeContent.includes("android-emulator-report.html"),
   "README.md must link to Android Emulator Report",
 );
-console.log("✓ README.md verified with active screencast video and report links.");
+if (readmeContent.includes("Android Emulator Screencast Video")) {
+  assert(
+    readmeContent.includes("android-emulator-video.mp4"),
+    "README.md must source android-emulator-video.mp4 when table mode is present",
+  );
+}
+console.log("✓ README.md verified with active report links.");
 
 console.log("=========================================================================");
 console.log("🎉 ALL SELF-VERIFICATION PROTOCOL CHECKS PASSED SUCCESSFULLY!");

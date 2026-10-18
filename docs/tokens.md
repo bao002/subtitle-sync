@@ -4,11 +4,16 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Fix Broken E2E Test Workflow & Download Links Non-Existence (Task 148, Version 1.0.51)
+## Active Prompt: Alternative TTS Service with Lovable Speak API (Task 150, Version 1.0.54)
 
-- **Issue**: E2E test command references quarantined `e2e/web.spec.ts` causing build failures, and E2E report download links (`android-emulator-video.mp4`, `android-emulator-logcat.txt`) return 404 because `deploy-demo.yml` lacked `GH_TOKEN` for `gh run download` and had no fallback logcat generation.
-- **Resolution**: Align `web.yml` and `package.json` E2E test targets to active `e2e/emulation.spec.ts`, provide `GH_TOKEN` in `deploy-demo.yml` for complete artifact extraction, generate guaranteed fallback logcat/video in distribution, and add client-side dynamic fallback handlers in report HTMLs so downloads never 404.
-- **Version**: Bump to `1.0.51` (versionCode `10051`).
+- **Feature**: Integrate Lovable Speak API (`https://tts2.lovable.app/api/public/openapi.json`) as configurable alternative TTS engine with OpenAPI compliance, engine selection, CORS support, test playback, and fallback handling.
+  - Sub-task 150.1: Extend `src/lib/alternative-tts.ts` with Lovable Speak API support, engine selection, parameter serialization, and audio playback.
+  - Sub-task 150.2: Author dedicated automated test suite `scripts/verify-lovable-alternative-tts.ts` and add `test:alternative-tts` to `package.json`.
+  - Sub-task 150.3: Update UI controls in `src/routes/index.tsx` (and `BeginnerPreferencesTab.tsx`) with engine selector, OpenAPI link, and test preview button.
+  - Sub-task 150.4: Bump app version to 1.0.54 (10054), verify compilation, lint, commit, push, and migrate to `docs/done.md`.
+- **Version**: Bump to `1.0.54` (versionCode `10054`).
+
+
 
 ---
 

@@ -22,12 +22,16 @@ import {
   saveCachedRawJson3,
   getAllCachedTargetLanguages,
 } from "@/utils/subtitleCache";
+import { fetchAndCacheSubtitleUrl } from "@/utils/subtitleUrlDetector";
 
 export interface BeginnerFlowContainerProps {
   url: string;
   videoId: string;
   onUrlChange: (newUrl: string) => void;
   onSubmitUrl: (urlToLoad: string) => void;
+  subtitlesUrl?: string;
+  onSubtitlesUrlChange?: (newUrl: string) => void;
+  onSubmitSubtitlesUrl?: (subtitlesUrl: string) => Promise<void> | void;
   observedUrl: string | null;
   rawTracks: Record<string, Json3>;
   currentTime: number;
@@ -44,6 +48,9 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   videoId,
   onUrlChange,
   onSubmitUrl,
+  subtitlesUrl,
+  onSubtitlesUrlChange,
+  onSubmitSubtitlesUrl,
   observedUrl,
   rawTracks,
   currentTime,
@@ -130,16 +137,29 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
     return list;
   }, [rawTracks, selectedBaseLang]);
 
-  // Auto-select base language if only 1 track is detected and none is selected
+  // Auto-select base language if at least 1 track is detected and none is selected
   useEffect(() => {
-    if (!selectedBaseLang && observedTracks.length === 1) {
-      setSelectedBaseLang(observedTracks[0].lang);
-      updateSettings({ beginnerSelectedBaseLang: observedTracks[0].lang });
+    if (!selectedBaseLang && observedTracks.length >= 1) {
+      const first = observedTracks[0].lang;
+      setSelectedBaseLang(first);
+      updateSettings({ beginnerSelectedBaseLang: first });
     }
   }, [observedTracks, selectedBaseLang]);
 
   // Determine if downstream tabs are unlocked
   const isUnlocked = Boolean(selectedBaseLang);
+
+  const handleInternalSubmitSubtitlesUrl = async (subUrl: string) => {
+    if (onSubmitSubtitlesUrl) {
+      await onSubmitSubtitlesUrl(subUrl);
+    } else {
+      const result = await fetchAndCacheSubtitleUrl(subUrl, videoId);
+      if (!selectedBaseLang) {
+        setSelectedBaseLang(result.lang);
+        updateSettings({ beginnerSelectedBaseLang: result.lang });
+      }
+    }
+  };
 
   const handleSelectBaseLang = (lang: string) => {
     setSelectedBaseLang(lang);
@@ -228,6 +248,9 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             url={url}
             onUrlChange={onUrlChange}
             onSubmitUrl={onSubmitUrl}
+            subtitlesUrl={subtitlesUrl}
+            onSubtitlesUrlChange={onSubtitlesUrlChange}
+            onSubmitSubtitlesUrl={handleInternalSubmitSubtitlesUrl}
             videoId={videoId}
             onOpenLibrary={() => setIsLibraryOpen(true)}
             observedUrl={observedUrl}
