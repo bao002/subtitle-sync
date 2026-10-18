@@ -1,8 +1,4 @@
-## Active Subtask: Subtask 146.1 - Video Link Sharing Favorite Language Rules Implementation
-- **Task**: Task 146 - Video Link Sharing Favorite Language Rules (Version 1.0.48)
+## Active Subtask: Subtask 147.1 - Resolve Recursive Re-render Cycle in src/routes/index.tsx
+- **Task**: Task 147 - Hotfix: Maximum Update Depth Exceeded (Version 1.0.50)
 - **Status**: [IN PROGRESS]
-- **Target**: In `src/routes/index.tsx`, when a video link is shared or received with the app:
-  a. Add the default/detected language at the bottom of the favorite language list.
-  b. Remove any tts-play checkbox selection - and checkbox-select only the language at the top.
-  c. Store the order in localStorage.
-  d. Allow multi-selection of tts-play / favorite languages.
+- **Target**: Guard `baseLanguage` and favorite language rules synchronization in `src/routes/index.tsx` so setState is only invoked when `baseLanguage` or favorite list actually changes value. Eliminate re-triggering loops between `favoriteLanguages`, `targetLanguages`, `spoken`, and `shown`. Bump version to 1.0.50 / 10050.

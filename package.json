@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.48",
+  "version": "1.0.50",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -155,6 +155,7 @@
     "test:sharable-state-link": "tsx scripts/verify-sharable-state-link.ts",
     "test:exclude-default-subtitles-tts": "tsx scripts/verify-exclude-default-subtitles-tts.ts",
     "test:numbered-chapters-protocol": "tsx scripts/verify-numbered-chapters-protocol.ts",
+    "test:video-sharing-favorite-rules": "tsx scripts/verify-video-sharing-favorite-rules.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

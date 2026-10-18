@@ -138,6 +138,7 @@ This document serves as the master catalog and directory of all repository docum
 | `src/utils/winnerPromotionTracker.ts`      | Winner Promotion Strategy Tracker           | Persists and aggregates winning fetch attempt strategies across all past videos in localStorage.                                |
 | `src/utils/backgroundMediaManager.ts`      | Background Media & MediaSession Coordinator | Synchronizes playback state, lockscreen MediaSession controls, and Android BackgroundAudioService notifications.                |
 | `src/utils/onDemandTranslationManager.ts`  | On-Demand Lookahead Translation Manager     | Pre-translates upcoming sentences ahead (configured X=10) via Google Translate API on demand until YouTube subtitles arrive.    |
+| `src/utils/favoriteLanguagesRules.ts`      | Video Sharing Favorite Rules Manager        | Enforces favorite language placement, top language selection, localStorage persistence, and multi-selection upon video sharing.  |
 
 ## Configuration & Data Fixtures (`src/config/`)
 
@@ -320,5 +321,6 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-continuous-background-playback.ts`             | Permanent Continuous Background Playback Verification Suite    | Asserts version 1.0.47 parity across all 5 targets, BackgroundPlayableWebView window visibility override, auto-start BackgroundAudioService, and proactive AudioManager Audio Focus acquisition.                                                               |
 | `src/components/NotificationsStatusTab.tsx`                     | Dedicated Notifications & Fetch Status Tab Component           | Dedicated non-floating tab view replacing intrusive floating overlays with full fetch indications, retry countdowns, manual pacing, and alerts.                                                                                                                |
 | `scripts/verify-no-floating-notifications-tab.ts`               | No Floating Notifications & Dedicated Tab Test Suite           | Asserts version 1.0.48 parity across all 5 targets, complete removal of root floating overlays, tab-notifications button integration, and non-floating indicator embedding.                                                                                      |
+| `scripts/verify-video-sharing-favorite-rules.ts`                | Video Sharing Favorite Rules Test Suite                        | Asserts version 1.0.49 parity across all 5 targets, default/detected language at bottom, top language tts-play checkbox selection, localStorage persistence, and multi-selection support.                                                                           |
 
 

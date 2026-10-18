@@ -87,6 +87,7 @@ import {
   getExcludeDefaultSubtitlesFromTTSSetting,
   setExcludeDefaultSubtitlesFromTTSSetting,
 } from "@/utils/appSettings";
+import { applyVideoSharingFavoriteLanguageRules } from "@/utils/favoriteLanguagesRules";
 import { getAppStateFromUrl } from "@/utils/urlStateManager";
 import { ShareStateModal } from "@/components/ShareStateModal";
 import {
@@ -697,6 +698,15 @@ function Index() {
   };
   const getInitialFavoriteLanguages = (): string[] => {
     if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const sharedTarget =
+        params.get("v") ||
+        params.get("url") ||
+        (window as Window & { __pendingSharedLink?: string }).__pendingSharedLink;
+      if (sharedTarget) {
+        const rules = applyVideoSharingFavoriteLanguageRules(sharedTarget, { persist: true });
+        return rules.orderedFavorites;
+      }
       const favs = getFavoriteLanguages();
       if (favs && favs.length > 0) return favs;
       const isAndroidEnv =
@@ -742,6 +752,17 @@ function Index() {
     return Array.from(new Set([...favs, ...targets]));
   });
   const [spoken, setSpoken] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const sharedTarget =
+        params.get("v") ||
+        params.get("url") ||
+        (window as Window & { __pendingSharedLink?: string }).__pendingSharedLink;
+      if (sharedTarget) {
+        const rules = applyVideoSharingFavoriteLanguageRules(sharedTarget, { persist: false });
+        return rules.spokenLanguages;
+      }
+    }
     const favs = getInitialFavoriteLanguages();
     const targets = getInitialTargetLanguages();
     const all = Array.from(new Set([...favs, ...targets]));
@@ -881,11 +902,48 @@ function Index() {
     return "";
   }, [observedUrl, tracks]);
 
+  const lastAppliedBaseLanguageRef = useRef<string>("");
+  const favoriteLanguagesRef = useRef(favoriteLanguages);
+  favoriteLanguagesRef.current = favoriteLanguages;
+
   useEffect(() => {
-    if (baseLanguage && excludeDefaultSubtitlesFromTTS) {
-      setSpoken((prev) => prev.filter((lang) => lang !== baseLanguage));
+    if (baseLanguage && lastAppliedBaseLanguageRef.current !== baseLanguage) {
+      lastAppliedBaseLanguageRef.current = baseLanguage;
+      const rules = applyVideoSharingFavoriteLanguageRules(baseLanguage, {
+        currentFavorites: favoriteLanguagesRef.current,
+        isAndroid,
+        persist: true,
+      });
+      setFavoriteLanguagesState((prev) =>
+        prev.length === rules.orderedFavorites.length &&
+        prev.every((c, i) => c === rules.orderedFavorites[i])
+          ? prev
+          : rules.orderedFavorites,
+      );
+      setTargetLanguages((prev) =>
+        prev.length === rules.orderedFavorites.length &&
+        prev.every((c, i) => c === rules.orderedFavorites[i])
+          ? prev
+          : rules.orderedFavorites,
+      );
+      setLanguageOrder((prev) => {
+        const remaining = prev.filter((c) => !rules.orderedFavorites.includes(c));
+        const next = [...rules.orderedFavorites, ...remaining];
+        return prev.length === next.length && prev.every((c, i) => c === next[i]) ? prev : next;
+      });
+      setShown((prev) => {
+        const next = Array.from(new Set([...prev, ...rules.orderedFavorites]));
+        return prev.length === next.length && prev.every((c, i) => c === next[i]) ? prev : next;
+      });
+      setSpoken((prev) =>
+        prev.length === rules.spokenLanguages.length &&
+        prev.every((c, i) => c === rules.spokenLanguages[i])
+          ? prev
+          : rules.spokenLanguages,
+      );
+      rules.orderedFavorites.forEach((l) => processedDefaultFavsRef.current.add(l));
     }
-  }, [baseLanguage, excludeDefaultSubtitlesFromTTS]);
+  }, [baseLanguage, isAndroid]);
 
   const tracksRef = useRef<Record<string, Json3> | null>(tracks);
   tracksRef.current = tracks;
@@ -1651,6 +1709,20 @@ function Index() {
     setDetectedPlaygroundTracks({});
     setVideoId(newId);
     setVideoInput(newId);
+    const rulesResult = applyVideoSharingFavoriteLanguageRules(customUrl || newId, {
+      currentFavorites: favoriteLanguages,
+      isAndroid,
+      persist: true,
+    });
+    setFavoriteLanguagesState(rulesResult.orderedFavorites);
+    setTargetLanguages(rulesResult.orderedFavorites);
+    setLanguageOrder((prev) => {
+      const remaining = prev.filter((c) => !rulesResult.orderedFavorites.includes(c));
+      return [...rulesResult.orderedFavorites, ...remaining];
+    });
+    setShown((prev) => Array.from(new Set([...prev, ...rulesResult.orderedFavorites])));
+    setSpoken(rulesResult.spokenLanguages);
+    rulesResult.orderedFavorites.forEach((l) => processedDefaultFavsRef.current.add(l));
     if (typeof window !== "undefined") {
       const currentSearch = new URLSearchParams(window.location.search);
       if (currentSearch.get("v") !== newId) {
@@ -1670,6 +1742,7 @@ function Index() {
     const isVideoChanged = previousVideoIdRef.current !== videoId;
     if (isVideoChanged) {
       previousVideoIdRef.current = videoId;
+      lastAppliedBaseLanguageRef.current = "";
       // Immediately and cleanly reset all state belonging to the previous video
       cancelSpeech();
       startSubtitlesTransition(() => {
@@ -1869,6 +1942,20 @@ function Index() {
           id,
           originalUrl: link.startsWith("http") ? link : `https://www.youtube.com/watch?v=${id}`,
         });
+        const rulesResult = applyVideoSharingFavoriteLanguageRules(link, {
+          currentFavorites: favoriteLanguages,
+          isAndroid,
+          persist: true,
+        });
+        setFavoriteLanguagesState(rulesResult.orderedFavorites);
+        setTargetLanguages(rulesResult.orderedFavorites);
+        setLanguageOrder((prev) => {
+          const remaining = prev.filter((c) => !rulesResult.orderedFavorites.includes(c));
+          return [...rulesResult.orderedFavorites, ...remaining];
+        });
+        setShown((prev) => Array.from(new Set([...prev, ...rulesResult.orderedFavorites])));
+        setSpoken(rulesResult.spokenLanguages);
+        rulesResult.orderedFavorites.forEach((l) => processedDefaultFavsRef.current.add(l));
         setVideoId((prevId) => {
           if (id !== prevId) {
             setTracks(null);
@@ -1960,6 +2047,7 @@ function Index() {
     return () => {
       delete window.onNativeSharedLinkReceived;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle Android Native Shell and browser history back navigation
@@ -2180,10 +2268,11 @@ function Index() {
     new Set([...getInitialFavoriteLanguages(), ...getInitialTargetLanguages()]),
   );
   useEffect(() => {
-    const missingInShown = targetLanguages.filter((l) => !shown.includes(l));
-    if (missingInShown.length > 0) {
-      setShown((prev) => Array.from(new Set([...prev, ...missingInShown])));
-    }
+    setShown((prevShown) => {
+      const missing = targetLanguages.filter((l) => !prevShown.includes(l));
+      if (missing.length === 0) return prevShown;
+      return Array.from(new Set([...prevShown, ...missing]));
+    });
     const allFavs = Array.from(new Set([...favoriteLanguages, ...targetLanguages]));
     const newFavsToDefault = allFavs.filter((lang) => !processedDefaultFavsRef.current.has(lang));
     if (newFavsToDefault.length > 0) {
@@ -2191,7 +2280,7 @@ function Index() {
       setShown((prev) => Array.from(new Set([...prev, ...newFavsToDefault])));
       setSpoken((prev) => Array.from(new Set([...prev, ...newFavsToDefault])));
     }
-  }, [targetLanguages, favoriteLanguages, shown]);
+  }, [targetLanguages, favoriteLanguages]);
 
   useEffect(() => {
     if (themeWasSelectedRef.current) return;
@@ -2531,7 +2620,11 @@ function Index() {
     setLanguageOrder((prev) => {
       const targetSet = new Set([...targetLanguages, ...favoriteLanguages]);
       const remaining = prev.filter((c) => !targetSet.has(c));
-      return [...Array.from(targetSet), ...remaining];
+      const next = [...Array.from(targetSet), ...remaining];
+      if (prev.length === next.length && prev.every((c, i) => c === next[i])) {
+        return prev;
+      }
+      return next;
     });
   }, [targetLanguages, favoriteLanguages]);
 
@@ -3637,9 +3730,24 @@ function Index() {
                       if (id) {
                         if (id !== videoId) {
                           setTracks(null);
-                          setShown([]);
-                          setTargetLanguages([]);
-                          setSpoken([]);
+                          const rulesResult = applyVideoSharingFavoriteLanguageRules(videoInput, {
+                            currentFavorites: favoriteLanguages,
+                            isAndroid,
+                            persist: true,
+                          });
+                          setFavoriteLanguagesState(rulesResult.orderedFavorites);
+                          setTargetLanguages(rulesResult.orderedFavorites);
+                          setLanguageOrder((prev) => {
+                            const remaining = prev.filter(
+                              (c) => !rulesResult.orderedFavorites.includes(c),
+                            );
+                            return [...rulesResult.orderedFavorites, ...remaining];
+                          });
+                          setShown(Array.from(new Set([...rulesResult.orderedFavorites])));
+                          setSpoken(rulesResult.spokenLanguages);
+                          rulesResult.orderedFavorites.forEach((l) =>
+                            processedDefaultFavsRef.current.add(l),
+                          );
                           setObservedUrl("");
                           setDefaultCaptionsLoaded(false);
                           setActive(-1);
@@ -3723,6 +3831,29 @@ function Index() {
                                 if (id) {
                                   if (id !== videoId) {
                                     setTracks(null);
+                                    const rulesResult = applyVideoSharingFavoriteLanguageRules(
+                                      videoInput,
+                                      {
+                                        currentFavorites: favoriteLanguages,
+                                        isAndroid,
+                                        persist: true,
+                                      },
+                                    );
+                                    setFavoriteLanguagesState(rulesResult.orderedFavorites);
+                                    setTargetLanguages(rulesResult.orderedFavorites);
+                                    setLanguageOrder((prev) => {
+                                      const remaining = prev.filter(
+                                        (c) => !rulesResult.orderedFavorites.includes(c),
+                                      );
+                                      return [...rulesResult.orderedFavorites, ...remaining];
+                                    });
+                                    setShown(
+                                      Array.from(new Set([...rulesResult.orderedFavorites])),
+                                    );
+                                    setSpoken(rulesResult.spokenLanguages);
+                                    rulesResult.orderedFavorites.forEach((l) =>
+                                      processedDefaultFavsRef.current.add(l),
+                                    );
                                     setObservedUrl("");
                                     setDefaultCaptionsLoaded(false);
                                     setActive(-1);

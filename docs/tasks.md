@@ -2,18 +2,12 @@
 
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
-## Task 146: Video Link Sharing Favorite Language Rules (Version 1.0.48) - Chapter 2
+## Task 147: Hotfix: Maximum Update Depth Exceeded in React useEffect Loop (Version 1.0.50)
 
 ### Objective:
-Implement and enforce the 4 required rules upon sharing a video link with the app:
-a. Add the default/detected language at the bottom of the favorite language list.
-b. Remove any tts-play checkbox selection and select only the language at the top.
-c. Store the updated order in localStorage.
-d. Allow multi-selection.
+Resolve the React "Maximum update depth exceeded" infinite render loop error in `src/routes/index.tsx` by eliminating recursive setState triggers in `baseLanguage` and favorite languages synchronization effects.
 
 ### Subtasks:
-- [ ] **Subtask 146.1**: Update shared video handler (`onNewIntent` / `onNativeSharedLinkReceived` / query params / video link submit) in `src/routes/index.tsx` to apply the favorite language rules: add detected language at bottom, reset `spoken` TTS checkbox to only top language, persist order to localStorage, and allow multi-selection.
-- [ ] **Subtask 146.2**: Author dedicated verification script `scripts/verify-video-sharing-favorite-rules.ts`, register in `package.json` (`test:video-sharing-favorite-rules`) and `docs/files.md`.
-- [ ] **Subtask 146.3**: Run automated test, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate Task 146 to `docs/done.md`.
-
-
+- [ ] **Subtask 147.1**: Guard `baseLanguage` favorite language rules synchronization in `src/routes/index.tsx` with ref tracking / value equality checks to prevent re-entrant setState calls, and bump app version to 1.0.50 / 10050.
+- [ ] **Subtask 147.2**: Author dedicated verification script `scripts/verify-hotfix-maximum-update-depth.ts`, register in `package.json` (`test:hotfix-max-update-depth`) and catalog in `docs/files.md`.
+- [ ] **Subtask 147.3**: Run verification test suites, compile (`compile_applet`), lint (`lint_applet`), and migrate Task 147 to `docs/done.md`.

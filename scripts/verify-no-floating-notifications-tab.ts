@@ -98,24 +98,26 @@ assert(
 );
 console.log("✅ PASS: Child indication components support clean relative non-floating embedding.");
 
-// 6. Test 5: Verify version 1.0.48 / 10048 parity
-console.log("Test 5: Version parity check for version 1.0.48...");
+// 6. Test 5: Verify version parity across all 5 targets
+console.log("Test 5: Version parity check across targets...");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-assert.strictEqual(pkg.version, "1.0.48", "package.json must be 1.0.48");
+const currentVersion = pkg.version;
+const parts = currentVersion.split(".").map((n: string) => parseInt(n, 10) || 0);
+const expectedCode = (parts[0] || 1) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0);
 
 const gradleContent = fs.readFileSync(gradlePath, "utf8");
-assert(gradleContent.includes("versionCode = 10048"), "build.gradle.kts must have versionCode 10048");
-assert(gradleContent.includes('versionName = "1.0.48"'), "build.gradle.kts must have versionName 1.0.48");
+assert(gradleContent.includes(`versionCode = ${expectedCode}`), `build.gradle.kts must have versionCode ${expectedCode}`);
+assert(gradleContent.includes(`versionName = "${currentVersion}"`), `build.gradle.kts must have versionName ${currentVersion}`);
 
 const appConfigContent = fs.readFileSync(appConfigPath, "utf8");
-assert(appConfigContent.includes('export const APP_VERSION = "1.0.48"'), "appConfig.ts must export 1.0.48");
+assert(appConfigContent.includes(`export const APP_VERSION = "${currentVersion}"`), `appConfig.ts must export ${currentVersion}`);
 
 const apkUpdaterContent = fs.readFileSync(apkUpdaterPath, "utf8");
-assert(apkUpdaterContent.includes('export const CURRENT_APK_VERSION = "v1.0.48"'), "apkUpdater.ts must export v1.0.48");
+assert(apkUpdaterContent.includes(`export const CURRENT_APK_VERSION = "v${currentVersion}"`), `apkUpdater.ts must export v${currentVersion}`);
 
 const appSettingsContent = fs.readFileSync(appSettingsPath, "utf8");
-assert(appSettingsContent.includes('version: "1.0.48"'), "appSettings.ts snapshot must have 1.0.48");
-console.log("✅ PASS: Version 1.0.48 and versionCode 10048 verified across all 5 targets.");
+assert(appSettingsContent.includes(`version: "${currentVersion}"`), `appSettings.ts snapshot must have ${currentVersion}`);
+console.log(`✅ PASS: Version ${currentVersion} and versionCode ${expectedCode} verified across all 5 targets.`);
 
 console.log("==================================================================");
 console.log("🎉 ALL NO-FLOATING NOTIFICATIONS TAB VERIFICATIONS PASSED (5/5)");
