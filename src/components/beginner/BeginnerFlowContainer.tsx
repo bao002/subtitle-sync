@@ -69,11 +69,18 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   const [subtitlesRatio, setSubtitlesRatio] = useState<number>(
     settings.beginnerSubtitlesRatio ?? 1.0,
   );
-  const [favoriteLanguages, setFavoriteLanguages] = useState<string[]>(
-    settings.beginnerFavoriteLangs && settings.beginnerFavoriteLangs.length > 0
-      ? settings.beginnerFavoriteLangs
-      : ["he", "en", "es", "fr", "ru", "ar"],
-  );
+  const [favoriteLanguages, setFavoriteLanguages] = useState<string[]>(() => {
+    const rawFavs =
+      settings.beginnerFavoriteLangs && settings.beginnerFavoriteLangs.length > 0
+        ? settings.beginnerFavoriteLangs
+        : ["he", "en", "es", "fr", "ru", "ar"];
+    const base = settings.beginnerSelectedBaseLang || "";
+    const exclude = settings.excludeDefaultSubtitlesFromTTS ?? true;
+    if (exclude && base) {
+      return rawFavs.filter((l) => l !== base);
+    }
+    return rawFavs;
+  });
   const [splitByPunctuation, setSplitByPunctuation] = useState<boolean>(
     settings.beginnerSplitByPunctuation ?? true,
   );
@@ -136,7 +143,17 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
 
   const handleSelectBaseLang = (lang: string) => {
     setSelectedBaseLang(lang);
-    updateSettings({ beginnerSelectedBaseLang: lang });
+    const exclude = settings.excludeDefaultSubtitlesFromTTS ?? true;
+    if (exclude) {
+      const nextFavs = favoriteLanguages.filter((l) => l !== lang);
+      setFavoriteLanguages(nextFavs);
+      updateSettings({
+        beginnerSelectedBaseLang: lang,
+        beginnerFavoriteLangs: nextFavs,
+      });
+    } else {
+      updateSettings({ beginnerSelectedBaseLang: lang });
+    }
   };
 
   const handleTabChange = (newTab: BeginnerTabId) => {

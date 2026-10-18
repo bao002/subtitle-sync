@@ -1,5 +1,63 @@
 # Done tasks
 
+## Task 143: Numbered Chapters as Serial Tasks Protocol in AGENTS.md (Version 1.0.46)
+
+### Summary:
+
+- **Numbered Chapters as Serial Tasks Protocol (`AGENTS.md`)**:
+  - Established a mandatory rule under Work tracking in `AGENTS.md`: every time a user prompt consists of numbered chapters, sections, or items (e.g., `1. ...`, `2. ...`, `3. ...`), the agent must treat each numbered chapter as a separate, distinct task in `docs/tasks.md`.
+  - Mandated dividing each numbered chapter into granular, verifiable sub-tasks staged in `docs/tasks.md` and `current-sub-task.md`.
+  - Mandated working on numbered chapters strictly serially: executing, testing, compiling, linting, committing, and migrating each chapter to `docs/done.md` before proceeding to subsequent numbered chapters.
+- **Verbatim Raw Prompt Preservation**:
+  - Updated `## Last raw prompt` in `AGENTS.md` preserving the exact user prompt.
+- **Version 1.0.46 Bump & Parity**:
+  - Aligned semantic version `1.0.46` and versionCode `10046` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-numbered-chapters-protocol.ts` (`npm run test:numbered-chapters-protocol`) asserting:
+    1. `AGENTS.md` mandates the numbered chapters protocol.
+    2. Sub-task division and serial execution constraints are codified.
+    3. `## Last raw prompt` records verbatim prompt.
+    4. Registered in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:numbered-chapters-protocol`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npm run test:exclude-default-subtitles-tts`: PASSED (100% verified).
+  - `npm run test:beginner-mode`: PASSED (100% verified).
+  - `npm run test:md`: PASSED (100% verified).
+  - `npm run test:hygiene`: PASSED (100% verified).
+  - `npm run test:no-duplicate-md`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (clean, 0 errors).
+
+## Task 142: By Default Exclude Default Subtitles from TTS-Play (Version 1.0.45)
+
+### Summary:
+
+- **Exclude Default Subtitles from TTS Configuration (`src/utils/appSettings.ts`)**:
+  - Added `excludeDefaultSubtitlesFromTTS: boolean` to `AppSettings` interface with default value `true`.
+  - Exported persistent getter `getExcludeDefaultSubtitlesFromTTSSetting()` and setter `setExcludeDefaultSubtitlesFromTTSSetting(enabled: boolean)` backed by `localStorage` (`yt_exclude_default_subs_tts`) and memory fallback.
+- **Default Subtitles Exclusion in Synchronized Viewer (`src/routes/index.tsx`)**:
+  - Initialized `spoken` state to filter out default/base language by default when `getExcludeDefaultSubtitlesFromTTSSetting()` is enabled.
+  - Added `useEffect` listening to `baseLanguage`: when the video's default subtitle track is discovered or loaded, automatically exclude it from `spoken` TTS-play.
+  - Added accessible settings toggle (`data-testid="exclude-default-subtitles-tts-toggle"`) inside the Settings Modal under playback options.
+- **Default Subtitles Exclusion in Beginner Flow (`src/components/beginner/BeginnerFlowContainer.tsx`)**:
+  - Updated `favoriteLanguages` initialization and `handleSelectBaseLang` so that selecting a base subtitle track excludes it from downstream target/favorite TTS languages when `excludeDefaultSubtitlesFromTTS` is true.
+- **Dev Server Restoration**:
+  - Executed dev server health check and fresh process initialization via `restart_dev_server`, verifying HTTP 200 responses on port 3000 and nginx port 8080.
+- **Version 1.0.45 Parity**:
+  - Synchronized version `1.0.45` / `10045` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Automated Verification**:
+  - Authored dedicated test suite `scripts/verify-exclude-default-subtitles-tts.ts` (`npm run test:exclude-default-subtitles-tts`) validating default value, getter/setter persistence, viewer component reactivity, beginner flow filtering, and file inventory registration.
+- **Verification Commands & Outcomes**:
+  - `npm run test:exclude-default-subtitles-tts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npm run test:beginner-mode`: PASSED (100% verified).
+  - `npm run test:md`: PASSED (100% verified).
+  - `npm run test:hygiene`: PASSED (100% verified).
+  - `npm run test:no-duplicate-md`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (clean, 0 errors).
+
 ## Task 141: Alternative Design & Tab-Based Flow for Beginner-Mode on Android (Version 1.0.44)
 
 ### Summary:

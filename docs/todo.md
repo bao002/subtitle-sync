@@ -1,6 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 142.3 - Exclude Default Subtitles from Spoken TTS by Default
-- **Task**: Task 142 - By Default Exclude Default Subtitles from TTS-Play
+## Active Subtask: Subtask 144.1 - Bump Application Version to 1.0.47
+- **Task**: Task 144 - Permanent Android Continuous Background Audio & Video Playback (Version 1.0.47)
 - **Status**: [IN PROGRESS]
-- **Target**: Exclude default subtitle track from spoken TTS across `src/routes/index.tsx` and `BeginnerFlowContainer.tsx`.
+- **Target**: Synchronize semantic version `1.0.47` and versionCode `10047` across version targets.

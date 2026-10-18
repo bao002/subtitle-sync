@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.45",
+  "version": "1.0.47",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -151,6 +151,8 @@
     "test:tts-play-and-table-page-flipping": "tsx scripts/verify-tts-play-and-table-page-flipping.ts",
     "test:video-switch-table-reset-and-ai-cache": "tsx scripts/verify-video-switch-table-reset-and-ai-cache.ts",
     "test:sharable-state-link": "tsx scripts/verify-sharable-state-link.ts",
+    "test:exclude-default-subtitles-tts": "tsx scripts/verify-exclude-default-subtitles-tts.ts",
+    "test:numbered-chapters-protocol": "tsx scripts/verify-numbered-chapters-protocol.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
