@@ -167,8 +167,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-e2e test seems to be broken. the download links always not exists. can u solve it ?
+allow to use this for tts alternative:
+https://tts2.lovable.app/api/public/openapi.json
 ```
+
 
 
 

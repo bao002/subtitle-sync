@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Tv,
   Subtitles,
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { extractYouTubeId } from "@/utils/youtube";
+import { identifySubtitleLanguage } from "@/utils/subtitleUrlDetector";
 
 export interface ObservedSubtitleTrack {
   lang: string;
@@ -28,6 +29,9 @@ export interface BeginnerVideoTabProps {
   url: string;
   onUrlChange: (url: string) => void;
   onSubmitUrl: (url: string) => void;
+  subtitlesUrl?: string;
+  onSubtitlesUrlChange?: (url: string) => void;
+  onSubmitSubtitlesUrl?: (url: string) => Promise<void> | void;
   videoId: string;
   onOpenLibrary: () => void;
   observedUrl: string | null;
@@ -44,6 +48,9 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   url,
   onUrlChange,
   onSubmitUrl,
+  subtitlesUrl = "",
+  onSubtitlesUrlChange,
+  onSubmitSubtitlesUrl,
   videoId,
   onOpenLibrary,
   observedUrl,
@@ -56,6 +63,16 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   playerSlot,
 }) => {
   const [inputVal, setInputVal] = useState(url);
+  const [subInputVal, setSubInputVal] = useState(subtitlesUrl);
+  const [isSubtitlesLoading, setIsSubtitlesLoading] = useState(false);
+  const [subtitlesFeedback, setSubtitlesFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const detectedLanguage = useMemo(() => {
+    return identifySubtitleLanguage(subInputVal);
+  }, [subInputVal]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +89,46 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
           setInputVal(text.trim());
           onUrlChange(text.trim());
           onSubmitUrl(text.trim());
+        }
+      }
+    } catch {
+      // ignore clipboard permission error
+    }
+  };
+
+  const handleSubtitlesSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subInputVal.trim()) return;
+    setIsSubtitlesLoading(true);
+    setSubtitlesFeedback(null);
+    try {
+      if (onSubmitSubtitlesUrl) {
+        await onSubmitSubtitlesUrl(subInputVal.trim());
+      }
+      const identified = identifySubtitleLanguage(subInputVal.trim());
+      setSubtitlesFeedback({
+        type: "success",
+        message: identified
+          ? `✓ Loaded subtitles for language [${identified.lang.toUpperCase()}] via ${identified.source} parameter and cached.`
+          : "✓ Subtitles loaded and cached successfully.",
+      });
+    } catch (err: unknown) {
+      setSubtitlesFeedback({
+        type: "error",
+        message: err instanceof Error ? err.message : "Failed to load subtitles from URL.",
+      });
+    } finally {
+      setIsSubtitlesLoading(false);
+    }
+  };
+
+  const handlePasteSubtitles = async () => {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text && text.trim()) {
+          setSubInputVal(text.trim());
+          if (onSubtitlesUrlChange) onSubtitlesUrlChange(text.trim());
         }
       }
     } catch {
@@ -151,6 +208,79 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             Load Video
           </Button>
         </form>
+
+        {/* Subtitles URL Input Form (Web Demo / Direct URL Input) */}
+        <div className="pt-2 border-t border-slate-800/80 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <label className="text-slate-300 font-medium flex items-center gap-1.5">
+              <Subtitles className="w-3.5 h-3.5 text-sky-400" />
+              <span>Subtitles URL (TimedText)</span>
+            </label>
+            {detectedLanguage ? (
+              <Badge className="bg-sky-950/80 text-sky-300 border-sky-700/60 text-[10px] py-0">
+                Language: {detectedLanguage.lang.toUpperCase()} (via {detectedLanguage.source})
+              </Badge>
+            ) : (
+              <span className="text-[10px] text-slate-500">
+                Identifies via <code className="text-sky-300">tlang</code> (or <code className="text-sky-300">lang</code> fallback)
+              </span>
+            )}
+          </div>
+
+          <form onSubmit={handleSubtitlesSubmit} className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                value={subInputVal}
+                onChange={(e) => {
+                  setSubInputVal(e.target.value);
+                  if (onSubtitlesUrlChange) onSubtitlesUrlChange(e.target.value);
+                }}
+                placeholder="Paste timedtext subtitles URL (e.g., https://.../timedtext?v=...&tlang=he or &lang=en)"
+                className="h-9 text-xs bg-slate-950 border-slate-800 text-slate-100 placeholder:text-slate-500 pr-16 focus-visible:ring-sky-500"
+                data-testid="beginner-subtitles-url-input"
+              />
+              <button
+                type="button"
+                onClick={handlePasteSubtitles}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-medium text-slate-400 hover:text-slate-200 bg-slate-800/80 hover:bg-slate-700/80 rounded transition-colors"
+              >
+                Paste
+              </button>
+            </div>
+
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSubtitlesLoading || !subInputVal.trim()}
+              className="h-9 px-3 text-xs bg-sky-600 hover:bg-sky-500 text-white font-medium shrink-0 disabled:opacity-50"
+              data-testid="btn-load-subtitles"
+            >
+              <Subtitles className="w-3 h-3 mr-1" />
+              {isSubtitlesLoading ? "Loading..." : "Load Subtitles"}
+            </Button>
+          </form>
+
+          {subtitlesFeedback && (
+            <div
+              className={`text-[11px] px-2.5 py-1.5 rounded-lg border flex items-center justify-between ${
+                subtitlesFeedback.type === "success"
+                  ? "bg-emerald-950/60 border-emerald-800/80 text-emerald-300"
+                  : "bg-rose-950/60 border-rose-800/80 text-rose-300"
+              }`}
+              data-testid="subtitles-url-feedback"
+            >
+              <span>{subtitlesFeedback.message}</span>
+              <button
+                type="button"
+                onClick={() => setSubtitlesFeedback(null)}
+                className="text-slate-400 hover:text-slate-200 text-xs ml-2"
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Video Player Display */}
         {playerSlot && (

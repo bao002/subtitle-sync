@@ -1,0 +1,6 @@
+{
+  "summary": "Implementation plan for detecting and inputting subtitles with language identification (`tlang` priority with `lang` fallback) in Beginner Mode for both Web Demo and Android Native. Covers manual subtitle URL input on the first tab, immediate auto-fetch and parsing, caching with validation, auto-selecting base track if unselected, and dedicated test verification.",
+  "updatedAt": "2026-10-18T21:10:31.650012322Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

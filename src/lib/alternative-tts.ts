@@ -1,38 +1,129 @@
 /**
  * Alternative Text-to-Speech (TTS) Service
- * Uses Google Translate TTS audio endpoint as a fallback and configurable alternative.
- * Endpoint: https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl={lang}&q={text}
+ * Supports:
+ * 1. Lovable Speak API (OpenAPI 3.1.0: https://tts2.lovable.app/api/public/openapi.json)
+ *    Endpoint: https://tts2.lovable.app/api/public/tts
+ *    CORS enabled (access-control-allow-origin: *)
+ *    Provides multi-provider synthesis: "google", "lovable", "openrouter"
+ * 2. Google Translate TTS (Legacy fallback)
+ *    Endpoint: https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl={lang}&q={text}
  */
+
+export const LOVABLE_TTS_BASE_URL = "https://tts2.lovable.app";
+export const LOVABLE_TTS_ENDPOINT = "https://tts2.lovable.app/api/public/tts";
+export const LOVABLE_TTS_OPENAPI_URL = "https://tts2.lovable.app/api/public/openapi.json";
+export const GOOGLE_TRANSLATE_TTS_ENDPOINT = "https://translate.google.com/translate_tts";
 
 const STORAGE_KEY_USE_ALTERNATIVE_TTS = "yt_use_alternative_tts_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_MODE = "yt_alternative_tts_mode_v1";
+const STORAGE_KEY_ALTERNATIVE_TTS_ENGINE = "yt_alternative_tts_engine_v1";
+const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER = "yt_alternative_tts_lovable_provider_v1";
+const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE = "yt_alternative_tts_lovable_voice_v1";
 
 export type AlternativeTtsMode = "fallback_only" | "always";
+export type AlternativeTtsEngine = "lovable" | "google_translate";
+export type LovableTtsProvider = "google" | "lovable" | "openrouter";
+
+export interface LovableTtsOptions {
+  provider?: LovableTtsProvider;
+  voice?: string;
+  format?: "binary" | "json";
+  target_lang?: string;
+  apiKey?: string;
+}
+
+/**
+ * Normalizes language tag for TTS endpoints.
+ */
+export function normalizeLanguageCode(lang: string): string {
+  let tl = (lang || "en").trim();
+  if (tl.toLowerCase().startsWith("zh-cn") || tl.toLowerCase() === "zh_cn") {
+    return "zh-CN";
+  }
+  if (tl.toLowerCase().startsWith("zh-tw") || tl.toLowerCase() === "zh_tw") {
+    return "zh-TW";
+  }
+  tl = tl.split(/[-_]/)[0].toLowerCase();
+  if (tl === "iw") return "he";
+  if (tl === "in") return "id";
+  if (tl === "ji") return "yi";
+  return tl;
+}
+
+/**
+ * Builds the Lovable Speak API URL according to the OpenAPI specification.
+ * Endpoint: https://tts2.lovable.app/api/public/tts
+ * Query parameters:
+ * - text (required, string <= 5000 chars)
+ * - lang (required, string e.g. "en")
+ * - provider (optional, enum: "google", "lovable", "openrouter")
+ * - voice (optional, string)
+ * - format (optional, "binary" | "json", defaults to "binary")
+ * - target_lang (optional, string)
+ * - api_key (optional, string)
+ */
+export function buildLovableTtsUrl(
+  text: string,
+  lang: string,
+  options?: LovableTtsOptions,
+): string {
+  if (!text) return "";
+  const normalizedText = text.slice(0, 5000);
+  const normalizedLang = normalizeLanguageCode(lang);
+
+  const url = new URL(LOVABLE_TTS_ENDPOINT);
+  url.searchParams.set("text", normalizedText);
+  url.searchParams.set("lang", normalizedLang);
+
+  const provider = options?.provider || getLovableTtsProvider();
+  if (provider && provider !== "google") {
+    url.searchParams.set("provider", provider);
+  }
+
+  const voice = options?.voice || getLovableTtsVoice();
+  if (voice && voice.trim()) {
+    url.searchParams.set("voice", voice.trim());
+  }
+
+  if (options?.target_lang) {
+    url.searchParams.set("target_lang", options.target_lang);
+  }
+
+  if (options?.apiKey) {
+    url.searchParams.set("api_key", options.apiKey);
+  }
+
+  const format = options?.format || "binary";
+  url.searchParams.set("format", format);
+
+  return url.toString();
+}
 
 /**
  * Builds the Google Translate TTS audio URL.
  */
 export function buildGoogleTranslateTtsUrl(text: string, lang: string): string {
   if (!text) return "";
-  // Normalize language code to 2-character prefix or dialect tag expected by translate_tts
-  let tl = (lang || "en").trim();
-  if (tl.toLowerCase().startsWith("zh-cn") || tl.toLowerCase() === "zh_cn") {
-    tl = "zh-CN";
-  } else if (tl.toLowerCase().startsWith("zh-tw") || tl.toLowerCase() === "zh_tw") {
-    tl = "zh-TW";
-  } else {
-    tl = tl.split(/[-_]/)[0].toLowerCase();
-  }
-
-  // Handle ISO-639 aliases for Google Translate
-  if (tl === "iw") tl = "he";
-  if (tl === "in") tl = "id";
-  if (tl === "ji") tl = "yi";
-
+  const tl = normalizeLanguageCode(lang);
   const encodedText = encodeURIComponent(text);
   const encodedTl = encodeURIComponent(tl);
 
-  return `https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl=${encodedTl}&q=${encodedText}`;
+  return `${GOOGLE_TRANSLATE_TTS_ENDPOINT}?ie=UTF-8&client=gtx&tl=${encodedTl}&q=${encodedText}`;
+}
+
+/**
+ * Builds the active alternative TTS URL based on the selected engine.
+ */
+export function buildAlternativeTtsUrl(
+  text: string,
+  lang: string,
+  engine?: AlternativeTtsEngine,
+): string {
+  const activeEngine = engine || getAlternativeTtsEngine();
+  if (activeEngine === "lovable") {
+    return buildLovableTtsUrl(text, lang);
+  }
+  return buildGoogleTranslateTtsUrl(text, lang);
 }
 
 /**
@@ -88,6 +179,86 @@ export function setAlternativeTtsMode(mode: AlternativeTtsMode): void {
   }
 }
 
+/**
+ * Retrieves the configured Alternative TTS Engine: "lovable" (default) or "google_translate".
+ */
+export function getAlternativeTtsEngine(): AlternativeTtsEngine {
+  if (typeof window === "undefined") return "lovable";
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_ENGINE);
+    if (stored === "google_translate" || stored === "lovable") {
+      return stored;
+    }
+  } catch {
+    // ignore
+  }
+  return "lovable";
+}
+
+/**
+ * Persists the Alternative TTS Engine choice.
+ */
+export function setAlternativeTtsEngine(engine: AlternativeTtsEngine): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_ENGINE, engine);
+  } catch (err) {
+    console.warn("Failed to persist alternative TTS engine:", err);
+  }
+}
+
+/**
+ * Retrieves the configured Lovable TTS Provider: "google" | "lovable" | "openrouter".
+ */
+export function getLovableTtsProvider(): LovableTtsProvider {
+  if (typeof window === "undefined") return "google";
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER);
+    if (stored === "google" || stored === "lovable" || stored === "openrouter") {
+      return stored;
+    }
+  } catch {
+    // ignore
+  }
+  return "google";
+}
+
+/**
+ * Persists the Lovable TTS Provider choice.
+ */
+export function setLovableTtsProvider(provider: LovableTtsProvider): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER, provider);
+  } catch (err) {
+    console.warn("Failed to persist Lovable TTS provider:", err);
+  }
+}
+
+/**
+ * Retrieves the configured Lovable voice name.
+ */
+export function getLovableTtsVoice(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE) || "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Persists the Lovable voice name.
+ */
+export function setLovableTtsVoice(voice: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE, voice.trim());
+  } catch (err) {
+    console.warn("Failed to persist Lovable TTS voice:", err);
+  }
+}
+
 let activeAlternativeAudio: HTMLAudioElement | null = null;
 let activeAudioReject: ((reason?: unknown) => void) | null = null;
 
@@ -112,13 +283,14 @@ export function cancelAlternativeTtsAudio(): void {
 }
 
 /**
- * Plays an audio stream from the Google Translate TTS service.
+ * Plays an audio stream from the configured alternative TTS service (Lovable Speak API or Google Translate).
  */
 export function playAlternativeTtsAudio(
   text: string,
   lang: string,
   rate: number = 0.5,
   onProgress?: (percent: number) => void,
+  engineOverride?: AlternativeTtsEngine,
 ): Promise<void> {
   return new Promise((resolve) => {
     cancelAlternativeTtsAudio();
@@ -127,7 +299,8 @@ export function playAlternativeTtsAudio(
       return resolve();
     }
 
-    const url = buildGoogleTranslateTtsUrl(text, lang);
+    const engine = engineOverride || getAlternativeTtsEngine();
+    const url = buildAlternativeTtsUrl(text, lang, engine);
     if (!url) return resolve();
 
     const audio = new Audio();
@@ -153,7 +326,19 @@ export function playAlternativeTtsAudio(
     };
 
     const onError = (e: unknown) => {
-      console.warn("Alternative TTS audio error, resolving cleanly:", e);
+      console.warn(`Alternative TTS (${engine}) audio error, attempting fallback:`, e);
+      // If Lovable API had an issue and we didn't override, try Google Translate as secondary fallback
+      if (engine === "lovable" && !engineOverride) {
+        const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
+        if (fallbackUrl && activeAlternativeAudio === audio) {
+          audio.src = fallbackUrl;
+          const retryPromise = audio.play();
+          if (retryPromise && typeof retryPromise.catch === "function") {
+            retryPromise.catch(() => cleanup());
+          }
+          return;
+        }
+      }
       cleanup();
     };
 
@@ -180,6 +365,18 @@ export function playAlternativeTtsAudio(
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch((err) => {
         console.warn("Alternative TTS playback rejected:", err);
+        // Retry with Google Translate if Lovable failed
+        if (engine === "lovable" && !engineOverride) {
+          const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
+          if (fallbackUrl && activeAlternativeAudio === audio) {
+            audio.src = fallbackUrl;
+            const retryPromise = audio.play();
+            if (retryPromise && typeof retryPromise.catch === "function") {
+              retryPromise.catch(() => cleanup());
+            }
+            return;
+          }
+        }
         cleanup();
       });
     }

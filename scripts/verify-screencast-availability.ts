@@ -519,7 +519,7 @@ console.log("===================================================================
 console.log(`✓ Repository URL:                ${expectedRepoBaseUrl}`);
 console.log(`✓ Actions Dashboard URL:         ${expectedActionsBaseUrl}`);
 console.log(`✓ Actions Run for Last Commit:   ${commitActionsUrl}`);
-console.log(`✓ Android Emulator Workflow:     ${emulationWorkflowUrl}`);
+console.log(`✓ Android Emulator Workflow:     ${emulationRunUrl}`);
 console.log(`✓ Android E2E Execution Target:  API 34 Google APIs (macOS AVD)`);
 console.log(`✓ Screencast Tooling:            adb shell screenrecord & SIGINT finalization`);
 console.log(`✓ Screencast Artifact:           ${liveArtifactsStatus}`);
