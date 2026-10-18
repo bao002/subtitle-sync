@@ -10,9 +10,10 @@ import {
 
 interface Props {
   onViewSubtitles: () => void;
+  floating?: boolean;
 }
 
-export const SubtitleFetchToast: React.FC<Props> = ({ onViewSubtitles }) => {
+export const SubtitleFetchToast: React.FC<Props> = ({ onViewSubtitles, floating = false }) => {
   const [notification, setNotification] = useState<SubtitleFetchNotification | null>(null);
   const [muted, setMuted] = useState(() => isSubtitleNotificationMuted());
 
@@ -43,7 +44,11 @@ export const SubtitleFetchToast: React.FC<Props> = ({ onViewSubtitles }) => {
       data-testid="subtitle-fetch-toast"
       role="status"
       aria-live="polite"
-      className="fixed bottom-4 right-4 z-50 max-w-sm sm:max-w-md w-[calc(100vw-2rem)] rounded-xl border border-border bg-card/95 backdrop-blur-md p-3.5 shadow-xl transition-all animate-in slide-in-from-bottom-3 duration-200 text-card-foreground"
+      className={
+        floating
+          ? "fixed bottom-4 right-4 z-50 max-w-sm sm:max-w-md w-[calc(100vw-2rem)] rounded-xl border border-border bg-card/95 backdrop-blur-md p-3.5 shadow-xl transition-all animate-in slide-in-from-bottom-3 duration-200 text-card-foreground"
+          : "relative w-full rounded-xl border border-border bg-card p-3.5 shadow-sm transition-all text-card-foreground"
+      }
     >
       <div className="flex items-start justify-between gap-2.5">
         <div className="flex items-start gap-2.5 min-w-0 flex-1">

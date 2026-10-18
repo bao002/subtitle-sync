@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.47",
+  "version": "1.0.48",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -32,6 +32,8 @@
     "test:parser": "tsx scripts/verify-accumulative-parser.ts",
     "test:ota": "tsx scripts/verify-ota-updater.ts",
     "test:audio-track": "tsx scripts/verify-audio-track-mode.ts",
+    "test:continuous-background-playback": "tsx scripts/verify-continuous-background-playback.ts",
+    "test:no-floating-notifications-tab": "tsx scripts/verify-no-floating-notifications-tab.ts",
     "test:auto-scroll": "tsx scripts/verify-auto-scroll.ts",
     "test:hydration": "tsx scripts/verify-hydration.ts",
     "test:hygiene": "tsx scripts/verify-repo-hygiene.ts",

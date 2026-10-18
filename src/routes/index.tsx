@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import {
   Activity,
+  Bell,
   Check,
   ChevronDown,
   ChevronUp,
@@ -174,6 +175,7 @@ import { ApkReleaseModal } from "@/components/ApkReleaseModal";
 import { SubtitleFetchToast } from "@/components/SubtitleFetchToast";
 import { VideoLibraryPanel } from "@/components/VideoLibraryPanel";
 import { AttemptOrderSettings } from "@/components/AttemptOrderSettings";
+import { NotificationsStatusTab } from "@/components/NotificationsStatusTab";
 import {
   type FetchAttempt,
   type SendMode,
@@ -571,9 +573,9 @@ function Index() {
     }
     return DEMO_VIDEO;
   });
-  const [activeTopTab, setActiveTopTab] = useState<"viewer" | "playground" | "ai-punctuation">(
-    "viewer",
-  );
+  const [activeTopTab, setActiveTopTab] = useState<
+    "viewer" | "playground" | "ai-punctuation" | "notifications"
+  >("viewer");
   const activeTopTabRef = useRef(activeTopTab);
   activeTopTabRef.current = activeTopTab;
 
@@ -3446,6 +3448,30 @@ function Index() {
                   </span>
                 )}
               </button>
+              <button
+                id="tab-notifications"
+                data-testid="tab-notifications"
+                role="tab"
+                aria-selected={activeTopTab === "notifications"}
+                type="button"
+                onClick={() => {
+                  setActiveTopTab("notifications");
+                  cancelSpeech();
+                  try {
+                    player.current?.pauseVideo?.();
+                  } catch {
+                    // ignore
+                  }
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+                  activeTopTab === "notifications"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Bell className="h-3.5 w-3.5" />
+                <span>Status & Alerts</span>
+              </button>
             </div>
 
             <div
@@ -3567,6 +3593,29 @@ function Index() {
                 selectedCriteria.length === 1 && selectedCriteria[0] === "sentence"
               }
               onRevertCriteria={() => setSelectedCriteria(["time", "word", "sentence"])}
+            />
+          ) : activeTopTab === "notifications" ? (
+            <NotificationsStatusTab
+              targetLanguages={targetLanguages}
+              tracks={tracks}
+              onFetchLanguage={handleFloatingFetchSingleLanguage}
+              isFetching={isSubtitlesPending}
+              autoRetryEnabled={autoRetrySubtitles}
+              minPacingSec={retryPacingMinSec}
+              maxPacingSec={retryPacingMaxSec}
+              onToggleAutoRetry={handleToggleAutoRetry}
+              onViewSubtitlesInTable={() => {
+                setActiveTopTab("viewer");
+                setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+                setTimeout(() => {
+                  const el =
+                    document.getElementById("subtitles-table-panel") ||
+                    document.getElementById("accordion-section-subtitles");
+                  if (el) {
+                    el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                }, 100);
+              }}
             />
           ) : (
             <>
@@ -5622,30 +5671,11 @@ function Index() {
         rawJson3Track={tracks && baseLanguage ? tracks[baseLanguage] : null}
         openRouterApiKey={getOpenRouterApiKeySetting()}
       />
-      <SubtitleFetchToast
-        onViewSubtitles={() => {
-          setOpenPanels((prev) => ({ ...prev, subtitles: true }));
-          const el =
-            document.getElementById("subtitles-table-panel") ||
-            document.getElementById("accordion-section-subtitles");
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
-        }}
-      />
+      {/* Floating notifications removed from mobile overlay and moved to dedicated NotificationsStatusTab */}
+      {/* <FloatingSubtitleRetryIndicator and SubtitleFetchToast are rendered cleanly in NotificationsStatusTab */}
       <FloatingDraggablePauseButton
         isSetupPaused={isSetupPaused}
         onToggleSetupPause={toggleSetupPause}
-      />
-      <FloatingSubtitleRetryIndicator
-        targetLanguages={targetLanguages}
-        tracks={tracks}
-        onFetchLanguage={handleFloatingFetchSingleLanguage}
-        isFetching={isSubtitlesPending}
-        autoRetryEnabled={autoRetrySubtitles}
-        minPacingSec={retryPacingMinSec}
-        maxPacingSec={retryPacingMaxSec}
-        onToggleAutoRetry={handleToggleAutoRetry}
       />
     </div>
   );

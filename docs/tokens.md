@@ -4,14 +4,15 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Permanent Android Continuous Background Audio & Video Playback (Task 144)
+## Active Prompt: No Floating Notifications & Video Sharing Favorite Languages Rules (Tasks 145 & 146)
 
-- **Target 1**: Bump app version to 1.0.47 / 10047 across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
-- **Target 2**: Implement `BackgroundPlayableWebView` in `MainActivity.kt` overriding `onWindowVisibilityChanged` to always pass `View.VISIBLE` to Chromium, preventing background media freezes.
-- **Target 3**: Implement proactive `AudioManager` Audio Focus acquisition (`AUDIOFOCUS_GAIN`) and media attributes in `BackgroundAudioService.kt`.
-- **Target 4**: Auto-start `BackgroundAudioService` on initialization and when playback begins to guarantee persistent foreground service and wake lock lifecycle.
-- **Target 5**: Update `## Last raw prompt` in `AGENTS.md` with verbatim prompt.
-- **Target 6**: Implement dedicated automated test (`scripts/verify-continuous-background-playback.ts`), compile, lint, commit, and migrate to `docs/done.md`.
+- **Chapter 1 (Task 145)**: Design Update - Remove all floating notifications on small Android screen; move fetch and retry indications to their own dedicated tab (`notifications` / `status`).
+- **Chapter 2 (Task 146)**: Upon sharing a video link:
+  a. Add default/detected language at the bottom of the favorite language list.
+  b. Remove any tts-play checkbox selection and select only the language at the top.
+  c. Store order in localStorage.
+  d. Allow multi-selection.
+- **Protocol**: Numbered chapters as serial tasks protocol: Execute and verify Task 145 completely before initiating Task 146.
 
 ---
 

@@ -8,6 +8,9 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -56,6 +59,68 @@ class BackgroundAudioService : Service() {
     private var currentPositionMs = 0L
     private var totalDurationMs = 0L
 
+    private var audioManager: AudioManager? = null
+    private var audioFocusRequest: AudioFocusRequest? = null
+
+    private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+        when (focusChange) {
+            AudioManager.AUDIOFOCUS_LOSS -> {
+                handlePause()
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                handlePause()
+            }
+            AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                // Background playback continues
+            }
+            AudioManager.AUDIOFOCUS_GAIN -> {
+                if (isPlaying) {
+                    handlePlay()
+                }
+            }
+        }
+    }
+
+    private fun requestAudioFocus(): Boolean {
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        val am = audioManager ?: return false
+
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val playbackAttributes = AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH or AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build()
+
+            val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                .setAudioAttributes(playbackAttributes)
+                .setAcceptsDelayedFocusGain(true)
+                .setOnAudioFocusChangeListener(audioFocusChangeListener)
+                .build()
+
+            audioFocusRequest = focusRequest
+            am.requestAudioFocus(focusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        } else {
+            @Suppress("DEPRECATION")
+            am.requestAudioFocus(
+                audioFocusChangeListener,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.AUDIOFOCUS_GAIN
+            ) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        }
+    }
+
+    private fun abandonAudioFocus() {
+        val am = audioManager ?: return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                audioFocusRequest?.let { am.abandonAudioFocusRequest(it) }
+            } else {
+                @Suppress("DEPRECATION")
+                am.abandonAudioFocus(audioFocusChangeListener)
+            }
+        } catch (_: Exception) {}
+    }
+
     override fun onCreate() {
         super.onCreate()
         currentService = this
@@ -66,6 +131,7 @@ class BackgroundAudioService : Service() {
 
         createNotificationChannel()
         initMediaSession()
+        requestAudioFocus()
 
         val notification = buildNotification()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -99,6 +165,7 @@ class BackgroundAudioService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         currentService = null
+        abandonAudioFocus()
         try {
             if (wakeLock?.isHeld == true) {
                 wakeLock?.release()
@@ -182,6 +249,7 @@ class BackgroundAudioService : Service() {
     }
 
     private fun handlePlay() {
+        requestAudioFocus()
         isPlaying = true
         MainActivity.instance?.dispatchMediaCommand("play", 0L)
         updateState(mediaTitle, mediaArtist, true, currentPositionMs, totalDurationMs)

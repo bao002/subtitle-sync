@@ -23,6 +23,7 @@ export interface FloatingSubtitleRetryIndicatorProps {
   minPacingSec?: number;
   maxPacingSec?: number;
   onToggleAutoRetry?: (enabled: boolean) => void;
+  floating?: boolean;
 }
 
 export function FloatingSubtitleRetryIndicator({
@@ -34,6 +35,7 @@ export function FloatingSubtitleRetryIndicator({
   minPacingSec = 3,
   maxPacingSec = 8,
   onToggleAutoRetry,
+  floating = false,
 }: FloatingSubtitleRetryIndicatorProps) {
   // Compute which favorite languages still lack valid subtitle cues
   const pendingLanguages = targetLanguages.filter((code) => {
@@ -149,7 +151,11 @@ export function FloatingSubtitleRetryIndicator({
   return (
     <div
       data-testid="floating-subtitle-retry-indicator"
-      className="fixed bottom-20 right-4 z-40 max-w-xs transition-all duration-300 sm:bottom-6 sm:right-6"
+      className={
+        floating
+          ? "fixed bottom-20 right-4 z-40 max-w-xs transition-all duration-300 sm:bottom-6 sm:right-6"
+          : "relative w-full max-w-none transition-all duration-300"
+      }
     >
       <div
         className={`overflow-hidden rounded-xl border bg-background/95 shadow-xl backdrop-blur-md transition-all ${

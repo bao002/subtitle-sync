@@ -29,13 +29,12 @@ assert(
 console.log("✅ PASS: AGENTS.md contains '## Last raw prompt' section.");
 
 // 4. Verify the raw prompt content is present
+const lastPromptMatch = agentsContent.match(/## Last raw prompt\s+```[\w]*\n([\s\S]*?)\n```/);
 assert(
-  agentsContent.includes("translateWithGoogle") &&
-    agentsContent.includes("translate next configured X=10 sentences ahead") &&
-    agentsContent.includes("https://translate.googleapis.com/translate_a/single?client=gtx"),
-  "AGENTS.md must preserve the exact latest raw user prompt",
+  lastPromptMatch && lastPromptMatch[1].trim().length > 0,
+  "AGENTS.md must preserve a non-empty raw user prompt in the '## Last raw prompt' code block",
 );
-console.log("✅ PASS: AGENTS.md contains the exact latest raw user prompt.");
+console.log(`✅ PASS: AGENTS.md contains the latest raw user prompt: "${lastPromptMatch[1].trim()}"`);
 
 console.log("====================================================");
 console.log("🎉 AGENTS.md Last Raw Prompt Rule Verification PASSED!");

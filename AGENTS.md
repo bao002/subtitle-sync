@@ -167,6 +167,14 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-AGENTS.md - every time the prompt consist of numbered chapters - treat it as different tasks that you have to divide into sub-tasks which needs to be worked on serially.
+1. design update: dont use any floating notifications becuase they are taking lots of space on the small android screen - better move those indications to their own tabs.
+
+2. upon sharing a video link with the app - note those rules about the favorite language list:
+a. add the default/detected language at the bottom  
+b. remove any tts-play checkbox selection - and checkbox-select only the language at the top 
+c. the order should be stored on the localstorage
+d. allow multi-selection
 ```
+
+
 

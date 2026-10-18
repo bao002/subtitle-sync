@@ -1,5 +1,73 @@
 # Done tasks
 
+## Task 145: Remove Floating Notifications & Move Indications to Dedicated Tab (Version 1.0.48)
+
+### Summary:
+
+- **Dedicated Status & Notifications Tab (`NotificationsStatusTab.tsx`)**:
+  - Built `src/components/NotificationsStatusTab.tsx` providing a unified non-floating dashboard for subtitle discovery and fetch alerts.
+  - Displays live subtitle fetch progress per target language, cue counts, loaded statuses, and fetch trigger actions.
+  - Features real-time paced retry countdown indicators with pause, resume, and instant retry controls embedded inline.
+  - Includes notification event feed with mute/unmute audio alerts, dismiss actions, and clear history.
+  - Includes direct jump navigation to inspect subtitles in the main Subtitles Table panel.
+- **Top Navigation Integration & Viewport Space Optimization (`index.tsx`)**:
+  - Integrated dedicated `tab-notifications` tab button into the top header navigation alongside `viewer`, `playground`, and `ai-punctuation`.
+  - Switched conditional view rendering to display `NotificationsStatusTab` when `activeTopTab === "notifications"`.
+  - Completely removed floating overlay elements `SubtitleFetchToast` and `FloatingSubtitleRetryIndicator` from mobile and desktop viewports, reclaiming 100% of the visible video player and subtitle viewing area on small Android screens.
+  - Retained clean non-floating relative embedding capability in child components for dedicated tab use.
+- **Application Version Synchronization (1.0.48 / 10048)**:
+  - Synchronized semantic version `1.0.48` and versionCode `10048` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Automated Verification**:
+  - Authored dedicated test suite `scripts/verify-no-floating-notifications-tab.ts` (`npm run test:no-floating-notifications-tab`) verifying:
+    1. Removal of floating notification overlays from root viewport in `src/routes/index.tsx`.
+    2. Integration of dedicated `tab-notifications` button and tab rendering.
+    3. Structural completeness of `NotificationsStatusTab.tsx` (pacing controls, retry indicators, notification history).
+    4. Non-floating embedding support in `SubtitleFetchToast` and `FloatingSubtitleRetryIndicator`.
+    5. Version parity across all 5 version targets (`1.0.48` / `10048`).
+  - Registered `test:no-floating-notifications-tab` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:no-floating-notifications-tab`: PASSED (100% verified, 5/5 tests).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors).
+
+## Task 144: Permanent Android Continuous Background Audio & Video Playback (Version 1.0.47)
+
+### Summary:
+
+- **BackgroundPlayableWebView Implementation (`MainActivity.kt`)**:
+  - Implemented custom `BackgroundPlayableWebView(context: Context)` overriding `onWindowVisibilityChanged(visibility: Int)`.
+  - Always forwards `super.onWindowVisibilityChanged(View.VISIBLE)` to Chromium internals, preventing the renderer and Blink engine from freezing media timers, stopping audio/video decoding, or suspending playback when the app goes into the background or the screen turns off.
+  - Instantiated `BackgroundPlayableWebView(this)` as the primary WebView in `MainActivity.onCreate`.
+- **Auto-Start BackgroundAudioService (`MainActivity.kt`)**:
+  - Automatically launches `BackgroundAudioService.startService(this)` in `MainActivity.onCreate` to guarantee foreground service, notification controls, and wake lock availability immediately upon app startup.
+- **Proactive AudioManager Audio Focus Management (`BackgroundAudioService.kt`)**:
+  - Integrated `AudioManager`, `AudioAttributes` (`USAGE_MEDIA`, `CONTENT_TYPE_SPEECH or CONTENT_TYPE_MUSIC`), and `AudioFocusRequest` (`AUDIOFOCUS_GAIN`).
+  - Added `requestAudioFocus()` invoked during service initialization in `onCreate()` and on media resume in `handlePlay()`.
+  - Added `abandonAudioFocus()` on service termination in `onDestroy()`.
+  - Added `audioFocusChangeListener` handling audio focus states: `AUDIOFOCUS_LOSS` (pause), `AUDIOFOCUS_LOSS_TRANSIENT` (pause), `AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK` (continue playback), and `AUDIOFOCUS_GAIN` (resume playback if active).
+- **Application Version Synchronization (1.0.47 / 10047)**:
+  - Synchronized semantic version `1.0.47` and versionCode `10047` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Verbatim Prompt Preservation (`AGENTS.md`)**:
+  - Recorded verbatim user prompt (`go on`) under `## Last raw prompt` in `AGENTS.md`.
+- **Automated Verification**:
+  - Authored dedicated test suite `scripts/verify-continuous-background-playback.ts` (`npm run test:continuous-background-playback`) asserting:
+    1. `BackgroundPlayableWebView` definition and `View.VISIBLE` override.
+    2. `BackgroundPlayableWebView` instantiation in `MainActivity`.
+    3. Auto-start of `BackgroundAudioService` in `onCreate`.
+    4. Proactive `AudioManager` audio focus request with `AUDIOFOCUS_GAIN` and `USAGE_MEDIA`.
+    5. Audio focus lifecycle hooks attached to `onCreate()`, `handlePlay()`, and `onDestroy()`.
+    6. Complete version parity across all 5 version targets (`1.0.47` / `10047`).
+  - Registered `test:continuous-background-playback` script in `package.json` and cataloged in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:continuous-background-playback`: PASSED (100% verified, 6/6 tests).
+  - `npx tsx scripts/verify-apk-version-and-releases.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-last-prompt-rule.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-android-background-audio-service.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-android-background-playback.ts`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (clean, 0 errors).
+
 ## Task 143: Numbered Chapters as Serial Tasks Protocol in AGENTS.md (Version 1.0.46)
 
 ### Summary:

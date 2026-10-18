@@ -2,15 +2,18 @@
 
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
-## Task 144: Permanent Android Continuous Background Audio & Video Playback (Version 1.0.47)
+## Task 146: Video Link Sharing Favorite Language Rules (Version 1.0.48) - Chapter 2
 
 ### Objective:
-Ensure the Android app supports background audio and video playback reliably and permanently (not just once) by overriding WebView window visibility reporting, acquiring proactive audio focus, and maintaining continuous foreground service and wake lock state.
+Implement and enforce the 4 required rules upon sharing a video link with the app:
+a. Add the default/detected language at the bottom of the favorite language list.
+b. Remove any tts-play checkbox selection and select only the language at the top.
+c. Store the updated order in localStorage.
+d. Allow multi-selection.
 
 ### Subtasks:
-- [ ] **Subtask 144.1**: Bump app version from 1.0.46 to 1.0.47 / 10047 across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
-- [ ] **Subtask 144.2**: Record verbatim prompt in `## Last raw prompt` of `AGENTS.md`.
-- [ ] **Subtask 144.3**: Enhance `MainActivity.kt` with `BackgroundPlayableWebView` (overriding `onWindowVisibilityChanged` to permanently forward `View.VISIBLE` to Chromium) and auto-start `BackgroundAudioService` on initialization and playback.
-- [ ] **Subtask 144.4**: Enhance `BackgroundAudioService.kt` with proactive `AudioManager` Audio Focus management (`AUDIOFOCUS_GAIN`) and media usage attributes.
-- [ ] **Subtask 144.5**: Author dedicated verification script `scripts/verify-continuous-background-playback.ts`, register in `package.json` (`test:continuous-background-playback`) and `docs/files.md`.
-- [ ] **Subtask 144.6**: Run automated test suite, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate Task 144 to `docs/done.md`.
+- [ ] **Subtask 146.1**: Update shared video handler (`onNewIntent` / `onNativeSharedLinkReceived` / query params / video link submit) in `src/routes/index.tsx` to apply the favorite language rules: add detected language at bottom, reset `spoken` TTS checkbox to only top language, persist order to localStorage, and allow multi-selection.
+- [ ] **Subtask 146.2**: Author dedicated verification script `scripts/verify-video-sharing-favorite-rules.ts`, register in `package.json` (`test:video-sharing-favorite-rules`) and `docs/files.md`.
+- [ ] **Subtask 146.3**: Run automated test, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate Task 146 to `docs/done.md`.
+
+
