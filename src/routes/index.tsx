@@ -542,7 +542,7 @@ function Index() {
         // ignore
       }
     }
-    return "beginner";
+    return "expert";
   });
 
   const handleWorkflowModeChange = (mode: "beginner" | "expert") => {

@@ -167,7 +167,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-GO ON
+e2e test seems to be broken. the download links always not exists. can u solve it ?
 ```
 
 

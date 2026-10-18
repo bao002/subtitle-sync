@@ -4,11 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Hotfix Maximum Update Depth Exceeded in React useEffect Loop (Task 147, Version 1.0.50)
+## Active Prompt: Fix Broken E2E Test Workflow & Download Links Non-Existence (Task 148, Version 1.0.51)
 
-- **Issue**: React runtime error "Maximum update depth exceeded" caused by recursive setState loop in `src/routes/index.tsx` effects.
-- **Resolution**: Guard `baseLanguage` and favorite languages rules effect against redundant re-execution using shallow equality / tracking ref, breaking infinite update cycles.
-- **Version**: Bump to `1.0.50` (versionCode `10050`).
+- **Issue**: E2E test command references quarantined `e2e/web.spec.ts` causing build failures, and E2E report download links (`android-emulator-video.mp4`, `android-emulator-logcat.txt`) return 404 because `deploy-demo.yml` lacked `GH_TOKEN` for `gh run download` and had no fallback logcat generation.
+- **Resolution**: Align `web.yml` and `package.json` E2E test targets to active `e2e/emulation.spec.ts`, provide `GH_TOKEN` in `deploy-demo.yml` for complete artifact extraction, generate guaranteed fallback logcat/video in distribution, and add client-side dynamic fallback handlers in report HTMLs so downloads never 404.
+- **Version**: Bump to `1.0.51` (versionCode `10051`).
 
 ---
 

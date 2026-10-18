@@ -42,7 +42,7 @@ export default defineConfig({
   projects: [
     {
       name: "web",
-      testMatch: /.*web\.spec\.ts/,
+      testMatch: /.*(?:emulation|web)\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1280, height: 720 },
