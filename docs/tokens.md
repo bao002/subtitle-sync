@@ -4,15 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: No Floating Notifications & Video Sharing Favorite Languages Rules (Tasks 145 & 146)
+## Active Prompt: Hotfix Maximum Update Depth Exceeded in React useEffect Loop (Task 147, Version 1.0.50)
 
-- **Chapter 1 (Task 145)**: Design Update - Remove all floating notifications on small Android screen; move fetch and retry indications to their own dedicated tab (`notifications` / `status`).
-- **Chapter 2 (Task 146)**: Upon sharing a video link:
-  a. Add default/detected language at the bottom of the favorite language list.
-  b. Remove any tts-play checkbox selection and select only the language at the top.
-  c. Store order in localStorage.
-  d. Allow multi-selection.
-- **Protocol**: Numbered chapters as serial tasks protocol: Execute and verify Task 145 completely before initiating Task 146.
+- **Issue**: React runtime error "Maximum update depth exceeded" caused by recursive setState loop in `src/routes/index.tsx` effects.
+- **Resolution**: Guard `baseLanguage` and favorite languages rules effect against redundant re-execution using shallow equality / tracking ref, breaking infinite update cycles.
+- **Version**: Bump to `1.0.50` (versionCode `10050`).
 
 ---
 

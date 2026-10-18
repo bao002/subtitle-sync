@@ -167,13 +167,11 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. design update: dont use any floating notifications becuase they are taking lots of space on the small android screen - better move those indications to their own tabs.
-
-2. upon sharing a video link with the app - note those rules about the favorite language list:
-a. add the default/detected language at the bottom  
-b. remove any tts-play checkbox selection - and checkbox-select only the language at the top 
-c. the order should be stored on the localstorage
-d. allow multi-selection
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[AIS_METADATA_SECTION_END]
 ```
 
 

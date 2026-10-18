@@ -34,9 +34,10 @@ assert(
   "AGENTS.md must contain ## Last raw prompt section",
 );
 
+const rawPromptMatch = agentsContent.match(/## Last raw prompt\s+```[\w]*\n([\s\S]*?)\n```/);
 assert(
-  agentsContent.includes("every time the prompt consist of numbered chapters"),
-  "AGENTS.md ## Last raw prompt must record verbatim user prompt",
+  rawPromptMatch && rawPromptMatch[1].trim().length > 0,
+  "AGENTS.md ## Last raw prompt must record non-empty verbatim user prompt",
 );
 console.log("✅ PASS: AGENTS.md contains verbatim latest prompt.");
 

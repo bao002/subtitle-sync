@@ -1,5 +1,39 @@
 # Done tasks
 
+## Task 146: Video Link Sharing Favorite Language Rules (Version 1.0.49)
+
+### Summary:
+
+- **Favorite Language Placement & Video Sharing Rules Manager (`favoriteLanguagesRules.ts`)**:
+  - Implemented modular utility `src/utils/favoriteLanguagesRules.ts` with `extractDetectedLanguage()` and `applyVideoSharingFavoriteLanguageRules()`.
+  - **Rule a (Bottom Placement)**: Detects video language from shared links, query parameters (`lang`, `subLang`, `hl`, `tlang`), or default fallback ("en"), places the default/detected language strictly at the bottom (end) of the favorite languages list, and guarantees proper ordering.
+  - **Rule b (Top Language Selection)**: Clears all previous `tts-play` checkbox selections and selects strictly only the language at the top (index 0) of the favorite languages array into `spoken`, unchecking all other languages.
+  - **Rule c (LocalStorage Persistence)**: Persists the updated favorite language order directly to `localStorage` under key `yt_favorite_languages` (`setFavoriteLanguages`) and synchronizes user learning languages (`setUserLearningLanguages`).
+  - **Rule d (Multi-Selection Allowed)**: Returns an array `spokenLanguages` (`string[]`), preserves multi-selection capability across UI checkboxes (`checkbox-tts-play-*`) and `LanguageBoxesSelector` (`onSelectionChange`), allowing users to freely check and speak multiple languages simultaneously during playback.
+- **Route Handlers & Lifecycle Integration (`index.tsx`)**:
+  - Integrated `applyVideoSharingFavoriteLanguageRules` into:
+    1. Native Android shared link handler `window.onNativeSharedLinkReceived(link)` and `openLink(link)`.
+    2. Shared URL query parameters on startup (`params.get("v") || params.get("url")`) and `__pendingSharedLink` across state initializers (`getInitialFavoriteLanguages` and `spoken`).
+    3. Live subtitle discovery effect upon detecting `baseLanguage` from intercepted timedtext stream or default caption tracks.
+    4. Primary YouTube URL input submission (`youtube-url-form`) and Android inline form submission.
+    5. Video Library selection (`handleSelectLibraryVideo`) and Beginner Mode URL submission.
+- **Application Version Synchronization (1.0.49 / 10049)**:
+  - Synchronized semantic version `1.0.49` and versionCode `10049` across all 5 version targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Automated Verification**:
+  - Authored dedicated test suite `scripts/verify-video-sharing-favorite-rules.ts` (`npm run test:video-sharing-favorite-rules`) verifying 7/7 requirements:
+    1. Language extraction from URLs & query parameters.
+    2. Rule a: default/detected language placed at the bottom.
+    3. Rule b: checkbox-select only top language for tts-play.
+    4. Rule c: order stored in localStorage.
+    5. Rule d: multi-selection allowed.
+    6. Route integration in `src/routes/index.tsx`.
+    7. Version parity for 1.0.49 / 10049 across all 5 targets.
+  - Registered `test:video-sharing-favorite-rules` in `package.json` and cataloged in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:video-sharing-favorite-rules`: PASSED (100% verified, 7/7 tests).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
 ## Task 145: Remove Floating Notifications & Move Indications to Dedicated Tab (Version 1.0.48)
 
 ### Summary:
