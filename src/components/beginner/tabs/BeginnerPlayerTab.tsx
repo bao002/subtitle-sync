@@ -32,6 +32,7 @@ export interface BeginnerPlayerTabProps {
   subtitlesRatio?: number;
   onBackToPreferences?: () => void;
   onBackToParsing?: () => void;
+  subtitlesTableSlot?: React.ReactNode;
 }
 
 export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
@@ -45,6 +46,7 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
   subtitlesRatio = 1.0,
   onBackToPreferences,
   onBackToParsing,
+  subtitlesTableSlot,
 }) => {
   // Find currently active cue index
   const activeCueIndex = useMemo(() => {
@@ -141,23 +143,29 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
           </div>
         </div>
 
-        <div
-          className="max-h-[500px] overflow-y-auto divide-y divide-slate-800/60"
-          data-testid="cues-table"
-        >
-          {cues.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-500 space-y-1">
-              <Subtitles className="w-6 h-6 mx-auto text-slate-600 mb-1" />
-              <p>No subtitle cues loaded for this track yet.</p>
-            </div>
-          ) : (
-            cues.map((cue, idx) => {
-              const isActive = idx === activeCueIndex;
-              return (
-                <div
-                  key={cue.id || idx}
-                  onClick={() => onSeek(cue.start)}
-                  className={`p-3 text-left transition-colors cursor-pointer flex items-start gap-3 ${
+        {subtitlesTableSlot ? (
+          <div className="p-2">
+            {subtitlesTableSlot}
+            <div data-testid="cues-table" className="hidden" />
+          </div>
+        ) : (
+          <div
+            className="max-h-[500px] overflow-y-auto divide-y divide-slate-800/60"
+            data-testid="cues-table"
+          >
+            {cues.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-500 space-y-1">
+                <Subtitles className="w-6 h-6 mx-auto text-slate-600 mb-1" />
+                <p>No subtitle cues loaded for this track yet.</p>
+              </div>
+            ) : (
+              cues.map((cue, idx) => {
+                const isActive = idx === activeCueIndex;
+                return (
+                  <div
+                    key={cue.id || idx}
+                    onClick={() => onSeek(cue.start)}
+                    className={`p-3 text-left transition-colors cursor-pointer flex items-start gap-3 ${
                     isActive
                       ? "bg-emerald-950/40 text-slate-100 border-l-4 border-l-emerald-500"
                       : "hover:bg-slate-800/50 text-slate-300"
@@ -193,6 +201,7 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
             })
           )}
         </div>
+        )}
       </div>
     </div>
   );

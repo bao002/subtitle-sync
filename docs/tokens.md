@@ -4,16 +4,16 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Alternative TTS Service with Lovable Speak API (Task 150, Version 1.0.54)
+## Active Prompt: Web-Demo Beginner Mode Subtitles Table & Android Emulator Captions Detection (Tasks 143 & 144)
 
-- **Feature**: Integrate Lovable Speak API (`https://tts2.lovable.app/api/public/openapi.json`) as configurable alternative TTS engine with OpenAPI compliance, engine selection, CORS support, test playback, and fallback handling.
-  - Sub-task 150.1: Extend `src/lib/alternative-tts.ts` with Lovable Speak API support, engine selection, parameter serialization, and audio playback.
-  - Sub-task 150.2: Author dedicated automated test suite `scripts/verify-lovable-alternative-tts.ts` and add `test:alternative-tts` to `package.json`.
-  - Sub-task 150.3: Update UI controls in `src/routes/index.tsx` (and `BeginnerPreferencesTab.tsx`) with engine selector, OpenAPI link, and test preview button.
-  - Sub-task 150.4: Bump app version to 1.0.54 (10054), verify compilation, lint, commit, push, and migrate to `docs/done.md`.
-- **Version**: Bump to `1.0.54` (versionCode `10054`).
-
-
+- **Chapter 1 (Task 143)**: Web-Demo Beginner Mode — enable video and subtitles table as exist on advanced mode.
+  - Subtask 143.1: Bump application version to 1.0.46 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask 143.2: Connect `SubtitlesTablePanel` and full video player synchronization to Beginner Mode in `BeginnerFlowContainer.tsx` and `src/routes/index.tsx` so users see both the video and synchronized parallel subtitles table.
+  - Subtask 143.3: Author dedicated automated test (`scripts/verify-beginner-subtitles-table.ts`), run compilation, lint, git commit & push, and migrate to `docs/done.md`.
+- **Chapter 2 (Task 144)**: Android Emulator E2E — deprecate screencast generation, detect captions after enabling on YouTube video, and expose the caption text without mock or fixtures.
+  - Subtask 144.1: Deprecate screencast recording and video generation across Android E2E scripts and workflows.
+  - Subtask 144.2: Enhance Android caption detection to capture authentic timedtext network requests upon CC enable, extract cues, and expose caption text in telemetry and logs.
+  - Subtask 144.3: Author dedicated automated test, compile, lint, commit & push, and document in `docs/done.md`.
 
 ---
 

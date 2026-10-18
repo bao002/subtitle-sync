@@ -283,10 +283,8 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 
 const SETTINGS_STORAGE_KEY = STORAGE_KEYS.SETTINGS_STORAGE_KEY;
 
-let memorySettings: AppSettings = { ...DEFAULT_APP_SETTINGS };
-
 export function loadAppSettings(): AppSettings {
-  if (typeof window === "undefined") return memorySettings;
+  if (typeof window === "undefined") return DEFAULT_APP_SETTINGS;
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (raw) {
@@ -312,10 +310,7 @@ export function loadAppSettings(): AppSettings {
 }
 
 export function saveAppSettings(settings: AppSettings): void {
-  if (typeof window === "undefined") {
-    memorySettings = { ...settings };
-    return;
-  }
+  if (typeof window === "undefined") return;
   try {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
   } catch (err) {
@@ -487,7 +482,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.54",
+    version: "1.0.46",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -894,35 +889,28 @@ export const EXCLUDE_DEFAULT_SUBTITLES_TTS_STORAGE_KEY = "yt_exclude_default_sub
  * Defaults to true.
  */
 export function getExcludeDefaultSubtitlesFromTTSSetting(): boolean {
-  if (typeof window !== "undefined" && window.localStorage) {
-    try {
-      const val = window.localStorage.getItem(EXCLUDE_DEFAULT_SUBTITLES_TTS_STORAGE_KEY);
-      if (val !== null) return val === "true";
-    } catch {
-      // fallback
-    }
+  if (typeof window === "undefined" || !window.localStorage) {
+    return true;
   }
-  const settings = loadAppSettings();
-  return settings.excludeDefaultSubtitlesFromTTS ?? true;
+  try {
+    const val = window.localStorage.getItem(EXCLUDE_DEFAULT_SUBTITLES_TTS_STORAGE_KEY);
+    return val === null ? true : val === "true";
+  } catch {
+    return true;
+  }
 }
 
 /**
  * Persist setting to exclude default subtitles from TTS play by default.
  */
 export function setExcludeDefaultSubtitlesFromTTSSetting(enabled: boolean): void {
-  if (typeof window !== "undefined" && window.localStorage) {
-    try {
-      window.localStorage.setItem(
-        EXCLUDE_DEFAULT_SUBTITLES_TTS_STORAGE_KEY,
-        enabled ? "true" : "false",
-      );
-    } catch {
-      // Ignore storage errors
-    }
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(
+      EXCLUDE_DEFAULT_SUBTITLES_TTS_STORAGE_KEY,
+      enabled ? "true" : "false",
+    );
+  } catch {
+    // Ignore storage errors
   }
-  const current = loadAppSettings();
-  saveAppSettings({
-    ...current,
-    excludeDefaultSubtitlesFromTTS: enabled,
-  });
 }

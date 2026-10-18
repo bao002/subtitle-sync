@@ -22,16 +22,12 @@ import {
   saveCachedRawJson3,
   getAllCachedTargetLanguages,
 } from "@/utils/subtitleCache";
-import { fetchAndCacheSubtitleUrl } from "@/utils/subtitleUrlDetector";
 
 export interface BeginnerFlowContainerProps {
   url: string;
   videoId: string;
   onUrlChange: (newUrl: string) => void;
   onSubmitUrl: (urlToLoad: string) => void;
-  subtitlesUrl?: string;
-  onSubtitlesUrlChange?: (newUrl: string) => void;
-  onSubmitSubtitlesUrl?: (subtitlesUrl: string) => Promise<void> | void;
   observedUrl: string | null;
   rawTracks: Record<string, Json3>;
   currentTime: number;
@@ -39,8 +35,11 @@ export interface BeginnerFlowContainerProps {
   onTogglePlay: () => void;
   onSeek: (seconds: number) => void;
   onLoadSampleSubtitles?: () => void;
-  isAndroidNative?: boolean;
   playerSlot?: React.ReactNode;
+  playbackControlsSlot?: React.ReactNode;
+  subtitlesTableSlot?: React.ReactNode;
+  webDemoUrlsSlot?: React.ReactNode;
+  hasSubtitles?: boolean;
 }
 
 export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
@@ -48,9 +47,6 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   videoId,
   onUrlChange,
   onSubmitUrl,
-  subtitlesUrl,
-  onSubtitlesUrlChange,
-  onSubmitSubtitlesUrl,
   observedUrl,
   rawTracks,
   currentTime,
@@ -60,6 +56,10 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   onLoadSampleSubtitles,
   isAndroidNative = false,
   playerSlot,
+  playbackControlsSlot,
+  subtitlesTableSlot,
+  webDemoUrlsSlot,
+  hasSubtitles = false,
 }) => {
   // Load initial settings
   const [settings, setSettings] = useState<AppSettings>(() => loadAppSettings());
@@ -76,18 +76,11 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   const [subtitlesRatio, setSubtitlesRatio] = useState<number>(
     settings.beginnerSubtitlesRatio ?? 1.0,
   );
-  const [favoriteLanguages, setFavoriteLanguages] = useState<string[]>(() => {
-    const rawFavs =
-      settings.beginnerFavoriteLangs && settings.beginnerFavoriteLangs.length > 0
-        ? settings.beginnerFavoriteLangs
-        : ["he", "en", "es", "fr", "ru", "ar"];
-    const base = settings.beginnerSelectedBaseLang || "";
-    const exclude = settings.excludeDefaultSubtitlesFromTTS ?? true;
-    if (exclude && base) {
-      return rawFavs.filter((l) => l !== base);
-    }
-    return rawFavs;
-  });
+  const [favoriteLanguages, setFavoriteLanguages] = useState<string[]>(
+    settings.beginnerFavoriteLangs && settings.beginnerFavoriteLangs.length > 0
+      ? settings.beginnerFavoriteLangs
+      : ["he", "en", "es", "fr", "ru", "ar"],
+  );
   const [splitByPunctuation, setSplitByPunctuation] = useState<boolean>(
     settings.beginnerSplitByPunctuation ?? true,
   );
@@ -137,43 +130,21 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
     return list;
   }, [rawTracks, selectedBaseLang]);
 
-  // Auto-select base language if at least 1 track is detected and none is selected
+  // Auto-select base language if none is selected and tracks are detected
   useEffect(() => {
-    if (!selectedBaseLang && observedTracks.length >= 1) {
-      const first = observedTracks[0].lang;
-      setSelectedBaseLang(first);
-      updateSettings({ beginnerSelectedBaseLang: first });
+    if (!selectedBaseLang && observedTracks.length > 0) {
+      const defaultLang = observedTracks.find((t) => t.lang === "en")?.lang || observedTracks[0].lang;
+      setSelectedBaseLang(defaultLang);
+      updateSettings({ beginnerSelectedBaseLang: defaultLang });
     }
   }, [observedTracks, selectedBaseLang]);
 
   // Determine if downstream tabs are unlocked
   const isUnlocked = Boolean(selectedBaseLang);
 
-  const handleInternalSubmitSubtitlesUrl = async (subUrl: string) => {
-    if (onSubmitSubtitlesUrl) {
-      await onSubmitSubtitlesUrl(subUrl);
-    } else {
-      const result = await fetchAndCacheSubtitleUrl(subUrl, videoId);
-      if (!selectedBaseLang) {
-        setSelectedBaseLang(result.lang);
-        updateSettings({ beginnerSelectedBaseLang: result.lang });
-      }
-    }
-  };
-
   const handleSelectBaseLang = (lang: string) => {
     setSelectedBaseLang(lang);
-    const exclude = settings.excludeDefaultSubtitlesFromTTS ?? true;
-    if (exclude) {
-      const nextFavs = favoriteLanguages.filter((l) => l !== lang);
-      setFavoriteLanguages(nextFavs);
-      updateSettings({
-        beginnerSelectedBaseLang: lang,
-        beginnerFavoriteLangs: nextFavs,
-      });
-    } else {
-      updateSettings({ beginnerSelectedBaseLang: lang });
-    }
+    updateSettings({ beginnerSelectedBaseLang: lang });
   };
 
   const handleTabChange = (newTab: BeginnerTabId) => {
@@ -241,6 +212,23 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
         baseLanguageName={baseLangObj?.name || selectedBaseLang.toUpperCase()}
       />
 
+      {/* Persistent Video Player & Controls Container (stays mounted across all tabs) */}
+      {playerSlot && (
+        <div className="w-full max-w-4xl mx-auto px-2 pt-2">
+          <div
+            className="w-full rounded-xl overflow-hidden bg-black aspect-video border border-slate-800 shadow-md relative"
+            data-testid="beginner-player-slot-container"
+          >
+            {playerSlot}
+          </div>
+          {playbackControlsSlot && (
+            <div className="pt-2">
+              {playbackControlsSlot}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Main Tab View Container */}
       <main className="flex-1 py-3 px-2">
         {activeTab === "video" && (
@@ -248,9 +236,6 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             url={url}
             onUrlChange={onUrlChange}
             onSubmitUrl={onSubmitUrl}
-            subtitlesUrl={subtitlesUrl}
-            onSubtitlesUrlChange={onSubtitlesUrlChange}
-            onSubmitSubtitlesUrl={handleInternalSubmitSubtitlesUrl}
             videoId={videoId}
             onOpenLibrary={() => setIsLibraryOpen(true)}
             observedUrl={observedUrl}
@@ -260,7 +245,9 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             onLoadSampleSubtitles={onLoadSampleSubtitles}
             onContinueToNextTab={() => handleTabChange("preferences")}
             isAndroidNative={isAndroidNative}
-            playerSlot={playerSlot}
+            webDemoUrlsSlot={webDemoUrlsSlot}
+            hasSubtitles={hasSubtitles}
+            subtitlesTableSlot={subtitlesTableSlot}
           />
         )}
 
@@ -341,6 +328,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             subtitlesRatio={subtitlesRatio}
             onBackToPreferences={() => handleTabChange("preferences")}
             onBackToParsing={() => handleTabChange("parsing")}
+            subtitlesTableSlot={subtitlesTableSlot}
           />
         )}
       </main>

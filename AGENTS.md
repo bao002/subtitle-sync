@@ -22,10 +22,6 @@
   - There must be ZERO duplicate `.md` files in the repository. No Markdown file located under `docs/*.md` may have a redundant copy in the root directory (e.g., `docs/tokens.md`, `docs/android.md`, `docs/parser.md`, `docs/self-verification.md`, and `docs/roadmap.md` reside exclusively in `docs/`).
   - The only Markdown files permitted in the repository root are the primary entry point `README.md`, agent instructions `AGENTS.md`, and the active ephemeral scratchpads `current-sub-task.md` and `temp.md`.
 - **Mandatory token economy flow on every prompt (`docs/tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `docs/tokens.md`. Big tasks fail and waste immense token budgets when executed monolithically; splitting prompts into atomic sub-tasks and staging them step-by-step eliminates context bloat and prevents tasks from failing due to an inefficient token economy.
-- **Numbered chapters as serial tasks protocol**:
-  - Every time the user prompt consists of numbered chapters, sections, or items (e.g. `1. ...`, `2. ...`, `3. ...`), the agent MUST treat each numbered chapter as a separate, distinct task in `docs/tasks.md`.
-  - The agent MUST divide each numbered chapter into its own granular, verifiable sub-tasks staged in `docs/tasks.md` and `current-sub-task.md`.
-  - These numbered chapter tasks and their sub-tasks MUST be worked on strictly serially: execute and complete the first numbered chapter's sub-tasks, verify with dedicated tests, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter. Never bundle or conflate multiple numbered chapters into a single monolithic implementation.
 - **Task management protocol with `current-sub-task.md` & `temp.md`**:
   - Always break every prompt into clear numbered tasks and smaller sub-tasks in `docs/tasks.md` before performing actions.
   - Maintain `current-sub-task.md` (and `docs/todo.md`): before executing any step, stage the single active sub-task in `current-sub-task.md`. Updating `current-sub-task.md` at each step lowers the risk of wasting tokens by ensuring each tool action and thought cycle is laser-focused on a single verifiable objective.
@@ -167,10 +163,8 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-allow to use this for tts alternative:
-https://tts2.lovable.app/api/public/openapi.json
+1. web-demo beginner mode -  doesnt work. it should be able to show a video and subtitles table as exist on the advanced mode
+
+2. try to fix the e2e test on the android emulator but deprecate the screencast generation. detect the captions after enabing it on the youtube-video and expose the text. do not use mock or fixtures.
 ```
-
-
-
 
