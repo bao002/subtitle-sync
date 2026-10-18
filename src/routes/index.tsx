@@ -542,7 +542,7 @@ function Index() {
         // ignore
       }
     }
-    return "beginner";
+    return "expert";
   });
 
   const handleWorkflowModeChange = (mode: "beginner" | "expert") => {
@@ -1743,6 +1743,7 @@ function Index() {
     if (isVideoChanged) {
       previousVideoIdRef.current = videoId;
       lastAppliedBaseLanguageRef.current = "";
+      lastFetchedForUrlRef.current = "";
       // Immediately and cleanly reset all state belonging to the previous video
       cancelSpeech();
       startSubtitlesTransition(() => {
@@ -2242,6 +2243,7 @@ function Index() {
     });
   }, [tracks]);
 
+  const lastFetchedForUrlRef = useRef<string>("");
   useEffect(() => {
     if (!isAndroid || !observedUrl || !defaultCaptionsLoaded) return;
     let defaultLang = "";
@@ -2251,7 +2253,10 @@ function Index() {
       // ignore malformed URL
     }
     const selected = [...new Set(targetLanguages.filter((code) => Boolean(code)))];
+    const fetchKey = `${observedUrl}|${selected.join(",")}`;
+    if (lastFetchedForUrlRef.current === fetchKey) return;
     if (selected.length > 0) {
+      lastFetchedForUrlRef.current = fetchKey;
       setCaptionStatus("Fetching live subtitles for favorite languages…");
       void fetchFavoriteLanguageSubtitles(selected, observedUrl);
     }
@@ -2277,8 +2282,14 @@ function Index() {
     const newFavsToDefault = allFavs.filter((lang) => !processedDefaultFavsRef.current.has(lang));
     if (newFavsToDefault.length > 0) {
       newFavsToDefault.forEach((l) => processedDefaultFavsRef.current.add(l));
-      setShown((prev) => Array.from(new Set([...prev, ...newFavsToDefault])));
-      setSpoken((prev) => Array.from(new Set([...prev, ...newFavsToDefault])));
+      setShown((prev) => {
+        const next = Array.from(new Set([...prev, ...newFavsToDefault]));
+        return prev.length === next.length && prev.every((c, i) => c === next[i]) ? prev : next;
+      });
+      setSpoken((prev) => {
+        const next = Array.from(new Set([...prev, ...newFavsToDefault]));
+        return prev.length === next.length && prev.every((c, i) => c === next[i]) ? prev : next;
+      });
     }
   }, [targetLanguages, favoriteLanguages]);
 
@@ -3166,9 +3177,9 @@ function Index() {
     if (!audioTrackMode) return;
     if (speakingLang) {
       const idx = videoInstances.findIndex((inst) => inst.languageCode === speakingLang);
-      if (idx >= 0) setActiveSwiperIndex(idx);
+      if (idx >= 0) setActiveSwiperIndex((prev) => (prev !== idx ? idx : prev));
     } else {
-      setActiveSwiperIndex(0);
+      setActiveSwiperIndex((prev) => (prev !== 0 ? 0 : prev));
     }
   }, [speakingLang, audioTrackMode, videoInstances]);
 

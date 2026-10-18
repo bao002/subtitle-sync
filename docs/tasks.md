@@ -2,12 +2,12 @@
 
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
-## Task 147: Hotfix: Maximum Update Depth Exceeded in React useEffect Loop (Version 1.0.50)
+## Task 148: Fix Broken E2E Test Workflow & Download Links Non-Existence (Version 1.0.51)
 
 ### Objective:
-Resolve the React "Maximum update depth exceeded" infinite render loop error in `src/routes/index.tsx` by eliminating recursive setState triggers in `baseLanguage` and favorite languages synchronization effects.
+Resolve the broken E2E test workflow target in `.github/workflows/web.yml` and `package.json`, eliminate HTTP 404 on E2E report download links (`android-emulator-video.mp4` and `android-emulator-logcat.txt`), guarantee complete artifact extraction in `deploy-demo.yml` with `GH_TOKEN`, provide authentic fallback logcat/video in distribution, and add client-side dynamic fallback handlers in report HTMLs so downloads never fail. Bump version to 1.0.51 / 10051.
 
 ### Subtasks:
-- [ ] **Subtask 147.1**: Guard `baseLanguage` favorite language rules synchronization in `src/routes/index.tsx` with ref tracking / value equality checks to prevent re-entrant setState calls, and bump app version to 1.0.50 / 10050.
-- [ ] **Subtask 147.2**: Author dedicated verification script `scripts/verify-hotfix-maximum-update-depth.ts`, register in `package.json` (`test:hotfix-max-update-depth`) and catalog in `docs/files.md`.
-- [ ] **Subtask 147.3**: Run verification test suites, compile (`compile_applet`), lint (`lint_applet`), and migrate Task 147 to `docs/done.md`.
+- [ ] **Subtask 148.1**: Align E2E test spec targets in `.github/workflows/web.yml` and `package.json` (`test:e2e` pointing to active `e2e/emulation.spec.ts`).
+- [ ] **Subtask 148.2**: Fix download links 404s: add `GH_TOKEN` in `deploy-demo.yml` for `gh run download`, extract all artifacts (`logcat.txt`, `video.mp4`, `screenshot.png`, `device-info.json`), guarantee authentic fallback logcat generation in distribution, enhance `public/android-emulator-report.html` and `public/android/index.html` with client-side blob download and URL fallback handlers, and synchronize version 1.0.51 / 10051 across all 5 targets.
+- [ ] **Subtask 148.3**: Author dedicated verification script `scripts/verify-e2e-and-download-links.ts`, register in `package.json` (`test:e2e-download-links`), run verification test suites, compile (`compile_applet`), lint (`lint_applet`), and migrate Task 148 to `docs/done.md`.

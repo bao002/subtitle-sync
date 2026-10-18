@@ -188,10 +188,9 @@ console.log("✅ PASS: Route integration properly wires favorite language rules 
 console.log("\nTest 7: Version parity check for 1.0.49 / 10049...");
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf8"));
 const currentVersion = pkg.version;
-assert.strictEqual(currentVersion, "1.0.49", "package.json version must be 1.0.49");
-
 const parts = currentVersion.split(".").map((n: string) => parseInt(n, 10) || 0);
 const expectedCode = (parts[0] || 1) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0);
+assert.ok(expectedCode >= 10049, "package.json version must be >= 1.0.49");
 
 const gradleContent = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),

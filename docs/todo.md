@@ -1,6 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 147.1 - Resolve Recursive Re-render Cycle in src/routes/index.tsx
-- **Task**: Task 147 - Hotfix: Maximum Update Depth Exceeded (Version 1.0.50)
+## Active Subtask: Subtask 148.1 - Align E2E Test Spec Targets in web.yml and package.json
+- **Task**: Task 148 - Fix Broken E2E Test Workflow & Download Links Non-Existence (Version 1.0.51)
 - **Status**: [IN PROGRESS]
-- **Target**: Eliminate infinite setState loop in `baseLanguage` and favorite languages effects in `src/routes/index.tsx`. Bump version to 1.0.50 / 10050.
+- **Target**: Update `.github/workflows/web.yml` and `package.json` so E2E test commands point to active `e2e/emulation.spec.ts` instead of missing quarantined `e2e/web.spec.ts`.
