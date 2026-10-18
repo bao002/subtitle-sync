@@ -83,6 +83,8 @@ import {
   setOnDemandTranslationSentencesAhead,
   getOpenRouterApiKeySetting,
   setOpenRouterApiKeySetting,
+  getExcludeDefaultSubtitlesFromTTSSetting,
+  setExcludeDefaultSubtitlesFromTTSSetting,
 } from "@/utils/appSettings";
 import { getAppStateFromUrl } from "@/utils/urlStateManager";
 import { ShareStateModal } from "@/components/ShareStateModal";
@@ -740,8 +742,14 @@ function Index() {
   const [spoken, setSpoken] = useState<string[]>(() => {
     const favs = getInitialFavoriteLanguages();
     const targets = getInitialTargetLanguages();
-    return Array.from(new Set([...favs, ...targets]));
+    const all = Array.from(new Set([...favs, ...targets]));
+    if (getExcludeDefaultSubtitlesFromTTSSetting()) {
+      return all.filter((code) => code !== "en");
+    }
+    return all;
   });
+  const [excludeDefaultSubtitlesFromTTS, setExcludeDefaultSubtitlesFromTTSState] =
+    useState<boolean>(() => getExcludeDefaultSubtitlesFromTTSSetting());
 
   const handleUpdateFavoriteLanguages = (newFavs: string[]) => {
     const addedFavs = newFavs.filter((l) => !favoriteLanguages.includes(l));
@@ -870,6 +878,12 @@ function Index() {
     }
     return "";
   }, [observedUrl, tracks]);
+
+  useEffect(() => {
+    if (baseLanguage && excludeDefaultSubtitlesFromTTS) {
+      setSpoken((prev) => prev.filter((lang) => lang !== baseLanguage));
+    }
+  }, [baseLanguage, excludeDefaultSubtitlesFromTTS]);
 
   const tracksRef = useRef<Record<string, Json3> | null>(tracks);
   tracksRef.current = tracks;
@@ -5054,6 +5068,35 @@ function Index() {
                                 onChange={(e) => {
                                   setSpeakLanguageNameOnFetchState(e.target.checked);
                                   setSpeakLanguageNameOnFetchSetting(e.target.checked);
+                                }}
+                                className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                              <div className="space-y-0.5">
+                                <label
+                                  htmlFor="exclude-default-subtitles-tts-toggle"
+                                  className="text-xs font-medium text-foreground cursor-pointer"
+                                >
+                                  Exclude default subtitles from TTS-play
+                                </label>
+                                <div className="text-[11px] text-muted-foreground">
+                                  By default, exclude the video's default/original language from
+                                  speech playback
+                                </div>
+                              </div>
+                              <input
+                                type="checkbox"
+                                id="exclude-default-subtitles-tts-toggle"
+                                data-testid="exclude-default-subtitles-tts-toggle"
+                                checked={excludeDefaultSubtitlesFromTTS}
+                                onChange={(e) => {
+                                  const val = e.target.checked;
+                                  setExcludeDefaultSubtitlesFromTTSState(val);
+                                  setExcludeDefaultSubtitlesFromTTSSetting(val);
+                                  if (val && baseLanguage) {
+                                    setSpoken((prev) => prev.filter((l) => l !== baseLanguage));
+                                  }
                                 }}
                                 className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
                               />

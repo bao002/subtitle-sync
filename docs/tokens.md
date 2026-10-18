@@ -4,13 +4,14 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Exclude Default Subtitles from TTS-Play by Default (Task 142)
+## Active Prompt: Permanent Android Continuous Background Audio & Video Playback (Task 144)
 
-- **Target 1**: Bump app version to 1.0.45 across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
-- **Target 2**: Add `excludeDefaultSubtitlesFromTTS` setting (default `true`) to `AppSettings` with storage helpers.
-- **Target 3**: Update `src/routes/index.tsx` so default subtitles / baseLanguage is excluded from `spoken` TTS-play by default upon detection or track loading.
-- **Target 4**: Update `BeginnerFlowContainer.tsx` to exclude base language from spoken TTS / favorite target languages by default.
-- **Target 5**: Implement dedicated automated verification script (`scripts/verify-exclude-default-subtitles-tts.ts`), run compilation, lint, git commit, and log to `docs/done.md`.
+- **Target 1**: Bump app version to 1.0.47 / 10047 across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Target 2**: Implement `BackgroundPlayableWebView` in `MainActivity.kt` overriding `onWindowVisibilityChanged` to always pass `View.VISIBLE` to Chromium, preventing background media freezes.
+- **Target 3**: Implement proactive `AudioManager` Audio Focus acquisition (`AUDIOFOCUS_GAIN`) and media attributes in `BackgroundAudioService.kt`.
+- **Target 4**: Auto-start `BackgroundAudioService` on initialization and when playback begins to guarantee persistent foreground service and wake lock lifecycle.
+- **Target 5**: Update `## Last raw prompt` in `AGENTS.md` with verbatim prompt.
+- **Target 6**: Implement dedicated automated test (`scripts/verify-continuous-background-playback.ts`), compile, lint, commit, and migrate to `docs/done.md`.
 
 ---
 

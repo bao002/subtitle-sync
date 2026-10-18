@@ -1,13 +1,11 @@
 # Current Subtask (`current-sub-task.md`)
 
-## Active Subtask: Subtask 142.3 - Exclude Default Subtitles from Spoken TTS by Default
-- **Task**: Task 142 - By Default Exclude Default Subtitles from TTS-Play
+## Active Subtask: Subtask 144.1 - Bump Application Version to 1.0.47
+- **Task**: Task 144 - Permanent Android Continuous Background Audio & Video Playback (Version 1.0.47)
 - **Status**: [IN PROGRESS]
-- **Focus**:
-  - In `src/routes/index.tsx`:
-    - Ensure `getInitialFavoriteLanguages` / `spoken` initialization excludes `baseLanguage` / default caption language by default when `getExcludeDefaultSubtitlesFromTTSSetting()` is enabled.
-    - When tracks/captions are loaded or intercepted, do not auto-include `defaultLang` / `baseLanguage` in `spoken`.
-    - Automatically filter out `baseLanguage` from `spoken` by default upon base language discovery.
-  - In `BeginnerFlowContainer.tsx`:
-    - When a base subtitle is selected, exclude it from target/favorite languages for TTS speech.
-    - In `DEFAULT_APP_SETTINGS`, initialize `beginnerFavoriteLangs` without the base language.
+- **Target**: Synchronize semantic version `1.0.47` and versionCode `10047` across all 5 targets:
+  - `package.json`
+  - `android-shell/app/build.gradle.kts`
+  - `src/config/appConfig.ts`
+  - `src/utils/apkUpdater.ts`
+  - `src/utils/appSettings.ts`
