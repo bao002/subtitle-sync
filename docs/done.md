@@ -1,5 +1,37 @@
 # Done tasks
 
+## Task 147: Hotfix: Maximum Update Depth Exceeded in React useEffect Loop (Version 1.0.50)
+
+### Summary:
+
+- **Recursive Re-render & State Convergence Stabilization (`src/routes/index.tsx`)**:
+  - Eliminated the React error "Maximum update depth exceeded" triggered by uncontrolled recursive state synchronization cycles when applying favorite language rules upon detecting `baseLanguage`.
+  - Added `lastAppliedBaseLanguageRef` tracking the last applied baseLanguage value to prevent re-entrant execution of the rules application effect.
+  - Replaced mutable external state reads with `favoriteLanguagesRef` to prevent unstable effect dependency churn.
+  - Implemented strict value-equality guards across all state setters (`setFavoriteLanguagesState`, `setTargetLanguages`, `setLanguageOrder`, `setShown`, and `setSpoken`), returning previous array references (`prev`) when element contents and lengths match, preventing reference-driven re-renders.
+  - Guarded `missingInShown` synchronization effect by utilizing functional updaters and removing circular dependencies on `shown`.
+  - Added `lastFetchedForUrlRef` guard to `fetchFavoriteLanguageSubtitles` invocation effect to prevent repeated network dispatches for the same video and language selection.
+  - Guarded swiper index synchronization (`setActiveSwiperIndex`) with equality checks to avoid unnecessary state transitions.
+- **Application Version Synchronization (1.0.50 / 10050)**:
+  - Synchronized semantic version `1.0.50` and versionCode `10050` across all 5 version targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Automated Verification**:
+  - Authored dedicated test suite `scripts/verify-hotfix-maximum-update-depth.ts` (`npm run test:hotfix-max-update-depth`) asserting:
+    1. `lastAppliedBaseLanguageRef` tracking and guards in `src/routes/index.tsx`.
+    2. State setters shallow equality guards returning previous references when unchanged.
+    3. `missingInShown` synchronization effect avoiding circular dependency on `shown`.
+    4. `setLanguageOrder` effect array equality guard.
+    5. Behavioral simulation verifying immediate 1-step stable convergence with zero loops.
+    6. Complete version parity across all 5 targets (`1.0.50` / `10050`).
+  - Registered `test:hotfix-max-update-depth` script in `package.json` and cataloged in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:hotfix-max-update-depth`: PASSED (100% verified, 6/6 tests).
+  - `npm run test:video-sharing-favorite-rules`: PASSED (100% verified, 7/7 tests).
+  - `npx tsx scripts/verify-apk-version-and-releases.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-no-floating-notifications-tab.ts`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
 ## Task 146: Video Link Sharing Favorite Language Rules (Version 1.0.49)
 
 ### Summary:
