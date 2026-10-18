@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Base64
 import android.util.Log
+import android.view.View
 import android.webkit.ConsoleMessage
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
@@ -35,6 +36,18 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 /**
+ * Custom WebView that prevents Chromium from suspending or pausing media playback
+ * when the app moves to the background or screen turns off.
+ * Overriding onWindowVisibilityChanged to always supply View.VISIBLE keeps the internal
+ * media engine, timers, and playback pipeline continuously active.
+ */
+open class BackgroundPlayableWebView(context: Context) : WebView(context) {
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(View.VISIBLE)
+    }
+}
+
+/**
  * Android Native Shell Activity
  * Intercepts YouTube caption HTTP requests (youtube.com/api/timedtext)
  * via WebViewClient.shouldInterceptRequest, reads raw XML/JSON3 bytes,
@@ -43,7 +56,7 @@ import java.util.Locale
  */
 class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
-    private lateinit var webView: WebView
+    private lateinit var webView: BackgroundPlayableWebView
     private val okHttpClient = OkHttpClient.Builder().build()
     // Link-only client: no cookie jar, no captured headers (like pasting the URL in a browser)
     private val anonHttpClient = OkHttpClient.Builder().build()
@@ -118,8 +131,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         // Automatic OTA cache invalidation on native upgrade
         clearOtaCacheOnApkUpgrade()
 
-        webView = WebView(this)
+        webView = BackgroundPlayableWebView(this)
         setContentView(webView)
+
+        // Ensure BackgroundAudioService is initialized for continuous background playback, notification, and wake lock
+        try {
+            BackgroundAudioService.startService(this)
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not auto-start BackgroundAudioService in onCreate: ${e.message}")
+        }
 
         // Dark background prevents white flash during page transitions
         webView.setBackgroundColor(Color.parseColor("#0f0f12"))

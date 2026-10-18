@@ -1,6 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 144.1 - Bump Application Version to 1.0.47
-- **Task**: Task 144 - Permanent Android Continuous Background Audio & Video Playback (Version 1.0.47)
+## Active Subtask: Subtask 146.1 - Video Link Sharing Favorite Language Rules Implementation
+- **Task**: Task 146 - Video Link Sharing Favorite Language Rules (Version 1.0.48)
 - **Status**: [IN PROGRESS]
-- **Target**: Synchronize semantic version `1.0.47` and versionCode `10047` across version targets.
+- **Target**: Implement video sharing favorite language rules: add detected/default language at bottom, reset tts-play checkbox to only top language, persist order to localStorage, and allow multi-selection.
