@@ -47,6 +47,9 @@
 - **Always keep last raw prompt in AGENTS.md**:
   - `AGENTS.md` must continuously record and preserve the exact, unedited raw text of the user's latest prompt in a dedicated `## Last raw prompt` section.
   - On EVERY single prompt received, before or alongside executing actions, the agent MUST update the `## Last raw prompt` section in `AGENTS.md` with the verbatim prompt received. This guarantees that user requirements and exact phrasing are never lost between prompt turns or context compressions.
+- **Later tasks protocol**:
+  - Any "later" task (from prompts starting with or containing "later" / "for later" / "- later" etc.) MUST be stored at the bottom of the tasks backlog under a dedicated `## Later Tasks` section in `docs/tasks.md` (and cataloged in `docs/later.md`).
+  - When all planned active tasks for a prompt are completed and verified, the agent must ask the user if they would like to proceed with processing tasks from the "later" section.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
 - Check the last GitHub Actions result and fix failed flows: continuously monitor and verify GitHub Actions workflow outcomes (such as `web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, and `integrity.yml`), diagnose the root cause of any broken or failing CI steps, and fix failed workflows promptly.
 
@@ -163,6 +166,15 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on
+0. AGENTS.md - any "later" task (a prompts which starts with the words "later" / "for later" / "- later" etc) should be stored on the bottom of tasks under "later". if all tasks were done - ask the user if he wants to process tasks from the "later" section.
+
+2. changing the parser option should:
+- reset the page state so that no playing will go on (stop playbacks and any ongoing actions)
+- update the subtitles view layout based on the new devision for all cached subtitles
+- update on-demand translations according to the default translation
+- later: add confirmation option: this is beneficial in order to show the difference based on the new settings (show the actual effect by highlighging the differences while allow to press next to view the next record which changed based on that settings)
+
+1. library - show the last time the user used that video. order based on the user interaction. 
+- later: if it is possible client-side only - also get the video description, title, default subtitles and all other free info
 ```
 

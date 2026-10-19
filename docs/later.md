@@ -80,3 +80,12 @@
 - [x] **Subtask 16.3: YouTube multi-audio track repeat mode**: Add an option to switch to "Audio-track mode" (repeating video segments with the native audio track for supported languages instead of synthesized TTS). Default this option to OFF.
 - [x] **Subtask 16.4: Disable auto-focus and scroll by default**: Change "Auto-focus and scroll to current subtitle" (`autoScroll`) to default to `false` (off).
 - [x] **Subtask 16.5: E2E testing & verification**: Update and verify test suites (`e2e/web.spec.ts`, `e2e/app.spec.ts`, `e2e/emulation.spec.ts`), commit before testing, and run `npm run build`, `npm run lint`, and integrity tests.
+
+---
+
+## Pending Later Tasks
+
+The following tasks were requested as "later" tasks and are stored here to be processed upon user request after all active tasks are complete:
+
+- [ ] **Later Task 1: Parser Option Difference Confirmation & Preview**: Add confirmation option to show the difference based on the new parser settings (show the actual effect by highlighting differences while allowing to press next to view the next record that changed based on those settings).
+- [ ] **Later Task 2: Client-Side Video Metadata Extraction**: If possible client-side only, get video description, title, default subtitles, and all other free info without backend requirements.

@@ -4,13 +4,14 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Ensure TTS-Play Works & Seamless Mode Switching (Task 145)
+## Active Prompt: Parser Settings Reset, Library Last-Used Ordering, & Later Tasks Protocol (Task 146)
 
-- **Chapter 1 (Task 145)**: Ensure TTS-Play Works & Seamless Bidirectional Mode Switching (Version 1.0.47) [COMPLETED & VERIFIED]
-  - Subtask 145.1: Bump application version to 1.0.47 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) [VERIFIED & COMPLETED].
-  - Subtask 145.2: Implement effortless bidirectional mode switching between Beginner Mode and Advanced Studio with unified state and 1-click header/nav switches [VERIFIED & COMPLETED].
-  - Subtask 145.3: Ensure robust TTS-play functionality in both Beginner and Advanced modes with on-demand cue pronunciation and synchronized narration order & speed [VERIFIED & COMPLETED].
-  - Subtask 145.4: Author dedicated automated test (`scripts/verify-tts-play-and-mode-switching.ts`), verify compilation, lint, and migrate to `docs/done.md` [VERIFIED & COMPLETED].
+- **Chapter 1 (Task 146)**: Parser Settings Reset & Subtitles View Update, Library Last-Used Display & Ordering, & Later Tasks Protocol (Version 1.0.48)
+  - Subtask 146.1: Version bump to 1.0.48 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) [ACTIVE].
+  - Subtask 146.2: AGENTS.md later tasks protocol & staging later tasks under `## Later Tasks` in `docs/tasks.md` and `docs/later.md`.
+  - Subtask 146.3: Video Library enhancements — show last used time on video cards and order based strictly on user interaction timestamp (most recent first).
+  - Subtask 146.4: Parser options change handling — reset page playing state, update subtitles view layout for all cached subtitles according to new division, reset and update on-demand translations.
+  - Subtask 146.5: Dedicated automated test (`scripts/verify-parser-options-reset-and-library-ordering.ts`), verify compilation, lint, and migrate to `docs/done.md`.
 
 ---
 

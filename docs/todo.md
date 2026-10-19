@@ -1,6 +1,5 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Status: All subtasks for Task 145 COMPLETED & VERIFIED
-- **Task**: Task 145 - Ensure TTS-Play Functionality & Seamless Bidirectional Mode Switching (Version 1.0.47)
-- **Status**: [COMPLETED]
-- **Target**: Task 145 verified and archived in `docs/done.md`. Next task: Task 144.
+## Active Subtask: Subtask 146.3 - Video Library enhancements: display last-used time & order strictly by user interaction
+- **Parent Task**: Task 146 - Parser Settings Reset, Library Last-Used Ordering, and Later Tasks Protocol (Version 1.0.48)
+- **Status**: [ACTIVE]
