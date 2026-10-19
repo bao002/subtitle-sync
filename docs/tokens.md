@@ -6,11 +6,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ## Active Prompt: Ensure TTS-Play Works & Seamless Mode Switching (Task 145)
 
-- **Chapter 1 (Task 145)**: Ensure TTS-Play Works & Seamless Bidirectional Mode Switching (Version 1.0.47)
-  - Subtask 145.1: Bump application version to 1.0.47 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-  - Subtask 145.2: Implement effortless bidirectional mode switching between Beginner Mode and Advanced Studio with unified state and 1-click header/nav switches.
-  - Subtask 145.3: Ensure robust TTS-play functionality in both Beginner and Advanced modes with on-demand cue pronunciation and synchronized narration order & speed.
-  - Subtask 145.4: Author dedicated automated test (`scripts/verify-tts-play-and-mode-switching.ts`), verify compilation, lint, and migrate to `docs/done.md`.
+- **Chapter 1 (Task 145)**: Ensure TTS-Play Works & Seamless Bidirectional Mode Switching (Version 1.0.47) [COMPLETED & VERIFIED]
+  - Subtask 145.1: Bump application version to 1.0.47 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) [VERIFIED & COMPLETED].
+  - Subtask 145.2: Implement effortless bidirectional mode switching between Beginner Mode and Advanced Studio with unified state and 1-click header/nav switches [VERIFIED & COMPLETED].
+  - Subtask 145.3: Ensure robust TTS-play functionality in both Beginner and Advanced modes with on-demand cue pronunciation and synchronized narration order & speed [VERIFIED & COMPLETED].
+  - Subtask 145.4: Author dedicated automated test (`scripts/verify-tts-play-and-mode-switching.ts`), verify compilation, lint, and migrate to `docs/done.md` [VERIFIED & COMPLETED].
 
 ---
 

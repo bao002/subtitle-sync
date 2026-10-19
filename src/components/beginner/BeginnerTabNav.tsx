@@ -1,5 +1,6 @@
 import React from "react";
-import { Tv, Sliders, Split, PlayCircle, Lock, Check } from "lucide-react";
+import { Tv, Sliders, Split, PlayCircle, Lock, Check, SlidersHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export type BeginnerTabId = "video" | "preferences" | "parsing" | "player";
 
@@ -9,6 +10,7 @@ export interface BeginnerTabNavProps {
   isUnlocked: boolean; // True when base subtitle is selected
   hasBaseSubtitle: boolean;
   baseLanguageName?: string;
+  onSwitchToAdvanced?: () => void;
 }
 
 export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
@@ -17,6 +19,7 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
   isUnlocked,
   hasBaseSubtitle,
   baseLanguageName,
+  onSwitchToAdvanced,
 }) => {
   const tabs: Array<{
     id: BeginnerTabId;
@@ -118,6 +121,23 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
             </button>
           );
         })}
+
+        {onSwitchToAdvanced && (
+          <div className="shrink-0 pl-1">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onSwitchToAdvanced}
+              className="h-8 px-2.5 text-xs text-indigo-300 hover:text-indigo-100 hover:bg-indigo-950/70 border-indigo-700/60 rounded-lg flex items-center gap-1.5 transition-colors"
+              data-testid="nav-switch-to-advanced"
+              title="Switch to Advanced Studio (Full Controls)"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden sm:inline">Advanced Studio</span>
+            </Button>
+          </div>
+        )}
       </div>
     </nav>
   );

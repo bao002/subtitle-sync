@@ -478,9 +478,14 @@ function speak(
           });
         };
         let resolved = false;
+        let safetyTimer: ReturnType<typeof setTimeout> | null = null;
         const done = async (isError?: boolean) => {
           if (resolved) return;
           resolved = true;
+          if (safetyTimer) {
+            clearTimeout(safetyTimer);
+            safetyTimer = null;
+          }
           if (typeof window !== "undefined") {
             (
               window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }
@@ -494,6 +499,11 @@ function speak(
         };
         u.onend = () => done(false);
         u.onerror = () => done(true);
+        const timeoutMs = Math.max(
+          3000,
+          (text.length / 5) * (1000 / (normalizedRate || 0.5)) + 3000,
+        );
+        safetyTimer = setTimeout(() => done(false), timeoutMs);
         if (typeof window !== "undefined") {
           (
             window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }
@@ -2886,14 +2896,30 @@ function Index() {
               playedTtsRecords.current,
             ),
         );
+        if (matched.length > 0) return matched;
         // When audioTrackMode is enabled with no spoken languages selected,
         // fallback to base / primary language so the original video repeats the section with native audio
-        if (matched.length === 0 && isAudioTrackMode && spoken.length === 0) {
+        if (isAudioTrackMode && spoken.length === 0) {
           const fallbackLang = orderedLangs.find((l) => l.code === currentBaseLanguage) ||
             orderedLangs[0] || { code: "primary", tts: "en-US", name: "Primary" };
           return [fallbackLang];
         }
-        return matched;
+        // In beginner mode or default playback if spoken list is empty, speak the first available target/base subtitle
+        if (spoken.length === 0 && orderedLangs.length > 0) {
+          const fallbackLang =
+            orderedLangs.find((l) => l.code !== currentBaseLanguage) || orderedLangs[0];
+          if (
+            fallbackLang &&
+            isSubtitleInstanceEligibleForTTS(
+              rowIdx,
+              currentTtsRatios?.[fallbackLang.code] ?? 1,
+              playedTtsRecords.current,
+            )
+          ) {
+            return [fallbackLang];
+          }
+        }
+        return [];
       };
 
       const speakRow = async (rowIdx: number) => {
@@ -3278,6 +3304,37 @@ function Index() {
             v{APP_VERSION}
             <ExternalLink className="h-2.5 w-2.5 opacity-70" />
           </a>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() =>
+              handleWorkflowModeChange(workflowMode === "beginner" ? "expert" : "beginner")
+            }
+            className={`h-6 px-2 text-[11px] font-medium rounded-full border flex items-center gap-1 transition-all ${
+              workflowMode === "beginner"
+                ? "bg-emerald-950/40 text-emerald-300 border-emerald-700/60 hover:bg-emerald-900/50"
+                : "bg-indigo-950/40 text-indigo-300 border-indigo-700/60 hover:bg-indigo-900/50"
+            }`}
+            data-testid="header-mode-toggle"
+            title={
+              workflowMode === "beginner"
+                ? "Switch to Advanced Studio (Full Controls)"
+                : "Switch to Guided Beginner Mode"
+            }
+          >
+            {workflowMode === "beginner" ? (
+              <>
+                <SlidersHorizontal className="h-3 w-3 text-emerald-400" />
+                <span>To Advanced Studio</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-3 w-3 text-indigo-400" />
+                <span>To Beginner Mode</span>
+              </>
+            )}
+          </Button>
           <span className="text-sm text-muted-foreground">
             video {videoId} · {rows.length} sections ·{" "}
             {isAndroid ? "live Android captions" : "fixture demo"}
@@ -3582,6 +3639,49 @@ function Index() {
             ) : undefined
           }
           hasSubtitles={hasLegitimateSubtitles && rows.length > 0}
+          onOrderChange={(newOrder) => {
+            const prefOrder = newOrder === "tts-first" ? "tts-first" : "video-first";
+            setSectionOrderState(prefOrder);
+            saveSectionOrder(prefOrder);
+          }}
+          onTtsSpeedChange={(newSpeed) => {
+            setRates((prev) => {
+              const updated = { ...prev };
+              Object.keys(updated).forEach((k) => {
+                updated[k] = newSpeed;
+              });
+              return updated;
+            });
+          }}
+          onTtsVoiceChange={(voiceURI) => {
+            if (baseLanguage) {
+              setVoiceSelections((prev) => ({ ...prev, [baseLanguage]: voiceURI }));
+            }
+          }}
+          onSubtitlesRatioChange={(ratio) => {
+            setTtsRatios((prev) => {
+              const updated = { ...prev };
+              Object.keys(updated).forEach((k) => {
+                updated[k] = ratio;
+              });
+              return updated;
+            });
+          }}
+          onFavoriteLanguagesChange={(newFavs) => {
+            handleUpdateFavoriteLanguages(newFavs);
+          }}
+          onBaseLangChange={(lang) => {
+            if (!spoken.includes(lang)) {
+              setSpoken((prev) => [...prev, lang]);
+            }
+          }}
+          onSpeakCue={(text, lang) => {
+            const rate = rates[lang] ?? 0.8;
+            const voice = voiceSelections[lang] || "";
+            void speak(text, lang, rate, voice, -1, () => {});
+          }}
+          speakingLang={speakingLang}
+          onSwitchToAdvanced={() => handleWorkflowModeChange("expert")}
           subtitlesTableSlot={
             <SubtitlesTablePanel
               isAndroid={isAndroid}
@@ -3602,204 +3702,16 @@ function Index() {
               ttsRatios={ttsRatios}
               hasCachedAi={hasCachedAi}
               onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
+              onSpeakCue={(text, lang) => {
+                const rate = rates[lang] ?? 0.8;
+                const voice = voiceSelections[lang] || "";
+                void speak(text, lang, rate, voice, -1, () => {});
+              }}
             />
           }
         />
       ) : (
         <>
-          <header
-            className="flex flex-wrap items-center gap-4 border-b border-border px-6 py-4"
-            data-app-hydrated={isHydrated ? "true" : undefined}
-          >
-            <div className="mr-auto flex items-baseline gap-3 flex-wrap">
-              <h1 className="font-display text-2xl">Parallel Subtitles</h1>
-              <a
-                href={ALL_RELEASES_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-testid="header-app-version-badge"
-                className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-mono font-medium text-primary hover:bg-primary/20 transition-colors"
-                title="Browse All GitHub Releases & Versions"
-              >
-                v{APP_VERSION}
-                <ExternalLink className="h-2.5 w-2.5 opacity-70" />
-              </a>
-              <span className="text-sm text-muted-foreground">
-                video {videoId} · {rows.length} sections ·{" "}
-                {isAndroid ? "live Android captions" : "fixture demo"}
-              </span>
-            </div>
-
-            <div
-              id="top-tabs-nav"
-              data-testid="top-tabs-nav"
-              className="flex items-center rounded-lg border border-border bg-card p-1 shadow-sm"
-              role="tablist"
-              aria-label="App Navigation Tabs"
-            >
-              <button
-                id="tab-viewer"
-                data-testid="tab-viewer"
-                role="tab"
-                aria-selected={activeTopTab === "viewer"}
-                type="button"
-                onClick={() => setActiveTopTab("viewer")}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
-                  activeTopTab === "viewer"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <LayoutList className="h-3.5 w-3.5" />
-                <span>Parallel Viewer</span>
-              </button>
-              <button
-                id="tab-playground"
-                data-testid="tab-playground"
-                role="tab"
-                aria-selected={activeTopTab === "playground"}
-                type="button"
-                onClick={() => {
-                  setActiveTopTab("playground");
-                  cancelSpeech();
-                  try {
-                    player.current?.pauseVideo?.();
-                  } catch {
-                    // ignore
-                  }
-                }}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
-                  activeTopTab === "playground"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Tv className="h-3.5 w-3.5" />
-                <span>Playground</span>
-                {Object.keys(detectedPlaygroundTracks).length > 0 && (
-                  <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-[10px] font-mono font-bold">
-                    {Object.keys(detectedPlaygroundTracks).length}
-                  </span>
-                )}
-              </button>
-              <button
-                id="tab-ai-punctuation"
-                data-testid="tab-ai-punctuation"
-                role="tab"
-                aria-selected={activeTopTab === "ai-punctuation"}
-                type="button"
-                onClick={() => {
-                  setActiveTopTab("ai-punctuation");
-                  cancelSpeech();
-                  try {
-                    player.current?.pauseVideo?.();
-                  } catch {
-                    // ignore
-                  }
-                }}
-                className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
-                  activeTopTab === "ai-punctuation"
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>AI Punctuation</span>
-                {hasCachedAi && (
-                  <span
-                    data-testid="tab-ai-cached-indicator"
-                    className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold"
-                    title="Cached AI subtitles available"
-                  >
-                    Cached
-                  </span>
-                )}
-              </button>
-            </div>
-
-            <div
-              className="flex items-center gap-1 rounded-md border border-border bg-card p-1"
-              aria-label="Color theme"
-            >
-              {(["light", "dark", "dark-blue"] as const).map((option) => (
-                <Button
-                  key={option}
-                  type="button"
-                  size="sm"
-                  variant={theme === option ? "default" : "ghost"}
-                  onClick={() => {
-                    themeWasSelectedRef.current = true;
-                    setTheme(option);
-                  }}
-                  aria-pressed={theme === option}
-                  title={`${option === "dark-blue" ? "Dark blue" : option === "light" ? "Light" : "Dark"} theme`}
-                  className="gap-1.5 capitalize"
-                >
-                  {option === "light" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-                  {option === "dark-blue" ? "Blue" : option}
-                </Button>
-              ))}
-            </div>
-            {debugMode && (
-              <Button
-                id="open-network-inspector-button"
-                data-testid="open-network-inspector-button"
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={() => setNetworkInspectorOpen(true)}
-                className="gap-1.5"
-                title="Inspect live network requests and response body preview"
-              >
-                <Activity className="h-4 w-4 text-blue-500" />
-                <span className="hidden sm:inline">Network</span>
-                <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-mono font-bold">
-                  {networkRequests.length}
-                </span>
-              </Button>
-            )}
-            <Button
-              id="caption-toggle-button"
-              data-testid="caption-toggle-button"
-              type="button"
-              size="sm"
-              variant={showVideoSubtitles ? "default" : "outline"}
-              aria-pressed={showVideoSubtitles}
-              onClick={() => setShowVideoSubtitles((prev) => !prev)}
-              className="gap-1.5"
-              title="Toggle video subtitles"
-            >
-              <Subtitles className="h-4 w-4" />
-              <span className="hidden sm:inline">Captions</span>
-            </Button>
-            <Button
-              id="open-apk-release-button"
-              data-testid="open-apk-release-button"
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setApkModalOpen(true)}
-              className="gap-1.5 border-emerald-500/50 hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-              title="Download latest APK release (mostuf2556 & mostuf25561)"
-            >
-              <Smartphone className="h-4 w-4 text-emerald-500" />
-              <span className="hidden sm:inline">Latest APK</span>
-            </Button>
-            <Button
-              id="open-share-modal-button"
-              data-testid="open-share-modal-button"
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setShareModalOpen(true)}
-              className="gap-1.5 border-primary/40 hover:bg-primary/10 text-primary"
-              title="Share application state with default subtitles, OpenRouter key, and target language"
-            >
-              <Share2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
-          </header>
-
           {activeTopTab === "playground" ? (
             <VideoPlayground
               videoId={videoId}

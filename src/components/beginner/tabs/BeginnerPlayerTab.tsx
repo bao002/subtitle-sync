@@ -33,6 +33,8 @@ export interface BeginnerPlayerTabProps {
   onBackToPreferences?: () => void;
   onBackToParsing?: () => void;
   subtitlesTableSlot?: React.ReactNode;
+  onSpeakCue?: (text: string, lang: string) => void;
+  speakingLang?: string | null;
 }
 
 export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
@@ -47,6 +49,8 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
   onBackToPreferences,
   onBackToParsing,
   subtitlesTableSlot,
+  onSpeakCue,
+  speakingLang,
 }) => {
   // Find currently active cue index
   const activeCueIndex = useMemo(() => {
@@ -98,6 +102,31 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
             <Clock className="w-3 h-3 text-slate-500" />
             <span>{fmt(currentTime)}</span>
           </div>
+
+          {onSpeakCue && cues.length > 0 && (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                const targetCue = activeCueIndex >= 0 ? cues[activeCueIndex] : cues[0];
+                if (targetCue) {
+                  const textToSpeak = targetCue.targetText || targetCue.baseText;
+                  const langToSpeak =
+                    targetCue.targetText && targetLanguage ? targetLanguage : baseLanguage;
+                  onSpeakCue(textToSpeak, langToSpeak);
+                }
+              }}
+              className="h-8 px-2.5 text-xs border-slate-700 hover:bg-slate-800 text-emerald-300 flex items-center gap-1.5"
+              data-testid="btn-player-speak-current"
+              title="Listen to current subtitle with TTS"
+            >
+              <Volume2
+                className={`w-3.5 h-3.5 ${speakingLang ? "animate-bounce text-emerald-400" : "text-emerald-400"}`}
+              />
+              <span>{speakingLang ? "Speaking…" : "Speak Cue"}</span>
+            </Button>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
@@ -166,41 +195,60 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
                     key={cue.id || idx}
                     onClick={() => onSeek(cue.start)}
                     className={`p-3 text-left transition-colors cursor-pointer flex items-start gap-3 ${
-                    isActive
-                      ? "bg-emerald-950/40 text-slate-100 border-l-4 border-l-emerald-500"
-                      : "hover:bg-slate-800/50 text-slate-300"
-                  }`}
-                  data-testid={`cue-row-${idx}`}
-                >
-                  <div className="font-mono text-[11px] text-slate-500 shrink-0 pt-0.5 w-12">
-                    {fmt(cue.start)}
-                  </div>
-
-                  <div className="space-y-1 flex-1 min-w-0">
-                    <div
-                      className={`font-medium transition-all ${
-                        isActive ? "text-emerald-300 font-semibold" : "text-slate-100"
-                      }`}
-                      style={{ fontSize: `${Math.round(14 * subtitlesRatio)}px` }}
-                    >
-                      {cue.baseText}
+                      isActive
+                        ? "bg-emerald-950/40 text-slate-100 border-l-4 border-l-emerald-500"
+                        : "hover:bg-slate-800/50 text-slate-300"
+                    }`}
+                    data-testid={`cue-row-${idx}`}
+                  >
+                    <div className="font-mono text-[11px] text-slate-500 shrink-0 pt-0.5 w-12">
+                      {fmt(cue.start)}
                     </div>
 
-                    {cue.targetText && (
-                      <div className="text-xs text-slate-400">{cue.targetText}</div>
-                    )}
-                  </div>
+                    <div className="space-y-1 flex-1 min-w-0">
+                      <div
+                        className={`font-medium transition-all ${
+                          isActive ? "text-emerald-300 font-semibold" : "text-slate-100"
+                        }`}
+                        style={{ fontSize: `${Math.round(14 * subtitlesRatio)}px` }}
+                      >
+                        {cue.baseText}
+                      </div>
 
-                  {isActive && (
-                    <div className="shrink-0 pt-0.5">
-                      <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      {cue.targetText && (
+                        <div className="text-xs text-slate-400">{cue.targetText}</div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
+
+                    <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                      {onSpeakCue && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const textToSpeak = cue.targetText || cue.baseText;
+                            const langToSpeak =
+                              cue.targetText && targetLanguage ? targetLanguage : baseLanguage;
+                            onSpeakCue(textToSpeak, langToSpeak);
+                          }}
+                          className="h-7 w-7 p-0 text-slate-400 hover:text-emerald-300 hover:bg-slate-800 rounded"
+                          data-testid={`btn-speak-cue-${idx}`}
+                          title={`Listen to pronunciation (${cue.targetText && targetLanguage ? targetLanguage.toUpperCase() : baseLanguage.toUpperCase()})`}
+                        >
+                          <Volume2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                      {isActive && (
+                        <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
         )}
       </div>
     </div>
