@@ -1,6 +1,47 @@
 # Done tasks
 
+## Task 148: Auto-Scroll 5-Second Cooldown After User Interaction (Version 1.0.49)
+
+### Summary:
+- **5-Second Inactivity Cooldown Architecture (`src/utils/appSettings.ts`, `src/routes/index.tsx`)**:
+  - Implemented `recordUserInteraction`, `getLastUserInteractionTimestamp`, `isAutoScrollAllowed`, `resetUserInteractionTimestamp`, and `AUTO_SCROLL_COOLDOWN_MS = 5000` in `src/utils/appSettings.ts`.
+  - Registered window interaction event listeners (`mousedown`, `mousemove`, `keydown`, `wheel`, `touchstart`, `pointerdown`, `scroll`) in `src/routes/index.tsx` to continuously record user activity timestamps.
+  - Gated the auto-scroll `scrollIntoView` effect behind `isAutoScrollAllowed()`: if the user interacted within the last 5 seconds, auto-scrolling is held and rescheduled for the remainder of the 5-second window, completely preventing automated scrolling from disrupting active reading or clicking.
+  - Added clear explanatory copy under the Auto-scroll toggle setting in `src/routes/index.tsx`.
+- **Version 1.0.49 Bump Across All 5 Targets**:
+  - Synchronized `1.0.49` / `10049` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification (`scripts/verify-auto-scroll.ts`)**:
+  - Validated persistence, initial state, blocked state during the 5000ms window, permitted state at and after 5000ms, and immediate cooldown reset on new interactions.
+- **Verification Commands & Outcomes**:
+  - `npm run test:auto-scroll`: PASSED (100% verified).
+  - `npm run test:apk-version`: PASSED (v1.0.49 parity verified across all manifests).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 147: GitHub Import Migration & Environment Harmonization
+
+ 
+### Summary:
+- **Triage & Classification**:
+  - Triaged project as Category C: Web / Node.js Compatible (React SPA with Vite and TanStack Router).
+- **Package Manager & Lockfile Compliance**:
+  - Verified npm 22 compatibility; confirmed no forbidden package manager locks (`yarn.lock`, `pnpm-lock.yaml`, `bun.lockb`, `.yarnrc.yml`, `.pnpmfile.cjs`). Cleaned up lingering `bun.lock`.
+  - Confirmed dev script starts on port 3000 (`vite --host 0.0.0.0 --port 3000`).
+- **Environment Variable Declarations**:
+  - Scanned source code for environment variables and generated `.env.example` declaring `GITHUB_REPOSITORY`, `GITHUB_REPOSITORY_OWNER`, `VITE_SUPABASE_URL`, and `VITE_SUPABASE_PUBLISHABLE_KEY` with safe placeholders.
+- **Dependencies & Build Validation**:
+  - Installed dependencies via `install_applet_dependencies`.
+  - Confirmed zero-defect compilation via `compile_applet`.
+  - Confirmed zero lint errors via `lint_applet`.
+- **Dedicated Automated Verification**:
+  - Executed `npm run test:github-import-migration` (`scripts/verify-github-import-migration.ts`) — all 4 sections passed 100%.
+ 
+---
+ 
 ## Task 145: Ensure TTS-Play Functionality & Seamless Bidirectional Mode Switching (Version 1.0.47)
+
 
 ### Summary:
 - **Seamless Bidirectional Mode Switching (`src/routes/index.tsx`, `src/components/ModeSwitcherHeader.tsx`, `src/components/beginner/BeginnerTabNav.tsx`)**:

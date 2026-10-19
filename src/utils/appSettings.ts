@@ -482,7 +482,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.48",
+    version: "1.0.50",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -575,6 +575,47 @@ export function setAutoScrollSetting(enabled: boolean): void {
     // Ignore storage errors in restricted contexts
   }
 }
+
+export const AUTO_SCROLL_COOLDOWN_MS = 5000;
+
+let lastUserInteractionTimestamp = 0;
+
+/**
+ * Record a user interaction timestamp (mouse movements, clicks, keypresses, scrolls, touch).
+ */
+export function recordUserInteraction(timestamp = Date.now()): void {
+  lastUserInteractionTimestamp = timestamp;
+}
+
+/**
+ * Returns the timestamp of the last recorded user interaction.
+ */
+export function getLastUserInteractionTimestamp(): number {
+  return lastUserInteractionTimestamp;
+}
+
+/**
+ * Checks if auto-scroll is currently allowed based on the 5-second idle cooldown.
+ * Auto-scroll is permitted ONLY if at least AUTO_SCROLL_COOLDOWN_MS (5000ms)
+ * have elapsed since the user last interacted with the page.
+ */
+export function isAutoScrollAllowed(
+  currentTime = Date.now(),
+  cooldownMs = AUTO_SCROLL_COOLDOWN_MS,
+): boolean {
+  if (lastUserInteractionTimestamp === 0) {
+    return true;
+  }
+  return currentTime - lastUserInteractionTimestamp >= cooldownMs;
+}
+
+/**
+ * Reset user interaction timestamp (primarily for tests).
+ */
+export function resetUserInteractionTimestamp(): void {
+  lastUserInteractionTimestamp = 0;
+}
+
 
 export const DEBUG_MODE_STORAGE_KEY = "yt_debug_mode";
 
