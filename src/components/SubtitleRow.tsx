@@ -1,4 +1,5 @@
 import React, { memo } from "react";
+import { Volume2 } from "lucide-react";
 import { type Row, type Json3, fmt, RTL } from "@/lib/subtitles";
 import {
   isSubtitleInstanceEligibleForTTS,
@@ -22,6 +23,7 @@ export interface SubtitleRowProps {
   onSeek: (r: Row, index: number) => void;
   spokenLangs?: string[];
   ttsRatios?: Record<string, number>;
+  onSpeakCue?: (text: string, lang: string) => void;
 }
 
 export const SubtitleRow = memo(function SubtitleRow({
@@ -34,6 +36,7 @@ export const SubtitleRow = memo(function SubtitleRow({
   onSeek,
   spokenLangs,
   ttsRatios,
+  onSpeakCue,
 }: SubtitleRowProps) {
   return (
     <tr
@@ -85,23 +88,39 @@ export const SubtitleRow = memo(function SubtitleRow({
                     isPronouncedHighlighted={isPronouncedHighlight}
                   />
                 </div>
-                {isSpoken && ratio > 1 && (
-                  <span
-                    data-testid={`row-${actualIndex}-tts-status-${l.code}`}
-                    className={`shrink-0 inline-flex items-center px-1 py-0.2 rounded text-[9px] font-mono select-none ${
-                      isEligible
-                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                        : "opacity-35 text-muted-foreground line-through"
-                    }`}
-                    title={
-                      isEligible
-                        ? `TTS will play this sentence (1:${ratio} ratio)`
-                        : `TTS skipped for this sentence (1:${ratio} ratio)`
-                    }
-                  >
-                    TTS
-                  </span>
-                )}
+                <div className="flex items-center gap-1 shrink-0">
+                  {onSpeakCue && r.texts[l.code] && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSpeakCue(r.texts[l.code] || "", l.code);
+                      }}
+                      className="opacity-40 hover:opacity-100 p-0.5 rounded text-muted-foreground hover:text-foreground transition-opacity"
+                      data-testid={`btn-speak-cell-${actualIndex}-${l.code}`}
+                      title={`Listen to pronunciation (${l.name})`}
+                    >
+                      <Volume2 className="h-3 w-3" />
+                    </button>
+                  )}
+                  {isSpoken && ratio > 1 && (
+                    <span
+                      data-testid={`row-${actualIndex}-tts-status-${l.code}`}
+                      className={`inline-flex items-center px-1 py-0.2 rounded text-[9px] font-mono select-none ${
+                        isEligible
+                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                          : "opacity-35 text-muted-foreground line-through"
+                      }`}
+                      title={
+                        isEligible
+                          ? `TTS will play this sentence (1:${ratio} ratio)`
+                          : `TTS skipped for this sentence (1:${ratio} ratio)`
+                      }
+                    >
+                      TTS
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </td>

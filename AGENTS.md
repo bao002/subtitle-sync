@@ -163,6 +163,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-can u ensure tts-play works and that one can change from beginner mode and advanced mode with much ease?
+go on
 ```
 

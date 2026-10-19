@@ -38,9 +38,17 @@ export interface BeginnerFlowContainerProps {
   playerSlot?: React.ReactNode;
   playbackControlsSlot?: React.ReactNode;
   subtitlesTableSlot?: React.ReactNode;
-  webDemoUrlsSlot?: React.ReactNode;
   hasSubtitles?: boolean;
   isAndroidNative?: boolean;
+  onOrderChange?: (order: "video-first" | "tts-first") => void;
+  onTtsSpeedChange?: (speed: number) => void;
+  onTtsVoiceChange?: (voiceURI: string) => void;
+  onSubtitlesRatioChange?: (ratio: number) => void;
+  onFavoriteLanguagesChange?: (langs: string[]) => void;
+  onBaseLangChange?: (baseLang: string) => void;
+  onSpeakCue?: (text: string, lang: string) => void;
+  speakingLang?: string | null;
+  onSwitchToAdvanced?: () => void;
 }
 
 export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
@@ -61,6 +69,15 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   subtitlesTableSlot,
   webDemoUrlsSlot,
   hasSubtitles = false,
+  onOrderChange,
+  onTtsSpeedChange,
+  onTtsVoiceChange,
+  onSubtitlesRatioChange,
+  onFavoriteLanguagesChange,
+  onBaseLangChange,
+  onSpeakCue,
+  speakingLang,
+  onSwitchToAdvanced,
 }) => {
   // Load initial settings
   const [settings, setSettings] = useState<AppSettings>(() => loadAppSettings());
@@ -134,11 +151,13 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   // Auto-select base language if none is selected and tracks are detected
   useEffect(() => {
     if (!selectedBaseLang && observedTracks.length > 0) {
-      const defaultLang = observedTracks.find((t) => t.lang === "en")?.lang || observedTracks[0].lang;
+      const defaultLang =
+        observedTracks.find((t) => t.lang === "en")?.lang || observedTracks[0].lang;
       setSelectedBaseLang(defaultLang);
       updateSettings({ beginnerSelectedBaseLang: defaultLang });
+      onBaseLangChange?.(defaultLang);
     }
-  }, [observedTracks, selectedBaseLang]);
+  }, [observedTracks, selectedBaseLang, onBaseLangChange]);
 
   // Determine if downstream tabs are unlocked
   const isUnlocked = Boolean(selectedBaseLang);
@@ -146,6 +165,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   const handleSelectBaseLang = (lang: string) => {
     setSelectedBaseLang(lang);
     updateSettings({ beginnerSelectedBaseLang: lang });
+    onBaseLangChange?.(lang);
   };
 
   const handleTabChange = (newTab: BeginnerTabId) => {
@@ -211,6 +231,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
         isUnlocked={isUnlocked}
         hasBaseSubtitle={Boolean(selectedBaseLang)}
         baseLanguageName={baseLangObj?.name || selectedBaseLang.toUpperCase()}
+        onSwitchToAdvanced={onSwitchToAdvanced}
       />
 
       {/* Persistent Video Player & Controls Container (stays mounted across all tabs) */}
@@ -222,11 +243,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
           >
             {playerSlot}
           </div>
-          {playbackControlsSlot && (
-            <div className="pt-2">
-              {playbackControlsSlot}
-            </div>
-          )}
+          {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}
         </div>
       )}
 
@@ -260,26 +277,31 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
               updateSettings({
                 playOrder: o === "tts-first" ? "tts_then_video" : "video_then_tts",
               });
+              onOrderChange?.(o);
             }}
             ttsSpeed={ttsSpeed}
             onTtsSpeedChange={(s) => {
               setTtsSpeed(s);
               updateSettings({ beginnerTtsSpeed: s });
+              onTtsSpeedChange?.(s);
             }}
             ttsVoice={ttsVoice}
             onTtsVoiceChange={(v) => {
               setTtsVoice(v);
               updateSettings({ beginnerTtsVoice: v });
+              onTtsVoiceChange?.(v);
             }}
             subtitlesRatio={subtitlesRatio}
             onSubtitlesRatioChange={(r) => {
               setSubtitlesRatio(r);
               updateSettings({ beginnerSubtitlesRatio: r });
+              onSubtitlesRatioChange?.(r);
             }}
             favoriteLanguages={favoriteLanguages}
             onFavoriteLanguagesChange={(langs) => {
               setFavoriteLanguages(langs);
               updateSettings({ beginnerFavoriteLangs: langs });
+              onFavoriteLanguagesChange?.(langs);
             }}
             baseLanguage={selectedBaseLang}
             onContinueToNextTab={() => handleTabChange("parsing")}
@@ -330,6 +352,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             onBackToPreferences={() => handleTabChange("preferences")}
             onBackToParsing={() => handleTabChange("parsing")}
             subtitlesTableSlot={subtitlesTableSlot}
+            onSpeakCue={onSpeakCue}
+            speakingLang={speakingLang}
           />
         )}
       </main>

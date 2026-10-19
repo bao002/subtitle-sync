@@ -1,6 +1,30 @@
 # Done tasks
 
-### Hotfix: Fix TypeScript Compilation & Module Reload Errors Across Components & Routes
+## Task 145: Ensure TTS-Play Functionality & Seamless Bidirectional Mode Switching (Version 1.0.47)
+
+### Summary:
+- **Seamless Bidirectional Mode Switching (`src/routes/index.tsx`, `src/components/ModeSwitcherHeader.tsx`, `src/components/beginner/BeginnerTabNav.tsx`)**:
+  - Eliminated duplicate `<header>` block rendered in Advanced mode in `src/routes/index.tsx`, restoring a clean layout without redundant title bars or stacked navigation elements.
+  - Added a prominent 1-click mode toggle button (`data-testid="header-mode-toggle"`) directly in the main top header alongside the version badge, enabling effortless instant mode switching at any time.
+  - Added a direct 1-click "Advanced Studio" button (`data-testid="nav-switch-to-advanced"`) on the right side of `BeginnerTabNav`, allowing users to jump straight to Advanced Studio during guided steps.
+  - Maintained full state synchronization (`videoId`, loaded `tracks`, `currentTime`, `sectionOrder`, `rates`, `voiceSelections`, `spoken`, `ttsRatios`) when transitioning between Beginner Mode and Advanced Studio.
+- **Robust TTS-Play Functionality (`src/routes/index.tsx`, `src/components/beginner/tabs/BeginnerPlayerTab.tsx`, `src/components/beginner/BeginnerFlowContainer.tsx`, `src/components/SubtitleRow.tsx`, `src/components/SubtitlesTablePanel.tsx`)**:
+  - Added on-demand Speak buttons (`data-testid="btn-speak-cue-${idx}"` and `data-testid="btn-player-speak-current"`) to `BeginnerPlayerTab` so users can hear pronunciation of any subtitle line or current cue immediately on demand.
+  - Added on-demand Speak buttons (`data-testid="btn-speak-cell-${actualIndex}-${l.code}"`) to `SubtitleRow` and `SubtitlesTablePanel` so users in Advanced Mode can also click to hear individual cells pronounced immediately.
+  - Connected `BeginnerFlowContainer` callback props (`onOrderChange`, `onTtsSpeedChange`, `onTtsVoiceChange`, `onSubtitlesRatioChange`, `onFavoriteLanguagesChange`, `onBaseLangChange`, `onSpeakCue`) directly to `src/routes/index.tsx` playback engine.
+  - Updated `getEligibleLangs` in `src/routes/index.tsx` with smart fallback logic to ensure TTS speech is triggered during video playback even if the spoken language list was initially unpopulated.
+  - Implemented speech synthesis safety timeout and resume pulse in `speakText` to prevent browser audio engine stalls or hangs.
+- **Version 1.0.47 Bump Across All 5 Targets**:
+  - Synchronized `1.0.47` / `10047` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-tts-play-and-mode-switching.ts`: PASSED (all 8 tests passed).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED.
+  - `npx tsx scripts/verify-apk-version-and-releases.ts`: PASSED.
+  - `npm run test:beginner-mode`: PASSED.
+  - `compile_applet`: PASSED (Build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
 
 - **TypeScript Compilation & Dev Server Module Reload Zero-Defect Resolution**:
   - `src/components/AiSubtitlePunctuationTab.tsx`: Fixed `PunctuatedSubtitleResult` property references; used `res.segments.length` for `punctuatedCount` in `saveCachedAiSubtitles`, and removed extraneous `punctuatedCount` property from `setResult` calls.

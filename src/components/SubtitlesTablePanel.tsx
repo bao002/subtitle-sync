@@ -23,6 +23,7 @@ export interface SubtitlesTablePanelProps {
   ttsRatios: Record<string, number>;
   onLoadCachedAiSubtitles?: () => void;
   hasCachedAi?: boolean;
+  onSpeakCue?: (text: string, lang: string) => void;
 }
 
 export function SubtitlesTablePanel({
@@ -44,6 +45,7 @@ export function SubtitlesTablePanel({
   ttsRatios,
   onLoadCachedAiSubtitles,
   hasCachedAi,
+  onSpeakCue,
 }: SubtitlesTablePanelProps) {
   return (
     <div
@@ -201,6 +203,7 @@ export function SubtitlesTablePanel({
                   onSeek={onSeek}
                   spokenLangs={spokenLangs}
                   ttsRatios={ttsRatios}
+                  onSpeakCue={onSpeakCue}
                 />
               );
             })
