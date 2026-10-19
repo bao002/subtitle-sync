@@ -1,6 +1,10 @@
 # Current Subtask (`current-sub-task.md`)
 
-## Status: All subtasks for Task 145 COMPLETED & VERIFIED
-- **Completed Task**: Task 145 - Ensure TTS-Play Functionality & Seamless Bidirectional Mode Switching (Version 1.0.47)
-- **Verification**: `scripts/verify-tts-play-and-mode-switching.ts` PASSED, `compile_applet` PASSED, `lint_applet` PASSED.
-- **Next Backlog Task**: Task 144 - Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation [PENDING].
+## Active Subtask: Subtask 146.3 - Video Library enhancements: display last-used time & order strictly by user interaction
+- **Parent Task**: Task 146 - Parser Settings Reset, Library Last-Used Ordering, and Later Tasks Protocol (Version 1.0.48)
+- **Status**: [ACTIVE]
+- **Target Files**:
+  - `src/utils/videoLibraryManager.ts`
+  - `src/components/VideoLibraryPanel.tsx`
+  - `src/routes/index.tsx`
+- **Verification**: Check library sorting by user interaction timestamp descending, display of last-used time on cards, and interaction updating timestamp.
