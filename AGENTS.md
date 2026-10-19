@@ -163,8 +163,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. web-demo beginner mode -  doesnt work. it should be able to show a video and subtitles table as exist on the advanced mode
-
-2. try to fix the e2e test on the android emulator but deprecate the screencast generation. detect the captions after enabing it on the youtube-video and expose the text. do not use mock or fixtures.
+can u ensure tts-play works and that one can change from beginner mode and advanced mode with much ease?
 ```
 

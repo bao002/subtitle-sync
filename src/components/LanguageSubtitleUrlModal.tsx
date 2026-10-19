@@ -3,8 +3,7 @@ import { X, RefreshCw, CheckCircle2, AlertCircle, Link2, FileText } from "lucide
 import { Button } from "./ui/button";
 import { parseJson3 } from "../lib/native-captions";
 import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
-import { fetchViaServer } from "../lib/subtitle-fetch-plan";
-import serverConfig from "../config/server.json";
+import { fetchViaServer, getFetchServerUrl } from "../lib/subtitle-fetch-plan";
 import { Json3 } from "../types";
 
 export interface LanguageSubtitleUrlModalProps {
@@ -71,7 +70,7 @@ export const LanguageSubtitleUrlModal: React.FC<LanguageSubtitleUrlModalProps> =
         if (trimmed.startsWith("http")) {
           const proxyResp = await fetchViaServer(
             trimmed,
-            serverConfig.fetchServerUrl || "http://localhost:3000/api/proxy",
+            getFetchServerUrl(),
           );
           if (proxyResp && proxyResp.status === 200 && proxyResp.body) {
             parsed = parseJson3(proxyResp.body);

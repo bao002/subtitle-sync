@@ -40,6 +40,7 @@ export interface BeginnerFlowContainerProps {
   subtitlesTableSlot?: React.ReactNode;
   webDemoUrlsSlot?: React.ReactNode;
   hasSubtitles?: boolean;
+  isAndroidNative?: boolean;
 }
 
 export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
@@ -189,7 +190,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
       return {
         id: `cue-${idx}-${baseCue.start}`,
         start: baseCue.start,
-        duration: baseCue.duration,
+        duration: Math.max(0, baseCue.end - baseCue.start),
         baseText: cleanedBase,
         targetText: cleanedTarget,
       };
@@ -310,7 +311,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             sampleCues={activeBaseCues.map((c) => ({
               text: c.text,
               start: c.start,
-              duration: c.duration,
+              duration: Math.max(0, c.end - c.start),
             }))}
             onContinueToNextTab={() => handleTabChange("player")}
           />

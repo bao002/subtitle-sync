@@ -1,5 +1,29 @@
 # Done tasks
 
+### Hotfix: Fix TypeScript Compilation & Module Reload Errors Across Components & Routes
+
+- **TypeScript Compilation & Dev Server Module Reload Zero-Defect Resolution**:
+  - `src/components/AiSubtitlePunctuationTab.tsx`: Fixed `PunctuatedSubtitleResult` property references; used `res.segments.length` for `punctuatedCount` in `saveCachedAiSubtitles`, and removed extraneous `punctuatedCount` property from `setResult` calls.
+  - `src/types.ts`: Re-exported `Json3`, `Cue`, and `Row` types from `./lib/subtitles` so all modules importing `Json3` from `@/types` resolve cleanly.
+  - `src/components/LanguageSubtitleUrlModal.tsx` & `src/components/WebDemoUrlsInput.tsx`: Imported and called `getFetchServerUrl()` from `src/lib/subtitle-fetch-plan.ts` instead of referencing undefined `serverConfig.fetchServerUrl`.
+  - `src/components/beginner/BeginnerFlowContainer.tsx`: Added optional `isAndroidNative?: boolean` to `BeginnerFlowContainerProps` and computed `duration` as `Math.max(0, cue.end - cue.start)`.
+  - `src/routes/index.tsx`:
+    - Imported `AlertCircle` and `CheckCircle2` from `lucide-react`.
+    - Fixed undefined `currentOrder` to `activeOrder` in `promoteAttempt(activeOrder, result.winner)`.
+    - Passed stringified JSON to `saveCachedRawJson3(videoId, langCode, JSON.stringify(track))`.
+    - Passed correct positional arguments to `notifySubtitleFetch("completed", message, langCode, langName)`.
+    - Replaced missing `saveCachedSubtitles` with `saveCachedRawJson3` in URL state mount effect and added `// eslint-disable-next-line react-hooks/exhaustive-deps`.
+    - Safely invoked `player.current?.setPlaybackRate?.(rate)`.
+    - Replaced invalid criteria array with `DEFAULT_PARSER_CRITERIA` in `onRevertCriteria`.
+- **Dev Server & Verification**:
+  - Restarted dev server fresh via `restart_dev_server`.
+  - Created dedicated automated test `scripts/verify-type-safety-and-dev-modules.ts` and added `test:type-safety` to `package.json`.
+  - `npm run test:type-safety`: PASSED (`npx tsc --noEmit` exited 0 with 0 errors; all 10 modules returned HTTP 200).
+  - `compile_applet`: PASSED (Build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 143: Web-Demo Beginner Mode — Show Video and Subtitles Table as in Advanced Mode (Version 1.0.46)
 
 ### Summary:

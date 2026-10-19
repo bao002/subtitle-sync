@@ -2,8 +2,7 @@ import { useState, useCallback, useId } from "react";
 import { Button } from "./ui/button";
 import { parseVideoId, parseJson3 } from "../lib/native-captions";
 import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
-import { fetchViaServer } from "../lib/subtitle-fetch-plan";
-import serverConfig from "../config/server.json";
+import { fetchViaServer, getFetchServerUrl } from "../lib/subtitle-fetch-plan";
 import { Json3 } from "../types";
 import {
   RefreshCw,
@@ -164,7 +163,7 @@ export function WebDemoUrlsInput({
     const loadedTracks: Record<string, Json3> = {};
     const successLangs: string[] = [];
     const failedLangs: string[] = [];
-    const serverUrl = serverConfig.server_address || "";
+    const serverUrl = getFetchServerUrl();
 
     for (const entry of entriesToFetch) {
       try {
@@ -323,7 +322,7 @@ export function WebDemoUrlsInput({
           if (trimmedInput.startsWith("http")) {
             const proxyResp = await fetchViaServer(
               trimmedInput,
-              serverConfig.fetchServerUrl || "http://localhost:3000/api/proxy",
+              getFetchServerUrl(),
             );
             if (proxyResp && proxyResp.status === 200 && proxyResp.body) {
               parsed = parseJson3(proxyResp.body);
