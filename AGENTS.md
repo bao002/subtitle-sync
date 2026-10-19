@@ -166,15 +166,8 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-0. AGENTS.md - any "later" task (a prompts which starts with the words "later" / "for later" / "- later" etc) should be stored on the bottom of tasks under "later". if all tasks were done - ask the user if he wants to process tasks from the "later" section.
-
-2. changing the parser option should:
-- reset the page state so that no playing will go on (stop playbacks and any ongoing actions)
-- update the subtitles view layout based on the new devision for all cached subtitles
-- update on-demand translations according to the default translation
-- later: add confirmation option: this is beneficial in order to show the difference based on the new settings (show the actual effect by highlighging the differences while allow to press next to view the next record which changed based on that settings)
-
-1. library - show the last time the user used that video. order based on the user interaction. 
-- later: if it is possible client-side only - also get the video description, title, default subtitles and all other free info
+yes
 ```
+
+
 

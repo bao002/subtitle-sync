@@ -1,10 +1,21 @@
 # Current Subtask (`current-sub-task.md`)
 
-## Active Subtask: Subtask 146.3 - Video Library enhancements: display last-used time & order strictly by user interaction
-- **Parent Task**: Task 146 - Parser Settings Reset, Library Last-Used Ordering, and Later Tasks Protocol (Version 1.0.48)
+## Active Subtask: Subtask 149.4 - Integrate confirmation option and preview modal flow in index.tsx
+- **Parent Task**: Task 149 - Parser Option Difference Confirmation & Preview (Version 1.0.50)
 - **Status**: [ACTIVE]
 - **Target Files**:
-  - `src/utils/videoLibraryManager.ts`
-  - `src/components/VideoLibraryPanel.tsx`
   - `src/routes/index.tsx`
-- **Verification**: Check library sorting by user interaction timestamp descending, display of last-used time on cards, and interaction updating timestamp.
+- **Verification**: Provide toggle for "Confirm before applying parser changes", calculate proposed alignment diff when toggling criteria or presets, render confirmation modal with [Next] / [Prev] record navigation, and cleanly apply or discard changes.
+
+
+
+
+
+
+
+
+
+
+
+
+

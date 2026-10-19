@@ -1,5 +1,17 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 146.3 - Video Library enhancements: display last-used time & order strictly by user interaction
-- **Parent Task**: Task 146 - Parser Settings Reset, Library Last-Used Ordering, and Later Tasks Protocol (Version 1.0.48)
+## Active Subtask: Subtask 149.3 - Create ParserDiffConfirmationModal.tsx
+- **Parent Task**: Task 149 - Parser Option Difference Confirmation & Preview (Version 1.0.50)
 - **Status**: [ACTIVE]
+
+
+
+
+
+
+
+
+
+
+
+

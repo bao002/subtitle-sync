@@ -4,16 +4,19 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Parser Settings Reset, Library Last-Used Ordering, & Later Tasks Protocol (Task 146)
+## Active Prompt: Parser Option Difference Confirmation & Preview (Task 149)
 
-- **Chapter 1 (Task 146)**: Parser Settings Reset & Subtitles View Update, Library Last-Used Display & Ordering, & Later Tasks Protocol (Version 1.0.48)
-  - Subtask 146.1: Version bump to 1.0.48 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) [ACTIVE].
-  - Subtask 146.2: AGENTS.md later tasks protocol & staging later tasks under `## Later Tasks` in `docs/tasks.md` and `docs/later.md`.
-  - Subtask 146.3: Video Library enhancements — show last used time on video cards and order based strictly on user interaction timestamp (most recent first).
-  - Subtask 146.4: Parser options change handling — reset page playing state, update subtitles view layout for all cached subtitles according to new division, reset and update on-demand translations.
-  - Subtask 146.5: Dedicated automated test (`scripts/verify-parser-options-reset-and-library-ordering.ts`), verify compilation, lint, and migrate to `docs/done.md`.
+- **Chapter 1 (Task 149)**: Parser Option Difference Confirmation & Preview (Version 1.0.50)
+  - Subtask 149.1: Version bump to 1.0.50 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask 149.2: Implement parser diff computation helper (`src/utils/parserDiffHelper.ts`).
+  - Subtask 149.3: Build difference confirmation modal component (`src/components/ParserDiffConfirmationModal.tsx`).
+  - Subtask 149.4: Integrate confirmation option and preview flow in `src/routes/index.tsx`.
+  - Subtask 149.5: Author dedicated automated test (`scripts/verify-parser-diff-confirmation.ts`).
+  - Subtask 149.6: Verification via `compile_applet`, `lint_applet`, and migration to `docs/done.md`.
 
 ---
+
+
 
 ## 1. The Token Economy Problem: Why Big Tasks Fail
 

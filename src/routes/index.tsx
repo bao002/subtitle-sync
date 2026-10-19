@@ -67,6 +67,10 @@ import {
   setUserLearningLanguages,
   getAutoScrollSetting,
   setAutoScrollSetting,
+  recordUserInteraction,
+  isAutoScrollAllowed,
+  getLastUserInteractionTimestamp,
+  AUTO_SCROLL_COOLDOWN_MS,
   getDebugModeSetting,
   setDebugModeSetting,
   loadVideoSettings,
@@ -3092,8 +3096,54 @@ function Index() {
     }
   }, [speakingLang, audioTrackMode, videoInstances]);
 
+  // Track user interaction with the page to prevent automated scrolling from interrupting user actions
   useEffect(() => {
-    if (!autoFocus || isSetupPaused) return;
+    if (typeof window === "undefined") return;
+
+    const onUserInteraction = () => {
+      recordUserInteraction(Date.now());
+    };
+
+    const events = [
+      "mousedown",
+      "mousemove",
+      "keydown",
+      "wheel",
+      "touchstart",
+      "pointerdown",
+      "scroll",
+    ] as const;
+
+    events.forEach((evt) => {
+      window.addEventListener(evt, onUserInteraction, { passive: true });
+    });
+
+    return () => {
+      events.forEach((evt) => {
+        window.removeEventListener(evt, onUserInteraction);
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!autoFocus || isSetupPaused || active < 0) return;
+
+    // Start auto-scroll ONLY after 5 seconds since the last user interaction with the page
+    if (!isAutoScrollAllowed()) {
+      const remainingMs = Math.max(
+        100,
+        AUTO_SCROLL_COOLDOWN_MS - (Date.now() - getLastUserInteractionTimestamp()),
+      );
+      const timer = setTimeout(() => {
+        if (autoFocus && !isSetupPaused && isAutoScrollAllowed()) {
+          document
+            .querySelector(`[data-row="${active}"]`)
+            ?.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+      }, remainingMs);
+      return () => clearTimeout(timer);
+    }
+
     document
       .querySelector(`[data-row="${active}"]`)
       ?.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -4203,15 +4253,22 @@ function Index() {
                             Audio-track mode (repeat segment with native video audio instead of
                             synthesized TTS)
                           </label>
-                          <label className="flex items-center gap-2">
-                            <input
-                              id="auto-scroll-toggle"
-                              type="checkbox"
-                              checked={autoFocus}
-                              onChange={(e) => onAutoFocusChange(e.target.checked)}
-                            />{" "}
-                            Auto-focus and scroll to current subtitle
-                          </label>
+                          <div className="space-y-0.5">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                id="auto-scroll-toggle"
+                                data-testid="auto-scroll-toggle"
+                                type="checkbox"
+                                checked={autoFocus}
+                                onChange={(e) => onAutoFocusChange(e.target.checked)}
+                              />{" "}
+                              <span>Auto-focus and scroll to current subtitle</span>
+                            </label>
+                            <p className="text-[11px] text-muted-foreground ml-6">
+                              Auto-scroll only starts 5 seconds after last user interaction to avoid
+                              disturbing user actions.
+                            </p>
+                          </div>
                           <label className="flex items-center gap-2">
                             <input
                               id="debug-mode-toggle"

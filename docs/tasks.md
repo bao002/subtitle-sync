@@ -3,17 +3,23 @@
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
 
-## Task 146: Parser Settings Reset, Library Last-Used Ordering, and Later Tasks Protocol (Version 1.0.48)
+
+
+
+
+
+## Task 149: Parser Option Difference Confirmation & Preview (Version 1.0.50)
 
 ### Objective:
-Implement comprehensive parser setting update logic (reset page state, stop playbacks, update subtitles layout for all cached subtitles according to new division, refresh on-demand translations), enhance Video Library to display last-used time and order strictly by user interaction timestamp, and implement the later-tasks protocol.
+Implement a confirmation option and interactive preview diff dialog for parser settings changes: calculate and highlight the actual difference between current and proposed alignment divisions, show the number of changed records, allow stepping through changed records with [Next] and [Previous] buttons, and provide [Confirm & Apply] and [Cancel] controls.
 
 ### Subtasks:
-- [/] **Subtask 146.1**: Version bump to 1.0.48 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-- [ ] **Subtask 146.2**: AGENTS.md later tasks protocol & cataloging later tasks under `## Later Tasks` in `docs/tasks.md` and `docs/later.md`.
-- [ ] **Subtask 146.3**: Video Library enhancements — show last used time on video cards and order based strictly on user interaction timestamp (most recent first).
-- [ ] **Subtask 146.4**: Parser options change handling — reset page playing state, update subtitles view layout for all cached subtitles according to new division, reset and update on-demand translations.
-- [ ] **Subtask 146.5**: Dedicated automated test (`scripts/verify-parser-options-reset-and-library-ordering.ts`), verify compilation, lint, and migrate to `docs/done.md`.
+- [ ] **Subtask 149.1**: Version bump to 1.0.50 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+- [ ] **Subtask 149.2**: Implement `src/utils/parserDiffHelper.ts` to compute detailed diffs between current and proposed subtitle alignments with changed record indices and text/timing highlights.
+- [ ] **Subtask 149.3**: Create `src/components/ParserDiffConfirmationModal.tsx` displaying changed record counters, before/after diff cards, [Previous] / [Next] navigation buttons, [Confirm & Apply], and [Cancel].
+- [ ] **Subtask 149.4**: Integrate confirmation option toggle and preview modal flow in `src/routes/index.tsx`.
+- [ ] **Subtask 149.5**: Author dedicated automated test `scripts/verify-parser-diff-confirmation.ts` validating diff detection, next/prev stepping, diff highlight format, confirmation, and cancellation.
+- [ ] **Subtask 149.6**: Verify compilation, lint, and migrate to `docs/done.md`.
 
 ---
 
@@ -34,5 +40,6 @@ Fix the Android Emulator E2E suite to detect authentic caption requests upon ena
 
 The following tasks were requested for "later" by the user and are stored here to be processed upon completion of active prompt tasks:
 
-- **Later Task 1: Parser Option Difference Confirmation & Preview**: Add confirmation option to show the difference based on the new parser settings (show the actual effect by highlighting differences while allowing to press next to view the next record that changed based on those settings).
 - **Later Task 2: Client-side video metadata extraction**: If possible client-side only, get video description, title, default subtitles, and all other free info.
+
+
