@@ -4,16 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Web-Demo Beginner Mode Subtitles Table & Android Emulator Captions Detection (Tasks 143 & 144)
+## Active Prompt: Ensure TTS-Play Works & Seamless Mode Switching (Task 145)
 
-- **Chapter 1 (Task 143)**: Web-Demo Beginner Mode — enable video and subtitles table as exist on advanced mode.
-  - Subtask 143.1: Bump application version to 1.0.46 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-  - Subtask 143.2: Connect `SubtitlesTablePanel` and full video player synchronization to Beginner Mode in `BeginnerFlowContainer.tsx` and `src/routes/index.tsx` so users see both the video and synchronized parallel subtitles table.
-  - Subtask 143.3: Author dedicated automated test (`scripts/verify-beginner-subtitles-table.ts`), run compilation, lint, git commit & push, and migrate to `docs/done.md`.
-- **Chapter 2 (Task 144)**: Android Emulator E2E — deprecate screencast generation, detect captions after enabling on YouTube video, and expose the caption text without mock or fixtures.
-  - Subtask 144.1: Deprecate screencast recording and video generation across Android E2E scripts and workflows.
-  - Subtask 144.2: Enhance Android caption detection to capture authentic timedtext network requests upon CC enable, extract cues, and expose caption text in telemetry and logs.
-  - Subtask 144.3: Author dedicated automated test, compile, lint, commit & push, and document in `docs/done.md`.
+- **Chapter 1 (Task 145)**: Ensure TTS-Play Works & Seamless Bidirectional Mode Switching (Version 1.0.47)
+  - Subtask 145.1: Bump application version to 1.0.47 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask 145.2: Implement effortless bidirectional mode switching between Beginner Mode and Advanced Studio with unified state and 1-click header/nav switches.
+  - Subtask 145.3: Ensure robust TTS-play functionality in both Beginner and Advanced modes with on-demand cue pronunciation and synchronized narration order & speed.
+  - Subtask 145.4: Author dedicated automated test (`scripts/verify-tts-play-and-mode-switching.ts`), verify compilation, lint, and migrate to `docs/done.md`.
 
 ---
 

@@ -252,7 +252,7 @@ export function AiSubtitlePunctuationTab({
         timestamp: Date.now(),
         latencyMs: res.stats.totalLatencyMs,
         rawCount: rawCues.length,
-        punctuatedCount: res.punctuatedCount,
+        punctuatedCount: res.segments.length,
       });
       setCachedAiData(getCachedAiSubtitles(videoId || "current", baseLanguage || "en"));
 
@@ -280,7 +280,6 @@ export function AiSubtitlePunctuationTab({
     if (!cachedAiData?.punctuatedJson3) return;
     setResult({
       punctuatedJson3: cachedAiData.punctuatedJson3,
-      punctuatedCount: cachedAiData.punctuatedCount || 0,
       segments: cachedAiData.segments || [],
       stats: {
         totalSegments: cachedAiData.rawCount || 0,
@@ -298,7 +297,6 @@ export function AiSubtitlePunctuationTab({
     if (!cachedAiData?.punctuatedJson3) return;
     setResult({
       punctuatedJson3: cachedAiData.punctuatedJson3,
-      punctuatedCount: cachedAiData.punctuatedCount || 0,
       segments: cachedAiData.segments || [],
       stats: {
         totalSegments: cachedAiData.rawCount || 0,

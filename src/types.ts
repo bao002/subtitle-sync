@@ -157,3 +157,5 @@ declare global {
     onYouTubeIframeAPIReady?: () => void;
   }
 }
+
+export type { Json3, Cue, Row } from "./lib/subtitles";

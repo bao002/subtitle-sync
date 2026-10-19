@@ -11,7 +11,9 @@ import React, {
 } from "react";
 import {
   Activity,
+  AlertCircle,
   Check,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -1087,7 +1089,7 @@ function Index() {
 
               if (result) {
                 if (promote) {
-                  const promoted = promoteAttempt(currentOrder, result.winner);
+                  const promoted = promoteAttempt(activeOrder, result.winner);
                   setAttemptOrder(promoted);
                   setAttemptOrderState(promoted);
                 }
@@ -1518,7 +1520,7 @@ function Index() {
       setShown((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
       setTargetLanguages((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
       if (videoId) {
-        saveCachedRawJson3(videoId, langCode, track);
+        saveCachedRawJson3(videoId, langCode, JSON.stringify(track));
       }
       if (url && url.startsWith("http") && !observedUrl) {
         setObservedUrl(url);
@@ -1526,12 +1528,12 @@ function Index() {
       if (autoSpeakOnFetch) {
         setSpoken((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
       }
-      notifySubtitleFetch({
-        videoId: videoId || "active",
-        lang: langCode,
-        langName: getLanguageMeta(langCode).name,
-        cuesCount: track.events?.length || 0,
-      });
+      notifySubtitleFetch(
+        "completed",
+        `Subtitles loaded for ${getLanguageMeta(langCode).name}`,
+        langCode,
+        getLanguageMeta(langCode).name,
+      );
     },
     [videoId, observedUrl, autoSpeakOnFetch],
   );
@@ -1911,7 +1913,7 @@ function Index() {
               [subLang]: parsed,
             }));
             setDefaultCaptionsLoaded(true);
-            saveCachedSubtitles(videoId, subLang, parsed);
+            saveCachedRawJson3(appState.videoId || videoId, subLang, JSON.stringify(parsed));
           }
         })
         .catch((err) => {
@@ -1944,6 +1946,7 @@ function Index() {
     return () => {
       delete window.onNativeSharedLinkReceived;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle Android Native Shell and browser history back navigation
@@ -3560,7 +3563,7 @@ function Index() {
               }}
               onRateChange={(rate) => {
                 try {
-                  player.current?.setPlaybackRate(rate);
+                  player.current?.setPlaybackRate?.(rate);
                   setPlaybackRate(rate);
                 } catch {
                   // ignore
@@ -3832,7 +3835,7 @@ function Index() {
               isSolelyPunctuationActive={
                 selectedCriteria.length === 1 && selectedCriteria[0] === "sentence"
               }
-              onRevertCriteria={() => setSelectedCriteria(["time", "word", "sentence"])}
+              onRevertCriteria={() => setSelectedCriteria(DEFAULT_PARSER_CRITERIA)}
             />
           ) : (
             <>
