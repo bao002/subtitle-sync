@@ -49,9 +49,11 @@ The Android shell (`android-shell/`) wraps the web application in an Android Web
 
 ---
 
-## 3. How to Make the Video / Screencast of E2E Scenarios
+## 3. How to Make the Video / Screencast of E2E Scenarios (DEPRECATED)
 
-Video proof of the E2E test running on the Android emulator is required to guarantee authentic execution and visual correctness.
+> **Deprecation Notice (Version 1.0.53)**: Automated screencast video generation (`screenrecord`, MP4 artifacts) is deprecated in favor of authentic live subtitle text detection, telemetry extraction (`AUTHENTIC_CAPTIONS_EXPOSED`), and milestone screenshot captures. The video recording lifecycle below is preserved for backward compatibility but is non-blocking.
+
+Video proof of the E2E test running on the Android emulator is supported for visual review.
 
 ```
        [Initialize Runner]

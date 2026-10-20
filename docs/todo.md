@@ -1,12 +1,11 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 153.3 - Deprecate Screencast Video Generation
-- **Parent Task**: Task 153 - Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.53)
+## Active Subtask: Subtask 154.4 - Author Dedicated Test, Verify Build & Lint, Commit, and Migrate to done.md
+- **Parent Task**: Task 154 - Client-Side Video Metadata Extraction & Presentation (Version 1.0.54)
 - **Status**: [ACTIVE]
 - **Target Files**:
-  - `scripts/run-android-e2e.sh`
-  - `scripts/android-e2e-assert.sh`
-  - `.github/workflows/emulation.yml`
-  - `public/android-emulator-report.html`
-  - `public/android/index.html`
-  - `docs/android.md`
+  - `scripts/verify-client-video-metadata.ts`
+  - `package.json`
+  - `docs/files.md`
+  - `docs/done.md`
+  - `docs/tasks.md`

@@ -1,5 +1,59 @@
 # Done tasks
 
+## Task 154: Client-Side Video Metadata Extraction & Presentation (Version 1.0.54)
+
+### Summary:
+- **Client-Side Metadata Service (`src/utils/videoMetadataManager.ts`, `src/types.ts`)**:
+  - Implemented `fetchVideoMetadata`, `getCachedVideoMetadata`, `fetchMultipleVideoMetadata`, `getVideoThumbnails`, and `clearVideoMetadataCache`.
+  - Leverages CORS-friendly YouTube oEmbed endpoint (`youtube.com/oembed?url=...&format=json`) and fallback to NoEmbed proxy and high-res image services (`maxresdefault`, `hqdefault`, `mqdefault`).
+  - Implemented in-memory caching and persistent `localStorage` cache with reactive window events (`video-metadata-updated`) and in-flight request deduplication.
+- **Library History & Watch Store Enrichment (`src/utils/videoLibraryManager.ts`, `src/components/VideoLibraryPanel.tsx`)**:
+  - Added `updateVideoLibraryTitle` to enrich watch history items with authentic video titles upon metadata resolution.
+  - Added in-memory fallback support in `videoLibraryManager.ts` for headless test/SSR environments.
+  - VideoLibraryPanel automatically enriches cards with authentic titles and displays video author / channel names.
+- **Player Panel Integration (`src/routes/index.tsx`)**:
+  - Added `videoMetadata` state and effect tracking active `videoId`.
+  - Added unobtrusive video metadata card (`data-testid="video-metadata-card"`) displaying title, author link, and thumbnail preview while strictly preserving the web demo layout.
+- **Version 1.0.54 Parity**:
+  - Synchronized `1.0.54` / `10054` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, and `src/utils/apkUpdater.ts`.
+- **Dedicated Automated Verification (`scripts/verify-client-video-metadata.ts`)**:
+  - Created automated test validating thumbnail generation, metadata extraction, in-memory/localStorage caching, batch fetching, library title updates, UI testids, and version parity.
+- **Verification Commands & Outcomes**:
+  - `npm run test:video-metadata`: PASSED (100% verified).
+  - `npm run test:video-library`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 153: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.53)
+
+### Summary:
+- **Version 1.0.53 Parity Across All 5 Targets**:
+  - Synchronized `1.0.53` / `10053` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Authentic Caption Detection & Exposure in Android Shell (`MainActivity.kt`)**:
+  - Implemented `countCaptionCues` and `extractCaptionSampleText` extracting real subtitle text from genuine YouTube timedtext network payloads.
+  - Exposes `AUTHENTIC_CAPTIONS_EXPOSED lang=$lang cues=$cuesCount sample="$sampleText"` in Android Logcat telemetry with zero mock or fixtures.
+  - Persists `authentic_captions_exposed.txt` to device storage for test runner extraction and verification.
+- **Deprecate Screencast Video Generation (`run-android-e2e.sh`, `android-e2e-assert.sh`, `emulation.yml`, `docs/android.md`, HTML Reports)**:
+  - Marked screencast video recording (`screenrecord`, MP4 artifacts) as deprecated and non-blocking in favor of authentic live caption text extraction and milestone screenshots.
+  - Added visible deprecation badges and explanation notes in `public/android-emulator-report.html` and `public/android/index.html`.
+  - Documented screencast deprecation lifecycle in `docs/android.md`.
+- **Enhanced Test Runner & Assertion Scripts (`scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`)**:
+  - Enhanced `scripts/run-android-e2e.sh` to poll logcat for `AUTHENTIC_CAPTIONS_EXPOSED`, pull `authentic_captions_exposed.txt` from device, and print verified sample text.
+  - Enhanced `scripts/android-e2e-assert.sh` with Step 4 asserting authentic caption detection and exposed text without fixtures.
+- **Dedicated Automated Verification (`scripts/verify-emulator-captions-detection.ts`)**:
+  - Created automated test verifying MainActivity caption exposure, runner detection loop, assertion Step 4, HTML report deprecation notices, android.md documentation, and 1.0.53 version parity.
+  - Cataloged new script in `package.json` (`test:emulator-captions-detection`) and `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:emulator-captions-detection`: PASSED (100% verified).
+  - `npm run test:android-e2e-spec`: PASSED (100% verified).
+  - `npm run test:emulator-screencast-report`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 152: Reconcile and Carefully Complete Merge with Floating Dropdown Menu & Auto-Scroll (Version 1.0.52)
 
 ### Summary:

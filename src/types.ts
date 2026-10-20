@@ -5,6 +5,21 @@ export interface VideoItem {
   timestamp: number;
 }
 
+export interface VideoMetadata {
+  videoId: string;
+  title: string;
+  authorName?: string;
+  authorUrl?: string;
+  thumbnailUrl?: string;
+  maxResThumbnailUrl?: string;
+  hqThumbnailUrl?: string;
+  mqThumbnailUrl?: string;
+  html?: string;
+  providerName?: string;
+  providerUrl?: string;
+  fetchedAt: number;
+}
+
 export interface LibraryVideoItem {
   id: string;
   originalUrl: string;
