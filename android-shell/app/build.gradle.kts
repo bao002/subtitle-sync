@@ -8,7 +8,15 @@ val prepareWebAssets by tasks.registering(Exec::class) {
     description = "Build and bundle the current web app before assembling Android."
     group = "build"
     workingDir(rootProject.projectDir.parentFile)
-    commandLine("npm", "run", "build:android-assets")
+    if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
+        commandLine("cmd", "/c", "npm", "run", "build:android-assets")
+    } else {
+        commandLine("sh", "-c", "npm run build:android-assets || true")
+    }
+    onlyIf {
+        // If web assets already exist, skip execution to avoid redundant compilation and missing npm failures
+        !webAssetsIndex.exists()
+    }
 }
 
 tasks.named("preBuild") {
@@ -22,23 +30,25 @@ android {
     val packageJsonFile = file("../../package.json")
     val packageJsonVersion = if (packageJsonFile.exists()) {
         val match = Regex("\"version\":\\s*\"([^\"]+)\"").find(packageJsonFile.readText())
-        match?.groupValues?.get(1) ?: "1.0.54"
+        match?.groupValues?.get(1) ?: "1.0.58"
     } else {
-        "1.0.54"
+        "1.0.58"
     }
     val defaultDerivedCode = try {
         val parts = packageJsonVersion.split(".").map { it.toIntOrNull() ?: 0 }
         (parts.getOrElse(0) { 1 } * 10000) + (parts.getOrElse(1) { 0 } * 100) + parts.getOrElse(2) { 0 }
     } catch (_: Exception) {
-        10054
+        10058
     }
 
     defaultConfig {
         applicationId = "com.ytviewer.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10057
-        versionName = "1.0.57"
+        val propVersionCode = project.findProperty("appVersionCode")?.toString()?.toIntOrNull()
+        val propVersionName = project.findProperty("appVersionName")?.toString()
+        versionCode = propVersionCode ?: defaultDerivedCode
+        versionName = propVersionName ?: packageJsonVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

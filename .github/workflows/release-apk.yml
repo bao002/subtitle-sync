@@ -99,9 +99,14 @@ jobs:
         id: appversion
         run: |
           BASE=$(node -p "require('./package.json').version || '1.0.0'")
-          echo "code=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
-          echo "name=${BASE}.${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
-          echo "Android version: ${BASE}.${GITHUB_RUN_NUMBER} (code ${GITHUB_RUN_NUMBER})"
+          IFS='.' read -r -a PARTS <<< "$BASE"
+          MAJOR=${PARTS[0]:-1}
+          MINOR=${PARTS[1]:-0}
+          PATCH=${PARTS[2]:-0}
+          CODE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
+          echo "code=${CODE}" >> "$GITHUB_OUTPUT"
+          echo "name=${BASE}" >> "$GITHUB_OUTPUT"
+          echo "Android version: ${BASE} (code ${CODE})"
 
       - name: Build Android Debug APK
         timeout-minutes: 3
@@ -160,14 +165,23 @@ jobs:
             TAG="${{ github.ref_name }}"
             TITLE="YouTube Viewer ${TAG}"
           else
-            TAG="v1.0.${{ github.run_number }}"
-            TITLE="YouTube Viewer v1.0 (Build ${{ github.run_number }})"
+            BASE=$(node -p "require('./package.json').version || '1.0.0'")
+            TAG="v${BASE}"
+            TITLE="YouTube Viewer v${BASE} (Build ${{ github.run_number }})"
           fi
+
+          SHORT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo "${GITHUB_SHA:0:7}")
+          COMMIT_SHA="${GITHUB_SHA}"
+          COMMIT_MSG=$(git log -1 --pretty=format:'%s' 2>/dev/null || echo "Automated release build")
 
           echo "TAG=${TAG}" >> "$GITHUB_OUTPUT"
           echo "TITLE=${TITLE}" >> "$GITHUB_OUTPUT"
+          echo "SHORT_SHA=${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "COMMIT_SHA=${COMMIT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "COMMIT_MSG=${COMMIT_MSG}" >> "$GITHUB_OUTPUT"
           echo "Computed Tag: ${TAG}"
           echo "Computed Title: ${TITLE}"
+          echo "Computed Commit: ${SHORT_SHA}"
 
       - name: Publish GitHub Release with Working APK & OTA Artifact
         uses: softprops/action-gh-release@v2
@@ -185,6 +199,11 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             ## 📱 YouTube Viewer Release (${{ steps.release_info.outputs.TAG }})
+
+            ### 🏷️ Version Details
+            - **Version ID:** `${{ steps.release_info.outputs.TAG }}`
+            - **Commit ID:** [`${{ steps.release_info.outputs.SHORT_SHA }}`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) (`${{ github.sha }}`)
+            - **Version Description:** ${{ steps.release_info.outputs.COMMIT_MSG }}
 
             ### 📦 Download Links
             - **⚡ [Download web-dist.zip](https://github.com/${{ github.repository }}/releases/download/${{ steps.release_info.outputs.TAG }}/web-dist.zip)** (OTA Release Artifact - Instant Hot Update in App, no APK reinstall required)

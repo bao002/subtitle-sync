@@ -1,7 +1,7 @@
 import React from "react";
 import { Smartphone, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { APP_VERSION, ALL_RELEASES_URL } from "@/config/appConfig";
+import { APP_VERSION, APP_COMMIT_ID, APP_VERSION_DESCRIPTION, ALL_RELEASES_URL } from "@/config/appConfig";
 
 export interface ApkReleaseLink {
   owner: string;
@@ -22,9 +22,18 @@ export function ApkReleasesFooter({ apkReleaseLinks, onOpenApkModal }: ApkReleas
       className="mt-8 border-t border-border px-6 py-4 bg-muted/20 text-xs"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Smartphone className="h-4 w-4 text-emerald-500 shrink-0" />
           <span className="font-semibold text-foreground">Latest Android APK Releases:</span>
+          <span
+            data-testid="footer-version-info"
+            title={APP_VERSION_DESCRIPTION}
+            className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground bg-background px-2 py-0.5 rounded border border-border"
+          >
+            <span className="font-semibold text-foreground">v{APP_VERSION}</span>
+            <span>·</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">#{APP_COMMIT_ID}</span>
+          </span>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {apkReleaseLinks.map((link) => (

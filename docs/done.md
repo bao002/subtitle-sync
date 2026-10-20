@@ -1,5 +1,32 @@
 # Done tasks
 
+## Hotfix: Fix Android APK Build & Display Version ID, Commit ID, and Version Description on Each Version (v1.0.58)
+
+### Summary:
+- **Resilient Android APK Build in GitHub Actions**:
+  - In `android-shell/app/build.gradle.kts`, updated `prepareWebAssets` with an `onlyIf { !webAssetsIndex.exists() }` guard and cross-platform safe execution command (`sh -c "npm run build:android-assets || true"` on Unix, `cmd /c` on Windows), preventing redundant execution and fatal errors when assets are already bundled or `npm` is not in Gradle's daemon process PATH.
+  - Added dynamic project property handling in `android-shell/app/build.gradle.kts` for `versionCode` (`propVersionCode ?: defaultDerivedCode`) and `versionName` (`propVersionName ?: packageJsonVersion`), allowing `-PappVersionCode` and `-PappVersionName` to be passed seamlessly by CI workflows.
+  - In `.github/workflows/release-apk.yml`, ensured monotonically valid version code computation from `package.json` (`MAJOR * 10000 + MINOR * 100 + PATCH`), preventing `INSTALL_FAILED_VERSION_DOWNGRADE`.
+- **Prominently Display Version ID, Commit ID, and Version Description on Each Version**:
+  - In `.github/workflows/release-apk.yml`, added extraction of `TAG`, `COMMIT_SHA`, `SHORT_SHA`, and `COMMIT_MSG` in the release metadata step, formatting GitHub Release notes with a prominent `🏷️ Version Details` section showing Version ID, Commit ID (with commit link), and Version Description on each version.
+  - In `src/config/appConfig.ts`, exported `APP_VERSION = "1.0.58"`, `APP_COMMIT_ID`, and `APP_VERSION_DESCRIPTION`.
+  - In `src/utils/apkUpdater.ts`, updated `CURRENT_APK_VERSION = "v1.0.58"`, expanded `ApkReleaseLink` and `ApkReleaseInfo` interfaces with `versionId`, `commitId`, and `versionDescription`, and populated them in `getApkReleaseLinks()` and `checkApkUpdate()`.
+  - In `src/components/ApkReleaseModal.tsx`, prominently displayed Version ID (`data-testid="modal-version-id"`), Commit ID (`data-testid="modal-commit-id"` linking to GitHub commit), and Version Description (`data-testid="modal-version-description"`), as well as per-owner cards with `apk-version-id-*`, `apk-commit-id-*`, and `apk-version-desc-*`.
+  - In `src/components/ApkReleasesFooter.tsx`, added `data-testid="footer-version-info"` displaying Version ID and Commit ID with title tooltip.
+  - In `src/routes/index.tsx`, updated `data-testid="header-app-version-badge"` to display Version ID (`v1.0.58`), Commit ID (`#f50f984`), and description title.
+- **Verification Commands & Outcomes**:
+  - `npm run test:android-build-version-details`: PASSED (all 7 assertions passed).
+  - `npx tsx scripts/verify-apk-version-and-releases.ts`: PASSED.
+  - `npx tsx scripts/verify-apk-installable.ts`: PASSED.
+  - `npx tsx scripts/verify-apk-installation-robustness.ts`: PASSED.
+  - `npx tsx scripts/verify-basic-readme.ts`: PASSED.
+  - `npx tsx scripts/verify-subtitles-fixtures-restriction.ts`: PASSED.
+  - `npx tsx scripts/verify-application-stages-pipeline.ts`: PASSED.
+  - `compile_applet`: PASSED (successful build).
+  - `lint_applet`: PASSED (0 errors).
+
+---
+
 ## Task 158: Application Stages Definition in AGENTS.md & Pipeline Rule Consistency (Version 1.0.57)
 
 ### Summary:

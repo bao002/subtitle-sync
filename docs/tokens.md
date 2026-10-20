@@ -4,16 +4,17 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Subtitles Fixtures Restriction, Application Stages Definition, Theme Colors Fix, and Android Emulator Evidence Docs (Tasks 157-160, Version 1.0.57)
+## Active Prompt: Hotfix: Fix Android APK Build & Version ID, Commit ID, and Version Description on Each Version (v1.0.58)
 
-- **Chapter 1 (Task 157)**: AGENTS.md Subtitles Fixtures Restriction (L2Ryrr6txwA only in public/fixtures/L2Ryrr6txwA, explicitly labelled/approved) & Remove Hardcoded Subtitles from src/config
-  - Subtask 157.1: Version bump to 1.0.57 across targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-  - Subtask 157.2: Update `AGENTS.md` with strict subtitle fixtures rule (video L2Ryrr6txwA only, labelled as fixture, explicitly approved, zero hardcoded subtitles in config/runtime).
-  - Subtask 157.3: Remove hardcoded subtitles from `src/config/fixtures.ts`, `src/config/appConfig.ts`, and ensure clean runtime behavior.
-  - Subtask 157.4: Add dedicated verification test `scripts/verify-subtitles-fixtures-restriction.ts`, compile, lint, commit, push, and migrate to `docs/done.md`.
-- **Chapter 2 (Task 158)**: AGENTS.md Application Stages Definition & Pipeline Consistency (Special Chars Removal before Translation, Advanced & Beginner Parity)
-- **Chapter 3 (Task 159)**: Theme Colors Fix (Beginner Mode fix & Blue Theme purity for both modes)
-- **Chapter 4 (Task 160)**: docs/android.md GitHub Actions Emulator Flow & Authenticity Evidence Documentation
+- **Hotfix: Android APK Build & Version Tracking**:
+  - Subtask H.1: Version bump to 1.0.58 across targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask H.2: Fix Android `build.gradle.kts` asset preparation (`prepareWebAssets` with `onlyIf` guard and safe execution), `-PappVersionCode`/`-PappVersionName` support, and update `.github/workflows/release-apk.yml` to generate Version ID, Commit ID, and Version Description.
+  - Subtask H.3: Update `src/components/ApkReleaseModal.tsx`, `src/components/ApkReleasesFooter.tsx`, and `src/routes/index.tsx` to prominently display Version ID, Commit ID, and Version Description on each version and release option.
+  - Subtask H.4: Add and run dedicated verification test `scripts/verify-android-build-and-version-details.ts`, compile, lint, commit, push, and migrate to `docs/done.md`.
+- **Suspended Tasks (Resuming immediately after Hotfix)**:
+  - Task 159 [ON HOLD]: Theme Colors Fix (Beginner Mode fix & Blue Theme purity for both modes)
+  - Task 160: docs/android.md GitHub Actions Emulator Flow & Authenticity Evidence Documentation
+
 
 ---
 
