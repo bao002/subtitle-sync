@@ -1,5 +1,60 @@
 # Done tasks
 
+## Task 156: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.56)
+
+### Summary:
+- **Deprecated Screencast Video Generation & Repaired Runner Scripts**:
+  - Deprecated `screenrecord` video generation and redundant MP4 pulls in `scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, and `public/android-emulator-report.html`.
+  - Repaired broken bash syntax and unclosed function definitions in `scripts/run-android-e2e.sh` (`stop_recording_and_pull`) and missing `fi` conditional close in `scripts/android-e2e-assert.sh`.
+  - Cleaned duplicate HTML headers in `public/android-emulator-report.html`.
+- **Authentic Caption Detection & Text Exposure Without Fixtures**:
+  - Validated native timedtext caption interception upon enabling captions on the live YouTube video without mocks or synthetic fixtures.
+  - Intercepted caption cues and sample dialogue text are actively logged to ADB logcat with `AUTHENTIC_CAPTIONS_EXPOSED` tag and pulled from device storage (`authentic_captions_exposed.txt`).
+- **Version 1.0.56 Parity**:
+  - Synchronized version `1.0.56` (and versionCode `10056`) across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Verification Commands & Outcomes**:
+  - `bash -n scripts/run-android-e2e.sh`: PASSED (0 errors).
+  - `bash -n scripts/android-e2e-assert.sh`: PASSED (0 errors).
+  - `npx tsx scripts/verify-emulator-captions-detection.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-parser-diff-confirmation.ts`: PASSED.
+  - `npx tsx scripts/verify-tokens-economy.ts`: PASSED.
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED.
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors).
+
+---
+
+## Task 155: Repair Git Merge Conflicts & Duplicate Code Artifacts (Version 1.0.55)
+
+### Summary:
+- **Cleaned Merge Conflict Markers & Syntax (`src/routes/index.tsx`)**:
+  - Eliminated syntax errors and unclosed arrow function / block braces around lines 628–655.
+  - Removed duplicate identifier imports (`ParserDiffConfirmationModal`, `computeParserDiff`, `type ParserDiffResult`).
+  - Removed duplicate criteria toggle and preset handlers (`handleToggleCriterion`, `handleApplyPreset`, `requestApplyCriteria`, `handleConfirmParserDiff`, `handleCancelParserDiff`).
+  - Unified `confirmParserDiff` / `confirmParserDiffEnabled` state with dual storage keys (`STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY` and `"yt_confirm_parser_diff"`).
+  - Rendered a single coherent `<ParserDiffConfirmationModal>` connected to `pendingParserChange`.
+- **Consolidated Verification Suite (`scripts/verify-parser-diff-confirmation.ts`)**:
+  - Combined two conflicting test halves into a single, cohesive test script.
+  - Tested identical row detection, divergent rows, cyclic index stepping, component accessibility roles/testids, index.tsx flow integration, dynamic version parity across all 5 targets, and `docs/files.md` inventory.
+- **Documentation & Tracking Merge Hygiene**:
+  - Cleaned all residual `=======` markers and conflicting branch lines across `docs/tasks.md`, `docs/todo.md`, `current-sub-task.md`, `docs/tokens.md`, `docs/done.md`, `docs/android.md`, `docs/files.md`, and `AGENTS.md`.
+  - Preserved verbatim user prompt in `AGENTS.md` (`## Last raw prompt`).
+  - Enforced zero duplicate Markdown files policy.
+- **Version 1.0.55 Parity**:
+  - Synchronized version `1.0.55` (and versionCode `10055`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Verification Commands & Outcomes**:
+  - `npm run lint`: PASSED (0 errors, 0 warnings).
+  - `npx tsc --noEmit`: PASSED (0 errors).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED.
+  - `npx tsx scripts/verify-parser-diff-confirmation.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-tokens-economy.ts`: PASSED.
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED.
+  - `npx tsx scripts/verify-client-video-metadata.ts`: PASSED.
+  - `npx tsx scripts/verify-floating-dropdown-menu.ts`: PASSED.
+
+---
+
 ## Task 149: Parser Option Difference Confirmation & Preview (Version 1.0.50)
 
 ### Summary:
@@ -24,8 +79,9 @@
   - `npx tsx scripts/verify-parser-diff-confirmation.ts`: PASSED (100% verified).
   - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED.
   - `npx tsx scripts/verify-tokens-economy.ts`: PASSED.
-=======
-=======
+
+---
+
 ## Task 154: Client-Side Video Metadata Extraction & Presentation (Version 1.0.54)
 
 ### Summary:

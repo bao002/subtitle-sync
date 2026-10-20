@@ -102,21 +102,24 @@ assert(
 );
 console.log("✅ PASS: docs/android.md documents screencast deprecation and caption exposure.");
 
-// 6. Verify version 1.0.53 parity across all 5 targets
-console.log("\n--> [Step 6] Verifying version 1.0.53 parity across all 5 targets...");
+// 6. Verify version parity across targets
+console.log("\n--> [Step 6] Verifying version parity across targets...");
+const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf8"));
+const currentVersion = pkg.version;
+assert.ok(currentVersion, "package.json version must exist");
+
 const targets = [
-  { path: "package.json", pattern: /"version":\s*"1\.0\.53"/ },
-  { path: "android-shell/app/build.gradle.kts", pattern: /versionName\s*=\s*"1\.0\.53"/ },
-  { path: "src/config/appConfig.ts", pattern: /APP_VERSION\s*=\s*"1\.0\.53"/ },
-  { path: "src/utils/apkUpdater.ts", pattern: /CURRENT_APK_VERSION\s*=\s*"v1\.0\.53"/ },
+  { path: "android-shell/app/build.gradle.kts", pattern: new RegExp(`versionName\\s*=\\s*"${currentVersion}"`) },
+  { path: "src/config/appConfig.ts", pattern: new RegExp(`APP_VERSION\\s*=\\s*"${currentVersion}"`) },
+  { path: "src/utils/apkUpdater.ts", pattern: new RegExp(`CURRENT_APK_VERSION\\s*=\\s*"v${currentVersion}"`) },
 ];
 
 for (const target of targets) {
   const fullPath = path.resolve(rootDir, target.path);
   assert(fs.existsSync(fullPath), `Target file ${target.path} must exist`);
   const content = fs.readFileSync(fullPath, "utf8");
-  assert(target.pattern.test(content), `${target.path} must specify version 1.0.53`);
-  console.log(`  ✓ ${target.path} version verified (1.0.53)`);
+  assert(target.pattern.test(content), `${target.path} must specify version ${currentVersion}`);
+  console.log(`  ✓ ${target.path} version verified (${currentVersion})`);
 }
 
 console.log("\n=========================================================================");
