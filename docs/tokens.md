@@ -4,13 +4,16 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Task 156, Version 1.0.56)
+## Active Prompt: Subtitles Fixtures Restriction, Application Stages Definition, Theme Colors Fix, and Android Emulator Evidence Docs (Tasks 157-160, Version 1.0.57)
 
-- **Chapter 1 (Task 156)**: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.56)
-  - Subtask 156.1: Synchronize version 1.0.56 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-  - Subtask 156.2: Deprecate screencast video generation in `scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, and `public/android-emulator-report.html`, fixing bash syntax and unclosed function definitions.
-  - Subtask 156.3: Refine authentic caption detection after enabling captions on the YouTube video, ensuring logcat telemetry (`AUTHENTIC_CAPTIONS_EXPOSED`) and text exposure work cleanly without fixtures or mocks.
-  - Subtask 156.4: Update and execute dedicated verification test `scripts/verify-emulator-captions-detection.ts`, verify compilation (`compile_applet`), lint (`lint_applet`), commit, push, and migrate to `docs/done.md`.
+- **Chapter 1 (Task 157)**: AGENTS.md Subtitles Fixtures Restriction (L2Ryrr6txwA only in public/fixtures/L2Ryrr6txwA, explicitly labelled/approved) & Remove Hardcoded Subtitles from src/config
+  - Subtask 157.1: Version bump to 1.0.57 across targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask 157.2: Update `AGENTS.md` with strict subtitle fixtures rule (video L2Ryrr6txwA only, labelled as fixture, explicitly approved, zero hardcoded subtitles in config/runtime).
+  - Subtask 157.3: Remove hardcoded subtitles from `src/config/fixtures.ts`, `src/config/appConfig.ts`, and ensure clean runtime behavior.
+  - Subtask 157.4: Add dedicated verification test `scripts/verify-subtitles-fixtures-restriction.ts`, compile, lint, commit, push, and migrate to `docs/done.md`.
+- **Chapter 2 (Task 158)**: AGENTS.md Application Stages Definition & Pipeline Consistency (Special Chars Removal before Translation, Advanced & Beginner Parity)
+- **Chapter 3 (Task 159)**: Theme Colors Fix (Beginner Mode fix & Blue Theme purity for both modes)
+- **Chapter 4 (Task 160)**: docs/android.md GitHub Actions Emulator Flow & Authenticity Evidence Documentation
 
 ---
 

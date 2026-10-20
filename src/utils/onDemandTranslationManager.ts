@@ -5,6 +5,7 @@
  */
 
 import { logInfo, logWarn } from "./logBuffer";
+import { removeSpecialCharacters } from "./captionParser";
 
 export function normalizeLanguage(lang: string): string {
   if (!lang) return "auto";
@@ -32,9 +33,15 @@ export const translateWithGoogle = ({
   fromLang: string;
   toLang: string;
 }): Promise<string> => {
+  // MANDATORY APPLICATION STAGE: Special characters removal MUST happen BEFORE translation stage.
+  const cleanText = removeSpecialCharacters(text);
+  if (!cleanText || cleanText.trim().length === 0) {
+    return Promise.resolve("");
+  }
+
   const normalizedFromLang = normalizeLanguage(fromLang);
   const normalizedToLang = normalizeLanguage(toLang);
-  const requestUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${normalizedFromLang}&tl=${normalizedToLang}&dt=t&q=${encodeURIComponent(text)}`;
+  const requestUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${normalizedFromLang}&tl=${normalizedToLang}&dt=t&q=${encodeURIComponent(cleanText)}`;
 
   return fetch(requestUrl)
     .then((res) => {
@@ -172,7 +179,10 @@ export async function translateSentencesAhead({
   const translationPromises: Promise<void>[] = [];
 
   for (let idx = validStart; idx <= endIndex; idx++) {
-    const text = sentences[idx];
+    const rawText = sentences[idx];
+    if (!rawText) continue;
+    // MANDATORY APPLICATION STAGE: Special characters removal MUST happen BEFORE translation stage.
+    const text = removeSpecialCharacters(rawText);
     if (!text || text.trim().length === 0) continue;
 
     // 1. Check if already translated in memory for this video

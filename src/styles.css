@@ -2,7 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:is(.dark *, .dark-blue *, .dark, .dark-blue));
 
 /*
  * Design system definition.
@@ -157,11 +157,19 @@
   --accent-foreground: oklch(0.984 0.003 247.858);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
+  --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.72 0.14 235);
-  --highlight: oklch(0.82 0.15 92);
-  --highlight-foreground: oklch(0.18 0.03 65);
+  --highlight: oklch(0.78 0.14 235);
+  --highlight-foreground: oklch(0.15 0.04 265);
+  --sidebar: oklch(0.18 0.042 265);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.72 0.14 235);
+  --sidebar-primary-foreground: oklch(0.16 0.04 265);
+  --sidebar-accent: oklch(0.25 0.041 260);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.72 0.14 235);
 }
 
 @layer base {

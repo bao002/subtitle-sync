@@ -4,7 +4,15 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*All planned tasks for the current prompt have been completed and migrated to `docs/done.md`.*
+- [ ] **Task 159: Theme Colors Fix (Beginner Mode & Blue Theme Coherence)**
+  - [ ] Subtask 159.1: Fix theme colors application in Beginner mode (`src/components/beginner/BeginnerFlowContainer.tsx` and child components) so the active theme is properly applied.
+  - [ ] Subtask 159.2: Fix blue theme in `src/config/accordionThemes.ts` and UI views so it does not mix light mode with blue mode (ensuring consistent blue palette).
+  - [ ] Subtask 159.3: Add and run dedicated verification test `scripts/verify-theme-colors-consistency.ts`, verify compilation, lint, commit, push, and migrate to `docs/done.md`.
+
+- [ ] **Task 160: Android Emulator GitHub Actions Execution & Telemetry Evidence Docs**
+  - [ ] Subtask 160.1: Expand `docs/android.md` defining how GitHub Actions utilizes the Android emulator runner to test the app.
+  - [ ] Subtask 160.2: Document the specific evidence presented in the report proving the app was genuinely tested on a real Android device/emulator (system telemetry, live adb screencap screenshots, logcat tags, native network calls).
+  - [ ] Subtask 160.3: Add and run dedicated verification test `scripts/verify-android-emulator-docs-evidence.ts`, verify compilation, lint, commit, push, and migrate to `docs/done.md`.
 
 ---
 
@@ -13,3 +21,4 @@ This file is strictly the active backlog containing pending, active, and upcomin
 The following tasks were requested for "later" by the user and are stored here to be processed upon confirmation:
 
 *(No pending later tasks currently in queue)*
+

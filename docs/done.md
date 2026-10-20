@@ -1,6 +1,56 @@
 # Done tasks
 
+## Task 158: Application Stages Definition in AGENTS.md & Pipeline Rule Consistency (Version 1.0.57)
+
+### Summary:
+- **Defined 7 Application Stages Sequentially in AGENTS.md**:
+  - Stage 1: Acquisition & Interception (authentic YouTube timedtext interception or strictly L2Ryrr6txwA fixtures when approved).
+  - Stage 2: Validation & Schema Conformance (HTTP 200, valid json3 schema, non-empty events, reject HTML).
+  - Stage 3: Special Characters Removal & Sanitization (noise, bracketed cues, speaker prefixes, arrows).
+  - Stage 4: Sentence Boundary Detection & Punctuation Splitting (terminal punctuation with linear time interpolation).
+  - Stage 5: Translation Stage (tlang, on-demand AI translation).
+  - Stage 6: Multi-Language Alignment & Grid Formulation (parallel sentence rows).
+  - Stage 7: Audio Playback Coordination & TTS Synthesis (synchronized video pause & speech playback).
+- **Mandated Restrict Rule in AGENTS.md & Codebase**:
+  - Enforced that Special Characters Removal MUST happen BEFORE the translation stage so no sound cues (`[Music]`, `(applause)`) or speaker markers are translated.
+  - Implemented `removeSpecialCharacters` in `src/utils/captionParser.ts` and integrated it directly into `translateWithGoogle` and `translateSentencesAhead` in `src/utils/onDemandTranslationManager.ts`.
+  - Removed obsolete hardcoded `SAMPLE_YOUTUBE_TIMEDTEXT_JSON3` from `src/utils/captionParser.ts`.
+- **Absolute Mode Parity (Advanced & Beginner)**:
+  - Unified `cleanSubtitleText` in `src/components/beginner/tabs/BeginnerParsingTab.tsx` with `removeSpecialCharacters` to guarantee 100% exact parity between Advanced and Beginner mode execution.
+- **Verification Commands & Outcomes**:
+  - `npm run test:application-stages-pipeline`: PASSED (all 7 stages, restrict rule, translation pre-sanitization, and mode parity verified).
+  - `npm run test:beginner-mode`: PASSED.
+  - `npm run test:subtitles-fixtures-restriction`: PASSED.
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors).
+
+---
+
+## Task 157: Subtitles Fixtures Restriction & Hardcoded Subtitles Purge (Version 1.0.57)
+
+
+### Summary:
+- **Strict Subtitles Fixtures Policy in AGENTS.md**:
+  - Established rule that the ONLY subtitles fixtures permitted in the entire app is for video `L2Ryrr6txwA` located at `public/fixtures/L2Ryrr6txwA`.
+  - Added strict policy: never show fixtures without explicitly writing/labeling that it is a fixture and only after the developer explicitly approves it.
+  - Declared zero hardcoded subtitles policy across `src/config` and the application runtime codebase.
+- **Purged Hardcoded Subtitles from Config and Codebase**:
+  - Removed all hardcoded subtitles cues (`SAMPLE_AUTHENTIC_RUSSIAN_CUES`) and static translation maps (`SAMPLE_TRANSLATIONS`) from `src/config/fixtures.ts`.
+  - Removed hardcoded subtitle imports (`L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS`, `EILFKSGNKDA_LANGUAGE_TRACKS`) and inline cue lists (`ME_AT_THE_ZOO_ID`) from `DEFAULT_LIBRARY_ITEMS` in `src/config/appConfig.ts` (all video items now initialize with `cues: []`).
+  - Restricted `test/fixtures/defaultSubtitles.ts` to only recognize `L2Ryrr6txwA`.
+  - Updated web demo status text in `src/routes/index.tsx` to explicitly label fixture usage: `[Fixture: L2Ryrr6txwA] (Approved Web Demo Fixture)`.
+- **Version 1.0.57 Synchronization**:
+  - Synchronized version `1.0.57` (and versionCode `10057`) across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:subtitles-fixtures-restriction`: PASSED (all assertions verified).
+  - `npm run test:beginner-mode`: PASSED.
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors).
+
+---
+
 ## Task 156: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.56)
+
 
 ### Summary:
 - **Deprecated Screencast Video Generation & Repaired Runner Scripts**:

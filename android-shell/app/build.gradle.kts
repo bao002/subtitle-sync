@@ -37,8 +37,8 @@ android {
         applicationId = "com.ytviewer.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10056
-        versionName = "1.0.56"
+        versionCode = 10057
+        versionName = "1.0.57"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

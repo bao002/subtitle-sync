@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { removeSpecialCharacters } from "../../../utils/captionParser";
 
 export interface CustomCharRule {
   id: string;
@@ -45,33 +46,8 @@ export function cleanSubtitleText(
     customRules?: CustomCharRule[];
   },
 ): string {
-  if (!text) return "";
-  let result = text;
-
-  // 1. Strip speaker brackets like [Applause], (Music), [SPEAKER 1]:
-  if (options.stripSpeakerBrackets) {
-    result = result.replace(/\[[^\]]*\]/g, "");
-    result = result.replace(/\([^)]*\)/g, "");
-  }
-
-  // 2. Remove specified characters/prefixes (e.g., ">", ">>")
-  for (const char of options.removeChars) {
-    if (char) {
-      result = result.split(char).join("");
-    }
-  }
-
-  // 3. Apply custom rename/replacement rules
-  if (options.customRules) {
-    for (const rule of options.customRules) {
-      if (rule.target) {
-        result = result.split(rule.target).join(rule.replacement);
-      }
-    }
-  }
-
-  // 4. Normalize excess whitespace
-  return result.replace(/\s+/g, " ").trim();
+  // Use unified application stage 3 sanitization logic for 100% parity between beginner and advanced modes
+  return removeSpecialCharacters(text, options);
 }
 
 export function splitTextByPunctuation(text: string, punctuationChars: string[]): string[] {
@@ -227,16 +203,16 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
   return (
     <div className="space-y-4 max-w-4xl mx-auto p-3" data-testid="beginner-parsing-tab">
       {/* Tab Header */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm space-y-1">
+      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-1">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-700/60 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
             <Split className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-slate-100">
+            <h2 className="text-sm font-semibold text-foreground">
               Step 3: Subtitle Parsing & Cleanup
             </h2>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Configure sentence splitting rules and automatically remove speaker labels or arrows
               (such as &gt;).
             </p>
@@ -245,16 +221,16 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       </div>
 
       {/* 1. Sentence Splitting Toggle & Punctuation Selectors */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm space-y-3">
+      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xs font-semibold text-slate-200">Sentence Punctuation Splitting</h3>
-            <p className="text-[11px] text-slate-400">
+            <h3 className="text-xs font-semibold text-foreground">Sentence Punctuation Splitting</h3>
+            <p className="text-[11px] text-muted-foreground">
               Default to splitting long subtitle blocks into natural sentences at punctuation marks.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] text-slate-400">
+            <span className="text-[11px] text-muted-foreground">
               {splitByPunctuation ? "Enabled" : "Disabled"}
             </span>
             <Switch
@@ -266,8 +242,8 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         </div>
 
         {splitByPunctuation && (
-          <div className="pt-2 border-t border-slate-800/80 space-y-2">
-            <span className="text-xs text-slate-300 font-medium">
+          <div className="pt-2 border-t border-border space-y-2">
+            <span className="text-xs text-foreground/90 font-medium">
               Choose punctuation marks to split on:
             </span>
             <div
@@ -281,15 +257,15 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
                     key={p.char}
                     className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
                       isChecked
-                        ? "bg-slate-800/90 border-emerald-500/70 text-slate-100"
-                        : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                        ? "bg-primary/10 border-primary text-foreground"
+                        : "bg-background border-border text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     <Checkbox
                       checked={isChecked}
                       onCheckedChange={() => handleTogglePunctuation(p.char)}
                     />
-                    <span className="font-mono font-semibold text-emerald-400">{p.char}</span>
+                    <span className="font-mono font-semibold text-emerald-500">{p.char}</span>
                     <span>{p.label}</span>
                   </label>
                 );
@@ -300,23 +276,23 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       </div>
 
       {/* 2. Character Removal & Renaming (stripping > and speaker tags) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm space-y-3">
+      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center gap-2">
-          <Scissors className="w-4 h-4 text-emerald-400" />
-          <h3 className="text-xs font-semibold text-slate-200">Character Removal & Rename Rules</h3>
+          <Scissors className="w-4 h-4 text-emerald-500" />
+          <h3 className="text-xs font-semibold text-foreground">Character Removal & Rename Rules</h3>
         </div>
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-muted-foreground">
           Clean unwanted artifacts, noise indicators, or speaker prefixes before subtitle rendering
           and TTS speech.
         </p>
 
         {/* Preset 1: Speaker Brackets & Greater-than symbols */}
-        <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-950 border border-slate-800">
+        <div className="flex items-center justify-between p-2.5 rounded-lg bg-background border border-border">
           <div className="space-y-0.5">
-            <span className="text-xs font-medium text-slate-200">
+            <span className="text-xs font-medium text-foreground">
               Strip Speaker Brackets &amp; Arrows
             </span>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-muted-foreground">
               Removes [Applause], (Music), and &gt; or &gt;&gt; speaker tags automatically.
             </p>
           </div>
@@ -329,7 +305,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
 
         {/* Active Remove Characters Chips */}
         <div className="space-y-1.5 pt-1">
-          <span className="text-xs text-slate-300 font-medium">
+          <span className="text-xs text-foreground/90 font-medium">
             Characters removed from subtitles:
           </span>
           <div className="flex flex-wrap gap-1.5" data-testid="remove-chars-chips">
@@ -337,14 +313,14 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
               <Badge
                 key={char}
                 variant="secondary"
-                className="bg-slate-950 border border-slate-700 text-slate-200 font-mono text-xs pl-2.5 pr-1 py-1 flex items-center gap-1.5"
+                className="bg-background border border-border text-foreground font-mono text-xs pl-2.5 pr-1 py-1 flex items-center gap-1.5"
                 data-testid={`remove-char-${char}`}
               >
                 <span>&quot;{char}&quot;</span>
                 <button
                   type="button"
                   onClick={() => handleRemoveCharFromList(char)}
-                  className="w-4 h-4 rounded hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-slate-200"
+                  className="w-4 h-4 rounded hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground"
                   aria-label={`Keep ${char}`}
                 >
                   <Trash2 className="w-3 h-3" />
@@ -355,8 +331,8 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         </div>
 
         {/* Custom Rule Input */}
-        <div className="space-y-2 pt-1 border-t border-slate-800/80">
-          <span className="text-xs text-slate-300 font-medium">
+        <div className="space-y-2 pt-1 border-t border-border">
+          <span className="text-xs text-foreground/90 font-medium">
             Add custom character removal / rename:
           </span>
           <div className="flex flex-wrap items-center gap-2">
@@ -365,7 +341,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
               value={newCharInput}
               onChange={(e) => setNewCharInput(e.target.value)}
               placeholder="Char to remove (e.g. >)"
-              className="h-8 text-xs bg-slate-950 border-slate-800 text-slate-200 w-36"
+              className="h-8 text-xs bg-background border-border text-foreground w-36"
               data-testid="input-remove-char"
             />
             <Input
@@ -373,7 +349,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
               value={newReplacementInput}
               onChange={(e) => setNewReplacementInput(e.target.value)}
               placeholder="Replace with (leave blank to remove)"
-              className="h-8 text-xs bg-slate-950 border-slate-800 text-slate-200 w-48"
+              className="h-8 text-xs bg-background border-border text-foreground w-48"
               data-testid="input-replace-char"
             />
             <Button
@@ -391,15 +367,15 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       </div>
 
       {/* 3. Live Preview Card */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 shadow-sm space-y-3">
+      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-emerald-400" />
-            <h3 className="text-xs font-semibold text-slate-200">
+            <Eye className="w-4 h-4 text-emerald-500" />
+            <h3 className="text-xs font-semibold text-foreground">
               Real-Time Parsing & Cleanup Preview
             </h3>
           </div>
-          <Badge variant="outline" className="text-[10px] text-slate-400 border-slate-700">
+          <Badge variant="outline" className="text-[10px] text-muted-foreground border-border">
             {processedPreview.reduce((acc, p) => acc + p.sentences.length, 0)} split sentences
           </Badge>
         </div>
@@ -408,18 +384,18 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
           {processedPreview.map((item, idx) => (
             <div
               key={idx}
-              className="bg-slate-950 border border-slate-800/80 rounded-lg p-2.5 space-y-1.5 text-xs"
+              className="bg-background border border-border rounded-lg p-2.5 space-y-1.5 text-xs"
             >
-              <div className="text-slate-500 line-through text-[11px] font-mono">
+              <div className="text-muted-foreground/70 line-through text-[11px] font-mono">
                 Original: {item.raw}
               </div>
               <div className="space-y-1">
                 {item.sentences.map((sentence, sIdx) => (
                   <div
                     key={sIdx}
-                    className="flex items-center gap-2 text-slate-100 font-medium bg-slate-900/80 px-2 py-1 rounded border border-slate-800"
+                    className="flex items-center gap-2 text-foreground font-medium bg-muted/40 px-2 py-1 rounded border border-border"
                   >
-                    <span className="text-[10px] text-emerald-400 font-mono">#{sIdx + 1}</span>
+                    <span className="text-[10px] text-emerald-500 font-mono">#{sIdx + 1}</span>
                     <span>{sentence}</span>
                   </div>
                 ))}
