@@ -210,20 +210,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-add the following tasks:
-1. AGENTS.md -  the only subtitles fixtures this app will ever have is for the video:L2Ryrr6txwA and be located here: public/fixtures/L2Ryrr6txwA. never ever show any fixtures without writing its a fixtures and after the developer approved it explicitly.
-
-i.e:
-it means that u have to remove any hardcoded subtitles from src/config and everywhere else!
-
-2. AGENTS.md - well define the application stages. what comes first and what later.
-
-restrict rule: stage: spacial chars removal must happend before the translation stage.
-
-the rules on the advance and the beginner level must be the same.
-
-3. theme colors - 3.1 must be fixed on beginner mode. 3.2 the blue theme must be fixed for both (its currently seems to mixe light mode with blue mode)
-
-4. docs/android.md - define how github actions is using the android simulator to test the app. and what is the evidence the report shows which proves that the android application actually have been tested on an android device/emulator.
+1. go on
+2. hotfix: fix android build apk:
+fix android build + always show the version id , commit id, version description on each version.
+https://productionresultssa9.blob.core.windows.net/actions-results/a42e40d5-c19d-850e-88a7-b0b6c7f8eb19/workflow-job-run-f50f9845-c19b-5c64-85c7-6064568e4df2/logs/job/job-logs.txt?rsct=text%2Fplain&se=2026-10-20T23%3A07%3A16Z&sig=BFGQUZqgl0iv17uUTN0T7lk9%2BqLcI56TkF7IVJ3jIno%3D&ske=2026-10-21T01%3A38%3A11Z&skoid=ca7593d4-ee42-46cd-af88-8b886a2f84eb&sks=b&skt=2026-10-20T21%3A38%3A11Z&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skv=2025-11-05&sp=r&spr=https&sr=b&st=2026-10-20T22%3A57%3A11Z&sv=2025-11-05
 ```
+
 

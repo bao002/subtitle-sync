@@ -21,4 +21,3 @@ This file is strictly the active backlog containing pending, active, and upcomin
 The following tasks were requested for "later" by the user and are stored here to be processed upon confirmation:
 
 *(No pending later tasks currently in queue)*
-

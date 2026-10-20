@@ -5,6 +5,7 @@
  */
 
 import { logWarn, logInfo, logError } from "./logBuffer";
+import { APP_VERSION, APP_COMMIT_ID, APP_VERSION_DESCRIPTION } from "../config/appConfig";
 
 export interface ApkAsset {
   name: string;
@@ -33,6 +34,9 @@ export interface ApkReleaseInfo {
   isNewer: boolean;
   currentVersion: string;
   repo: string;
+  versionId: string;
+  commitId: string;
+  versionDescription: string;
   artifactAsset?: ReleaseArtifactAsset;
   hasWebReleaseArtifact?: boolean;
 }
@@ -47,7 +51,8 @@ export interface ArtifactUpdateProgress {
   tagName?: string;
 }
 
-export const CURRENT_APK_VERSION = "v1.0.57";
+export const CURRENT_APK_VERSION = "v1.0.58";
+export { APP_COMMIT_ID, APP_VERSION_DESCRIPTION };
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 export const REPO_OWNERS = ["mostuf2556", "mostuf25561"] as const;
 export type RepoOwner = (typeof REPO_OWNERS)[number];
@@ -62,6 +67,9 @@ export interface ApkReleaseLink {
   downloadUrl: string;
   otaBundleUrl: string;
   cliInstallCommand: string;
+  versionId: string;
+  commitId: string;
+  versionDescription: string;
 }
 
 /**
@@ -75,6 +83,9 @@ export function getApkReleaseLinks(): ApkReleaseLink[] {
     downloadUrl: `https://github.com/${owner}/subtitle-sync/releases/latest/download/YouTube-Viewer-debug.apk`,
     otaBundleUrl: `https://github.com/${owner}/subtitle-sync/releases/latest/download/web-dist.zip`,
     cliInstallCommand: `curl -fsSL https://raw.githubusercontent.com/${owner}/subtitle-sync/main/update.apk.sh | bash -s -- "https://github.com/${owner}/subtitle-sync/releases/latest/download/YouTube-Viewer-debug.apk"`,
+    versionId: CURRENT_APK_VERSION,
+    commitId: APP_COMMIT_ID,
+    versionDescription: APP_VERSION_DESCRIPTION,
   }));
 }
 
@@ -403,6 +414,9 @@ export async function checkApkUpdate(
     isNewer,
     currentVersion: activeAppVer,
     repo: releaseData.repo || repo,
+    versionId: latestTag,
+    commitId: APP_COMMIT_ID,
+    versionDescription: releaseData.body || APP_VERSION_DESCRIPTION,
     artifactAsset: releaseData.artifactAsset,
     hasWebReleaseArtifact: true,
   };

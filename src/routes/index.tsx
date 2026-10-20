@@ -217,7 +217,14 @@ import {
   hasCachedAiSubtitles,
 } from "@/utils/subtitleCache";
 import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
-import { STORAGE_KEYS, APP_VERSION, ALL_RELEASES_URL, DEFAULT_VIDEO_ID } from "@/config/appConfig";
+import {
+  STORAGE_KEYS,
+  APP_VERSION,
+  APP_COMMIT_ID,
+  APP_VERSION_DESCRIPTION,
+  ALL_RELEASES_URL,
+  DEFAULT_VIDEO_ID,
+} from "@/config/appConfig";
 import serverConfig from "@/config/server.json";
 import { JSON3_RAW_MAP } from "../../test/fixtures/L2Ryrr6txwA/jsonStrings";
 
@@ -3448,9 +3455,10 @@ function Index() {
             rel="noopener noreferrer"
             data-testid="header-app-version-badge"
             className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-mono font-medium text-primary hover:bg-primary/20 transition-colors"
-            title="Browse All GitHub Releases & Versions"
+            title={`${APP_VERSION_DESCRIPTION} (Commit #${APP_COMMIT_ID})`}
           >
-            v{APP_VERSION}
+            <span>v{APP_VERSION}</span>
+            <span className="opacity-70 text-[10px]">#{APP_COMMIT_ID}</span>
             <ExternalLink className="h-2.5 w-2.5 opacity-70" />
           </a>
           <Button

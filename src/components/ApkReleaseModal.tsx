@@ -16,6 +16,8 @@ import {
   getApkReleaseLinks,
   checkVersionDiscrepancy,
   clearOtaCacheAndReload,
+  APP_COMMIT_ID,
+  APP_VERSION_DESCRIPTION,
   type ApkReleaseLink,
 } from "../utils/apkUpdater";
 import { AlertTriangle, RefreshCw } from "lucide-react";
@@ -65,24 +67,47 @@ export const ApkReleaseModal: React.FC<ApkReleaseModalProps> = ({ isOpen, onClos
               <h2 id="apk-release-title" className="text-xl font-bold font-display tracking-tight">
                 Latest Android APK Releases
               </h2>
-              <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1.5 flex-wrap">
-                <span>Version:</span>
-                <span className="font-mono font-semibold text-foreground">
-                  {activeVersion || CURRENT_APK_VERSION}
-                </span>
-                <span>·</span>
-                <a
-                  href="https://github.com/mostuf2556/subtitle-sync/releases"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-testid="modal-all-releases-link"
-                  className="font-medium text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
-                  title="Browse All Releases on GitHub"
+              <div className="text-xs text-muted-foreground mt-0.5 space-y-1">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-semibold text-foreground">Version ID:</span>
+                  <span
+                    data-testid="modal-version-id"
+                    className="font-mono font-bold text-foreground bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded text-[11px]"
+                  >
+                    {activeVersion || CURRENT_APK_VERSION}
+                  </span>
+                  <span>·</span>
+                  <span className="font-semibold text-foreground">Commit ID:</span>
+                  <a
+                    href={`https://github.com/mostuf2556/subtitle-sync/commit/${APP_COMMIT_ID}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="modal-commit-id"
+                    className="font-mono font-semibold text-emerald-600 dark:text-emerald-400 hover:underline bg-muted px-1.5 py-0.5 rounded text-[11px]"
+                    title="View commit details on GitHub"
+                  >
+                    #{APP_COMMIT_ID}
+                  </a>
+                  <span>·</span>
+                  <a
+                    href="https://github.com/mostuf2556/subtitle-sync/releases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="modal-all-releases-link"
+                    className="font-medium text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
+                    title="Browse All Releases on GitHub"
+                  >
+                    <span>All Releases</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+                <div
+                  data-testid="modal-version-description"
+                  className="text-[11px] text-muted-foreground italic"
                 >
-                  <span>All Releases</span>
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </p>
+                  {APP_VERSION_DESCRIPTION}
+                </div>
+              </div>
             </div>
           </div>
           <button
@@ -200,6 +225,41 @@ export const ApkReleaseModal: React.FC<ApkReleaseModalProps> = ({ isOpen, onClos
                 <p className="text-xs text-muted-foreground mt-1 font-mono break-all">
                   {link.repo}
                 </p>
+
+                {/* Version ID, Commit ID & Version Description on each version */}
+                <div className="mt-2.5 p-2 rounded-lg bg-background/80 border border-border/80 space-y-1.5 text-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-muted-foreground font-medium">Version:</span>
+                      <span
+                        data-testid={`apk-version-id-${link.owner}`}
+                        className="font-mono font-bold text-foreground bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded text-[11px]"
+                      >
+                        {link.versionId || CURRENT_APK_VERSION}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] text-muted-foreground font-medium">Commit:</span>
+                      <a
+                        href={`https://github.com/${link.repo}/commit/${link.commitId || APP_COMMIT_ID}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-testid={`apk-commit-id-${link.owner}`}
+                        className="font-mono font-semibold text-emerald-600 dark:text-emerald-400 hover:underline bg-muted px-1.5 py-0.5 rounded text-[11px]"
+                        title="View commit on GitHub"
+                      >
+                        #{link.commitId || APP_COMMIT_ID}
+                      </a>
+                    </div>
+                  </div>
+                  <div
+                    data-testid={`apk-version-desc-${link.owner}`}
+                    className="text-[11px] text-muted-foreground leading-tight"
+                  >
+                    <span className="font-semibold text-foreground">Description: </span>
+                    {link.versionDescription || APP_VERSION_DESCRIPTION}
+                  </div>
+                </div>
               </div>
 
               {/* Action Buttons */}

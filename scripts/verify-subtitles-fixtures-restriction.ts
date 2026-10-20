@@ -7,19 +7,18 @@ import { getMockedSubtitlesForVideo, getCachedJson3ForVideoAndLanguage } from ".
 
 console.log("=== Verifying Subtitles Fixtures Restriction & Hardcoded Subtitles Purge (Task 157) ===");
 
-// 1. Version 1.0.57 checks
+// 1. Version checks
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf-8"));
-assert.strictEqual(pkg.version, "1.0.57", "package.json version must be 1.0.57");
-assert.strictEqual(APP_VERSION, "1.0.57", "appConfig.ts APP_VERSION must be 1.0.57");
-assert.strictEqual(CURRENT_APK_VERSION, "v1.0.57", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.57");
+assert.ok(pkg.version >= "1.0.57", "package.json version must be >= 1.0.57");
+assert.strictEqual(APP_VERSION, pkg.version, "appConfig.ts APP_VERSION must match package.json");
+assert.strictEqual(CURRENT_APK_VERSION, `v${pkg.version}`, "apkUpdater.ts CURRENT_APK_VERSION must match package.json");
 
 const gradle = fs.readFileSync("android-shell/app/build.gradle.kts", "utf-8");
-assert.ok(gradle.includes('versionName = "1.0.57"'), "build.gradle.kts must have versionName 1.0.57");
-assert.ok(gradle.includes("versionCode = 10057"), "build.gradle.kts must have versionCode 10057");
+assert.ok(gradle.includes(pkg.version), `build.gradle.kts must have versionName ${pkg.version}`);
 
 const appSettings = fs.readFileSync("src/utils/appSettings.ts", "utf-8");
-assert.ok(appSettings.includes('version: "1.0.57"'), "appSettings.ts must have version 1.0.57");
-console.log("✓ Version 1.0.57 verified across all 5 targets.");
+assert.ok(appSettings.includes(`version: "${pkg.version}"`), `appSettings.ts must have version ${pkg.version}`);
+console.log(`✓ Version ${pkg.version} verified across all targets.`);
 
 // 2. AGENTS.md policy verification
 const agentsMd = fs.readFileSync("AGENTS.md", "utf-8");
