@@ -108,6 +108,50 @@ export function cleanAndFixEncoding(text: string): string {
   return result.trim();
 }
 
+/**
+ * Removes special characters, sound cues, speaker brackets, and noise indicators.
+ * MANDATORY APPLICATION STAGE: Special characters removal MUST happen BEFORE translation stage.
+ * Applied identically in both Advanced Mode and Beginner Mode.
+ */
+export function removeSpecialCharacters(
+  text: string,
+  options?: {
+    stripSpeakerBrackets?: boolean;
+    removeChars?: string[];
+    customRules?: Array<{ target: string; replacement: string }>;
+  },
+): string {
+  if (!text) return "";
+  let result = cleanAndFixEncoding(text);
+
+  // 1. Strip sound cues & speaker brackets like [Applause], [Music], (Laughter), [SPEAKER 1]:
+  if (options?.stripSpeakerBrackets !== false) {
+    result = result.replace(/\[[^\]]*\]/g, "");
+    result = result.replace(/\([^)]*\)/g, "");
+  }
+
+  // 2. Strip standard and custom arrow markers / speaker symbols (> and >>)
+  const removeList = options?.removeChars ?? [">>", ">"];
+  for (const char of removeList) {
+    if (char) {
+      result = result.split(char).join("");
+    }
+  }
+
+  // 3. Apply custom replace rules if provided
+  if (options?.customRules) {
+    for (const rule of options.customRules) {
+      if (rule.target) {
+        result = result.split(rule.target).join(rule.replacement);
+      }
+    }
+  }
+
+  // 4. Normalize excess whitespace
+  return result.replace(/\s+/g, " ").trim();
+}
+
+
 // ─── Timestamp Helpers ──────────────────────────────────────────
 
 export function formatTimestamp(seconds: number): string {
@@ -183,30 +227,5 @@ export function parseRawCaptionData(rawData: string): ParsedCaptionResult {
   const cues = parseJson3(trimmed);
   if (cues.length > 0) return { format: "json3", cues };
 
-  return { format: "unknown", cues: [] };
 }
 
-export const SAMPLE_YOUTUBE_TIMEDTEXT_JSON3 = JSON.stringify({
-  events: [
-    {
-      tStartMs: 500,
-      dDurationMs: 3500,
-      segs: [{ utf8: "Hello and welcome to this video." }],
-    },
-    {
-      tStartMs: 4200,
-      dDurationMs: 4000,
-      segs: [{ utf8: "Today we will talk about language learning." }],
-    },
-    {
-      tStartMs: 8500,
-      dDurationMs: 3800,
-      segs: [{ utf8: "Subtitles help you follow along with the audio." }],
-    },
-    {
-      tStartMs: 12500,
-      dDurationMs: 4200,
-      segs: [{ utf8: "Let's get started with the first lesson." }],
-    },
-  ],
-});

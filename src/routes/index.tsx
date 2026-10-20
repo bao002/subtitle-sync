@@ -2301,7 +2301,11 @@ function Index() {
 
   useEffect(() => {
     document.documentElement.classList.remove("dark", "dark-blue");
-    if (theme !== "light") document.documentElement.classList.add(theme);
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else if (theme === "dark-blue") {
+      document.documentElement.classList.add("dark", "dark-blue");
+    }
     window.localStorage.setItem("parallel-subtitles-theme", theme);
   }, [theme]);
 
@@ -3482,7 +3486,11 @@ function Index() {
           </Button>
           <span className="text-sm text-muted-foreground">
             video {videoId} · {rows.length} sections ·{" "}
-            {isAndroid ? "live Android captions" : "fixture demo"}
+            {isAndroid
+              ? "live Android captions"
+              : videoId === DEMO_VIDEO
+                ? "[Fixture: L2Ryrr6txwA] (Approved Web Demo Fixture)"
+                : "live captions"}
           </span>
         </div>
 

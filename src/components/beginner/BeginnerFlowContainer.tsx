@@ -222,7 +222,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
 
   return (
     <div
-      className="w-full min-h-screen bg-slate-950 text-slate-100 flex flex-col"
+      className="w-full min-h-screen bg-background text-foreground flex flex-col"
       data-testid="beginner-flow-container"
     >
       {/* Beginner Step-by-Step Tabs Navigation */}
@@ -239,7 +239,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
       {playerSlot && (
         <div className="w-full max-w-4xl mx-auto px-2 pt-2">
           <div
-            className="w-full rounded-xl overflow-hidden bg-black aspect-video border border-slate-800 shadow-md relative"
+            className="w-full rounded-xl overflow-hidden bg-black aspect-video border border-border shadow-md relative"
             data-testid="beginner-player-slot-container"
           >
             {playerSlot}
@@ -361,9 +361,9 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
 
       {/* Video Library Modal */}
       <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
-        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto bg-slate-900 border-slate-800 text-slate-100">
+        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto bg-card border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold text-slate-100">
+            <DialogTitle className="text-sm font-semibold text-foreground">
               Saved Video Library
             </DialogTitle>
           </DialogHeader>

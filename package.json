@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.56",
+  "version": "1.0.57",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -15,6 +15,8 @@
     "format": "prettier --write .",
     "test:e2e": "playwright test",
     "test:beginner-mode": "tsx scripts/verify-beginner-mode-tab-flow.ts",
+    "test:application-stages-pipeline": "tsx scripts/verify-application-stages-pipeline.ts",
+    "test:subtitles-fixtures-restriction": "tsx scripts/verify-subtitles-fixtures-restriction.ts",
     "test:emulator-captions-detection": "tsx scripts/verify-emulator-captions-detection.ts",
     "test:video-metadata": "tsx scripts/verify-client-video-metadata.ts",
     "test:e2e:web": "playwright test e2e/web.spec.ts",

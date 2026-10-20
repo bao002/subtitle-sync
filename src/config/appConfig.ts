@@ -1,12 +1,10 @@
 import { LibraryVideoItem } from "../types";
-import { L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS } from "../../test/fixtures/defaultSubtitles";
-import { EILFKSGNKDA_LANGUAGE_TRACKS } from "../../test/fixtures/eilfksgnkda";
 
 /**
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "1.0.56";
+export const APP_VERSION = "1.0.57";
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 
 export const DEFAULT_VIDEO_ID = "vBURridJXZ0";
@@ -43,7 +41,7 @@ export const STORAGE_KEYS = {
   PARSER_CONFIRM_DIFF_STORAGE_KEY: "yt_parser_confirm_diff_v1",
 } as const;
 
-// Default Library Items (with Authentic Multilingual Tracks)
+// Default Library Items (cues start empty; populated dynamically via authentic fetch or approved demo fixture for L2Ryrr6txwA)
 export const DEFAULT_LIBRARY_ITEMS: LibraryVideoItem[] = [
   {
     id: DEFAULT_VIDEO_ID,
@@ -56,47 +54,21 @@ export const DEFAULT_LIBRARY_ITEMS: LibraryVideoItem[] = [
     id: JSON3_DEMO_VIDEO_ID,
     originalUrl: JSON3_DEMO_VIDEO_URL,
     title: "Guitar Lesson · JSON3 TimedText (JustinGuitar)",
-    cues: L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS.en,
+    cues: [],
     timestamp: Date.now() + 1,
   },
   {
     id: ME_AT_THE_ZOO_ID,
     originalUrl: ME_AT_THE_ZOO_URL,
     title: "Me at the zoo",
-    cues: [
-      {
-        id: "cue-1",
-        start: 1.2,
-        duration: 3.2,
-        text: "All right, so here we are in front of the elephants.",
-      },
-      {
-        id: "cue-2",
-        start: 4.5,
-        duration: 3.0,
-        text: "The cool thing about these guys is that...",
-      },
-      {
-        id: "cue-3",
-        start: 7.6,
-        duration: 3.5,
-        text: "...they have really, really, really long trunks.",
-      },
-      { id: "cue-4", start: 11.2, duration: 2.8, text: "And that is cool." },
-      {
-        id: "cue-5",
-        start: 14.1,
-        duration: 4.2,
-        text: "And that is pretty much all there is to say.",
-      },
-    ],
+    cues: [],
     timestamp: Date.now() + 2,
   },
   {
     id: EILFKSGNKDA_VIDEO_ID,
     originalUrl: EILFKSGNKDA_VIDEO_URL,
     title: "JSON3 Subtitle Demo (English + Hebrew)",
-    cues: EILFKSGNKDA_LANGUAGE_TRACKS.en,
+    cues: [],
     timestamp: Date.now() + 3,
   },
 ];

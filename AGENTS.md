@@ -15,6 +15,46 @@
 
 - The subtitle fetch design (attempt order, session vs link-only sending, refetch buttons, web demo = local fixtures only) lives in [docs/reliable-subtitles-fetching.md](docs/reliable-subtitles-fetching.md). Follow it for any change to subtitle fetching.
 
+## Subtitles fixtures restriction & zero hardcoded subtitles policy
+
+- **Single permitted fixture video and directory**:
+  - The ONLY subtitles fixtures this application will ever have is strictly for video `L2Ryrr6txwA` and located strictly at `public/fixtures/L2Ryrr6txwA`.
+  - No other video ID, path, or directory may ever contain, bundle, or use static subtitle fixtures.
+- **Mandatory fixture labelling and explicit developer approval**:
+  - Never ever show, load, or render any subtitle fixtures without explicitly writing/labeling that it is a fixture (e.g., `[Fixture]` badge or label).
+  - Fixtures may only ever be displayed after the developer has approved it explicitly.
+- **Zero hardcoded subtitles policy**:
+  - All hardcoded subtitles, static cue arrays, and static translation maps are strictly prohibited in `src/config` (such as `src/config/fixtures.ts`, `src/config/appConfig.ts`) and everywhere else across the application runtime codebase.
+  - Video items in `DEFAULT_LIBRARY_ITEMS` and initial application state must have empty cues (`cues: []`), relying on authentic dynamic timedtext fetching or explicitly approved fixtures for `L2Ryrr6txwA`.
+
+## Application stages pipeline & execution order
+
+The application processes and presents subtitles through a strict sequential pipeline. Each stage has a clearly defined responsibility and order:
+
+1. **Stage 1: Acquisition & Interception**
+   - Intercepts authentic YouTube `api/timedtext` network queries from the native WebView player on Android, accepts direct user-entered subtitle URLs, or loads local fixtures strictly for video `L2Ryrr6txwA` from `public/fixtures/L2Ryrr6txwA` if explicitly approved.
+2. **Stage 2: Validation & Schema Conformance**
+   - Enforces HTTP 200, valid non-HTML JSON, YouTube `json3` structure (`events` with `tStartMs`, `dDurationMs`, `segs[].utf8`), and non-empty cues (`cuesCount > 0`). Rejects HTML error pages or malformed payloads.
+3. **Stage 3: Special Characters Removal & Sanitization**
+   - **RESTRICT RULE: Special characters removal MUST happen BEFORE the translation stage.**
+   - Strips speaker tags/brackets (`[Speaker 1]:`, `[Host]:`), sound/music indicators (`[Music]`, `[Applause]`, `(cheers)`), arrow markers (`>`, `>>`), HTML entities, zero-width characters, and normalizes excess whitespace.
+   - Text must be cleanly sanitized in Stage 3 so that subsequent stages operate on pure, coherent human dialogue.
+4. **Stage 4: Sentence Boundary Detection & Punctuation Splitting**
+   - Splits continuous stream cues into grammatical sentences using terminal punctuation (`.`, `!`, `?` or configured criteria) with linear time interpolation for start and duration.
+5. **Stage 5: Translation Stage**
+   - Translates clean sentence text into target languages via `tlang` fallback, on-demand AI translation, or secondary track alignment.
+   - Operates strictly AFTER Stage 3 (Special Characters Removal), ensuring sound brackets or speaker artifacts are never translated.
+6. **Stage 6: Multi-Language Alignment & Grid Formulation**
+   - Synchronizes target language tracks with the base language track into parallel sentence rows. Formats aligned text side-by-side.
+7. **Stage 7: Audio Playback Coordination & TTS Synthesis**
+   - Highlights active sentences during video playback. Coordinates video pauses between sections to allow Web Speech or Alternative TTS voices to complete speech synthesis before resuming playback.
+
+### Absolute Parity Rule Between Advanced and Beginner Modes:
+- The processing rules (special characters removal before translation, punctuation splitting, alignment criteria, fallback order) **MUST BE 100% IDENTICAL** across both Advanced Mode and Beginner Mode.
+- Beginner Mode offers a simplified, guided interface, but its underlying data processing engine executes the exact same stages in the exact same order.
+
+
+
 ## Work tracking
 
 - **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**:
@@ -170,5 +210,20 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-ok
+add the following tasks:
+1. AGENTS.md -  the only subtitles fixtures this app will ever have is for the video:L2Ryrr6txwA and be located here: public/fixtures/L2Ryrr6txwA. never ever show any fixtures without writing its a fixtures and after the developer approved it explicitly.
+
+i.e:
+it means that u have to remove any hardcoded subtitles from src/config and everywhere else!
+
+2. AGENTS.md - well define the application stages. what comes first and what later.
+
+restrict rule: stage: spacial chars removal must happend before the translation stage.
+
+the rules on the advance and the beginner level must be the same.
+
+3. theme colors - 3.1 must be fixed on beginner mode. 3.2 the blue theme must be fixed for both (its currently seems to mixe light mode with blue mode)
+
+4. docs/android.md - define how github actions is using the android simulator to test the app. and what is the evidence the report shows which proves that the android application actually have been tested on an android device/emulator.
 ```
+
