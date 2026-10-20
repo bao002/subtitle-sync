@@ -83,7 +83,7 @@ jobs:
           cache-read-only: false
 
       - name: Configure Android Environment & SDK
-        timeout-minutes: 3
+        timeout-minutes: 5
         run: |
           chmod +x android-shell/gradlew
           if [ ! -f "android-shell/gradle/wrapper/gradle-wrapper.jar" ]; then
@@ -109,10 +109,10 @@ jobs:
           echo "Android version: ${BASE} (code ${CODE})"
 
       - name: Build Android Debug APK
-        timeout-minutes: 3
+        timeout-minutes: 10
         run: |
           cd android-shell
-          ./gradlew assembleDebug -PappVersionCode=${{ steps.appversion.outputs.code }} -PappVersionName=${{ steps.appversion.outputs.name }} --no-daemon -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
+          ./gradlew assembleDebug -PappVersionCode=${{ steps.appversion.outputs.code }} -PappVersionName=${{ steps.appversion.outputs.name }} --no-daemon -Dorg.gradle.parallel=true -Dorg.gradle.caching=true --stacktrace
 
       - name: Package & Verify APK & OTA Artifacts
         run: |
