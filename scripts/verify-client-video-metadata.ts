@@ -132,22 +132,22 @@ assert.ok(
 );
 console.log("✅ PASS: UI components and testids verified.");
 
-// 5. Verify Version 1.0.54 Parity
-console.log("\n--> [Test 5] Verifying Version 1.0.54 parity across manifests...");
+// 5. Verify Version Parity Across Manifests
+console.log("\n--> [Test 5] Verifying version parity across manifests...");
 const pkgPath = path.resolve(rootDir, "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
-assert.strictEqual(pkg.version, "1.0.54", "package.json must be 1.0.54");
-assert.strictEqual(APP_VERSION, "1.0.54", "APP_VERSION must be 1.0.54");
-assert.strictEqual(CURRENT_APK_VERSION, "v1.0.54", "CURRENT_APK_VERSION must be v1.0.54");
+const currentVer = pkg.version;
+assert.ok(currentVer, "package.json version must be defined");
+assert.strictEqual(APP_VERSION, currentVer, "APP_VERSION must match package.json");
+assert.strictEqual(CURRENT_APK_VERSION, `v${currentVer}`, "CURRENT_APK_VERSION must match package.json");
 
 const gradlePath = path.resolve(rootDir, "android-shell/app/build.gradle.kts");
 const gradleContent = fs.readFileSync(gradlePath, "utf8");
 assert.ok(
-  gradleContent.includes("versionName = \"1.0.54\"") &&
-    gradleContent.includes("versionCode = 10054"),
-  "build.gradle.kts must specify versionName 1.0.54 and versionCode 10054",
+  gradleContent.includes(`versionName = "${currentVer}"`),
+  `build.gradle.kts must specify versionName ${currentVer}`,
 );
-console.log("✅ PASS: Version 1.0.54 parity verified across all manifests.");
+console.log(`✅ PASS: Version ${currentVer} parity verified across all manifests.`);
 
 async function main() {
   await runMetadataFetchTest();

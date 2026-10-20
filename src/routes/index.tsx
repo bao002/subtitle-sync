@@ -150,8 +150,6 @@ import { ParserTimingLab } from "@/components/ParserTimingLab";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
 import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
-import { ParserDiffConfirmationModal } from "@/components/ParserDiffConfirmationModal";
-import { computeParserDiff, type ParserDiffResult } from "@/utils/parserDiffHelper";
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
 import {
   getSectionOrder,
@@ -625,34 +623,29 @@ function Index() {
     return DEFAULT_PARSER_CRITERIA;
   });
 
-   const [confirmParserDiff, setConfirmParserDiff] = useState<boolean>(() => {
+  const [confirmParserDiff, setConfirmParserDiff] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       try {
-        const saved = localStorage.getItem(STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY);
+        const saved =
+          localStorage.getItem(STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY) ||
+          localStorage.getItem("yt_confirm_parser_diff");
         return saved === "true";
-=======
-  const [confirmParserDiffEnabled, setConfirmParserDiffEnabled] = useState(() => {
-    if (typeof window !== "undefined") {
-      try {
-        return window.localStorage.getItem("yt_confirm_parser_diff") === "true";
-       } catch {
+      } catch {
         return false;
       }
     }
     return false;
   });
- 
+  const confirmParserDiffEnabled = confirmParserDiff;
+  const setConfirmParserDiffEnabled = setConfirmParserDiff;
+
   const [pendingParserChange, setPendingParserChange] = useState<{
     criteria: CriteriaId[];
     settings?: CriteriaGroupSettings;
     criteriaNames: string[];
     diffResult: ParserDiffResult;
   } | null>(null);
-=======
-  const [parserDiffModalOpen, setParserDiffModalOpen] = useState(false);
-  const [pendingProposedCriteria, setPendingProposedCriteria] = useState<CriteriaId[] | null>(null);
-  const [parserDiffResult, setParserDiffResult] = useState<ParserDiffResult | null>(null);
- 
+
   const [criteriaSettings, setCriteriaSettings] = useState<CriteriaGroupSettings>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -2547,67 +2540,6 @@ function Index() {
       return changed ? { ...r, texts } : r;
     });
   }, [rawRows, onDemandTranslations]);
-
-  const requestApplyCriteria = (proposed: CriteriaId[]) => {
-    if (confirmParserDiffEnabled && tracks && baseLanguage && rows.length > 0) {
-      try {
-        const proposedRows = align(tracks, baseLanguage, proposed, criteriaSettings);
-        const diff = computeParserDiff(rows, proposedRows, baseLanguage);
-        if (diff.hasChanges) {
-          setPendingProposedCriteria(proposed);
-          setParserDiffResult(diff);
-          setParserDiffModalOpen(true);
-          return;
-        }
-      } catch (err) {
-        console.warn("[ParserDiff] Could not compute proposed diff, applying directly:", err);
-      }
-    }
-    setSelectedCriteria(proposed);
-    try {
-      localStorage.setItem(STORAGE_KEYS.PARSER_CRITERIA_STORAGE_KEY, JSON.stringify(proposed));
-    } catch {
-      // ignore storage error
-    }
-  };
-
-  const handleToggleCriterion = (id: CriteriaId) => {
-    let updated: CriteriaId[];
-    if (selectedCriteria.includes(id)) {
-      if (selectedCriteria.length <= 1) return;
-      updated = selectedCriteria.filter((c) => c !== id);
-    } else {
-      updated = [...selectedCriteria, id];
-    }
-    requestApplyCriteria(updated);
-  };
-
-  const handleApplyPreset = (presetCriteria: CriteriaId[]) => {
-    requestApplyCriteria(presetCriteria);
-  };
-
-  const handleConfirmParserDiff = () => {
-    if (pendingProposedCriteria) {
-      setSelectedCriteria(pendingProposedCriteria);
-      try {
-        localStorage.setItem(
-          STORAGE_KEYS.PARSER_CRITERIA_STORAGE_KEY,
-          JSON.stringify(pendingProposedCriteria),
-        );
-      } catch {
-        // ignore storage error
-      }
-    }
-    setParserDiffModalOpen(false);
-    setPendingProposedCriteria(null);
-    setParserDiffResult(null);
-  };
-
-  const handleCancelParserDiff = () => {
-    setParserDiffModalOpen(false);
-    setPendingProposedCriteria(null);
-    setParserDiffResult(null);
-  };
 
   // Clear on-demand translations when full authentic YouTube subtitles arrive for a language
   useEffect(() => {
@@ -6131,19 +6063,6 @@ function Index() {
         observedUrl={observedUrl}
         rawJson3Track={tracks && baseLanguage ? tracks[baseLanguage] : null}
         openRouterApiKey={getOpenRouterApiKeySetting()}
-      />
-      <ParserDiffConfirmationModal
-        isOpen={parserDiffModalOpen}
-        onClose={handleCancelParserDiff}
-        onConfirm={handleConfirmParserDiff}
-        diffResult={parserDiffResult}
-        proposedCriteriaNames={
-          pendingProposedCriteria
-            ? pendingProposedCriteria.map(
-                (id) => PARSER_CRITERIA.find((c) => c.id === id)?.name || id,
-              )
-            : []
-        }
       />
       <SubtitleFetchToast
         onViewSubtitles={() => {
