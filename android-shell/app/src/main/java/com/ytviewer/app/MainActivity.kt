@@ -595,7 +595,45 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    private fun extractCaptionSampleText(rawData: String, maxCues: Int = 10): String {
+        if (rawData.isBlank()) return ""
+        val trimmed = rawData.trim()
+        if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return ""
+        return try {
+            val events = JSONObject(trimmed).optJSONArray("events") ?: return ""
+            val texts = mutableListOf<String>()
+            for (i in 0 until events.length()) {
+                val segs = events.optJSONObject(i)?.optJSONArray("segs") ?: continue
+                val cueText = StringBuilder()
+                for (j in 0 until segs.length()) {
+                    val s = segs.optJSONObject(j)?.optString("utf8") ?: ""
+                    cueText.append(s)
+                }
+                val line = cueText.toString().trim()
+                if (line.isNotBlank() && line != "\n") {
+                    texts.add(line.replace("\n", " "))
+                    if (texts.size >= maxCues) break
+                }
+            }
+            texts.joinToString(" | ")
+        } catch (ignored: Exception) {
+            ""
+        }
+    }
+
     private fun dispatchToJavaScript(url: String, rawData: String, contentType: String, status: Int) {
+        val uri = try { android.net.Uri.parse(url) } catch (_: Exception) { null }
+        val lang = uri?.getQueryParameter("tlang") ?: uri?.getQueryParameter("lang") ?: "unknown"
+        val cuesCount = countCaptionCues(rawData)
+        val sampleText = extractCaptionSampleText(rawData)
+        if (cuesCount > 0 && sampleText.isNotBlank()) {
+            Log.i(TAG, "AUTHENTIC_CAPTIONS_EXPOSED lang=$lang cues=$cuesCount sample=\"$sampleText\"")
+            try {
+                val targetBaseDir = getExternalFilesDir(null) ?: filesDir
+                val textFile = File(targetBaseDir, "authentic_captions_exposed.txt")
+                textFile.writeText("lang=$lang\ncues=$cuesCount\ntext=$sampleText\n")
+            } catch (ignored: Exception) {}
+        }
         mainHandler.post {
             try {
                 // Pass as JSON object to window.onCaptionsIntercepted

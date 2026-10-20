@@ -204,7 +204,9 @@ import {
   DEFAULT_FETCH_STRATEGY_CONFIG,
   buildActiveAttemptOrder,
 } from "@/lib/subtitle-fetch-plan";
-import { recordVideoWatch } from "@/utils/videoLibraryManager";
+import type { VideoMetadata } from "@/types";
+import { recordVideoWatch, updateVideoLibraryTitle } from "@/utils/videoLibraryManager";
+import { fetchVideoMetadata, getCachedVideoMetadata } from "@/utils/videoMetadataManager";
 import { notifySubtitleFetch } from "@/utils/subtitleNotificationManager";
 import { getApkReleaseLinks } from "@/utils/apkUpdater";
 import {
@@ -1715,6 +1717,29 @@ function Index() {
     subtitles: true,
     library: false,
   });
+
+  const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(() =>
+    getCachedVideoMetadata(videoId),
+  );
+
+  useEffect(() => {
+    if (!videoId) {
+      setVideoMetadata(null);
+      return;
+    }
+    const cached = getCachedVideoMetadata(videoId);
+    if (cached) {
+      setVideoMetadata(cached);
+    }
+    fetchVideoMetadata(videoId)
+      .then((meta) => {
+        setVideoMetadata(meta);
+        if (meta?.title && !meta.title.startsWith("YouTube Video")) {
+          updateVideoLibraryTitle(videoId, meta.title);
+        }
+      })
+      .catch(() => {});
+  }, [videoId]);
 
   const handleSelectLibraryVideo = (newId: string, customUrl?: string) => {
     if (!newId || newId === videoId) return;
@@ -3268,7 +3293,8 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    if (!autoFocus || isSetupPaused || active < 0) return;
+    if (!autoFocus || isSetupPaused) return;
+    if (active < 0) return;
 
     // Start auto-scroll ONLY after 5 seconds since the last user interaction with the page
     if (!isAutoScrollAllowed()) {
@@ -3464,13 +3490,13 @@ function Index() {
 
   useEffect(() => {
     const currentActive = active >= 0 ? active : speakingRow;
-    if (!isSetupPaused && currentActive >= 0 && subtitlesLimit > 0) {
+    if (isAndroid && autoFocus && !isSetupPaused && active >= 0 && subtitlesLimit > 0) {
       const targetPage = Math.floor(currentActive / subtitlesLimit) + 1;
       if (targetPage !== subtitlesPage) {
         setSubtitlesPage(targetPage);
       }
     }
-  }, [active, speakingRow, isSetupPaused, subtitlesLimit, subtitlesPage]);
+  }, [active, speakingRow, isSetupPaused, autoFocus, isAndroid, subtitlesLimit, subtitlesPage]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -4215,6 +4241,52 @@ function Index() {
                               );
                             }}
                           />
+                          {/* Video metadata card (Client-side title & channel author) */}
+                          {videoMetadata && (
+                            <div
+                              data-testid="video-metadata-card"
+                              className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-muted-foreground bg-muted/20 border-b border-border/40"
+                            >
+                              {videoMetadata.thumbnailUrl && (
+                                <img
+                                  src={videoMetadata.thumbnailUrl}
+                                  alt={videoMetadata.title}
+                                  className="h-7 w-12 rounded object-cover border border-border/50 shrink-0"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLImageElement).style.display = "none";
+                                  }}
+                                />
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p
+                                  data-testid="video-metadata-title"
+                                  className="font-medium text-foreground truncate leading-tight"
+                                  title={videoMetadata.title}
+                                >
+                                  {videoMetadata.title}
+                                </p>
+                                {videoMetadata.authorName && (
+                                  <p
+                                    data-testid="video-metadata-author"
+                                    className="text-[11px] text-muted-foreground truncate"
+                                  >
+                                    {videoMetadata.authorUrl ? (
+                                      <a
+                                        href={videoMetadata.authorUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="hover:underline text-primary/90"
+                                      >
+                                        {videoMetadata.authorName}
+                                      </a>
+                                    ) : (
+                                      videoMetadata.authorName
+                                    )}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
                           {/* Video playback buttons under the presented video */}
                           <div className="p-3 pt-2">
                             <VideoPlaybackControls
@@ -6087,6 +6159,8 @@ function Index() {
       <FloatingDraggablePauseButton
         isSetupPaused={isSetupPaused}
         onToggleSetupPause={toggleSetupPause}
+        isAutoScrollEnabled={autoFocus}
+        onToggleAutoScroll={() => onAutoFocusChange(!autoFocus)}
       />
       <FloatingSubtitleRetryIndicator
         targetLanguages={targetLanguages}

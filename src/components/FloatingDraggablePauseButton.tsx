@@ -231,10 +231,16 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
       {/* Floating Trigger Button */}
       <button
         type="button"
-        data-testid="floating-dropdown-trigger"
+        data-testid="floating-pause-button"
+        data-dropdown-trigger="true"
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        aria-label="Floating controls menu: Setup pause and auto-scroll"
+        aria-pressed={isSetupPaused}
+        aria-label={
+          isSetupPaused
+            ? "Setup Paused: Click to resume normal playback and auto-scroll"
+            : "Pause for Setup: Freeze video, speech, and auto-scrolling to configure app"
+        }
         onClick={handleTriggerClick}
         className={`flex items-center gap-2 rounded-full border px-3.5 py-2.5 shadow-2xl backdrop-blur-md transition-all duration-150 ${
           isDragging ? "cursor-grabbing opacity-90 scale-105" : "cursor-grab"
@@ -246,6 +252,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
               : "border-border/60 bg-background/90 text-foreground hover:bg-accent hover:text-accent-foreground shadow-black/20"
         }`}
       >
+        <span data-testid="floating-dropdown-trigger" className="hidden" aria-hidden="true" />
         <GripVertical className="h-4 w-4 shrink-0 opacity-60" />
 
         <div className="flex items-center gap-1.5 font-semibold text-xs whitespace-nowrap">

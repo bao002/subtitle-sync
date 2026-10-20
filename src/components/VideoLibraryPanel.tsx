@@ -7,7 +7,9 @@ import {
   removeVideoFromLibrary,
   clearVideoLibrary,
   loadVideoLibrary,
+  updateVideoLibraryTitle,
 } from "@/utils/videoLibraryManager";
+import { fetchVideoMetadata, getCachedVideoMetadata } from "@/utils/videoMetadataManager";
 import { clearVideoSubtitleCache } from "@/utils/subtitleCache";
 import { Button } from "@/components/ui/button";
 
@@ -43,12 +45,31 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
       refreshItems();
     };
     window.addEventListener("video-library-updated", handleUpdate);
+    window.addEventListener("video-metadata-updated", handleUpdate);
     window.addEventListener("storage", handleUpdate);
+
+    // Auto-enrich items that have default placeholder titles
+    const unresolved = items.filter(
+      (item) => !item.title || item.title.startsWith("YouTube Video ·") || item.title.startsWith("YouTube Video ("),
+    );
+    if (unresolved.length > 0) {
+      unresolved.forEach((item) => {
+        fetchVideoMetadata(item.id)
+          .then((meta) => {
+            if (meta?.title && !meta.title.startsWith("YouTube Video")) {
+              updateVideoLibraryTitle(item.id, meta.title);
+            }
+          })
+          .catch(() => {});
+      });
+    }
+
     return () => {
       window.removeEventListener("video-library-updated", handleUpdate);
+      window.removeEventListener("video-metadata-updated", handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
-  }, []);
+  }, [items]);
 
   const handleClearCache = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -208,6 +229,14 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
                     >
                       {item.title}
                     </h4>
+                    {getCachedVideoMetadata(item.id)?.authorName && (
+                      <p
+                        data-testid={`library-author-${item.id}`}
+                        className="text-[11px] text-muted-foreground truncate mt-0.5"
+                      >
+                        by {getCachedVideoMetadata(item.id)?.authorName}
+                      </p>
+                    )}
                     <p className="font-mono text-[11px] text-muted-foreground mt-1">
                       ID: {item.id}
                     </p>

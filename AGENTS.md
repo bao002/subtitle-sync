@@ -172,7 +172,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 
 ```
 go on
-=======
+ =======
 go on and then add this:
 it seems that sometimes after fetching the first default subtitles it requires to switch on/off the caption icon again in order to present the parallel subtitles view
 
@@ -189,7 +189,5 @@ agent update:
 
 later:
 try to fix the e2e test on the android emulator but deprecate the screencast generation. detect the captions after enabing it on the youtube-video and expose the text. do not use mock or fixtures.
-```
-
-
-
+=======
+ ```

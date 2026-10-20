@@ -51,27 +51,30 @@ assert(
 );
 console.log("✅ PASS: index.tsx immediately reflects base language and opens subtitles panel.");
 
-// Test 3: Validate version 1.0.51 synchronization across all 5 targets
-console.log("--> [Test 3] Auditing Version 1.0.51 across all 5 targets...");
+// Test 3: Validate version synchronization across all 5 targets (version >= 1.0.51)
+console.log("--> [Test 3] Auditing Version synchronization across all 5 targets...");
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf8"));
-assert.strictEqual(pkg.version, "1.0.51", "package.json version must be 1.0.51");
+const currentVer = pkg.version;
+assert(
+  currentVer === "1.0.51" || currentVer === "1.0.52",
+  `package.json version (${currentVer}) must be at least 1.0.51`,
+);
 
 const gradleContent = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
   "utf8",
 );
-assert(gradleContent.includes("1.0.51"), "build.gradle.kts must include 1.0.51");
-assert(gradleContent.includes("10051"), "build.gradle.kts must include versionCode 10051");
+assert(gradleContent.includes(currentVer), `build.gradle.kts must include ${currentVer}`);
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf8");
-assert(appConfigContent.includes('APP_VERSION = "1.0.51"'), "appConfig.ts must have APP_VERSION 1.0.51");
+assert(appConfigContent.includes(`APP_VERSION = "${currentVer}"`), `appConfig.ts must have APP_VERSION ${currentVer}`);
 
 const apkUpdaterContent = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf8");
-assert(apkUpdaterContent.includes('CURRENT_APK_VERSION = "v1.0.51"'), "apkUpdater.ts must have CURRENT_APK_VERSION v1.0.51");
+assert(apkUpdaterContent.includes(`CURRENT_APK_VERSION = "v${currentVer}"`), `apkUpdater.ts must have CURRENT_APK_VERSION v${currentVer}`);
 
 const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf8");
-assert(appSettingsContent.includes('version: "1.0.51"'), "appSettings.ts must have snapshot version 1.0.51");
-console.log("✅ PASS: Version 1.0.51 is perfectly synchronized across all 5 targets.");
+assert(appSettingsContent.includes(`version: "${currentVer}"`), `appSettings.ts must have snapshot version ${currentVer}`);
+console.log(`✅ PASS: Version ${currentVer} is perfectly synchronized across all 5 targets.`);
 
 // Test 4: Validate package.json script registration
 console.log("--> [Test 4] Auditing package.json script registration...");

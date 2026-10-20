@@ -4,7 +4,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
- 
+  
 ## Active Prompt: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Task 144)
 
 - **Chapter 1 (Task 144)**: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.51)
@@ -33,7 +33,14 @@ This document establishes the lightweight, high-efficiency operational protocol 
   - Subtask 151.1: Transform `FloatingDraggablePauseButton.tsx` into a draggable dropdown menu with Setup-Pause and Auto-Scroll toggles, status badges, and explanatory text for each option.
   - Subtask 151.2: Wire `isAutoScrollEnabled` and `onToggleAutoScroll` into `FloatingDraggablePauseButton` in `src/routes/index.tsx`.
   - Subtask 151.3: Author dedicated test `scripts/verify-floating-dropdown-menu.ts`, verify, commit & push, and migrate to `docs/done.md`.
-
+=======
+## Active Prompt: Client-Side Video Metadata Extraction & Presentation (Task 154, Version 1.0.54)
+ 
+- **Chapter 1 (Task 154)**: Client-Side Video Metadata Extraction & Presentation (Version 1.0.54)
+  - Subtask 154.1: Version bump to 1.0.54 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask 154.2: Client-side video metadata service (`src/utils/videoMetadataManager.ts` & types in `src/types.ts`) with CORS oEmbed, thumbnails, and local caching.
+  - Subtask 154.3: Integrate metadata into Library Panel, Video Player, and route display while strictly preserving web demo layout.
+  - Subtask 154.4: Author dedicated verification script `scripts/verify-client-video-metadata.ts`, verify tests, compile, lint, commit, and migrate to `docs/done.md`.
 
 ---
 

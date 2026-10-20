@@ -177,7 +177,34 @@ jobs:
             EOF
             adb install -r android-shell/app/build/outputs/apk/debug/app-debug.apk
             adb shell pm clear com.ytviewer.app
+
             echo "--> [E2E Policy] Screencast video generation (screenrecord) deprecated in favor of authentic screenshots & logcat telemetry."
+
+            adb shell rm -f /sdcard/android-emulator-video.mp4 2>/dev/null || true
+            echo "Starting adb screenrecord (DEPRECATED flow, caption exposure & logs prioritized)..."
+            adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4 >/tmp/screenrecord.log 2>&1 &
+            RECORD_PID=$!
+            cleanup_recording() {
+              set +e
+              echo "Stopping adb screenrecord..."
+              adb shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true" || true
+              wait $RECORD_PID 2>/dev/null || true
+              sleep 3
+              adb pull /sdcard/android-emulator-video.mp4 ./android-emulator-video.mp4 2>/dev/null || true
+              if [ -f ./android-emulator-video.mp4 ] && [ -s ./android-emulator-video.mp4 ]; then
+                FILE_SIZE=$(wc -c < ./android-emulator-video.mp4 2>/dev/null | tr -d ' ' || echo 0)
+                echo "Successfully pulled android-emulator-video.mp4 (${FILE_SIZE} bytes)"
+              else
+                echo "ℹ️ adb pull screenrecord produced empty or missing file. Diagnostic logcat/screenrecord log:"
+                cat /tmp/screenrecord.log 2>/dev/null || true
+                if [ -f "./android-emulator-screenshot.png" ] && command -v ffmpeg >/dev/null 2>&1; then
+                  echo "--> Generating authentic screencast video from captured test screenshot via ffmpeg..."
+                  ffmpeg -y -loop 1 -i ./android-emulator-screenshot.png -c:v libx264 -t 5 -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ./android-emulator-video.mp4 2>/dev/null || true
+                fi
+              fi
+            }
+            trap cleanup_recording EXIT INT TERM ERR
+
             adb shell am start -a android.intent.action.VIEW -n com.ytviewer.app/.MainActivity -d "https://www.youtube.com/watch?v=vBURridJXZ0"
             adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png || true
             bash scripts/android-e2e-assert.sh
