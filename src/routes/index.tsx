@@ -92,6 +92,9 @@ import {
 } from "@/utils/appSettings";
 import { getAppStateFromUrl } from "@/utils/urlStateManager";
 import { ShareStateModal } from "@/components/ShareStateModal";
+import { ParserDiffConfirmationModal } from "@/components/ParserDiffConfirmationModal";
+import { computeParserDiff, type ParserDiffResult } from "@/utils/parserDiffHelper";
+import { Switch } from "@/components/ui/switch";
 import {
   translateSentencesAhead,
   getStoredOnDemandTranslation,
@@ -620,25 +623,34 @@ function Index() {
     return DEFAULT_PARSER_CRITERIA;
   });
 
-  const [confirmParserDiff, setConfirmParserDiff] = useState<boolean>(() => {
+   const [confirmParserDiff, setConfirmParserDiff] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       try {
         const saved = localStorage.getItem(STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY);
         return saved === "true";
-      } catch {
+=======
+  const [confirmParserDiffEnabled, setConfirmParserDiffEnabled] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return window.localStorage.getItem("yt_confirm_parser_diff") === "true";
+       } catch {
         return false;
       }
     }
     return false;
   });
-
+ 
   const [pendingParserChange, setPendingParserChange] = useState<{
     criteria: CriteriaId[];
     settings?: CriteriaGroupSettings;
     criteriaNames: string[];
     diffResult: ParserDiffResult;
   } | null>(null);
-
+=======
+  const [parserDiffModalOpen, setParserDiffModalOpen] = useState(false);
+  const [pendingProposedCriteria, setPendingProposedCriteria] = useState<CriteriaId[] | null>(null);
+  const [parserDiffResult, setParserDiffResult] = useState<ParserDiffResult | null>(null);
+ 
   const [criteriaSettings, setCriteriaSettings] = useState<CriteriaGroupSettings>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -2167,10 +2179,9 @@ function Index() {
         if (videoId) {
           saveCachedRawJson3(videoId, lang, payload.rawData);
         }
-        startSubtitlesTransition(() => {
-          setTracks((prev) => ({ ...prev, [lang]: json }));
-          setShown((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
-        });
+        setTracks((prev) => ({ ...prev, [lang]: json }));
+        setShown((prev) => (prev.includes(lang) ? prev : [lang, ...prev]));
+        setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
         if (autoSpeakOnFetch) {
           // Auto-enable "Speak" checkbox for the fetched language
           setSpoken((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
@@ -2511,6 +2522,67 @@ function Index() {
       return changed ? { ...r, texts } : r;
     });
   }, [rawRows, onDemandTranslations]);
+
+  const requestApplyCriteria = (proposed: CriteriaId[]) => {
+    if (confirmParserDiffEnabled && tracks && baseLanguage && rows.length > 0) {
+      try {
+        const proposedRows = align(tracks, baseLanguage, proposed, criteriaSettings);
+        const diff = computeParserDiff(rows, proposedRows, baseLanguage);
+        if (diff.hasChanges) {
+          setPendingProposedCriteria(proposed);
+          setParserDiffResult(diff);
+          setParserDiffModalOpen(true);
+          return;
+        }
+      } catch (err) {
+        console.warn("[ParserDiff] Could not compute proposed diff, applying directly:", err);
+      }
+    }
+    setSelectedCriteria(proposed);
+    try {
+      localStorage.setItem(STORAGE_KEYS.PARSER_CRITERIA_STORAGE_KEY, JSON.stringify(proposed));
+    } catch {
+      // ignore storage error
+    }
+  };
+
+  const handleToggleCriterion = (id: CriteriaId) => {
+    let updated: CriteriaId[];
+    if (selectedCriteria.includes(id)) {
+      if (selectedCriteria.length <= 1) return;
+      updated = selectedCriteria.filter((c) => c !== id);
+    } else {
+      updated = [...selectedCriteria, id];
+    }
+    requestApplyCriteria(updated);
+  };
+
+  const handleApplyPreset = (presetCriteria: CriteriaId[]) => {
+    requestApplyCriteria(presetCriteria);
+  };
+
+  const handleConfirmParserDiff = () => {
+    if (pendingProposedCriteria) {
+      setSelectedCriteria(pendingProposedCriteria);
+      try {
+        localStorage.setItem(
+          STORAGE_KEYS.PARSER_CRITERIA_STORAGE_KEY,
+          JSON.stringify(pendingProposedCriteria),
+        );
+      } catch {
+        // ignore storage error
+      }
+    }
+    setParserDiffModalOpen(false);
+    setPendingProposedCriteria(null);
+    setParserDiffResult(null);
+  };
+
+  const handleCancelParserDiff = () => {
+    setParserDiffModalOpen(false);
+    setPendingProposedCriteria(null);
+    setParserDiffResult(null);
+  };
 
   // Clear on-demand translations when full authentic YouTube subtitles arrive for a language
   useEffect(() => {
@@ -3290,14 +3362,9 @@ function Index() {
       return Boolean(m && Object.keys(m).length > 0);
     };
 
-    // 1. If baseLanguage from video captions exists in tracks and is shown, display it first
+    // 1. If baseLanguage from video captions exists in tracks, display it first
     // Spec: verify base track cues (tracks[baseLanguage].length > 0 || hasTrackCues)
-    if (
-      baseLanguage &&
-      tracks?.[baseLanguage] &&
-      hasTrackCues(tracks[baseLanguage]) &&
-      shown.includes(baseLanguage)
-    ) {
+    if (baseLanguage && tracks?.[baseLanguage] && hasTrackCues(tracks[baseLanguage])) {
       list.push(getLanguageMeta(baseLanguage));
       addedCodes.add(baseLanguage);
     }
@@ -3594,7 +3661,45 @@ function Index() {
           size="sm"
           variant={showVideoSubtitles ? "default" : "outline"}
           aria-pressed={showVideoSubtitles}
-          onClick={() => setShowVideoSubtitles((prev) => !prev)}
+          onClick={() => {
+            const next = !showVideoSubtitles;
+            setShowVideoSubtitles(next);
+            if (next) {
+              setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
+              const shell = nativeShell();
+              const captured = shell?.getLastObservedTimedTextUrl();
+              if (captured && (!tracks || Object.keys(tracks).length === 0)) {
+                setObservedUrl(captured);
+                setDefaultCaptionsLoaded(true);
+                let defaultLang = "";
+                try {
+                  defaultLang = new URL(captured).searchParams.get("lang") || "";
+                } catch {
+                  // ignore malformed url
+                }
+                if (defaultLang && shell) {
+                  try {
+                    const raw = shell.fetchTranslatedCaptionsWithUrl(
+                      captured,
+                      defaultLang,
+                      "json3",
+                    );
+                    if (raw && isValidJsonSubtitleResponse(raw)) {
+                      const json = parseJson3(raw);
+                      if (json) {
+                        setTracks((prev) => ({ ...prev, [defaultLang]: json }));
+                        setShown((prev) =>
+                          prev.includes(defaultLang) ? prev : [defaultLang, ...prev],
+                        );
+                      }
+                    }
+                  } catch {
+                    // ignore fetch error
+                  }
+                }
+              }
+            }
+          }}
           className="gap-1.5"
           title="Toggle video subtitles"
         >
@@ -4659,6 +4764,35 @@ function Index() {
                             onApplyCriteria={handleApplyPreset}
                             onUpdateGroupSettings={handleUpdateGroupSettings}
                           />
+
+                          {/* Difference Confirmation Toggle */}
+                          <div className="flex items-center justify-between rounded-lg border border-border/70 p-3 bg-muted/20">
+                            <div className="space-y-0.5 pr-2">
+                              <label
+                                htmlFor="confirm-parser-diff-toggle"
+                                className="text-xs font-semibold text-foreground cursor-pointer"
+                              >
+                                Confirm before applying parser changes
+                              </label>
+                              <p className="text-[11px] text-muted-foreground">
+                                Preview alignment differences, changed records, and sentence
+                                splitting in a modal before updating.
+                              </p>
+                            </div>
+                            <Switch
+                              id="confirm-parser-diff-toggle"
+                              data-testid="confirm-parser-diff-toggle"
+                              checked={confirmParserDiffEnabled}
+                              onCheckedChange={(checked) => {
+                                setConfirmParserDiffEnabled(checked);
+                                try {
+                                  localStorage.setItem("yt_confirm_parser_diff", String(checked));
+                                } catch {
+                                  // ignore storage error
+                                }
+                              }}
+                            />
+                          </div>
 
                           {/* Presets Header */}
                           <div>
@@ -5925,6 +6059,19 @@ function Index() {
         observedUrl={observedUrl}
         rawJson3Track={tracks && baseLanguage ? tracks[baseLanguage] : null}
         openRouterApiKey={getOpenRouterApiKeySetting()}
+      />
+      <ParserDiffConfirmationModal
+        isOpen={parserDiffModalOpen}
+        onClose={handleCancelParserDiff}
+        onConfirm={handleConfirmParserDiff}
+        diffResult={parserDiffResult}
+        proposedCriteriaNames={
+          pendingProposedCriteria
+            ? pendingProposedCriteria.map(
+                (id) => PARSER_CRITERIA.find((c) => c.id === id)?.name || id,
+              )
+            : []
+        }
       />
       <SubtitleFetchToast
         onViewSubtitles={() => {

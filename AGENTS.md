@@ -50,6 +50,10 @@
 - **Later tasks protocol**:
   - Any "later" task (from prompts starting with or containing "later" / "for later" / "- later" etc.) MUST be stored at the bottom of the tasks backlog under a dedicated `## Later Tasks` section in `docs/tasks.md` (and cataloged in `docs/later.md`).
   - When all planned active tasks for a prompt are completed and verified, the agent must ask the user if they would like to proceed with processing tasks from the "later" section.
+- **Numbered chapters as serial tasks protocol**:
+  - Every time the user prompt consists of numbered chapters, sections, or items (e.g. `1. ...`, `2. ...`, `3. ...`), the agent MUST treat each numbered chapter as a separate, distinct task in `docs/tasks.md`.
+  - The agent MUST divide each numbered chapter into its own granular, verifiable sub-tasks staged in `docs/tasks.md` and `current-sub-task.md`.
+  - These numbered chapter tasks and their sub-tasks MUST be worked on strictly serially: execute and complete the first numbered chapter's sub-tasks, verify with dedicated tests, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter. Never bundle or conflate multiple numbered chapters into a single monolithic implementation.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
 - Check the last GitHub Actions result and fix failed flows: continuously monitor and verify GitHub Actions workflow outcomes (such as `web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, and `integrity.yml`), diagnose the root cause of any broken or failing CI steps, and fix failed workflows promptly.
 
@@ -165,8 +169,26 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 
 ## Last raw prompt
 
+
 ```
 go on
+=======
+go on and then add this:
+it seems that sometimes after fetching the first default subtitles it requires to switch on/off the caption icon again in order to present the parallel subtitles view
+
+make floating button a dropdown menu with another option and explain each option when clicking on :
+- add auto scroll enable/disable as floating button.
+
+agent update:
+- **Numbered chapters as serial tasks protocol**:
+  - Every time the user prompt consists of numbered chapters, sections, or items (e.g. `1. ...`, `2. ...`, `3. ...`), the agent MUST treat each numbered chapter as a separate, distinct task in `docs/tasks.md`.
+  - The agent MUST divide each numbered chapter into its own granular, verifiable sub-tasks staged in `docs/tasks.md` and `current-sub-task.md`.
+  - These numbered chapter tasks and their sub-tasks MUST be worked on strictly serially: execute and complete the first numbered chapter's sub-tasks, verify with dedicated tests, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter. Never bundle or conflate multiple numbered chapters into a single monolithic implementation.
+ 
+
+
+later:
+try to fix the e2e test on the android emulator but deprecate the screencast generation. detect the captions after enabing it on the youtube-video and expose the text. do not use mock or fixtures.
 ```
 
 

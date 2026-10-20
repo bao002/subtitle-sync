@@ -113,6 +113,7 @@ This document serves as the master catalog and directory of all repository docum
 | `src/components/beginner/tabs/BeginnerParsingTab.tsx`     | Beginner Subtitle Parsing Tab    | Step 3 tab enabling sentence punctuation splitting, customizable punctuation character selection, and automatic stripping of speaker brackets and arrow characters (> and >>).                                                                                                                                    |
 | `src/components/beginner/tabs/BeginnerPlayerTab.tsx`      | Beginner Synchronized Player Tab | Step 4 tab rendering interactive synchronized dual-subtitles table, active cue highlight, seeking, and playback controls.                                                                                                                                                                                       |
 | `src/components/beginner/BeginnerFlowContainer.tsx`| Beginner Flow Coordinator Container | Master container coordinating the beginner tabbed flow, base subtitle selection unlock, and reactive state synchronization.                                                                                                                                                                                      |
+| `src/components/ParserDiffConfirmationModal.tsx`    | Parser Diff Confirmation Modal      | Displays changed record counters, before/after diff cards, [Previous] / [Next] navigation buttons, [Confirm & Apply], and [Cancel].                                                                                                                                                                              |
 
 ## Feature Utilities (`src/utils/`)
 
@@ -140,6 +141,7 @@ This document serves as the master catalog and directory of all repository docum
 | `src/utils/onDemandTranslationManager.ts`  | On-Demand Lookahead Translation Manager     | Pre-translates upcoming sentences ahead (configured X=10) via Google Translate API on demand until YouTube subtitles arrive.    |
 | `src/utils/favoriteLanguagesRules.ts`      | Video Sharing Favorite Rules Manager        | Enforces favorite language placement, top language selection, localStorage persistence, and multi-selection upon video sharing.  |
 | `src/utils/subtitleUrlDetector.ts`         | Subtitle URL & Language Detector            | Identifies subtitle language (`tlang` priority -> `lang` fallback), fetches with web demo fallback, and validates JSON3 payloads. |
+| `src/utils/parserDiffHelper.ts`            | Parser Alignment Diff Helper                | Computes detailed diffs between current and proposed subtitle alignments with changed record indices and text/timing highlights. |
 
 ## Configuration & Data Fixtures (`src/config/`)
 
@@ -330,3 +332,6 @@ This document serves as the master catalog and directory of all repository docum
 | `src/components/ParserDiffConfirmationModal.tsx`                | Parser Diff Confirmation & Preview Modal Component             | Interactive preview modal displaying changed record counts, before/after side-by-side cards, [Previous]/[Next] record navigation, and [Confirm & Apply]/[Cancel] actions.                                                                                      |
 | `scripts/verify-parser-diff-confirmation.ts`                    | Parser Diff Confirmation & Preview Test Suite                  | Asserts computeParserDiff change detection, stepping navigation loops, component contracts in ParserDiffConfirmationModal, index.tsx flow integration, and version 1.0.50 parity.                                                                                 |
 
+=======
+| `scripts/verify-parser-diff-confirmation.ts`                   | Parser Difference Confirmation & Preview Verification Suite    | Validates computeParserDiff, cyclic index stepping, ParserDiffConfirmationModal controls, and index.tsx UI integration.                                                                                                                                           |
+| `scripts/verify-default-caption-presentation.ts`               | Default Subtitle Presentation Verification Suite (Task 150)    | Asserts Android shell auto-repetition for JSON3 captions, synchronous tracks ingestion, baseLanguage inclusion in cols, and immediate subtitles panel opening.                                                                                                       |

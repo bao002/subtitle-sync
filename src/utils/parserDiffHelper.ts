@@ -12,7 +12,7 @@ export interface ChangedRecordItem {
   textsByLang: Record<string, string>;
 }
 
-export type ParserChangeType = "split" | "merged" | "timing" | "content" | "added" | "removed";
+export type ParserChangeType = "split" | "merged" | "timing" | "content" | "added" | "removed" | "modified";
 
 export interface ChangedRecordDiff {
   id: string;
