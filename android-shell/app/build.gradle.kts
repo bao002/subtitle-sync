@@ -8,6 +8,7 @@ val prepareWebAssets by tasks.registering(Exec::class) {
     description = "Build and bundle the current web app before assembling Android."
     group = "build"
     workingDir(rootProject.projectDir.parentFile)
+    isIgnoreExitValue = true
     if (org.apache.tools.ant.taskdefs.condition.Os.isFamily(org.apache.tools.ant.taskdefs.condition.Os.FAMILY_WINDOWS)) {
         commandLine("cmd", "/c", "npm", "run", "build:android-assets")
     } else {
@@ -30,15 +31,15 @@ android {
     val packageJsonFile = file("../../package.json")
     val packageJsonVersion = if (packageJsonFile.exists()) {
         val match = Regex("\"version\":\\s*\"([^\"]+)\"").find(packageJsonFile.readText())
-        match?.groupValues?.get(1) ?: "1.0.58"
+        match?.groupValues?.get(1) ?: "1.0.59"
     } else {
-        "1.0.58"
+        "1.0.59"
     }
     val defaultDerivedCode = try {
         val parts = packageJsonVersion.split(".").map { it.toIntOrNull() ?: 0 }
         (parts.getOrElse(0) { 1 } * 10000) + (parts.getOrElse(1) { 0 } * 100) + parts.getOrElse(2) { 0 }
     } catch (_: Exception) {
-        10058
+        10059
     }
 
     defaultConfig {

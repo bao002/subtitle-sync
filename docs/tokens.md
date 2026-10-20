@@ -4,16 +4,12 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Hotfix: Fix Android APK Build & Version ID, Commit ID, and Version Description on Each Version (v1.0.58)
+## Active Prompt: Hotfix: Android Build APK & Version/Commit/Description Display on Each Version (Version 1.0.59)
 
-- **Hotfix: Android APK Build & Version Tracking**:
-  - Subtask H.1: Version bump to 1.0.58 across targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-  - Subtask H.2: Fix Android `build.gradle.kts` asset preparation (`prepareWebAssets` with `onlyIf` guard and safe execution), `-PappVersionCode`/`-PappVersionName` support, and update `.github/workflows/release-apk.yml` to generate Version ID, Commit ID, and Version Description.
-  - Subtask H.3: Update `src/components/ApkReleaseModal.tsx`, `src/components/ApkReleasesFooter.tsx`, and `src/routes/index.tsx` to prominently display Version ID, Commit ID, and Version Description on each version and release option.
-  - Subtask H.4: Add and run dedicated verification test `scripts/verify-android-build-and-version-details.ts`, compile, lint, commit, push, and migrate to `docs/done.md`.
-- **Suspended Tasks (Resuming immediately after Hotfix)**:
-  - Task 159 [ON HOLD]: Theme Colors Fix (Beginner Mode fix & Blue Theme purity for both modes)
-  - Task 160: docs/android.md GitHub Actions Emulator Flow & Authenticity Evidence Documentation
+- **Hotfix (Active)**: Fix Android APK build reliability & display Version ID, Commit ID, and Version Description on each version (`android-shell/app/build.gradle.kts`, `.github/workflows/release-apk.yml`, `.github/workflows/emulation.yml`, `src/components/ApkReleaseModal.tsx`, `src/components/ApkReleasesFooter.tsx`, `src/routes/index.tsx`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, `package.json`).
+- **Chapter 3 (Task 159) [ON HOLD]**: Theme Colors Fix (Beginner Mode fix & Blue Theme purity for both modes)
+- **Chapter 4 (Task 160)**: docs/android.md GitHub Actions Emulator Flow & Authenticity Evidence Documentation
+
 
 
 ---

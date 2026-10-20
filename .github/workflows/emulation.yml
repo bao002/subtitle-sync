@@ -124,7 +124,7 @@ jobs:
 
       - name: Build Android Debug APK (Fallback)
         if: steps.stage_apk.outputs.have_apk != 'true'
-        timeout-minutes: 3
+        timeout-minutes: 10
         run: |
           chmod +x android-shell/gradlew
           if [ ! -f "android-shell/gradle/wrapper/gradle-wrapper.jar" ]; then
