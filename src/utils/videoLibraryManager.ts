@@ -11,13 +11,15 @@ function isStorageAvailable(): boolean {
   return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
 }
 
+let memoryLibrary: LibraryVideoItem[] | null = null;
+
 /**
  * Loads video watch history / library from localStorage.
  * Falls back to DEFAULT_LIBRARY_ITEMS if storage is empty.
  */
 export function loadVideoLibrary(): LibraryVideoItem[] {
   if (!isStorageAvailable()) {
-    return [...DEFAULT_LIBRARY_ITEMS];
+    return memoryLibrary ? [...memoryLibrary] : [...DEFAULT_LIBRARY_ITEMS];
   }
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -47,8 +49,12 @@ export function loadVideoLibrary(): LibraryVideoItem[] {
  * Persists the video library list to localStorage.
  */
 export function saveVideoLibrary(items: LibraryVideoItem[]): void {
-  if (!isStorageAvailable() || !Array.isArray(items)) return;
+  if (!Array.isArray(items)) return;
   const sliced = items.slice(0, MAX_LIBRARY_ITEMS);
+  if (!isStorageAvailable()) {
+    memoryLibrary = [...sliced];
+    return;
+  }
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sliced));
   } catch (err) {
@@ -94,6 +100,30 @@ export function recordVideoWatch(video: {
 }
 
 /**
+ * Updates the title of an existing video in the library.
+ */
+export function updateVideoLibraryTitle(videoId: string, title: string): LibraryVideoItem[] {
+  const cleanId = String(videoId || "").trim();
+  const cleanTitle = String(title || "").trim();
+  if (!cleanId || !cleanTitle) return loadVideoLibrary();
+
+  const currentItems = loadVideoLibrary();
+  let changed = false;
+  const updated = currentItems.map((item) => {
+    if (item.id === cleanId && item.title !== cleanTitle) {
+      changed = true;
+      return { ...item, title: cleanTitle };
+    }
+    return item;
+  });
+
+  if (changed) {
+    saveVideoLibrary(updated);
+  }
+  return updated;
+}
+
+/**
  * Removes a video from the library.
  */
 export function removeVideoFromLibrary(videoId: string): LibraryVideoItem[] {
@@ -107,6 +137,7 @@ export function removeVideoFromLibrary(videoId: string): LibraryVideoItem[] {
  * Clears the watch history and resets to empty.
  */
 export function clearVideoLibrary(): void {
+  memoryLibrary = [];
   if (!isStorageAvailable()) return;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify([]));

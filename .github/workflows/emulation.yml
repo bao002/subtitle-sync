@@ -178,7 +178,7 @@ jobs:
             adb install -r android-shell/app/build/outputs/apk/debug/app-debug.apk
             adb shell pm clear com.ytviewer.app
             adb shell rm -f /sdcard/android-emulator-video.mp4 2>/dev/null || true
-            echo "Starting adb screenrecord..."
+            echo "Starting adb screenrecord (DEPRECATED flow, caption exposure & logs prioritized)..."
             adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4 >/tmp/screenrecord.log 2>&1 &
             RECORD_PID=$!
             cleanup_recording() {

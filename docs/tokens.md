@@ -4,14 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Task 153, Version 1.0.53)
+## Active Prompt: Client-Side Video Metadata Extraction & Presentation (Task 154, Version 1.0.54)
 
-- **Chapter 1 (Task 153)**: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.53)
-  - Subtask 153.1: Version bump to 1.0.53 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-  - Subtask 153.2: Expose authentic caption text in `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` with `AUTHENTIC_CAPTIONS_EXPOSED` logcat output.
-  - Subtask 153.3: Deprecate screencast video generation in `scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, `.github/workflows/emulation.yml`, and documentation.
-  - Subtask 153.4: Enhance `scripts/run-android-e2e.sh` and `scripts/android-e2e-assert.sh` to detect authentic captions upon player interaction, extract and print exposed caption text without mock or fixtures.
-  - Subtask 153.5: Author dedicated verification script `scripts/verify-emulator-captions-detection.ts`, verify tests, compile, lint, commit, and migrate to `docs/done.md`.
+- **Chapter 1 (Task 154)**: Client-Side Video Metadata Extraction & Presentation (Version 1.0.54)
+  - Subtask 154.1: Version bump to 1.0.54 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask 154.2: Client-side video metadata service (`src/utils/videoMetadataManager.ts` & types in `src/types.ts`) with CORS oEmbed, thumbnails, and local caching.
+  - Subtask 154.3: Integrate metadata into Library Panel, Video Player, and route display while strictly preserving web demo layout.
+  - Subtask 154.4: Author dedicated verification script `scripts/verify-client-video-metadata.ts`, verify tests, compile, lint, commit, and migrate to `docs/done.md`.
 
 ---
 
