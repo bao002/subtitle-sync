@@ -49,6 +49,10 @@ The Android shell (`android-shell/`) wraps the web application in an Android Web
 
 ---
 
+## 3. Screencast Video Deprecation & Authentic Milestone Telemetry
+
+> **Deprecation Notice**: Generating screencast videos via `adb shell screenrecord` or synthetic `ffmpeg` conversion is **deprecated** in favor of authentic multi-step milestone screenshots, live device hardware telemetry, and verified ADB logcat output with real-time caption text exposure. This eliminates flaky video runner timeouts and avoids 0-byte runner drops.
+=======
 ## 3. How to Make the Video / Screencast of E2E Scenarios (DEPRECATED)
 
 > **Deprecation Notice (Version 1.0.53)**: Automated screencast video generation (`screenrecord`, MP4 artifacts) is deprecated in favor of authentic live subtitle text detection, telemetry extraction (`AUTHENTIC_CAPTIONS_EXPOSED`), and milestone screenshot captures. The video recording lifecycle below is preserved for backward compatibility but is non-blocking.
@@ -64,39 +68,27 @@ Video proof of the E2E test running on the Android emulator is supported for vis
   adb shell wm dismiss-keyguard
                  │
                  ▼
-  adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4 &
-  RECORDING_PID=$!
-                 │
-                 ▼
      [Execute E2E Test Scenarios]
      - Launch MainActivity with Target Video URL
      - Wait for [APP_READY] (Assert NO error screens)
-     - Tap YouTube player to trigger playback
-     - Intercept default captions & fetch favorite languages
+     - Capture Milestone Step 2 (App Launch) screenshot
+     - Enable CC / trigger playback on real YouTube video
+     - Intercept authentic default captions & fetch favorite languages
+     - Expose real caption text in ADB logcat & test output
      - Test tlang/lang fallback
      - Test YouTube Share Intents (ACTION_VIEW & ACTION_SEND)
+     - Capture Milestone Step 3-5 screenshots
                  │
                  ▼
-  [Finalize Video Container via SIGINT]
-  adb shell pkill -2 -f screenrecord
-  wait $RECORDING_PID
-  sleep 3
-                 │
-                 ▼
-  adb pull /sdcard/android-emulator-video.mp4 ./android-emulator-video.mp4
-                 │
-                 ▼
-  Stage into gh-pages-staging/screenshots/ (NOT committed to main branch!)
+  Stage authentic screenshots & logcat into gh-pages-staging/screenshots/ (NOT committed to main branch!)
 ```
 
-### Video Recording Guidelines:
+### Milestone Telemetry Guidelines:
 
-1. **Start Before App Launch**: Start `screenrecord` before launching `MainActivity` so that the video captures the complete application boot sequence, asset hydration, and caption initialization.
-2. **Bitrate and Resolution**: Use `--bit-rate 4000000` (4 Mbps) and `--time-limit 180` to produce high-definition, compact MP4 files suitable for web streaming.
-3. **Clean Container Finalization**:
-   - `screenrecord` requires a clean `SIGINT` (signal 2) to write the MP4 file header (`moov` atom).
-   - Abruptly terminating ADB or pulling while `screenrecord` is writing corrupts the video.
-   - Always run `adb shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true"`, wait 3 seconds, and then pull via `adb pull`.
+1. **Authentic Screenshots Over Synthetic Videos**: Capture authentic full-resolution screenshots at each key milestone (boot, share intent, captions discovery) using `adb shell screencap -p`.
+2. **Real-time Caption Text Exposure**: Rather than relying on video frames, real caption text is intercepted and logged directly in ADB logcat with `CAPTION_TEXT_EXPOSED` telemetry and validated in test assertions.
+3. **No Synthetic Video Generators**: Synthetic video generation via ffmpeg loops from static screenshots is strictly deprecated.
+4. **Clean Container Finalization**: If an authentic legacy MP4 is recorded, it must be cleanly stopped with SIGINT (`kill -2`), but is no longer mandatory for test passage.
 4. **Orientation and Wake Locking**:
    - Disable auto-rotation: `adb shell settings put system accelerometer_rotation 0`.
    - Dismiss lock screen: `adb shell input keyevent KEYCODE_WAKEUP && adb shell wm dismiss-keyguard`.

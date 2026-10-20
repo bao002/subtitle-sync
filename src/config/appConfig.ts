@@ -40,6 +40,7 @@ export const STORAGE_KEYS = {
   VIDEO_SETTINGS_PREFIX: "yt_vsettings_",
   PARSER_CRITERIA_STORAGE_KEY: "yt_parser_criteria_v1",
   PARSER_SETTINGS_STORAGE_KEY: "yt_parser_settings_v1",
+  PARSER_CONFIRM_DIFF_STORAGE_KEY: "yt_parser_confirm_diff_v1",
 } as const;
 
 // Default Library Items (with Authentic Multilingual Tracks)

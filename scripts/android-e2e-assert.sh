@@ -9,11 +9,16 @@
 #   2. Live ACTION_VIEW intent dispatch: Browser YouTube link (dQw4w9WgXcQ).
 #   3. Live ACTION_SEND intent dispatch: Official YouTube app text (kJQP7kiw5Fk).
 #
+ # Produces Authentic Products:
+#   1. Android logs (android-emulator-logcat.txt)
+#   2. Images (android-emulator-screenshot.png + milestone step screenshots)
+#   (Screencast video generation deprecated in favor of authentic screenshots & telemetry)
+ 
 # Produces Authentic Test Products:
 #   1. Android logs (android-emulator-logcat.txt with authentic captions exposure)
 #   2. Screenshot images (android-emulator-screenshot.png + milestone step screenshots)
 #   3. Screencast video (android-emulator-video.mp4) [DEPRECATED in favor of caption text telemetry]
-# ==============================================================================
+ # ==============================================================================
 set -uo pipefail
 
 PACKAGE_NAME="${PACKAGE_NAME:-com.ytviewer.app}"

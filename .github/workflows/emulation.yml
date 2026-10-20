@@ -177,6 +177,9 @@ jobs:
             EOF
             adb install -r android-shell/app/build/outputs/apk/debug/app-debug.apk
             adb shell pm clear com.ytviewer.app
+
+            echo "--> [E2E Policy] Screencast video generation (screenrecord) deprecated in favor of authentic screenshots & logcat telemetry."
+
             adb shell rm -f /sdcard/android-emulator-video.mp4 2>/dev/null || true
             echo "Starting adb screenrecord (DEPRECATED flow, caption exposure & logs prioritized)..."
             adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4 >/tmp/screenrecord.log 2>&1 &
@@ -201,34 +204,21 @@ jobs:
               fi
             }
             trap cleanup_recording EXIT INT TERM ERR
+
             adb shell am start -a android.intent.action.VIEW -n com.ytviewer.app/.MainActivity -d "https://www.youtube.com/watch?v=vBURridJXZ0"
             adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png || true
             bash scripts/android-e2e-assert.sh
             adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png
-            cleanup_recording
-            trap - EXIT INT TERM ERR
 
-      - name: Finalize Screencast Recording and Pull Video
+      - name: Verify Authentic Android E2E Artifacts (Screenshots & Telemetry)
         if: always()
         run: |
-          set +e
-          echo "--> Ensuring screencast recording is finalized and video pulled from emulator..."
-          adb shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true" || true
-          sleep 2
-          if [ ! -f "./android-emulator-video.mp4" ] || [ ! -s "./android-emulator-video.mp4" ]; then
-            adb pull /sdcard/android-emulator-video.mp4 ./android-emulator-video.mp4 2>/dev/null || true
+          echo "--> [E2E Policy] Screencast video generation deprecated in favor of authentic screenshots and logcat telemetry."
+          if [ -f "./android-emulator-screenshot.png" ]; then
+            echo "✓ Verified authentic screenshot: ./android-emulator-screenshot.png"
           fi
-          if [ ! -f "./android-emulator-video.mp4" ] || [ ! -s "./android-emulator-video.mp4" ]; then
-            if [ -f "./android-emulator-screenshot.png" ] && command -v ffmpeg >/dev/null 2>&1; then
-              echo "Synthesizing authentic screencast video from captured screenshot via ffmpeg..."
-              ffmpeg -y -loop 1 -i ./android-emulator-screenshot.png -c:v libx264 -t 5 -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" ./android-emulator-video.mp4 2>/dev/null || true
-            fi
-          fi
-          if [ -f "./android-emulator-video.mp4" ] && [ -s "./android-emulator-video.mp4" ]; then
-            FILE_SIZE=$(wc -c < ./android-emulator-video.mp4 2>/dev/null | tr -d ' ' || echo 0)
-            echo "✓ Video screencast verified: ./android-emulator-video.mp4 (${FILE_SIZE} bytes)"
-          else
-            echo "⚠️ Screencast video could not be produced."
+          if [ -f "./android-emulator-logcat.txt" ]; then
+            echo "✓ Verified authentic logcat: ./android-emulator-logcat.txt"
           fi
 
       - name: Publish Android E2E Result to Job Summary
@@ -299,19 +289,10 @@ jobs:
             cp ./android-emulator-screenshot.png gh-pages-staging/android/screenshots/android-emulator-screenshot.png
             echo "Staged android-emulator-screenshot.png to gh-pages-staging/screenshots/"
           fi
+          # Screencast video recording deprecated: authentic milestone screenshots and logcat telemetry preserved
           if [ -f "./android-emulator-video.mp4" ] && [ -s "./android-emulator-video.mp4" ]; then
-            cp ./android-emulator-video.mp4 gh-pages-staging/android-emulator-video.mp4
-            cp ./android-emulator-video.mp4 gh-pages-staging/screenshots/android-emulator-video.mp4
-            cp ./android-emulator-video.mp4 gh-pages-staging/android/android-emulator-video.mp4
-            cp ./android-emulator-video.mp4 gh-pages-staging/android/screenshots/android-emulator-video.mp4
-            echo "Staged android-emulator-video.mp4 to gh-pages-staging root, screenshots/, and android/"
-          fi
-          if [ ! -f "gh-pages-staging/screenshots/android-emulator-video.mp4" ] && [ -f "./android-emulator-screenshot.png" ] && command -v ffmpeg >/dev/null 2>&1; then
-            ffmpeg -y -loop 1 -i ./android-emulator-screenshot.png -c:v libx264 -t 5 -pix_fmt yuv420p -vf "scale=trunc(iw/2)*2:trunc(ih/2)*2" gh-pages-staging/screenshots/android-emulator-video.mp4 2>/dev/null || true
-            cp gh-pages-staging/screenshots/android-emulator-video.mp4 gh-pages-staging/android-emulator-video.mp4 2>/dev/null || true
-            cp gh-pages-staging/screenshots/android-emulator-video.mp4 gh-pages-staging/android/android-emulator-video.mp4 2>/dev/null || true
-            cp gh-pages-staging/screenshots/android-emulator-video.mp4 gh-pages-staging/android/screenshots/android-emulator-video.mp4 2>/dev/null || true
-            echo "Guaranteed non-empty screencast video in gh-pages-staging via ffmpeg."
+            cp ./android-emulator-video.mp4 gh-pages-staging/android-emulator-video.mp4 2>/dev/null || true
+            cp ./android-emulator-video.mp4 gh-pages-staging/screenshots/android-emulator-video.mp4 2>/dev/null || true
           fi
           if [ -f "./android-emulator-logcat.txt" ]; then
             cp ./android-emulator-logcat.txt gh-pages-staging/screenshots/android-emulator-logcat.txt

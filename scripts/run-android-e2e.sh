@@ -147,6 +147,15 @@ EOF
     # Clear logcat buffer
     adb_cmd logcat -c 2>/dev/null || true
 
+     # Screencast video recording via screenrecord is deprecated:
+    # E2E verification relies on authentic multi-step milestone screenshots, logcat telemetry,
+    # and direct caption text inspection. Synthetic video generation and screenrecord are deprecated.
+    echo "--> [E2E Policy] Screencast recording (screenrecord) deprecated in favor of authentic screenshots and telemetry."
+    VIDEO_OUT="${ROOT_DIR}/android-emulator-video.mp4"
+    stop_recording_and_pull() {
+      # No-op: screenrecord and adb pull android-emulator-video.mp4 deprecated
+      :
+ 
     # [DEPRECATED] Screencast video recording on device (screenrecord)
     # Note: Screencast video generation is deprecated in favor of authentic caption text extraction & exposure.
     RECORDING_PID=""
@@ -178,8 +187,7 @@ EOF
       else
         echo "ℹ️ No video file retrieved from emulator/device."
       fi
-    }
-    trap stop_recording_and_pull EXIT INT TERM ERR
+     }
 
     # Pre-test system navigation: Expose Android Settings, "About Phone", and Developer details
     echo "--> [Milestone Step 1] Pre-test system navigation to Android Settings & About Phone..."

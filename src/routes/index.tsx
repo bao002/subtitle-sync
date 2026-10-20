@@ -150,6 +150,8 @@ import { ParserTimingLab } from "@/components/ParserTimingLab";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
 import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
+import { ParserDiffConfirmationModal } from "@/components/ParserDiffConfirmationModal";
+import { computeParserDiff, type ParserDiffResult } from "@/utils/parserDiffHelper";
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
 import {
   getSectionOrder,
@@ -623,20 +625,34 @@ function Index() {
     return DEFAULT_PARSER_CRITERIA;
   });
 
+   const [confirmParserDiff, setConfirmParserDiff] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY);
+        return saved === "true";
+=======
   const [confirmParserDiffEnabled, setConfirmParserDiffEnabled] = useState(() => {
     if (typeof window !== "undefined") {
       try {
         return window.localStorage.getItem("yt_confirm_parser_diff") === "true";
-      } catch {
+       } catch {
         return false;
       }
     }
     return false;
   });
+ 
+  const [pendingParserChange, setPendingParserChange] = useState<{
+    criteria: CriteriaId[];
+    settings?: CriteriaGroupSettings;
+    criteriaNames: string[];
+    diffResult: ParserDiffResult;
+  } | null>(null);
+=======
   const [parserDiffModalOpen, setParserDiffModalOpen] = useState(false);
   const [pendingProposedCriteria, setPendingProposedCriteria] = useState<CriteriaId[] | null>(null);
   const [parserDiffResult, setParserDiffResult] = useState<ParserDiffResult | null>(null);
-
+ 
   const [criteriaSettings, setCriteriaSettings] = useState<CriteriaGroupSettings>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -685,17 +701,6 @@ function Index() {
     });
   };
 
-  const handleResetGroupSettings = () => {
-    setCriteriaSettings(DEFAULT_CRITERIA_SETTINGS);
-    try {
-      localStorage.setItem(
-        STORAGE_KEYS.PARSER_SETTINGS_STORAGE_KEY,
-        JSON.stringify(DEFAULT_CRITERIA_SETTINGS),
-      );
-    } catch {
-      // ignore storage error
-    }
-  };
   const getInitialFavoriteLanguages = (): string[] => {
     if (typeof window !== "undefined") {
       const favs = getFavoriteLanguages();
@@ -880,6 +885,96 @@ function Index() {
   tracksRef.current = tracks;
   const observedUrlRef = useRef(observedUrl);
   observedUrlRef.current = observedUrl;
+
+  const applyCriteriaNow = useCallback(
+    (nextCriteria: CriteriaId[], nextSettings: CriteriaGroupSettings = criteriaSettings) => {
+      setSelectedCriteria(nextCriteria);
+      setCriteriaSettings(nextSettings);
+      try {
+        localStorage.setItem(
+          STORAGE_KEYS.PARSER_CRITERIA_STORAGE_KEY,
+          JSON.stringify(nextCriteria),
+        );
+        localStorage.setItem(
+          STORAGE_KEYS.PARSER_SETTINGS_STORAGE_KEY,
+          JSON.stringify(nextSettings),
+        );
+      } catch {
+        // ignore storage error
+      }
+    },
+    [criteriaSettings],
+  );
+
+  const checkAndApplyCriteria = useCallback(
+    (nextCriteria: CriteriaId[], nextSettings: CriteriaGroupSettings = criteriaSettings) => {
+      if (!confirmParserDiff || !tracks || !baseLanguage) {
+        applyCriteriaNow(nextCriteria, nextSettings);
+        return;
+      }
+
+      const currentRows = align(tracks, baseLanguage, selectedCriteria, criteriaSettings);
+      const proposedRows = align(tracks, baseLanguage, nextCriteria, nextSettings);
+      const diff = computeParserDiff(currentRows, proposedRows, baseLanguage);
+
+      if (!diff.hasChanges) {
+        applyCriteriaNow(nextCriteria, nextSettings);
+        return;
+      }
+
+      const proposedNames = nextCriteria.map((c) => {
+        const found = PARSER_CRITERIA.find((item) => item.id === c);
+        return found ? found.name : c;
+      });
+
+      setPendingParserChange({
+        criteria: nextCriteria,
+        settings: nextSettings,
+        criteriaNames: proposedNames,
+        diffResult: diff,
+      });
+    },
+    [confirmParserDiff, tracks, baseLanguage, selectedCriteria, criteriaSettings, applyCriteriaNow],
+  );
+
+  const handleToggleCriterion = useCallback(
+    (id: CriteriaId) => {
+      let updated: CriteriaId[];
+      if (selectedCriteria.includes(id)) {
+        if (selectedCriteria.length <= 1) return;
+        updated = selectedCriteria.filter((c) => c !== id);
+      } else {
+        updated = [...selectedCriteria, id];
+      }
+      checkAndApplyCriteria(updated, criteriaSettings);
+    },
+    [selectedCriteria, criteriaSettings, checkAndApplyCriteria],
+  );
+
+  const handleApplyPreset = useCallback(
+    (presetCriteria: CriteriaId[]) => {
+      checkAndApplyCriteria(presetCriteria, criteriaSettings);
+    },
+    [criteriaSettings, checkAndApplyCriteria],
+  );
+
+  const handleResetGroupSettings = useCallback(() => {
+    checkAndApplyCriteria(selectedCriteria, DEFAULT_CRITERIA_SETTINGS);
+  }, [selectedCriteria, checkAndApplyCriteria]);
+
+  const handleConfirmDiff = useCallback(() => {
+    if (pendingParserChange) {
+      applyCriteriaNow(
+        pendingParserChange.criteria,
+        pendingParserChange.settings || criteriaSettings,
+      );
+      setPendingParserChange(null);
+    }
+  }, [pendingParserChange, criteriaSettings, applyCriteriaNow]);
+
+  const handleCancelDiff = useCallback(() => {
+    setPendingParserChange(null);
+  }, []);
   // Single attempt per language per observed URL (no automatic retries, like Youtubenet6)
   const attemptedRef = useRef<Set<string>>(new Set());
   const [failedLangs, setFailedLangs] = useState<string[]>([]);
@@ -4824,6 +4919,31 @@ function Index() {
                                   <RotateCcw className="h-3 w-3 mr-1" />
                                   Reset settings
                                 </Button>
+                                <label
+                                  data-testid="toggle-confirm-parser-diff-label"
+                                  className="flex items-center gap-1.5 cursor-pointer text-[11px] text-muted-foreground hover:text-foreground select-none ml-1 pl-2 border-l border-border/60"
+                                  title="Display preview diff showing changed records and alignment divisions before applying parser options"
+                                >
+                                  <input
+                                    type="checkbox"
+                                    data-testid="toggle-confirm-parser-diff"
+                                    checked={confirmParserDiff}
+                                    onChange={(e) => {
+                                      const next = e.target.checked;
+                                      setConfirmParserDiff(next);
+                                      try {
+                                        localStorage.setItem(
+                                          STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY,
+                                          String(next),
+                                        );
+                                      } catch {
+                                        // ignore storage error
+                                      }
+                                    }}
+                                    className="h-3.5 w-3.5 rounded border-muted-foreground/40 text-primary accent-primary cursor-pointer"
+                                  />
+                                  <span>Confirm diff</span>
+                                </label>
                               </div>
                             </div>
                             <p className="text-xs text-muted-foreground mb-3">
@@ -6051,6 +6171,13 @@ function Index() {
         minPacingSec={retryPacingMinSec}
         maxPacingSec={retryPacingMaxSec}
         onToggleAutoRetry={handleToggleAutoRetry}
+      />
+      <ParserDiffConfirmationModal
+        isOpen={Boolean(pendingParserChange)}
+        onClose={handleCancelDiff}
+        onConfirm={handleConfirmDiff}
+        diffResult={pendingParserChange?.diffResult || null}
+        proposedCriteriaNames={pendingParserChange?.criteriaNames || []}
       />
     </div>
   );
