@@ -9,10 +9,10 @@
 #   2. Live ACTION_VIEW intent dispatch: Browser YouTube link (dQw4w9WgXcQ).
 #   3. Live ACTION_SEND intent dispatch: Official YouTube app text (kJQP7kiw5Fk).
 #
-# Produces 3 Authentic Products:
+# Produces Authentic Products:
 #   1. Android logs (android-emulator-logcat.txt)
-#   2. Screencast video (android-emulator-video.mp4)
-#   3. Images (android-emulator-screenshot.png + milestone step screenshots)
+#   2. Images (android-emulator-screenshot.png + milestone step screenshots)
+#   (Screencast video generation deprecated in favor of authentic screenshots & telemetry)
 # ==============================================================================
 set -uo pipefail
 

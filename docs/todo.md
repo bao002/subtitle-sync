@@ -1,8 +1,9 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 149.3 - Create ParserDiffConfirmationModal.tsx
-- **Parent Task**: Task 149 - Parser Option Difference Confirmation & Preview (Version 1.0.50)
+## Active Subtask: Subtask 144.1 - Deprecate screencast video generation in Android E2E scripts & workflows
+- **Parent Task**: Task 144 - Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.51)
 - **Status**: [ACTIVE]
+
 
 
 

@@ -1,5 +1,34 @@
 # Done tasks
 
+## Task 149: Parser Option Difference Confirmation & Preview (Version 1.0.50)
+
+### Summary:
+- **Parser Alignment Differential Calculation Utility (`src/utils/parserDiffHelper.ts`)**:
+  - Implemented `computeParserDiff(currentRows, proposedRows, baseLanguage)` to analyze fine-grained differences between current and proposed subtitle alignments.
+  - Automatically identifies divergence windows, changed record indices, change types (`split`, `merged`, `timing`, `added`, `removed`), time ranges, and readable text summaries.
+  - Implemented circular record stepping navigation helpers (`getNextChangeIndex`, `getPrevChangeIndex`).
+- **Interactive Preview & Confirmation Modal (`src/components/ParserDiffConfirmationModal.tsx`)**:
+  - Created dialog modal with accessibility role, changed record counters, and side-by-side / stacked diff comparison cards highlighting before/after state.
+  - Interactive [Previous] and [Next] navigation buttons stepping through every changed record group.
+  - Distinct action buttons for [Confirm & Apply Settings] and [Cancel / Keep Current].
+- **Index Route Integration & Settings Toggle (`src/routes/index.tsx`)**:
+  - Added `confirmParserDiff` state and `PARSER_CONFIRM_DIFF_STORAGE_KEY` persistence in `src/config/appConfig.ts`.
+  - Added user-facing "Confirm diff" toggle checkbox in the Accumulative Division Criteria header in the Parser accordion.
+  - Intercepted criteria toggling (`handleToggleCriterion`), presets application (`handleApplyPreset`), and settings reset (`handleResetGroupSettings`): when confirmation is enabled, calculates differential and opens preview dialog; applies immediately if no differences or when confirmation is disabled.
+- **Version 1.0.50 Parity**:
+  - Synchronized `1.0.50` / `10050` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification (`scripts/verify-parser-diff-confirmation.ts`)**:
+  - Registered `test:parser-diff-confirmation` in `package.json` and documented in `docs/files.md`.
+  - Validated identical rows detection, divergence calculation, next/prev record navigation, component contracts, route integration, and version 1.0.50 parity.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-parser-diff-confirmation.ts`: PASSED (100% verified).
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED.
+  - `npx tsx scripts/verify-tokens-economy.ts`: PASSED.
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 148: Auto-Scroll 5-Second Cooldown After User Interaction (Version 1.0.49)
 
 ### Summary:

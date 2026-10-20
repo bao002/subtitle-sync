@@ -4,15 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Parser Option Difference Confirmation & Preview (Task 149)
+## Active Prompt: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Task 144)
 
-- **Chapter 1 (Task 149)**: Parser Option Difference Confirmation & Preview (Version 1.0.50)
-  - Subtask 149.1: Version bump to 1.0.50 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-  - Subtask 149.2: Implement parser diff computation helper (`src/utils/parserDiffHelper.ts`).
-  - Subtask 149.3: Build difference confirmation modal component (`src/components/ParserDiffConfirmationModal.tsx`).
-  - Subtask 149.4: Integrate confirmation option and preview flow in `src/routes/index.tsx`.
-  - Subtask 149.5: Author dedicated automated test (`scripts/verify-parser-diff-confirmation.ts`).
-  - Subtask 149.6: Verification via `compile_applet`, `lint_applet`, and migration to `docs/done.md`.
+- **Chapter 1 (Task 144)**: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.51)
+  - Subtask 144.1: Deprecate screencast video generation (`screenrecord`, ffmpeg synthesis, video artifacts) in `scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, `.github/workflows/emulation.yml`, `public/android-emulator-report.html`, and documentation.
+  - Subtask 144.2: Update Android E2E execution to enable captions on the real YouTube video and detect authentic timedtext network responses without fixtures or mocks.
+  - Subtask 144.3: Expose the intercepted caption text in logcat, test runner output, and telemetry summary.
+  - Subtask 144.4: Version bump to 1.0.51 across all 5 targets, author dedicated verification script (`scripts/verify-emulator-captions-detection.ts`), verify compilation, lint, and migrate to `docs/done.md`.
 
 ---
 

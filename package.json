@@ -153,6 +153,7 @@
     "test:video-switch-table-reset-and-ai-cache": "tsx scripts/verify-video-switch-table-reset-and-ai-cache.ts",
     "test:sharable-state-link": "tsx scripts/verify-sharable-state-link.ts",
     "test:type-safety": "tsx scripts/verify-type-safety-and-dev-modules.ts",
+    "test:parser-diff-confirmation": "tsx scripts/verify-parser-diff-confirmation.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

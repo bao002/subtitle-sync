@@ -147,38 +147,15 @@ EOF
     # Clear logcat buffer
     adb_cmd logcat -c 2>/dev/null || true
 
-    # Start screencast recording in the background on the device before launch
-    RECORDING_PID=""
-    VIDEO_REMOTE="/sdcard/android-emulator-video.mp4"
+    # Screencast video recording via screenrecord is deprecated:
+    # E2E verification relies on authentic multi-step milestone screenshots, logcat telemetry,
+    # and direct caption text inspection. Synthetic video generation and screenrecord are deprecated.
+    echo "--> [E2E Policy] Screencast recording (screenrecord) deprecated in favor of authentic screenshots and telemetry."
     VIDEO_OUT="${ROOT_DIR}/android-emulator-video.mp4"
-    echo "--> Starting Android screencast recording via screenrecord before app launch..."
-    adb_cmd shell rm -f "${VIDEO_REMOTE}" 2>/dev/null || true
-    adb_cmd shell screenrecord --time-limit 180 --bit-rate 4000000 "${VIDEO_REMOTE}" >/dev/null 2>&1 &
-    RECORDING_PID=$!
-    echo "  screenrecord started (runner background PID: ${RECORDING_PID})"
-
     stop_recording_and_pull() {
-      set +e
-      echo "--> Stopping screencast recording and pulling video..."
-      if [[ -n "${RECORDING_PID}" ]] && kill -0 "${RECORDING_PID}" 2>/dev/null; then
-        # Send SIGINT inside device shell to cleanly finalize MP4 container
-        adb_cmd shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true"
-        wait "${RECORDING_PID}" 2>/dev/null || true
-        sleep 3
-      fi
-      adb_cmd pull "${VIDEO_REMOTE}" "${VIDEO_OUT}" 2>/dev/null || true
-      if [[ -f "${VIDEO_OUT}" && -s "${VIDEO_OUT}" ]]; then
-        FILE_SIZE=$(wc -c < "${VIDEO_OUT}" 2>/dev/null | tr -d ' ' || echo 0)
-        echo "✓ Video screencast pulled to: ${VIDEO_OUT} (${FILE_SIZE} bytes)"
-        mkdir -p "${ROOT_DIR}/public/screenshots" "${ROOT_DIR}/public/android/screenshots" "${ROOT_DIR}/public/android"
-        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/screenshots/android-emulator-video.mp4" 2>/dev/null || true
-        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/android/screenshots/android-emulator-video.mp4" 2>/dev/null || true
-        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/android/android-emulator-video.mp4" 2>/dev/null || true
-      else
-        echo "ℹ️ No video file retrieved from emulator/device."
-      fi
+      # No-op: screenrecord and adb pull android-emulator-video.mp4 deprecated
+      :
     }
-    trap stop_recording_and_pull EXIT INT TERM ERR
 
     # Pre-test system navigation: Expose Android Settings, "About Phone", and Developer details
     echo "--> [Milestone Step 1] Pre-test system navigation to Android Settings & About Phone..."
