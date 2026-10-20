@@ -4,27 +4,14 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Parser Diff Confirmation, Default Subtitle Presentation & Floating Dropdown (Tasks 149, 150, 151)
+## Active Prompt: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Task 153, Version 1.0.53)
 
-- **Chapter 1 (Task 149)**: Parser Option Difference Confirmation & Preview (Version 1.0.50) [Completing "go on"]
-  - Subtask 149.1: Version bump to 1.0.50 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) [DONE].
-  - Subtask 149.2: Implement parser diff computation helper (`src/utils/parserDiffHelper.ts`) [DONE].
-  - Subtask 149.3: Build difference confirmation modal component (`src/components/ParserDiffConfirmationModal.tsx`) [DONE].
-  - Subtask 149.4: Integrate confirmation option and preview flow in `src/routes/index.tsx`.
-  - Subtask 149.5: Author dedicated automated test (`scripts/verify-parser-diff-confirmation.ts`).
-  - Subtask 149.6: Verification via `compile_applet`, `lint_applet`, and migration to `docs/done.md`.
-
-- **Chapter 2 (Task 150)**: Fix Caption Icon & Immediate Parallel Subtitles View Presentation on First Default Subtitles Fetch (Version 1.0.51)
-  - Subtask 150.1: Version bump to 1.0.51 across 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
-  - Subtask 150.2: Automatic `fmt=json3` timedtext repetition in Android `MainActivity.kt` on non-JSON3 captions interception.
-  - Subtask 150.3: Synchronous tracks update, base language inclusion in `cols` and `shown`, and automatic `openPanels.subtitles` opening upon default subtitle arrival in `src/routes/index.tsx`.
-  - Subtask 150.4: Author dedicated test `scripts/verify-default-caption-presentation.ts`, verify, commit & push, and migrate to `docs/done.md`.
-
-- **Chapter 3 (Task 151)**: Floating Draggable Dropdown Menu with Auto-Scroll & Setup-Pause (Version 1.0.51)
-  - Subtask 151.1: Transform `FloatingDraggablePauseButton.tsx` into a draggable dropdown menu with Setup-Pause and Auto-Scroll toggles, status badges, and explanatory text for each option.
-  - Subtask 151.2: Wire `isAutoScrollEnabled` and `onToggleAutoScroll` into `FloatingDraggablePauseButton` in `src/routes/index.tsx`.
-  - Subtask 151.3: Author dedicated test `scripts/verify-floating-dropdown-menu.ts`, verify, commit & push, and migrate to `docs/done.md`.
-
+- **Chapter 1 (Task 153)**: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.53)
+  - Subtask 153.1: Version bump to 1.0.53 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask 153.2: Expose authentic caption text in `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` with `AUTHENTIC_CAPTIONS_EXPOSED` logcat output.
+  - Subtask 153.3: Deprecate screencast video generation in `scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, `.github/workflows/emulation.yml`, and documentation.
+  - Subtask 153.4: Enhance `scripts/run-android-e2e.sh` and `scripts/android-e2e-assert.sh` to detect authentic captions upon player interaction, extract and print exposed caption text without mock or fixtures.
+  - Subtask 153.5: Author dedicated verification script `scripts/verify-emulator-captions-detection.ts`, verify tests, compile, lint, commit, and migrate to `docs/done.md`.
 
 ---
 

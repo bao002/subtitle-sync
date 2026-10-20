@@ -3173,7 +3173,8 @@ function Index() {
   }, []);
 
   useEffect(() => {
-    if (!autoFocus || isSetupPaused || active < 0) return;
+    if (!autoFocus || isSetupPaused) return;
+    if (active < 0) return;
 
     // Start auto-scroll ONLY after 5 seconds since the last user interaction with the page
     if (!isAutoScrollAllowed()) {
@@ -3369,13 +3370,13 @@ function Index() {
 
   useEffect(() => {
     const currentActive = active >= 0 ? active : speakingRow;
-    if (!isSetupPaused && currentActive >= 0 && subtitlesLimit > 0) {
+    if (isAndroid && autoFocus && !isSetupPaused && active >= 0 && subtitlesLimit > 0) {
       const targetPage = Math.floor(currentActive / subtitlesLimit) + 1;
       if (targetPage !== subtitlesPage) {
         setSubtitlesPage(targetPage);
       }
     }
-  }, [active, speakingRow, isSetupPaused, subtitlesLimit, subtitlesPage]);
+  }, [active, speakingRow, isSetupPaused, autoFocus, isAndroid, subtitlesLimit, subtitlesPage]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -5967,6 +5968,8 @@ function Index() {
       <FloatingDraggablePauseButton
         isSetupPaused={isSetupPaused}
         onToggleSetupPause={toggleSetupPause}
+        isAutoScrollEnabled={autoFocus}
+        onToggleAutoScroll={() => onAutoFocusChange(!autoFocus)}
       />
       <FloatingSubtitleRetryIndicator
         targetLanguages={targetLanguages}

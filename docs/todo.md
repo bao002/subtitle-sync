@@ -1,5 +1,12 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 151.1 - Update FloatingDraggablePauseButton.tsx to support dropdown action menu with Setup Pause & Auto-Scroll
-- **Parent Task**: Task 151 - Floating Draggable Dropdown Menu with Auto-Scroll & Setup-Pause (Version 1.0.51)
+## Active Subtask: Subtask 153.3 - Deprecate Screencast Video Generation
+- **Parent Task**: Task 153 - Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.53)
 - **Status**: [ACTIVE]
+- **Target Files**:
+  - `scripts/run-android-e2e.sh`
+  - `scripts/android-e2e-assert.sh`
+  - `.github/workflows/emulation.yml`
+  - `public/android-emulator-report.html`
+  - `public/android/index.html`
+  - `docs/android.md`

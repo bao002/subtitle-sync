@@ -1,5 +1,30 @@
 # Done tasks
 
+## Task 152: Reconcile and Carefully Complete Merge with Floating Dropdown Menu & Auto-Scroll (Version 1.0.52)
+
+### Summary:
+- **Contract & Backward Compatibility Reconciled (`src/components/FloatingDraggablePauseButton.tsx`)**:
+  - Restored `data-testid="floating-pause-button"`, `aria-pressed={isSetupPaused}`, and drag gesture discrimination so that `test:floating-pause` passes with 100% assertions satisfied.
+  - Retained the rich dropdown popup menu (`data-testid="floating-menu-dropdown"`), Option 1 "Pause for Setup" with explanation, and Option 2 "Auto-Scroll Subtitles" with explanation.
+  - Maintained bidirectional state displays (status text, active badges, toggle switches).
+- **Route Wiring (`src/routes/index.tsx`)**:
+  - Wired `isAutoScrollEnabled={autoFocus}` and `onToggleAutoScroll={() => onAutoFocusChange(!autoFocus)}` into `<FloatingDraggablePauseButton />`.
+  - Reconciled auto-scroll / autoFocus guards for table row scrolling and Android pagination, preserving 5-second user interaction cooldown while satisfying Task 50 suppression contracts.
+- **Version 1.0.52 Synchronization Across All 5 Targets**:
+  - Synchronized `1.0.52` / `10052` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification (`scripts/verify-floating-dropdown-menu.ts`)**:
+  - Created dedicated automated test validating exports, dropdown trigger, options, explanations, route wiring, and docs cataloging.
+  - Dynamically synchronized `scripts/verify-default-caption-presentation.ts` for version >= 1.0.51.
+- **Verification Commands & Outcomes**:
+  - `npm run test:floating-dropdown-menu`: PASSED (100% verified).
+  - `npm run test:floating-pause`: PASSED (100% verified).
+  - `npm run test:default-caption-presentation`: PASSED (100% verified).
+  - `npm run test:apk-version`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 150: Fix Caption Icon & Immediate Parallel Subtitles View Presentation on First Default Subtitles Fetch (Version 1.0.51)
 
 ### Summary:

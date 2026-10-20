@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.51",
+  "version": "1.0.53",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -156,6 +156,7 @@
     "test:numbered-chapters-protocol": "tsx scripts/verify-numbered-chapters-protocol.ts",
     "test:parser-diff-confirmation": "tsx scripts/verify-parser-diff-confirmation.ts",
     "test:default-caption-presentation": "tsx scripts/verify-default-caption-presentation.ts",
+    "test:floating-dropdown-menu": "tsx scripts/verify-floating-dropdown-menu.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
