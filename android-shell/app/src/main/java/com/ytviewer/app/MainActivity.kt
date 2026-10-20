@@ -224,10 +224,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                         Log.i(TAG, "Received ${rawBodyBytes.size} bytes of raw caption data.")
                         Log.i(TAG, "SUBTITLE_FETCH kind=$requestKind$langSuffix http=${response.code} bytes=${rawBodyBytes.size} cues=${countCaptionCues(rawBodyString)}")
 
-                        // 1. Save raw caption to device storage and dispatch to JS ONLY if HTTP 200 and valid JSON3
+                        // 1. Save raw caption to device storage and dispatch to JS
                         if (response.isSuccessful && isValidJsonSubtitle(rawBodyString)) {
                             saveCaptionToFile(url, rawBodyBytes)
                             dispatchToJavaScript(url, rawBodyString, contentType, response.code)
+                        } else if (response.isSuccessful) {
+                            Log.i(TAG, "Intercepted non-JSON3 caption (${contentType}). Fetching json3 format automatically for URL: $url")
+                            val uri = android.net.Uri.parse(url)
+                            val lang = uri.getQueryParameter("lang")?.takeIf { it.isNotBlank() } ?: "en"
+                            val json3Body = executeTimedTextRepetition(url, lang, "json3")
+                            if (json3Body.isNotBlank() && isValidJsonSubtitle(json3Body)) {
+                                val json3Url = if (url.contains("fmt=")) url.replace(Regex("fmt=[^&]+"), "fmt=json3") else "$url&fmt=json3"
+                                saveCaptionToFile(json3Url, json3Body.toByteArray(StandardCharsets.UTF_8))
+                                dispatchToJavaScript(json3Url, json3Body, "application/json; charset=utf-8", 200)
+                                Log.i(TAG, "Successfully fetched and dispatched json3 default subtitles to JS (bytes=${json3Body.length}).")
+                            } else {
+                                Log.w(TAG, "Automatic json3 repetition did not yield valid subtitles for $url")
+                            }
                         } else {
                             Log.w(TAG, "Skipping cache and JS dispatch for caption request because response is invalid or HTTP error (code=${response.code}, url=$url)")
                         }

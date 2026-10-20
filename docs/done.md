@@ -1,5 +1,52 @@
 # Done tasks
 
+## Task 150: Fix Caption Icon & Immediate Parallel Subtitles View Presentation on First Default Subtitles Fetch (Version 1.0.51)
+
+### Summary:
+- **Native Android Shell Interception & Automatic JSON3 Fallback (`MainActivity.kt`)**:
+  - Enhanced `shouldInterceptRequest`: when YouTube player issues an authentic timedtext caption request returning non-JSON3 (such as XML / `fmt=srv3` from the YouTube HTML5 embed), the native shell immediately performs an automatic `executeTimedTextRepetition(url, lang, "json3")` using the captured session headers and cookies.
+  - Automatically verifies `isValidJsonSubtitle`, caches the valid JSON3 caption, and dispatches it directly to JavaScript via `dispatchToJavaScript`, preventing dropped caption events upon the first CC click.
+- **Immediate Reactive Subtitles Presentation (`src/routes/index.tsx`)**:
+  - Removed deferred `startSubtitlesTransition` delay in `window.onNativeCaptionsInterceptedBase64`, updating `tracks` and prepending `lang` to `shown` synchronously.
+  - Automatically ensures `openPanels.subtitles: true` so the parallel subtitles view is opened and presented on the very first default caption fetch.
+  - Updated `cols` generation to include `baseLanguage` immediately whenever the track has valid cues without waiting for async `shown` reconciliation.
+  - Enhanced `caption-toggle-button` onClick to automatically open the subtitles panel and check for any captured timedtext URL if tracks are empty.
+- **Version 1.0.51 Bump Across All 5 Targets**:
+  - Synchronized `1.0.51` / `10051` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification (`scripts/verify-default-caption-presentation.ts`)**:
+  - Audited `MainActivity.kt` for automatic JSON3 repetition and JS dispatch.
+  - Audited `src/routes/index.tsx` for synchronous track ingestion, base language in `cols`, and `openPanels.subtitles` opening.
+  - Verified version 1.0.51 synchronization across all 5 targets and script registration.
+- **Verification Commands & Outcomes**:
+  - `npm run test:default-caption-presentation`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 149: Parser Option Difference Confirmation & Preview (Version 1.0.50)
+
+### Summary:
+- **Parser Difference Computation Engine (`src/utils/parserDiffHelper.ts`)**:
+  - Implemented `computeParserDiff`, `areRowsEqual`, `getNextChangeIndex`, and `getPrevChangeIndex`.
+  - Accurately classifies changes into `"split"`, `"merged"`, `"timing"`, `"content"`, `"added"`, `"removed"`, and `"modified"`.
+  - Produces detailed change clusters with before/after record items, start/end timestamps, text summaries, and total change count.
+- **Interactive Preview & Difference Confirmation Modal (`src/components/ParserDiffConfirmationModal.tsx`)**:
+  - Displays total before/after records count, number of changed records, proposed criteria tags, and before/after diff cards.
+  - Features [Previous] and [Next] cyclic stepping controls to review each changed record in detail.
+  - Provides [Confirm & Apply Settings] and [Cancel] buttons with keyboard accessibility and ARIA roles.
+- **Main Route Integration (`src/routes/index.tsx`)**:
+  - Added "Confirm before applying parser changes" switch toggle in the Parser accordion section (persisted in `localStorage` under `yt_confirm_parser_diff`).
+  - Integrated diff computation before applying criteria changes; presents modal when differences exist, and applies changes cleanly on confirmation.
+- **Dedicated Automated Verification (`scripts/verify-parser-diff-confirmation.ts`)**:
+  - Validated identical rows detection (0 changes), split rows detection, next/prev cyclic stepping, modal callbacks/controls, and index.tsx UI integration.
+- **Verification Commands & Outcomes**:
+  - `npm run test:parser-diff-confirmation`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 148: Auto-Scroll 5-Second Cooldown After User Interaction (Version 1.0.49)
 
 ### Summary:

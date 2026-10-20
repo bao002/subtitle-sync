@@ -38,6 +38,7 @@ export interface BeginnerFlowContainerProps {
   playerSlot?: React.ReactNode;
   playbackControlsSlot?: React.ReactNode;
   subtitlesTableSlot?: React.ReactNode;
+  webDemoUrlsSlot?: React.ReactNode;
   hasSubtitles?: boolean;
   isAndroidNative?: boolean;
   onOrderChange?: (order: "video-first" | "tts-first") => void;
