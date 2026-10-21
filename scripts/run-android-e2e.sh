@@ -153,6 +153,8 @@ EOF
     VIDEO_REMOTE="/sdcard/android-emulator-video.mp4"
     VIDEO_OUT="${ROOT_DIR}/android-emulator-video.mp4"
     echo "--> [DEPRECATED] Screencast video generation via screenrecord is deprecated in favor of authentic live captions & telemetry."
+    adb_cmd shell screenrecord --time-limit 180 --bit-rate 4000000 "${VIDEO_REMOTE}" >/dev/null 2>&1 &
+    RECORDING_PID=$!
 
     stop_recording_and_pull() {
       set +e

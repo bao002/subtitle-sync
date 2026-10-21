@@ -129,11 +129,11 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
               size="sm"
               variant="outline"
               onClick={onSwitchToAdvanced}
-              className="h-8 px-2.5 text-xs text-indigo-300 hover:text-indigo-100 hover:bg-indigo-950/70 border-indigo-700/60 rounded-lg flex items-center gap-1.5 transition-colors"
+              className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted border-border rounded-lg flex items-center gap-1.5 transition-colors"
               data-testid="nav-switch-to-advanced"
               title="Switch to Advanced Studio (Full Controls)"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-400" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
               <span className="hidden sm:inline">Advanced Studio</span>
             </Button>
           </div>

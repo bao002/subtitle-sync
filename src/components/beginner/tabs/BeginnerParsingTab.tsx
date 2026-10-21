@@ -205,7 +205,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       {/* Tab Header */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-1">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
             <Split className="w-4 h-4" />
           </div>
           <div>
@@ -265,7 +265,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
                       checked={isChecked}
                       onCheckedChange={() => handleTogglePunctuation(p.char)}
                     />
-                    <span className="font-mono font-semibold text-emerald-500">{p.char}</span>
+                    <span className="font-mono font-semibold text-primary">{p.char}</span>
                     <span>{p.label}</span>
                   </label>
                 );
@@ -278,7 +278,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       {/* 2. Character Removal & Renaming (stripping > and speaker tags) */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center gap-2">
-          <Scissors className="w-4 h-4 text-emerald-500" />
+          <Scissors className="w-4 h-4 text-primary" />
           <h3 className="text-xs font-semibold text-foreground">Character Removal & Rename Rules</h3>
         </div>
         <p className="text-[11px] text-muted-foreground">
@@ -370,7 +370,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-emerald-500" />
+            <Eye className="w-4 h-4 text-primary" />
             <h3 className="text-xs font-semibold text-foreground">
               Real-Time Parsing & Cleanup Preview
             </h3>
@@ -395,7 +395,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
                     key={sIdx}
                     className="flex items-center gap-2 text-foreground font-medium bg-muted/40 px-2 py-1 rounded border border-border"
                   >
-                    <span className="text-[10px] text-emerald-500 font-mono">#{sIdx + 1}</span>
+                    <span className="text-[10px] text-primary font-mono">#{sIdx + 1}</span>
                     <span>{sentence}</span>
                   </div>
                 ))}
@@ -413,7 +413,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
             variant="outline"
             size="sm"
             onClick={onApplyParsing}
-            className="h-8 px-3 text-xs border-emerald-700/60 text-emerald-300 hover:bg-emerald-950/40"
+            className="h-8 px-3 text-xs border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 dark:hover:bg-emerald-950/40"
             data-testid="btn-apply-parsing"
           >
             <Sparkles className="w-3.5 h-3.5 mr-1" />

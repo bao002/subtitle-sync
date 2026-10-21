@@ -49,7 +49,83 @@ The Android shell (`android-shell/`) wraps the web application in an Android Web
 
 ---
 
-## 3. Screencast Video Deprecation & Authentic Milestone Telemetry (DEPRECATED)
+## 3. GitHub Actions Android Emulator Architecture & Runner Pipeline
+
+Automated testing of the Android native shell executes within GitHub Actions using a matrix-backed virtualized Android device runner.
+
+### Runner Environment & Hardware Virtualization
+
+- **macOS Apple Silicon Host (`runs-on: macos-14`)**: GitHub Actions provisions macOS 14 runners powered by Apple Silicon M-series hardware. This enables native hypervisor framework acceleration (`Hypervisor.framework`) to achieve fast, fluid Android ARM64 virtualization.
+- **Android Virtual Device (AVD) Configuration**:
+  - **Runner Action**: `reactivecircus/android-emulator-runner@v2`
+  - **API Level**: 34 (Android 14, `api-level: 34`)
+  - **Target Image**: `google_apis` (includes official Google Play Services and system libraries)
+  - **CPU Architecture**: `arm64-v8a` (native execution without costly cross-architecture translation)
+  - **Allocated Memory**: `2048M` RAM
+  - **Headless Optimized Flags**: `-no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none`
+  - **Animation Suppression**: `disable-animations: true` (eliminates window and transition animation latency)
+
+### Workflow Triggering & Build Handshake (`workflow_run`)
+
+The emulator suite (`.github/workflows/emulation.yml`) is chained to execute automatically upon completion of the upstream build workflow (`.github/workflows/release-apk.yml`):
+
+1. **Upstream Artifact Retrieval**:
+   - The job inspects the triggering run and attempts to download `youtube-viewer-apks` (`YouTube-Viewer-debug.apk`) directly via `actions/download-artifact@v4` or GitHub CLI (`gh run download`).
+   - If pre-built APK is verified, duplicate compilation is completely skipped (`have_apk=true`).
+2. **Fallback Source Build**:
+   - If triggered manually or as a pull request without an upstream run, the runner executes a clean local web build (`npm run build`), bundles web dist assets into `android-shell/app/src/main/assets/`, and compiles the debug APK via `./gradlew assembleDebug`.
+3. **Automated Emulator Boot & Device Priming**:
+   - Once ADB reports device connectivity (`adb devices`), the runner primes the operating system:
+     - Wakes device: `adb shell input keyevent KEYCODE_WAKEUP`
+     - Dismisses lockscreen: `adb shell wm dismiss-keyguard`
+     - Locks portrait orientation: `adb shell settings put system accelerometer_rotation 0`
+     - Clears application state: `adb shell pm clear com.ytviewer.app`
+     - Installs APK: `adb install -r android-shell/app/build/outputs/apk/debug/app-debug.apk`
+
+---
+
+## 4. Authenticity Evidence & Telemetry Verification in Test Report
+
+To guarantee complete authenticity and prove that tests execute on genuine Android runtimes without synthetic mocks or hardcoded data, the test suite generates 5 layers of verifiable telemetry:
+
+### 1. Live Device Hardware Telemetry (`android-emulator-device-info.json`)
+At the start of test execution, the runner extracts dynamic hardware properties directly from the running Android Linux kernel via ADB shell:
+- `DEVICE_MODEL=$(adb shell getprop ro.product.model)` (e.g. `Android SDK built for arm64`)
+- `DEVICE_MANUFACTURER=$(adb shell getprop ro.product.manufacturer)` (e.g. `Google`)
+- `DEVICE_BRAND=$(adb shell getprop ro.product.brand)` (e.g. `google`)
+- `DEVICE_API=$(adb shell getprop ro.build.version.sdk)` (e.g. `34`)
+- `DEVICE_RELEASE=$(adb shell getprop ro.build.version.release)` (e.g. `14`)
+- `DEVICE_ABI=$(adb shell getprop ro.product.cpu.abi)` (e.g. `arm64-v8a`)
+- `DEVICE_RESOLUTION=$(adb shell wm size)` (e.g. `1080x2400`)
+- `DEVICE_DENSITY=$(adb shell wm density)` (e.g. `420`)
+These real properties are stored in `android-emulator-device-info.json` and presented in the `#device-telemetry-card`.
+
+### 2. Multi-Milestone Framebuffer Screencaps
+Real PNG pixel captures are acquired directly from the virtual surface compositor via `adb shell screencap -p /sdcard/screen.png` at each verified milestone:
+- **Milestone 1**: App Launch & Initialization (`step-02-app-launch.png`)
+- **Milestone 2**: Live `ACTION_VIEW` Browser Link Intent (`step-03-action-view.png` / `step-share-browser-link.png`)
+- **Milestone 3**: Live `ACTION_SEND` YouTube App Intent (`step-04-action-send.png` / `step-share-youtube-app-text.png`)
+- **Milestone 4**: Final Full-Resolution Display State (`android-emulator-screenshot.png`)
+
+### 3. Logcat Telemetry with Real Dialogue Caption Text Exposure
+The test captures continuous logcat output into `android-emulator-logcat.txt`, asserting dynamic application signals:
+- `[APP_READY]`: Confirms the web bundle loaded cleanly inside the WebView without throwing errors.
+- `SHARED_LINK_DISPATCH`: Confirms the Android OS passed the YouTube URL via Intent to the WebView bridge.
+- `SUBTITLE_FETCH`: Chronologically traces authentic HTTP queries to YouTube's timedtext API.
+- `AUTHENTIC_CAPTIONS_EXPOSED` / `CAPTION_TEXT_EXPOSED`: Verifies genuine subtitle dialogue text intercepted directly from the network payload.
+
+### 4. Dual-Layer Error Screen Assertion
+Tests strictly fail if the app displays error states:
+- **UI Dump Layer**: `adb shell uiautomator dump /sdcard/window_dump.xml` inspected to verify zero error text ("This page didn't load", "Something went wrong on our end").
+- **Logcat Layer**: Logcat inspected to verify zero `APP_BOOT_ERROR`, `FATAL EXCEPTION`, or `WebView error loading https://appassets`.
+
+### 5. Native Network Interception & Anti-Bot Cookie Preservation
+- Proves native `WebViewClient.shouldInterceptRequest` captured session cookies (`PREF`, `YSC`, `VISITOR_INFO1_LIVE`).
+- Verifies User-Agent sanitization (removing `; wv`) to match Mobile Chrome signatures.
+
+---
+
+## 5. Screencast Video Deprecation & Authentic Milestone Telemetry (DEPRECATED)
 
 > **Deprecation Notice (Version 1.0.53+)**: Automated screencast video generation (`screenrecord`, MP4 artifacts) is **deprecated** in favor of authentic multi-step milestone screenshots, live device hardware telemetry, and verified ADB logcat output with real-time caption text exposure (`AUTHENTIC_CAPTIONS_EXPOSED`). The video recording lifecycle below is preserved for backward compatibility but is non-blocking.
 
@@ -84,15 +160,15 @@ Video proof of the E2E test running on the Android emulator is supported for vis
 1. **Authentic Screenshots Over Synthetic Videos**: Capture authentic full-resolution screenshots at each key milestone (boot, share intent, captions discovery) using `adb shell screencap -p`.
 2. **Real-time Caption Text Exposure**: Rather than relying on video frames, real caption text is intercepted and logged directly in ADB logcat with `CAPTION_TEXT_EXPOSED` telemetry and validated in test assertions.
 3. **No Synthetic Video Generators**: Synthetic video generation via ffmpeg loops from static screenshots is strictly deprecated.
-4. **Clean Container Finalization**: If an authentic legacy MP4 is recorded, it must be cleanly stopped with SIGINT (`kill -2`), but is no longer mandatory for test passage.
-4. **Orientation and Wake Locking**:
+4. **Clean Container Finalization**: If an authentic legacy MP4 is recorded, it must be cleanly stopped with SIGINT (`adb shell pkill -2 -f screenrecord`), allowing the container `moov` header to be cleanly written before pulling via `adb pull`, but is no longer mandatory for test passage.
+5. **Orientation and Wake Locking**:
    - Disable auto-rotation: `adb shell settings put system accelerometer_rotation 0`.
    - Dismiss lock screen: `adb shell input keyevent KEYCODE_WAKEUP && adb shell wm dismiss-keyguard`.
-5. **Adaptive Coordinate Scaling**:
+6. **Adaptive Coordinate Scaling**:
    - Query screen dimensions: `adb shell wm size` (e.g. `1080x2400`).
    - Calculate relative touch coordinates: Player center at 50% width and 22% height (`ADAPTIVE_TAP_X=$(( DEV_W * 50 / 100 ))`, `ADAPTIVE_TAP_Y=$(( DEV_H * 22 / 100 ))`).
 
-### 3.1 Video Availability Timeline and Lifecycle
+### 5.1 Video Availability Timeline and Lifecycle
 
 Understanding when and where the screencast video becomes available:
 
@@ -109,7 +185,7 @@ Understanding when and where the screencast video becomes available:
 
 ---
 
-## 4. Expected E2E Report Structure on GitHub Pages
+## 6. Expected E2E Report Structure on GitHub Pages
 
 The E2E test produces a rich, interactive report deployed to GitHub Pages at:
 
@@ -129,7 +205,7 @@ The E2E test produces a rich, interactive report deployed to GitHub Pages at:
 
 ---
 
-## 5. Error Screen Detection & Strict Test Failure
+## 7. Error Screen Detection & Strict Test Failure
 
 The runner and assertion script must **strictly fail** if the Android app displays any web or runtime error screen:
 
@@ -146,7 +222,7 @@ The runner and assertion script must **strictly fail** if the Android app displa
 
 ---
 
-## 6. Repository Hygiene & Ephemeral Staging
+## 8. Repository Hygiene & Ephemeral Staging
 
 To maintain clean repository hygiene:
 
@@ -165,7 +241,7 @@ To maintain clean repository hygiene:
 
 ---
 
-## 7. Execution Commands
+## 9. Execution Commands
 
 - **Run Full Android E2E Suite Locally**:
   ```bash
