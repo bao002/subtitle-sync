@@ -4,10 +4,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 162 - Android Emulator E2E Caption Detection & Text Exposure (Version 1.0.60)
-- **Subtask 162.1**: Update Android E2E scripts to deprecate screencast and assert caption text exposure [ACTIVE].
-- **Subtask 162.2**: Update `docs/android.md` documentation for screencast deprecation & caption text exposure.
-- **Subtask 162.3**: Author dedicated test `scripts/verify-android-e2e-caption-exposure.ts`, compile, lint, commit, and migrate to `docs/done.md`.
+## Active Task: Idle (All tasks completed & verified)
+- Last Completed Task: Task 162 - Android Emulator E2E Caption Detection & Text Exposure (Version 1.0.60)
+- Backlog Status: Clean, ready for next prompt
 
 ---
 

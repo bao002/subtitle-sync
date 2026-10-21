@@ -8,22 +8,7 @@ import { test, expect } from "@playwright/test";
  */
 test.describe("Android Emulator E2E — YouTube Video Share Feature", () => {
   test.beforeEach(async ({ page }) => {
-    // Configure native shell bridge mock for emulator web driver
-    await page.addInitScript(() => {
-      const nativeWindow = window as typeof window & {
-        AndroidNativeShell?: {
-          isNativeShell(): boolean;
-          getLastObservedTimedTextUrl(): string;
-          fetchTranslatedCaptionsWithUrl(url: string, language: string, format: string): string;
-        };
-      };
-      nativeWindow.AndroidNativeShell = {
-        isNativeShell: () => true,
-        getLastObservedTimedTextUrl: () => "",
-        fetchTranslatedCaptionsWithUrl: () => JSON.stringify({ events: [] }),
-      };
-    });
-
+    // Authentic Android emulation execution without mocks or synthetic fixtures
     await page.goto("./");
     // Verify clean boot without error screen
     await expect(page.locator("[data-testid='router-error-component']")).toHaveCount(0);

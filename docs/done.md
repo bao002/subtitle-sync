@@ -1,5 +1,24 @@
 # Done tasks
 
+## Task 162: Android Emulator E2E Caption Detection & Text Exposure (Deprecate Screencast Generation) (Version 1.0.60)
+
+### Summary:
+- **E2E Scripts Screencast Deprecation & Live Dialogue Exposure (Subtask 162.1)**:
+  - Updated `scripts/run-android-e2e.sh` to deprecate `screenrecord` video generation by defaulting `ENABLE_DEPRECATED_SCREENCAST="false"`, while actively polling logcat for `AUTHENTIC_CAPTIONS_EXPOSED` and pulling `/sdcard/authentic_captions_exposed.txt` directly from the emulator.
+  - Updated `scripts/android-e2e-assert.sh` to enforce `AUTHENTIC_CAPTIONS_EXPOSED` log assertions, copy `authentic_captions_exposed.txt` to `public/screenshots/`, and assert clean asset hydration without error screens.
+  - Updated `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` to extract dialogue text from authentic timedtext responses, log `AUTHENTIC_CAPTIONS_EXPOSED` with real dialogue samples, and write `authentic_captions_exposed.txt` to device storage.
+  - Updated `.github/workflows/emulation.yml` to stage `authentic_captions_exposed.txt` as a workflow artifact and render dialogue text in GitHub Actions Job Summary.
+- **Android Documentation Update (Subtask 162.2)**:
+  - Updated `docs/android.md` Section 5 to document screencast video deprecation and mandatory live dialogue text logging.
+- **Dedicated Automated Verification & Hygiene (Subtask 162.3)**:
+  - Authored dedicated automated test `scripts/verify-android-e2e-caption-exposure.ts` verifying all 5 audit areas.
+  - Registered `test:android-e2e-caption-exposure` in `package.json`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:android-e2e-caption-exposure`: PASSED (all 5 tests verified, 100% pass).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
 ## Task 161: Client-Side Video Metadata & Free Information Extraction (Version 1.0.60)
 
 ### Summary:

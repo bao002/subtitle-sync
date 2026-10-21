@@ -210,5 +210,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-ok
+There was an unexpected error. Finish what you were doing.
 ```
