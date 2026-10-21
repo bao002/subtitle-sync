@@ -24,12 +24,36 @@ export type AlternativeTtsMode = "fallback_only" | "always";
 export type AlternativeTtsEngine = "lovable" | "google_translate";
 export type LovableTtsProvider = "google" | "lovable" | "openrouter";
 
+export const LOVABLE_TTS_PROVIDERS: readonly LovableTtsProvider[] = [
+  "google",
+  "lovable",
+  "openrouter",
+];
+
+export const LOVABLE_VOICES = ["Kore", "Puck", "Fenrir", "Aoede"] as const;
+
+export const OPENROUTER_VOICES = [
+  "alloy",
+  "nova",
+  "echo",
+  "fable",
+  "onyx",
+  "shimmer",
+] as const;
+
 export interface LovableTtsOptions {
   provider?: LovableTtsProvider;
   voice?: string;
   format?: "binary" | "json";
   target_lang?: string;
   apiKey?: string;
+}
+
+export interface LovableTtsJsonResponse {
+  audio: string;
+  mime: string;
+  text: string;
+  lang: string;
 }
 
 /**
@@ -89,14 +113,42 @@ export function buildLovableTtsUrl(
     url.searchParams.set("target_lang", options.target_lang);
   }
 
-  if (options?.apiKey) {
-    url.searchParams.set("api_key", options.apiKey);
+  const apiKey =
+    options?.apiKey ||
+    (provider === "openrouter" && typeof window !== "undefined"
+      ? localStorage.getItem("yt_openrouter_api_key_v1") || ""
+      : "");
+  if (apiKey) {
+    url.searchParams.set("api_key", apiKey);
   }
 
   const format = options?.format || "binary";
   url.searchParams.set("format", format);
 
   return url.toString();
+}
+
+/**
+ * Fetches JSON response from Lovable Speak API (contains base64 audio and metadata).
+ */
+export async function fetchLovableTtsJson(
+  text: string,
+  lang: string,
+  options?: LovableTtsOptions,
+): Promise<LovableTtsJsonResponse | null> {
+  const url = buildLovableTtsUrl(text, lang, { ...options, format: "json" });
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn("[LovableTTS] Request returned non-200 status:", res.status);
+      return null;
+    }
+    return (await res.json()) as LovableTtsJsonResponse;
+  } catch (err) {
+    console.warn("[LovableTTS] Network error fetching speech JSON:", err);
+    return null;
+  }
 }
 
 /**

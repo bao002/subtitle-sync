@@ -4,9 +4,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 170 - Version 1.0.64 Bump & AGENTS.md Raw Prompt Sync
-- **Subtask 170.1**: Record raw prompt in AGENTS.md and bump version to 1.0.64 across all 5 targets [ACTIVE].
-- **Subtask 170.2**: Run test suites, compile, lint, commit, and migrate to docs/done.md.
+## Active Task: Task 171 - Lovable Speak API (tts2.lovable.app/api/public/openapi.json)
+- **Subtask 171.1**: Enhance alternative-tts.ts with OpenAPI 3.1.0 parameters and voices [ACTIVE].
+- **Subtask 171.2**: Update UI in index.tsx and BeginnerPreferencesTab.tsx with Lovable TTS options.
+- **Subtask 171.3**: Version bump to 1.0.65, test suite, compile, lint, commit, and migrate to docs/done.md.
 
 ---
 
