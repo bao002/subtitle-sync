@@ -210,11 +210,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. go on
-2. hotfix: fix android build apk:
-fix android build + always show the version id , commit id, version description on each version.
-https://productionresultssa9.blob.core.windows.net/actions-results/a42e40d5-c19d-850e-88a7-b0b6c7f8eb19/workflow-job-run-f50f9845-c19b-5c64-85c7-6064568e4df2/logs/job/job-logs.txt?rsct=text%2Fplain&se=2026-10-20T23%3A07%3A16Z&sig=BFGQUZqgl0iv17uUTN0T7lk9%2BqLcI56TkF7IVJ3jIno%3D&ske=2026-10-21T01%3A38%3A11Z&skoid=ca7593d4-ee42-46cd-af88-8b886a2f84eb&sks=b&skt=2026-10-20T21%3A38%3A11Z&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skv=2025-11-05&sp=r&spr=https&sr=b&st=2026-10-20T22%3A57%3A11Z&sv=2025-11-05
+go on
 ```
+
 
 
 

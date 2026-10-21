@@ -4,11 +4,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Hotfix: Android Build APK & Version/Commit/Description Display on Each Version (Version 1.0.59)
-
-- **Hotfix (Active)**: Fix Android APK build reliability & display Version ID, Commit ID, and Version Description on each version (`android-shell/app/build.gradle.kts`, `.github/workflows/release-apk.yml`, `.github/workflows/emulation.yml`, `src/components/ApkReleaseModal.tsx`, `src/components/ApkReleasesFooter.tsx`, `src/routes/index.tsx`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, `package.json`).
-- **Chapter 3 (Task 159) [ON HOLD]**: Theme Colors Fix (Beginner Mode fix & Blue Theme purity for both modes)
-- **Chapter 4 (Task 160)**: docs/android.md GitHub Actions Emulator Flow & Authenticity Evidence Documentation
+## Active Task: Standby
+- Current Status: All active tasks completed and migrated to `docs/done.md`.
+- Ready for next prompt or backlog items.
 
 
 

@@ -121,7 +121,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             className="h-8 px-2.5 text-xs border-border hover:bg-muted text-foreground flex items-center gap-1.5"
             data-testid="btn-open-library"
           >
-            <Library className="w-3.5 h-3.5 text-indigo-400" />
+            <Library className="w-3.5 h-3.5 text-primary" />
             <span>Saved Library</span>
           </Button>
         </div>
@@ -211,7 +211,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={onLoadSampleSubtitles}
-                  className="h-7 px-2.5 text-[11px] border-sky-700/60 text-sky-300 hover:bg-sky-950/40"
+                  className="h-7 px-2.5 text-[11px] border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10 dark:hover:bg-sky-950/40"
                   data-testid="btn-load-sample-subs"
                 >
                   <Sparkles className="w-3 h-3 mr-1" />

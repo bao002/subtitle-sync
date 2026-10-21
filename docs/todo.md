@@ -1,4 +1,4 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Active**: Hotfix: Fix Android APK build reliability & display Version ID, Commit ID, and Version Description on each version (`android-shell/app/build.gradle.kts`, `.github/workflows/release-apk.yml`, `.github/workflows/emulation.yml`, `src/components/ApkReleaseModal.tsx`, `src/components/ApkReleasesFooter.tsx`, `src/routes/index.tsx`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, `package.json`).
-- **Suspended [ON HOLD]**: Subtask 159.1: Fix theme colors in Beginner mode (`BeginnerFlowContainer.tsx`, `BeginnerTabNav.tsx`, `BeginnerVideoTab.tsx`, `BeginnerPreferencesTab.tsx`, `BeginnerParsingTab.tsx`, `BeginnerPlayerTab.tsx`) replacing hardcoded slate colors with semantic theme tokens.
+- **Active**: None (All active tasks completed and verified)
+- **Next**: Ready for next user instructions or backlog items.

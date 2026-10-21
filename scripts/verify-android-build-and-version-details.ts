@@ -13,17 +13,17 @@ const rootDir = process.cwd();
 // Test 1: Version parity across all manifests and config files
 console.log("Test 1: Version parity across project manifests and configs...");
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
-assert.strictEqual(pkg.version, "1.0.58", "package.json must be 1.0.58");
-assert.strictEqual(APP_VERSION, "1.0.58", "APP_VERSION must be 1.0.58");
-assert.strictEqual(CURRENT_APK_VERSION, "v1.0.58", "CURRENT_APK_VERSION must be v1.0.58");
+assert.strictEqual(pkg.version, "1.0.59", "package.json must be 1.0.59");
+assert.strictEqual(APP_VERSION, "1.0.59", "APP_VERSION must be 1.0.59");
+assert.strictEqual(CURRENT_APK_VERSION, "v1.0.59", "CURRENT_APK_VERSION must be v1.0.59");
 
 const gradleContent = fs.readFileSync(path.resolve(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(gradleContent.includes('versionName = propVersionName ?: packageJsonVersion') || gradleContent.includes('"1.0.58"'), "build.gradle.kts must reference 1.0.58");
-assert.ok(gradleContent.includes("10058"), "build.gradle.kts must reference 10058 versionCode");
+assert.ok(gradleContent.includes('versionName = propVersionName ?: packageJsonVersion') || gradleContent.includes('"1.0.59"'), "build.gradle.kts must reference 1.0.59");
+assert.ok(gradleContent.includes("10059"), "build.gradle.kts must reference 10059 versionCode");
 
 const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert.ok(appSettingsContent.includes('"1.0.58"'), "appSettings.ts snapshot version must be 1.0.58");
-console.log("✅ PASS: Version parity verified across all manifests (1.0.58)");
+assert.ok(appSettingsContent.includes('"1.0.59"'), "appSettings.ts snapshot version must be 1.0.59");
+console.log("✅ PASS: Version parity verified across all manifests (1.0.59)");
 
 // Test 2: Android build.gradle.kts resilience & dynamic properties
 console.log("Test 2: Android build.gradle.kts configuration...");
