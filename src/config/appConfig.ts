@@ -4,10 +4,10 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "1.0.62";
+export const APP_VERSION = "1.0.63";
 export const APP_COMMIT_ID = (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) || (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) || "f50f984";
 export const APP_VERSION_DESCRIPTION =
-  "Update Integrity & Link Checks for Deprecated Video/Image Artifacts (Version 1.0.62)";
+  "Parallel Order Chars Removal Before Parser (Version 1.0.63)";
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 
 export const DEFAULT_VIDEO_ID = "vBURridJXZ0";

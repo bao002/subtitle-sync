@@ -4,11 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 165 - Update Integrity & Link Checks for Deprecated Video/Image Artifacts (Version 1.0.62)
-- **Subtask 165.1**: Update scripts/update-readme.mjs for deprecated video/image links [ACTIVE].
-- **Subtask 165.2**: Update integrity.yml and report-video-flow.yml to reflect deprecated video/image artifacts.
-- **Subtask 165.3**: Update verify-report-video-links-and-readme-sync.ts for updated integrity specs.
-- **Subtask 165.4**: Execute verification tests, compile, lint, commit, and migrate to docs/done.md.
+## Active Task: Task 168 - Chars Removal Accordion in Advanced Mode & Reorder Before Parser
+- **Subtask 168.1**: Reorder BeginnerParsingTab.tsx so Chars Removal appears before Parser [ACTIVE].
+- **Subtask 168.2**: Update accordionThemes.ts with charsRemoval panel before parser.
+- **Subtask 168.3**: Author SpecialCharactersRemovalPanel.tsx and integrate into index.tsx before parser.
+- **Subtask 168.4**: Commit and migrate to docs/done.md.
 
 ---
 

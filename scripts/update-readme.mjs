@@ -114,7 +114,7 @@ for (const candidate of localCandidates) {
   }
 }
 
-if (!localVideoFound && process.env.VIDEO_SIZE_BYTES && Number(process.env.VIDEO_SIZE_BYTES) > 0) {
+if (process.env.VIDEO_SIZE_BYTES && Number(process.env.VIDEO_SIZE_BYTES) > 0) {
   videoSizeBytes = Number(process.env.VIDEO_SIZE_BYTES);
 }
 

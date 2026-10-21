@@ -52,12 +52,9 @@ assert(
   "report-video-flow.yml must support manual dispatch",
 );
 assert(
-  reportVideoWorkflowContent.includes("actions: write"),
-  "report-video-flow.yml must have actions: write permission",
-);
-assert(
-  reportVideoWorkflowContent.includes("gh workflow run emulation.yml"),
-  "report-video-flow.yml must include step to auto-trigger emulation.yml upon 404 video detection",
+  reportVideoWorkflowContent.includes("Acknowledge Screencast Video Deprecation") ||
+    reportVideoWorkflowContent.includes("android-emulator-video.mp4"),
+  "report-video-flow.yml must acknowledge screencast video deprecation or reference android-emulator-video.mp4",
 );
 
 const deployDemoWorkflowContent = fs.readFileSync(
@@ -143,6 +140,7 @@ try {
       ...process.env,
       REPORT_VIDEO_BROKEN: "true",
       CHECK_REMOTE_VIDEO: "false",
+      ENFORCE_VIDEO_PRESENCE: "true",
     },
     encoding: "utf-8",
   });
