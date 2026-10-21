@@ -19,10 +19,16 @@ const STORAGE_KEY_ALTERNATIVE_TTS_MODE = "yt_alternative_tts_mode_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_ENGINE = "yt_alternative_tts_engine_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER = "yt_alternative_tts_lovable_provider_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE = "yt_alternative_tts_lovable_voice_v1";
+const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_METHOD = "yt_alternative_tts_lovable_method_v1";
+const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_FORMAT = "yt_alternative_tts_lovable_format_v1";
+const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_TARGET_LANG = "yt_alternative_tts_lovable_target_lang_v1";
+const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY = "yt_alternative_tts_lovable_api_key_v1";
 
 export type AlternativeTtsMode = "fallback_only" | "always";
 export type AlternativeTtsEngine = "lovable" | "google_translate";
 export type LovableTtsProvider = "google" | "lovable" | "openrouter";
+export type LovableTtsMethod = "get" | "post";
+export type LovableTtsFormat = "binary" | "json";
 
 export const LOVABLE_TTS_PROVIDERS: readonly LovableTtsProvider[] = [
   "google",
@@ -37,9 +43,20 @@ export const OPENROUTER_VOICES = ["alloy", "nova", "echo", "fable", "onyx", "shi
 export interface LovableTtsOptions {
   provider?: LovableTtsProvider;
   voice?: string;
-  format?: "binary" | "json";
+  format?: LovableTtsFormat;
   target_lang?: string;
   apiKey?: string;
+  method?: LovableTtsMethod;
+}
+
+export interface LovableTtsRequestBody {
+  text: string;
+  lang: string;
+  target_lang?: string;
+  provider?: LovableTtsProvider;
+  api_key?: string;
+  voice?: string;
+  format?: LovableTtsFormat;
 }
 
 export interface LovableTtsJsonResponse {
@@ -97,28 +114,111 @@ export function buildLovableTtsUrl(
     url.searchParams.set("provider", provider);
   }
 
-  const voice = options?.voice || getLovableTtsVoice();
+  const voice = options?.voice ?? getLovableTtsVoice();
   if (voice && voice.trim()) {
     url.searchParams.set("voice", voice.trim());
   }
 
-  if (options?.target_lang) {
-    url.searchParams.set("target_lang", options.target_lang);
+  const targetLang = options?.target_lang ?? getLovableTtsTargetLang();
+  if (targetLang && targetLang.trim()) {
+    url.searchParams.set("target_lang", targetLang.trim());
   }
 
   const apiKey =
-    options?.apiKey ||
+    options?.apiKey ??
+    getLovableTtsApiKey() ??
     (provider === "openrouter" && typeof window !== "undefined"
       ? localStorage.getItem("yt_openrouter_api_key_v1") || ""
       : "");
-  if (apiKey) {
-    url.searchParams.set("api_key", apiKey);
+  if (apiKey && apiKey.trim()) {
+    url.searchParams.set("api_key", apiKey.trim());
   }
 
-  const format = options?.format || "binary";
+  const format = options?.format || getLovableTtsFormat();
   url.searchParams.set("format", format);
 
   return url.toString();
+}
+
+/**
+ * Builds the request body for Lovable Speak API POST requests (application/json).
+ */
+export function buildLovableTtsRequestBody(
+  text: string,
+  lang: string,
+  options?: LovableTtsOptions,
+): LovableTtsRequestBody {
+  const normalizedText = (text || "").slice(0, 5000);
+  const normalizedLang = normalizeLanguageCode(lang);
+  const provider = options?.provider || getLovableTtsProvider();
+  const voice = options?.voice ?? getLovableTtsVoice();
+  const targetLang = options?.target_lang ?? getLovableTtsTargetLang();
+  const apiKey =
+    options?.apiKey ??
+    getLovableTtsApiKey() ??
+    (provider === "openrouter" && typeof window !== "undefined"
+      ? localStorage.getItem("yt_openrouter_api_key_v1") || ""
+      : "");
+  const format = options?.format || getLovableTtsFormat();
+
+  const body: LovableTtsRequestBody = {
+    text: normalizedText,
+    lang: normalizedLang,
+    format,
+  };
+  if (provider && provider !== "google") {
+    body.provider = provider;
+  }
+  if (voice && voice.trim()) {
+    body.voice = voice.trim();
+  }
+  if (targetLang && targetLang.trim()) {
+    body.target_lang = targetLang.trim();
+  }
+  if (apiKey && apiKey.trim()) {
+    body.api_key = apiKey.trim();
+  }
+  return body;
+}
+
+/**
+ * Synthesizes speech using the Lovable Speak API POST endpoint (application/json).
+ * Supports both binary audio streams (creates blob URL) and JSON base64 payloads.
+ */
+export async function synthesizeLovableTtsPost(
+  text: string,
+  lang: string,
+  options?: LovableTtsOptions,
+): Promise<{ url: string; revokeOnDone?: boolean } | null> {
+  if (!text) return null;
+  const body = buildLovableTtsRequestBody(text, lang, options);
+  try {
+    const res = await fetch(LOVABLE_TTS_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      console.warn("[LovableTTS] POST synthesis failed with status:", res.status);
+      return null;
+    }
+    const format = body.format || "binary";
+    if (format === "json") {
+      const data = (await res.json()) as LovableTtsJsonResponse;
+      if (!data?.audio) return null;
+      const mime = data.mime || "audio/mpeg";
+      return { url: `data:${mime};base64,${data.audio}`, revokeOnDone: false };
+    } else {
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      return { url: objectUrl, revokeOnDone: true };
+    }
+  } catch (err) {
+    console.warn("[LovableTTS] Network error during POST speech synthesis:", err);
+    return null;
+  }
 }
 
 /**
@@ -142,6 +242,36 @@ export async function fetchLovableTtsJson(
     console.warn("[LovableTTS] Network error fetching speech JSON:", err);
     return null;
   }
+}
+
+/**
+ * Synthesizes audio using Lovable Speak API according to configured method (GET or POST)
+ * and response format (binary audio stream or base64 JSON payload).
+ */
+export async function synthesizeLovableTtsAudio(
+  text: string,
+  lang: string,
+  options?: LovableTtsOptions,
+): Promise<{ url: string; revokeOnDone?: boolean } | null> {
+  const method = options?.method || getLovableTtsMethod();
+  const format = options?.format || getLovableTtsFormat();
+
+  if (method === "post") {
+    return synthesizeLovableTtsPost(text, lang, { ...options, format });
+  }
+
+  // GET method
+  if (format === "json") {
+    const jsonRes = await fetchLovableTtsJson(text, lang, options);
+    if (!jsonRes?.audio) return null;
+    const mime = jsonRes.mime || "audio/mpeg";
+    return { url: `data:${mime};base64,${jsonRes.audio}`, revokeOnDone: false };
+  }
+
+  // GET binary
+  const getUrl = buildLovableTtsUrl(text, lang, options);
+  if (!getUrl) return null;
+  return { url: getUrl, revokeOnDone: false };
 }
 
 /**
@@ -304,6 +434,114 @@ export function setLovableTtsVoice(voice: string): void {
   }
 }
 
+/**
+ * Retrieves the configured Lovable TTS HTTP Method: "get" (default) or "post".
+ */
+export function getLovableTtsMethod(): LovableTtsMethod {
+  if (typeof window === "undefined") return "get";
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_METHOD);
+    if (stored === "get" || stored === "post") {
+      return stored;
+    }
+  } catch {
+    // ignore
+  }
+  return "get";
+}
+
+/**
+ * Persists the Lovable TTS HTTP Method choice.
+ */
+export function setLovableTtsMethod(method: LovableTtsMethod): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_METHOD, method);
+  } catch (err) {
+    console.warn("Failed to persist Lovable TTS method:", err);
+  }
+}
+
+/**
+ * Retrieves the configured Lovable TTS response format: "binary" (default) or "json".
+ */
+export function getLovableTtsFormat(): LovableTtsFormat {
+  if (typeof window === "undefined") return "binary";
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_FORMAT);
+    if (stored === "binary" || stored === "json") {
+      return stored;
+    }
+  } catch {
+    // ignore
+  }
+  return "binary";
+}
+
+/**
+ * Persists the Lovable TTS response format choice.
+ */
+export function setLovableTtsFormat(format: LovableTtsFormat): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_FORMAT, format);
+  } catch (err) {
+    console.warn("Failed to persist Lovable TTS format:", err);
+  }
+}
+
+/**
+ * Retrieves the configured Lovable TTS target language code (e.g. "es", "he", or "" if none).
+ */
+export function getLovableTtsTargetLang(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_TARGET_LANG) || "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Persists the Lovable TTS target language code.
+ */
+export function setLovableTtsTargetLang(targetLang: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_TARGET_LANG, targetLang.trim());
+  } catch (err) {
+    console.warn("Failed to persist Lovable TTS target language:", err);
+  }
+}
+
+/**
+ * Retrieves the configured Lovable/OpenRouter API key.
+ */
+export function getLovableTtsApiKey(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return (
+      localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY) ||
+      localStorage.getItem("yt_openrouter_api_key_v1") ||
+      ""
+    );
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Persists the Lovable/OpenRouter API key.
+ */
+export function setLovableTtsApiKey(apiKey: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY, apiKey.trim());
+  } catch (err) {
+    console.warn("Failed to persist Lovable TTS API key:", err);
+  }
+}
+
 let activeAlternativeAudio: HTMLAudioElement | null = null;
 let activeAudioReject: ((reason?: unknown) => void) | null = null;
 
@@ -330,24 +568,43 @@ export function cancelAlternativeTtsAudio(): void {
 /**
  * Plays an audio stream from the configured alternative TTS service (Lovable Speak API or Google Translate).
  */
-export function playAlternativeTtsAudio(
+export async function playAlternativeTtsAudio(
   text: string,
   lang: string,
   rate: number = 0.5,
   onProgress?: (percent: number) => void,
   engineOverride?: AlternativeTtsEngine,
+  optionsOverride?: LovableTtsOptions,
 ): Promise<void> {
-  return new Promise((resolve) => {
-    cancelAlternativeTtsAudio();
+  cancelAlternativeTtsAudio();
 
-    if (!text || typeof window === "undefined") {
-      return resolve();
+  if (!text || typeof window === "undefined") {
+    return;
+  }
+
+  const engine = engineOverride || getAlternativeTtsEngine();
+
+  let audioUrl = "";
+  let shouldRevoke = false;
+
+  if (engine === "lovable") {
+    try {
+      const synthesized = await synthesizeLovableTtsAudio(text, lang, optionsOverride);
+      if (synthesized?.url) {
+        audioUrl = synthesized.url;
+        shouldRevoke = Boolean(synthesized.revokeOnDone);
+      }
+    } catch (err) {
+      console.warn("[LovableTTS] Synthesis error, will attempt fallback:", err);
     }
+  }
 
-    const engine = engineOverride || getAlternativeTtsEngine();
-    const url = buildAlternativeTtsUrl(text, lang, engine);
-    if (!url) return resolve();
+  if (!audioUrl) {
+    audioUrl = buildGoogleTranslateTtsUrl(text, lang);
+  }
+  if (!audioUrl) return;
 
+  return new Promise((resolve) => {
     const audio = new Audio();
     activeAlternativeAudio = audio;
 
@@ -358,6 +615,13 @@ export function playAlternativeTtsAudio(
       if (activeAlternativeAudio === audio) {
         activeAlternativeAudio = null;
         activeAudioReject = null;
+      }
+      if (shouldRevoke && audioUrl.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(audioUrl);
+        } catch {
+          // ignore revoke error
+        }
       }
       audio.removeEventListener("ended", onEnd);
       audio.removeEventListener("error", onError);
@@ -372,7 +636,6 @@ export function playAlternativeTtsAudio(
 
     const onError = (e: unknown) => {
       console.warn(`Alternative TTS (${engine}) audio error, attempting fallback:`, e);
-      // If Lovable API had an issue and we didn't override, try Google Translate as secondary fallback
       if (engine === "lovable" && !engineOverride) {
         const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
         if (fallbackUrl && activeAlternativeAudio === audio) {
@@ -398,19 +661,17 @@ export function playAlternativeTtsAudio(
     audio.addEventListener("error", onError);
     audio.addEventListener("timeupdate", onTimeUpdate);
 
-    // Apply speech rate within 0.3 to 1.5 range
     try {
       audio.playbackRate = Math.max(0.3, Math.min(1.5, rate || 0.5));
     } catch {
-      // ignore rate setting error
+      // ignore
     }
 
-    audio.src = url;
+    audio.src = audioUrl;
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch((err) => {
         console.warn("Alternative TTS playback rejected:", err);
-        // Retry with Google Translate if Lovable failed
         if (engine === "lovable" && !engineOverride) {
           const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
           if (fallbackUrl && activeAlternativeAudio === audio) {

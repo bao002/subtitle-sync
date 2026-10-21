@@ -4,8 +4,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: None (Task 173 completed and migrated to docs/done.md)
-- **Task 173**: Expose Lovable Speak API (OpenAPI 3.1.0) Controls in Advanced and Beginner Modes (Version 1.0.66) [DONE].
+## Active Task: Task 174 - Extend Lovable Speak API (OpenAPI 3.1.0) Support (Version 1.0.67)
+- **Subtask 174.1**: Extend `src/lib/alternative-tts.ts` with POST synthesis, JSON/Base64 audio, target_lang, and api_key [ACTIVE].
+- **Subtask 174.2**: Enhance Alternative TTS UI in Advanced and Beginner modes.
+- **Subtask 174.3**: Bump version to 1.0.67, author verification test, compile, lint, commit, and migrate to docs/done.md.
 
 ---
 

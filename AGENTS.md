@@ -133,8 +133,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on
+extend tts service support:
+https://tts2.lovable.app/api/public/openapi.json
 ```
+
 
 
 
