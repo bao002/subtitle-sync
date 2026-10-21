@@ -1,8 +1,8 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: Subtask 168.1 - Reorder Chars Removal before Parser in Beginner Mode
-- **Parent Task**: Task 168 - Implement Chars Removal Accordion in Advanced Mode & Reorder Before Parser in Both Modes
+## Active Subtask: Subtask 171.1 - Enhance alternative-tts.ts for Lovable Speak API (OpenAPI 3.1.0)
+- **Parent Task**: Task 171 - Integrate Lovable Speak API (tts2.lovable.app/api/public/openapi.json) as Alternative TTS Option
 - **Status**: [ACTIVE]
 - **Target Files**:
-  - `src/components/beginner/tabs/BeginnerParsingTab.tsx`
-- **Objective**: Reorder sections in BeginnerParsingTab so Character Removal & Rename Rules appears before Sentence Splitting (Parser).
+  - `src/lib/alternative-tts.ts`
+- **Objective**: Ensure `alternative-tts.ts` provides complete support for `https://tts2.lovable.app/api/public/openapi.json` parameters, cataloged voices for Lovable/OpenRouter, and clean audio playback.

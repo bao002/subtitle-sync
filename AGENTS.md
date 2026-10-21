@@ -133,7 +133,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-AGENTS.md - targeting parallel order between beginner and advance mode:
-1. chars removal accordion is not present on advanved mode 
-2. chars removal section should apear before the parser
+should work with:https://tts2.lovable.app/api/public/openapi.json as tts alternative option
 ```
+
+

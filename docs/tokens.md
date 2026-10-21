@@ -4,11 +4,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 168 - Chars Removal Accordion in Advanced Mode & Reorder Before Parser
-- **Subtask 168.1**: Reorder BeginnerParsingTab.tsx so Chars Removal appears before Parser [ACTIVE].
-- **Subtask 168.2**: Update accordionThemes.ts with charsRemoval panel before parser.
-- **Subtask 168.3**: Author SpecialCharactersRemovalPanel.tsx and integrate into index.tsx before parser.
-- **Subtask 168.4**: Commit and migrate to docs/done.md.
+## Active Task: Task 171 - Lovable Speak API (tts2.lovable.app/api/public/openapi.json)
+- **Subtask 171.1**: Enhance alternative-tts.ts with OpenAPI 3.1.0 parameters and voices [ACTIVE].
+- **Subtask 171.2**: Update UI in index.tsx and BeginnerPreferencesTab.tsx with Lovable TTS options.
+- **Subtask 171.3**: Version bump to 1.0.65, test suite, compile, lint, commit, and migrate to docs/done.md.
 
 ---
 
