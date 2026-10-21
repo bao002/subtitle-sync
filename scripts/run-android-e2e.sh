@@ -152,28 +152,35 @@ EOF
     RECORDING_PID=""
     VIDEO_REMOTE="/sdcard/android-emulator-video.mp4"
     VIDEO_OUT="${ROOT_DIR}/android-emulator-video.mp4"
-    echo "--> [DEPRECATED] Screencast video generation via screenrecord is deprecated in favor of authentic live captions & telemetry."
-    adb_cmd shell screenrecord --time-limit 180 --bit-rate 4000000 "${VIDEO_REMOTE}" >/dev/null 2>&1 &
-    RECORDING_PID=$!
+    ENABLE_DEPRECATED_SCREENCAST="${ENABLE_DEPRECATED_SCREENCAST:-false}"
+    if [[ "${ENABLE_DEPRECATED_SCREENCAST}" == "true" ]]; then
+      echo "--> [DEPRECATED] Spawning screenrecord video recording (requested via ENABLE_DEPRECATED_SCREENCAST=true)..."
+      adb_cmd shell screenrecord --time-limit 180 --bit-rate 4000000 "${VIDEO_REMOTE}" >/dev/null 2>&1 &
+      RECORDING_PID=$!
+    else
+      echo "--> [DEPRECATED] Screencast video generation is deprecated in favor of authentic live captions & telemetry (skipping screenrecord)."
+    fi
 
     stop_recording_and_pull() {
       set +e
-      echo "--> [DEPRECATED] Stopping screencast recording and pulling video (non-blocking)..."
-      if [[ -n "${RECORDING_PID}" ]] && kill -0 "${RECORDING_PID}" 2>/dev/null; then
-        adb_cmd shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true"
-        wait "${RECORDING_PID}" 2>/dev/null || true
-        sleep 2
-      fi
-      if adb_cmd shell test -f "${VIDEO_REMOTE}" 2>/dev/null; then
-        adb_cmd pull "${VIDEO_REMOTE}" "${VIDEO_OUT}" 2>/dev/null || true
-      fi
-      if [[ -f "${VIDEO_OUT}" && -s "${VIDEO_OUT}" ]]; then
-        FILE_SIZE=$(wc -c < "${VIDEO_OUT}" 2>/dev/null | tr -d ' ' || echo 0)
-        echo "✓ Video screencast pulled to: ${VIDEO_OUT} (${FILE_SIZE} bytes)"
-        mkdir -p "${ROOT_DIR}/public/screenshots" "${ROOT_DIR}/public/android/screenshots" "${ROOT_DIR}/public/android"
-        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/screenshots/android-emulator-video.mp4" 2>/dev/null || true
-        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/android/screenshots/android-emulator-video.mp4" 2>/dev/null || true
-        cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/android/android-emulator-video.mp4" 2>/dev/null || true
+      if [[ "${ENABLE_DEPRECATED_SCREENCAST}" == "true" ]]; then
+        echo "--> [DEPRECATED] Stopping screencast recording and pulling video (non-blocking)..."
+        if [[ -n "${RECORDING_PID}" ]] && kill -0 "${RECORDING_PID}" 2>/dev/null; then
+          adb_cmd shell "kill -2 \$(pidof screenrecord 2>/dev/null) 2>/dev/null || pkill -2 screenrecord 2>/dev/null || true"
+          wait "${RECORDING_PID}" 2>/dev/null || true
+          sleep 2
+        fi
+        if adb_cmd shell test -f "${VIDEO_REMOTE}" 2>/dev/null; then
+          adb_cmd pull "${VIDEO_REMOTE}" "${VIDEO_OUT}" 2>/dev/null || true
+        fi
+        if [[ -f "${VIDEO_OUT}" && -s "${VIDEO_OUT}" ]]; then
+          FILE_SIZE=$(wc -c < "${VIDEO_OUT}" 2>/dev/null | tr -d ' ' || echo 0)
+          echo "✓ Video screencast pulled to: ${VIDEO_OUT} (${FILE_SIZE} bytes)"
+          mkdir -p "${ROOT_DIR}/public/screenshots" "${ROOT_DIR}/public/android/screenshots" "${ROOT_DIR}/public/android"
+          cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/screenshots/android-emulator-video.mp4" 2>/dev/null || true
+          cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/android/screenshots/android-emulator-video.mp4" 2>/dev/null || true
+          cp -f "${VIDEO_OUT}" "${ROOT_DIR}/public/android/android-emulator-video.mp4" 2>/dev/null || true
+        fi
       fi
     }
 

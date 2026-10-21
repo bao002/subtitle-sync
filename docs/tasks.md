@@ -4,13 +4,19 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*All tasks planned for the current prompt have been completed, verified with dedicated automated tests, and migrated to `docs/done.md`.*
+## Task 162: Android Emulator E2E Caption Detection & Text Exposure (Deprecate Screencast Generation) (Version 1.0.60) [ACTIVE]
+
+### Objective:
+Update Android emulator E2E testing to deprecate video screencast recording (`screenrecord`), assert real YouTube player caption detection upon CC enablement, and expose live intercepted dialogue text in test logs and reports without any mocks or fixtures.
+
+### Subtasks:
+- [ ] **Subtask 162.1**: Update Android E2E scripts (`scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, `e2e/emulation.spec.ts`, `.github/workflows/emulation.yml`) to deprecate `screenrecord` video generation and assert authentic live caption detection with raw dialogue text exposure.
+- [ ] **Subtask 162.2**: Update `docs/android.md` documentation to reflect screencast recording deprecation and mandatory live dialogue text logging.
+- [ ] **Subtask 162.3**: Author dedicated automated test `scripts/verify-android-e2e-caption-exposure.ts`, verify compilation, lint, git commit, and migrate to `docs/done.md`.
 
 ---
 
 ## Later Tasks
 
-The following tasks were requested for "later" by the user and are stored here to be processed upon completion of active prompt tasks:
+*(No remaining later tasks — all staged into active backlog)*
 
-- **Later Task 2: Client-side video metadata extraction**: If possible client-side only, get video description, title, default subtitles, and all other free info.
-- **Later Task 3: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation**: Try to fix the E2E test on the Android emulator but deprecate the screencast generation. Detect the captions after enabling it on the youtube-video and expose the text. Do not use mock or fixtures.

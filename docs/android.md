@@ -125,11 +125,11 @@ Tests strictly fail if the app displays error states:
 
 ---
 
-## 5. Screencast Video Deprecation & Authentic Milestone Telemetry (DEPRECATED)
+## 5. Screencast Video Deprecation & Authentic Live Caption Text Exposure (DEPRECATED SCREENCAST)
 
-> **Deprecation Notice (Version 1.0.53+)**: Automated screencast video generation (`screenrecord`, MP4 artifacts) is **deprecated** in favor of authentic multi-step milestone screenshots, live device hardware telemetry, and verified ADB logcat output with real-time caption text exposure (`AUTHENTIC_CAPTIONS_EXPOSED`). The video recording lifecycle below is preserved for backward compatibility but is non-blocking.
+> **Deprecation Notice (Version 1.0.60)**: Automated screencast video generation (`screenrecord`, MP4 artifacts) is **deprecated by default** (`ENABLE_DEPRECATED_SCREENCAST=false`) in favor of authentic multi-step milestone screenshots, live device hardware telemetry (`android-emulator-device-info.json`), real-time ADB logcat interception telemetry (`AUTHENTIC_CAPTIONS_EXPOSED`), and on-device extracted dialogue text (`authentic_captions_exposed.txt`). Test passage asserts real dialogue text exposure directly from authentic YouTube timedtext responses without any mocks or fixtures.
 
-Video proof of the E2E test running on the Android emulator is supported for visual review.
+Video recording is optional and non-blocking for visual reviews.
 
 ```
        [Initialize Runner]
@@ -146,20 +146,21 @@ Video proof of the E2E test running on the Android emulator is supported for vis
      - Capture Milestone Step 2 (App Launch) screenshot
      - Enable CC / trigger playback on real YouTube video
      - Intercept authentic default captions & fetch favorite languages
-     - Expose real caption text in ADB logcat & test output
+     - Assert AUTHENTIC_CAPTIONS_EXPOSED & extract authentic_captions_exposed.txt
+     - Output real dialogue text to console and test telemetry
      - Test tlang/lang fallback
      - Test YouTube Share Intents (ACTION_VIEW & ACTION_SEND)
      - Capture Milestone Step 3-5 screenshots
                  │
                  ▼
-  Stage authentic screenshots & logcat into gh-pages-staging/screenshots/ (NOT committed to main branch!)
+  Stage authentic screenshots, logcat, and caption text into gh-pages-staging/ (NOT committed to main branch!)
 ```
 
 ### Milestone Telemetry Guidelines:
 
-1. **Authentic Screenshots Over Synthetic Videos**: Capture authentic full-resolution screenshots at each key milestone (boot, share intent, captions discovery) using `adb shell screencap -p`.
-2. **Real-time Caption Text Exposure**: Rather than relying on video frames, real caption text is intercepted and logged directly in ADB logcat with `CAPTION_TEXT_EXPOSED` telemetry and validated in test assertions.
-3. **No Synthetic Video Generators**: Synthetic video generation via ffmpeg loops from static screenshots is strictly deprecated.
+1. **Authentic Screenshots & Text Evidence Over Heavy Videos**: Capture authentic full-resolution screenshots at each key milestone (boot, share intent, captions discovery) using `adb shell screencap -p`.
+2. **Authentic Live Caption Text Exposure (Zero Mocks / Fixtures)**: Real dialogue text from the live YouTube timedtext stream is extracted and logged to logcat with `AUTHENTIC_CAPTIONS_EXPOSED lang=<lang> cues=<count> sample="<text>"` and saved to `/sdcard/Android/data/com.ytviewer.app/files/authentic_captions_exposed.txt`.
+3. **Deprecate Screenrecord Overhead**: Screenrecord is skipped by default to eliminate flaky runner timeouts, container corruption, and CI stalls. If requested via `ENABLE_DEPRECATED_SCREENCAST=true`, it runs in background and finalizes gracefully.
 4. **Clean Container Finalization**: If an authentic legacy MP4 is recorded, it must be cleanly stopped with SIGINT (`adb shell pkill -2 -f screenrecord`), allowing the container `moov` header to be cleanly written before pulling via `adb pull`, but is no longer mandatory for test passage.
 5. **Orientation and Wake Locking**:
    - Disable auto-rotation: `adb shell settings put system accelerometer_rotation 0`.

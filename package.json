@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.59",
+  "version": "1.0.60",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -166,6 +166,8 @@
     "test:default-caption-presentation": "tsx scripts/verify-default-caption-presentation.ts",
     "test:mainactivity-scope": "tsx scripts/verify-android-mainactivity-compilation.ts",
     "test:floating-dropdown-menu": "tsx scripts/verify-floating-dropdown-menu.ts",
+    "test:client-side-metadata": "tsx scripts/verify-client-side-metadata.ts",
+    "test:android-e2e-caption-exposure": "tsx scripts/verify-android-e2e-caption-exposure.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
