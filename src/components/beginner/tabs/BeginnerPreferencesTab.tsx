@@ -12,6 +12,8 @@ import {
   Play,
   RotateCcw,
   Loader2,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -22,7 +24,11 @@ import {
   getCachedVoices,
   SpeechVoiceLike,
 } from "@/utils/speechVoiceUtils";
-import { ALL_KNOWN_LANGUAGES } from "@/utils/appSettings";
+import {
+  ALL_KNOWN_LANGUAGES,
+  getOpenRouterApiKeySetting,
+  setOpenRouterApiKeySetting,
+} from "@/utils/appSettings";
 import {
   playAlternativeTtsAudio,
   getUseAlternativeTts,
@@ -33,6 +39,10 @@ import {
   setLovableTtsVoice,
   getLovableTtsSpeed,
   setLovableTtsSpeed,
+  getLovableTtsApiKey,
+  setLovableTtsApiKey,
+  getServerOpenRouterApiKey,
+  hasCustomOpenRouterApiKey,
   LOVABLE_TTS_OPENAPI_URL,
   LOVABLE_VOICES,
   type AlternativeTtsMode,
@@ -82,6 +92,16 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   const [lovableTtsSpeedState, setLovableTtsSpeedState] = useState<number>(() =>
     typeof window !== "undefined" ? getLovableTtsSpeed() : 1.0,
   );
+  const [openRouterKeyInput, setOpenRouterKeyInput] = useState<string>(() =>
+    typeof window !== "undefined"
+      ? localStorage.getItem("yt_openrouter_api_key") ||
+        localStorage.getItem("yt_openrouter_api_key_v1") ||
+        localStorage.getItem("yt_alternative_tts_lovable_api_key_v1") ||
+        ""
+      : "",
+  );
+  const [showOpenRouterKey, setShowOpenRouterKey] = useState<boolean>(false);
+  const [openRouterKeySaved, setOpenRouterKeySaved] = useState<boolean>(false);
   const [isTestingAlternativeTts, setIsTestingAlternativeTts] = useState<boolean>(false);
 
   useEffect(() => {
@@ -492,48 +512,107 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 </div>
               </div>
 
-              {/* Configured TTS Speed Multiplier (0.25 - 4.0) */}
-              <div className="space-y-1.5 pt-1 text-xs">
+              {/* OpenRouter API Key Settings */}
+              <div className="space-y-1.5 pt-1 text-xs border-t border-border/40">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-medium">Configured TTS Speed:</span>
-                  <span
-                    className="font-semibold text-primary font-mono text-xs"
-                    data-testid="beginner-lovable-tts-speed-val"
+                  <label
+                    htmlFor="beginner-openrouter-tts-key-input"
+                    className="text-muted-foreground font-medium flex items-center gap-1.5"
                   >
-                    {lovableTtsSpeedState.toFixed(2)}x
-                  </span>
+                    <span>OpenRouter API Key:</span>
+                    {hasCustomOpenRouterApiKey() ? (
+                      <span
+                        data-testid="beginner-custom-openrouter-key-badge"
+                        className="text-[10px] text-emerald-600 dark:text-emerald-400 font-normal bg-emerald-500/10 px-1 rounded border border-emerald-500/30"
+                      >
+                        Custom key saved
+                      </span>
+                    ) : getServerOpenRouterApiKey() ? (
+                      <span
+                        data-testid="beginner-server-openrouter-key-badge"
+                        className="text-[10px] text-blue-600 dark:text-blue-400 font-normal bg-blue-500/10 px-1 rounded border border-blue-500/30"
+                      >
+                        Using server .env key
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground font-normal">
+                        (Optional - free tier default)
+                      </span>
+                    )}
+                  </label>
                 </div>
-                <Slider
-                  value={[lovableTtsSpeedState]}
-                  onValueChange={([val]) => {
-                    setLovableTtsSpeedState(val);
-                    setLovableTtsSpeed(val);
-                  }}
-                  min={0.25}
-                  max={4.0}
-                  step={0.05}
-                  className="w-full"
-                  data-testid="beginner-lovable-tts-speed-slider"
-                />
-                <div className="flex items-center justify-between pt-0.5 text-[10px]">
-                  {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0].map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => {
-                        setLovableTtsSpeedState(preset);
-                        setLovableTtsSpeed(preset);
+                <div className="flex items-center gap-1.5">
+                  <div className="relative flex-1">
+                    <input
+                      id="beginner-openrouter-tts-key-input"
+                      data-testid="beginner-openrouter-tts-key-input"
+                      type={showOpenRouterKey ? "text" : "password"}
+                      value={openRouterKeyInput}
+                      onChange={(e) => {
+                        setOpenRouterKeyInput(e.target.value);
+                        setOpenRouterKeySaved(false);
                       }}
-                      className={`px-1.5 py-0.5 rounded transition-colors ${
-                        Math.abs(lovableTtsSpeedState - preset) < 0.02
-                          ? "bg-primary text-primary-foreground font-semibold"
-                          : "bg-background text-muted-foreground hover:text-foreground border border-border"
-                      }`}
+                      placeholder={
+                        getServerOpenRouterApiKey()
+                          ? "Using server key (enter custom to override)"
+                          : "sk-or-v1-..."
+                      }
+                      className="w-full rounded border border-input bg-background px-2.5 py-1 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground/60"
+                    />
+                    <button
+                      type="button"
+                      data-testid="beginner-toggle-show-openrouter-key-btn"
+                      onClick={() => setShowOpenRouterKey(!showOpenRouterKey)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                      title={showOpenRouterKey ? "Hide key" : "Show key"}
                     >
-                      {preset}x
+                      {showOpenRouterKey ? (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Eye className="h-3.5 w-3.5" />
+                      )}
                     </button>
-                  ))}
+                  </div>
+                  <button
+                    type="button"
+                    data-testid="beginner-save-openrouter-key-btn"
+                    onClick={() => {
+                      setLovableTtsApiKey(openRouterKeyInput);
+                      setOpenRouterApiKeySetting(openRouterKeyInput);
+                      setOpenRouterKeySaved(true);
+                      setTimeout(() => setOpenRouterKeySaved(false), 2500);
+                    }}
+                    className="px-2.5 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium cursor-pointer"
+                  >
+                    {openRouterKeySaved ? "Saved!" : "Save"}
+                  </button>
+                  {openRouterKeyInput && (
+                    <button
+                      type="button"
+                      data-testid="beginner-clear-openrouter-key-btn"
+                      onClick={() => {
+                        setOpenRouterKeyInput("");
+                        setLovableTtsApiKey("");
+                        setOpenRouterApiKeySetting("");
+                      }}
+                      className="px-2 py-1 rounded border border-input bg-background text-muted-foreground hover:text-foreground text-xs"
+                      title="Clear custom key"
+                    >
+                      Clear
+                    </button>
+                  )}
                 </div>
+              </div>
+
+              {/* Native TTS Speed Notice (Uses native speech rate settings) */}
+              <div
+                data-testid="beginner-lovable-tts-native-speed-notice"
+                className="flex items-center justify-between rounded border border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs"
+              >
+                <span className="text-muted-foreground font-medium">TTS Speed:</span>
+                <span className="text-foreground font-mono text-[11px]">
+                  Uses native speech rate ({ttsSpeed.toFixed(1)}x)
+                </span>
               </div>
 
               <p className="text-[10px] text-muted-foreground">
@@ -541,9 +620,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 <code className="bg-muted px-1 py-0.5 rounded text-[10px] font-mono">
                   https://tts2.lovable.app/api/public/tts
                 </code>{" "}
-                • Speaks subtitles using configured target language, current text, and configured
-                speed ({lovableTtsSpeedState.toFixed(2)}x) with voice:{" "}
-                {lovableTtsVoiceState || "Kore"}.
+                • Speaks subtitles using configured target language, current text, and native speech
+                rate with voice: {lovableTtsVoiceState || "Kore"}.
               </p>
             </div>
 
@@ -558,13 +636,13 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                     await playAlternativeTtsAudio(
                       "Hello world",
                       baseLanguage || "en",
-                      lovableTtsSpeedState,
+                      ttsSpeed,
                       undefined,
                       "lovable",
                       {
                         provider: "lovable",
                         voice: lovableTtsVoiceState || "Kore",
-                        speed: lovableTtsSpeedState,
+                        speed: ttsSpeed,
                       },
                     );
                   } catch (err) {

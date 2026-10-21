@@ -136,16 +136,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. the testing-tts-dashboard button to test is not working.
-2. allow to update settings and to set the openrouter-key to be used by  the service (and save it to local-storage)
-3. in case the use is not supplied openrouter api key - use the server's one based on .env settings
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(4) > button:nth-of-type(1)
-CSS 1: {
+1. go on.
 
-}
-[AIS_METADATA_SECTION_END]
+2. no need to set extra tts speed rate for the tts service -  use the native settings for that.
 ```
 
 

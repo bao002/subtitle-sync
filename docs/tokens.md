@@ -4,10 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 177 - Chapter 2: Update Settings and Set OpenRouter API Key (Version 1.0.70)
+## Active Task: Task 177 - Chapter 1: OpenRouter Key Settings (Save to LocalStorage) & Server .env Fallback (Version 1.0.70)
 
-- **Subtask 177.1**: Add OpenRouter API key setting input with show/hide password toggle, save button, and localStorage sync in Advanced and Beginner modes.
-- **Subtask 177.2**: Bump version to 1.0.70 across 5 targets, author `scripts/verify-openrouter-key-settings.ts`, update `docs/files.md`, compile, lint, commit, and migrate to `docs/done.md`.
+- **Subtask 177.1**: Implement OpenRouter key input in Alternative TTS settings (Advanced Mode in `src/routes/index.tsx` and Beginner Mode in `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with show/hide password toggle, save button, and localStorage synchronization.
+- **Subtask 177.2**: Implement server `.env` fallback (`import.meta.env.VITE_OPENROUTER_API_KEY`) when no user key is provided, update `.env.example`, and pass effective key to TTS requests.
+- **Subtask 177.3**: Bump version to 1.0.70 across 5 targets, author dedicated test `scripts/verify-openrouter-key-settings.ts`, update `docs/files.md`, compile, lint, commit, push, and migrate Task 177 to `docs/done.md`.
 
 ---
 
