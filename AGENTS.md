@@ -130,5 +130,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-store the suggestionson docs/suggestions.md and link it from token.md before implementation
+1. if generating video artifacts and images are no longer a requirement - it should be reflected by updating the integrity check and a flow which checks for broken video/images links.
+
+2. i never saw an image generated on git flow actions for the github report - which proves the app really being installed and run on android emulator therefor i dont need any images which produced in a time other the the git action flow dedicated which runs on a real android emulator.
 ```
