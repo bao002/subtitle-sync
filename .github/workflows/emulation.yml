@@ -220,6 +220,10 @@ jobs:
           if [ -f "./android-emulator-logcat.txt" ]; then
             echo "✓ Verified authentic logcat: ./android-emulator-logcat.txt"
           fi
+          if [ -f "./authentic_captions_exposed.txt" ]; then
+            echo "✓ Verified authentic dialogue text file: ./authentic_captions_exposed.txt"
+            head -n 5 ./authentic_captions_exposed.txt
+          fi
 
       - name: Publish Android E2E Result to Job Summary
         if: always()
@@ -237,6 +241,13 @@ jobs:
                 echo ""
                 echo '```text'
                 grep "SUBTITLE_FETCH" android-emulator-logcat.txt | tail -n 20 || true
+                echo '```'
+              fi
+              if [ -f authentic_captions_exposed.txt ]; then
+                echo ""
+                echo "### Authentic Live Caption Text Exposed (No Fixtures):"
+                echo '```text'
+                cat authentic_captions_exposed.txt | head -n 15 || true
                 echo '```'
               fi
             else
@@ -264,6 +275,7 @@ jobs:
             android-emulator-video.mp4
             android-emulator-logcat.txt
             android-emulator-device-info.json
+            authentic_captions_exposed.txt
             android-shell/app/build/outputs/apk/debug/*.apk
           if-no-files-found: ignore
           retention-days: 14
@@ -304,6 +316,11 @@ jobs:
             cp ./android-emulator-device-info.json gh-pages-staging/android-emulator-device-info.json
             cp ./android-emulator-device-info.json gh-pages-staging/android/screenshots/android-emulator-device-info.json
             echo "Staged android-emulator-device-info.json to gh-pages-staging/"
+          fi
+          if [ -f "./authentic_captions_exposed.txt" ]; then
+            cp ./authentic_captions_exposed.txt gh-pages-staging/authentic_captions_exposed.txt
+            cp ./authentic_captions_exposed.txt gh-pages-staging/screenshots/authentic_captions_exposed.txt
+            echo "Staged authentic_captions_exposed.txt to gh-pages-staging/"
           fi
           if [ -f "./public/android-emulator-report.html" ]; then
             cp ./public/android-emulator-report.html gh-pages-staging/android-emulator-report.html

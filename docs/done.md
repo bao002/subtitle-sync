@@ -1,5 +1,32 @@
 # Done tasks
 
+## Task 161: Client-Side Video Metadata & Free Information Extraction (Version 1.0.60)
+
+### Summary:
+- **Version Bump across 4 Targets (Subtask 161.1)**:
+  - Updated application version to `1.0.60` in `package.json`, `android-shell/app/build.gradle.kts` (versionName `1.0.60`, versionCode `10060`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.60"`), and `src/utils/appSettings.ts`.
+- **Client-Side Video Metadata Architecture & Extraction Engine (Subtask 161.2)**:
+  - Enriched `VideoMetadata` and `VideoCaptionTrackInfo` in `src/types.ts` with `description`, `durationSeconds`, `durationFormatted`, `sdThumbnailUrl`, `channelId`, `availableCaptionTracks`, and `defaultSubtitleLang`.
+  - Expanded `src/utils/videoMetadataManager.ts` to generate complete thumbnail resolutions (`maxRes`, `sd`, `hq`, `mq`, `default`).
+  - Added duration formatting helper `formatDurationSeconds` handling seconds, minutes, and hours.
+  - Added channel handle and ID extractor `extractChannelIdentifier` supporting YouTube handles (`@channel`), custom URLs, and channel IDs.
+  - Implemented client-side timedtext tracklist XML parser `parseTimedTextTrackList` extracting available caption tracks (`langCode`, `name`, `isDefault`, `isAsr`, `trackUrl`).
+  - Added live player inspection `enrichMetadataWithPlayer` capturing exact playback duration and video title/author from YouTube iframe player instance on ready.
+- **Video Metadata Inspection UI & Modal (Subtask 161.3)**:
+  - Created `src/components/VideoMetadataModal.tsx` providing inspection of video title, description, duration, channel/creator link, high-resolution thumbnail gallery with copy URL buttons, detected caption tracks with default and ASR badges, and embed iframe code.
+  - Updated `src/routes/index.tsx` video metadata card with clickable thumbnail/title, duration badge (`video-metadata-duration-badge`), Details inspection button (`open-video-metadata-modal-button`), and wired `VideoMetadataModal`.
+  - Updated `src/components/VideoLibraryPanel.tsx` cards with duration indicator (`library-duration-{id}`).
+  - Documented `VideoMetadataModal.tsx` in `docs/files.md`.
+- **Dedicated Automated Verification & Hygiene (Subtask 161.4)**:
+  - Created test suite `scripts/verify-client-side-metadata.ts` with 10 comprehensive unit and integration tests.
+  - Registered `test:client-side-metadata` in `package.json`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:client-side-metadata`: PASSED (100% verified, 10/10 tests passed).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 151: Floating Draggable Dropdown Menu with Auto-Scroll & Setup-Pause (Version 1.0.51)
 
 ### Summary:

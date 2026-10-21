@@ -33,6 +33,7 @@ import {
   Sun,
   Tv,
   Share2,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -93,6 +94,7 @@ import {
 import { getAppStateFromUrl } from "@/utils/urlStateManager";
 import { ShareStateModal } from "@/components/ShareStateModal";
 import { ParserDiffConfirmationModal } from "@/components/ParserDiffConfirmationModal";
+import { VideoMetadataModal } from "@/components/VideoMetadataModal";
 import { computeParserDiff, type ParserDiffResult } from "@/utils/parserDiffHelper";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -204,7 +206,11 @@ import {
 } from "@/lib/subtitle-fetch-plan";
 import type { VideoMetadata } from "@/types";
 import { recordVideoWatch, updateVideoLibraryTitle } from "@/utils/videoLibraryManager";
-import { fetchVideoMetadata, getCachedVideoMetadata } from "@/utils/videoMetadataManager";
+import {
+  fetchVideoMetadata,
+  getCachedVideoMetadata,
+  enrichMetadataWithPlayer,
+} from "@/utils/videoMetadataManager";
 import { notifySubtitleFetch } from "@/utils/subtitleNotificationManager";
 import { getApkReleaseLinks } from "@/utils/apkUpdater";
 import {
@@ -1721,6 +1727,7 @@ function Index() {
   const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(() =>
     getCachedVideoMetadata(videoId),
   );
+  const [videoMetadataModalOpen, setVideoMetadataModalOpen] = useState(false);
 
   useEffect(() => {
     if (!videoId) {
@@ -2913,6 +2920,8 @@ function Index() {
                 if (rate > 0) setPlaybackRate(rate);
                 const state = player.current.getPlayerState?.();
                 setIsVideoPlaying(state === 1);
+                const enriched = enrichMetadataWithPlayer(videoId, player.current);
+                if (enriched) setVideoMetadata({ ...enriched });
               } catch {
                 // ignore
               }
@@ -4193,46 +4202,71 @@ function Index() {
                           {videoMetadata && (
                             <div
                               data-testid="video-metadata-card"
-                              className="flex items-center gap-2.5 px-3 py-1.5 text-xs text-muted-foreground bg-muted/20 border-b border-border/40"
+                              className="flex items-center justify-between gap-2.5 px-3 py-1.5 text-xs text-muted-foreground bg-muted/20 border-b border-border/40"
                             >
-                              {videoMetadata.thumbnailUrl && (
-                                <img
-                                  src={videoMetadata.thumbnailUrl}
-                                  alt={videoMetadata.title}
-                                  className="h-7 w-12 rounded object-cover border border-border/50 shrink-0"
-                                  onError={(e) => {
-                                    (e.currentTarget as HTMLImageElement).style.display = "none";
-                                  }}
-                                />
-                              )}
-                              <div className="min-w-0 flex-1">
-                                <p
-                                  data-testid="video-metadata-title"
-                                  className="font-medium text-foreground truncate leading-tight"
-                                  title={videoMetadata.title}
-                                >
-                                  {videoMetadata.title}
-                                </p>
-                                {videoMetadata.authorName && (
-                                  <p
-                                    data-testid="video-metadata-author"
-                                    className="text-[11px] text-muted-foreground truncate"
-                                  >
-                                    {videoMetadata.authorUrl ? (
-                                      <a
-                                        href={videoMetadata.authorUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="hover:underline text-primary/90"
-                                      >
-                                        {videoMetadata.authorName}
-                                      </a>
-                                    ) : (
-                                      videoMetadata.authorName
-                                    )}
-                                  </p>
+                              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                {videoMetadata.thumbnailUrl && (
+                                  <img
+                                    src={videoMetadata.thumbnailUrl}
+                                    alt={videoMetadata.title}
+                                    className="h-7 w-12 rounded object-cover border border-border/50 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => setVideoMetadataModalOpen(true)}
+                                    onError={(e) => {
+                                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                                    }}
+                                  />
                                 )}
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-center gap-1.5 truncate">
+                                    <p
+                                      data-testid="video-metadata-title"
+                                      className="font-medium text-foreground truncate leading-tight cursor-pointer hover:underline"
+                                      title={videoMetadata.title}
+                                      onClick={() => setVideoMetadataModalOpen(true)}
+                                    >
+                                      {videoMetadata.title}
+                                    </p>
+                                    {videoMetadata.durationFormatted && (
+                                      <span
+                                        data-testid="video-metadata-duration-badge"
+                                        className="text-[10px] bg-muted text-foreground px-1 py-0.5 rounded font-mono shrink-0"
+                                      >
+                                        {videoMetadata.durationFormatted}
+                                      </span>
+                                    )}
+                                  </div>
+                                  {videoMetadata.authorName && (
+                                    <p
+                                      data-testid="video-metadata-author"
+                                      className="text-[11px] text-muted-foreground truncate"
+                                    >
+                                      {videoMetadata.authorUrl ? (
+                                        <a
+                                          href={videoMetadata.authorUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="hover:underline text-primary/90"
+                                        >
+                                          {videoMetadata.authorName}
+                                        </a>
+                                      ) : (
+                                        videoMetadata.authorName
+                                      )}
+                                    </p>
+                                  )}
+                                </div>
                               </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 text-[11px] gap-1 shrink-0 text-muted-foreground hover:text-foreground"
+                                onClick={() => setVideoMetadataModalOpen(true)}
+                                data-testid="open-video-metadata-modal-button"
+                                title="Inspect video description, duration, thumbnails, and caption tracks"
+                              >
+                                <Info className="w-3.5 h-3.5 text-primary" />
+                                <span className="hidden sm:inline">Details</span>
+                              </Button>
                             </div>
                           )}
                           {/* Video playback buttons under the presented video */}
@@ -6113,6 +6147,20 @@ function Index() {
         onConfirm={handleConfirmDiff}
         diffResult={pendingParserChange?.diffResult || null}
         proposedCriteriaNames={pendingParserChange?.criteriaNames || []}
+      />
+      <VideoMetadataModal
+        open={videoMetadataModalOpen}
+        onOpenChange={setVideoMetadataModalOpen}
+        metadata={videoMetadata}
+        videoId={videoId}
+        onRefreshMetadata={() =>
+          fetchVideoMetadata(videoId, {
+            forceRefresh: true,
+            player: player.current,
+          }).then((meta) => {
+            setVideoMetadata({ ...meta });
+          })
+        }
       />
     </div>
   );

@@ -191,6 +191,8 @@ adb_cmd pull "${EXPOSED_DEVICE_TXT}" ./authentic_captions_exposed.txt 2>/dev/nul
 if [[ -f ./authentic_captions_exposed.txt && -s ./authentic_captions_exposed.txt ]]; then
   echo "✅ Authentic caption text file retrieved from device:"
   head -n 10 ./authentic_captions_exposed.txt
+  mkdir -p ./public/screenshots
+  cp -f ./authentic_captions_exposed.txt ./public/screenshots/authentic_captions_exposed.txt 2>/dev/null || true
 fi
 
 echo "=================================================================="
