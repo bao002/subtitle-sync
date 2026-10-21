@@ -34,7 +34,9 @@ assert(
   lastPromptMatch && lastPromptMatch[1].trim().length > 0,
   "AGENTS.md must preserve a non-empty raw user prompt in the '## Last raw prompt' code block",
 );
-console.log(`✅ PASS: AGENTS.md contains the latest raw user prompt: "${lastPromptMatch[1].trim()}"`);
+console.log(
+  `✅ PASS: AGENTS.md contains the latest raw user prompt: "${lastPromptMatch[1].trim()}"`,
+);
 
 console.log("====================================================");
 console.log("🎉 AGENTS.md Last Raw Prompt Rule Verification PASSED!");

@@ -50,7 +50,10 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
 
     // Auto-enrich items that have default placeholder titles
     const unresolved = items.filter(
-      (item) => !item.title || item.title.startsWith("YouTube Video ·") || item.title.startsWith("YouTube Video ("),
+      (item) =>
+        !item.title ||
+        item.title.startsWith("YouTube Video ·") ||
+        item.title.startsWith("YouTube Video ("),
     );
     if (unresolved.length > 0) {
       unresolved.forEach((item) => {

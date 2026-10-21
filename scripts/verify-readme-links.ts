@@ -98,12 +98,17 @@ assert(
 console.log("✅ PASS: Repository hygiene verified (zero static images on main).");
 
 // 6. Verify dedicated GitHub Actions emulator workflow generates authentic screenshots
-const emulationYml = fs.readFileSync(path.resolve(rootDir, ".github/workflows/emulation.yml"), "utf-8");
+const emulationYml = fs.readFileSync(
+  path.resolve(rootDir, ".github/workflows/emulation.yml"),
+  "utf-8",
+);
 assert(
   emulationYml.includes("screencap") && emulationYml.includes("gh-pages-staging/screenshots"),
   "emulation.yml must capture emulator screenshots and stage them exclusively to gh-pages",
 );
-console.log("✅ PASS: Emulation workflow dynamically captures authentic screenshots on real Android emulator.");
+console.log(
+  "✅ PASS: Emulation workflow dynamically captures authentic screenshots on real Android emulator.",
+);
 
 console.log("====================================================");
 console.log(

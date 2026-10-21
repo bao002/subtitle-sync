@@ -50,7 +50,9 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
   onViewSubtitlesInTable,
 }) => {
   // 1. Notification history & current notification
-  const [currentNotification, setCurrentNotification] = useState<SubtitleFetchNotification | null>(null);
+  const [currentNotification, setCurrentNotification] = useState<SubtitleFetchNotification | null>(
+    null,
+  );
   const [notificationHistory, setNotificationHistory] = useState<SubtitleFetchNotification[]>([]);
   const [muted, setMuted] = useState<boolean>(() => isSubtitleNotificationMuted());
 
@@ -177,10 +179,7 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
   };
 
   return (
-    <div
-      data-testid="notifications-status-tab"
-      className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6"
-    >
+    <div data-testid="notifications-status-tab" className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card/60 backdrop-blur-sm">
         <div className="flex items-center gap-3">
@@ -192,7 +191,8 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
               Notifications & Fetch Status
             </h2>
             <p className="text-xs text-muted-foreground">
-              Subtitle discovery, background fetch progress, and real-time status alerts without screen clutter.
+              Subtitle discovery, background fetch progress, and real-time status alerts without
+              screen clutter.
             </p>
           </div>
         </div>
@@ -230,9 +230,7 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
               ) : (
                 <Clock className="w-4 h-4 text-primary" />
               )}
-              <h3 className="text-sm font-semibold text-foreground">
-                Auto-Fetch & Retry Engine
-              </h3>
+              <h3 className="text-sm font-semibold text-foreground">Auto-Fetch & Retry Engine</h3>
             </div>
             <span
               className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
@@ -277,13 +275,21 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
                     data-testid="tab-retry-countdown"
                     className="font-mono text-sm font-bold text-primary"
                   >
-                    {allFetched ? "Done" : isPaused ? "Paused" : isFetching ? "Fetching…" : `${secondsRemaining}s`}
+                    {allFetched
+                      ? "Done"
+                      : isPaused
+                        ? "Paused"
+                        : isFetching
+                          ? "Fetching…"
+                          : `${secondsRemaining}s`}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>Anti-bot jitter pacing: {minPacingSec}s–{maxPacingSec}s</span>
+                  <span>
+                    Anti-bot jitter pacing: {minPacingSec}s–{maxPacingSec}s
+                  </span>
                 </div>
               </div>
 
@@ -344,7 +350,11 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
                   data-testid="tab-retry-toggle-btn"
                   className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-border bg-background hover:bg-muted font-medium text-xs text-foreground transition active:scale-95"
                 >
-                  {isPaused ? <Play className="w-3.5 h-3.5 text-emerald-500" /> : <Pause className="w-3.5 h-3.5 text-amber-500" />}
+                  {isPaused ? (
+                    <Play className="w-3.5 h-3.5 text-emerald-500" />
+                  ) : (
+                    <Pause className="w-3.5 h-3.5 text-amber-500" />
+                  )}
                   <span>{isPaused ? "Resume" : "Pause"}</span>
                 </button>
               </div>
@@ -357,9 +367,7 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
           <div className="flex items-center justify-between pb-3 border-b border-border">
             <div className="flex items-center gap-2">
               <Info className="w-4 h-4 text-blue-500" />
-              <h3 className="text-sm font-semibold text-foreground">
-                Fetch Indications & Alerts
-              </h3>
+              <h3 className="text-sm font-semibold text-foreground">Fetch Indications & Alerts</h3>
             </div>
             {notificationHistory.length > 0 && (
               <span className="text-[11px] font-mono text-muted-foreground">
@@ -400,9 +408,7 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
                 )}
               </div>
 
-              <p className="text-xs text-foreground font-medium">
-                {currentNotification.message}
-              </p>
+              <p className="text-xs text-foreground font-medium">{currentNotification.message}</p>
 
               <button
                 type="button"
@@ -469,10 +475,7 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
           onToggleAutoRetry={onToggleAutoRetry}
           floating={false}
         />
-        <SubtitleFetchToast
-          onViewSubtitles={onViewSubtitlesInTable}
-          floating={false}
-        />
+        <SubtitleFetchToast onViewSubtitles={onViewSubtitlesInTable} floating={false} />
       </div>
     </div>
   );

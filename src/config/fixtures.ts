@@ -16,5 +16,3 @@ export const SAMPLE_AUTHENTIC_TIMEDTEXT_HEADERS: Record<string, string> = {
   referer: "https://www.youtube.com/",
   origin: "https://www.youtube.com",
 };
-
-

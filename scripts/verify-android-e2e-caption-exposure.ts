@@ -93,7 +93,9 @@ assert.ok(
   "emulation.yml must display exposed caption text in Job Summary",
 );
 assert.ok(
-  workflow.includes("Screencast video generation deprecated in favor of authentic screenshots and logcat telemetry"),
+  workflow.includes(
+    "Screencast video generation deprecated in favor of authentic screenshots and logcat telemetry",
+  ),
   "emulation.yml must declare screencast video deprecation in verification step",
 );
 console.log("✅ PASS: .github/workflows/emulation.yml verified");

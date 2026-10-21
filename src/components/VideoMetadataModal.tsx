@@ -77,7 +77,8 @@ export function VideoMetadataModal({
             </DialogTitle>
           </div>
           <DialogDescription>
-            Client-side extracted metadata, thumbnail assets, and detected caption tracks without backend dependencies.
+            Client-side extracted metadata, thumbnail assets, and detected caption tracks without
+            backend dependencies.
           </DialogDescription>
         </DialogHeader>
 
@@ -96,7 +97,10 @@ export function VideoMetadataModal({
                   <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Tv className="w-3.5 h-3.5 text-muted-foreground" />
-                      ID: <code className="bg-muted px-1 py-0.5 rounded font-mono text-[11px]">{videoId}</code>
+                      ID:{" "}
+                      <code className="bg-muted px-1 py-0.5 rounded font-mono text-[11px]">
+                        {videoId}
+                      </code>
                     </span>
                     {metadata.durationFormatted && (
                       <span className="flex items-center gap-1 font-medium text-foreground">
@@ -212,7 +216,9 @@ export function VideoMetadataModal({
                     >
                       <div className="min-w-0 pr-2">
                         <p className="font-medium truncate">{track.name || track.langCode}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">{track.langCode}</p>
+                        <p className="text-[10px] text-muted-foreground font-mono">
+                          {track.langCode}
+                        </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         {track.isDefault && (
@@ -231,7 +237,8 @@ export function VideoMetadataModal({
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground italic">
-                  Captions are detected authentic on play or via timedtext interception. Toggle the video CC button or play to discover all active tracks.
+                  Captions are detected authentic on play or via timedtext interception. Toggle the
+                  video CC button or play to discover all active tracks.
                 </p>
               )}
             </div>
@@ -267,7 +274,9 @@ export function VideoMetadataModal({
                           loading="lazy"
                         />
                         <div className="flex items-center justify-between text-[10px]">
-                          <span className="font-medium truncate text-muted-foreground">{thumb.label}</span>
+                          <span className="font-medium truncate text-muted-foreground">
+                            {thumb.label}
+                          </span>
                           <div className="flex items-center gap-1">
                             <button
                               type="button"

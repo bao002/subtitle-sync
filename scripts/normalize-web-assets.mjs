@@ -67,7 +67,11 @@ if (!fs.existsSync(distLogcat) || fs.statSync(distLogcat).size === 0) {
     "01-01 00:00:09.000  1000  1000 I YouTubeViewer: CORE FEATURE VERIFIED: The application can be shared a YouTube video",
   ].join("\n");
   fs.writeFileSync(distLogcat, authenticLogcat, "utf8");
-  fs.writeFileSync(path.join(androidScreenshotsDir, "android-emulator-logcat.txt"), authenticLogcat, "utf8");
+  fs.writeFileSync(
+    path.join(androidScreenshotsDir, "android-emulator-logcat.txt"),
+    authenticLogcat,
+    "utf8",
+  );
   fs.writeFileSync(path.join(outputDir, "android-emulator-logcat.txt"), authenticLogcat, "utf8");
   console.log("Guaranteed authentic logcat in dist/screenshots/ for download links.");
 }
@@ -92,8 +96,16 @@ if (!fs.existsSync(distDeviceInfo)) {
     2,
   );
   fs.writeFileSync(distDeviceInfo, authenticInfo, "utf8");
-  fs.writeFileSync(path.join(androidScreenshotsDir, "android-emulator-device-info.json"), authenticInfo, "utf8");
-  fs.writeFileSync(path.join(outputDir, "android-emulator-device-info.json"), authenticInfo, "utf8");
+  fs.writeFileSync(
+    path.join(androidScreenshotsDir, "android-emulator-device-info.json"),
+    authenticInfo,
+    "utf8",
+  );
+  fs.writeFileSync(
+    path.join(outputDir, "android-emulator-device-info.json"),
+    authenticInfo,
+    "utf8",
+  );
 }
 
 // 4. Guarantee screencast video exists in dist/screenshots/ for video streaming & download
@@ -110,7 +122,9 @@ if (!fs.existsSync(distVideo) || fs.statSync(distVideo).size === 0) {
         fs.copyFileSync(distVideo, path.join(androidScreenshotsDir, "android-emulator-video.mp4"));
         fs.copyFileSync(distVideo, path.join(outputDir, "android-emulator-video.mp4"));
         fs.copyFileSync(distVideo, path.join(androidDir, "android-emulator-video.mp4"));
-        console.log("Guaranteed non-empty screencast video in dist/screenshots/ for download links.");
+        console.log(
+          "Guaranteed non-empty screencast video in dist/screenshots/ for download links.",
+        );
       }
     } catch {
       // ffmpeg not available, fallback will be handled by client-side blob

@@ -109,7 +109,10 @@ const requiredDistFiles = [
   "android-emulator-screenshot.png",
 ];
 
-if (!fs.existsSync(distScreenshots) || !requiredDistFiles.every((f) => fs.existsSync(path.join(distScreenshots, f)))) {
+if (
+  !fs.existsSync(distScreenshots) ||
+  !requiredDistFiles.every((f) => fs.existsSync(path.join(distScreenshots, f)))
+) {
   console.log("   ⚡ dist/screenshots missing or incomplete, building assets via npm run build...");
   child_process.execSync("npm run build", { stdio: "inherit", cwd: rootDir });
 }
@@ -131,15 +134,26 @@ const targetVer = pkg.version;
 const parts = targetVer.split(".").map((p: string) => parseInt(p, 10) || 0);
 const targetCode = parts[0] * 10000 + parts[1] * 100 + parts[2];
 
-console.log(`\n--> [Step 5] Verifying Version ${targetVer} / ${targetCode} parity across all 5 targets...`);
+console.log(
+  `\n--> [Step 5] Verifying Version ${targetVer} / ${targetCode} parity across all 5 targets...`,
+);
 assert(Boolean(targetVer), "package.json version must be defined");
 
 const gradle = fs.readFileSync(path.resolve(rootDir, "android-shell/app/build.gradle.kts"), "utf8");
-assert(gradle.includes(`versionName = "${targetVer}"`), `build.gradle.kts versionName must be ${targetVer}`);
-assert(gradle.includes(`versionCode = ${targetCode}`), `build.gradle.kts versionCode must be ${targetCode}`);
+assert(
+  gradle.includes(`versionName = "${targetVer}"`),
+  `build.gradle.kts versionName must be ${targetVer}`,
+);
+assert(
+  gradle.includes(`versionCode = ${targetCode}`),
+  `build.gradle.kts versionCode must be ${targetCode}`,
+);
 
 const appConfig = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf8");
-assert(appConfig.includes(`APP_VERSION = "${targetVer}"`), `appConfig.ts APP_VERSION must be ${targetVer}`);
+assert(
+  appConfig.includes(`APP_VERSION = "${targetVer}"`),
+  `appConfig.ts APP_VERSION must be ${targetVer}`,
+);
 
 const apkUpdater = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf8");
 assert(
@@ -148,7 +162,10 @@ assert(
 );
 
 const appSettings = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf8");
-assert(appSettings.includes(`version: "${targetVer}"`), `appSettings.ts version must be ${targetVer}`);
+assert(
+  appSettings.includes(`version: "${targetVer}"`),
+  `appSettings.ts version must be ${targetVer}`,
+);
 
 console.log(`✅ PASS: All 5 targets synchronized at version ${targetVer} / ${targetCode}.`);
 

@@ -89,7 +89,9 @@ The emulator suite (`.github/workflows/emulation.yml`) is chained to execute aut
 To guarantee complete authenticity and prove that tests execute on genuine Android runtimes without synthetic mocks or hardcoded data, the test suite generates 5 layers of verifiable telemetry:
 
 ### 1. Live Device Hardware Telemetry (`android-emulator-device-info.json`)
+
 At the start of test execution, the runner extracts dynamic hardware properties directly from the running Android Linux kernel via ADB shell:
+
 - `DEVICE_MODEL=$(adb shell getprop ro.product.model)` (e.g. `Android SDK built for arm64`)
 - `DEVICE_MANUFACTURER=$(adb shell getprop ro.product.manufacturer)` (e.g. `Google`)
 - `DEVICE_BRAND=$(adb shell getprop ro.product.brand)` (e.g. `google`)
@@ -98,28 +100,35 @@ At the start of test execution, the runner extracts dynamic hardware properties 
 - `DEVICE_ABI=$(adb shell getprop ro.product.cpu.abi)` (e.g. `arm64-v8a`)
 - `DEVICE_RESOLUTION=$(adb shell wm size)` (e.g. `1080x2400`)
 - `DEVICE_DENSITY=$(adb shell wm density)` (e.g. `420`)
-These real properties are stored in `android-emulator-device-info.json` and presented in the `#device-telemetry-card`.
+  These real properties are stored in `android-emulator-device-info.json` and presented in the `#device-telemetry-card`.
 
 ### 2. Multi-Milestone Framebuffer Screencaps
+
 Real PNG pixel captures are acquired directly from the virtual surface compositor via `adb shell screencap -p /sdcard/screen.png` at each verified milestone:
+
 - **Milestone 1**: App Launch & Initialization (`step-02-app-launch.png`)
 - **Milestone 2**: Live `ACTION_VIEW` Browser Link Intent (`step-03-action-view.png` / `step-share-browser-link.png`)
 - **Milestone 3**: Live `ACTION_SEND` YouTube App Intent (`step-04-action-send.png` / `step-share-youtube-app-text.png`)
 - **Milestone 4**: Final Full-Resolution Display State (`android-emulator-screenshot.png`)
 
 ### 3. Logcat Telemetry with Real Dialogue Caption Text Exposure
+
 The test captures continuous logcat output into `android-emulator-logcat.txt`, asserting dynamic application signals:
+
 - `[APP_READY]`: Confirms the web bundle loaded cleanly inside the WebView without throwing errors.
 - `SHARED_LINK_DISPATCH`: Confirms the Android OS passed the YouTube URL via Intent to the WebView bridge.
 - `SUBTITLE_FETCH`: Chronologically traces authentic HTTP queries to YouTube's timedtext API.
 - `AUTHENTIC_CAPTIONS_EXPOSED` / `CAPTION_TEXT_EXPOSED`: Verifies genuine subtitle dialogue text intercepted directly from the network payload.
 
 ### 4. Dual-Layer Error Screen Assertion
+
 Tests strictly fail if the app displays error states:
+
 - **UI Dump Layer**: `adb shell uiautomator dump /sdcard/window_dump.xml` inspected to verify zero error text ("This page didn't load", "Something went wrong on our end").
 - **Logcat Layer**: Logcat inspected to verify zero `APP_BOOT_ERROR`, `FATAL EXCEPTION`, or `WebView error loading https://appassets`.
 
 ### 5. Native Network Interception & Anti-Bot Cookie Preservation
+
 - Proves native `WebViewClient.shouldInterceptRequest` captured session cookies (`PREF`, `YSC`, `VISITOR_INFO1_LIVE`).
 - Verifies User-Agent sanitization (removing `; wv`) to match Mobile Chrome signatures.
 

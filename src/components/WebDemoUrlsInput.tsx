@@ -320,10 +320,7 @@ export function WebDemoUrlsInput({
         // If direct fetch didn't yield valid json3 and it's an HTTP URL, try server proxy
         if (!parsed || !isValidJsonSubtitleResponse(parsed)) {
           if (trimmedInput.startsWith("http")) {
-            const proxyResp = await fetchViaServer(
-              trimmedInput,
-              getFetchServerUrl(),
-            );
+            const proxyResp = await fetchViaServer(trimmedInput, getFetchServerUrl());
             if (proxyResp && proxyResp.status === 200 && proxyResp.body) {
               parsed = parseJson3(proxyResp.body);
             }

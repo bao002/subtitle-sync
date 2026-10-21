@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.66",
+  "version": "1.0.68",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -101,6 +101,8 @@
     "test:apk-version": "tsx scripts/verify-apk-version-and-releases.ts",
     "test:lovable-alternative-tts": "tsx scripts/verify-lovable-alternative-tts.ts",
     "test:lovable-tts-ui": "tsx scripts/verify-lovable-tts-ui.ts",
+    "test:lovable-tts-speed-and-voices": "tsx scripts/verify-lovable-tts-speed-and-voices.ts",
+    "test:lovable-tts-service-preference": "tsx scripts/verify-lovable-tts-service-preference.ts",
     "test:audio-track-time-sections": "tsx scripts/verify-audio-track-time-sections.ts",
     "test:video-library": "tsx scripts/verify-video-library.ts",
     "test:cache-and-winner-promotion": "tsx scripts/verify-cache-and-winner-promotion.ts",

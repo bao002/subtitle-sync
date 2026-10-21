@@ -1,7 +1,12 @@
 import React from "react";
 import { Smartphone, Download, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { APP_VERSION, APP_COMMIT_ID, APP_VERSION_DESCRIPTION, ALL_RELEASES_URL } from "@/config/appConfig";
+import {
+  APP_VERSION,
+  APP_COMMIT_ID,
+  APP_VERSION_DESCRIPTION,
+  ALL_RELEASES_URL,
+} from "@/config/appConfig";
 
 export interface ApkReleaseLink {
   owner: string;
@@ -32,7 +37,9 @@ export function ApkReleasesFooter({ apkReleaseLinks, onOpenApkModal }: ApkReleas
           >
             <span className="font-semibold text-foreground">v{APP_VERSION}</span>
             <span>·</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">#{APP_COMMIT_ID}</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+              #{APP_COMMIT_ID}
+            </span>
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-3">

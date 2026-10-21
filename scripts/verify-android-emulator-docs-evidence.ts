@@ -3,7 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 
 console.log("====================================================");
-console.log("🧪 Running Verification: Android Emulator GitHub Actions Docs & Authenticity Evidence (Task 160)");
+console.log(
+  "🧪 Running Verification: Android Emulator GitHub Actions Docs & Authenticity Evidence (Task 160)",
+);
 console.log("====================================================");
 
 const rootDir = process.cwd();

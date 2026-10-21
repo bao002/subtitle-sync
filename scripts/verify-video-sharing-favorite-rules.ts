@@ -30,10 +30,18 @@ const mockStorage: Record<string, string> = {};
 
 // --- Test 1: Extract Detected Language from URLs, Query Params, or Fallback ---
 console.log("\nTest 1: Language extraction from URLs & query parameters...");
-assert.strictEqual(extractDetectedLanguage(undefined), "en", "Empty/undefined should fallback to en");
+assert.strictEqual(
+  extractDetectedLanguage(undefined),
+  "en",
+  "Empty/undefined should fallback to en",
+);
 assert.strictEqual(extractDetectedLanguage(""), "en", "Empty string should fallback to en");
 assert.strictEqual(extractDetectedLanguage("es"), "es", "Direct lang code 'es' should return 'es'");
-assert.strictEqual(extractDetectedLanguage("iw"), "he", "Direct legacy code 'iw' should normalize to 'he'");
+assert.strictEqual(
+  extractDetectedLanguage("iw"),
+  "he",
+  "Direct legacy code 'iw' should normalize to 'he'",
+);
 assert.strictEqual(
   extractDetectedLanguage("https://www.youtube.com/watch?v=L2Ryrr6txwA&lang=ar"),
   "ar",
@@ -54,7 +62,9 @@ assert.strictEqual(
   "en",
   "Standard link without lang query should fallback to default 'en'",
 );
-console.log("✅ PASS: extractDetectedLanguage functions accurately across all query and fallback variations.");
+console.log(
+  "✅ PASS: extractDetectedLanguage functions accurately across all query and fallback variations.",
+);
 
 // --- Test 2: Rule a - Add default/detected language at the bottom ---
 console.log("\nTest 2: Rule a - Default/detected language placed strictly at the bottom...");
@@ -91,7 +101,9 @@ assert.deepStrictEqual(
   ["he", "it", "es"],
   "Detected language 'es' must be moved to the bottom",
 );
-console.log("✅ PASS: Rule a verified - default/detected language is placed strictly at the bottom.");
+console.log(
+  "✅ PASS: Rule a verified - default/detected language is placed strictly at the bottom.",
+);
 
 // --- Test 3: Rule b - Remove any tts-play checkbox selection and checkbox-select only top language ---
 console.log("\nTest 3: Rule b - Checkbox-select only the top language for tts-play...");
@@ -148,7 +160,11 @@ console.log("✅ PASS: Rule c verified - order correctly stored in localStorage.
 console.log("\nTest 5: Rule d - Multi-selection allowed...");
 // In the app, spoken array and targetLanguages are standard string arrays allowing multiple items
 const multiSelection = [...resPersist.spokenLanguages, "fr", "it"];
-assert.strictEqual(multiSelection.length, 3, "Multi-selection of spoken languages must be supported");
+assert.strictEqual(
+  multiSelection.length,
+  3,
+  "Multi-selection of spoken languages must be supported",
+);
 const selectorSource = fs.readFileSync(
   path.resolve(rootDir, "src/components/LanguageBoxesSelector.tsx"),
   "utf8",
@@ -182,7 +198,9 @@ assert.ok(
   indexSource.includes("checkbox-tts-play"),
   "index.tsx must render tts-play checkbox with data-testid='checkbox-tts-play-*'",
 );
-console.log("✅ PASS: Route integration properly wires favorite language rules across all sharing paths.");
+console.log(
+  "✅ PASS: Route integration properly wires favorite language rules across all sharing paths.",
+);
 
 // --- Test 7: Version Parity Verification across all 5 Targets ---
 console.log("\nTest 7: Version parity check for 1.0.49 / 10049...");
@@ -205,19 +223,13 @@ assert(
   `build.gradle.kts must have versionName "${currentVersion}"`,
 );
 
-const appConfigContent = fs.readFileSync(
-  path.resolve(rootDir, "src/config/appConfig.ts"),
-  "utf8",
-);
+const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf8");
 assert(
   appConfigContent.includes(`export const APP_VERSION = "${currentVersion}"`),
   `appConfig.ts must export APP_VERSION "${currentVersion}"`,
 );
 
-const apkUpdaterContent = fs.readFileSync(
-  path.resolve(rootDir, "src/utils/apkUpdater.ts"),
-  "utf8",
-);
+const apkUpdaterContent = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf8");
 assert(
   apkUpdaterContent.includes(`export const CURRENT_APK_VERSION = "v${currentVersion}"`),
   `apkUpdater.ts must export CURRENT_APK_VERSION "v${currentVersion}"`,
@@ -231,7 +243,9 @@ assert(
   appSettingsContent.includes(`version: "${currentVersion}"`),
   `appSettings.ts must declare version "${currentVersion}"`,
 );
-console.log(`✅ PASS: Version ${currentVersion} and versionCode ${expectedCode} strictly aligned across all 5 targets.`);
+console.log(
+  `✅ PASS: Version ${currentVersion} and versionCode ${expectedCode} strictly aligned across all 5 targets.`,
+);
 
 console.log("=========================================================================");
 console.log("🎉 ALL VIDEO SHARING FAVORITE RULES VERIFICATIONS PASSED (7/7)!");

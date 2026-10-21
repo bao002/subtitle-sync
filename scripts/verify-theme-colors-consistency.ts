@@ -23,10 +23,21 @@ assert.ok(
   "BeginnerPlayerTab.tsx must not contain hardcoded slate classes (bg-slate-900, bg-slate-950, border-slate-800, text-slate-300)",
 );
 assert.ok(playerTabContent.includes("bg-card"), "BeginnerPlayerTab.tsx must use bg-card");
-assert.ok(playerTabContent.includes("border-border"), "BeginnerPlayerTab.tsx must use border-border");
-assert.ok(playerTabContent.includes("text-foreground"), "BeginnerPlayerTab.tsx must use text-foreground");
-assert.ok(playerTabContent.includes("text-muted-foreground"), "BeginnerPlayerTab.tsx must use text-muted-foreground");
-console.log("✅ PASS: BeginnerPlayerTab.tsx uses semantic theme tokens and zero hardcoded slate colors");
+assert.ok(
+  playerTabContent.includes("border-border"),
+  "BeginnerPlayerTab.tsx must use border-border",
+);
+assert.ok(
+  playerTabContent.includes("text-foreground"),
+  "BeginnerPlayerTab.tsx must use text-foreground",
+);
+assert.ok(
+  playerTabContent.includes("text-muted-foreground"),
+  "BeginnerPlayerTab.tsx must use text-muted-foreground",
+);
+console.log(
+  "✅ PASS: BeginnerPlayerTab.tsx uses semantic theme tokens and zero hardcoded slate colors",
+);
 
 // Test 2: ModeSwitcherHeader.tsx semantic theme tokens (zero hardcoded slate classes)
 console.log("Test 2: ModeSwitcherHeader.tsx semantic theme tokens...");
@@ -35,12 +46,19 @@ assert.ok(fs.existsSync(modeSwitcherPath), "ModeSwitcherHeader.tsx must exist");
 const modeSwitcherContent = fs.readFileSync(modeSwitcherPath, "utf-8");
 
 assert.ok(
-  !modeSwitcherContent.includes("bg-slate-900") && !modeSwitcherContent.includes("border-slate-800"),
+  !modeSwitcherContent.includes("bg-slate-900") &&
+    !modeSwitcherContent.includes("border-slate-800"),
   "ModeSwitcherHeader.tsx must not contain hardcoded bg-slate-900 or border-slate-800",
 );
 assert.ok(modeSwitcherContent.includes("bg-card/90"), "ModeSwitcherHeader.tsx must use bg-card/90");
-assert.ok(modeSwitcherContent.includes("border-border"), "ModeSwitcherHeader.tsx must use border-border");
-assert.ok(modeSwitcherContent.includes("text-foreground"), "ModeSwitcherHeader.tsx must use text-foreground");
+assert.ok(
+  modeSwitcherContent.includes("border-border"),
+  "ModeSwitcherHeader.tsx must use border-border",
+);
+assert.ok(
+  modeSwitcherContent.includes("text-foreground"),
+  "ModeSwitcherHeader.tsx must use text-foreground",
+);
 console.log("✅ PASS: ModeSwitcherHeader.tsx adapts seamlessly to all themes with semantic tokens");
 
 // Test 3: BeginnerTabNav.tsx semantic theme tokens
@@ -82,7 +100,10 @@ console.log("Test 5: CSS theme definitions in src/styles.css...");
 const cssContent = fs.readFileSync(path.resolve(rootDir, "src/styles.css"), "utf-8");
 assert.ok(cssContent.includes(".dark {"), "styles.css must define .dark");
 assert.ok(cssContent.includes(".dark-blue {"), "styles.css must define .dark-blue");
-assert.ok(cssContent.includes("--color-background: var(--background);"), "styles.css must map --color-background");
+assert.ok(
+  cssContent.includes("--color-background: var(--background);"),
+  "styles.css must map --color-background",
+);
 assert.ok(cssContent.includes("--color-card: var(--card);"), "styles.css must map --color-card");
 console.log("✅ PASS: CSS theme tokens mapped correctly in styles.css");
 
@@ -93,7 +114,10 @@ for (const panel of PANELS) {
   const theme = ACCORDION_THEMES[panel.id];
   assert.ok(theme, `Theme for panel ${panel.id} must be defined`);
   assert.ok(theme.borderLeft.includes("border-l-4"), `Panel ${panel.id} must have border-l-4`);
-  assert.ok(theme.summaryBg.includes("dark:"), `Panel ${panel.id} summaryBg must support dark mode`);
+  assert.ok(
+    theme.summaryBg.includes("dark:"),
+    `Panel ${panel.id} summaryBg must support dark mode`,
+  );
 }
 console.log("✅ PASS: Accordion themes define coherent styling across all panels");
 

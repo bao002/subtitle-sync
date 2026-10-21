@@ -151,7 +151,6 @@ export function removeSpecialCharacters(
   return result.replace(/\s+/g, " ").trim();
 }
 
-
 // ─── Timestamp Helpers ──────────────────────────────────────────
 
 export function formatTimestamp(seconds: number): string {
@@ -226,6 +225,4 @@ export function parseRawCaptionData(rawData: string): ParsedCaptionResult {
 
   const cues = parseJson3(trimmed);
   if (cues.length > 0) return { format: "json3", cues };
-
 }
-

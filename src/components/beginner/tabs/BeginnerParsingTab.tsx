@@ -221,10 +221,15 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       </div>
 
       {/* 1. Character Removal & Renaming (Special Characters Removal & Sanitization - Stage 3) */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3" data-testid="beginner-chars-removal-section">
+      <div
+        className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3"
+        data-testid="beginner-chars-removal-section"
+      >
         <div className="flex items-center gap-2">
           <Scissors className="w-4 h-4 text-primary" />
-          <h3 className="text-xs font-semibold text-foreground">Character Removal & Rename Rules</h3>
+          <h3 className="text-xs font-semibold text-foreground">
+            Character Removal & Rename Rules
+          </h3>
         </div>
         <p className="text-[11px] text-muted-foreground">
           Clean unwanted artifacts, noise indicators, or speaker prefixes before subtitle rendering
@@ -312,10 +317,15 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       </div>
 
       {/* 2. Sentence Splitting Toggle & Punctuation Selectors (Stage 4) */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3" data-testid="beginner-parser-section">
+      <div
+        className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3"
+        data-testid="beginner-parser-section"
+      >
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xs font-semibold text-foreground">Sentence Punctuation Splitting</h3>
+            <h3 className="text-xs font-semibold text-foreground">
+              Sentence Punctuation Splitting
+            </h3>
             <p className="text-[11px] text-muted-foreground">
               Default to splitting long subtitle blocks into natural sentences at punctuation marks.
             </p>

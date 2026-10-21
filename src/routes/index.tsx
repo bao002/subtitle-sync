@@ -129,31 +129,15 @@ import {
   setUseAlternativeTts,
   getAlternativeTtsMode,
   setAlternativeTtsMode,
-  getAlternativeTtsEngine,
-  setAlternativeTtsEngine,
-  getLovableTtsProvider,
-  setLovableTtsProvider,
   getLovableTtsVoice,
   setLovableTtsVoice,
-  getLovableTtsMethod,
-  setLovableTtsMethod,
-  getLovableTtsFormat,
-  setLovableTtsFormat,
-  getLovableTtsTargetLang,
-  setLovableTtsTargetLang,
-  getLovableTtsApiKey,
-  setLovableTtsApiKey,
+  getLovableTtsSpeed,
+  setLovableTtsSpeed,
   playAlternativeTtsAudio,
   cancelAlternativeTtsAudio,
   LOVABLE_TTS_OPENAPI_URL,
-  LOVABLE_TTS_PROVIDERS,
   LOVABLE_VOICES,
-  OPENROUTER_VOICES,
   type AlternativeTtsMode,
-  type AlternativeTtsEngine,
-  type LovableTtsProvider,
-  type LovableTtsMethod,
-  type LovableTtsFormat,
 } from "@/lib/alternative-tts";
 import {
   computeVideoInstances,
@@ -374,6 +358,13 @@ function speak(
       const normalizedRate = Math.max(0.3, Math.min(1.5, rate || 0.5));
       const useAltTts = typeof window !== "undefined" && getUseAlternativeTts();
       const altTtsMode = typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only";
+      const altSpeed =
+        typeof window !== "undefined"
+          ? getLovableTtsSpeed()
+          : typeof rate === "number" && rate > 0
+            ? rate
+            : 1.0;
+      const altVoice = typeof window !== "undefined" ? getLovableTtsVoice() : "Kore";
 
       // 1. If alternative TTS service is enabled as preferred / always, speak with it directly
       if (useAltTts && altTtsMode === "always") {
@@ -384,14 +375,25 @@ function speak(
             start: 0,
             end: text.length,
           });
-          await playAlternativeTtsAudio(text, lang, normalizedRate, (pct) => {
-            onProgress({
-              lang: lang.slice(0, 2),
-              row,
-              start: 0,
-              end: Math.round((pct / 100) * text.length),
-            });
-          });
+          await playAlternativeTtsAudio(
+            text,
+            lang,
+            altSpeed,
+            (pct) => {
+              onProgress({
+                lang: lang.slice(0, 2),
+                row,
+                start: 0,
+                end: Math.round((pct / 100) * text.length),
+              });
+            },
+            "lovable",
+            {
+              provider: "lovable",
+              voice: altVoice,
+              speed: altSpeed,
+            },
+          );
           onProgress(null);
           return res();
         } catch (err) {
@@ -468,14 +470,25 @@ function speak(
               start: 0,
               end: text.length,
             });
-            await playAlternativeTtsAudio(text, lang, normalizedRate, (pct) => {
-              onProgress({
-                lang: lang.slice(0, 2),
-                row,
-                start: 0,
-                end: Math.round((pct / 100) * text.length),
-              });
-            });
+            await playAlternativeTtsAudio(
+              text,
+              lang,
+              altSpeed,
+              (pct) => {
+                onProgress({
+                  lang: lang.slice(0, 2),
+                  row,
+                  start: 0,
+                  end: Math.round((pct / 100) * text.length),
+                });
+              },
+              "lovable",
+              {
+                provider: "lovable",
+                voice: altVoice,
+                speed: altSpeed,
+              },
+            );
             onProgress(null);
             res();
             return true;
@@ -857,26 +870,11 @@ function Index() {
   const [alternativeTtsModeState, setAlternativeTtsModeState] = useState<AlternativeTtsMode>(() =>
     typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only",
   );
-  const [alternativeTtsEngineState, setAlternativeTtsEngineState] = useState<AlternativeTtsEngine>(() =>
-    typeof window !== "undefined" ? getAlternativeTtsEngine() : "lovable",
-  );
-  const [lovableTtsProviderState, setLovableTtsProviderState] = useState<LovableTtsProvider>(() =>
-    typeof window !== "undefined" ? getLovableTtsProvider() : "google",
-  );
   const [lovableTtsVoiceState, setLovableTtsVoiceState] = useState<string>(() =>
-    typeof window !== "undefined" ? getLovableTtsVoice() : "",
+    typeof window !== "undefined" ? getLovableTtsVoice() : "Kore",
   );
-  const [lovableTtsMethodState, setLovableTtsMethodState] = useState<LovableTtsMethod>(() =>
-    typeof window !== "undefined" ? getLovableTtsMethod() : "get",
-  );
-  const [lovableTtsFormatState, setLovableTtsFormatState] = useState<LovableTtsFormat>(() =>
-    typeof window !== "undefined" ? getLovableTtsFormat() : "binary",
-  );
-  const [lovableTtsTargetLangState, setLovableTtsTargetLangState] = useState<string>(() =>
-    typeof window !== "undefined" ? getLovableTtsTargetLang() : "",
-  );
-  const [lovableTtsApiKeyState, setLovableTtsApiKeyState] = useState<string>(() =>
-    typeof window !== "undefined" ? getLovableTtsApiKey() : "",
+  const [lovableTtsSpeedState, setLovableTtsSpeedState] = useState<number>(() =>
+    typeof window !== "undefined" ? getLovableTtsSpeed() : 1.0,
   );
   const [voiceSelections, setVoiceSelections] = useState<Record<string, string>>({});
   useEffect(() => {
@@ -4659,22 +4657,8 @@ function Index() {
 
                             {useAlternativeTtsState && (
                               <div className="ml-6 space-y-2.5 pt-1">
-                                <div className="flex flex-wrap items-center gap-4">
-                                  <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                                    <input
-                                      type="radio"
-                                      name="alternative-tts-mode"
-                                      data-testid="alternative-tts-mode-fallback"
-                                      value="fallback_only"
-                                      checked={alternativeTtsModeState === "fallback_only"}
-                                      onChange={() => {
-                                        setAlternativeTtsModeState("fallback_only");
-                                        setAlternativeTtsMode("fallback_only");
-                                      }}
-                                    />
-                                    Use as fallback when Web Speech fails / errors
-                                  </label>
-                                  <label className="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
+                                <div className="flex flex-wrap items-center gap-4 text-xs">
+                                  <label className="flex items-center gap-1.5 text-foreground cursor-pointer">
                                     <input
                                       type="radio"
                                       name="alternative-tts-mode"
@@ -4686,24 +4670,37 @@ function Index() {
                                         setAlternativeTtsMode("always");
                                       }}
                                     />
-                                    Use as alternative primary TTS engine
+                                    Prefer Lovable TTS over device/browser speech
+                                  </label>
+                                  <label className="flex items-center gap-1.5 text-foreground cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      name="alternative-tts-mode"
+                                      data-testid="alternative-tts-mode-fallback"
+                                      value="fallback_only"
+                                      checked={alternativeTtsModeState === "fallback_only"}
+                                      onChange={() => {
+                                        setAlternativeTtsModeState("fallback_only");
+                                        setAlternativeTtsMode("fallback_only");
+                                      }}
+                                    />
+                                    Fallback when device/browser speech fails
                                   </label>
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                                  <span className="text-muted-foreground font-medium">TTS Engine:</span>
+                                  <span className="text-muted-foreground font-medium">
+                                    TTS Engine:
+                                  </span>
                                   <select
                                     data-testid="alternative-tts-engine-select"
-                                    value={alternativeTtsEngineState}
-                                    onChange={(e) => {
-                                      const nextEngine = e.target.value as AlternativeTtsEngine;
-                                      setAlternativeTtsEngineState(nextEngine);
-                                      setAlternativeTtsEngine(nextEngine);
-                                    }}
-                                    className="rounded border border-input bg-background px-2 py-1 text-xs text-foreground"
+                                    value="lovable"
+                                    disabled
+                                    className="rounded border border-input bg-background px-2 py-1 text-xs text-foreground font-medium opacity-90 cursor-default"
                                   >
-                                    <option value="lovable">Lovable Speak API (tts2.lovable.app)</option>
-                                    <option value="google_translate">Google Translate TTS (Legacy)</option>
+                                    <option value="lovable">
+                                      Lovable Speak API (tts2.lovable.app)
+                                    </option>
                                   </select>
                                   <a
                                     href={LOVABLE_TTS_OPENAPI_URL}
@@ -4716,151 +4713,119 @@ function Index() {
                                   </a>
                                 </div>
 
-                                {alternativeTtsEngineState === "lovable" ? (
-                                  <div className="space-y-2 p-2 rounded-md bg-muted/40 border border-border/60">
-                                    <div className="flex flex-wrap items-center gap-3 text-xs">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-muted-foreground">Provider:</span>
-                                        <select
-                                          data-testid="lovable-tts-provider-select"
-                                          value={lovableTtsProviderState}
-                                          onChange={(e) => {
-                                            const nextProvider = e.target.value as LovableTtsProvider;
-                                            setLovableTtsProviderState(nextProvider);
-                                            setLovableTtsProvider(nextProvider);
-                                          }}
-                                          className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground"
-                                        >
-                                          {LOVABLE_TTS_PROVIDERS.map((p) => (
-                                            <option key={p} value={p}>
-                                              {p}
-                                            </option>
-                                          ))}
-                                        </select>
-                                      </div>
-
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-muted-foreground">Voice:</span>
-                                        <select
-                                          data-testid="lovable-tts-voice-select"
-                                          value={lovableTtsVoiceState}
-                                          onChange={(e) => {
-                                            const v = e.target.value;
-                                            setLovableTtsVoiceState(v);
-                                            setLovableTtsVoice(v);
-                                          }}
-                                          className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground"
-                                        >
-                                          <option value="">(Default voice)</option>
-                                          {lovableTtsProviderState === "lovable" &&
-                                            LOVABLE_VOICES.map((v) => (
-                                              <option key={v} value={v}>
-                                                {v}
-                                              </option>
-                                            ))}
-                                          {lovableTtsProviderState === "openrouter" &&
-                                            OPENROUTER_VOICES.map((v) => (
-                                              <option key={v} value={v}>
-                                                {v}
-                                              </option>
-                                            ))}
-                                        </select>
-                                      </div>
-
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-muted-foreground">Method:</span>
-                                        <select
-                                          data-testid="lovable-tts-method-select"
-                                          value={lovableTtsMethodState}
-                                          onChange={(e) => {
-                                            const m = e.target.value as LovableTtsMethod;
-                                            setLovableTtsMethodState(m);
-                                            setLovableTtsMethod(m);
-                                          }}
-                                          className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground"
-                                        >
-                                          <option value="get">GET (Query Params)</option>
-                                          <option value="post">POST (JSON Body, ≤5k chars)</option>
-                                        </select>
-                                      </div>
-
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-muted-foreground">Format:</span>
-                                        <select
-                                          data-testid="lovable-tts-format-select"
-                                          value={lovableTtsFormatState}
-                                          onChange={(e) => {
-                                            const f = e.target.value as LovableTtsFormat;
-                                            setLovableTtsFormatState(f);
-                                            setLovableTtsFormat(f);
-                                          }}
-                                          className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground"
-                                        >
-                                          <option value="binary">Binary Audio (Stream)</option>
-                                          <option value="json">JSON (Base64 audio)</option>
-                                        </select>
-                                      </div>
+                                <div className="space-y-3 p-3 rounded-lg bg-muted/40 border border-border/60">
+                                  <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-muted-foreground font-medium">
+                                        Provider:
+                                      </span>
+                                      <select
+                                        data-testid="lovable-tts-provider-select"
+                                        value="lovable"
+                                        disabled
+                                        className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-mono"
+                                      >
+                                        <option value="lovable">lovable</option>
+                                      </select>
                                     </div>
 
-                                    <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-muted-foreground">Target Lang:</span>
-                                        <input
-                                          type="text"
-                                          data-testid="lovable-tts-target-lang-input"
-                                          placeholder="e.g. es, he (optional translation)"
-                                          value={lovableTtsTargetLangState}
-                                          onChange={(e) => {
-                                            const val = e.target.value.trim().toLowerCase();
-                                            setLovableTtsTargetLangState(val);
-                                            setLovableTtsTargetLang(val);
-                                          }}
-                                          className="w-48 rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-mono"
-                                        />
-                                      </div>
-
-                                      {lovableTtsProviderState === "openrouter" && (
-                                        <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
-                                          <span className="text-muted-foreground whitespace-nowrap">API Key:</span>
-                                          <input
-                                            type="password"
-                                            data-testid="lovable-tts-api-key-input"
-                                            placeholder="OpenRouter key (optional)"
-                                            value={lovableTtsApiKeyState}
-                                            onChange={(e) => {
-                                              const val = e.target.value.trim();
-                                              setLovableTtsApiKeyState(val);
-                                              setLovableTtsApiKey(val);
-                                            }}
-                                            className="w-full rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-mono"
-                                          />
-                                        </div>
-                                      )}
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-muted-foreground font-medium">
+                                        Voice:
+                                      </span>
+                                      <select
+                                        data-testid="lovable-tts-voice-select"
+                                        value={lovableTtsVoiceState || "Kore"}
+                                        onChange={(e) => {
+                                          const v = e.target.value;
+                                          setLovableTtsVoiceState(v);
+                                          setLovableTtsVoice(v);
+                                        }}
+                                        className="rounded border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium"
+                                      >
+                                        {LOVABLE_VOICES.map((v) => (
+                                          <option key={v} value={v}>
+                                            {v} {v === "Kore" ? "(Default)" : ""}
+                                          </option>
+                                        ))}
+                                      </select>
                                     </div>
-
-                                    <p className="text-[10px] text-muted-foreground">
-                                      Endpoint:{" "}
-                                      <code className="bg-muted px-1 py-0.5 rounded text-[10px] font-mono">
-                                        https://tts2.lovable.app/api/public/tts
-                                      </code>{" "}
-                                      (OpenAPI 3.1.0 • Method: {lovableTtsMethodState.toUpperCase()} • Format: {lovableTtsFormatState})
-                                    </p>
                                   </div>
-                                ) : (
-                                  <p className="text-[11px] text-muted-foreground">
+
+                                  {/* Configured TTS Speed Multiplier (0.25 - 4.0) */}
+                                  <div className="space-y-1.5 pt-1 text-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span className="text-muted-foreground font-medium">
+                                        Configured TTS Speed:
+                                      </span>
+                                      <span
+                                        className="font-semibold text-primary font-mono text-xs"
+                                        data-testid="lovable-tts-speed-val"
+                                      >
+                                        {lovableTtsSpeedState.toFixed(2)}x
+                                      </span>
+                                    </div>
+                                    <Slider
+                                      value={[lovableTtsSpeedState]}
+                                      onValueChange={([val]) => {
+                                        setLovableTtsSpeedState(val);
+                                        setLovableTtsSpeed(val);
+                                      }}
+                                      min={0.25}
+                                      max={4.0}
+                                      step={0.05}
+                                      className="w-full"
+                                      data-testid="lovable-tts-speed-slider"
+                                    />
+                                    <div className="flex items-center justify-between pt-0.5 text-[10px]">
+                                      {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0].map((preset) => (
+                                        <button
+                                          key={preset}
+                                          type="button"
+                                          onClick={() => {
+                                            setLovableTtsSpeedState(preset);
+                                            setLovableTtsSpeed(preset);
+                                          }}
+                                          className={`px-1.5 py-0.5 rounded transition-colors ${
+                                            Math.abs(lovableTtsSpeedState - preset) < 0.02
+                                              ? "bg-primary text-primary-foreground font-semibold"
+                                              : "bg-background text-muted-foreground hover:text-foreground border border-border"
+                                          }`}
+                                        >
+                                          {preset}x
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  <p className="text-[10px] text-muted-foreground">
                                     Endpoint:{" "}
-                                    <code className="bg-muted px-1 py-0.5 rounded text-[10px]">
-                                      https://translate.google.com/translate_tts?ie=UTF-8&amp;client=gtx&amp;tl=en&amp;q=Hello%20world
-                                    </code>
+                                    <code className="bg-muted px-1 py-0.5 rounded text-[10px] font-mono">
+                                      https://tts2.lovable.app/api/public/tts
+                                    </code>{" "}
+                                    • Speaks subtitles using configured target language, current
+                                    text, and configured speed ({lovableTtsSpeedState.toFixed(2)}x)
+                                    with voice: {lovableTtsVoiceState || "Kore"}.
                                   </p>
-                                )}
+                                </div>
 
                                 <div>
                                   <button
                                     type="button"
                                     data-testid="test-alternative-tts-btn"
                                     onClick={() => {
-                                      void playAlternativeTtsAudio("Hello world", "en", 0.5);
+                                      void playAlternativeTtsAudio(
+                                        "Hello world",
+                                        "en",
+                                        lovableTtsSpeedState,
+                                        undefined,
+                                        "lovable",
+                                        {
+                                          provider: "lovable",
+                                          voice: lovableTtsVoiceState || "Kore",
+                                          speed: lovableTtsSpeedState,
+                                        },
+                                      );
                                     }}
                                     className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1 text-foreground"
                                   >

@@ -1,11 +1,5 @@
 export type PanelId =
-  | "player"
-  | "playback"
-  | "charsRemoval"
-  | "parser"
-  | "languages"
-  | "subtitles"
-  | "library";
+  "player" | "playback" | "charsRemoval" | "parser" | "languages" | "subtitles" | "library";
 
 export interface PanelConfig {
   id: PanelId;

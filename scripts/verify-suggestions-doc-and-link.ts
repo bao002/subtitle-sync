@@ -22,10 +22,19 @@ assert.strictEqual(pkg.version, "1.0.61", "package.json must be 1.0.61");
 assert.strictEqual(APP_VERSION, "1.0.61", "APP_VERSION must be 1.0.61");
 assert.strictEqual(CURRENT_APK_VERSION, "v1.0.61", "CURRENT_APK_VERSION must be v1.0.61");
 
-const gradleContent = fs.readFileSync(path.resolve(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(gradleContent.includes("10061") && gradleContent.includes('"1.0.61"'), "build.gradle.kts must have 10061 and 1.0.61");
+const gradleContent = fs.readFileSync(
+  path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
+  "utf-8",
+);
+assert.ok(
+  gradleContent.includes("10061") && gradleContent.includes('"1.0.61"'),
+  "build.gradle.kts must have 10061 and 1.0.61",
+);
 
-const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
+const appSettingsContent = fs.readFileSync(
+  path.resolve(rootDir, "src/utils/appSettings.ts"),
+  "utf-8",
+);
 assert.ok(appSettingsContent.includes('"1.0.61"'), "appSettings.ts snapshot must be 1.0.61");
 console.log("✅ PASS: Version 1.0.61 synchronized across all targets");
 
@@ -33,7 +42,10 @@ console.log("✅ PASS: Version 1.0.61 synchronized across all targets");
 console.log("Test 2: Auditing docs/suggestions.md file location...");
 const suggestionsPath = path.resolve(rootDir, "docs/suggestions.md");
 assert.ok(fs.existsSync(suggestionsPath), "docs/suggestions.md must exist under docs/*.md");
-assert.ok(!fs.existsSync(path.resolve(rootDir, "suggestions.md")), "Root must NOT contain duplicate suggestions.md");
+assert.ok(
+  !fs.existsSync(path.resolve(rootDir, "suggestions.md")),
+  "Root must NOT contain duplicate suggestions.md",
+);
 console.log("✅ PASS: docs/suggestions.md exists exclusively under docs/");
 
 // Test 3: docs/suggestions.md content and feasibility analysis
@@ -58,7 +70,8 @@ assert.ok(
   "docs/suggestions.md must clearly distinguish bullet-proof steps from risky ones",
 );
 assert.ok(
-  suggestionsContent.includes("PARTIALLY IMPLEMENT") || suggestionsContent.includes("Partially Implement"),
+  suggestionsContent.includes("PARTIALLY IMPLEMENT") ||
+    suggestionsContent.includes("Partially Implement"),
   "docs/suggestions.md must recommend partial implementation for non-bullet-proof pipeline extraction",
 );
 assert.ok(
@@ -101,10 +114,7 @@ console.log("✅ PASS: docs/files.md inventories docs/suggestions.md");
 console.log("Test 6: Auditing AGENTS.md byte size and headroom...");
 const agentsPath = path.resolve(rootDir, "AGENTS.md");
 const agentsStat = fs.statSync(agentsPath);
-assert.ok(
-  agentsStat.size < 20480,
-  `AGENTS.md size must be < 20KB, got ${agentsStat.size} bytes`,
-);
+assert.ok(agentsStat.size < 20480, `AGENTS.md size must be < 20KB, got ${agentsStat.size} bytes`);
 console.log(`✅ PASS: AGENTS.md is lean at ${agentsStat.size} bytes (< 20KB)`);
 
 console.log("=========================================================================");

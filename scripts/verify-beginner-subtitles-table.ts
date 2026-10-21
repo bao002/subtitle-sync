@@ -36,7 +36,7 @@ assert(
   "BeginnerFlowContainer must support subtitlesTableSlot prop",
 );
 assert(
-  beginnerFlowContent.includes("data-testid=\"beginner-player-slot-container\""),
+  beginnerFlowContent.includes('data-testid="beginner-player-slot-container"'),
   "BeginnerFlowContainer must render persistent beginner-player-slot-container",
 );
 console.log("[PASS] BeginnerFlowContainer persistent player & subtitles slot verified");

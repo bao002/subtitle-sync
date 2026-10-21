@@ -24,6 +24,7 @@
 ## Application stages pipeline & execution order
 
 The application processes and presents subtitles through a strict sequential pipeline:
+
 1. **Stage 1: Acquisition & Interception**: Intercepts authentic YouTube `api/timedtext` network queries from native WebView player on Android, accepts direct user-entered subtitle URLs, or loads local fixtures strictly for video `L2Ryrr6txwA` from `public/fixtures/L2Ryrr6txwA` if explicitly approved.
 2. **Stage 2: Validation & Schema Conformance**: Enforces HTTP 200, valid non-HTML JSON, YouTube `json3` structure (`events` with `tStartMs`, `dDurationMs`, `segs[].utf8`), and non-empty cues (`cuesCount > 0`). Rejects HTML error pages or malformed payloads.
 3. **Stage 3: Special Characters Removal & Sanitization**:
@@ -35,6 +36,7 @@ The application processes and presents subtitles through a strict sequential pip
 7. **Stage 7: Audio Playback Coordination & TTS Synthesis**: Highlights active sentences during video playback. Coordinates video pauses between sections to allow Web Speech or Alternative TTS voices to complete speech synthesis before resuming playback.
 
 ### Absolute Parity Rule Between Advanced and Beginner Modes:
+
 - The processing rules (special characters removal before translation, punctuation splitting, alignment criteria, fallback order) **MUST BE 100% IDENTICAL** across both Advanced Mode and Beginner Mode.
 - **Parallel UI & Accordion Ordering**:
   - The Special Characters Removal (Chars Removal) feature MUST be present in Advanced Mode as a dedicated accordion section, providing full functional parity with Beginner Mode.
@@ -114,6 +116,7 @@ The application processes and presents subtitles through a strict sequential pip
 ### 3. Request validation & "Good" response criteria
 
 A subtitle HTTP response is considered valid and "good" ONLY when it satisfies all of the following criteria:
+
 - **HTTP status**: Status code must be 200 OK. Any 4xx or 5xx status code is strictly rejected as a failure.
 - **Valid JSON parsing**: Response body must be non-empty, start with `{` or `[`, and parse successfully without syntax errors. HTML error responses are rejected immediately.
 - **YouTube `json3` structural schema compliance**:
@@ -133,11 +136,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-extend tts service support:
-https://tts2.lovable.app/api/public/openapi.json
+1. in case the user prefer to use the tts service over the native capabilities of the device/browser: use the configured target language and the current text and the configured tts speed and dont present a tts playground here. currently support only the provider: "lovable" which also support various voice-types. show those options on a drop-down list.
 ```
-
-
-
-
-

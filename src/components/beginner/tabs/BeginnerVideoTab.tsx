@@ -102,7 +102,10 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
               <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                 <span>Step 1: YouTube Video & Subtitle Discovery</span>
                 {videoId && (
-                  <Badge variant="outline" className="text-[10px] text-muted-foreground border-border">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] text-muted-foreground border-border"
+                  >
                     ID: {videoId}
                   </Badge>
                 )}
@@ -173,11 +176,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             {playerSlot}
           </div>
         )}
-        {playbackControlsSlot && (
-          <div className="pt-2">
-            {playbackControlsSlot}
-          </div>
-        )}
+        {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}
       </div>
 
       {/* Step 2: Captions Interception Prompt */}
@@ -242,7 +241,9 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
           <div>
             <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <span>Observed Subtitle Tracks</span>
-              <span className="text-muted-foreground font-normal">({observedTracks.length} detected)</span>
+              <span className="text-muted-foreground font-normal">
+                ({observedTracks.length} detected)
+              </span>
             </h3>
             <p className="text-[11px] text-muted-foreground">
               Choose which subtitle track to use as the base language. Selecting a base track

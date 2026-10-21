@@ -17,15 +17,20 @@ const content = fs.readFileSync(mainActivityPath, "utf8");
 
 // Test 1: Check that executeTimedTextRepetition is called in shouldInterceptRequest
 console.log("--> [Test 1] Verifying shouldInterceptRequest invokes executeTimedTextRepetition...");
-const interceptorMatch = content.match(/shouldInterceptRequest[\s\S]*?fun executeTimedTextRepetition/);
+const interceptorMatch = content.match(
+  /shouldInterceptRequest[\s\S]*?fun executeTimedTextRepetition/,
+);
 assert(
-  interceptorMatch && interceptorMatch[0].includes("val json3Body = executeTimedTextRepetition(url, lang, \"json3\")"),
+  interceptorMatch &&
+    interceptorMatch[0].includes('val json3Body = executeTimedTextRepetition(url, lang, "json3")'),
   "shouldInterceptRequest must call executeTimedTextRepetition on line ~235",
 );
 console.log("✅ PASS: shouldInterceptRequest calls executeTimedTextRepetition.");
 
 // Test 2: Check that executeTimedTextRepetition is declared at MainActivity level (outside AndroidNativeBridge)
-console.log("--> [Test 2] Verifying executeTimedTextRepetition is declared at MainActivity class scope...");
+console.log(
+  "--> [Test 2] Verifying executeTimedTextRepetition is declared at MainActivity class scope...",
+);
 const bridgeEndIdx = content.indexOf("class AndroidNativeBridge");
 assert(bridgeEndIdx > 0, "AndroidNativeBridge class declaration must exist");
 
@@ -35,14 +40,24 @@ assert(repetitionDeclIdx > 0, "fun executeTimedTextRepetition must be declared")
 // Verify that between the bridge end and executeTimedTextRepetition, AndroidNativeBridge closes
 const bridgeSub = content.substring(bridgeEndIdx, repetitionDeclIdx);
 // The last closing brace before repetitionDeclIdx closes AndroidNativeBridge
-assert(bridgeSub.includes("fetchTranslatedCaptionsWithUrl"), "fetchTranslatedCaptionsWithUrl must be in AndroidNativeBridge");
-assert(bridgeSub.trim().endsWith("}"), "AndroidNativeBridge must close before fun executeTimedTextRepetition");
-console.log("✅ PASS: executeTimedTextRepetition is at MainActivity class level, accessible to both WebViewClient and bridge.");
+assert(
+  bridgeSub.includes("fetchTranslatedCaptionsWithUrl"),
+  "fetchTranslatedCaptionsWithUrl must be in AndroidNativeBridge",
+);
+assert(
+  bridgeSub.trim().endsWith("}"),
+  "AndroidNativeBridge must close before fun executeTimedTextRepetition",
+);
+console.log(
+  "✅ PASS: executeTimedTextRepetition is at MainActivity class level, accessible to both WebViewClient and bridge.",
+);
 
 // Test 3: Check that AndroidNativeBridge also successfully invokes executeTimedTextRepetition
 console.log("--> [Test 3] Verifying AndroidNativeBridge calls executeTimedTextRepetition...");
 assert(
-  content.includes("fetchTranslatedCaptionsWithUrl(customUrl: String, targetLang: String, format: String): String"),
+  content.includes(
+    "fetchTranslatedCaptionsWithUrl(customUrl: String, targetLang: String, format: String): String",
+  ),
   "fetchTranslatedCaptionsWithUrl must be declared",
 );
 assert(

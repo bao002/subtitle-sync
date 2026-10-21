@@ -18,9 +18,7 @@ const forbiddenDirs = [
 for (const dir of forbiddenDirs) {
   if (fs.existsSync(dir)) {
     const files = fs.readdirSync(dir);
-    const imageFiles = files.filter((f) =>
-      /\.(png|jpg|jpeg|webp|gif|mp4)$/i.test(f),
-    );
+    const imageFiles = files.filter((f) => /\.(png|jpg|jpeg|webp|gif|mp4)$/i.test(f));
     assert.strictEqual(
       imageFiles.length,
       0,
@@ -42,11 +40,12 @@ assert(
   ".gitignore must ignore PNGs in public/screenshots/",
 );
 assert(
-  gitignoreContent.includes("public/assets/*.png") ||
-    gitignoreContent.includes("public/assets/"),
+  gitignoreContent.includes("public/assets/*.png") || gitignoreContent.includes("public/assets/"),
   ".gitignore must ignore PNGs in public/assets/",
 );
-console.log("✅ PASS: .gitignore properly guards public screenshot directories against accidental check-ins.");
+console.log(
+  "✅ PASS: .gitignore properly guards public screenshot directories against accidental check-ins.",
+);
 
 // 3. Assert dedicated GitHub Actions flow (emulation.yml) captures real emulator screenshots
 console.log("\n🤖 Check 3: Dedicated GitHub Actions Flow Runs Real Android Emulator");
@@ -58,10 +57,7 @@ assert(
   emulationYml.includes("reactivecircus/android-emulator-runner@v2"),
   "emulation.yml must execute on authentic Android emulator via reactivecircus/android-emulator-runner",
 );
-assert(
-  emulationYml.includes("api-level: 34"),
-  "emulation.yml must run on Android 14 (API 34)",
-);
+assert(emulationYml.includes("api-level: 34"), "emulation.yml must run on Android 14 (API 34)");
 assert(
   emulationYml.includes("screencap"),
   "emulation.yml must capture authentic screenshots via adb shell screencap during test run",
@@ -74,7 +70,9 @@ assert(
   emulationYml.includes("android-emulator-artifacts"),
   "emulation.yml must upload authentic artifacts to GitHub Actions workflow run",
 );
-console.log("✅ PASS: emulation.yml dedicated flow runs real Android emulator and produces authentic artifacts.");
+console.log(
+  "✅ PASS: emulation.yml dedicated flow runs real Android emulator and produces authentic artifacts.",
+);
 
 // 4. Assert update-readme.mjs and verify-readme-links.ts enforce clean repository hygiene
 console.log("\n🧹 Check 4: Integrity & Link Checking Resilient to Absence of Static Media");
@@ -82,7 +80,7 @@ const updateReadmePath = path.resolve(rootDir, "scripts/update-readme.mjs");
 const updateReadmeContent = fs.readFileSync(updateReadmePath, "utf-8");
 
 assert(
-  updateReadmeContent.includes("cleanTarget.endsWith(\".png\")") ||
+  updateReadmeContent.includes('cleanTarget.endsWith(".png")') ||
     updateReadmeContent.includes(".png"),
   "scripts/update-readme.mjs must skip static image files in broken link scans",
 );
@@ -93,7 +91,9 @@ assert(
   verifyReadmeLinksContent.includes("!fs.existsSync(screenshotAsset)"),
   "scripts/verify-readme-links.ts must verify static screenshot asset is absent from repo source",
 );
-console.log("✅ PASS: Integrity & link verification tools enforce repository hygiene and ignore absent static media.");
+console.log(
+  "✅ PASS: Integrity & link verification tools enforce repository hygiene and ignore absent static media.",
+);
 
 console.log("\n=========================================================================");
 console.log("🎉 ALL ZERO-STATIC-IMAGES & EMULATOR-ONLY ARTIFACT GENERATION CHECKS PASSED!");

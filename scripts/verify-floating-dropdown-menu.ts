@@ -21,7 +21,10 @@ console.log("===================================================================
 
 // Test 1: Component exports and interface contracts
 console.log("Test 1: Component exports and interface contracts...");
-const componentPath = path.resolve(process.cwd(), "src/components/FloatingDraggablePauseButton.tsx");
+const componentPath = path.resolve(
+  process.cwd(),
+  "src/components/FloatingDraggablePauseButton.tsx",
+);
 assert.ok(fs.existsSync(componentPath), "FloatingDraggablePauseButton.tsx must exist");
 const componentCode = fs.readFileSync(componentPath, "utf-8");
 
@@ -55,7 +58,7 @@ assert.ok(
 );
 assert.ok(
   componentCode.includes('data-testid="floating-dropdown-trigger"') ||
-    componentCode.includes('floating-dropdown-trigger'),
+    componentCode.includes("floating-dropdown-trigger"),
   "Must support floating-dropdown-trigger testid / reference",
 );
 assert.ok(
@@ -83,7 +86,9 @@ assert.ok(
   "Must provide explanation container with data-testid='explanation-setup-pause'",
 );
 assert.ok(
-  componentCode.includes("Freezes video playback, text-to-speech voice synthesis, and automatic scrolling"),
+  componentCode.includes(
+    "Freezes video playback, text-to-speech voice synthesis, and automatic scrolling",
+  ),
   "Setup pause explanation must clearly describe frozen playback and scrolling",
 );
 console.log("✅ PASS: Setup Pause option and explanation verified");

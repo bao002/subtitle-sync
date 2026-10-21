@@ -75,10 +75,7 @@ console.log("✅ PASS: src/routes/index.tsx correctly integrates default subtitl
 
 // Test 4: Validate BeginnerFlowContainer.tsx logic
 console.log("--> [Test 4] Auditing src/components/beginner/BeginnerFlowContainer.tsx...");
-const beginnerFlowPath = path.resolve(
-  rootDir,
-  "src/components/beginner/BeginnerFlowContainer.tsx",
-);
+const beginnerFlowPath = path.resolve(rootDir, "src/components/beginner/BeginnerFlowContainer.tsx");
 assert(fs.existsSync(beginnerFlowPath), "BeginnerFlowContainer.tsx must exist");
 const beginnerFlowContent = fs.readFileSync(beginnerFlowPath, "utf8");
 

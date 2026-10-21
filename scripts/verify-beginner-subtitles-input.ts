@@ -9,7 +9,8 @@ console.log("=== Verifying Beginner Mode Subtitle Input & Language Detection ===
 
 // 1. Verify `tlang` priority when both `lang` and `tlang` are present
 console.log("1. Checking language identification prioritizing 'tlang' over 'lang'...");
-const urlWithBoth = "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&tlang=he&fmt=json3";
+const urlWithBoth =
+  "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&tlang=he&fmt=json3";
 const res1 = identifySubtitleLanguage(urlWithBoth);
 assert.ok(res1, "Should identify language");
 assert.equal(res1.lang, "he", "Should prioritize 'tlang' (he) over 'lang' (en)");
@@ -45,7 +46,9 @@ assert.equal(res5, null, "Should return null when no language parameter exists")
 
 // 5. Verify Video ID extraction
 console.log("5. Checking video ID extraction from timedtext URL...");
-const vid1 = extractVideoIdFromSubtitleUrl("https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en");
+const vid1 = extractVideoIdFromSubtitleUrl(
+  "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en",
+);
 assert.equal(vid1, "L2Ryrr6txwA");
 
 const vid2 = extractVideoIdFromSubtitleUrl("https://example.com/subtitles?foo=bar");
@@ -81,7 +84,11 @@ async function runAsyncTests() {
   if (!currentBaseLang && observedTracks.length >= 1) {
     currentBaseLang = observedTracks[0].lang;
   }
-  assert.equal(currentBaseLang, "he", "Must auto-select newly added track as base if none was selected");
+  assert.equal(
+    currentBaseLang,
+    "he",
+    "Must auto-select newly added track as base if none was selected",
+  );
 
   // Existing selection preservation: if base track is already selected, do not overwrite
   const moreTracks = [
@@ -96,7 +103,11 @@ async function runAsyncTests() {
   // 8. Verify BeginnerVideoTab component imports and hook declarations
   console.log("8. Checking BeginnerVideoTab import and hook references...");
   const { BeginnerVideoTab } = await import("../src/components/beginner/tabs/BeginnerVideoTab");
-  assert.equal(typeof BeginnerVideoTab, "function", "BeginnerVideoTab must be exported as a React function component");
+  assert.equal(
+    typeof BeginnerVideoTab,
+    "function",
+    "BeginnerVideoTab must be exported as a React function component",
+  );
 
   console.log("✅ All Beginner Mode Subtitle Input & Language Detection assertions PASSED!");
 }
@@ -105,4 +116,3 @@ runAsyncTests().catch((err) => {
   console.error("❌ Test failed:", err);
   process.exit(1);
 });
-

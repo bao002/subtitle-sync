@@ -93,24 +93,33 @@ for (const testId of beginnerTestIds) {
   console.log(`✅ PASS: Beginner mode includes ${testId}`);
 }
 
-// Section 4: Version Parity Verification (Version 1.0.66)
-console.log("\n📦 Section 4: Version 1.0.66 Parity Verification Across Manifests");
+// Section 4: Version Parity Verification (Version 1.0.67)
+console.log("\n📦 Section 4: Version 1.0.67 Parity Verification Across Manifests");
 const pkgPath = path.join(rootDir, "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-assert.equal(pkg.version, "1.0.66", "package.json must be 1.0.66");
-assert.equal(APP_VERSION, "1.0.66", "appConfig.ts APP_VERSION must be 1.0.66");
-assert.equal(CURRENT_APK_VERSION, "v1.0.66", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.66");
+assert.equal(pkg.version, "1.0.67", "package.json must be 1.0.67");
+assert.equal(APP_VERSION, "1.0.67", "appConfig.ts APP_VERSION must be 1.0.67");
+assert.equal(CURRENT_APK_VERSION, "v1.0.67", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.67");
 
 const gradlePath = path.join(rootDir, "android-shell/app/build.gradle.kts");
 const gradleContent = fs.readFileSync(gradlePath, "utf-8");
-assert.ok(gradleContent.includes('versionName = "1.0.66"'), "build.gradle.kts must have versionName 1.0.66");
-assert.ok(gradleContent.includes("versionCode = 10066"), "build.gradle.kts must have versionCode 10066");
+assert.ok(
+  gradleContent.includes('versionName = "1.0.67"'),
+  "build.gradle.kts must have versionName 1.0.67",
+);
+assert.ok(
+  gradleContent.includes("versionCode = 10067"),
+  "build.gradle.kts must have versionCode 10067",
+);
 
 const settingsPath = path.join(rootDir, "src/utils/appSettings.ts");
 const settingsContent = fs.readFileSync(settingsPath, "utf-8");
-assert.ok(settingsContent.includes('version: "1.0.66"'), "appSettings.ts must have snapshot version 1.0.66");
+assert.ok(
+  settingsContent.includes('version: "1.0.67"'),
+  "appSettings.ts must have snapshot version 1.0.67",
+);
 
-console.log("✅ PASS: All 5 manifests and configs synchronized at version 1.0.66.");
+console.log("✅ PASS: All 5 manifests and configs synchronized at version 1.0.67.");
 
 console.log("\n=========================================================================");
 console.log("🎉 ALL LOVABLE SPEAK API UI PARITY & VERIFICATION TESTS PASSED 100%!");

@@ -149,7 +149,8 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
             Strip Speaker Brackets &amp; Noise Cues
           </label>
           <p className="text-[11px] text-muted-foreground">
-            Automatically strips <code>[Music]</code>, <code>[Applause]</code>, <code>(cheers)</code>, and speaker prefixes like <code>[Host]:</code>.
+            Automatically strips <code>[Music]</code>, <code>[Applause]</code>,{" "}
+            <code>(cheers)</code>, and speaker prefixes like <code>[Host]:</code>.
           </p>
         </div>
         <Switch
@@ -237,9 +238,7 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            <span className="text-xs font-semibold text-foreground">
-              Sanitization Live Preview
-            </span>
+            <span className="text-xs font-semibold text-foreground">Sanitization Live Preview</span>
           </div>
           <Badge
             variant="outline"

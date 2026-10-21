@@ -4,10 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 174 - Extend Lovable Speak API (OpenAPI 3.1.0) Support (Version 1.0.67)
-- **Subtask 174.1**: Extend `src/lib/alternative-tts.ts` with POST synthesis, JSON/Base64 audio, target_lang, and api_key [ACTIVE].
-- **Subtask 174.2**: Enhance Alternative TTS UI in Advanced and Beginner modes.
-- **Subtask 174.3**: Bump version to 1.0.67, author verification test, compile, lint, commit, and migrate to docs/done.md.
+## Active Task: Task 175 - Prefer Lovable TTS Service Over Native Capabilities (Version 1.0.68)
+
+- **Subtask 175.1**: Enforce provider: "lovable" in `src/lib/alternative-tts.ts` with current text, configured target language, configured speed, and Lovable voice types.
+- **Subtask 175.2**: Streamline UI in Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`BeginnerPreferencesTab.tsx`), eliminating playground controls and showing Lovable voice-types dropdown.
+- **Subtask 175.3**: Bump version to 1.0.68 across 5 targets, author `scripts/verify-lovable-tts-service-preference.ts`, compile, lint, commit, push, and migrate to `docs/done.md`.
 
 ---
 

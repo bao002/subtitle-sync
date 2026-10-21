@@ -230,7 +230,9 @@ export const ApkReleaseModal: React.FC<ApkReleaseModalProps> = ({ isOpen, onClos
                 <div className="mt-2.5 p-2 rounded-lg bg-background/80 border border-border/80 space-y-1.5 text-xs">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] text-muted-foreground font-medium">Version:</span>
+                      <span className="text-[11px] text-muted-foreground font-medium">
+                        Version:
+                      </span>
                       <span
                         data-testid={`apk-version-id-${link.owner}`}
                         className="font-mono font-bold text-foreground bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded text-[11px]"

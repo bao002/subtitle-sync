@@ -9,7 +9,11 @@ import {
   fetchMultipleVideoMetadata,
   clearVideoMetadataCache,
 } from "../src/utils/videoMetadataManager";
-import { updateVideoLibraryTitle, loadVideoLibrary, saveVideoLibrary } from "../src/utils/videoLibraryManager";
+import {
+  updateVideoLibraryTitle,
+  loadVideoLibrary,
+  saveVideoLibrary,
+} from "../src/utils/videoLibraryManager";
 import { APP_VERSION } from "../src/config/appConfig";
 import { CURRENT_APK_VERSION } from "../src/utils/apkUpdater";
 
@@ -53,7 +57,10 @@ async function runMetadataFetchTest() {
   const meta = await fetchVideoMetadata("vBURridJXZ0");
   assert.ok(meta, "Metadata must be returned");
   assert.strictEqual(meta.videoId, "vBURridJXZ0", "videoId must match");
-  assert.ok(typeof meta.title === "string" && meta.title.length > 0, "Title must be non-empty string");
+  assert.ok(
+    typeof meta.title === "string" && meta.title.length > 0,
+    "Title must be non-empty string",
+  );
   assert.strictEqual(meta.providerName, "YouTube", "providerName must be YouTube");
   assert.ok(typeof meta.fetchedAt === "number", "fetchedAt must be timestamp");
 
@@ -119,15 +126,15 @@ assert.ok(
 const indexPath = path.resolve(rootDir, "src/routes/index.tsx");
 const indexContent = fs.readFileSync(indexPath, "utf8");
 assert.ok(
-  indexContent.includes("data-testid=\"video-metadata-card\""),
+  indexContent.includes('data-testid="video-metadata-card"'),
   "src/routes/index.tsx must render video-metadata-card",
 );
 assert.ok(
-  indexContent.includes("data-testid=\"video-metadata-title\""),
+  indexContent.includes('data-testid="video-metadata-title"'),
   "src/routes/index.tsx must render video-metadata-title",
 );
 assert.ok(
-  indexContent.includes("data-testid=\"video-metadata-author\""),
+  indexContent.includes('data-testid="video-metadata-author"'),
   "src/routes/index.tsx must render video-metadata-author",
 );
 console.log("✅ PASS: UI components and testids verified.");
@@ -139,7 +146,11 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 const currentVer = pkg.version;
 assert.ok(currentVer, "package.json version must be defined");
 assert.strictEqual(APP_VERSION, currentVer, "APP_VERSION must match package.json");
-assert.strictEqual(CURRENT_APK_VERSION, `v${currentVer}`, "CURRENT_APK_VERSION must match package.json");
+assert.strictEqual(
+  CURRENT_APK_VERSION,
+  `v${currentVer}`,
+  "CURRENT_APK_VERSION must match package.json",
+);
 
 const gradlePath = path.resolve(rootDir, "android-shell/app/build.gradle.kts");
 const gradleContent = fs.readFileSync(gradlePath, "utf8");

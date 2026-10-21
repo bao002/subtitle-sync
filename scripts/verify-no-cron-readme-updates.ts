@@ -120,7 +120,8 @@ if (readmeContent.includes(".yml/badge.svg")) {
 } else {
   assert.ok(
     readmeContent.includes("docs") &&
-      (readmeContent.includes("android-emulator-report.html") || readmeContent.includes("github.io")),
+      (readmeContent.includes("android-emulator-report.html") ||
+        readmeContent.includes("github.io")),
     "Basic minimalist README must link to docs and report",
   );
   console.log("✅ PASS: Basic minimalist README verified.");

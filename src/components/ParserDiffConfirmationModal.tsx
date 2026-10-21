@@ -127,7 +127,8 @@ export function ParserDiffConfirmationModal({
               <Check className="mx-auto h-8 w-8 text-emerald-500" />
               <p className="font-medium text-sm text-foreground">No Subtitle Changes Detected</p>
               <p className="text-xs text-muted-foreground">
-                The proposed parser options yield identical sentence divisions to the current settings.
+                The proposed parser options yield identical sentence divisions to the current
+                settings.
               </p>
             </div>
           ) : currentDiff ? (

@@ -24,10 +24,7 @@ assert(
   beginnerCharsIndex !== -1,
   "BeginnerParsingTab must render 'beginner-chars-removal-section'",
 );
-assert(
-  beginnerParserIndex !== -1,
-  "BeginnerParsingTab must render 'beginner-parser-section'",
-);
+assert(beginnerParserIndex !== -1, "BeginnerParsingTab must render 'beginner-parser-section'");
 assert(
   beginnerCharsIndex < beginnerParserIndex,
   `In Beginner Mode, Chars Removal section (index ${beginnerCharsIndex}) must appear BEFORE Parser section (index ${beginnerParserIndex})`,
@@ -40,10 +37,7 @@ const themesPath = path.resolve(rootDir, "src/config/accordionThemes.ts");
 assert(fs.existsSync(themesPath), "accordionThemes.ts must exist");
 const themesContent = fs.readFileSync(themesPath, "utf-8");
 
-assert(
-  themesContent.includes('"charsRemoval"'),
-  "PanelId must include 'charsRemoval'",
-);
+assert(themesContent.includes('"charsRemoval"'), "PanelId must include 'charsRemoval'");
 assert(
   themesContent.includes('id: "charsRemoval", title: "Special characters removal"'),
   "PANELS must define 'charsRemoval' with title 'Special characters removal'",
@@ -73,11 +67,11 @@ assert(fs.existsSync(indexPath), "src/routes/index.tsx must exist");
 const indexContent = fs.readFileSync(indexPath, "utf-8");
 
 assert(
-  indexContent.includes('import { SpecialCharactersRemovalPanel }'),
+  indexContent.includes("import { SpecialCharactersRemovalPanel }"),
   "index.tsx must import SpecialCharactersRemovalPanel",
 );
 assert(
-  indexContent.includes('charsRemoval: false'),
+  indexContent.includes("charsRemoval: false"),
   "index.tsx openPanels must include charsRemoval",
 );
 assert(
@@ -85,7 +79,7 @@ assert(
   "index.tsx must handle panelId === 'charsRemoval' in accordion loop",
 );
 assert(
-  indexContent.includes('<SpecialCharactersRemovalPanel'),
+  indexContent.includes("<SpecialCharactersRemovalPanel"),
   "index.tsx must render <SpecialCharactersRemovalPanel /> in accordion loop",
 );
 
@@ -103,10 +97,7 @@ console.log("✅ PASS: SpecialCharactersRemovalPanel is mounted before Parser in
 
 // 4. SpecialCharactersRemovalPanel Component Integrity
 console.log("\n📦 Section 4: SpecialCharactersRemovalPanel Component Integrity");
-const panelCompPath = path.resolve(
-  rootDir,
-  "src/components/SpecialCharactersRemovalPanel.tsx",
-);
+const panelCompPath = path.resolve(rootDir, "src/components/SpecialCharactersRemovalPanel.tsx");
 assert(fs.existsSync(panelCompPath), "SpecialCharactersRemovalPanel.tsx must exist");
 const panelCompContent = fs.readFileSync(panelCompPath, "utf-8");
 

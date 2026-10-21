@@ -1,8 +1,49 @@
 # Done tasks
 
+## Task 174: Extend Lovable Speak API (OpenAPI 3.1.0) Support: TTS Speed, Voice Types, Provider Options, Formats, and Parity (Version 1.0.67)
+
+### Summary:
+
+- **TTS Speed Multiplier & Range Clamping (Subtask 174.1)**:
+  - Supported `speed` query parameter (GET) and request body field (POST) across `0.25` to `4.0` multiplier (default 1.0) as per OpenAPI 3.1.0 spec (`https://tts2.lovable.app/api/public/openapi.json`).
+  - Added persistent storage helpers `getLovableTtsSpeed()` and `setLovableTtsSpeed()` with memory store fallback for headless execution.
+  - Extended `playAlternativeTtsAudio` to pass the server-side speed multiplier to synthesis and synchronize client playback rate.
+- **Extended Voice Types & Custom Voice Name Support (Subtask 174.1)**:
+  - Extended Gemini voice catalog (`LOVABLE_VOICES`) to include `Charon` alongside `Kore`, `Puck`, `Fenrir`, and `Aoede`.
+  - Maintained OpenAI voices (`OPENROUTER_VOICES`: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`).
+  - Added support for custom voice names (e.g. `Zephyr`, `Leda`, or any arbitrary model voice) in both GET and POST requests.
+- **Provider-Specific Options Parameter (Subtask 174.1)**:
+  - Added `options` serialization to query parameters (URL-encoded JSON string for GET) and JSON object (for POST body).
+  - Added persistent storage helpers `getLovableTtsOptions()` and `setLovableTtsOptions()`.
+- **Advanced Mode & Beginner Mode UI Parity (Subtask 174.2)**:
+  - Added Lovable TTS Speed slider (0.25x - 4.0x) with quick presets (`0.5x`, `0.75x`, `1.0x`, `1.25x`, `1.5x`, `2.0x`, `3.0x`) and live value display to both `src/routes/index.tsx` and `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`.
+  - Added voice type dropdown with `Charon`, plus dynamic "Custom voice..." mode with text input.
+  - Added Advanced Options JSON input for provider-specific extra parameters.
+  - Added informative badge for Google TTS: "Single voice per language (voice parameter ignored)".
+  - Updated instant test audio buttons to audition at the configured Lovable TTS speed.
+- **Version 1.0.67 Synchronization & Automated Test Suite (Subtask 174.3)**:
+  - Synchronized version `1.0.67` (code `10067`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+  - Authored dedicated test suite `scripts/verify-lovable-tts-speed-and-voices.ts` and registered `"test:lovable-tts-speed-and-voices"` in `package.json`.
+  - Updated `scripts/verify-lovable-tts-ui.ts` to assert 1.0.67 version parity.
+- **Verification Commands & Outcomes**:
+  - `npm run test:lovable-tts-speed-and-voices`: PASSED (all speed, voices, options, and parity checks).
+  - `npm run test:lovable-tts-ui`: PASSED.
+  - `npm run test:lovable-alternative-tts`: PASSED.
+  - `npm run test:apk-version`: PASSED (v1.0.67 verified).
+  - `npm run test:agents-version`: PASSED.
+  - `npm run test:agents-last-prompt-rule`: PASSED.
+  - `npm run test:github-import-migration`: PASSED.
+  - `npm run test:chars-removal-accordion-order`: PASSED.
+  - `npm run test:beginner-mode`: PASSED.
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 173: Expose Lovable Speak API (OpenAPI 3.1.0) Controls in Advanced and Beginner Modes (Version 1.0.66)
 
 ### Summary:
+
 - **Advanced Mode Alternative TTS UI Controls (Subtask 173.1)**:
   - Enhanced `alternative-tts-settings-card` in `src/routes/index.tsx` with engine selector (`alternative-tts-engine-select`), options for Lovable Speak API (`tts2.lovable.app`) and Google Translate TTS.
   - Added direct link to OpenAPI 3.1.0 specification (`data-testid="lovable-tts-openapi-link"`, `href="https://tts2.lovable.app/api/public/openapi.json"`).

@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "1.0.66";
+export const APP_VERSION = "1.0.68";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "f50f984";
 export const APP_VERSION_DESCRIPTION =
-  "Expose Lovable Speak API Controls in Advanced and Beginner Modes (Version 1.0.66)";
+  "Prefer Lovable TTS Service Over Native Capabilities with Configured Target Language, Current Text, Configured Speed, and Streamlined Voice-Types Dropdown (Version 1.0.68)";
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 
 export const DEFAULT_VIDEO_ID = "vBURridJXZ0";

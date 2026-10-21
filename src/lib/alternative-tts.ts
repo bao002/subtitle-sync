@@ -19,6 +19,8 @@ const STORAGE_KEY_ALTERNATIVE_TTS_MODE = "yt_alternative_tts_mode_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_ENGINE = "yt_alternative_tts_engine_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER = "yt_alternative_tts_lovable_provider_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE = "yt_alternative_tts_lovable_voice_v1";
+const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_SPEED = "yt_alternative_tts_lovable_speed_v1";
+const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_OPTIONS = "yt_alternative_tts_lovable_options_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_METHOD = "yt_alternative_tts_lovable_method_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_FORMAT = "yt_alternative_tts_lovable_format_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_TARGET_LANG = "yt_alternative_tts_lovable_target_lang_v1";
@@ -36,13 +38,15 @@ export const LOVABLE_TTS_PROVIDERS: readonly LovableTtsProvider[] = [
   "openrouter",
 ];
 
-export const LOVABLE_VOICES = ["Kore", "Puck", "Fenrir", "Aoede"] as const;
+export const LOVABLE_VOICES = ["Kore", "Puck", "Charon", "Fenrir", "Aoede"] as const;
 
-export const OPENROUTER_VOICES = ["alloy", "nova", "echo", "fable", "onyx", "shimmer"] as const;
+export const OPENROUTER_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
 
 export interface LovableTtsOptions {
   provider?: LovableTtsProvider;
   voice?: string;
+  speed?: number;
+  options?: Record<string, unknown> | string;
   format?: LovableTtsFormat;
   target_lang?: string;
   apiKey?: string;
@@ -56,6 +60,8 @@ export interface LovableTtsRequestBody {
   provider?: LovableTtsProvider;
   api_key?: string;
   voice?: string;
+  speed?: number;
+  options?: Record<string, unknown>;
   format?: LovableTtsFormat;
 }
 
@@ -119,6 +125,21 @@ export function buildLovableTtsUrl(
     url.searchParams.set("voice", voice.trim());
   }
 
+  const speed = options?.speed ?? getLovableTtsSpeed();
+  if (typeof speed === "number" && !isNaN(speed) && speed !== 1) {
+    const clampedSpeed = Math.max(0.25, Math.min(4, Math.round(speed * 100) / 100));
+    url.searchParams.set("speed", String(clampedSpeed));
+  }
+
+  const rawOptions = options?.options ?? getLovableTtsOptions();
+  if (rawOptions) {
+    if (typeof rawOptions === "string" && rawOptions.trim()) {
+      url.searchParams.set("options", rawOptions.trim());
+    } else if (typeof rawOptions === "object" && Object.keys(rawOptions).length > 0) {
+      url.searchParams.set("options", JSON.stringify(rawOptions));
+    }
+  }
+
   const targetLang = options?.target_lang ?? getLovableTtsTargetLang();
   if (targetLang && targetLang.trim()) {
     url.searchParams.set("target_lang", targetLang.trim());
@@ -152,6 +173,8 @@ export function buildLovableTtsRequestBody(
   const normalizedLang = normalizeLanguageCode(lang);
   const provider = options?.provider || getLovableTtsProvider();
   const voice = options?.voice ?? getLovableTtsVoice();
+  const speed = options?.speed ?? getLovableTtsSpeed();
+  const rawOptions = options?.options ?? getLovableTtsOptions();
   const targetLang = options?.target_lang ?? getLovableTtsTargetLang();
   const apiKey =
     options?.apiKey ??
@@ -171,6 +194,20 @@ export function buildLovableTtsRequestBody(
   }
   if (voice && voice.trim()) {
     body.voice = voice.trim();
+  }
+  if (typeof speed === "number" && !isNaN(speed) && speed !== 1) {
+    body.speed = Math.max(0.25, Math.min(4, Math.round(speed * 100) / 100));
+  }
+  if (rawOptions) {
+    if (typeof rawOptions === "string" && rawOptions.trim()) {
+      try {
+        body.options = JSON.parse(rawOptions.trim());
+      } catch {
+        // ignore malformed options json in request body
+      }
+    } else if (typeof rawOptions === "object" && Object.keys(rawOptions).length > 0) {
+      body.options = rawOptions as Record<string, unknown>;
+    }
   }
   if (targetLang && targetLang.trim()) {
     body.target_lang = targetLang.trim();
@@ -383,55 +420,126 @@ export function setAlternativeTtsEngine(engine: AlternativeTtsEngine): void {
 }
 
 /**
- * Retrieves the configured Lovable TTS Provider: "google" | "lovable" | "openrouter".
+ * Retrieves the configured Lovable TTS Provider: strictly "lovable".
  */
 export function getLovableTtsProvider(): LovableTtsProvider {
-  if (typeof window === "undefined") return "google";
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER);
-    if (stored === "google" || stored === "lovable" || stored === "openrouter") {
-      return stored;
-    }
-  } catch {
-    // ignore
-  }
-  return "google";
+  return "lovable";
 }
 
 /**
  * Persists the Lovable TTS Provider choice.
  */
 export function setLovableTtsProvider(provider: LovableTtsProvider): void {
-  if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER, provider);
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER, "lovable");
+    }
   } catch (err) {
     console.warn("Failed to persist Lovable TTS provider:", err);
   }
 }
 
 /**
- * Retrieves the configured Lovable voice name.
+ * Retrieves the configured Lovable voice name (defaults to "Kore").
  */
 export function getLovableTtsVoice(): string {
-  if (typeof window === "undefined") return "";
   try {
-    return localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE) || "";
+    const stored =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE)
+        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE];
+    if (stored && stored.trim()) {
+      return stored.trim();
+    }
   } catch {
-    return "";
+    // ignore
   }
+  return "Kore";
 }
 
 /**
  * Persists the Lovable voice name.
  */
 export function setLovableTtsVoice(voice: string): void {
-  if (typeof window === "undefined") return;
+  const v = (voice || "Kore").trim();
   try {
-    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE, voice.trim());
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE, v);
+    }
   } catch (err) {
     console.warn("Failed to persist Lovable TTS voice:", err);
   }
+  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE] = v;
+}
+
+/**
+ * Retrieves the configured Lovable TTS speed multiplier (0.25 to 4.0, defaults to 1.0).
+ */
+const memoryFallbackStore: Record<string, string> = {};
+
+/**
+ * Retrieves the configured Lovable TTS speed multiplier (0.25 to 4.0, defaults to 1.0).
+ */
+export function getLovableTtsSpeed(): number {
+  try {
+    const stored =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_SPEED)
+        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_SPEED];
+    if (stored !== null && stored !== undefined) {
+      const parsed = parseFloat(stored);
+      if (!isNaN(parsed) && parsed >= 0.25 && parsed <= 4.0) {
+        return Math.round(parsed * 100) / 100;
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return 1.0;
+}
+
+/**
+ * Persists the Lovable TTS speed multiplier (clamped to 0.25 - 4.0).
+ */
+export function setLovableTtsSpeed(speed: number): void {
+  const clamped = Math.max(0.25, Math.min(4.0, Math.round(speed * 100) / 100));
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_SPEED, String(clamped));
+    }
+  } catch (err) {
+    console.warn("Failed to persist Lovable TTS speed:", err);
+  }
+  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_SPEED] = String(clamped);
+}
+
+/**
+ * Retrieves the configured Lovable TTS options JSON string (e.g. '{"temperature": 0.7}' or "").
+ */
+export function getLovableTtsOptions(): string {
+  try {
+    if (typeof localStorage !== "undefined") {
+      return localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_OPTIONS) || "";
+    }
+  } catch {
+    // ignore
+  }
+  return memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_OPTIONS] || "";
+}
+
+/**
+ * Persists the Lovable TTS options JSON string.
+ */
+export function setLovableTtsOptions(options: string): void {
+  const val = (options || "").trim();
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_OPTIONS, val);
+    }
+  } catch (err) {
+    console.warn("Failed to persist Lovable TTS options:", err);
+  }
+  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_OPTIONS] = val;
 }
 
 /**
@@ -589,7 +697,14 @@ export async function playAlternativeTtsAudio(
 
   if (engine === "lovable") {
     try {
-      const synthesized = await synthesizeLovableTtsAudio(text, lang, optionsOverride);
+      const requestedSpeed =
+        optionsOverride?.speed ??
+        (typeof rate === "number" && rate >= 0.25 && rate <= 4.0 ? rate : getLovableTtsSpeed());
+      const mergedOptions: LovableTtsOptions = {
+        speed: requestedSpeed,
+        ...optionsOverride,
+      };
+      const synthesized = await synthesizeLovableTtsAudio(text, lang, mergedOptions);
       if (synthesized?.url) {
         audioUrl = synthesized.url;
         shouldRevoke = Boolean(synthesized.revokeOnDone);
@@ -662,7 +777,11 @@ export async function playAlternativeTtsAudio(
     audio.addEventListener("timeupdate", onTimeUpdate);
 
     try {
-      audio.playbackRate = Math.max(0.3, Math.min(1.5, rate || 0.5));
+      if (audioUrl.includes("tts2.lovable.app") || shouldRevoke) {
+        audio.playbackRate = 1.0;
+      } else {
+        audio.playbackRate = Math.max(0.3, Math.min(1.5, rate || 0.5));
+      }
     } catch {
       // ignore
     }

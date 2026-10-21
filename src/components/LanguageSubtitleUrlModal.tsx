@@ -68,10 +68,7 @@ export const LanguageSubtitleUrlModal: React.FC<LanguageSubtitleUrlModalProps> =
       // 2. Fallback to server proxy if needed
       if (!parsed || !isValidJsonSubtitleResponse(parsed)) {
         if (trimmed.startsWith("http")) {
-          const proxyResp = await fetchViaServer(
-            trimmed,
-            getFetchServerUrl(),
-          );
+          const proxyResp = await fetchViaServer(trimmed, getFetchServerUrl());
           if (proxyResp && proxyResp.status === 200 && proxyResp.body) {
             parsed = parseJson3(proxyResp.body);
           }

@@ -131,12 +131,14 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
 
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="text-[11px] border-border text-foreground">
-            Base: <strong className="ml-1 text-emerald-600 dark:text-emerald-400">{baseLanguage.toUpperCase()}</strong>
+            Base:{" "}
+            <strong className="ml-1 text-emerald-600 dark:text-emerald-400">
+              {baseLanguage.toUpperCase()}
+            </strong>
           </Badge>
           {targetLanguage && (
             <Badge variant="outline" className="text-[11px] border-border text-foreground">
-              Target:{" "}
-              <strong className="ml-1 text-primary">{targetLanguage.toUpperCase()}</strong>
+              Target: <strong className="ml-1 text-primary">{targetLanguage.toUpperCase()}</strong>
             </Badge>
           )}
           <Badge variant="outline" className="text-[11px] border-border text-muted-foreground">

@@ -30,7 +30,9 @@ const serviceContent = fs.readFileSync(servicePath, "utf8");
 // 2. Verify BackgroundPlayableWebView implementation in MainActivity.kt
 console.log("Test 1: BackgroundPlayableWebView definition and window visibility override...");
 assert(
-  mainActivityContent.includes("open class BackgroundPlayableWebView(context: Context) : WebView(context)"),
+  mainActivityContent.includes(
+    "open class BackgroundPlayableWebView(context: Context) : WebView(context)",
+  ),
   "MainActivity.kt must define BackgroundPlayableWebView subclassing WebView",
 );
 assert(
@@ -72,7 +74,9 @@ assert(
   "BackgroundAudioService.kt must import AudioAttributes, AudioFocusRequest, and AudioManager",
 );
 assert(
-  serviceContent.includes("audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager"),
+  serviceContent.includes(
+    "audioManager = getSystemService(Context.AUDIO_SERVICE) as? AudioManager",
+  ),
   "BackgroundAudioService must obtain AudioManager system service",
 );
 assert(
@@ -115,17 +119,32 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 assert.strictEqual(pkg.version, "1.0.47", "package.json must be 1.0.47");
 
 const gradleContent = fs.readFileSync(gradlePath, "utf8");
-assert(gradleContent.includes('versionCode = 10047'), "build.gradle.kts must have versionCode 10047");
-assert(gradleContent.includes('versionName = "1.0.47"'), "build.gradle.kts must have versionName 1.0.47");
+assert(
+  gradleContent.includes("versionCode = 10047"),
+  "build.gradle.kts must have versionCode 10047",
+);
+assert(
+  gradleContent.includes('versionName = "1.0.47"'),
+  "build.gradle.kts must have versionName 1.0.47",
+);
 
 const appConfigContent = fs.readFileSync(appConfigPath, "utf8");
-assert(appConfigContent.includes('export const APP_VERSION = "1.0.47"'), "appConfig.ts must export APP_VERSION 1.0.47");
+assert(
+  appConfigContent.includes('export const APP_VERSION = "1.0.47"'),
+  "appConfig.ts must export APP_VERSION 1.0.47",
+);
 
 const apkUpdaterContent = fs.readFileSync(apkUpdaterPath, "utf8");
-assert(apkUpdaterContent.includes('export const CURRENT_APK_VERSION = "v1.0.47"'), "apkUpdater.ts must export CURRENT_APK_VERSION v1.0.47");
+assert(
+  apkUpdaterContent.includes('export const CURRENT_APK_VERSION = "v1.0.47"'),
+  "apkUpdater.ts must export CURRENT_APK_VERSION v1.0.47",
+);
 
 const appSettingsContent = fs.readFileSync(appSettingsPath, "utf8");
-assert(appSettingsContent.includes('version: "1.0.47"'), "appSettings.ts snapshot must have version 1.0.47");
+assert(
+  appSettingsContent.includes('version: "1.0.47"'),
+  "appSettings.ts snapshot must have version 1.0.47",
+);
 console.log("✅ PASS: Version 1.0.47 and versionCode 10047 verified across all 5 targets.");
 
 console.log("==================================================================");
