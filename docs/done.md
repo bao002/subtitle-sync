@@ -1,5 +1,84 @@
 # Done tasks
 
+## Task 164: Document AGENTS.md Optimization Suggestions in `docs/suggestions.md` & Cross-Link from `docs/tokens.md` (Version 1.0.61)
+
+### Summary:
+- **Version Bump across 5 Targets (Subtask 164.1)**:
+  - Updated application version to `1.0.61` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10061`, versionName `"1.0.61"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.61"`), `src/utils/appSettings.ts` (snapshot version `"1.0.61"`), and `src/config/appConfig.ts` (`APP_VERSION = "1.0.61"`).
+- **Optimization Suggestions & Feasibility Analysis Document (Subtask 164.2)**:
+  - Authored `docs/suggestions.md` cataloging the 24KB platform limit, target rule file budget (< 20KB), and 5 prioritized optimization steps ordered by urgency and importance with feasibility analysis:
+    1. Streamline narrative prose & theory (Critical / Critical, Bullet-proof, Fully Implemented).
+    2. Preserve 100% of 16 test suite assertion strings (High / Critical, Bullet-proof, Fully Implemented).
+    3. Offload deep technical specifications to `docs/*.md` reference pointers (High / High, Bullet-proof, Fully Implemented).
+    4. Extract application stages pipeline entirely out of `AGENTS.md` (Medium / Medium, NOT bullet-proof / high regression risk, Partially Implemented with keyword anchors).
+    5. Truncate / summarize `## Last raw prompt` (Low / Low, NOT bullet-proof / compliance violation, Skipped).
+  - Cataloged `docs/suggestions.md` in `docs/files.md`.
+- **Cross-Link from `docs/tokens.md` (Subtask 164.3)**:
+  - Added reference to `docs/suggestions.md` under Section 2 ("Rules & Configuration Economy") and registered in the Section 3 protocol file table in `docs/tokens.md`.
+- **Dedicated Automated Verification & Quality (Subtask 164.4)**:
+  - Authored `scripts/verify-suggestions-doc-and-link.ts` asserting file location, content coverage, rankings, risk analysis, cross-linking, files cataloging, and byte size (< 20KB).
+  - Registered `test:suggestions-doc-and-link` in `package.json`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:suggestions-doc-and-link`: PASSED (100% pass across all 6 test assertions).
+  - `npm run test:tokens-economy`: PASSED.
+  - `npm run test:no-duplicate-md`: PASSED.
+  - `npm run test:agents-version`: PASSED.
+  - `npm run test:apk-version`: PASSED.
+  - `npm run test:android-build-version-details`: PASSED.
+  - `npm run test:agents-last-prompt-rule`: PASSED.
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+### Hotfix: Thin & Efficient AGENTS.md Optimization & Priority-Ranked Audit (Version 1.0.60)
+
+### Summary:
+- **Root Cause & Diagnosis**:
+  - `AGENTS.md` had grown to 25.7KB (25,710 bytes), exceeding the platform's 24KB rule injection limit and causing automatic truncation (`[TRUNCATED: This file exceeded the 24KB rule limit. Content beyond this point was omitted.]`) of critical caching rules and the raw prompt section.
+- **Targeted Architectural Optimization**:
+  - Streamlined verbose prose, repetitive paragraphs, and narrative explanations across all sections of `AGENTS.md`.
+  - Preserved 100% of required section headers, keyword contracts, and exact text phrases asserted by all 16 verification suites.
+  - Reduced file size from 25,710 bytes to 17,981 bytes (17.55KB) — achieving a 30% reduction and providing 6.6KB of safety headroom below the 24KB limit to prevent any future truncation.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-agents-last-prompt-rule.ts`: PASSED.
+  - `npx tsx scripts/verify-agents-push-rule.ts`: PASSED.
+  - `npx tsx scripts/verify-agents-subtitles-spec.ts`: PASSED.
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED.
+  - `npx tsx scripts/verify-numbered-chapters-protocol.ts`: PASSED.
+  - `npx tsx scripts/verify-readme-git-sync-rule.ts`: PASSED.
+  - `npx tsx scripts/verify-subtitles-fixtures-restriction.ts`: PASSED.
+  - `npx tsx scripts/verify-task-management-workflow.ts`: PASSED.
+  - `npx tsx scripts/verify-tokens-economy.ts`: PASSED.
+  - `npx tsx scripts/verify-web-demo-design-preservation.ts`: PASSED.
+  - `npx tsx scripts/verify-application-stages-pipeline.ts`: PASSED.
+  - `npx tsx scripts/verify-code-modularity-standards.ts`: PASSED.
+  - `npx tsx scripts/verify-hotfix-and-done-workflow.ts`: PASSED.
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED.
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+  - `compile_applet`: PASSED (build succeeded).
+
+---
+### Hotfix: Align build.gradle.kts versionCode, versionName, and appConfig.ts APP_VERSION Parity (Version 1.0.60)
+
+### Summary:
+- **Root Cause & Diagnosis**:
+  - `scripts/verify-agents-version-rule.ts` requires literal regex matching for `versionCode` and `versionName` in `build.gradle.kts`.
+  - `src/config/appConfig.ts` had retained `APP_VERSION = "1.0.59"` while `package.json` had been bumped to `1.0.60`.
+  - `scripts/verify-android-build-and-version-details.ts` and `verify-android-build-hotfix-and-version-details.ts` had static `1.0.59` checks.
+- **Targeted Architectural Fix**:
+  - Updated `android-shell/app/build.gradle.kts` to explicitly declare `versionCode = 10060` and `versionName = "1.0.60"` while preserving dynamic `-PappVersionCode` and `-PappVersionName` overrides.
+  - Updated `src/config/appConfig.ts` to set `APP_VERSION = "1.0.60"` and updated `APP_VERSION_DESCRIPTION`.
+  - Updated `verify-android-build-and-version-details.ts` and `verify-android-build-hotfix-and-version-details.ts` to dynamically validate parity against `pkg.version`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:agents-version`: PASSED (100% verified across all targets).
+  - `npm run test:apk-version`: PASSED.
+  - `npm run test:android-build-version-details`: PASSED.
+  - `npm run test:android-build-hotfix-and-version-details`: PASSED.
+  - `npm run test:agents-last-prompt-rule`: PASSED.
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+---
 ## Task 162: Android Emulator E2E Caption Detection & Text Exposure (Deprecate Screencast Generation) (Version 1.0.60)
 
 ### Summary:

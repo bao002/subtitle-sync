@@ -5,7 +5,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
 ---
 
 ## Active Task: Idle (All tasks completed & verified)
-- Last Completed Task: Task 162 - Android Emulator E2E Caption Detection & Text Exposure (Version 1.0.60)
+- Last Completed Task: Task 164 - Document Optimization Suggestions in docs/suggestions.md & Link from docs/tokens.md (Version 1.0.61)
 - Backlog Status: Clean, ready for next prompt
 
 ---
@@ -31,6 +31,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 - **Token Output is Bounded**: Code edits are targeted and verified immediately.
 - **Progress is Checkpointed**: Completed sub-tasks are committed to Git and logged in `docs/done.md`.
 - **Context Stays Crisp**: Each step maintains a single, verifiable goal.
+- **Rules & Configuration Economy**: Keep top-level instruction files like `AGENTS.md` lean (< 20KB) to prevent platform rule truncation and wasted context window tokens. Detailed optimization guidelines live in [`docs/suggestions.md`](suggestions.md).
 
 ---
 
@@ -48,6 +49,7 @@ To guarantee token economy without heavy processing, maintain the following file
 | `docs/todo.md`              | High-level active sub-task synchronization mirror.                                                                                                 | Single active task      |
 | `docs/done.md`              | Permanent verified changelog and archive of all completed tasks and sub-tasks.                                                                     | Permanent archive / log |
 | `docs/self-verification.md` | Comprehensive self-verification protocol for automated test execution, screencast linking in README, and full sanity check audits.                 | Permanent specification |
+| `docs/suggestions.md`       | Ranked optimization steps, feasibility analysis, and rule size monitoring guidelines for instruction files.                                       | Permanent specification |
 
 ---
 
