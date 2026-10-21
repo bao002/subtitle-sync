@@ -1,4 +1,3 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: None (Task 160 completed and migrated to `docs/done.md`)
-- **Status**: Standby for next instructions or user prompt
+*No active subtasks in progress. All tasks planned for the current prompt have been completed, verified, and logged in `docs/done.md`.*

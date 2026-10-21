@@ -1112,80 +1112,80 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             if (base.isEmpty()) return ""
             return executeTimedTextRepetition(base, targetLang, format)
         }
+    }
 
-        private fun executeTimedTextRepetition(base: String, targetLang: String, format: String): String {
-            return try {
-                val uri = android.net.Uri.parse(base)
-                val originalLang = uri.getQueryParameter("lang")?.takeIf { it.isNotBlank() } ?: "en"
-                val baseHasTlang = uri.getQueryParameter("tlang")?.isNotBlank() == true
-                val baseHasReplacedLang = !baseHasTlang && uri.getQueryParameter("lang")?.equals(targetLang, ignoreCase = true) == true
+    fun executeTimedTextRepetition(base: String, targetLang: String, format: String): String {
+        return try {
+            val uri = android.net.Uri.parse(base)
+            val originalLang = uri.getQueryParameter("lang")?.takeIf { it.isNotBlank() } ?: "en"
+            val baseHasTlang = uri.getQueryParameter("tlang")?.isNotBlank() == true
+            val baseHasReplacedLang = !baseHasTlang && uri.getQueryParameter("lang")?.equals(targetLang, ignoreCase = true) == true
 
-                fun buildRepetitionUrl(mode: String): String {
-                    val queryParamNames = uri.queryParameterNames
-                    val builder = uri.buildUpon().clearQuery()
-                    for (name in queryParamNames) {
-                        val isLang = name.equals("lang", ignoreCase = true)
-                        val isTlang = name.equals("tlang", ignoreCase = true)
-                        val isFmt = name.equals("fmt", ignoreCase = true) && format.isNotEmpty()
-                        if (!isLang && !isTlang && !isFmt) {
-                            for (value in uri.getQueryParameters(name)) {
-                                builder.appendQueryParameter(name, value)
-                            }
+            fun buildRepetitionUrl(mode: String): String {
+                val queryParamNames = uri.queryParameterNames
+                val builder = uri.buildUpon().clearQuery()
+                for (name in queryParamNames) {
+                    val isLang = name.equals("lang", ignoreCase = true)
+                    val isTlang = name.equals("tlang", ignoreCase = true)
+                    val isFmt = name.equals("fmt", ignoreCase = true) && format.isNotEmpty()
+                    if (!isLang && !isTlang && !isFmt) {
+                        for (value in uri.getQueryParameters(name)) {
+                            builder.appendQueryParameter(name, value)
                         }
                     }
-                    if (mode == "lang") {
-                        builder.appendQueryParameter("lang", targetLang)
-                    } else {
-                        builder.appendQueryParameter("lang", originalLang)
-                        if (!originalLang.equals(targetLang, ignoreCase = true)) {
-                            builder.appendQueryParameter("tlang", targetLang)
-                        }
-                    }
-                    if (format.isNotEmpty()) {
-                        builder.appendQueryParameter("fmt", format)
-                    }
-                    return builder.build().toString()
                 }
-
-                // Determine primary mode: if incoming URL replaced lang without tlang, try lang first, else tlang first
-                val modes = if (baseHasReplacedLang) {
-                    listOf("lang", "tlang")
+                if (mode == "lang") {
+                    builder.appendQueryParameter("lang", targetLang)
                 } else {
-                    listOf("tlang", "lang")
-                }
-
-                for (mode in modes) {
-                    val targetUrl = buildRepetitionUrl(mode)
-                    Log.i(TAG, "Native Shell timedtext request ($mode) for targetLang=$targetLang, fmt=$format: $targetUrl")
-                    val reqBuilder = Request.Builder().url(targetUrl)
-                    lastObservedHeaders.forEach { (k, v) ->
-                        // Exclude Accept-Encoding so OkHttp handles transparent decompression
-                        if (!k.equals("accept-encoding", ignoreCase = true)) {
-                            reqBuilder.addHeader(k, v)
-                        }
-                    }
-                    try {
-                        val resp = okHttpClient.newCall(reqBuilder.build()).execute()
-                        if (resp.isSuccessful) {
-                            val bodyString = resp.body?.string() ?: ""
-                            if (isValidJsonSubtitle(bodyString)) {
-                                Log.i(TAG, "SUBTITLE_FETCH kind=translated lang=$targetLang mode=$mode http=${resp.code} bytes=${bodyString.toByteArray(StandardCharsets.UTF_8).size} cues=${countCaptionCues(bodyString)}")
-                                return bodyString
-                            } else {
-                                Log.w(TAG, "Timedtext response for mode=$mode was invalid JSON (bytes=${bodyString.length}). Falling back to alternative option...")
-                            }
-                        } else {
-                            Log.w(TAG, "Timedtext request for mode=$mode failed with http=${resp.code}. Falling back to alternative option...")
-                        }
-                    } catch (netErr: Exception) {
-                        Log.w(TAG, "Timedtext request error for mode=$mode: ${netErr.message}. Falling back...")
+                    builder.appendQueryParameter("lang", originalLang)
+                    if (!originalLang.equals(targetLang, ignoreCase = true)) {
+                        builder.appendQueryParameter("tlang", targetLang)
                     }
                 }
-                ""
-            } catch (e: Exception) {
-                Log.e(TAG, "Error fetching native translated captions: ${e.message}", e)
-                ""
+                if (format.isNotEmpty()) {
+                    builder.appendQueryParameter("fmt", format)
+                }
+                return builder.build().toString()
             }
+
+            // Determine primary mode: if incoming URL replaced lang without tlang, try lang first, else tlang first
+            val modes = if (baseHasReplacedLang) {
+                listOf("lang", "tlang")
+            } else {
+                listOf("tlang", "lang")
+            }
+
+            for (mode in modes) {
+                val targetUrl = buildRepetitionUrl(mode)
+                Log.i(TAG, "Native Shell timedtext request ($mode) for targetLang=$targetLang, fmt=$format: $targetUrl")
+                val reqBuilder = Request.Builder().url(targetUrl)
+                lastObservedHeaders.forEach { (k, v) ->
+                    // Exclude Accept-Encoding so OkHttp handles transparent decompression
+                    if (!k.equals("accept-encoding", ignoreCase = true)) {
+                        reqBuilder.addHeader(k, v)
+                    }
+                }
+                try {
+                    val resp = okHttpClient.newCall(reqBuilder.build()).execute()
+                    if (resp.isSuccessful) {
+                        val bodyString = resp.body?.string() ?: ""
+                        if (isValidJsonSubtitle(bodyString)) {
+                            Log.i(TAG, "SUBTITLE_FETCH kind=translated lang=$targetLang mode=$mode http=${resp.code} bytes=${bodyString.toByteArray(StandardCharsets.UTF_8).size} cues=${countCaptionCues(bodyString)}")
+                            return bodyString
+                        } else {
+                            Log.w(TAG, "Timedtext response for mode=$mode was invalid JSON (bytes=${bodyString.length}). Falling back to alternative option...")
+                        }
+                    } else {
+                        Log.w(TAG, "Timedtext request for mode=$mode failed with http=${resp.code}. Falling back to alternative option...")
+                    }
+                } catch (netErr: Exception) {
+                    Log.w(TAG, "Timedtext request error for mode=$mode: ${netErr.message}. Falling back...")
+                }
+            }
+            ""
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching native translated captions: ${e.message}", e)
+            ""
         }
     }
 }

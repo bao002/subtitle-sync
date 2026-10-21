@@ -1,5 +1,48 @@
 # Done tasks
 
+## Task 151: Floating Draggable Dropdown Menu with Auto-Scroll & Setup-Pause (Version 1.0.51)
+
+### Summary:
+- **Floating Draggable Dropdown Action Menu (Subtask 151.1)**:
+  - Upgraded `src/components/FloatingDraggablePauseButton.tsx` from a simple toggle button into a feature-rich, accessible floating dropdown menu.
+  - Added trigger button with `aria-haspopup="menu"`, `aria-expanded={isOpen}`, and dual-indicator icon/badges showing both Setup Pause and Auto-Scroll operational states.
+  - Added menu option 1: **Setup Pause** toggle, with status badge and expandable/visible descriptive explanation ("Freezes video playback, text-to-speech voice synthesis, and automatic scrolling to allow adjusting preferences, criteria, or settings without missing video dialogue").
+  - Added menu option 2: **Auto-Scroll (Dialogue Tracking)** toggle, with status badge and expandable/visible descriptive explanation ("Automatically centers and scrolls the parallel subtitles table to keep the active sentence visible as the video plays. Pauses scrolling for 5 seconds when you manually scroll or interact with the table").
+  - Preserved drag-and-drop repositioning with local storage persistence (`yt_floating_pause_pos`).
+- **Index Route State Wiring (Subtask 151.2)**:
+  - Connected `FloatingDraggablePauseButton` in `src/routes/index.tsx` with `isAutoScrollEnabled={autoFocus}` and `onToggleAutoScroll={() => onAutoFocusChange(!autoFocus)}`.
+  - Seamlessly links the dropdown's Auto-Scroll toggle to the application's core auto-scroll and focus tracking state.
+- **Dedicated Automated Verification & Hygiene (Subtask 151.3)**:
+  - Created test suite `scripts/verify-floating-dropdown-menu.ts` testing component exports, props interface, aria attributes, dropdown popup rendering, both options with explanations, route wiring in `index.tsx`, and documentation cataloging in `docs/files.md`.
+  - Registered `test:floating-dropdown-menu` in `package.json`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:floating-dropdown-menu`: PASSED (all 6 tests verified).
+  - `npm run test:mainactivity-scope`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+### Hotfix: Resolve executeTimedTextRepetition Scope in MainActivity.kt
+
+### Summary:
+- **Root Cause & Diagnosis**:
+  - In `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt`, `executeTimedTextRepetition` was declared as a private method inside `inner class AndroidNativeBridge`.
+  - When line 235 inside `WebViewClient.shouldInterceptRequest` invoked `executeTimedTextRepetition(url, lang, "json3")`, the Kotlin compiler failed with `Unresolved reference: executeTimedTextRepetition`.
+- **Targeted Architectural Fix**:
+  - Promoted `executeTimedTextRepetition(base: String, targetLang: String, format: String): String` to `MainActivity` class scope.
+  - This allows both `shouldInterceptRequest` (in `WebViewClient`) and `fetchTranslatedCaptionsWithUrl` / `fetchTranslatedCaptions` (in `AndroidNativeBridge`) to access `executeTimedTextRepetition` cleanly without scope errors.
+- **Dedicated Automated Verification (`scripts/verify-android-mainactivity-compilation.ts`)**:
+  - Validated that `shouldInterceptRequest` calls `executeTimedTextRepetition`.
+  - Validated that `AndroidNativeBridge` closes before `fun executeTimedTextRepetition` declaration, placing it at `MainActivity` class scope.
+  - Validated that `AndroidNativeBridge` delegates cleanly to `executeTimedTextRepetition`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:mainactivity-scope`: PASSED (100% verified).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 160: Android Emulator GitHub Actions Execution & Telemetry Evidence Docs (Version 1.0.59)
 
 ### Summary:

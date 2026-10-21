@@ -1,4 +1,3 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Active**: None (All active tasks completed and verified)
-- **Next**: Ready for next user instructions or backlog items.
+*No active subtasks in progress. All tasks planned for the current prompt have been completed, verified, and logged in `docs/done.md`.*
