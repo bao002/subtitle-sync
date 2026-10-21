@@ -4,9 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Idle (All tasks completed & verified)
-- Last Completed Task: Task 164 - Document Optimization Suggestions in docs/suggestions.md & Link from docs/tokens.md (Version 1.0.61)
-- Backlog Status: Clean, ready for next prompt
+## Active Task: Task 165 - Update Integrity & Link Checks for Deprecated Video/Image Artifacts (Version 1.0.62)
+- **Subtask 165.1**: Update scripts/update-readme.mjs for deprecated video/image links [ACTIVE].
+- **Subtask 165.2**: Update integrity.yml and report-video-flow.yml to reflect deprecated video/image artifacts.
+- **Subtask 165.3**: Update verify-report-video-links-and-readme-sync.ts for updated integrity specs.
+- **Subtask 165.4**: Execute verification tests, compile, lint, commit, and migrate to docs/done.md.
 
 ---
 

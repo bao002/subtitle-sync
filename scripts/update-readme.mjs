@@ -249,6 +249,19 @@ function scanReadmeBrokenLinks(markdownContent, rootDir) {
       }
       const cleanTarget = target.split("#")[0].trim();
       if (!cleanTarget) continue;
+
+      // Ephemeral emulator artifacts (screenshots and screencast videos) are deployed exclusively
+      // to gh-pages branch and workflow artifacts, and are not required to exist in repository source
+      if (
+        cleanTarget.endsWith(".png") ||
+        cleanTarget.endsWith(".mp4") ||
+        cleanTarget.includes("screenshots/") ||
+        cleanTarget.includes("android-emulator-screenshot") ||
+        cleanTarget.includes("android-emulator-video")
+      ) {
+        continue;
+      }
+
       const resolved = path.resolve(rootDir, cleanTarget);
       if (!fs.existsSync(resolved)) {
         broken.push({
@@ -283,7 +296,8 @@ function scanReadmeBrokenLinks(markdownContent, rootDir) {
 
 function scanReportVideoIntegrity(rootDir, targetOwner, targetRepo, brokenVideo) {
   const broken = [];
-  if (brokenVideo) {
+  // Generating screencast video and static images is no longer required (deprecated in favor of authentic live dialogue telemetry)
+  if (brokenVideo && process.env.ENFORCE_VIDEO_PRESENCE === "true") {
     const reportHtmlPath = path.resolve(rootDir, "public/android-emulator-report.html");
     const subfolderReportPath = path.resolve(rootDir, "public/android/index.html");
     const hasReport = fs.existsSync(reportHtmlPath) || fs.existsSync(subfolderReportPath);
