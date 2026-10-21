@@ -482,7 +482,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.65",
+    version: "1.0.66",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -615,7 +615,6 @@ export function isAutoScrollAllowed(
 export function resetUserInteractionTimestamp(): void {
   lastUserInteractionTimestamp = 0;
 }
-
 
 export const DEBUG_MODE_STORAGE_KEY = "yt_debug_mode";
 

@@ -4,14 +4,8 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*(No active tasks — Task 172 completed, verified, and migrated to docs/done.md)*
+*(No active tasks — Task 173 completed, verified, and migrated to docs/done.md)*
 
 ## Later Tasks
 
-*(No remaining later tasks — all staged into active backlog)*
-
-
-
-
-
-
+_(No remaining later tasks — all staged into active backlog)_
