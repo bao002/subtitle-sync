@@ -90,7 +90,12 @@ import {
   setOnDemandTranslationSentencesAhead,
   getOpenRouterApiKeySetting,
   setOpenRouterApiKeySetting,
+  getStripSpeakerBracketsSetting,
+  setStripSpeakerBracketsSetting,
+  getRemoveCharsSetting,
+  setRemoveCharsSetting,
 } from "@/utils/appSettings";
+import { SpecialCharactersRemovalPanel } from "@/components/SpecialCharactersRemovalPanel";
 import { getAppStateFromUrl } from "@/utils/urlStateManager";
 import { ShareStateModal } from "@/components/ShareStateModal";
 import { ParserDiffConfirmationModal } from "@/components/ParserDiffConfirmationModal";
@@ -1718,11 +1723,17 @@ function Index() {
   const [openPanels, setOpenPanels] = useState<Record<PanelId, boolean>>({
     player: true,
     playback: false,
+    charsRemoval: false,
     parser: false,
     languages: false,
     subtitles: true,
     library: false,
   });
+
+  const [stripSpeakerBrackets, setStripSpeakerBrackets] = useState<boolean>(() =>
+    getStripSpeakerBracketsSetting(),
+  );
+  const [removeChars, setRemoveChars] = useState<string[]>(() => getRemoveCharsSetting());
 
   const [videoMetadata, setVideoMetadata] = useState<VideoMetadata | null>(() =>
     getCachedVideoMetadata(videoId),
@@ -4803,6 +4814,36 @@ function Index() {
                             } else {
                               handleSelectLibraryVideo(scratchId, scratchUrl);
                             }
+                          }}
+                        />
+                      )}
+
+                      {panelId === "charsRemoval" && (
+                        <SpecialCharactersRemovalPanel
+                          stripSpeakerBrackets={stripSpeakerBrackets}
+                          onStripSpeakerBracketsChange={(enabled) => {
+                            setStripSpeakerBrackets(enabled);
+                            setStripSpeakerBracketsSetting(enabled);
+                          }}
+                          removeChars={removeChars}
+                          onRemoveCharsChange={(chars) => {
+                            setRemoveChars(chars);
+                            setRemoveCharsSetting(chars);
+                          }}
+                          sampleCues={
+                            tracks && baseLanguage && tracks[baseLanguage]?.events
+                              ? tracks[baseLanguage].events.slice(0, 5).map((e) => ({
+                                  text: (e.segs || []).map((s) => s.utf8).join(""),
+                                  start: (e.tStartMs || 0) / 1000,
+                                  duration: (e.dDurationMs || 0) / 1000,
+                                }))
+                              : undefined
+                          }
+                          onResetDefaults={() => {
+                            setStripSpeakerBrackets(true);
+                            setStripSpeakerBracketsSetting(true);
+                            setRemoveChars([">", ">>"]);
+                            setRemoveCharsSetting([">", ">>"]);
                           }}
                         />
                       )}

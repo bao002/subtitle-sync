@@ -1,5 +1,65 @@
 # Done tasks
 
+## Task 170: Version 1.0.64 Bump & AGENTS.md Raw Prompt Sync (Version 1.0.64)
+
+### Summary:
+- **AGENTS.md Raw Prompt Record (Subtask 170.1)**:
+  - Recorded exact unedited raw user prompt (`go on`) into `AGENTS.md` under `## Last raw prompt`.
+  - Maintained `AGENTS.md` budget safely within constraints.
+- **Version Bump across all 5 Targets (Subtask 170.1)**:
+  - Synchronized application version `1.0.64` and versionCode `10064` across:
+    1. `package.json` (`"version": "1.0.64"`)
+    2. `android-shell/app/build.gradle.kts` (`versionCode = 10064`, `versionName = "1.0.64"`)
+    3. `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.64"`)
+    4. `src/utils/appSettings.ts` (snapshot version `"1.0.64"`)
+    5. `src/config/appConfig.ts` (`APP_VERSION = "1.0.64"`, `APP_VERSION_DESCRIPTION = "...(Version 1.0.64)"`)
+- **Verification Commands & Outcomes (Subtask 170.2)**:
+  - `npm run test:apk-version`: PASSED (100% parity across all 5 targets).
+  - `npm run test:agents-last-prompt-rule`: PASSED (verified raw prompt preservation).
+  - `npm run test:chars-removal-accordion-order`: PASSED (verified Chars Removal before Parser across both modes).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 168: Implement Chars Removal Accordion in Advanced Mode & Reorder Before Parser in Both Modes (Version 1.0.63)
+
+### Summary:
+- **Beginner Mode Ordering Validation (Subtask 168.1)**:
+  - Verified that in `src/components/beginner/tabs/BeginnerParsingTab.tsx`, the Character Removal & Rename Rules section (`data-testid="beginner-chars-removal-section"`) is placed strictly BEFORE the Sentence Splitting / Parser section (`data-testid="beginner-parser-section"`).
+- **Accordion Themes Configuration (Subtask 168.2)**:
+  - Configured `charsRemoval` in `src/config/accordionThemes.ts` (`PANELS` array with `id: "charsRemoval", title: "Special characters removal"`) positioned immediately before `parser`, with dedicated accordion styling (`ACCORDION_THEMES.charsRemoval`).
+- **Advanced Mode SpecialCharactersRemovalPanel Mounting & Persistence (Subtask 168.3)**:
+  - Added persistent settings helpers in `src/utils/appSettings.ts`: `getStripSpeakerBracketsSetting`, `setStripSpeakerBracketsSetting`, `getRemoveCharsSetting`, `setRemoveCharsSetting`.
+  - Initialized `charsRemoval: false` in `openPanels` in `src/routes/index.tsx`.
+  - Integrated `SpecialCharactersRemovalPanel` into the accordion loop in `src/routes/index.tsx` under `panelId === "charsRemoval"`, positioned immediately before `panelId === "parser"`, achieving 100% functional and structural parity with Beginner Mode.
+- **Verification Commands & Outcomes (Subtask 168.4)**:
+  - `npm run test:chars-removal-accordion-order`: PASSED (100% verified across Beginner and Advanced modes).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 169: Dedicated Automated Verification Tests & Audit Gate (Version 1.0.63)
+
+### Summary:
+- **Dedicated Automated Verification Suite (Subtask 169.1)**:
+  - Authored `scripts/verify-chars-removal-accordion-order.ts` asserting:
+    1. In Beginner Mode (`BeginnerParsingTab.tsx`), Chars Removal section appears BEFORE Parser section.
+    2. In `accordionThemes.ts`, `charsRemoval` is defined in `PANELS` before `parser` and has theme styling.
+    3. In Advanced Mode (`src/routes/index.tsx`), `SpecialCharactersRemovalPanel` is rendered when `panelId === "charsRemoval"`, placed before `parser`.
+    4. `SpecialCharactersRemovalPanel` component contains all interactive testids (`special-characters-removal-panel`, `btn-reset-chars-defaults`, `advanced-toggle-strip-brackets`, etc.).
+    5. `appSettings.ts` provides persistent settings getters/setters.
+  - Registered script as `"test:chars-removal-accordion-order"` in `package.json` and documented in `docs/files.md`.
+- **Full Verification & Audit Gate (Subtask 169.2)**:
+  - `npm run test:chars-removal-accordion-order`: PASSED (100% verified).
+  - `npm run test:agents-last-prompt-rule`: PASSED.
+  - `npm run test:apk-version`: PASSED.
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 167: Version 1.0.63 Bump & AGENTS.md Chars Removal Order Mandate
 
 ### Summary:

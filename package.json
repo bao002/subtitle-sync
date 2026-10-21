@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.63",
+  "version": "1.0.64",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -172,6 +172,7 @@
     "test:android-e2e-caption-exposure": "tsx scripts/verify-android-e2e-caption-exposure.ts",
     "test:suggestions-doc-and-link": "tsx scripts/verify-suggestions-doc-and-link.ts",
     "test:no-static-images": "tsx scripts/verify-no-static-images-in-repo.ts",
+    "test:chars-removal-accordion-order": "tsx scripts/verify-chars-removal-accordion-order.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

@@ -4,11 +4,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 168 - Chars Removal Accordion in Advanced Mode & Reorder Before Parser
-- **Subtask 168.1**: Reorder BeginnerParsingTab.tsx so Chars Removal appears before Parser [ACTIVE].
-- **Subtask 168.2**: Update accordionThemes.ts with charsRemoval panel before parser.
-- **Subtask 168.3**: Author SpecialCharactersRemovalPanel.tsx and integrate into index.tsx before parser.
-- **Subtask 168.4**: Commit and migrate to docs/done.md.
+## Active Task: Task 170 - Version 1.0.64 Bump & AGENTS.md Raw Prompt Sync
+- **Subtask 170.1**: Record raw prompt in AGENTS.md and bump version to 1.0.64 across all 5 targets [ACTIVE].
+- **Subtask 170.2**: Run test suites, compile, lint, commit, and migrate to docs/done.md.
 
 ---
 
