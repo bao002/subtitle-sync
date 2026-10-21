@@ -4,11 +4,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Standby
-- Current Status: All active tasks completed and migrated to `docs/done.md`.
-- Ready for next prompt or backlog items.
+## Active Task: Completed Prompt Tasks
 
-
+*All tasks planned for the current prompt (Tasks 149, 150, 151 and Hotfix) have been fully completed, verified with dedicated automated tests, and logged in `docs/done.md`.*
 
 ---
 

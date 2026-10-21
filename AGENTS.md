@@ -210,7 +210,8 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on
+> Task :app:compileDebugKotlin FAILED
+e: file:///home/runner/work/subtitle-sync/subtitle-sync/android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt:235:45 Unresolved reference: executeTimedTextRepetition
 ```
 
 

@@ -161,15 +161,12 @@
     "test:video-switch-table-reset-and-ai-cache": "tsx scripts/verify-video-switch-table-reset-and-ai-cache.ts",
     "test:sharable-state-link": "tsx scripts/verify-sharable-state-link.ts",
     "test:type-safety": "tsx scripts/verify-type-safety-and-dev-modules.ts",
- 
-    "test:parser-diff-confirmation": "tsx scripts/verify-parser-diff-confirmation.ts",
- 
     "test:numbered-chapters-protocol": "tsx scripts/verify-numbered-chapters-protocol.ts",
     "test:parser-diff-confirmation": "tsx scripts/verify-parser-diff-confirmation.ts",
     "test:default-caption-presentation": "tsx scripts/verify-default-caption-presentation.ts",
-  
-     "test:floating-dropdown-menu": "tsx scripts/verify-floating-dropdown-menu.ts",
-     "test:android": "bash scripts/run-android-e2e.sh"
+    "test:mainactivity-scope": "tsx scripts/verify-android-mainactivity-compilation.ts",
+    "test:floating-dropdown-menu": "tsx scripts/verify-floating-dropdown-menu.ts",
+    "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
     "rolldown": "1.2.1"
