@@ -34,6 +34,14 @@ import {
   setLovableTtsProvider,
   getLovableTtsVoice,
   setLovableTtsVoice,
+  getLovableTtsMethod,
+  setLovableTtsMethod,
+  getLovableTtsFormat,
+  setLovableTtsFormat,
+  getLovableTtsTargetLang,
+  setLovableTtsTargetLang,
+  getLovableTtsApiKey,
+  setLovableTtsApiKey,
   LOVABLE_TTS_OPENAPI_URL,
   LOVABLE_TTS_PROVIDERS,
   LOVABLE_VOICES,
@@ -41,6 +49,8 @@ import {
   type AlternativeTtsMode,
   type AlternativeTtsEngine,
   type LovableTtsProvider,
+  type LovableTtsMethod,
+  type LovableTtsFormat,
 } from "@/lib/alternative-tts";
 
 export interface BeginnerPreferencesTabProps {
@@ -89,6 +99,18 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   );
   const [lovableTtsVoiceState, setLovableTtsVoiceState] = useState<string>(() =>
     typeof window !== "undefined" ? getLovableTtsVoice() : "",
+  );
+  const [lovableTtsMethodState, setLovableTtsMethodState] = useState<LovableTtsMethod>(() =>
+    typeof window !== "undefined" ? getLovableTtsMethod() : "get",
+  );
+  const [lovableTtsFormatState, setLovableTtsFormatState] = useState<LovableTtsFormat>(() =>
+    typeof window !== "undefined" ? getLovableTtsFormat() : "binary",
+  );
+  const [lovableTtsTargetLangState, setLovableTtsTargetLangState] = useState<string>(() =>
+    typeof window !== "undefined" ? getLovableTtsTargetLang() : "",
+  );
+  const [lovableTtsApiKeyState, setLovableTtsApiKeyState] = useState<string>(() =>
+    typeof window !== "undefined" ? getLovableTtsApiKey() : "",
   );
 
   useEffect(() => {
@@ -501,12 +523,84 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                         ))}
                     </select>
                   </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-muted-foreground">Method:</span>
+                    <select
+                      data-testid="beginner-lovable-tts-method-select"
+                      value={lovableTtsMethodState}
+                      onChange={(e) => {
+                        const m = e.target.value as LovableTtsMethod;
+                        setLovableTtsMethodState(m);
+                        setLovableTtsMethod(m);
+                      }}
+                      className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground"
+                    >
+                      <option value="get">GET (Query Params)</option>
+                      <option value="post">POST (JSON Body, ≤5k chars)</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-muted-foreground">Format:</span>
+                    <select
+                      data-testid="beginner-lovable-tts-format-select"
+                      value={lovableTtsFormatState}
+                      onChange={(e) => {
+                        const f = e.target.value as LovableTtsFormat;
+                        setLovableTtsFormatState(f);
+                        setLovableTtsFormat(f);
+                      }}
+                      className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground"
+                    >
+                      <option value="binary">Binary Audio (Stream)</option>
+                      <option value="json">JSON (Base64 audio)</option>
+                    </select>
+                  </div>
                 </div>
+
+                <div className="flex flex-wrap items-center gap-3 pt-1 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-muted-foreground">Target Lang:</span>
+                    <input
+                      type="text"
+                      data-testid="beginner-lovable-tts-target-lang-input"
+                      placeholder="e.g. es, he (optional translation)"
+                      value={lovableTtsTargetLangState}
+                      onChange={(e) => {
+                        const val = e.target.value.trim().toLowerCase();
+                        setLovableTtsTargetLangState(val);
+                        setLovableTtsTargetLang(val);
+                      }}
+                      className="w-48 rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-mono"
+                    />
+                  </div>
+
+                  {lovableTtsProviderState === "openrouter" && (
+                    <div className="flex items-center gap-1.5 flex-1 min-w-[200px]">
+                      <span className="text-muted-foreground whitespace-nowrap">API Key:</span>
+                      <input
+                        type="password"
+                        data-testid="beginner-lovable-tts-api-key-input"
+                        placeholder="OpenRouter key (optional)"
+                        value={lovableTtsApiKeyState}
+                        onChange={(e) => {
+                          const val = e.target.value.trim();
+                          setLovableTtsApiKeyState(val);
+                          setLovableTtsApiKey(val);
+                        }}
+                        className="w-full rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-mono"
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <p className="text-[10px] text-muted-foreground">
                   Endpoint:{" "}
                   <code className="bg-muted px-1 py-0.5 rounded text-[10px] font-mono">
                     https://tts2.lovable.app/api/public/tts
-                  </code>
+                  </code>{" "}
+                  (OpenAPI 3.1.0 • Method: {lovableTtsMethodState.toUpperCase()} • Format: {lovableTtsFormatState})
                 </p>
               </div>
             ) : (
