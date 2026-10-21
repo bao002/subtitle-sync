@@ -1,5 +1,31 @@
 # Done tasks
 
+## Task 172: Complete GitHub Import Migration & Environment Harmonization (Version 1.0.65)
+
+### Summary:
+- **Package Manager & Lockfile Cleanliness (Subtask 172.1)**:
+  - Cleaned up forbidden file `bun.lock` and asserted absence of `yarn.lock`, `pnpm-lock.yaml`, `bun.lockb`, `.yarnrc.yml`, `.yarnrc`, `.pnpmfile.cjs`, `.nvmrc`, and `.node-version`.
+  - Created `.env.example` declaring all scanned environment variables (`GITHUB_REPOSITORY`, `GITHUB_REPOSITORY_OWNER`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_COMMIT_SHA`).
+- **Version 1.0.65 Synchronization across all 5 Targets (Subtask 172.2)**:
+  - Synchronized application version `1.0.65` and versionCode `10065` across:
+    1. `package.json` (`"version": "1.0.65"`, registered `"test:lovable-alternative-tts"`)
+    2. `android-shell/app/build.gradle.kts` (`versionCode = 10065`, `versionName = "1.0.65"`)
+    3. `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.65"`)
+    4. `src/utils/appSettings.ts` (snapshot version `"1.0.65"`)
+    5. `src/config/appConfig.ts` (`APP_VERSION = "1.0.65"`, `APP_VERSION_DESCRIPTION = "GitHub Import Migration Harmonization & Lovable Speak API (Version 1.0.65)"`)
+  - Documented `verify-lovable-alternative-tts.ts` in `docs/files.md`.
+- **Verification Commands & Outcomes (Subtask 172.3)**:
+  - `npm run test:github-import-migration`: PASSED (100% compliant with AI Studio web constraints).
+  - `npm run test:apk-version`: PASSED (v1.0.65 parity verified across all manifests).
+  - `npm run test:lovable-alternative-tts`: PASSED (OpenAPI 3.1.0 parameters and voices verified).
+  - `npm run test:agents-last-prompt-rule`: PASSED (exact raw prompt preserved).
+  - `npm run test:agents-version`: PASSED (version 1.0.65 verified across all 5 targets).
+  - `npm run test:chars-removal-accordion-order`: PASSED.
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 170: Version 1.0.64 Bump & AGENTS.md Raw Prompt Sync (Version 1.0.64)
 
 ### Summary:

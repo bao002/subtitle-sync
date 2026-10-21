@@ -4,10 +4,8 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 171 - Lovable Speak API (tts2.lovable.app/api/public/openapi.json)
-- **Subtask 171.1**: Enhance alternative-tts.ts with OpenAPI 3.1.0 parameters and voices [ACTIVE].
-- **Subtask 171.2**: Update UI in index.tsx and BeginnerPreferencesTab.tsx with Lovable TTS options.
-- **Subtask 171.3**: Version bump to 1.0.65, test suite, compile, lint, commit, and migrate to docs/done.md.
+## Active Task: None (Task 172 completed and migrated to docs/done.md)
+- **Task 172**: Complete GitHub Import Migration & Environment Harmonization (Version 1.0.65) [DONE].
 
 ---
 
