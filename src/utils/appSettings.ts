@@ -482,7 +482,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.69",
+    version: "1.0.71",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -860,9 +860,23 @@ export function setOpenRouterModelSetting(model: string): void {
 }
 
 export function getOpenRouterApiKeySetting(): string {
-  if (typeof window === "undefined" || !window.localStorage) return "";
+  if (typeof window === "undefined" || !window.localStorage) {
+    return typeof import.meta !== "undefined" && import.meta.env
+      ? (import.meta.env.VITE_OPENROUTER_API_KEY as string) || ""
+      : "";
+  }
   try {
-    return window.localStorage.getItem(OPENROUTER_API_KEY_STORAGE_KEY) || "";
+    const userKey =
+      window.localStorage.getItem(OPENROUTER_API_KEY_STORAGE_KEY) ||
+      window.localStorage.getItem("yt_alternative_tts_lovable_api_key_v1") ||
+      window.localStorage.getItem("yt_openrouter_api_key_v1") ||
+      "";
+    if (userKey && userKey.trim()) return userKey.trim();
+    const envKey =
+      typeof import.meta !== "undefined" && import.meta.env
+        ? (import.meta.env.VITE_OPENROUTER_API_KEY as string) || ""
+        : "";
+    return envKey ? envKey.trim() : "";
   } catch {
     return "";
   }
@@ -870,8 +884,17 @@ export function getOpenRouterApiKeySetting(): string {
 
 export function setOpenRouterApiKeySetting(key: string): void {
   if (typeof window === "undefined" || !window.localStorage) return;
+  const clean = key.trim();
   try {
-    window.localStorage.setItem(OPENROUTER_API_KEY_STORAGE_KEY, key.trim());
+    if (clean) {
+      window.localStorage.setItem(OPENROUTER_API_KEY_STORAGE_KEY, clean);
+      window.localStorage.setItem("yt_alternative_tts_lovable_api_key_v1", clean);
+      window.localStorage.setItem("yt_openrouter_api_key_v1", clean);
+    } else {
+      window.localStorage.removeItem(OPENROUTER_API_KEY_STORAGE_KEY);
+      window.localStorage.removeItem("yt_alternative_tts_lovable_api_key_v1");
+      window.localStorage.removeItem("yt_openrouter_api_key_v1");
+    }
   } catch {
     // Ignore storage errors
   }

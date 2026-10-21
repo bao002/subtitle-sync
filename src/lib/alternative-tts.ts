@@ -623,28 +623,71 @@ export function setLovableTtsTargetLang(targetLang: string): void {
 }
 
 /**
- * Retrieves the configured Lovable/OpenRouter API key.
+ * Retrieves the server-configured OpenRouter API key from .env.
  */
-export function getLovableTtsApiKey(): string {
-  if (typeof window === "undefined") return "";
+export function getServerOpenRouterApiKey(): string {
   try {
-    return (
-      localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY) ||
-      localStorage.getItem("yt_openrouter_api_key_v1") ||
-      ""
-    );
+    return typeof import.meta !== "undefined" && import.meta.env
+      ? (import.meta.env.VITE_OPENROUTER_API_KEY as string) || ""
+      : "";
   } catch {
     return "";
   }
 }
 
 /**
- * Persists the Lovable/OpenRouter API key.
+ * Checks if the user has explicitly configured a custom OpenRouter API key in localStorage.
+ */
+export function hasCustomOpenRouterApiKey(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const userKey =
+      localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY) ||
+      localStorage.getItem("yt_openrouter_api_key_v1") ||
+      localStorage.getItem("yt_openrouter_api_key") ||
+      "";
+    return Boolean(userKey && userKey.trim());
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Retrieves the effective Lovable/OpenRouter API key (custom user key, or server .env key fallback).
+ */
+export function getLovableTtsApiKey(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const userKey =
+      localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY) ||
+      localStorage.getItem("yt_openrouter_api_key_v1") ||
+      localStorage.getItem("yt_openrouter_api_key") ||
+      "";
+    if (userKey && userKey.trim()) {
+      return userKey.trim();
+    }
+    return getServerOpenRouterApiKey();
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Persists the Lovable/OpenRouter API key to localStorage.
  */
 export function setLovableTtsApiKey(apiKey: string): void {
   if (typeof window === "undefined") return;
+  const clean = apiKey.trim();
   try {
-    localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY, apiKey.trim());
+    if (clean) {
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY, clean);
+      localStorage.setItem("yt_openrouter_api_key_v1", clean);
+      localStorage.setItem("yt_openrouter_api_key", clean);
+    } else {
+      localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY);
+      localStorage.removeItem("yt_openrouter_api_key_v1");
+      localStorage.removeItem("yt_openrouter_api_key");
+    }
   } catch (err) {
     console.warn("Failed to persist Lovable TTS API key:", err);
   }
@@ -698,8 +741,7 @@ export async function playAlternativeTtsAudio(
   if (engine === "lovable") {
     try {
       const requestedSpeed =
-        optionsOverride?.speed ??
-        (typeof rate === "number" && rate >= 0.25 && rate <= 4.0 ? rate : getLovableTtsSpeed());
+        optionsOverride?.speed ?? (typeof rate === "number" && rate > 0 ? rate : 1.0);
       const mergedOptions: LovableTtsOptions = {
         speed: requestedSpeed,
         ...optionsOverride,

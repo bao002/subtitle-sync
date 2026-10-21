@@ -1,11 +1,12 @@
 # Current Subtask (`current-sub-task.md`)
 
-## Active Subtask: Subtask 177.1 - Add OpenRouter API Key Setting Input with LocalStorage Persistence
-- **Parent Task**: Task 177: Chapter 2 - Allow Updating Settings and Setting OpenRouter-Key for the Service (and Save to LocalStorage) (Version 1.0.70)
-- **Status**: [ACTIVE]
-- **Target Files**:
-  - `src/lib/alternative-tts.ts`
-  - `src/utils/appSettings.ts`
-  - `src/routes/index.tsx`
-  - `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`
-- **Objective**: Expose an OpenRouter API key input in Alternative TTS settings across Advanced and Beginner modes, with password visibility toggle, save handler, and localStorage synchronization (`yt_openrouter_api_key` and `yt_alternative_tts_lovable_api_key_v1`), passing the key to Lovable/OpenRouter TTS requests.
+## Active Subtask: None (All Active Tasks Completed)
+- **Status**: [IDLE]
+- **Completed Tasks**:
+  - Task 177: Chapter 1 - OpenRouter Key Settings (Save to LocalStorage) & Server .env Fallback (Version 1.0.70)
+  - Task 178: Chapter 2 - Use Native Settings for TTS Service Speed & Remove Extra TTS Speed Rate Controls (Version 1.0.71)
+- **Summary**: All prompt requirements and subtasks have been fully executed, tested with dedicated verification suites, compiled, linted, and logged in `docs/done.md`.
+
+
+
+

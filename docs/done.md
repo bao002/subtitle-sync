@@ -1,5 +1,52 @@
 # Done tasks
 
+## Task 178: Chapter 2 - Use Native Settings for TTS Service Speed & Remove Extra TTS Speed Rate Controls (Version 1.0.71)
+
+### Summary:
+- **Removal of Extra TTS Speed Multiplier Slider and Presets (Subtask 178.1)**:
+  - Eliminated the separate "Configured TTS Speed Multiplier (0.25 - 4.0)" slider and speed preset buttons (`0.5x`, `0.75x`, `1.0x`, `1.25x`, `1.5x`, `2.0x`, `3.0x`) from the Alternative TTS settings cards in both Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`).
+  - Added dedicated notices (`lovable-tts-native-speed-notice` and `beginner-lovable-tts-native-speed-notice`) displaying that the Alternative TTS service uses the native speech rate settings configured per-language or globally.
+  - Updated card information copy to reflect that subtitles are spoken using current text and native speech rate with the configured voice.
+- **Direct Usage of Native Speech Rate in Playback & Synthesis (Subtask 178.2)**:
+  - Updated `speak()` in `src/routes/index.tsx` to set `altSpeed = normalizedRate;`, directly passing the user's native speech rate setting to the alternative TTS service.
+  - Updated `playAlternativeTtsAudio()` in `src/lib/alternative-tts.ts` to prioritize caller's native `rate` parameter directly (`typeof rate === "number" && rate > 0 ? rate : 1.0`).
+  - Updated the test button handlers in both Advanced Mode and Beginner Mode to test synthesis using the active native speech rate (`rates[baseLanguage || "en"] ?? 0.5` and `ttsSpeed`).
+- **Version 1.0.71 Synchronization & Dedicated Test Suite (Subtask 178.3)**:
+  - Synchronized version `1.0.71` (versionCode `10071`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+  - Authored dedicated test suite `scripts/verify-native-tts-speed-for-service.ts` validating slider removal, native speed notices, `speak()` and `playAlternativeTtsAudio()` rate resolution, and version parity.
+  - Updated `scripts/verify-openrouter-key-settings.ts` to allow subsequent versions (`>= 1.0.70`).
+  - Documented `scripts/verify-native-tts-speed-for-service.ts` in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-native-tts-speed-for-service.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-openrouter-key-settings.ts`: PASSED (100%).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 177: Chapter 1 ("go on") - OpenRouter Key Settings (Save to LocalStorage) & Server .env Fallback (Version 1.0.70)
+
+### Summary:
+- **OpenRouter Key Configuration & LocalStorage Persistence (Subtask 177.1)**:
+  - Added dedicated OpenRouter API key inputs with password show/hide visibility toggle (`Eye`/`EyeOff`), "Save" button with confirmation state, and "Clear" button.
+  - Implemented multi-key synchronization across `yt_openrouter_api_key`, `yt_openrouter_api_key_v1`, and `yt_alternative_tts_lovable_api_key_v1` in `src/lib/alternative-tts.ts` and `src/utils/appSettings.ts`.
+  - Maintained 100% visual and functional parity across Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`).
+- **Server .env Key Fallback & Template (Subtask 177.2)**:
+  - Implemented `getServerOpenRouterApiKey()` and `hasCustomOpenRouterApiKey()` in `src/lib/alternative-tts.ts`.
+  - When the user has not configured a custom key in `localStorage`, the system seamlessly falls back to `VITE_OPENROUTER_API_KEY` from the environment.
+  - Created `.env.example` defining `VITE_OPENROUTER_API_KEY=`.
+  - Added visual status badges: "Custom key saved", "Using server .env key", or "(Optional - free tier default)".
+- **Version 1.0.70 Synchronization & Dedicated Test Suite (Subtask 177.3)**:
+  - Synchronized version `1.0.70` (versionCode `10070`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+  - Authored dedicated test suite `scripts/verify-openrouter-key-settings.ts` validating key persistence, server fallback, UI elements, and version parity.
+  - Documented `scripts/verify-openrouter-key-settings.ts` in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-openrouter-key-settings.ts`: PASSED (100%).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 176: Chapter 1 - Fix the Testing-TTS-Dashboard Button to Test in Alternative TTS (Version 1.0.69)
 
 ### Summary:
