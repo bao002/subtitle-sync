@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
 const rawBaseURL =
@@ -9,6 +10,13 @@ const isExternalServer = Boolean(
   !process.env.PLAYWRIGHT_BASE_URL.includes("localhost") &&
   !process.env.PLAYWRIGHT_BASE_URL.includes("127.0.0.1"),
 );
+
+const fallbackExecutablePath = [
+  process.env.PLAYWRIGHT_CHROME_EXECUTABLE,
+  "/ms-playwright/chromium_headless_shell-1247/chrome-headless-shell-linux64/chrome-headless-shell",
+  "/ms-playwright/chromium_headless_shell-1248/chrome-headless-shell-linux64/chrome-headless-shell",
+  "/ms-playwright/chrome-headless-shell-linux64/chrome-headless-shell",
+].find((p) => p && fs.existsSync(p));
 
 export default defineConfig({
   testDir: "./e2e",
@@ -22,6 +30,7 @@ export default defineConfig({
     trace: "off",
     screenshot: "on",
     launchOptions: {
+      executablePath: fallbackExecutablePath,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -53,8 +62,7 @@ export default defineConfig({
       name: "emulation",
       testMatch: /.*emulation\.spec\.ts/,
       use: {
-        ...devices["Desktop Chrome"],
-        viewport: { width: 1280, height: 720 },
+        ...devices["Pixel 7"],
         video: "off",
       },
     },
