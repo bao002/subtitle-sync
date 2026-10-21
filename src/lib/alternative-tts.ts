@@ -32,14 +32,7 @@ export const LOVABLE_TTS_PROVIDERS: readonly LovableTtsProvider[] = [
 
 export const LOVABLE_VOICES = ["Kore", "Puck", "Fenrir", "Aoede"] as const;
 
-export const OPENROUTER_VOICES = [
-  "alloy",
-  "nova",
-  "echo",
-  "fable",
-  "onyx",
-  "shimmer",
-] as const;
+export const OPENROUTER_VOICES = ["alloy", "nova", "echo", "fable", "onyx", "shimmer"] as const;
 
 export interface LovableTtsOptions {
   provider?: LovableTtsProvider;

@@ -4,14 +4,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 171 - Lovable Speak API (tts2.lovable.app/api/public/openapi.json)
-- **Subtask 171.1**: Enhance alternative-tts.ts with OpenAPI 3.1.0 parameters and voices [ACTIVE].
-- **Subtask 171.2**: Update UI in index.tsx and BeginnerPreferencesTab.tsx with Lovable TTS options.
-- **Subtask 171.3**: Version bump to 1.0.65, test suite, compile, lint, commit, and migrate to docs/done.md.
+## Active Task: None (Task 173 completed and migrated to docs/done.md)
+- **Task 173**: Expose Lovable Speak API (OpenAPI 3.1.0) Controls in Advanced and Beginner Modes (Version 1.0.66) [DONE].
 
 ---
-
-
 
 ## 1. The Token Economy Problem: Why Big Tasks Fail
 
@@ -50,7 +46,7 @@ To guarantee token economy without heavy processing, maintain the following file
 | `docs/todo.md`              | High-level active sub-task synchronization mirror.                                                                                                 | Single active task      |
 | `docs/done.md`              | Permanent verified changelog and archive of all completed tasks and sub-tasks.                                                                     | Permanent archive / log |
 | `docs/self-verification.md` | Comprehensive self-verification protocol for automated test execution, screencast linking in README, and full sanity check audits.                 | Permanent specification |
-| `docs/suggestions.md`       | Ranked optimization steps, feasibility analysis, and rule size monitoring guidelines for instruction files.                                       | Permanent specification |
+| `docs/suggestions.md`       | Ranked optimization steps, feasibility analysis, and rule size monitoring guidelines for instruction files.                                        | Permanent specification |
 
 ---
 

@@ -1,8 +1,65 @@
 # Done tasks
 
+## Task 173: Expose Lovable Speak API (OpenAPI 3.1.0) Controls in Advanced and Beginner Modes (Version 1.0.66)
+
+### Summary:
+- **Advanced Mode Alternative TTS UI Controls (Subtask 173.1)**:
+  - Enhanced `alternative-tts-settings-card` in `src/routes/index.tsx` with engine selector (`alternative-tts-engine-select`), options for Lovable Speak API (`tts2.lovable.app`) and Google Translate TTS.
+  - Added direct link to OpenAPI 3.1.0 specification (`data-testid="lovable-tts-openapi-link"`, `href="https://tts2.lovable.app/api/public/openapi.json"`).
+  - Added provider selector (`lovable-tts-provider-select`) for "google", "lovable", and "openrouter".
+  - Added voice selector (`lovable-tts-voice-select`) with dynamic voice options (Kore, Puck, Fenrir, Aoede for Lovable; alloy, nova, echo, fable, onyx, shimmer for OpenRouter).
+  - Maintained instant test button (`test-alternative-tts-btn`).
+- **Beginner Mode Alternative TTS UI Parity (Subtask 173.2)**:
+  - Added matching `beginner-alternative-tts-card` to `src/components/beginner/tabs/BeginnerPreferencesTab.tsx` with identical engine, mode, provider, and voice selectors, OpenAPI link, and test audio button.
+  - Achieved 100% functional parity between Advanced and Beginner modes.
+- **Dedicated Automated Verification & Parity Test Suite (Subtask 173.3)**:
+  - Authored `scripts/verify-lovable-tts-ui.ts` asserting all testids across both modes, OpenAPI 3.1.0 constants, and version 1.0.66 parity.
+  - Registered `"test:lovable-tts-ui"` in `package.json` and documented in `docs/files.md`.
+  - Synchronized version `1.0.66` (code `10066`) across all 5 targets.
+- **Verification Commands & Outcomes**:
+  - `npm run test:lovable-tts-ui`: PASSED (100% UI parity and OpenAPI validation).
+  - `npm run test:lovable-alternative-tts`: PASSED.
+  - `npm run test:apk-version`: PASSED (v1.0.66 verified).
+  - `npm run test:agents-version`: PASSED.
+  - `npm run test:agents-last-prompt-rule`: PASSED (raw prompt "go on" preserved).
+  - `npm run test:github-import-migration`: PASSED.
+  - `npm run test:chars-removal-accordion-order`: PASSED.
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 172: Complete GitHub Import Migration & Environment Harmonization (Version 1.0.65)
+
+### Summary:
+
+- **Package Manager & Lockfile Cleanliness (Subtask 172.1)**:
+  - Cleaned up forbidden file `bun.lock` and asserted absence of `yarn.lock`, `pnpm-lock.yaml`, `bun.lockb`, `.yarnrc.yml`, `.yarnrc`, `.pnpmfile.cjs`, `.nvmrc`, and `.node-version`.
+  - Created `.env.example` declaring all scanned environment variables (`GITHUB_REPOSITORY`, `GITHUB_REPOSITORY_OWNER`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_COMMIT_SHA`).
+- **Version 1.0.65 Synchronization across all 5 Targets (Subtask 172.2)**:
+  - Synchronized application version `1.0.65` and versionCode `10065` across:
+    1. `package.json` (`"version": "1.0.65"`, registered `"test:lovable-alternative-tts"`)
+    2. `android-shell/app/build.gradle.kts` (`versionCode = 10065`, `versionName = "1.0.65"`)
+    3. `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.65"`)
+    4. `src/utils/appSettings.ts` (snapshot version `"1.0.65"`)
+    5. `src/config/appConfig.ts` (`APP_VERSION = "1.0.65"`, `APP_VERSION_DESCRIPTION = "GitHub Import Migration Harmonization & Lovable Speak API (Version 1.0.65)"`)
+  - Documented `verify-lovable-alternative-tts.ts` in `docs/files.md`.
+- **Verification Commands & Outcomes (Subtask 172.3)**:
+  - `npm run test:github-import-migration`: PASSED (100% compliant with AI Studio web constraints).
+  - `npm run test:apk-version`: PASSED (v1.0.65 parity verified across all manifests).
+  - `npm run test:lovable-alternative-tts`: PASSED (OpenAPI 3.1.0 parameters and voices verified).
+  - `npm run test:agents-last-prompt-rule`: PASSED (exact raw prompt preserved).
+  - `npm run test:agents-version`: PASSED (version 1.0.65 verified across all 5 targets).
+  - `npm run test:chars-removal-accordion-order`: PASSED.
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 170: Version 1.0.64 Bump & AGENTS.md Raw Prompt Sync (Version 1.0.64)
 
 ### Summary:
+
 - **AGENTS.md Raw Prompt Record (Subtask 170.1)**:
   - Recorded exact unedited raw user prompt (`go on`) into `AGENTS.md` under `## Last raw prompt`.
   - Maintained `AGENTS.md` budget safely within constraints.
@@ -25,6 +82,7 @@
 ## Task 168: Implement Chars Removal Accordion in Advanced Mode & Reorder Before Parser in Both Modes (Version 1.0.63)
 
 ### Summary:
+
 - **Beginner Mode Ordering Validation (Subtask 168.1)**:
   - Verified that in `src/components/beginner/tabs/BeginnerParsingTab.tsx`, the Character Removal & Rename Rules section (`data-testid="beginner-chars-removal-section"`) is placed strictly BEFORE the Sentence Splitting / Parser section (`data-testid="beginner-parser-section"`).
 - **Accordion Themes Configuration (Subtask 168.2)**:
@@ -43,6 +101,7 @@
 ## Task 169: Dedicated Automated Verification Tests & Audit Gate (Version 1.0.63)
 
 ### Summary:
+
 - **Dedicated Automated Verification Suite (Subtask 169.1)**:
   - Authored `scripts/verify-chars-removal-accordion-order.ts` asserting:
     1. In Beginner Mode (`BeginnerParsingTab.tsx`), Chars Removal section appears BEFORE Parser section.
@@ -63,6 +122,7 @@
 ## Task 167: Version 1.0.63 Bump & AGENTS.md Chars Removal Order Mandate
 
 ### Summary:
+
 - **Version Bump across all 5 Targets (Subtask 167.1)**:
   - Updated application version to `1.0.63` and versionCode to `10063` across `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.63"`), `src/utils/appSettings.ts` (snapshot version `"1.0.63"`), and `src/config/appConfig.ts` (`APP_VERSION = "1.0.63"`).
 - **Update AGENTS.md Parity & Order Mandate (Subtask 167.2)**:
@@ -81,6 +141,7 @@
 ## Task 166: Purge Static Images from Repository & Enforce Dedicated Emulator-Only Artifact Generation (Version 1.0.62)
 
 ### Summary:
+
 - **Purge Static PNG Images from Repository (Subtask 166.1)**:
   - Removed all pre-baked static PNG images from `public/screenshots/` and `public/assets/` (`android-emulator-screenshot.png`, `step-02-app-launch.png`, `step-03-action-view.png`, `step-04-action-send.png`, `step-share-browser-link.png`, `step-share-youtube-app-text.png`).
   - Ensured repository source contains zero static images that were generated outside the dedicated GitHub Actions emulator run.
@@ -114,6 +175,7 @@
 ## Task 165: Update Integrity Checks & Link Checking Flows for Deprecated Video/Image Artifacts (Version 1.0.62)
 
 ### Summary:
+
 - **Update Link Checking in `scripts/update-readme.mjs` (Subtask 165.1)**:
   - Updated `scripts/update-readme.mjs` so that `scanReadmeBrokenLinks` skips `.png`, `.mp4`, `screenshots/`, `android-emulator-screenshot`, and `android-emulator-video`, ensuring absent video or image files do not trigger broken-link false alarms.
   - Configured `scanReportVideoIntegrity` to only flag broken screencast video when `ENFORCE_VIDEO_PRESENCE === "true"`, recognizing screencast video deprecation in default CI flows.
@@ -143,6 +205,7 @@
 ## Task 164: Document AGENTS.md Optimization Suggestions in `docs/suggestions.md` & Cross-Link from `docs/tokens.md` (Version 1.0.61)
 
 ### Summary:
+
 - **Version Bump across 5 Targets (Subtask 164.1)**:
   - Updated application version to `1.0.61` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode `10061`, versionName `"1.0.61"`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.61"`), `src/utils/appSettings.ts` (snapshot version `"1.0.61"`), and `src/config/appConfig.ts` (`APP_VERSION = "1.0.61"`).
 - **Optimization Suggestions & Feasibility Analysis Document (Subtask 164.2)**:
@@ -170,9 +233,11 @@
   - `lint_applet`: PASSED (0 errors, 0 warnings).
 
 ---
+
 ### Hotfix: Thin & Efficient AGENTS.md Optimization & Priority-Ranked Audit (Version 1.0.60)
 
 ### Summary:
+
 - **Root Cause & Diagnosis**:
   - `AGENTS.md` had grown to 25.7KB (25,710 bytes), exceeding the platform's 24KB rule injection limit and causing automatic truncation (`[TRUNCATED: This file exceeded the 24KB rule limit. Content beyond this point was omitted.]`) of critical caching rules and the raw prompt section.
 - **Targeted Architectural Optimization**:
@@ -198,9 +263,11 @@
   - `compile_applet`: PASSED (build succeeded).
 
 ---
+
 ### Hotfix: Align build.gradle.kts versionCode, versionName, and appConfig.ts APP_VERSION Parity (Version 1.0.60)
 
 ### Summary:
+
 - **Root Cause & Diagnosis**:
   - `scripts/verify-agents-version-rule.ts` requires literal regex matching for `versionCode` and `versionName` in `build.gradle.kts`.
   - `src/config/appConfig.ts` had retained `APP_VERSION = "1.0.59"` while `package.json` had been bumped to `1.0.60`.
@@ -219,9 +286,11 @@
   - `lint_applet`: PASSED.
 
 ---
+
 ## Task 162: Android Emulator E2E Caption Detection & Text Exposure (Deprecate Screencast Generation) (Version 1.0.60)
 
 ### Summary:
+
 - **E2E Scripts Screencast Deprecation & Live Dialogue Exposure (Subtask 162.1)**:
   - Updated `scripts/run-android-e2e.sh` to deprecate `screenrecord` video generation by defaulting `ENABLE_DEPRECATED_SCREENCAST="false"`, while actively polling logcat for `AUTHENTIC_CAPTIONS_EXPOSED` and pulling `/sdcard/authentic_captions_exposed.txt` directly from the emulator.
   - Updated `scripts/android-e2e-assert.sh` to enforce `AUTHENTIC_CAPTIONS_EXPOSED` log assertions, copy `authentic_captions_exposed.txt` to `public/screenshots/`, and assert clean asset hydration without error screens.
@@ -238,9 +307,11 @@
   - `lint_applet`: PASSED (0 errors, 0 warnings).
 
 ---
+
 ## Task 161: Client-Side Video Metadata & Free Information Extraction (Version 1.0.60)
 
 ### Summary:
+
 - **Version Bump across 4 Targets (Subtask 161.1)**:
   - Updated application version to `1.0.60` in `package.json`, `android-shell/app/build.gradle.kts` (versionName `1.0.60`, versionCode `10060`), `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.60"`), and `src/utils/appSettings.ts`.
 - **Client-Side Video Metadata Architecture & Extraction Engine (Subtask 161.2)**:
@@ -268,6 +339,7 @@
 ## Task 151: Floating Draggable Dropdown Menu with Auto-Scroll & Setup-Pause (Version 1.0.51)
 
 ### Summary:
+
 - **Floating Draggable Dropdown Action Menu (Subtask 151.1)**:
   - Upgraded `src/components/FloatingDraggablePauseButton.tsx` from a simple toggle button into a feature-rich, accessible floating dropdown menu.
   - Added trigger button with `aria-haspopup="menu"`, `aria-expanded={isOpen}`, and dual-indicator icon/badges showing both Setup Pause and Auto-Scroll operational states.
@@ -291,6 +363,7 @@
 ### Hotfix: Resolve executeTimedTextRepetition Scope in MainActivity.kt
 
 ### Summary:
+
 - **Root Cause & Diagnosis**:
   - In `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt`, `executeTimedTextRepetition` was declared as a private method inside `inner class AndroidNativeBridge`.
   - When line 235 inside `WebViewClient.shouldInterceptRequest` invoked `executeTimedTextRepetition(url, lang, "json3")`, the Kotlin compiler failed with `Unresolved reference: executeTimedTextRepetition`.
@@ -311,16 +384,17 @@
 ## Task 160: Android Emulator GitHub Actions Execution & Telemetry Evidence Docs (Version 1.0.59)
 
 ### Summary:
+
 - **GitHub Actions Android Emulator Runner Architecture (Subtask 160.1)**:
   - Documented in `docs/android.md` (Section 3) the matrix runner environment (`runs-on: macos-14` on Apple Silicon with hardware virtualization via macOS `Hypervisor.framework`), `reactivecircus/android-emulator-runner@v2`, Android API 34 Google APIs (`arm64-v8a`), headless flags (`-no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none`), and animation suppression.
   - Specified workflow triggering and build handshake (`workflow_run` chained after `release-apk.yml`), downloading pre-built APKs (`youtube-viewer-apks`), fallback compilation, and automated ADB priming (wake, dismiss keyguard, orientation lock, clear app state, install APK).
 - **5-Layer Authenticity Evidence & Telemetry Verification (Subtask 160.2)**:
   - Documented in `docs/android.md` (Section 4) the 5 concrete layers of authenticity evidence generated by genuine runtime execution:
-    1. *Live Device Hardware Telemetry* (`android-emulator-device-info.json` from dynamic ADB `getprop` and `wm` queries).
-    2. *Multi-Milestone Framebuffer Screencaps* (`step-02-app-launch.png`, `step-03-action-view.png`, `step-04-action-send.png`, `android-emulator-screenshot.png`).
-    3. *Logcat Telemetry with Real Caption Dialogue Text Exposure* (`[APP_READY]`, `SHARED_LINK_DISPATCH`, `SUBTITLE_FETCH`, `AUTHENTIC_CAPTIONS_EXPOSED`, `CAPTION_TEXT_EXPOSED`).
-    4. *Dual-Layer Error Screen Assertion* (`uiautomator dump` and logcat verifying absence of "This page didn't load" / `APP_BOOT_ERROR`).
-    5. *Native Network Interception & Anti-Bot Cookie Preservation* (`WebViewClient.shouldInterceptRequest`, session cookies `PREF`, `YSC`, `VISITOR_INFO1_LIVE`, User-Agent sanitization removing `; wv`).
+    1. _Live Device Hardware Telemetry_ (`android-emulator-device-info.json` from dynamic ADB `getprop` and `wm` queries).
+    2. _Multi-Milestone Framebuffer Screencaps_ (`step-02-app-launch.png`, `step-03-action-view.png`, `step-04-action-send.png`, `android-emulator-screenshot.png`).
+    3. _Logcat Telemetry with Real Caption Dialogue Text Exposure_ (`[APP_READY]`, `SHARED_LINK_DISPATCH`, `SUBTITLE_FETCH`, `AUTHENTIC_CAPTIONS_EXPOSED`, `CAPTION_TEXT_EXPOSED`).
+    4. _Dual-Layer Error Screen Assertion_ (`uiautomator dump` and logcat verifying absence of "This page didn't load" / `APP_BOOT_ERROR`).
+    5. _Native Network Interception & Anti-Bot Cookie Preservation_ (`WebViewClient.shouldInterceptRequest`, session cookies `PREF`, `YSC`, `VISITOR_INFO1_LIVE`, User-Agent sanitization removing `; wv`).
 - **Dedicated Automated Verification & Quality Gates (Subtask 160.3)**:
   - Created dedicated test suite `scripts/verify-android-emulator-docs-evidence.ts` and registered `test:android-emulator-docs-evidence` in `package.json`.
   - Verified test suite: `npm run test:android-emulator-docs-evidence` passed with all 4 tests passing.
@@ -334,6 +408,7 @@
 ## Task 159: Theme Colors Fix (Beginner Mode & Blue Theme Coherence) (Version 1.0.59)
 
 ### Summary:
+
 - **Beginner Mode Theme Coherence (Subtask 159.1)**:
   - Eliminated all hardcoded slate color classes (`bg-slate-900`, `bg-slate-950`, `border-slate-800`, `text-slate-300`, `text-slate-400`, `text-slate-500`, `hover:bg-slate-800`) across `src/components/beginner/tabs/BeginnerPlayerTab.tsx`.
   - Converted table, controls, badges, and headers to semantic theme tokens (`bg-card`, `border-border`, `text-foreground`, `text-muted-foreground`, `bg-muted/40`, `hover:bg-muted`).
@@ -353,6 +428,7 @@
 ## Hotfix: Android APK Build Reliability & Version/Commit/Description Display on Each Version (v1.0.59)
 
 ### Summary:
+
 - **Resilient Android APK Build in GitHub Actions**:
   - Maintained safe execution commands and `onlyIf` guards in `android-shell/app/build.gradle.kts` and enhanced timeout configurations across `.github/workflows/release-apk.yml` and `.github/workflows/emulation.yml`.
   - Bumped version code to 10059 and version name to 1.0.59 across project manifests and configurations.
@@ -375,6 +451,7 @@
 ## Hotfix: Fix Android APK Build & Display Version ID, Commit ID, and Version Description on Each Version (v1.0.58)
 
 ### Summary:
+
 - **Resilient Android APK Build in GitHub Actions**:
   - In `android-shell/app/build.gradle.kts`, updated `prepareWebAssets` with an `onlyIf { !webAssetsIndex.exists() }` guard and cross-platform safe execution command (`sh -c "npm run build:android-assets || true"` on Unix, `cmd /c` on Windows), preventing redundant execution and fatal errors when assets are already bundled or `npm` is not in Gradle's daemon process PATH.
   - Added dynamic project property handling in `android-shell/app/build.gradle.kts` for `versionCode` (`propVersionCode ?: defaultDerivedCode`) and `versionName` (`propVersionName ?: packageJsonVersion`), allowing `-PappVersionCode` and `-PappVersionName` to be passed seamlessly by CI workflows.
@@ -402,6 +479,7 @@
 ## Task 158: Application Stages Definition in AGENTS.md & Pipeline Rule Consistency (Version 1.0.57)
 
 ### Summary:
+
 - **Defined 7 Application Stages Sequentially in AGENTS.md**:
   - Stage 1: Acquisition & Interception (authentic YouTube timedtext interception or strictly L2Ryrr6txwA fixtures when approved).
   - Stage 2: Validation & Schema Conformance (HTTP 200, valid json3 schema, non-empty events, reject HTML).
@@ -427,8 +505,8 @@
 
 ## Task 157: Subtitles Fixtures Restriction & Hardcoded Subtitles Purge (Version 1.0.57)
 
-
 ### Summary:
+
 - **Strict Subtitles Fixtures Policy in AGENTS.md**:
   - Established rule that the ONLY subtitles fixtures permitted in the entire app is for video `L2Ryrr6txwA` located at `public/fixtures/L2Ryrr6txwA`.
   - Added strict policy: never show fixtures without explicitly writing/labeling that it is a fixture and only after the developer explicitly approves it.
@@ -450,8 +528,8 @@
 
 ## Task 156: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.56)
 
-
 ### Summary:
+
 - **Deprecated Screencast Video Generation & Repaired Runner Scripts**:
   - Deprecated `screenrecord` video generation and redundant MP4 pulls in `scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, and `public/android-emulator-report.html`.
   - Repaired broken bash syntax and unclosed function definitions in `scripts/run-android-e2e.sh` (`stop_recording_and_pull`) and missing `fi` conditional close in `scripts/android-e2e-assert.sh`.
@@ -476,6 +554,7 @@
 ## Task 155: Repair Git Merge Conflicts & Duplicate Code Artifacts (Version 1.0.55)
 
 ### Summary:
+
 - **Cleaned Merge Conflict Markers & Syntax (`src/routes/index.tsx`)**:
   - Eliminated syntax errors and unclosed arrow function / block braces around lines 628–655.
   - Removed duplicate identifier imports (`ParserDiffConfirmationModal`, `computeParserDiff`, `type ParserDiffResult`).
@@ -507,6 +586,7 @@
 ## Task 149: Parser Option Difference Confirmation & Preview (Version 1.0.50)
 
 ### Summary:
+
 - **Parser Alignment Differential Calculation Utility (`src/utils/parserDiffHelper.ts`)**:
   - Implemented `computeParserDiff(currentRows, proposedRows, baseLanguage)` to analyze fine-grained differences between current and proposed subtitle alignments.
   - Automatically identifies divergence windows, changed record indices, change types (`split`, `merged`, `timing`, `added`, `removed`), time ranges, and readable text summaries.
@@ -534,6 +614,7 @@
 ## Task 154: Client-Side Video Metadata Extraction & Presentation (Version 1.0.54)
 
 ### Summary:
+
 - **Client-Side Metadata Service (`src/utils/videoMetadataManager.ts`, `src/types.ts`)**:
   - Implemented `fetchVideoMetadata`, `getCachedVideoMetadata`, `fetchMultipleVideoMetadata`, `getVideoThumbnails`, and `clearVideoMetadataCache`.
   - Leverages CORS-friendly YouTube oEmbed endpoint (`youtube.com/oembed?url=...&format=json`) and fallback to NoEmbed proxy and high-res image services (`maxresdefault`, `hqdefault`, `mqdefault`).
@@ -560,6 +641,7 @@
 ## Task 153: Android Emulator E2E — Caption Detection & Text Exposure, Deprecate Screencast Generation (Version 1.0.53)
 
 ### Summary:
+
 - **Version 1.0.53 Parity Across All 5 Targets**:
   - Synchronized `1.0.53` / `10053` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
 - **Authentic Caption Detection & Exposure in Android Shell (`MainActivity.kt`)**:
@@ -588,6 +670,7 @@
 ## Task 152: Reconcile and Carefully Complete Merge with Floating Dropdown Menu & Auto-Scroll (Version 1.0.52)
 
 ### Summary:
+
 - **Contract & Backward Compatibility Reconciled (`src/components/FloatingDraggablePauseButton.tsx`)**:
   - Restored `data-testid="floating-pause-button"`, `aria-pressed={isSetupPaused}`, and drag gesture discrimination so that `test:floating-pause` passes with 100% assertions satisfied.
   - Retained the rich dropdown popup menu (`data-testid="floating-menu-dropdown"`), Option 1 "Pause for Setup" with explanation, and Option 2 "Auto-Scroll Subtitles" with explanation.
@@ -610,9 +693,10 @@
 
 ---
 
- ## Task 150: Fix Caption Icon & Immediate Parallel Subtitles View Presentation on First Default Subtitles Fetch (Version 1.0.51)
+## Task 150: Fix Caption Icon & Immediate Parallel Subtitles View Presentation on First Default Subtitles Fetch (Version 1.0.51)
 
 ### Summary:
+
 - **Native Android Shell Interception & Automatic JSON3 Fallback (`MainActivity.kt`)**:
   - Enhanced `shouldInterceptRequest`: when YouTube player issues an authentic timedtext caption request returning non-JSON3 (such as XML / `fmt=srv3` from the YouTube HTML5 embed), the native shell immediately performs an automatic `executeTimedTextRepetition(url, lang, "json3")` using the captured session headers and cookies.
   - Automatically verifies `isValidJsonSubtitle`, caches the valid JSON3 caption, and dispatches it directly to JavaScript via `dispatchToJavaScript`, preventing dropped caption events upon the first CC click.
@@ -637,6 +721,7 @@
 ## Task 149: Parser Option Difference Confirmation & Preview (Version 1.0.50)
 
 ### Summary:
+
 - **Parser Difference Computation Engine (`src/utils/parserDiffHelper.ts`)**:
   - Implemented `computeParserDiff`, `areRowsEqual`, `getNextChangeIndex`, and `getPrevChangeIndex`.
   - Accurately classifies changes into `"split"`, `"merged"`, `"timing"`, `"content"`, `"added"`, `"removed"`, and `"modified"`.
@@ -660,6 +745,7 @@
 ## Task 148: Auto-Scroll 5-Second Cooldown After User Interaction (Version 1.0.49)
 
 ### Summary:
+
 - **5-Second Inactivity Cooldown Architecture (`src/utils/appSettings.ts`, `src/routes/index.tsx`)**:
   - Implemented `recordUserInteraction`, `getLastUserInteractionTimestamp`, `isAutoScrollAllowed`, `resetUserInteractionTimestamp`, and `AUTO_SCROLL_COOLDOWN_MS = 5000` in `src/utils/appSettings.ts`.
   - Registered window interaction event listeners (`mousedown`, `mousemove`, `keydown`, `wheel`, `touchstart`, `pointerdown`, `scroll`) in `src/routes/index.tsx` to continuously record user activity timestamps.
@@ -679,8 +765,8 @@
 
 ## Task 147: GitHub Import Migration & Environment Harmonization
 
- 
 ### Summary:
+
 - **Triage & Classification**:
   - Triaged project as Category C: Web / Node.js Compatible (React SPA with Vite and TanStack Router).
 - **Package Manager & Lockfile Compliance**:
@@ -694,13 +780,13 @@
   - Confirmed zero lint errors via `lint_applet`.
 - **Dedicated Automated Verification**:
   - Executed `npm run test:github-import-migration` (`scripts/verify-github-import-migration.ts`) — all 4 sections passed 100%.
- 
+
 ---
- 
+
 ## Task 145: Ensure TTS-Play Functionality & Seamless Bidirectional Mode Switching (Version 1.0.47)
 
-
 ### Summary:
+
 - **Seamless Bidirectional Mode Switching (`src/routes/index.tsx`, `src/components/ModeSwitcherHeader.tsx`, `src/components/beginner/BeginnerTabNav.tsx`)**:
   - Eliminated duplicate `<header>` block rendered in Advanced mode in `src/routes/index.tsx`, restoring a clean layout without redundant title bars or stacked navigation elements.
   - Added a prominent 1-click mode toggle button (`data-testid="header-mode-toggle"`) directly in the main top header alongside the version badge, enabling effortless instant mode switching at any time.
@@ -767,8 +853,6 @@
   - `npm run test:beginner-mode`: PASSED (all tab flow and parsing tests passed).
   - `compile_applet`: PASSED (applet compiled cleanly).
   - `lint_applet`: PASSED (0 errors).
-
-
 
 ### Summary:
 
