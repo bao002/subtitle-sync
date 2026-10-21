@@ -4,10 +4,10 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "1.0.59";
+export const APP_VERSION = "1.0.61";
 export const APP_COMMIT_ID = (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) || (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) || "f50f984";
 export const APP_VERSION_DESCRIPTION =
-  "Hotfix: Android APK build resilience and version tracking (Version ID, Commit ID, and Description on each version)";
+  "Document AGENTS.md Optimization Suggestions in docs/suggestions.md (Version 1.0.61)";
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 
 export const DEFAULT_VIDEO_ID = "vBURridJXZ0";

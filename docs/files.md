@@ -22,6 +22,7 @@ This document serves as the master catalog and directory of all repository docum
 | `docs/server.md`                                 | Server Proxy Specification          | Documentation for Android-only Supabase proxy endpoint (/proxy?url=) and server.json configuration.                                                                               |
 | `docs/languages-selection-flow.md`               | Language & TTS Architecture         | Specification for favorite languages in settings, per-video persistence, enabled languages UI, voice selection, 0.3-1.5 rate (0.5 default), and alternative Google Translate TTS. |
 | `docs/versioning.md`                             | Versioning & OTA Updates            | Version incrementing conventions, native shell version bridge, and OTA hot updates.                                                                                               |
+| `docs/suggestions.md`                            | Optimization Suggestions & Analysis | Detailed catalog of AGENTS.md optimization steps, urgency/importance ordering, bullet-proof feasibility analysis, and maintenance guidelines.                                    |
 
 | `docs/files.md` | Documentation & Code Inventory | Master inventory cataloging and explaining every documentation file and source code module (this document). |
 | `docs/roadmap.md` | Project Roadmap | High-level strategic milestones and planned evolution phases. |

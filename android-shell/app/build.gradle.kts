@@ -48,8 +48,14 @@ android {
         targetSdk = 34
         val propVersionCode = project.findProperty("appVersionCode")?.toString()?.toIntOrNull()
         val propVersionName = project.findProperty("appVersionName")?.toString()
-        versionCode = propVersionCode ?: defaultDerivedCode
-        versionName = propVersionName ?: packageJsonVersion
+        versionCode = 10061
+        versionName = "1.0.61"
+        if (propVersionCode != null) {
+            versionCode = propVersionCode
+        }
+        if (propVersionName != null) {
+            versionName = propVersionName
+        }
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
