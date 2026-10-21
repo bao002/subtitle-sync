@@ -220,63 +220,8 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         </div>
       </div>
 
-      {/* 1. Sentence Splitting Toggle & Punctuation Selectors */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-xs font-semibold text-foreground">Sentence Punctuation Splitting</h3>
-            <p className="text-[11px] text-muted-foreground">
-              Default to splitting long subtitle blocks into natural sentences at punctuation marks.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-muted-foreground">
-              {splitByPunctuation ? "Enabled" : "Disabled"}
-            </span>
-            <Switch
-              checked={splitByPunctuation}
-              onCheckedChange={onSplitByPunctuationChange}
-              data-testid="toggle-split-punctuation"
-            />
-          </div>
-        </div>
-
-        {splitByPunctuation && (
-          <div className="pt-2 border-t border-border space-y-2">
-            <span className="text-xs text-foreground/90 font-medium">
-              Choose punctuation marks to split on:
-            </span>
-            <div
-              className="grid grid-cols-2 sm:grid-cols-3 gap-2"
-              data-testid="punctuation-checkboxes"
-            >
-              {defaultPunctuationMarks.map((p) => {
-                const isChecked = punctuationChars.includes(p.char);
-                return (
-                  <label
-                    key={p.char}
-                    className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
-                      isChecked
-                        ? "bg-primary/10 border-primary text-foreground"
-                        : "bg-background border-border text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => handleTogglePunctuation(p.char)}
-                    />
-                    <span className="font-mono font-semibold text-primary">{p.char}</span>
-                    <span>{p.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 2. Character Removal & Renaming (stripping > and speaker tags) */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
+      {/* 1. Character Removal & Renaming (Special Characters Removal & Sanitization - Stage 3) */}
+      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3" data-testid="beginner-chars-removal-section">
         <div className="flex items-center gap-2">
           <Scissors className="w-4 h-4 text-primary" />
           <h3 className="text-xs font-semibold text-foreground">Character Removal & Rename Rules</h3>
@@ -364,6 +309,61 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* 2. Sentence Splitting Toggle & Punctuation Selectors (Stage 4) */}
+      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3" data-testid="beginner-parser-section">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xs font-semibold text-foreground">Sentence Punctuation Splitting</h3>
+            <p className="text-[11px] text-muted-foreground">
+              Default to splitting long subtitle blocks into natural sentences at punctuation marks.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground">
+              {splitByPunctuation ? "Enabled" : "Disabled"}
+            </span>
+            <Switch
+              checked={splitByPunctuation}
+              onCheckedChange={onSplitByPunctuationChange}
+              data-testid="toggle-split-punctuation"
+            />
+          </div>
+        </div>
+
+        {splitByPunctuation && (
+          <div className="pt-2 border-t border-border space-y-2">
+            <span className="text-xs text-foreground/90 font-medium">
+              Choose punctuation marks to split on:
+            </span>
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+              data-testid="punctuation-checkboxes"
+            >
+              {defaultPunctuationMarks.map((p) => {
+                const isChecked = punctuationChars.includes(p.char);
+                return (
+                  <label
+                    key={p.char}
+                    className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
+                      isChecked
+                        ? "bg-primary/10 border-primary text-foreground"
+                        : "bg-background border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => handleTogglePunctuation(p.char)}
+                    />
+                    <span className="font-mono font-semibold text-primary">{p.char}</span>
+                    <span>{p.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 3. Live Preview Card */}

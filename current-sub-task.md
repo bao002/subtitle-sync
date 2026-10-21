@@ -1,8 +1,8 @@
 # Current Subtask (`current-sub-task.md`)
-
-## Active Subtask: Subtask 165.3 - Update verify-report-video-links-and-readme-sync.ts
-- **Parent Task**: Task 165 (Chapter 1) - Update Integrity Checks & Link Checking Flows for Deprecated Video/Image Artifacts (Version 1.0.62)
+ 
+## Active Subtask: Subtask 168.1 - Reorder Chars Removal before Parser in Beginner Mode
+- **Parent Task**: Task 168 - Implement Chars Removal Accordion in Advanced Mode & Reorder Before Parser in Both Modes
 - **Status**: [ACTIVE]
 - **Target Files**:
-  - `scripts/verify-report-video-links-and-readme-sync.ts`
-- **Objective**: Update verification test to ensure deprecated video/image artifacts are handled non-destructively without treating absence as failure.
+  - `src/components/beginner/tabs/BeginnerParsingTab.tsx`
+- **Objective**: Reorder sections in BeginnerParsingTab so Character Removal & Rename Rules appears before Sentence Splitting (Parser).

@@ -74,6 +74,7 @@ assert(
 );
 console.log("✅ PASS: Basic README contains GitHub Pages demo and report links");
 
+// 5. Verify repository hygiene: static images must NOT be committed to main
 const screenshotAsset = path.resolve(
   rootDir,
   "public",
@@ -81,8 +82,8 @@ const screenshotAsset = path.resolve(
   "android-emulator-screenshot.png",
 );
 assert(
-  fs.existsSync(screenshotAsset),
-  "public/screenshots/android-emulator-screenshot.png asset must exist",
+  !fs.existsSync(screenshotAsset),
+  "public/screenshots/android-emulator-screenshot.png must NOT exist in source repository (generated dynamically during emulation.yml on real Android emulator)",
 );
 const assetScreenshot = path.resolve(
   rootDir,
@@ -91,11 +92,18 @@ const assetScreenshot = path.resolve(
   "android-emulator-screenshot.png",
 );
 assert(
-  fs.existsSync(assetScreenshot),
-  "public/assets/android-emulator-screenshot.png asset must exist",
+  !fs.existsSync(assetScreenshot),
+  "public/assets/android-emulator-screenshot.png must NOT exist in source repository",
 );
-console.log("✅ PASS: Authentic emulator screenshot static assets present in public/");
-console.log("✅ PASS: GitHub Pages demo and screenshot URLs present in README.md");
+console.log("✅ PASS: Repository hygiene verified (zero static images on main).");
+
+// 6. Verify dedicated GitHub Actions emulator workflow generates authentic screenshots
+const emulationYml = fs.readFileSync(path.resolve(rootDir, ".github/workflows/emulation.yml"), "utf-8");
+assert(
+  emulationYml.includes("screencap") && emulationYml.includes("gh-pages-staging/screenshots"),
+  "emulation.yml must capture emulator screenshots and stage them exclusively to gh-pages",
+);
+console.log("✅ PASS: Emulation workflow dynamically captures authentic screenshots on real Android emulator.");
 
 console.log("====================================================");
 console.log(

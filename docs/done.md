@@ -1,5 +1,85 @@
 # Done tasks
 
+## Task 167: Version 1.0.63 Bump & AGENTS.md Chars Removal Order Mandate
+
+### Summary:
+- **Version Bump across all 5 Targets (Subtask 167.1)**:
+  - Updated application version to `1.0.63` and versionCode to `10063` across `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts` (`CURRENT_APK_VERSION = "v1.0.63"`), `src/utils/appSettings.ts` (snapshot version `"1.0.63"`), and `src/config/appConfig.ts` (`APP_VERSION = "1.0.63"`).
+- **Update AGENTS.md Parity & Order Mandate (Subtask 167.2)**:
+  - Recorded exact raw user prompt in `## Last raw prompt` section of `AGENTS.md`.
+  - Codified the mandatory parallel UI and accordion ordering rule: Special Characters Removal (Chars Removal) must be present in Advanced Mode as a dedicated accordion section matching Beginner Mode, and must appear BEFORE the Parser in both modes to mirror pipeline stages (Stage 3 Chars Removal precedes Stage 4 Parser).
+  - Maintained `AGENTS.md` file size safely at 18.38KB (< 20KB budget).
+- **Verification Commands & Outcomes (Subtask 167.3)**:
+  - `npm run test:agents-version`: PASSED (100% parity across all 5 targets).
+  - `npm run test:apk-version`: PASSED.
+  - `npm run test:agents-last-prompt-rule`: PASSED.
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 166: Purge Static Images from Repository & Enforce Dedicated Emulator-Only Artifact Generation (Version 1.0.62)
+
+### Summary:
+- **Purge Static PNG Images from Repository (Subtask 166.1)**:
+  - Removed all pre-baked static PNG images from `public/screenshots/` and `public/assets/` (`android-emulator-screenshot.png`, `step-02-app-launch.png`, `step-03-action-view.png`, `step-04-action-send.png`, `step-share-browser-link.png`, `step-share-youtube-app-text.png`).
+  - Ensured repository source contains zero static images that were generated outside the dedicated GitHub Actions emulator run.
+- **Repository Hygiene & Workflow Guarding (Subtask 166.2)**:
+  - Updated `.gitignore` to explicitly ignore `public/screenshots/*.png` and `public/assets/*.png`, ensuring emulator runtime screenshots are never accidentally tracked or committed to `main`.
+  - Updated `scripts/verify-readme-links.ts` to assert that static screenshots do NOT exist in repository source, while verifying that `.github/workflows/emulation.yml` dynamically captures authentic screenshots on the real Android emulator (API 34) and stages them exclusively to `gh-pages` and workflow artifacts.
+  - Updated `scripts/update-readme.mjs` to prioritize `process.env.VIDEO_SIZE_BYTES` when passed from testing environments.
+- **Dedicated Automated Verification Suite (Subtask 166.3)**:
+  - Authored `scripts/verify-no-static-images-in-repo.ts` (`npm run test:no-static-images`) asserting:
+    1. Zero static images/videos in `public/assets/` and `public/screenshots/`.
+    2. `.gitignore` guards for public screenshot directories.
+    3. Dedicated `emulation.yml` flow runs on real Android emulator (API 34) and uploads authentic artifacts.
+    4. Broken-link checking tools skip missing media files gracefully.
+  - Registered `test:no-static-images` in `package.json` and cataloged in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:no-static-images`: PASSED (100% across all 4 checks).
+  - `npm run test:readme-links`: PASSED.
+  - `npm run test:basic-readme`: PASSED.
+  - `npm run test:report-video-links`: PASSED.
+  - `npm run test:tokens-economy`: PASSED.
+  - `npm run test:no-duplicate-md`: PASSED.
+  - `npm run test:agents-last-prompt-rule`: PASSED.
+  - `npm run test:agents-version`: PASSED.
+  - `npm run test:apk-version`: PASSED.
+  - `npm run test:gitignore-entries`: PASSED.
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 165: Update Integrity Checks & Link Checking Flows for Deprecated Video/Image Artifacts (Version 1.0.62)
+
+### Summary:
+- **Update Link Checking in `scripts/update-readme.mjs` (Subtask 165.1)**:
+  - Updated `scripts/update-readme.mjs` so that `scanReadmeBrokenLinks` skips `.png`, `.mp4`, `screenshots/`, `android-emulator-screenshot`, and `android-emulator-video`, ensuring absent video or image files do not trigger broken-link false alarms.
+  - Configured `scanReportVideoIntegrity` to only flag broken screencast video when `ENFORCE_VIDEO_PRESENCE === "true"`, recognizing screencast video deprecation in default CI flows.
+- **Update Workflows for Video/Image Deprecation (Subtask 165.2)**:
+  - Updated `.github/workflows/integrity.yml` and `.github/workflows/report-video-flow.yml` to acknowledge screencast video and static image deprecation.
+  - Eliminated strict 404 failure and removed automated `gh workflow run emulation.yml` retry dispatch from `report-video-flow.yml`.
+- **Align Verification Suites (Subtask 165.3)**:
+  - Updated `scripts/verify-report-video-links-and-readme-sync.ts` (`npm run test:report-video-links`) to verify video deprecation acknowledgement and non-blocking behavior.
+  - Restored `#readme` anchor in `public/android-emulator-report.html` video warning banner.
+  - Updated `scripts/verify-screencast-availability.ts` to recognize `cleanup_recording` trap finalization.
+  - Updated `scripts/verify-no-cron-readme-updates.ts` to support minimalist basic README in repository source.
+- **Verification Commands & Outcomes (Subtask 165.4)**:
+  - `npm run test:report-video-links`: PASSED (100% pass across all tests).
+  - `npm run test:workflows`: PASSED.
+  - `npm run test:actions-readme-sync-docs`: PASSED.
+  - `npm run test:e2e-report-links`: PASSED.
+  - `npm run test:doc-contracts`: PASSED.
+  - `npm run test:hygiene`: PASSED.
+  - `npm run test:basic-readme`: PASSED.
+  - `npm run test:no-cron-readme`: PASSED.
+  - `npx tsx scripts/verify-screencast-availability.ts`: PASSED.
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 164: Document AGENTS.md Optimization Suggestions in `docs/suggestions.md` & Cross-Link from `docs/tokens.md` (Version 1.0.61)
 
 ### Summary:

@@ -36,6 +36,9 @@ The application processes and presents subtitles through a strict sequential pip
 
 ### Absolute Parity Rule Between Advanced and Beginner Modes:
 - The processing rules (special characters removal before translation, punctuation splitting, alignment criteria, fallback order) **MUST BE 100% IDENTICAL** across both Advanced Mode and Beginner Mode.
+- **Parallel UI & Accordion Ordering**:
+  - The Special Characters Removal (Chars Removal) feature MUST be present in Advanced Mode as a dedicated accordion section, providing full functional parity with Beginner Mode.
+  - In BOTH Advanced Mode and Beginner Mode, the Chars Removal section/accordion MUST strictly appear BEFORE the Parser (Sentence Splitting) section/accordion, adhering directly to the pipeline sequence (Stage 3 Chars Removal precedes Stage 4 Parser).
 
 ## Work tracking
 
@@ -130,7 +133,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. if generating video artifacts and images are no longer a requirement - it should be reflected by updating the integrity check and a flow which checks for broken video/images links.
-
-2. i never saw an image generated on git flow actions for the github report - which proves the app really being installed and run on android emulator therefor i dont need any images which produced in a time other the the git action flow dedicated which runs on a real android emulator.
+AGENTS.md - targeting parallel order between beginner and advance mode:
+1. chars removal accordion is not present on advanved mode 
+2. chars removal section should apear before the parser
 ```
