@@ -1,5 +1,67 @@
 # Done tasks
 
+## Task 176: Chapter 1 - Fix the Testing-TTS-Dashboard Button to Test in Alternative TTS (Version 1.0.69)
+
+### Summary:
+- **Resilient Fallback on Alternative TTS Audio Playback (Subtask 176.1)**:
+  - Identified root cause of the testing button failure: `https://tts2.lovable.app/api/public/tts` returned HTTP 402 ("Not enough credits") when called without active credits, throwing an `<audio>` error, while `playAlternativeTtsAudio` blocked fallback due to an over-restrictive `!engineOverride` guard.
+  - Removed `!engineOverride` blocker in `src/lib/alternative-tts.ts`, enabling seamless automatic fallback to Google Translate TTS (`buildGoogleTranslateTtsUrl`) and subsequently browser Web Speech API (`fallbackToWebSpeech`).
+  - Added interactive testing feedback state (`isTestingAlternativeTts`) with loading spinner and disabled state during audio synthesis across both Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with 100% parity.
+- **Version 1.0.69 Synchronization & Dedicated Test Suite (Subtask 176.2)**:
+  - Bumped version to `1.0.69` (versionCode `10069`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+  - Authored dedicated test suite `scripts/verify-testing-tts-button.ts` asserting fallback unblocking, test button async handler and loading state, and version parity.
+  - Documented `scripts/verify-testing-tts-button.ts` in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:testing-tts-button`: PASSED (100%).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+### Hotfix: Resolve ReferenceError: Slider is not defined in `src/routes/index.tsx`
+
+#### Summary:
+- **Root Cause**: `src/routes/index.tsx` rendered the `<Slider ... />` component for Lovable TTS speed control without importing `Slider` from `@/components/ui/slider`, causing a runtime `ReferenceError: Slider is not defined` when loading the application page. In addition, `src/utils/captionParser.ts` had a missing fallback return on empty cues leading to a TypeScript error `TS2366`.
+- **Changes**:
+  - Added `import { Slider } from "@/components/ui/slider";` in `src/routes/index.tsx`.
+  - Added fallback `return { format: "unknown", cues: [] };` to `parseRawCaptionData` in `src/utils/captionParser.ts`.
+  - Registered `"test:slider-import-hotfix"` in `package.json` and documented in `docs/files.md`.
+  - Authored dedicated test suite `scripts/verify-slider-import-hotfix.ts`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:slider-import-hotfix`: PASSED (100%).
+  - `npx tsc --noEmit`: PASSED (0 errors).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 175: Prefer Lovable TTS Service Over Native Capabilities with Configured Target Language, Current Text, Configured Speed, and Streamlined Voice-Types Dropdown (Version 1.0.68)
+
+### Summary:
+
+- **Enforce Provider "lovable" and Payload Attributes (Subtask 175.1)**:
+  - Enforced `provider: "lovable"` in `src/lib/alternative-tts.ts` when calling Lovable Speak API (`https://tts2.lovable.app/api/public/tts`).
+  - Passed the current subtitle text (`text`), configured target language (`lang` / `target_lang`), and configured TTS speed multiplier (`speed`).
+  - Supported Lovable voice-types catalog (`LOVABLE_VOICES`: `Kore`, `Puck`, `Charon`, `Fenrir`, `Aoede`).
+  - Wired subtitle playback in `speak()` inside `src/routes/index.tsx` to automatically route synthesis through `playAlternativeTtsAudio` when alternative TTS is preferred or configured.
+- **Eliminate TTS Playground & Provide Clean Voice Dropdown (Subtask 175.2)**:
+  - Removed all experimental playground controls (method GET/POST radio buttons, format binary/json selectors, raw options JSON inputs).
+  - Maintained provider fixed to `"lovable"`.
+  - Presented a clean, accessible drop-down list of Lovable voice-types (`Kore`, `Puck`, `Charon`, `Fenrir`, `Aoede`) across both Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`BeginnerPreferencesTab.tsx`) with 100% functional and visual parity.
+- **Version 1.0.68 Synchronization & Dedicated Test Suite (Subtask 175.3)**:
+  - Synchronized version `1.0.68` (code `10068`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+  - Authored dedicated test suite `scripts/verify-lovable-tts-service-preference.ts` asserting payload parameters, playground elimination, voice dropdown options, and version parity.
+  - Updated `scripts/verify-lovable-tts-ui.ts` to assert 1.0.68 version parity.
+  - Documented `scripts/verify-lovable-tts-service-preference.ts` in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-lovable-tts-service-preference.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-lovable-tts-ui.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-lovable-alternative-tts.ts`: PASSED (100%).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 174: Extend Lovable Speak API (OpenAPI 3.1.0) Support: TTS Speed, Voice Types, Provider Options, Formats, and Parity (Version 1.0.67)
 
 ### Summary:

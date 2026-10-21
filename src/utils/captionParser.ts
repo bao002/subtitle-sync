@@ -225,4 +225,5 @@ export function parseRawCaptionData(rawData: string): ParsedCaptionResult {
 
   const cues = parseJson3(trimmed);
   if (cues.length > 0) return { format: "json3", cues };
+  return { format: "unknown", cues: [] };
 }
