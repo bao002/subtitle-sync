@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import {
   align,
   fmt,
@@ -876,6 +877,7 @@ function Index() {
   const [lovableTtsSpeedState, setLovableTtsSpeedState] = useState<number>(() =>
     typeof window !== "undefined" ? getLovableTtsSpeed() : 1.0,
   );
+  const [isTestingAlternativeTts, setIsTestingAlternativeTts] = useState<boolean>(false);
   const [voiceSelections, setVoiceSelections] = useState<Record<string, string>>({});
   useEffect(() => {
     try {
@@ -4813,23 +4815,41 @@ function Index() {
                                   <button
                                     type="button"
                                     data-testid="test-alternative-tts-btn"
-                                    onClick={() => {
-                                      void playAlternativeTtsAudio(
-                                        "Hello world",
-                                        "en",
-                                        lovableTtsSpeedState,
-                                        undefined,
-                                        "lovable",
-                                        {
-                                          provider: "lovable",
-                                          voice: lovableTtsVoiceState || "Kore",
-                                          speed: lovableTtsSpeedState,
-                                        },
-                                      );
+                                    disabled={isTestingAlternativeTts}
+                                    onClick={async () => {
+                                      setIsTestingAlternativeTts(true);
+                                      try {
+                                        await playAlternativeTtsAudio(
+                                          "Hello world",
+                                          "en",
+                                          lovableTtsSpeedState,
+                                          undefined,
+                                          "lovable",
+                                          {
+                                            provider: "lovable",
+                                            voice: lovableTtsVoiceState || "Kore",
+                                            speed: lovableTtsSpeedState,
+                                          },
+                                        );
+                                      } catch (err) {
+                                        console.warn("Test Alternative TTS error:", err);
+                                      } finally {
+                                        setIsTestingAlternativeTts(false);
+                                      }
                                     }}
-                                    className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1 text-foreground"
+                                    className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
                                   >
-                                    ▶ Test Alternative TTS ("Hello world")
+                                    {isTestingAlternativeTts ? (
+                                      <>
+                                        <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                                        <span>Playing test audio…</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Play className="h-3 w-3 text-primary" />
+                                        <span>▶ Test Alternative TTS ("Hello world")</span>
+                                      </>
+                                    )}
                                   </button>
                                 </div>
                               </div>

@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Play,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -81,6 +82,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   const [lovableTtsSpeedState, setLovableTtsSpeedState] = useState<number>(() =>
     typeof window !== "undefined" ? getLovableTtsSpeed() : 1.0,
   );
+  const [isTestingAlternativeTts, setIsTestingAlternativeTts] = useState<boolean>(false);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -549,23 +551,41 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
               <button
                 type="button"
                 data-testid="btn-test-alternative-tts"
-                onClick={() => {
-                  void playAlternativeTtsAudio(
-                    "Hello world",
-                    baseLanguage || "en",
-                    lovableTtsSpeedState,
-                    undefined,
-                    "lovable",
-                    {
-                      provider: "lovable",
-                      voice: lovableTtsVoiceState || "Kore",
-                      speed: lovableTtsSpeedState,
-                    },
-                  );
+                disabled={isTestingAlternativeTts}
+                onClick={async () => {
+                  setIsTestingAlternativeTts(true);
+                  try {
+                    await playAlternativeTtsAudio(
+                      "Hello world",
+                      baseLanguage || "en",
+                      lovableTtsSpeedState,
+                      undefined,
+                      "lovable",
+                      {
+                        provider: "lovable",
+                        voice: lovableTtsVoiceState || "Kore",
+                        speed: lovableTtsSpeedState,
+                      },
+                    );
+                  } catch (err) {
+                    console.warn("Test Alternative TTS error:", err);
+                  } finally {
+                    setIsTestingAlternativeTts(false);
+                  }
                 }}
-                className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1 text-foreground"
+                className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
               >
-                ▶ Test Alternative TTS ("Hello world")
+                {isTestingAlternativeTts ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                    <span>Playing test audio…</span>
+                  </>
+                ) : (
+                  <>
+                    <Play className="h-3 w-3 text-primary" />
+                    <span>▶ Test Alternative TTS ("Hello world")</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

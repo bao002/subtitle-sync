@@ -4,18 +4,24 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-### Task 175: Prefer Lovable TTS Service Over Native Capabilities with Configured Target Language, Current Text, Configured Speed, and Streamlined Voice-Types Dropdown (Version 1.0.68) [ACTIVE]
+### Task 177: Chapter 2 - Allow Updating Settings and Setting OpenRouter-Key for the Service (and Save to LocalStorage) (Version 1.0.70) [ACTIVE]
 
 #### Objective:
-
-When the user prefers the TTS service over native device/browser capabilities, speak subtitles using the current text, the configured target language, the configured TTS speed, and provider: "lovable". Eliminate all playground controls (no method, format, raw JSON options, or multi-provider experimental inputs) and present a clean, dedicated drop-down list of Lovable voice-types (Kore, Puck, Charon, Fenrir, Aoede) in both Advanced Mode and Beginner Mode with 100% parity.
+Expose settings input for OpenRouter API key in both Advanced Mode and Beginner Mode alternative TTS cards, synchronize persistence in localStorage (`yt_openrouter_api_key` and `yt_alternative_tts_lovable_api_key_v1`), and use it when calling the service.
 
 #### Subtasks:
+- [ ] **Subtask 177.1**: Add OpenRouter API key setting input with show/hide password toggle, save button, and localStorage sync in Advanced and Beginner modes [ACTIVE].
+- [ ] **Subtask 177.2**: Bump version to 1.0.70 across 5 targets, author dedicated test `scripts/verify-openrouter-key-settings.ts`, update `docs/files.md`, compile, lint, commit, and migrate Task 177 to `docs/done.md`.
 
-- [x] **Subtask 175.1**: Update `src/lib/alternative-tts.ts` to enforce provider: "lovable", pass current text, configured target language, configured speed, and selected Lovable voice-type [DONE].
-- [x] **Subtask 175.2**: Streamline UI in Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`BeginnerPreferencesTab.tsx`) to remove all playground controls, show a clean preference toggle and Lovable voice-types dropdown, and wire subtitle playback in `speak()` [DONE].
-- [ ] **Subtask 175.3**: Bump version to 1.0.68 across 5 targets, author `scripts/verify-lovable-tts-service-preference.ts`, update `docs/files.md`, run tests, compile, lint, commit, attempt push, and migrate to `docs/done.md` [ACTIVE].
+### Task 178: Chapter 3 - Fall Back to Server's OpenRouter API Key Based on .env Settings (Version 1.0.71) [PENDING]
+
+#### Objective:
+When user has not provided a custom OpenRouter API key, automatically fall back to the server's key configured in `.env` (`VITE_OPENROUTER_API_KEY` / `OPENROUTER_API_KEY`). Create `.env.example` template and indicate server-key status in UI.
+
+#### Subtasks:
+- [ ] **Subtask 178.1**: Implement `getEffectiveOpenRouterApiKey()`, fall back to server `.env` settings, create `.env.example`, and display server-key status in settings UI.
+- [ ] **Subtask 178.2**: Bump version to 1.0.71 across 5 targets, author dedicated test `scripts/verify-server-openrouter-env-key.ts`, update `docs/files.md`, compile, lint, commit, and migrate Task 178 to `docs/done.md`.
 
 ## Later Tasks
 
-_(No remaining later tasks — all staged into active backlog)_
+_(No remaining later tasks — all staged tasks into active backlog)_

@@ -749,20 +749,36 @@ export async function playAlternativeTtsAudio(
       cleanup();
     };
 
-    const onError = (e: unknown) => {
-      console.warn(`Alternative TTS (${engine}) audio error, attempting fallback:`, e);
-      if (engine === "lovable" && !engineOverride) {
-        const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
-        if (fallbackUrl && activeAlternativeAudio === audio) {
-          audio.src = fallbackUrl;
-          const retryPromise = audio.play();
-          if (retryPromise && typeof retryPromise.catch === "function") {
-            retryPromise.catch(() => cleanup());
-          }
+    function fallbackToWebSpeech() {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        try {
+          window.speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = normalizeLanguageCode(lang);
+          u.rate = Math.max(0.5, Math.min(2.0, rate || 1.0));
+          u.onend = () => cleanup();
+          u.onerror = () => cleanup();
+          window.speechSynthesis.speak(u);
           return;
+        } catch {
+          // ignore
         }
       }
       cleanup();
+    }
+
+    const onError = (e: unknown) => {
+      console.warn(`Alternative TTS (${engine}) audio error, attempting fallback:`, e);
+      const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
+      if (fallbackUrl && activeAlternativeAudio === audio && audio.src !== fallbackUrl) {
+        audio.src = fallbackUrl;
+        const retryPromise = audio.play();
+        if (retryPromise && typeof retryPromise.catch === "function") {
+          retryPromise.catch(() => fallbackToWebSpeech());
+        }
+        return;
+      }
+      fallbackToWebSpeech();
     };
 
     const onTimeUpdate = () => {
@@ -791,18 +807,16 @@ export async function playAlternativeTtsAudio(
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch((err) => {
         console.warn("Alternative TTS playback rejected:", err);
-        if (engine === "lovable" && !engineOverride) {
-          const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
-          if (fallbackUrl && activeAlternativeAudio === audio) {
-            audio.src = fallbackUrl;
-            const retryPromise = audio.play();
-            if (retryPromise && typeof retryPromise.catch === "function") {
-              retryPromise.catch(() => cleanup());
-            }
-            return;
+        const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
+        if (fallbackUrl && activeAlternativeAudio === audio && audio.src !== fallbackUrl) {
+          audio.src = fallbackUrl;
+          const retryPromise = audio.play();
+          if (retryPromise && typeof retryPromise.catch === "function") {
+            retryPromise.catch(() => fallbackToWebSpeech());
           }
+          return;
         }
-        cleanup();
+        fallbackToWebSpeech();
       });
     }
   });

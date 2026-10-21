@@ -136,5 +136,17 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. in case the user prefer to use the tts service over the native capabilities of the device/browser: use the configured target language and the current text and the configured tts speed and dont present a tts playground here. currently support only the provider: "lovable" which also support various voice-types. show those options on a drop-down list.
+1. the testing-tts-dashboard button to test is not working.
+2. allow to update settings and to set the openrouter-key to be used by  the service (and save it to local-storage)
+3. in case the use is not supplied openrouter api key - use the server's one based on .env settings
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > main:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(4) > button:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
 ```
+
+
+

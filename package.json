@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.68",
+  "version": "1.0.69",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -103,6 +103,8 @@
     "test:lovable-tts-ui": "tsx scripts/verify-lovable-tts-ui.ts",
     "test:lovable-tts-speed-and-voices": "tsx scripts/verify-lovable-tts-speed-and-voices.ts",
     "test:lovable-tts-service-preference": "tsx scripts/verify-lovable-tts-service-preference.ts",
+    "test:slider-import-hotfix": "tsx scripts/verify-slider-import-hotfix.ts",
+    "test:testing-tts-button": "tsx scripts/verify-testing-tts-button.ts",
     "test:audio-track-time-sections": "tsx scripts/verify-audio-track-time-sections.ts",
     "test:video-library": "tsx scripts/verify-video-library.ts",
     "test:cache-and-winner-promotion": "tsx scripts/verify-cache-and-winner-promotion.ts",
