@@ -4,11 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 177 - Chapter 1: OpenRouter Key Settings (Save to LocalStorage) & Server .env Fallback (Version 1.0.70)
+## Active Task: Task 180 - Enable Switching Between Alternative TTS Providers ("lovable", "google", "openrouter") in Advanced and Beginner Modes (Version 1.0.73)
 
-- **Subtask 177.1**: Implement OpenRouter key input in Alternative TTS settings (Advanced Mode in `src/routes/index.tsx` and Beginner Mode in `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with show/hide password toggle, save button, and localStorage synchronization.
-- **Subtask 177.2**: Implement server `.env` fallback (`import.meta.env.VITE_OPENROUTER_API_KEY`) when no user key is provided, update `.env.example`, and pass effective key to TTS requests.
-- **Subtask 177.3**: Bump version to 1.0.70 across 5 targets, author dedicated test `scripts/verify-openrouter-key-settings.ts`, update `docs/files.md`, compile, lint, commit, push, and migrate Task 177 to `docs/done.md`.
+- **Subtask 180.1**: Update `src/lib/alternative-tts.ts` to allow dynamic retrieval and persistence of `LovableTtsProvider` (`"lovable" | "google" | "openrouter"`).
+- **Subtask 180.2**: Enable provider switcher dropdown and dynamic voice catalogs in Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with 100% parity, wiring active provider into synthesis and playback calls.
+- **Subtask 180.3**: Synchronize version `1.0.73` across all 5 targets, author dedicated test suite `scripts/verify-alternative-tts-providers-switching.ts`, run all quality gates, commit, push, and migrate to `docs/done.md`.
 
 ---
 

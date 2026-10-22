@@ -35,6 +35,8 @@ import {
   setUseAlternativeTts,
   getAlternativeTtsMode,
   setAlternativeTtsMode,
+  getLovableTtsProvider,
+  setLovableTtsProvider,
   getLovableTtsVoice,
   setLovableTtsVoice,
   getLovableTtsSpeed,
@@ -45,7 +47,9 @@ import {
   hasCustomOpenRouterApiKey,
   LOVABLE_TTS_OPENAPI_URL,
   LOVABLE_VOICES,
+  OPENROUTER_VOICES,
   type AlternativeTtsMode,
+  type LovableTtsProvider,
 } from "@/lib/alternative-tts";
 
 export interface BeginnerPreferencesTabProps {
@@ -85,6 +89,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   );
   const [alternativeTtsModeState, setAlternativeTtsModeState] = useState<AlternativeTtsMode>(() =>
     typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only",
+  );
+  const [lovableTtsProviderState, setLovableTtsProviderState] = useState<LovableTtsProvider>(() =>
+    typeof window !== "undefined" ? getLovableTtsProvider() : "lovable",
   );
   const [lovableTtsVoiceState, setLovableTtsVoiceState] = useState<string>(() =>
     typeof window !== "undefined" ? getLovableTtsVoice() : "Kore",
@@ -136,8 +143,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
     if (useAltTts && altMode === "always") {
       setIsAuditioning(true);
       playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, "lovable", {
-        provider: "lovable",
-        voice: lovableTtsVoiceState || "Kore",
+        provider: lovableTtsProviderState,
+        voice:
+          lovableTtsProviderState === "google"
+            ? undefined
+            : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
         speed: ttsSpeed,
       })
         .catch(() => {})
@@ -149,8 +159,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       if (useAltTts) {
         setIsAuditioning(true);
         playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, "lovable", {
-          provider: "lovable",
-          voice: lovableTtsVoiceState || "Kore",
+          provider: lovableTtsProviderState,
+          voice:
+            lovableTtsProviderState === "google"
+              ? undefined
+              : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
           speed: ttsSpeed,
         })
           .catch(() => {})
@@ -175,8 +188,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       utterance.onerror = () => {
         if (useAltTts) {
           playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, "lovable", {
-            provider: "lovable",
-            voice: lovableTtsVoiceState || "Kore",
+            provider: lovableTtsProviderState,
+            voice:
+              lovableTtsProviderState === "google"
+                ? undefined
+                : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
             speed: ttsSpeed,
           })
             .catch(() => {})
@@ -190,8 +206,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
     } catch {
       if (useAltTts) {
         playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, "lovable", {
-          provider: "lovable",
-          voice: lovableTtsVoiceState || "Kore",
+          provider: lovableTtsProviderState,
+          voice:
+            lovableTtsProviderState === "google"
+              ? undefined
+              : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
           speed: ttsSpeed,
         })
           .catch(() => {})
@@ -483,32 +502,65 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                   <span className="text-muted-foreground font-medium">Provider:</span>
                   <select
                     data-testid="beginner-lovable-tts-provider-select"
-                    value="lovable"
-                    disabled
+                    value={lovableTtsProviderState}
+                    onChange={(e) => {
+                      const p = e.target.value as LovableTtsProvider;
+                      setLovableTtsProviderState(p);
+                      setLovableTtsProvider(p);
+                      if (
+                        p === "openrouter" &&
+                        !(OPENROUTER_VOICES as readonly string[]).includes(lovableTtsVoiceState)
+                      ) {
+                        setLovableTtsVoiceState("alloy");
+                        setLovableTtsVoice("alloy");
+                      } else if (
+                        p === "lovable" &&
+                        !(LOVABLE_VOICES as readonly string[]).includes(lovableTtsVoiceState)
+                      ) {
+                        setLovableTtsVoiceState("Kore");
+                        setLovableTtsVoice("Kore");
+                      }
+                    }}
                     className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-mono"
                   >
                     <option value="lovable">lovable</option>
+                    <option value="google">google</option>
+                    <option value="openrouter">openrouter</option>
                   </select>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   <span className="text-muted-foreground font-medium">Voice:</span>
-                  <select
-                    data-testid="beginner-lovable-tts-voice-select"
-                    value={lovableTtsVoiceState || "Kore"}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setLovableTtsVoiceState(v);
-                      setLovableTtsVoice(v);
-                    }}
-                    className="rounded border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium"
-                  >
-                    {LOVABLE_VOICES.map((v) => (
-                      <option key={v} value={v}>
-                        {v} {v === "Kore" ? "(Default)" : ""}
-                      </option>
-                    ))}
-                  </select>
+                  {lovableTtsProviderState === "google" ? (
+                    <span className="text-xs text-muted-foreground italic px-2 py-0.5">
+                      Default (Single voice)
+                    </span>
+                  ) : (
+                    <select
+                      data-testid="beginner-lovable-tts-voice-select"
+                      value={lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setLovableTtsVoiceState(v);
+                        setLovableTtsVoice(v);
+                      }}
+                      className="rounded border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium"
+                    >
+                      {lovableTtsProviderState === "openrouter" ? (
+                        OPENROUTER_VOICES.map((v) => (
+                          <option key={v} value={v}>
+                            {v} {v === "alloy" ? "(Default)" : ""}
+                          </option>
+                        ))
+                      ) : (
+                        LOVABLE_VOICES.map((v) => (
+                          <option key={v} value={v}>
+                            {v} {v === "Kore" ? "(Default)" : ""}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  )}
                 </div>
               </div>
 
@@ -620,8 +672,15 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 <code className="bg-muted px-1 py-0.5 rounded text-[10px] font-mono">
                   https://tts2.lovable.app/api/public/tts
                 </code>{" "}
+                • Provider:{" "}
+                <span className="font-semibold text-foreground font-mono">
+                  {lovableTtsProviderState}
+                </span>{" "}
                 • Speaks subtitles using configured target language, current text, and native speech
-                rate with voice: {lovableTtsVoiceState || "Kore"}.
+                rate with voice:{" "}
+                {lovableTtsProviderState === "google"
+                  ? "Default"
+                  : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}.
               </p>
             </div>
 
@@ -640,8 +699,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                       undefined,
                       "lovable",
                       {
-                        provider: "lovable",
-                        voice: lovableTtsVoiceState || "Kore",
+                        provider: lovableTtsProviderState,
+                        voice:
+                          lovableTtsProviderState === "google"
+                            ? undefined
+                            : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
                         speed: ttsSpeed,
                       },
                     );

@@ -132,6 +132,8 @@ import {
   setUseAlternativeTts,
   getAlternativeTtsMode,
   setAlternativeTtsMode,
+  getLovableTtsProvider,
+  setLovableTtsProvider,
   getLovableTtsVoice,
   setLovableTtsVoice,
   getLovableTtsSpeed,
@@ -144,7 +146,9 @@ import {
   cancelAlternativeTtsAudio,
   LOVABLE_TTS_OPENAPI_URL,
   LOVABLE_VOICES,
+  OPENROUTER_VOICES,
   type AlternativeTtsMode,
+  type LovableTtsProvider,
 } from "@/lib/alternative-tts";
 import {
   computeVideoInstances,
@@ -367,6 +371,7 @@ function speak(
       const altTtsMode = typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only";
       // Use the native speech rate setting directly (no separate extra speed rate)
       const altSpeed = normalizedRate;
+      const altProvider = typeof window !== "undefined" ? getLovableTtsProvider() : "lovable";
       const altVoice = typeof window !== "undefined" ? getLovableTtsVoice() : "Kore";
 
       // 1. If alternative TTS service is enabled as preferred / always, speak with it directly
@@ -392,7 +397,7 @@ function speak(
             },
             "lovable",
             {
-              provider: "lovable",
+              provider: altProvider,
               voice: altVoice,
               speed: altSpeed,
             },
@@ -487,7 +492,7 @@ function speak(
               },
               "lovable",
               {
-                provider: "lovable",
+                provider: altProvider,
                 voice: altVoice,
                 speed: altSpeed,
               },
@@ -872,6 +877,9 @@ function Index() {
   );
   const [alternativeTtsModeState, setAlternativeTtsModeState] = useState<AlternativeTtsMode>(() =>
     typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only",
+  );
+  const [lovableTtsProviderState, setLovableTtsProviderState] = useState<LovableTtsProvider>(() =>
+    typeof window !== "undefined" ? getLovableTtsProvider() : "lovable",
   );
   const [lovableTtsVoiceState, setLovableTtsVoiceState] = useState<string>(() =>
     typeof window !== "undefined" ? getLovableTtsVoice() : "Kore",
@@ -4730,11 +4738,34 @@ function Index() {
                                       </span>
                                       <select
                                         data-testid="lovable-tts-provider-select"
-                                        value="lovable"
-                                        disabled
+                                        value={lovableTtsProviderState}
+                                        onChange={(e) => {
+                                          const p = e.target.value as LovableTtsProvider;
+                                          setLovableTtsProviderState(p);
+                                          setLovableTtsProvider(p);
+                                          if (
+                                            p === "openrouter" &&
+                                            !(OPENROUTER_VOICES as readonly string[]).includes(
+                                              lovableTtsVoiceState,
+                                            )
+                                          ) {
+                                            setLovableTtsVoiceState("alloy");
+                                            setLovableTtsVoice("alloy");
+                                          } else if (
+                                            p === "lovable" &&
+                                            !(LOVABLE_VOICES as readonly string[]).includes(
+                                              lovableTtsVoiceState,
+                                            )
+                                          ) {
+                                            setLovableTtsVoiceState("Kore");
+                                            setLovableTtsVoice("Kore");
+                                          }
+                                        }}
                                         className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-mono"
                                       >
                                         <option value="lovable">lovable</option>
+                                        <option value="google">google</option>
+                                        <option value="openrouter">openrouter</option>
                                       </select>
                                     </div>
 
@@ -4742,22 +4773,36 @@ function Index() {
                                       <span className="text-muted-foreground font-medium">
                                         Voice:
                                       </span>
-                                      <select
-                                        data-testid="lovable-tts-voice-select"
-                                        value={lovableTtsVoiceState || "Kore"}
-                                        onChange={(e) => {
-                                          const v = e.target.value;
-                                          setLovableTtsVoiceState(v);
-                                          setLovableTtsVoice(v);
-                                        }}
-                                        className="rounded border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium"
-                                      >
-                                        {LOVABLE_VOICES.map((v) => (
-                                          <option key={v} value={v}>
-                                            {v} {v === "Kore" ? "(Default)" : ""}
-                                          </option>
-                                        ))}
-                                      </select>
+                                      {lovableTtsProviderState === "google" ? (
+                                        <span className="text-xs text-muted-foreground italic px-2 py-0.5">
+                                          Default (Single voice)
+                                        </span>
+                                      ) : (
+                                        <select
+                                          data-testid="lovable-tts-voice-select"
+                                          value={lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}
+                                          onChange={(e) => {
+                                            const v = e.target.value;
+                                            setLovableTtsVoiceState(v);
+                                            setLovableTtsVoice(v);
+                                          }}
+                                          className="rounded border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium"
+                                        >
+                                          {lovableTtsProviderState === "openrouter" ? (
+                                            OPENROUTER_VOICES.map((v) => (
+                                              <option key={v} value={v}>
+                                                {v} {v === "alloy" ? "(Default)" : ""}
+                                              </option>
+                                            ))
+                                          ) : (
+                                            LOVABLE_VOICES.map((v) => (
+                                              <option key={v} value={v}>
+                                                {v} {v === "Kore" ? "(Default)" : ""}
+                                              </option>
+                                            ))
+                                          )}
+                                        </select>
+                                      )}
                                     </div>
                                   </div>
 
@@ -4872,9 +4917,15 @@ function Index() {
                                     <code className="bg-muted px-1 py-0.5 rounded text-[10px] font-mono">
                                       https://tts2.lovable.app/api/public/tts
                                     </code>{" "}
+                                    • Provider:{" "}
+                                    <span className="font-semibold text-foreground font-mono">
+                                      {lovableTtsProviderState}
+                                    </span>{" "}
                                     • Speaks subtitles using configured target language, current
                                     text, and native speech rate with voice:{" "}
-                                    {lovableTtsVoiceState || "Kore"}.
+                                    {lovableTtsProviderState === "google"
+                                      ? "Default"
+                                      : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}.
                                   </p>
                                 </div>
 
@@ -4894,8 +4945,11 @@ function Index() {
                                           undefined,
                                           "lovable",
                                           {
-                                            provider: "lovable",
-                                            voice: lovableTtsVoiceState || "Kore",
+                                            provider: lovableTtsProviderState,
+                                            voice:
+                                              lovableTtsProviderState === "google"
+                                                ? undefined
+                                                : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
                                             speed: testRate,
                                           },
                                         );
