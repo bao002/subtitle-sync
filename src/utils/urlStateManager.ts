@@ -8,30 +8,42 @@ import { validateYouTubeUrl, DEFAULT_VIDEO_ID, DEFAULT_VIDEO_URL } from "./youtu
 import { clearSubtitleCache } from "./subtitleCache";
 import { logInfo, logWarn } from "./logBuffer";
 
+export const DEMO_SITE_BASE_URL = "https://mostuf2556.github.io/subtitle-sync";
+
 export interface UrlAppState {
   videoId?: string;
   url?: string;
   time?: number;
   targetLang?: string;
+  targetLanguages?: string[];
+  targetLangs?: string[];
   autoTTS?: boolean;
   captionsEnabled?: boolean;
   mode?: "compact" | "expanded";
   // Rich sharable link parameters
   subUrl?: string; // Default subtitles URL (timedtext URL or fixture link)
+  subtitlesUrl?: string; // Explicit alias for subtitles URL
   subData?: string; // Direct JSON3 / cues string payload
   subLang?: string; // Language code of default subtitles (e.g. "en")
+  sourceLangCode?: string; // Alias for source language code
   openRouterApiKey?: string; // OpenRouter API key for quick AI restoration
+  ttsProvider?: string; // TTS Provider identifier
 }
 
 export interface CreateShareableLinkOptions {
   videoId?: string;
   targetLang?: string;
+  targetLangs?: string[];
   subUrl?: string;
+  subtitlesUrl?: string;
   subData?: string;
   subLang?: string;
+  sourceLangCode?: string;
   openRouterApiKey?: string;
+  ttsProvider?: string;
   time?: number;
   baseUrl?: string;
+  useDemoSiteBase?: boolean;
 }
 
 /**
@@ -129,13 +141,16 @@ export function checkAndPerformUrlCacheReset(): { wasReset: boolean; resetKeys: 
 }
 
 /**
- * Parses initial application state from URL query parameters
+ * Parses application state from an arbitrary URL query string or search string
  */
-export function getAppStateFromUrl(): UrlAppState {
-  if (typeof window === "undefined") return {};
-
+export function parseShareableUrlState(searchOrQuery: string): UrlAppState {
   try {
-    const params = new URLSearchParams(window.location.search);
+    const rawSearch = searchOrQuery.startsWith("?")
+      ? searchOrQuery.slice(1)
+      : searchOrQuery.includes("?")
+        ? searchOrQuery.slice(searchOrQuery.indexOf("?") + 1)
+        : searchOrQuery;
+    const params = new URLSearchParams(rawSearch);
     const state: UrlAppState = {};
 
     // Video ID or URL
@@ -167,24 +182,37 @@ export function getAppStateFromUrl(): UrlAppState {
       }
     }
 
-    // Target Language
-    const lang =
+    // Target Language(s)
+    const rawTargetLangs =
+      params.get("Target_langs") ||
+      params.get("target_langs") ||
       params.get("target_lang") ||
       params.get("target") ||
       params.get("tlang") ||
       params.get("lang");
-    if (lang) {
-      state.targetLang = lang.toLowerCase().trim();
+    if (rawTargetLangs) {
+      const langs = rawTargetLangs
+        .split(",")
+        .map((l) => l.toLowerCase().trim())
+        .filter(Boolean);
+      if (langs.length > 0) {
+        state.targetLanguages = langs;
+        state.targetLangs = langs;
+        state.targetLang = langs[0];
+      }
     }
 
     // Default Subtitles URL
     const subUrl =
       params.get("sub_url") ||
+      params.get("subtitles_url") ||
       params.get("subs_url") ||
       params.get("caption_url") ||
       params.get("observed_url");
     if (subUrl) {
-      state.subUrl = subUrl.trim();
+      const trimmed = subUrl.trim();
+      state.subUrl = trimmed;
+      state.subtitlesUrl = trimmed;
     }
 
     // Default Subtitles Data
@@ -193,20 +221,36 @@ export function getAppStateFromUrl(): UrlAppState {
       state.subData = subData.trim();
     }
 
-    // Default Subtitles Language
-    const subLang = params.get("sub_lang") || params.get("base_lang");
+    // Default Subtitles Language / Source Language Code
+    const subLang =
+      params.get("source_lang_code") ||
+      params.get("source_lang") ||
+      params.get("sub_lang") ||
+      params.get("base_lang");
     if (subLang) {
       state.subLang = subLang.toLowerCase().trim();
+      state.sourceLangCode = state.subLang;
     }
 
-    // OpenRouter API Key
+    // TTS Provider
+    const ttsProv = params.get("tts_provider") || params.get("ttsProvider");
+    if (ttsProv) {
+      state.ttsProvider = ttsProv.trim();
+    }
+
+    // OpenRouter API Key (handles plain and encoded)
     const openRouterApiKey =
+      params.get("encoded_openrouter_key") ||
       params.get("openrouter_key") ||
       params.get("openrouter_api_key") ||
       params.get("ai_key") ||
       params.get("openrouterKey");
     if (openRouterApiKey) {
-      state.openRouterApiKey = openRouterApiKey.trim();
+      let cleanedKey = openRouterApiKey.trim();
+      try {
+        cleanedKey = decodeURIComponent(cleanedKey);
+      } catch {}
+      state.openRouterApiKey = cleanedKey;
     }
 
     // Auto-TTS
@@ -235,33 +279,64 @@ export function getAppStateFromUrl(): UrlAppState {
 }
 
 /**
- * Creates a rich shareable link containing videoId, default subtitles URL/data, OpenRouter API key, and target language
+ * Parses initial application state from URL query parameters
+ */
+export function getAppStateFromUrl(): UrlAppState {
+  if (typeof window === "undefined" || !window.location) return {};
+  return parseShareableUrlState(window.location.search);
+}
+
+/**
+ * Creates a rich shareable link containing videoId, default subtitles URL/data, OpenRouter API key, target languages, and TTS provider
  */
 export function createShareableLink(options: CreateShareableLinkOptions): string {
   const origin =
     options.baseUrl ||
-    (typeof window !== "undefined" && window.location
-      ? `${window.location.origin}${window.location.pathname}`
-      : "");
+    (options.useDemoSiteBase
+      ? DEMO_SITE_BASE_URL
+      : typeof window !== "undefined" && window.location
+        ? `${window.location.origin}${window.location.pathname}`
+        : DEMO_SITE_BASE_URL);
   const params = new URLSearchParams();
 
   if (options.videoId) {
     params.set("v", options.videoId);
   }
+  const sourceLang = (options.sourceLangCode || options.subLang || "").toLowerCase().trim();
+  if (sourceLang) {
+    params.set("source_lang_code", sourceLang);
+    params.set("sub_lang", sourceLang);
+  }
+  const rawSubUrl = (options.subtitlesUrl || options.subUrl || "").trim();
+  if (rawSubUrl) {
+    params.set("subtitles_url", rawSubUrl);
+    params.set("sub_url", rawSubUrl);
+  }
+  if (options.targetLangs && options.targetLangs.length > 0) {
+    const joined = options.targetLangs.map((l) => l.toLowerCase().trim()).join(",");
+    params.set("Target_langs", joined);
+    params.set("target_langs", joined);
+    if (!options.targetLang) {
+      params.set("target_lang", options.targetLangs[0].toLowerCase().trim());
+    }
+  }
   if (options.targetLang) {
-    params.set("target_lang", options.targetLang.toLowerCase().trim());
+    const tl = options.targetLang.toLowerCase().trim();
+    params.set("target_lang", tl);
+    if (!params.has("Target_langs")) {
+      params.set("Target_langs", tl);
+    }
   }
-  if (options.subUrl) {
-    params.set("sub_url", options.subUrl.trim());
+  if (options.ttsProvider) {
+    params.set("tts_provider", options.ttsProvider.trim());
   }
-  if (options.subLang) {
-    params.set("sub_lang", options.subLang.toLowerCase().trim());
+  if (options.openRouterApiKey && options.openRouterApiKey.trim()) {
+    const rawKey = options.openRouterApiKey.trim();
+    params.set("encoded_openrouter_key", encodeURIComponent(rawKey));
+    params.set("openrouter_key", rawKey);
   }
   if (options.subData) {
     params.set("sub_data", options.subData.trim());
-  }
-  if (options.openRouterApiKey && options.openRouterApiKey.trim()) {
-    params.set("openrouter_key", options.openRouterApiKey.trim());
   }
   if (typeof options.time === "number" && options.time > 0) {
     params.set("t", Math.floor(options.time).toString());
@@ -269,6 +344,17 @@ export function createShareableLink(options: CreateShareableLinkOptions): string
 
   const query = params.toString();
   return query ? `${origin}?${query}` : origin;
+}
+
+/**
+ * Convenience method to explicitly create a subtitles share link based on the official demo site
+ */
+export function createDemoSubtitlesShareLink(options: CreateShareableLinkOptions): string {
+  return createShareableLink({
+    ...options,
+    baseUrl: DEMO_SITE_BASE_URL,
+    useDemoSiteBase: true,
+  });
 }
 
 let updateDebounceTimer: NodeJS.Timeout | null = null;

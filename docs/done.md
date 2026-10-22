@@ -1,6 +1,74 @@
 # Done tasks
 
-## Task 182: Alternative TTS Provider Selector UI Polish, Interactive Styling & Version 1.0.75 Synchronization
+### Hotfix: Fix missing useEffect import in ShareStateModal (Version 1.0.78)
+
+- **Root Cause & Fix**: In `src/components/ShareStateModal.tsx`, `useEffect` was called to synchronize the detected timedtext URL into state, but was not included in the top-level React named imports (`import React, { useState, useMemo, useCallback } from "react";`), causing runtime `ReferenceError: useEffect is not defined` during modal mount in `src/routes/index.tsx`. Added `useEffect` to `import React, { useState, useEffect, useMemo, useCallback } from "react";`.
+- **Version 1.0.78 Parity**: Synchronized version `1.0.78` and versionCode `10078` across all 5 version targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Verification**: Updated `scripts/verify-subtitles-url-encoding-in-share-link.ts` with explicit assertions checking that `ShareStateModal.tsx` contains `useEffect` imported from `react` and all 5 targets reflect version `1.0.78`. Ran `npm run test:subtitles-url-encoding` (100% PASS), `npm run test:android-share-subtitles-link` (100% PASS), `lint_applet` (100% clean), and `compile_applet` (build succeeded).
+
+---
+
+## Task 184: Guarantee Subtitles URL Encoding in Shared Links (Native Bridge Fallback, Manual Input & Dual Query Parameter Support)
+
+### Summary:
+
+- **Subtitles URL Parameter Encoding & Dual Key Support (Subtask 184.1)**:
+  - In `src/utils/urlStateManager.ts`:
+    - Updated `createShareableLink`: whenever subtitles URL is present (`options.subtitlesUrl` or `options.subUrl`), the URL is percent-encoded and emitted as BOTH `subtitles_url` and `sub_url` query parameters (e.g. `https://mostuf2556.github.io/subtitle-sync?v=...&subtitles_url=https%3A%2F%2Fwww.youtube.com%2Fapi%2Ftimedtext...&sub_url=https%3A%2F%2Fwww.youtube.com%2Fapi%2Ftimedtext...`).
+    - Added and exported `parseShareableUrlState(searchOrQuery: string): UrlAppState` which extracts query parameters from any search string or full URL.
+    - Added hydration support for both `subtitles_url` and `sub_url`, setting both `state.subUrl` and `state.subtitlesUrl`.
+    - Added `targetLangs` alias to `UrlAppState` alongside `targetLanguages` for complete interoperability.
+- **Native Bridge Fallback, Auto-Detection & Editable Input in ShareStateModal (Subtask 184.2)**:
+  - In `src/components/ShareStateModal.tsx`:
+    - Added editable input field (`data-testid="share-subtitles-url-input"`) showing the active timedtext URL to encode, allowing user editing and custom URL pasting.
+    - Added paste sanitizer that automatically strips copied `subtitles_url:\s*` or `sub_url:\s*` prefixes if pasted with the label from previous shares.
+    - Added fallback chain for subtitles stream:
+      1. `observedUrl` from route state.
+      2. Captured Android URL via `window.AndroidNativeShell.getLastObservedTimedTextUrl()`.
+      3. Track data from `tracks[baseLanguage]`.
+      4. Approved fixture fallback for `L2Ryrr6txwA`.
+    - Added "Use Captured Android URL" button (`data-testid="btn-refresh-android-sub-url"`) to immediately refresh or switch to the intercepted timedtext URL.
+  - In `src/routes/index.tsx`:
+    - Updated `observedUrl` prop in `ShareStateModal` to fall back to `window.AndroidNativeShell?.getLastObservedTimedTextUrl?.()`.
+    - Hydration checks `const incomingSubUrl = appState.subUrl || appState.subtitlesUrl;`.
+- **Version 1.0.77 Synchronization & Verification Suite (Subtask 184.3)**:
+  - Synchronized version `1.0.77` / versionCode `10077` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+  - Added dedicated test `scripts/verify-subtitles-url-encoding-in-share-link.ts` registered in `package.json` as `test:subtitles-url-encoding`.
+  - Documented `scripts/verify-subtitles-url-encoding-in-share-link.ts` in `docs/files.md`.
+  - Verified with `npm run test:subtitles-url-encoding` (100% PASS), `npm run test:android-share-subtitles-link` (100% PASS), `lint_applet` (100% clean), and `compile_applet` (build succeeded).
+
+---
+
+## Task 183: Android App Subtitles Link Sharing with Demo Site Base URL & Rich State Encoding (Version 1.0.76)
+
+### Summary:
+
+- **Android Native Shell Sharing Bridge in MainActivity.kt (Subtask 183.1)**:
+  - Added `@JavascriptInterface fun shareText(text: String, title: String = "Share Subtitles Link"): Boolean` to `AndroidNativeBridge` in `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt`.
+  - Added `@JavascriptInterface fun shareSubtitlesUrl(url: String, title: String = "Share Subtitles Link"): Boolean` invoking `Intent(Intent.ACTION_SEND)` and `Intent.createChooser` with `FLAG_ACTIVITY_NEW_TASK`.
+  - Declared `shareText?` and `shareSubtitlesUrl?` across `src/lib/native-captions.ts` (`NativeShell`) and `src/types.ts` (`Window.AndroidNativeShell`).
+- **Demo Site Base URL & Rich State Encoding in URL State Manager & ShareStateModal (Subtask 183.2)**:
+  - Defined `DEMO_SITE_BASE_URL = "https://mostuf2556.github.io/subtitle-sync"` and convenience function `createDemoSubtitlesShareLink(...)` in `src/utils/urlStateManager.ts`.
+  - Extended `createShareableLink(...)` and `UrlAppState` to encode and parse:
+    - `source_lang_code` (and `sub_lang`): base/source subtitle language (e.g., "en").
+    - `v`: videoID (e.g., "vBURridJXZ0").
+    - `sub_url`: the subtitles link (percent-encoded timedtext URL or fixture link).
+    - `Target_langs` (and `target_langs`, `target_lang`): comma-separated target language codes.
+    - `tts_provider`: active TTS provider (e.g., "lovable", "openrouter", "google", "web_speech").
+    - `encoded_openrouter_key` (and `openrouter_key`): URI-encoded OpenRouter API key.
+  - Upgraded `src/components/ShareStateModal.tsx`:
+    - Defaults to demo site base URL `https://mostuf2556.github.io/subtitle-sync` with toggle (`data-testid="share-demo-base-toggle"`).
+    - Added dedicated share button (`data-testid="share-subtitles-action-btn"`) that directly triggers native Android share sheet (`window.AndroidNativeShell.shareSubtitlesUrl` / `shareText`) or Web Share API (`navigator.share`), with clipboard fallback.
+    - Added TTS Provider selector toggle (`data-testid="share-include-tts-provider-toggle"`).
+    - Preserved copy link button (`data-testid="copy-share-link-btn"`) and input (`data-testid="share-link-input"`).
+  - Enhanced hydration in `src/routes/index.tsx` to automatically restore `appState.targetLanguages`, `appState.ttsProvider`, `appState.subLang`, and pass `ttsProvider` and `isAndroid` to `ShareStateModal`.
+- **Version 1.0.76 Synchronization & Dedicated Verification Suite (Subtask 183.3)**:
+  - Bumped version to `1.0.76` (versionCode `10076`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+  - Created dedicated automated test suite `scripts/verify-android-share-subtitles-link.ts` validating parameter encoding, demo site base URL, Android bridge methods in MainActivity.kt, TypeScript types, ShareStateModal UI test IDs, index route hydration, and version parity.
+  - Documented `scripts/verify-android-share-subtitles-link.ts` in `docs/files.md` and registered `test:android-share-subtitles-link` in `package.json`.
+  - Verified with `npm run test:android-share-subtitles-link` (100% PASS), `npm run test:sharable-state-link` (100% PASS), `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS), `lint_applet` (100% clean), and `compile_applet` (build succeeded).
+
+---
 
 ### Summary:
 

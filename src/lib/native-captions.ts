@@ -8,6 +8,8 @@ export type NativeShell = {
   fetchTranslatedCaptions?(language: string, format: string): string;
   fetchTimedTextExact?(url: string, withSession: boolean): string;
   openInBrowser?(url: string): boolean;
+  shareText?(text: string, title?: string): boolean;
+  shareSubtitlesUrl?(url: string, title?: string): boolean;
 };
 
 export function nativeShell(): NativeShell | null {

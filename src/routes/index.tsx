@@ -2093,15 +2093,39 @@ function Index() {
     if (appState.openRouterApiKey) {
       setOpenRouterApiKeySetting(appState.openRouterApiKey);
     }
-    if (appState.targetLang) {
+    if (appState.subLang) {
+      setBaseLanguage(appState.subLang);
+    }
+    if (appState.targetLanguages && appState.targetLanguages.length > 0) {
+      setTargetLanguages((prev) => {
+        const next = [...prev];
+        appState.targetLanguages?.forEach((code) => {
+          if (!next.includes(code)) next.push(code);
+        });
+        return next;
+      });
+      setShown((prev) => {
+        const next = [...prev];
+        appState.targetLanguages?.forEach((code) => {
+          if (!next.includes(code)) next.push(code);
+        });
+        return next;
+      });
+    } else if (appState.targetLang) {
       const code = appState.targetLang.toLowerCase().trim();
       setTargetLanguages((prev) => (prev.includes(code) ? prev : [...prev, code]));
       setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
     }
-    if (appState.subUrl) {
-      setObservedUrl(appState.subUrl);
-      const subLang = appState.subLang || "en";
-      fetch(appState.subUrl)
+    if (appState.ttsProvider) {
+      const prov = appState.ttsProvider.toLowerCase().trim() as LovableTtsProvider;
+      setLovableTtsProvider(prov);
+      setLovableTtsProviderState(prov);
+    }
+    const incomingSubUrl = appState.subUrl || appState.subtitlesUrl;
+    if (incomingSubUrl) {
+      setObservedUrl(incomingSubUrl);
+      const subLang = appState.subLang || appState.sourceLangCode || "en";
+      fetch(incomingSubUrl)
         .then((res) => (res.ok ? res.json() : null))
         .then((parsed) => {
           if (parsed && isValidJsonSubtitleResponse(parsed)) {
@@ -2114,7 +2138,7 @@ function Index() {
           }
         })
         .catch((err) => {
-          console.warn("[UrlState] Failed to fetch subUrl:", err);
+          console.warn("[UrlState] Failed to fetch incomingSubUrl:", err);
         });
     } else if (appState.subData) {
       try {
@@ -6473,10 +6497,16 @@ function Index() {
         onOpenChange={setShareModalOpen}
         videoId={videoId}
         targetLanguages={targetLanguages}
-        baseLanguage={baseLanguage}
-        observedUrl={observedUrl}
+        observedUrl={
+          observedUrl ||
+          (typeof window !== "undefined"
+            ? window.AndroidNativeShell?.getLastObservedTimedTextUrl?.()
+            : undefined)
+        }
         rawJson3Track={tracks && baseLanguage ? tracks[baseLanguage] : null}
         openRouterApiKey={getOpenRouterApiKeySetting()}
+        ttsProvider={lovableTtsProviderState}
+        isAndroid={isAndroid}
       />
       <SubtitleFetchToast
         onViewSubtitles={() => {

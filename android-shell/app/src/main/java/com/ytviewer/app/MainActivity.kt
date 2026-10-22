@@ -1107,6 +1107,30 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
 
         @JavascriptInterface
+        fun shareText(text: String, title: String = "Share Subtitles Link"): Boolean {
+            return try {
+                val sendIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, text)
+                    type = "text/plain"
+                }
+                val shareIntent = Intent.createChooser(sendIntent, title)
+                shareIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(shareIntent)
+                Log.i(TAG, "Triggered native Android share intent for subtitles text/link: $text")
+                true
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to share text via Android native bridge: ${e.message}", e)
+                false
+            }
+        }
+
+        @JavascriptInterface
+        fun shareSubtitlesUrl(url: String, title: String = "Share Subtitles Link"): Boolean {
+            return shareText(url, title)
+        }
+
+        @JavascriptInterface
         fun fetchTranslatedCaptionsWithUrl(customUrl: String, targetLang: String, format: String): String {
             val base = if (customUrl.isNotEmpty()) customUrl else (lastObservedTimedTextUrl ?: "")
             if (base.isEmpty()) return ""
