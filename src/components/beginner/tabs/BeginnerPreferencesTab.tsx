@@ -334,7 +334,6 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       </div>
 
       {/* 2. TTS Speed & Voice Selection */}
-      {/* 2. TTS Speed & Voice Selection */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -521,7 +520,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                         setLovableTtsVoice("Kore");
                       }
                     }}
-                    className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-mono"
+                    className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-mono font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
                   >
                     <option value="lovable">lovable</option>
                     <option value="google">google</option>
@@ -544,7 +543,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                         setLovableTtsVoiceState(v);
                         setLovableTtsVoice(v);
                       }}
-                      className="rounded border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium"
+                      className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
                     >
                       {lovableTtsProviderState === "openrouter" ? (
                         OPENROUTER_VOICES.map((v) => (

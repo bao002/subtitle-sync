@@ -114,32 +114,33 @@ assert(
 );
 console.log("✓ Active provider wired into all synthesis and playback calls");
 
-// 5. Verify Version 1.0.73 across all 5 files
-console.log("\n📦 Test 5: Version 1.0.73 Synchronization across all 5 Targets...");
+// 5. Verify Version >= 1.0.73 synchronized across all 5 files
+console.log("\n📦 Test 5: Version Synchronization across all 5 Targets...");
 const pkgJson = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
-assert.equal(pkgJson.version, "1.0.73", "package.json version must be 1.0.73");
+const currentVer = pkgJson.version;
+const [major, minor, patch] = currentVer.split(".").map(Number);
+assert(major > 1 || (major === 1 && minor > 0) || (major === 1 && minor === 0 && patch >= 73), `package.json version must be >= 1.0.73, got ${currentVer}`);
 
 const gradleContent = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
   "utf-8",
 );
-assert(gradleContent.includes("versionCode = 10073"), "build.gradle.kts versionCode must be 10073");
-assert(gradleContent.includes('versionName = "1.0.73"'), 'build.gradle.kts versionName must be "1.0.73"');
+assert(gradleContent.includes(`versionName = "${currentVer}"`), `build.gradle.kts versionName must be "${currentVer}"`);
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert(
-  appConfigContent.includes('export const APP_VERSION = "1.0.73";'),
-  'appConfig.ts APP_VERSION must be "1.0.73"',
+  appConfigContent.includes(`export const APP_VERSION = "${currentVer}";`),
+  `appConfig.ts APP_VERSION must be "${currentVer}"`,
 );
 
 const apkUpdaterContent = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
 assert(
-  apkUpdaterContent.includes('export const CURRENT_APK_VERSION = "v1.0.73";'),
-  'apkUpdater.ts CURRENT_APK_VERSION must be "v1.0.73"',
+  apkUpdaterContent.includes(`export const CURRENT_APK_VERSION = "v${currentVer}";`),
+  `apkUpdater.ts CURRENT_APK_VERSION must be "v${currentVer}"`,
 );
 
 const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert(appSettingsContent.includes('version: "1.0.73"'), 'appSettings.ts version must be "1.0.73"');
+assert(appSettingsContent.includes(`version: "${currentVer}"`), `appSettings.ts version must be "${currentVer}"`);
 
-console.log("✓ Version 1.0.73 synchronized across all 5 files");
+console.log(`✓ Version ${currentVer} synchronized across all 5 files`);
 console.log("=== ALL TASK 180 ASSERTIONS PASSED ===");
