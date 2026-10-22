@@ -1,6 +1,201 @@
 # Done tasks
 
-## Task 165: Parser Minimal Text & Explanations with '?' Help Buttons (Chapter 3)
+## Task 175: Version Bump to 1.0.89 & Project Health Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 175.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.88` to `1.0.89` across all project targets:
+    - `package.json`: `"version": "1.0.89"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10089`, `versionName = "1.0.89"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.89"`
+    - `src/utils/appSettings.ts`: `version: "1.0.89"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.89"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.89)`
+- **Verification Commands & Outcomes (Subtask 175.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 174: Version Bump to 1.0.88 & Project Health Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 174.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.87` to `1.0.88` across all project targets:
+    - `package.json`: `"version": "1.0.88"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10088`, `versionName = "1.0.88"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.88"`
+    - `src/utils/appSettings.ts`: `version: "1.0.88"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.88"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.88)`
+- **Verification Commands & Outcomes (Subtask 174.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 173: Version Bump to 1.0.87 & Project Health Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 173.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.86` to `1.0.87` across all project targets:
+    - `package.json`: `"version": "1.0.87"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10087`, `versionName = "1.0.87"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.87"`
+    - `src/utils/appSettings.ts`: `version: "1.0.87"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.87"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.87)`
+- **Verification Commands & Outcomes (Subtask 173.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 172: Version Bump to 1.0.86 & Project Health Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 172.1)**:
+  - Preserved latest prompt (`go on.`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.85` to `1.0.86` across all project targets:
+    - `package.json`: `"version": "1.0.86"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10086`, `versionName = "1.0.86"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.86"`
+    - `src/utils/appSettings.ts`: `version: "1.0.86"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.86"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.86)`
+- **Verification Commands & Outcomes (Subtask 172.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 171: Version Bump to 1.0.85 & Project Health Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 171.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.84` to `1.0.85` across all project targets:
+    - `package.json`: `"version": "1.0.85"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10085`, `versionName = "1.0.85"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.85"`
+    - `src/utils/appSettings.ts`: `version: "1.0.85"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.85"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.85)`
+- **Verification Commands & Outcomes (Subtask 171.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 170: Version Bump to 1.0.84 & Project Health Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 170.1)**:
+  - Preserved latest prompt (`go on.`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.83` to `1.0.84` across all project targets:
+    - `package.json`: `"version": "1.0.84"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10084`, `versionName = "1.0.84"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.84"`
+    - `src/utils/appSettings.ts`: `version: "1.0.84"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.84"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.84)`
+- **Verification Commands & Outcomes (Subtask 170.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 169: Version Bump to 1.0.83 & Project Readiness Audit
+
+### Summary:
+- **Version Bump Across Targets (Subtask 169.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.82` to `1.0.83` across all project targets:
+    - `package.json`: `"version": "1.0.83"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10083`, `versionName = "1.0.83"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.83"`
+    - `src/utils/appSettings.ts`: `version: "1.0.83"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.83"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.83)`
+- **Verification Commands & Outcomes (Subtask 169.2)**:
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 168: Version Bump to 1.0.82 & Project Health Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 168.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.81` to `1.0.82` across all project targets:
+    - `package.json`: `"version": "1.0.82"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10082`, `versionName = "1.0.82"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.82"`
+    - `src/utils/appSettings.ts`: `version: "1.0.82"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.82"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.82)`
+- **Verification Commands & Outcomes (Subtask 168.2)**:
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 167: Version Bump to 1.0.81, Dev Server Health Audit & AGENTS.md Prompt Synchronization
+
+### Summary:
+- **AGENTS.md Prompt Tracking & Version Bump (Subtask 167.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.80` to `1.0.81` across all project targets:
+    - `package.json`: `"version": "1.0.81"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10081`, `versionName = "1.0.81"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.81"`
+    - `src/utils/appSettings.ts`: `version: "1.0.81"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.81"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.81)`
+- **Verification Commands & Outcomes (Subtask 167.2)**:
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+### Hotfix: Dev Server Restart and Health Verification
+
+- **Issue**: Dev server required a clean restart to bind properly and serve live application routes on port 3000.
+- **Action**: Invoked `restart_dev_server` to terminate any stale process and spawn a fresh Vite dev server process bound to `0.0.0.0:3000`.
+- **Verification**: Executed `npx tsx scripts/verify-dev-server-stability.ts` verifying HTTP 200 on `/`, `/src/main.tsx`, and `/src/routes/index.tsx`. Executed `compile_applet` and `lint_applet` (100% clean).
+
+---
+
+## Task 166: Parser Real-time Diff Simulation with Auto-Scroll to Differences Only (Chapter 4)
+
+### Summary:
+- **Parser Real-Time Diff Simulation (Subtask 166.1)**:
+  - Implemented live real-time simulation when parser option checkboxes change, providing an interactive side-by-side view of what the option change does.
+  - In `src/components/ParserRealtimeSimulation.tsx`:
+    - Filtered displayed subtitle records to strictly differing sections (`data-testid="diff-sections-only"`), completely excluding unchanged sections so the user sees only the sections where the parser options make a difference.
+    - Integrated smooth auto-scroll to the next difference appearance (`data-testid="auto-scroll-diff-toggle"`, `data-testid="next-diff-btn"`, `data-testid="prev-diff-btn"`, `scrollIntoView`), advancing `activeDiffIndex` and highlighting active diff cards.
+  - In `src/routes/index.tsx`:
+    - Maintained `diffBaseline` to accurately track the state before checkbox toggles and settings changes.
+    - Exported and mounted `ParserRealtimeSimulation` inside the Parser accordion panel (`panelId === "parser"`).
+  - In `src/components/beginner/tabs/BeginnerParsingTab.tsx`:
+    - Achieved 100% parity with Advanced Mode by computing `beginnerDiffResult` comparing raw cues before parsing vs processed split sentences.
+    - Replaced the bulky full-list preview with `ParserRealtimeSimulation` in `data-testid="parsing-live-preview"`, filtering to only sections that differ and supporting auto-scroll to difference appearances.
+- **Verification Commands & Outcomes (Subtask 166.2)**:
+  - Bumped version to `1.0.80` across all project targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Added and executed dedicated automated test `scripts/verify-parser-realtime-diff-simulation.ts`.
+  - Verification: `npm run test:parser-realtime-simulation` (100% PASS), `npm run test:agents-version-rule` (100% PASS), `lint_applet` (100% clean), and `compile_applet` (build succeeded).
+
+---
 
 ### Summary:
 - **Zero Explanatory Text by Default & '?' Help Buttons (Subtask 165.1)**:

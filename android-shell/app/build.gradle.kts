@@ -48,8 +48,8 @@ android {
         targetSdk = 34
         val propVersionCode = project.findProperty("appVersionCode")?.toString()?.toIntOrNull()
         val propVersionName = project.findProperty("appVersionName")?.toString()
-        versionCode = 10080
-        versionName = "1.0.80"
+        versionCode = 10089
+        versionName = "1.0.89"
         if (propVersionCode != null) {
             versionCode = propVersionCode
         }

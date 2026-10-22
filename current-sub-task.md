@@ -1,5 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: Subtask 166.1: Implement live real-time simulation when parser option checkboxes change, filtering to only sections that differ and auto-scrolling to the next difference.
-- **Parent Task**: Task 166: Parser Real-time Diff Simulation with Auto-Scroll to Differences Only (Chapter 4)
-- **Objective**: When a parser option checkbox changes, provide a real-time simulation of the difference the change produces. Instead of showing all subtitles, show strictly the sections that differ, with auto-scroll to the next difference appearance.
+- **Active Subtask**: None (Task 175 completed & verified).
+- **Status**: Completed & migrated to `docs/done.md`.
+- **Last Verification**: `verify-agents-last-prompt-rule.ts` (100% PASS), `verify-agents-version-rule.ts` (100% PASS), `verify-dev-server-stability.ts` (100% PASS), `compile_applet` (succeeded), `lint_applet` (clean).
+

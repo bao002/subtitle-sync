@@ -51,7 +51,7 @@ assert(
 );
 console.log("✓ ParserRealtimeSimulation component structure verified with auto-scroll and diff filtering.");
 
-// 3. Verify wire-up in src/routes/index.tsx
+// 3. Verify wire-up in src/routes/index.tsx and src/components/beginner/tabs/BeginnerParsingTab.tsx
 const indexPath = path.join(rootDir, "src/routes/index.tsx");
 const indexSource = fs.readFileSync(indexPath, "utf-8");
 
@@ -73,37 +73,62 @@ assert(
 );
 console.log("✓ src/routes/index.tsx wiring verified with realtimeParserDiff and ParserRealtimeSimulation.");
 
+// 3b. Verify wire-up in src/components/beginner/tabs/BeginnerParsingTab.tsx
+const beginnerParsingPath = path.join(
+  rootDir,
+  "src/components/beginner/tabs/BeginnerParsingTab.tsx",
+);
+assert(fs.existsSync(beginnerParsingPath), "BeginnerParsingTab.tsx must exist");
+const beginnerSource = fs.readFileSync(beginnerParsingPath, "utf-8");
+
+assert(
+  beginnerSource.includes('import { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation"'),
+  "BeginnerParsingTab must import ParserRealtimeSimulation",
+);
+assert(
+  beginnerSource.includes("beginnerDiffResult = useMemo"),
+  "BeginnerParsingTab must compute beginnerDiffResult in useMemo",
+);
+assert(
+  beginnerSource.includes("<ParserRealtimeSimulation"),
+  "BeginnerParsingTab must render <ParserRealtimeSimulation",
+);
+console.log("✓ BeginnerParsingTab.tsx wiring verified with beginnerDiffResult and ParserRealtimeSimulation.");
+
 // 4. Test dynamic simulation computation when parser option changes
 const sampleTracks: Record<string, Json3> = {
   en: {
     events: [
       {
         tStartMs: 0,
-        dDurationMs: 4000,
-        segs: [{ utf8: "Hello world! This is a test sentence. " }],
+        dDurationMs: 3000,
+        segs: [{ utf8: "Hello world this is the first part " }],
       },
       {
-        tStartMs: 4200,
-        dDurationMs: 6000,
-        segs: [{ utf8: "Here is Dr. Smith who has a 2.5 second pause. And another sentence! " }],
+        tStartMs: 3200,
+        dDurationMs: 3000,
+        segs: [{ utf8: "and here is the rest of the sentence. " }],
+      },
+      {
+        tStartMs: 6500,
+        dDurationMs: 4000,
+        segs: [{ utf8: "This is a whole new sentence! " }],
       },
     ],
   },
 };
 
-// Baseline: only punct
-const baselineRows = align(sampleTracks, "en", ["punct"], DEFAULT_CRITERIA_SETTINGS);
+// Baseline: cue strategy (keeps authored cue chunks)
+const baselineCueRows = align(sampleTracks, "en", ["cue"], DEFAULT_CRITERIA_SETTINGS);
 
-// Simulated change: add pause criteria
-const withPauseRows = align(sampleTracks, "en", ["punct", "pause"], {
-  ...DEFAULT_CRITERIA_SETTINGS,
-  pause: { minPauseMs: 1500 },
-});
+// Simulated change: sentence strategy (splits at grammatical sentence endings)
+const withSentenceRows = align(sampleTracks, "en", ["sentence"], DEFAULT_CRITERIA_SETTINGS);
 
-const diffResult: ParserDiffResult = computeParserDiff(baselineRows, withPauseRows, "en");
+const diffResult: ParserDiffResult = computeParserDiff(baselineCueRows, withSentenceRows, "en");
 
 assert(typeof diffResult.hasChanges === "boolean", "diffResult hasChanges must be boolean");
-assert(typeof diffResult.totalChanges === "number", "diffResult totalChanges must be number");
+assert.strictEqual(diffResult.hasChanges, true, "Switching between cue and sentence must yield changes");
+assert(diffResult.totalChanges > 0, "diffResult totalChanges must be greater than 0");
 assert(Array.isArray(diffResult.changedRecords), "diffResult changedRecords must be an array");
 
 // When only differing sections are shown, unchanged rows are excluded
@@ -115,7 +140,7 @@ diffResult.changedRecords.forEach((change, idx) => {
 console.log(`✓ Real-time parser simulation diff verified: ${diffResult.totalChanges} difference(s) detected.`);
 
 // 5. Test empty diff scenario (identical configuration)
-const identicalDiff = computeParserDiff(baselineRows, baselineRows, "en");
+const identicalDiff = computeParserDiff(baselineCueRows, baselineCueRows, "en");
 assert.strictEqual(identicalDiff.hasChanges, false, "Identical configuration must produce no changes");
 assert.strictEqual(identicalDiff.totalChanges, 0, "Identical configuration must have totalChanges = 0");
 assert.strictEqual(identicalDiff.changedRecords.length, 0, "Identical configuration must have 0 changed records");

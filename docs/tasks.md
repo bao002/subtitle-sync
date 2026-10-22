@@ -4,9 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 166: Parser Real-time Diff Simulation with Auto-Scroll to Differences Only (Chapter 4)**
-  - [ ] Subtask 166.1: Implement live real-time simulation when parser option checkboxes change, filtering to only sections that differ and auto-scrolling to the next difference.
-  - [ ] Subtask 166.2: Bump version to 1.0.80 across all 5 targets, verify with dedicated test `scripts/verify-parser-realtime-diff-simulation.ts`, compile, lint, commit, push, and migrate Task 166 to `docs/done.md`.
+_(No active tasks currently in queue. Task 175 completed and verified in docs/done.md.)_
 
 ---
 

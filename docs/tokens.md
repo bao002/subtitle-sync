@@ -4,12 +4,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 166: Parser Real-time Diff Simulation with Auto-Scroll to Differences Only (Chapter 4)
+## Active Task: Task 175 (Version Bump to 1.0.89 & Project Health Verification)
 
-- **Subtask 166.1 (Active)**: Implement live real-time simulation when parser option checkboxes change, filtering to only sections that differ and auto-scrolling to the next difference.
-- **Subtask 166.2**: Bump version to 1.0.80 across all 5 targets, verify with dedicated test `scripts/verify-parser-realtime-diff-simulation.ts`, compile, lint, commit, push, and migrate Task 166 to `docs/done.md`.
-
-
+- **Subtask 175.1**: Synchronize `AGENTS.md` last raw prompt ("go on") and bump application version to `1.0.89` across all project targets.
+- **Subtask 175.2**: Verify version alignment via `verify-agents-version-rule.ts`, dev server stability via `verify-dev-server-stability.ts`, run `compile_applet` and `lint_applet`, and migrate to `docs/done.md`.
 
 ---
 

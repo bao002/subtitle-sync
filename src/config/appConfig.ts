@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "1.0.80";
+export const APP_VERSION = "1.0.89";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "b840e11";
 export const APP_VERSION_DESCRIPTION =
-  "Beginner Folded Video Accordion, Advanced Favorite Language Boxes, Minimal Text & Real-Time Parser Diff Simulation (Version 1.0.80)";
+  "Beginner Folded Video Accordion, Advanced Favorite Language Boxes, Minimal Text & Real-Time Parser Diff Simulation (Version 1.0.89)";
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 
 export const DEFAULT_VIDEO_ID = "vBURridJXZ0";
