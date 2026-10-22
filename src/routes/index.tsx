@@ -4761,7 +4761,7 @@ function Index() {
                                             setLovableTtsVoice("Kore");
                                           }
                                         }}
-                                        className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-mono"
+                                        className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-mono font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
                                       >
                                         <option value="lovable">lovable</option>
                                         <option value="google">google</option>
@@ -4780,27 +4780,30 @@ function Index() {
                                       ) : (
                                         <select
                                           data-testid="lovable-tts-voice-select"
-                                          value={lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}
+                                          value={
+                                            lovableTtsVoiceState ||
+                                            (lovableTtsProviderState === "openrouter"
+                                              ? "alloy"
+                                              : "Kore")
+                                          }
                                           onChange={(e) => {
                                             const v = e.target.value;
                                             setLovableTtsVoiceState(v);
                                             setLovableTtsVoice(v);
                                           }}
-                                          className="rounded border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium"
+                                          className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
                                         >
-                                          {lovableTtsProviderState === "openrouter" ? (
-                                            OPENROUTER_VOICES.map((v) => (
-                                              <option key={v} value={v}>
-                                                {v} {v === "alloy" ? "(Default)" : ""}
-                                              </option>
-                                            ))
-                                          ) : (
-                                            LOVABLE_VOICES.map((v) => (
-                                              <option key={v} value={v}>
-                                                {v} {v === "Kore" ? "(Default)" : ""}
-                                              </option>
-                                            ))
-                                          )}
+                                          {lovableTtsProviderState === "openrouter"
+                                            ? OPENROUTER_VOICES.map((v) => (
+                                                <option key={v} value={v}>
+                                                  {v} {v === "alloy" ? "(Default)" : ""}
+                                                </option>
+                                              ))
+                                            : LOVABLE_VOICES.map((v) => (
+                                                <option key={v} value={v}>
+                                                  {v} {v === "Kore" ? "(Default)" : ""}
+                                                </option>
+                                              ))}
                                         </select>
                                       )}
                                     </div>
@@ -4925,7 +4928,11 @@ function Index() {
                                     text, and native speech rate with voice:{" "}
                                     {lovableTtsProviderState === "google"
                                       ? "Default"
-                                      : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}.
+                                      : lovableTtsVoiceState ||
+                                        (lovableTtsProviderState === "openrouter"
+                                          ? "alloy"
+                                          : "Kore")}
+                                    .
                                   </p>
                                 </div>
 
@@ -4949,7 +4956,10 @@ function Index() {
                                             voice:
                                               lovableTtsProviderState === "google"
                                                 ? undefined
-                                                : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
+                                                : lovableTtsVoiceState ||
+                                                  (lovableTtsProviderState === "openrouter"
+                                                    ? "alloy"
+                                                    : "Kore"),
                                             speed: testRate,
                                           },
                                         );

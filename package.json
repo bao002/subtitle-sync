@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.73",
+  "version": "1.0.75",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -13,6 +13,8 @@
     "preview": "vite preview --host 0.0.0.0 --port 3000",
     "lint": "eslint src/lib src/routes",
     "format": "prettier --write .",
+    "test:tts-provider-styling-and-parity": "tsx scripts/verify-tts-provider-styling-and-parity.ts",
+    "test:raw-union-merge-fix": "tsx scripts/verify-raw-union-merge-fix.ts",
     "test:alternative-tts-providers-switching": "tsx scripts/verify-alternative-tts-providers-switching.ts",
     "test:env-and-lockfile-hygiene": "tsx scripts/verify-env-and-lockfile-hygiene.ts",
     "test:native-tts-speed-for-service": "tsx scripts/verify-native-tts-speed-for-service.ts",

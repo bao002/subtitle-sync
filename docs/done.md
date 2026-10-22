@@ -1,5 +1,49 @@
 # Done tasks
 
+## Task 182: Alternative TTS Provider Selector UI Polish, Interactive Styling & Version 1.0.75 Synchronization
+
+### Summary:
+
+- **Alternative TTS Provider & Voice Selectors Styling Enhancement (Subtask 182.1)**:
+  - Enhanced `lovable-tts-provider-select` and `lovable-tts-voice-select` across Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with focus rings (`focus:ring-2 focus:ring-primary/40 focus:border-primary`), subtle shadows, hover states (`hover:border-primary/50`), pointer cursors, and responsive padding.
+  - Preserved 100% parity between Advanced Mode and Beginner Mode.
+- **Section Header Hygiene & Version 1.0.75 Synchronization (Subtask 182.2)**:
+  - Cleaned duplicate comment header in `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`.
+  - Bumped application version to `1.0.75` (versionCode `10075`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Test Suite & Regression Verification (Subtask 182.3)**:
+  - Authored dedicated verification test suite `scripts/verify-tts-provider-styling-and-parity.ts` asserting interactive styling tokens, option integrity, comment hygiene, and version parity.
+  - Documented `scripts/verify-tts-provider-styling-and-parity.ts` in `docs/files.md` and added `"test:tts-provider-styling-and-parity"` to `package.json`.
+  - Ran verification test suite `scripts/verify-tts-provider-styling-and-parity.ts` (100% PASS).
+  - Verified regression test suites (`verify-raw-union-merge-fix.ts`, `verify-alternative-tts-providers-switching.ts`, `verify-agents-version-rule.ts`, `verify-agents-last-prompt-rule.ts`, `verify-apk-version-and-releases.ts`).
+  - Verified `npm run lint` (0 errors, 0 warnings) and `compile_applet` (build succeeded).
+
+---
+
+## Task 181: Fix Git Raw Union Strategy Merge Conflicts & Resolve Prettier Lint Errors (Version 1.0.74)
+
+### Summary:
+
+- **Git Raw Union Conflict Artifacts Cleaned Across Docs & Manifests (Subtask 181.1)**:
+  - Scanned the entire repository for git conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`).
+  - Purged all `=======` union merge markers and stale duplicated subtasks from `AGENTS.md`, `current-sub-task.md`, `docs/tasks.md`, `docs/todo.md`, and `docs/tokens.md`.
+  - Re-anchored `AGENTS.md` to preserve the verbatim unedited raw prompt `i used a raw union strategy to merge git conflic. fix it`.
+- **Prettier Lint Alignment, README Releases URL & Version 1.0.74 Synchronization (Subtask 181.2)**:
+  - Fixed Prettier formatting in `src/routes/index.tsx` (around lines 4783-4952 for `lovableTtsVoiceState`), achieving 100% clean passes on `lint_applet` (`eslint src/lib src/routes`) and `compile_applet`.
+  - Restored `lint` script in `package.json` and registered `test:raw-union-merge-fix`.
+  - Synchronized `README.md` download link to `https://github.com/mostuf25564/subtitle-sync/releases`.
+  - Bumped application version to `1.0.74` (versionCode `10074`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated Test Suite & Regression Verification (Subtask 181.3)**:
+  - Created dedicated test suite `scripts/verify-raw-union-merge-fix.ts` validating:
+    1. Zero git conflict markers remain in the repository.
+    2. `AGENTS.md` is clean and records exact latest prompt.
+    3. All task tracking files (`current-sub-task.md`, `docs/todo.md`, `docs/tasks.md`, `docs/tokens.md`) are clean.
+    4. Version `1.0.74` is synchronized across all 5 targets.
+    5. `README.md` releases link points to `mostuf25564`.
+  - Documented `scripts/verify-raw-union-merge-fix.ts` in `docs/files.md`.
+  - Verified with `npx tsx scripts/verify-raw-union-merge-fix.ts` (100% PASS), `compile_applet` (PASS), and `lint_applet` (PASS).
+
+---
+
 ## Task 180: Enable Switching Between Alternative TTS Providers ("lovable", "google", "openrouter") in Advanced and Beginner Modes (Version 1.0.73)
 
 ### Summary:
