@@ -482,7 +482,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.58",
+    version: "1.0.75",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -615,7 +615,6 @@ export function isAutoScrollAllowed(
 export function resetUserInteractionTimestamp(): void {
   lastUserInteractionTimestamp = 0;
 }
-
 
 export const DEBUG_MODE_STORAGE_KEY = "yt_debug_mode";
 
@@ -861,9 +860,23 @@ export function setOpenRouterModelSetting(model: string): void {
 }
 
 export function getOpenRouterApiKeySetting(): string {
-  if (typeof window === "undefined" || !window.localStorage) return "";
+  if (typeof window === "undefined" || !window.localStorage) {
+    return typeof import.meta !== "undefined" && import.meta.env
+      ? (import.meta.env.VITE_OPENROUTER_API_KEY as string) || ""
+      : "";
+  }
   try {
-    return window.localStorage.getItem(OPENROUTER_API_KEY_STORAGE_KEY) || "";
+    const userKey =
+      window.localStorage.getItem(OPENROUTER_API_KEY_STORAGE_KEY) ||
+      window.localStorage.getItem("yt_alternative_tts_lovable_api_key_v1") ||
+      window.localStorage.getItem("yt_openrouter_api_key_v1") ||
+      "";
+    if (userKey && userKey.trim()) return userKey.trim();
+    const envKey =
+      typeof import.meta !== "undefined" && import.meta.env
+        ? (import.meta.env.VITE_OPENROUTER_API_KEY as string) || ""
+        : "";
+    return envKey ? envKey.trim() : "";
   } catch {
     return "";
   }
@@ -871,8 +884,17 @@ export function getOpenRouterApiKeySetting(): string {
 
 export function setOpenRouterApiKeySetting(key: string): void {
   if (typeof window === "undefined" || !window.localStorage) return;
+  const clean = key.trim();
   try {
-    window.localStorage.setItem(OPENROUTER_API_KEY_STORAGE_KEY, key.trim());
+    if (clean) {
+      window.localStorage.setItem(OPENROUTER_API_KEY_STORAGE_KEY, clean);
+      window.localStorage.setItem("yt_alternative_tts_lovable_api_key_v1", clean);
+      window.localStorage.setItem("yt_openrouter_api_key_v1", clean);
+    } else {
+      window.localStorage.removeItem(OPENROUTER_API_KEY_STORAGE_KEY);
+      window.localStorage.removeItem("yt_alternative_tts_lovable_api_key_v1");
+      window.localStorage.removeItem("yt_openrouter_api_key_v1");
+    }
   } catch {
     // Ignore storage errors
   }
@@ -951,6 +973,64 @@ export function setExcludeDefaultSubtitlesFromTTSSetting(enabled: boolean): void
       EXCLUDE_DEFAULT_SUBTITLES_TTS_STORAGE_KEY,
       enabled ? "true" : "false",
     );
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export const STRIP_SPEAKER_BRACKETS_STORAGE_KEY = "yt_strip_speaker_brackets_v1";
+export const REMOVE_CHARS_STORAGE_KEY = "yt_remove_chars_v1";
+
+/**
+ * Get setting to strip speaker brackets and noise cues.
+ */
+export function getStripSpeakerBracketsSetting(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) return true;
+  try {
+    const val = window.localStorage.getItem(STRIP_SPEAKER_BRACKETS_STORAGE_KEY);
+    if (val !== null) return val === "true";
+  } catch {
+    // Ignore storage errors
+  }
+  return true;
+}
+
+/**
+ * Persist setting to strip speaker brackets and noise cues.
+ */
+export function setStripSpeakerBracketsSetting(enabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(STRIP_SPEAKER_BRACKETS_STORAGE_KEY, enabled ? "true" : "false");
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+/**
+ * Get setting for characters to remove or strip.
+ */
+export function getRemoveCharsSetting(): string[] {
+  if (typeof window === "undefined" || !window.localStorage) return [">", ">>"];
+  try {
+    const val = window.localStorage.getItem(REMOVE_CHARS_STORAGE_KEY);
+    if (val) {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  return [">", ">>"];
+}
+
+/**
+ * Persist setting for characters to remove or strip.
+ */
+export function setRemoveCharsSetting(chars: string[]): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(REMOVE_CHARS_STORAGE_KEY, JSON.stringify(chars));
   } catch {
     // Ignore storage errors
   }

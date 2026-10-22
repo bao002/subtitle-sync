@@ -53,13 +53,21 @@ console.log("\n⏳ Section 2: User Interaction Tracking & 5-Second Cooldown Gate
 resetUserInteractionTimestamp();
 assert.equal(AUTO_SCROLL_COOLDOWN_MS, 5000, "Cooldown threshold must be exactly 5000ms");
 assert.equal(getLastUserInteractionTimestamp(), 0, "Initial interaction timestamp should be 0");
-assert.equal(isAutoScrollAllowed(), true, "Auto-scroll should be permitted before any user interaction occurs");
+assert.equal(
+  isAutoScrollAllowed(),
+  true,
+  "Auto-scroll should be permitted before any user interaction occurs",
+);
 console.log("✅ PASS: Auto-scroll permitted when no interaction has occurred");
 
 // User interacts at T=10,000
 const interactionTime = 10000;
 recordUserInteraction(interactionTime);
-assert.equal(getLastUserInteractionTimestamp(), interactionTime, "Recorded interaction timestamp must match");
+assert.equal(
+  getLastUserInteractionTimestamp(),
+  interactionTime,
+  "Recorded interaction timestamp must match",
+);
 
 // Immediate check: at T=10,500 (500ms after interaction) -> blocked
 assert.equal(
@@ -134,4 +142,3 @@ console.log("✅ PASS: src/routes/index.tsx contains complete 5s cooldown integr
 console.log("=========================================================================");
 console.log("🎉 ALL AUTO-SCROLL & 5S COOLDOWN TESTS PASSED (100%)!");
 console.log("=========================================================================");
-

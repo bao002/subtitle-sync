@@ -5,18 +5,35 @@ export interface VideoItem {
   timestamp: number;
 }
 
+export interface VideoCaptionTrackInfo {
+  langCode: string;
+  name?: string;
+  isDefault?: boolean;
+  isAsr?: boolean;
+  trackUrl?: string;
+}
+
 export interface VideoMetadata {
   videoId: string;
   title: string;
+  description?: string;
   authorName?: string;
   authorUrl?: string;
+  channelId?: string;
   thumbnailUrl?: string;
   maxResThumbnailUrl?: string;
+  sdThumbnailUrl?: string;
   hqThumbnailUrl?: string;
   mqThumbnailUrl?: string;
+  defaultThumbnailUrl?: string;
   html?: string;
   providerName?: string;
   providerUrl?: string;
+  durationSeconds?: number;
+  durationFormatted?: string;
+  availableCaptionTracks?: VideoCaptionTrackInfo[];
+  defaultSubtitleLang?: string;
+  extractedVia?: string;
   fetchedAt: number;
 }
 

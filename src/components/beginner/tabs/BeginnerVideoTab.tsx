@@ -102,7 +102,10 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
               <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                 <span>Step 1: YouTube Video & Subtitle Discovery</span>
                 {videoId && (
-                  <Badge variant="outline" className="text-[10px] text-muted-foreground border-border">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] text-muted-foreground border-border"
+                  >
                     ID: {videoId}
                   </Badge>
                 )}
@@ -121,7 +124,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             className="h-8 px-2.5 text-xs border-border hover:bg-muted text-foreground flex items-center gap-1.5"
             data-testid="btn-open-library"
           >
-            <Library className="w-3.5 h-3.5 text-indigo-400" />
+            <Library className="w-3.5 h-3.5 text-primary" />
             <span>Saved Library</span>
           </Button>
         </div>
@@ -173,11 +176,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             {playerSlot}
           </div>
         )}
-        {playbackControlsSlot && (
-          <div className="pt-2">
-            {playbackControlsSlot}
-          </div>
-        )}
+        {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}
       </div>
 
       {/* Step 2: Captions Interception Prompt */}
@@ -211,7 +210,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={onLoadSampleSubtitles}
-                  className="h-7 px-2.5 text-[11px] border-sky-700/60 text-sky-300 hover:bg-sky-950/40"
+                  className="h-7 px-2.5 text-[11px] border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10 dark:hover:bg-sky-950/40"
                   data-testid="btn-load-sample-subs"
                 >
                   <Sparkles className="w-3 h-3 mr-1" />
@@ -242,7 +241,9 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
           <div>
             <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <span>Observed Subtitle Tracks</span>
-              <span className="text-muted-foreground font-normal">({observedTracks.length} detected)</span>
+              <span className="text-muted-foreground font-normal">
+                ({observedTracks.length} detected)
+              </span>
             </h3>
             <p className="text-[11px] text-muted-foreground">
               Choose which subtitle track to use as the base language. Selecting a base track

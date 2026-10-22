@@ -39,7 +39,9 @@ assert(
   !/<FloatingSubtitleRetryIndicator\s+targetLanguages=/.test(indexContent),
   "index.tsx must not render floating FloatingSubtitleRetryIndicator in root overlay",
 );
-console.log("✅ PASS: Floating notification elements successfully removed from root viewport overlay.");
+console.log(
+  "✅ PASS: Floating notification elements successfully removed from root viewport overlay.",
+);
 
 // 3. Test 2: Verify dedicated Status & Alerts tab button in top-tabs-nav
 console.log("Test 2: Dedicated tab button in top-tabs-nav...");
@@ -56,7 +58,9 @@ assert(
   indexContent.includes("<NotificationsStatusTab"),
   "index.tsx must render NotificationsStatusTab when notifications tab is active",
 );
-console.log("✅ PASS: Dedicated Status & Alerts tab navigation and conditional rendering verified.");
+console.log(
+  "✅ PASS: Dedicated Status & Alerts tab navigation and conditional rendering verified.",
+);
 
 // 4. Test 3: Verify NotificationsStatusTab structure and interactive controls
 console.log("Test 3: NotificationsStatusTab structure and elements...");
@@ -84,10 +88,14 @@ assert(
   notificationsTabContent.includes('data-testid="tab-view-subtitles-btn"'),
   "NotificationsStatusTab must provide view subtitles button with data-testid='tab-view-subtitles-btn'",
 );
-console.log("✅ PASS: NotificationsStatusTab contains all required controls, countdowns, and alert views.");
+console.log(
+  "✅ PASS: NotificationsStatusTab contains all required controls, countdowns, and alert views.",
+);
 
 // 5. Test 4: Verify non-floating support in child components
-console.log("Test 4: Non-floating support in SubtitleFetchToast and FloatingSubtitleRetryIndicator...");
+console.log(
+  "Test 4: Non-floating support in SubtitleFetchToast and FloatingSubtitleRetryIndicator...",
+);
 assert(
   toastContent.includes("floating?: boolean") || toastContent.includes("floating = false"),
   "SubtitleFetchToast must support non-floating mode via floating prop",
@@ -106,18 +114,35 @@ const parts = currentVersion.split(".").map((n: string) => parseInt(n, 10) || 0)
 const expectedCode = (parts[0] || 1) * 10000 + (parts[1] || 0) * 100 + (parts[2] || 0);
 
 const gradleContent = fs.readFileSync(gradlePath, "utf8");
-assert(gradleContent.includes(`versionCode = ${expectedCode}`), `build.gradle.kts must have versionCode ${expectedCode}`);
-assert(gradleContent.includes(`versionName = "${currentVersion}"`), `build.gradle.kts must have versionName ${currentVersion}`);
+assert(
+  gradleContent.includes(`versionCode = ${expectedCode}`),
+  `build.gradle.kts must have versionCode ${expectedCode}`,
+);
+assert(
+  gradleContent.includes(`versionName = "${currentVersion}"`),
+  `build.gradle.kts must have versionName ${currentVersion}`,
+);
 
 const appConfigContent = fs.readFileSync(appConfigPath, "utf8");
-assert(appConfigContent.includes(`export const APP_VERSION = "${currentVersion}"`), `appConfig.ts must export ${currentVersion}`);
+assert(
+  appConfigContent.includes(`export const APP_VERSION = "${currentVersion}"`),
+  `appConfig.ts must export ${currentVersion}`,
+);
 
 const apkUpdaterContent = fs.readFileSync(apkUpdaterPath, "utf8");
-assert(apkUpdaterContent.includes(`export const CURRENT_APK_VERSION = "v${currentVersion}"`), `apkUpdater.ts must export v${currentVersion}`);
+assert(
+  apkUpdaterContent.includes(`export const CURRENT_APK_VERSION = "v${currentVersion}"`),
+  `apkUpdater.ts must export v${currentVersion}`,
+);
 
 const appSettingsContent = fs.readFileSync(appSettingsPath, "utf8");
-assert(appSettingsContent.includes(`version: "${currentVersion}"`), `appSettings.ts snapshot must have ${currentVersion}`);
-console.log(`✅ PASS: Version ${currentVersion} and versionCode ${expectedCode} verified across all 5 targets.`);
+assert(
+  appSettingsContent.includes(`version: "${currentVersion}"`),
+  `appSettings.ts snapshot must have ${currentVersion}`,
+);
+console.log(
+  `✅ PASS: Version ${currentVersion} and versionCode ${expectedCode} verified across all 5 targets.`,
+);
 
 console.log("==================================================================");
 console.log("🎉 ALL NO-FLOATING NOTIFICATIONS TAB VERIFICATIONS PASSED (5/5)");

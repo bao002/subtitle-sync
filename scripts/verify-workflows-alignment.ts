@@ -86,8 +86,7 @@ assert(
   "src/routes/index.tsx must supply all 6 demo languages on web (!isAndroid) so e2e/web.spec.ts can assert 6 rows",
 );
 assert(
-  indexRouteContent.includes("targetLanguages") &&
-    indexRouteContent.includes("favoriteLanguages"),
+  indexRouteContent.includes("targetLanguages") && indexRouteContent.includes("favoriteLanguages"),
   "src/routes/index.tsx must scope orderedLangs with favorite and target languages",
 );
 console.log(

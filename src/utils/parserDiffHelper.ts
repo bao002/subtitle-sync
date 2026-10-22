@@ -12,7 +12,8 @@ export interface ChangedRecordItem {
   textsByLang: Record<string, string>;
 }
 
-export type ParserChangeType = "split" | "merged" | "timing" | "content" | "added" | "removed" | "modified";
+export type ParserChangeType =
+  "split" | "merged" | "timing" | "content" | "added" | "removed" | "modified";
 
 export interface ChangedRecordDiff {
   id: string;
@@ -109,16 +110,10 @@ export function computeParserDiff(
     const beforeCluster: ChangedRecordItem[] = [];
     const afterCluster: ChangedRecordItem[] = [];
 
-    const windowStart = Math.min(
-      cur ? cur.start : Infinity,
-      prop ? prop.start : Infinity,
-    );
+    const windowStart = Math.min(cur ? cur.start : Infinity, prop ? prop.start : Infinity);
 
     // Collect records that overlap or fall within the diverging segment
-    let windowEnd = Math.max(
-      cur ? cur.end : -Infinity,
-      prop ? prop.end : -Infinity,
-    );
+    let windowEnd = Math.max(cur ? cur.end : -Infinity, prop ? prop.end : -Infinity);
 
     if (cur) {
       beforeCluster.push(rowToItem(cur, i, baseLanguage));
@@ -177,8 +172,14 @@ export function computeParserDiff(
       }
     }
 
-    const beforeTextSummary = beforeCluster.map((b) => b.text).filter(Boolean).join(" ");
-    const afterTextSummary = afterCluster.map((a) => a.text).filter(Boolean).join(" ");
+    const beforeTextSummary = beforeCluster
+      .map((b) => b.text)
+      .filter(Boolean)
+      .join(" ");
+    const afterTextSummary = afterCluster
+      .map((a) => a.text)
+      .filter(Boolean)
+      .join(" ");
 
     changedRecords.push({
       id: `change-${changeCount}`,
@@ -200,7 +201,8 @@ export function computeParserDiff(
   }
 
   const hasChanges = changedRecords.length > 0;
-  let summaryMessage = "No differences detected. Both configurations produce identical subtitle rows.";
+  let summaryMessage =
+    "No differences detected. Both configurations produce identical subtitle rows.";
   if (hasChanges) {
     summaryMessage = `Detected ${changedRecords.length} changed record group(s) across ${totalBefore} → ${totalAfter} total records.`;
   }

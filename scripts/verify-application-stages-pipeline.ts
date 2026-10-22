@@ -63,8 +63,14 @@ assert.strictEqual(
 );
 
 const pureNoise = "[Music] (applause)";
-assert.strictEqual(removeSpecialCharacters(pureNoise), "", "Pure sound cues must resolve to empty string");
-console.log("✓ removeSpecialCharacters successfully stripped speaker tags, arrows, and bracketed sound cues.");
+assert.strictEqual(
+  removeSpecialCharacters(pureNoise),
+  "",
+  "Pure sound cues must resolve to empty string",
+);
+console.log(
+  "✓ removeSpecialCharacters successfully stripped speaker tags, arrows, and bracketed sound cues.",
+);
 
 // 4. Test that translation stage honors Special Characters Removal BEFORE Translation
 async function testTranslationPreSanitization() {
@@ -74,7 +80,11 @@ async function testTranslationPreSanitization() {
     fromLang: "en",
     toLang: "es",
   });
-  assert.strictEqual(res, "", "Translation of pure special characters must resolve to empty string");
+  assert.strictEqual(
+    res,
+    "",
+    "Translation of pure special characters must resolve to empty string",
+  );
   console.log("✓ translateWithGoogle verifies special characters removal before translation.");
 }
 
@@ -93,7 +103,9 @@ assert.strictEqual(
   "Beginner and Advanced clean logic must produce 100% identical outputs",
 );
 assert.strictEqual(beginnerCleaned, "Hello world!", "Cleaned string must be 'Hello world!'");
-console.log("✓ Beginner Mode cleanSubtitleText and Advanced removeSpecialCharacters confirmed 100% identical.");
+console.log(
+  "✓ Beginner Mode cleanSubtitleText and Advanced removeSpecialCharacters confirmed 100% identical.",
+);
 
 testTranslationPreSanitization().then(() => {
   console.log("=== All Application Stages Pipeline Checks Passed Successfully! ===");

@@ -4,17 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Prompt: Hotfix: Android Build APK & Version/Commit/Description Display on Each Version (Version 1.0.59)
+## Active Task: None (Task 182 Completed & Migrated to `docs/done.md`)
 
-- **Hotfix (Active)**: Fix Android APK build reliability & display Version ID, Commit ID, and Version Description on each version (`android-shell/app/build.gradle.kts`, `.github/workflows/release-apk.yml`, `.github/workflows/emulation.yml`, `src/components/ApkReleaseModal.tsx`, `src/components/ApkReleasesFooter.tsx`, `src/routes/index.tsx`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, `package.json`).
-- **Chapter 3 (Task 159) [ON HOLD]**: Theme Colors Fix (Beginner Mode fix & Blue Theme purity for both modes)
-- **Chapter 4 (Task 160)**: docs/android.md GitHub Actions Emulator Flow & Authenticity Evidence Documentation
-
-
+- **Task 182 Completed**: Alternative TTS Provider Selector UI Polish, Interactive Styling and Version 1.0.75 Synchronization across Advanced & Beginner modes.
 
 ---
-
-
 
 ## 1. The Token Economy Problem: Why Big Tasks Fail
 
@@ -35,6 +29,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 - **Token Output is Bounded**: Code edits are targeted and verified immediately.
 - **Progress is Checkpointed**: Completed sub-tasks are committed to Git and logged in `docs/done.md`.
 - **Context Stays Crisp**: Each step maintains a single, verifiable goal.
+- **Rules & Configuration Economy**: Keep top-level instruction files like `AGENTS.md` lean (< 20KB) to prevent platform rule truncation and wasted context window tokens. Detailed optimization guidelines live in [`docs/suggestions.md`](suggestions.md).
 
 ---
 
@@ -52,6 +47,7 @@ To guarantee token economy without heavy processing, maintain the following file
 | `docs/todo.md`              | High-level active sub-task synchronization mirror.                                                                                                 | Single active task      |
 | `docs/done.md`              | Permanent verified changelog and archive of all completed tasks and sub-tasks.                                                                     | Permanent archive / log |
 | `docs/self-verification.md` | Comprehensive self-verification protocol for automated test execution, screencast linking in README, and full sanity check audits.                 | Permanent specification |
+| `docs/suggestions.md`       | Ranked optimization steps, feasibility analysis, and rule size monitoring guidelines for instruction files.                                        | Permanent specification |
 
 ---
 

@@ -50,7 +50,10 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
 
     // Auto-enrich items that have default placeholder titles
     const unresolved = items.filter(
-      (item) => !item.title || item.title.startsWith("YouTube Video ·") || item.title.startsWith("YouTube Video ("),
+      (item) =>
+        !item.title ||
+        item.title.startsWith("YouTube Video ·") ||
+        item.title.startsWith("YouTube Video ("),
     );
     if (unresolved.length > 0) {
       unresolved.forEach((item) => {
@@ -237,9 +240,17 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
                         by {getCachedVideoMetadata(item.id)?.authorName}
                       </p>
                     )}
-                    <p className="font-mono text-[11px] text-muted-foreground mt-1">
-                      ID: {item.id}
-                    </p>
+                    <div className="flex items-center justify-between font-mono text-[11px] text-muted-foreground mt-1">
+                      <span>ID: {item.id}</span>
+                      {getCachedVideoMetadata(item.id)?.durationFormatted && (
+                        <span
+                          data-testid={`library-duration-${item.id}`}
+                          className="bg-muted px-1 rounded text-[10px]"
+                        >
+                          {getCachedVideoMetadata(item.id)?.durationFormatted}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="mt-2.5 flex items-center justify-between pt-1 border-t border-border/50 text-[11px]">

@@ -22,7 +22,7 @@ assert(
   "MainActivity.kt must detect intercepted non-JSON3 captions",
 );
 assert(
-  mainActivityContent.includes("executeTimedTextRepetition(url, lang, \"json3\")") ||
+  mainActivityContent.includes('executeTimedTextRepetition(url, lang, "json3")') ||
     mainActivityContent.includes("executeTimedTextRepetition"),
   "MainActivity.kt must automatically repeat request with fmt=json3",
 );
@@ -30,7 +30,9 @@ assert(
   mainActivityContent.includes("dispatchToJavaScript"),
   "MainActivity.kt must dispatch valid json3 payload to JavaScript",
 );
-console.log("✅ PASS: MainActivity.kt automatically fetches and dispatches json3 upon non-JSON3 captions.");
+console.log(
+  "✅ PASS: MainActivity.kt automatically fetches and dispatches json3 upon non-JSON3 captions.",
+);
 
 // Test 2: Validate index.tsx immediate tracks ingestion and panel opening
 console.log("--> [Test 2] Auditing index.tsx for immediate subtitle arrival reactivity...");
@@ -38,15 +40,19 @@ const indexPath = path.resolve(rootDir, "src/routes/index.tsx");
 const indexContent = fs.readFileSync(indexPath, "utf8");
 
 assert(
-  indexContent.includes("setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }))"),
+  indexContent.includes(
+    "setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }))",
+  ),
   "index.tsx must automatically open subtitles panel upon caption arrival",
 );
 assert(
-  indexContent.includes("if (baseLanguage && tracks?.[baseLanguage] && hasTrackCues(tracks[baseLanguage]))"),
+  indexContent.includes(
+    "if (baseLanguage && tracks?.[baseLanguage] && hasTrackCues(tracks[baseLanguage]))",
+  ),
   "index.tsx cols must include baseLanguage immediately when track has valid cues",
 );
 assert(
-  indexContent.includes("id=\"caption-toggle-button\""),
+  indexContent.includes('id="caption-toggle-button"'),
   "index.tsx must contain caption-toggle-button",
 );
 console.log("✅ PASS: index.tsx immediately reflects base language and opens subtitles panel.");
@@ -67,13 +73,25 @@ const gradleContent = fs.readFileSync(
 assert(gradleContent.includes(currentVer), `build.gradle.kts must include ${currentVer}`);
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf8");
-assert(appConfigContent.includes(`APP_VERSION = "${currentVer}"`), `appConfig.ts must have APP_VERSION ${currentVer}`);
+assert(
+  appConfigContent.includes(`APP_VERSION = "${currentVer}"`),
+  `appConfig.ts must have APP_VERSION ${currentVer}`,
+);
 
 const apkUpdaterContent = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf8");
-assert(apkUpdaterContent.includes(`CURRENT_APK_VERSION = "v${currentVer}"`), `apkUpdater.ts must have CURRENT_APK_VERSION v${currentVer}`);
+assert(
+  apkUpdaterContent.includes(`CURRENT_APK_VERSION = "v${currentVer}"`),
+  `apkUpdater.ts must have CURRENT_APK_VERSION v${currentVer}`,
+);
 
-const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf8");
-assert(appSettingsContent.includes(`version: "${currentVer}"`), `appSettings.ts must have snapshot version ${currentVer}`);
+const appSettingsContent = fs.readFileSync(
+  path.resolve(rootDir, "src/utils/appSettings.ts"),
+  "utf8",
+);
+assert(
+  appSettingsContent.includes(`version: "${currentVer}"`),
+  `appSettings.ts must have snapshot version ${currentVer}`,
+);
 console.log(`✅ PASS: Version ${currentVer} is perfectly synchronized across all 5 targets.`);
 
 // Test 4: Validate package.json script registration

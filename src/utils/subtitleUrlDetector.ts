@@ -71,9 +71,7 @@ export function extractVideoIdFromSubtitleUrl(url: string): string | null {
     const parsed =
       url.startsWith("http://") || url.startsWith("https://")
         ? new URL(url)
-        : new URL(
-            url.startsWith("?") ? `https://dummy.local${url}` : `https://dummy.local/${url}`,
-          );
+        : new URL(url.startsWith("?") ? `https://dummy.local${url}` : `https://dummy.local/${url}`);
     const v = parsed.searchParams.get("v");
     if (v && v.trim()) return v.trim();
   } catch {
@@ -95,7 +93,9 @@ export async function fetchAndCacheSubtitleUrl(
 ): Promise<FetchSubtitleResult> {
   const identified = identifySubtitleLanguage(url);
   if (!identified) {
-    throw new Error("Unable to identify subtitle language. URL must contain 'tlang' or 'lang' query parameter.");
+    throw new Error(
+      "Unable to identify subtitle language. URL must contain 'tlang' or 'lang' query parameter.",
+    );
   }
 
   const { lang, source } = identified;
@@ -144,8 +144,7 @@ export async function fetchAndCacheSubtitleUrl(
     throw new Error(`Failed to parse JSON3 subtitle payload for '${lang}'.`);
   }
 
-  const cuesCount =
-    json.events?.filter((ev) => ev.segs?.some((s) => s.utf8?.trim()))?.length || 0;
+  const cuesCount = json.events?.filter((ev) => ev.segs?.some((s) => s.utf8?.trim()))?.length || 0;
 
   // Cache locally if video ID is known
   const targetVideoId = videoId || extractVideoIdFromSubtitleUrl(url) || "L2Ryrr6txwA";

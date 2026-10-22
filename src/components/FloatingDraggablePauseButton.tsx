@@ -333,9 +333,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                 <div className="flex items-center gap-2">
                   <div
                     className={`flex h-7 w-7 items-center justify-center rounded-md ${
-                      isSetupPaused
-                        ? "bg-amber-500 text-white"
-                        : "bg-muted text-muted-foreground"
+                      isSetupPaused ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
                     }`}
                   >
                     {isSetupPaused ? (
@@ -366,7 +364,9 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setActiveExplanation((prev) => (prev === "setup-pause" ? null : "setup-pause"));
+                      setActiveExplanation((prev) =>
+                        prev === "setup-pause" ? null : "setup-pause",
+                      );
                     }}
                     className="p-1 text-muted-foreground hover:text-foreground"
                     title="Explain Pause for Setup"
@@ -385,7 +385,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                 >
                   <p className="font-medium text-foreground mb-0.5">Pause for Setup Explanation:</p>
                   Freezes video playback, text-to-speech voice synthesis, and automatic scrolling to
-                  allow configuring languages, parser criteria, and audio settings without interruption.
+                  allow configuring languages, parser criteria, and audio settings without
+                  interruption.
                 </div>
               )}
             </div>
@@ -433,7 +434,9 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setActiveExplanation((prev) => (prev === "auto-scroll" ? null : "auto-scroll"));
+                      setActiveExplanation((prev) =>
+                        prev === "auto-scroll" ? null : "auto-scroll",
+                      );
                     }}
                     className="p-1 text-muted-foreground hover:text-foreground"
                     title="Explain Auto-Scroll"
@@ -450,10 +453,12 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                   data-testid="explanation-auto-scroll"
                   className="mt-2 rounded bg-muted/60 p-2 text-[11px] leading-relaxed text-muted-foreground border-l-2 border-primary"
                 >
-                  <p className="font-medium text-foreground mb-0.5">Auto-Scroll Subtitles Explanation:</p>
-                  Automatically centers and scrolls the parallel subtitles table to follow the active
-                  sentence and spoken dialogue during video playback. Automatically holds for 5
-                  seconds whenever you touch or scroll the screen.
+                  <p className="font-medium text-foreground mb-0.5">
+                    Auto-Scroll Subtitles Explanation:
+                  </p>
+                  Automatically centers and scrolls the parallel subtitles table to follow the
+                  active sentence and spoken dialogue during video playback. Automatically holds for
+                  5 seconds whenever you touch or scroll the screen.
                 </div>
               )}
             </div>

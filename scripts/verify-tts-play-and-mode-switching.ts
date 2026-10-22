@@ -24,7 +24,10 @@ const rootDir = process.cwd();
 const indexPath = path.join(rootDir, "src/routes/index.tsx");
 const modeSwitcherPath = path.join(rootDir, "src/components/ModeSwitcherHeader.tsx");
 const beginnerNavPath = path.join(rootDir, "src/components/beginner/BeginnerTabNav.tsx");
-const beginnerContainerPath = path.join(rootDir, "src/components/beginner/BeginnerFlowContainer.tsx");
+const beginnerContainerPath = path.join(
+  rootDir,
+  "src/components/beginner/BeginnerFlowContainer.tsx",
+);
 const beginnerPlayerPath = path.join(rootDir, "src/components/beginner/tabs/BeginnerPlayerTab.tsx");
 const subtitleRowPath = path.join(rootDir, "src/components/SubtitleRow.tsx");
 const subtitleTablePath = path.join(rootDir, "src/components/SubtitlesTablePanel.tsx");
@@ -94,7 +97,7 @@ assert(
 );
 assert(
   playerContent.includes("data-testid={`btn-speak-cue-${idx}`}") ||
-    playerContent.includes('data-testid={`btn-speak-cue-${idx}`}'),
+    playerContent.includes("data-testid={`btn-speak-cue-${idx}`}"),
   "BeginnerPlayerTab must include per-cue speak buttons with data-testid='btn-speak-cue-${idx}'",
 );
 assert(
@@ -111,17 +114,11 @@ assert(
   rowContent.includes("data-testid={`btn-speak-cell-${actualIndex}-${l.code}`}"),
   "SubtitleRow must include data-testid='btn-speak-cell-${actualIndex}-${l.code}'",
 );
-assert(
-  rowContent.includes("onSpeakCue"),
-  "SubtitleRow must accept onSpeakCue",
-);
+assert(rowContent.includes("onSpeakCue"), "SubtitleRow must accept onSpeakCue");
 
 assert(fs.existsSync(subtitleTablePath), "SubtitlesTablePanel.tsx must exist");
 const tableContent = fs.readFileSync(subtitleTablePath, "utf8");
-assert(
-  tableContent.includes("onSpeakCue"),
-  "SubtitlesTablePanel must accept and pass onSpeakCue",
-);
+assert(tableContent.includes("onSpeakCue"), "SubtitlesTablePanel must accept and pass onSpeakCue");
 console.log("✅ PASS: Subtitles Table Panel & SubtitleRow expose on-demand TTS speak buttons.");
 
 // 7. Verify State Synchronization across Beginner and Advanced Modes
@@ -153,10 +150,7 @@ assert(
   containerContent.includes("onBaseLangChange"),
   "BeginnerFlowContainer must support onBaseLangChange",
 );
-assert(
-  containerContent.includes("onSpeakCue"),
-  "BeginnerFlowContainer must support onSpeakCue",
-);
+assert(containerContent.includes("onSpeakCue"), "BeginnerFlowContainer must support onSpeakCue");
 
 // Verify index.tsx wires these callbacks to state
 assert(

@@ -205,7 +205,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       {/* Tab Header */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-1">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
             <Split className="w-4 h-4" />
           </div>
           <div>
@@ -220,66 +220,16 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         </div>
       </div>
 
-      {/* 1. Sentence Splitting Toggle & Punctuation Selectors */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-xs font-semibold text-foreground">Sentence Punctuation Splitting</h3>
-            <p className="text-[11px] text-muted-foreground">
-              Default to splitting long subtitle blocks into natural sentences at punctuation marks.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] text-muted-foreground">
-              {splitByPunctuation ? "Enabled" : "Disabled"}
-            </span>
-            <Switch
-              checked={splitByPunctuation}
-              onCheckedChange={onSplitByPunctuationChange}
-              data-testid="toggle-split-punctuation"
-            />
-          </div>
-        </div>
-
-        {splitByPunctuation && (
-          <div className="pt-2 border-t border-border space-y-2">
-            <span className="text-xs text-foreground/90 font-medium">
-              Choose punctuation marks to split on:
-            </span>
-            <div
-              className="grid grid-cols-2 sm:grid-cols-3 gap-2"
-              data-testid="punctuation-checkboxes"
-            >
-              {defaultPunctuationMarks.map((p) => {
-                const isChecked = punctuationChars.includes(p.char);
-                return (
-                  <label
-                    key={p.char}
-                    className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
-                      isChecked
-                        ? "bg-primary/10 border-primary text-foreground"
-                        : "bg-background border-border text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <Checkbox
-                      checked={isChecked}
-                      onCheckedChange={() => handleTogglePunctuation(p.char)}
-                    />
-                    <span className="font-mono font-semibold text-emerald-500">{p.char}</span>
-                    <span>{p.label}</span>
-                  </label>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* 2. Character Removal & Renaming (stripping > and speaker tags) */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
+      {/* 1. Character Removal & Renaming (Special Characters Removal & Sanitization - Stage 3) */}
+      <div
+        className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3"
+        data-testid="beginner-chars-removal-section"
+      >
         <div className="flex items-center gap-2">
-          <Scissors className="w-4 h-4 text-emerald-500" />
-          <h3 className="text-xs font-semibold text-foreground">Character Removal & Rename Rules</h3>
+          <Scissors className="w-4 h-4 text-primary" />
+          <h3 className="text-xs font-semibold text-foreground">
+            Character Removal & Rename Rules
+          </h3>
         </div>
         <p className="text-[11px] text-muted-foreground">
           Clean unwanted artifacts, noise indicators, or speaker prefixes before subtitle rendering
@@ -366,11 +316,71 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         </div>
       </div>
 
+      {/* 2. Sentence Splitting Toggle & Punctuation Selectors (Stage 4) */}
+      <div
+        className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3"
+        data-testid="beginner-parser-section"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xs font-semibold text-foreground">
+              Sentence Punctuation Splitting
+            </h3>
+            <p className="text-[11px] text-muted-foreground">
+              Default to splitting long subtitle blocks into natural sentences at punctuation marks.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground">
+              {splitByPunctuation ? "Enabled" : "Disabled"}
+            </span>
+            <Switch
+              checked={splitByPunctuation}
+              onCheckedChange={onSplitByPunctuationChange}
+              data-testid="toggle-split-punctuation"
+            />
+          </div>
+        </div>
+
+        {splitByPunctuation && (
+          <div className="pt-2 border-t border-border space-y-2">
+            <span className="text-xs text-foreground/90 font-medium">
+              Choose punctuation marks to split on:
+            </span>
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 gap-2"
+              data-testid="punctuation-checkboxes"
+            >
+              {defaultPunctuationMarks.map((p) => {
+                const isChecked = punctuationChars.includes(p.char);
+                return (
+                  <label
+                    key={p.char}
+                    className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition-all ${
+                      isChecked
+                        ? "bg-primary/10 border-primary text-foreground"
+                        : "bg-background border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Checkbox
+                      checked={isChecked}
+                      onCheckedChange={() => handleTogglePunctuation(p.char)}
+                    />
+                    <span className="font-mono font-semibold text-primary">{p.char}</span>
+                    <span>{p.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* 3. Live Preview Card */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-emerald-500" />
+            <Eye className="w-4 h-4 text-primary" />
             <h3 className="text-xs font-semibold text-foreground">
               Real-Time Parsing & Cleanup Preview
             </h3>
@@ -395,7 +405,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
                     key={sIdx}
                     className="flex items-center gap-2 text-foreground font-medium bg-muted/40 px-2 py-1 rounded border border-border"
                   >
-                    <span className="text-[10px] text-emerald-500 font-mono">#{sIdx + 1}</span>
+                    <span className="text-[10px] text-primary font-mono">#{sIdx + 1}</span>
                     <span>{sentence}</span>
                   </div>
                 ))}
@@ -413,7 +423,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
             variant="outline"
             size="sm"
             onClick={onApplyParsing}
-            className="h-8 px-3 text-xs border-emerald-700/60 text-emerald-300 hover:bg-emerald-950/40"
+            className="h-8 px-3 text-xs border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 dark:hover:bg-emerald-950/40"
             data-testid="btn-apply-parsing"
           >
             <Sparkles className="w-3.5 h-3.5 mr-1" />

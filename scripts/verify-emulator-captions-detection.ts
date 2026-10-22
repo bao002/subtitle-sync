@@ -30,7 +30,9 @@ assert(
   mainActivityContent.includes("authentic_captions_exposed.txt"),
   "MainActivity.kt must persist authentic_captions_exposed.txt on device storage",
 );
-console.log("✅ PASS: MainActivity.kt actively exposes authentic caption text and writes device file.");
+console.log(
+  "✅ PASS: MainActivity.kt actively exposes authentic caption text and writes device file.",
+);
 
 // 2. Verify scripts/run-android-e2e.sh detection loop and text extraction
 console.log("\n--> [Step 2] Verifying scripts/run-android-e2e.sh caption detection loop...");
@@ -50,7 +52,9 @@ assert(
   runE2eContent.includes("[DEPRECATED]"),
   "scripts/run-android-e2e.sh must mark screencast video recording as deprecated",
 );
-console.log("✅ PASS: run-android-e2e.sh detects authentic captions, pulls text, and marks screencast deprecated.");
+console.log(
+  "✅ PASS: run-android-e2e.sh detects authentic captions, pulls text, and marks screencast deprecated.",
+);
 
 // 3. Verify scripts/android-e2e-assert.sh step 4 assertion
 console.log("\n--> [Step 3] Verifying scripts/android-e2e-assert.sh caption assertions...");
@@ -109,9 +113,18 @@ const currentVersion = pkg.version;
 assert.ok(currentVersion, "package.json version must exist");
 
 const targets = [
-  { path: "android-shell/app/build.gradle.kts", pattern: new RegExp(`versionName\\s*=\\s*"${currentVersion}"`) },
-  { path: "src/config/appConfig.ts", pattern: new RegExp(`APP_VERSION\\s*=\\s*"${currentVersion}"`) },
-  { path: "src/utils/apkUpdater.ts", pattern: new RegExp(`CURRENT_APK_VERSION\\s*=\\s*"v${currentVersion}"`) },
+  {
+    path: "android-shell/app/build.gradle.kts",
+    pattern: new RegExp(`versionName\\s*=\\s*"${currentVersion}"`),
+  },
+  {
+    path: "src/config/appConfig.ts",
+    pattern: new RegExp(`APP_VERSION\\s*=\\s*"${currentVersion}"`),
+  },
+  {
+    path: "src/utils/apkUpdater.ts",
+    pattern: new RegExp(`CURRENT_APK_VERSION\\s*=\\s*"v${currentVersion}"`),
+  },
 ];
 
 for (const target of targets) {
