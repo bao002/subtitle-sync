@@ -1,5 +1,186 @@
 # Done tasks
 
+## Task 183: Version Bump to 1.0.97 & Unified AGENTS Contract Audit Verification
+
+### Summary:
+- **Raw Prompt & Version Updates (Subtask 183.1)**:
+  - Recorded user prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.96` to `1.0.97` (`versionCode = 10097`) across all targets:
+    - `package.json`: `"version": "1.0.97"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10097`, `versionName = "1.0.97"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.97"`
+    - `src/utils/appSettings.ts`: `version: "1.0.97"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.97"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.97)`
+- **Verification Commands & Outcomes (Subtask 183.2)**:
+  - `npm run test:agents-size-budget`: 100% PASS (AGENTS.md is 18,213 bytes, with 6,363 bytes of headroom below 24KB limit).
+  - `npm run test:agents-last-prompt-rule`: 100% PASS (exact prompt verified).
+  - `npm run test:agents-version`: 100% PASS (version 1.0.97 / 10097 synchronized across all 5 targets).
+  - `npm run test:agents-all`: 100% PASS (17/17 constitutional checks executed and passed in 23.7s).
+  - `npx tsx scripts/verify-dev-server-stability.ts`: 100% PASS (dev server responsive on port 3000, routes transformed cleanly).
+  - `lint_applet`: Zero lint errors.
+  - `compile_applet`: Production build succeeded.
+
+---
+
+## Task 182: Improve and Implement docs/suggestions.md with Size Budget Guard & Unified AGENTS Test Runner
+
+### Summary:
+- **Raw Prompt & Version Updates (Subtask 182.1)**:
+  - Recorded user prompt (`docs/suggestions.md - improve and implement`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.95` to `1.0.96` (`versionCode = 10096`) across all targets:
+    - `package.json`: `"version": "1.0.96"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10096`, `versionName = "1.0.96"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.96"`
+    - `src/utils/appSettings.ts`: `version: "1.0.96"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.96"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.96)`
+- **Documentation Improvements (Subtask 182.2)**:
+  - Thoroughly expanded `docs/suggestions.md` with:
+    - Step 4: Automated Size Budget Guard & Headroom Assertion (`scripts/verify-agents-size-budget.ts`, `npm run test:agents-size-budget`).
+    - Step 5: Unified AGENTS.md Contract Test Suite Runner (`scripts/verify-agents-all.ts`, `npm run test:agents-all`).
+    - Full decision matrix and maintenance quality gates for prompt rule limits and safety buffers.
+- **Implementation & Tooling (Subtask 182.3)**:
+  - Created `scripts/verify-agents-size-budget.ts` asserting file size <= 21,000 bytes and headroom >= 3,576 bytes below 24KB limit.
+  - Created `scripts/verify-agents-all.ts` orchestrating all 17 constitutional contract test scripts in sequence.
+  - Added `"test:agents-size-budget"` and `"test:agents-all"` scripts to `package.json`.
+  - Registered new scripts in `docs/files.md`.
+- **Verification Commands & Outcomes (Subtask 182.4)**:
+  - `npm run test:agents-size-budget`: 100% PASS (AGENTS.md is 18,251 bytes, with 6,325 bytes of headroom).
+  - `npm run test:agents-last-prompt-rule`: 100% PASS (exact prompt verified).
+  - `npm run test:agents-version`: 100% PASS (version 1.0.96 / 10096 synchronized across all 5 targets).
+  - `npm run test:agents-all`: 100% PASS (17/17 constitutional checks executed and passed in 20.5s).
+  - `npx tsx scripts/verify-dev-server-stability.ts`: 100% PASS (dev server responsive on port 3000, routes transformed cleanly).
+  - `lint_applet`: Zero lint errors.
+  - `compile_applet`: Production build succeeded.
+
+---
+
+## Task 181: Version Bump to 1.0.95 & Sentence Boundary Detection, Punctuation Splitting & Timing Base Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 181.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.94` to `1.0.95` across all project targets:
+    - `package.json`: `"version": "1.0.95"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10095`, `versionName = "1.0.95"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.95"`
+    - `src/utils/appSettings.ts`: `version: "1.0.95"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.95"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.95)`
+- **Verification Commands & Outcomes (Subtask 181.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified sentence boundary detection, multilingual punctuation rules, and abbreviation guards with `npx tsx scripts/verify-default-punctuation-splitting.ts` (100% PASS).
+  - Verified automatic timing base derivation and synchronization grid formulation with `npx tsx scripts/verify-default-timing-base.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 180: Version Bump to 1.0.94 & Multi-Language Alignment, Grid Formulation & TTS Playback Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 180.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.93` to `1.0.94` across all project targets:
+    - `package.json`: `"version": "1.0.94"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10094`, `versionName = "1.0.94"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.94"`
+    - `src/utils/appSettings.ts`: `version: "1.0.94"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.94"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.94)`
+- **Verification Commands & Outcomes (Subtask 180.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified language selection flow, ISO code aliases, and TTS speed rate contracts with `npx tsx scripts/verify-language-selection-and-tts-flow.ts` (100% PASS).
+  - Verified on-demand TTS speak triggers, mode switching parity, and single-header constraints with `npx tsx scripts/verify-tts-play-and-mode-switching.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 179: Version Bump to 1.0.93 & Subtitles Validation & Caching Architecture Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 179.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.92` to `1.0.93` across all project targets:
+    - `package.json`: `"version": "1.0.93"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10093`, `versionName = "1.0.93"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.93"`
+    - `src/utils/appSettings.ts`: `version: "1.0.93"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.93"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.93)`
+- **Verification Commands & Outcomes (Subtask 179.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified strict JSON3 response parsing, validation, and storage gate with `npx tsx scripts/verify-strict-json3-only-validation.ts` (100% PASS).
+  - Verified cache protection against invalid/empty subtitles and read-time eviction with `npx tsx scripts/verify-valid-json-cache-guard.ts` (100% PASS).
+  - Verified rejection of empty, HTML, or malformed subtitle responses with `npx tsx scripts/verify-no-cache-empty-or-non-json.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 178: Version Bump to 1.0.92 & Subtitles Fetch Strategy and Anti-Bot Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 178.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.91` to `1.0.92` across all project targets:
+    - `package.json`: `"version": "1.0.92"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10092`, `versionName = "1.0.92"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.92"`
+    - `src/utils/appSettings.ts`: `version: "1.0.92"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.92"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.92)`
+- **Verification Commands & Outcomes (Subtask 178.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified subtitle fetch strategies, rate limiting, and defaults with `npx tsx scripts/verify-fetch-strategy-and-defaults.ts` (100% PASS).
+  - Verified anti-bot browser profile and HTTP 429 diagnostics with `npx tsx scripts/verify-anti-bot-browser-profile.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 177: Version Bump to 1.0.91 & Full System Health & Fixtures Restriction Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 177.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.90` to `1.0.91` across all project targets:
+    - `package.json`: `"version": "1.0.91"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10091`, `versionName = "1.0.91"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.91"`
+    - `src/utils/appSettings.ts`: `version: "1.0.91"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.91"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.91)`
+- **Verification Commands & Outcomes (Subtask 177.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified subtitles fixtures restriction & zero hardcoded subtitles policy with `npx tsx scripts/verify-subtitles-fixtures-restriction.ts` (100% PASS).
+  - Verified reliable subtitles fetching logic & attempt runner with `npx tsx scripts/verify-reliable-subtitles-fetching.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
+## Task 176: Version Bump to 1.0.90 & Subtitle Processing Pipeline Parity Verification
+
+### Summary:
+- **Version Bump Across Targets (Subtask 176.1)**:
+  - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.89` to `1.0.90` across all project targets:
+    - `package.json`: `"version": "1.0.90"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10090`, `versionName = "1.0.90"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.90"`
+    - `src/utils/appSettings.ts`: `version: "1.0.90"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.90"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.90)`
+- **Verification Commands & Outcomes (Subtask 176.2)**:
+  - Verified exact prompt retention with `npx tsx scripts/verify-agents-last-prompt-rule.ts` (100% PASS).
+  - Verified version synchronization across all targets with `npx tsx scripts/verify-agents-version-rule.ts` (100% PASS).
+  - Verified 7 sequential pipeline stages & character removal priority with `npx tsx scripts/verify-application-stages-pipeline.ts` (100% PASS).
+  - Verified Chars Removal accordion parity and ordering before Parser in both Beginner and Advanced modes with `npx tsx scripts/verify-chars-removal-accordion-order.ts` (100% PASS).
+  - Verified Vite dev server health, port 3000 binding, and route module transformations with `npx tsx scripts/verify-dev-server-stability.ts` (100% PASS).
+  - Verified code quality and build compilation via `lint_applet` (100% clean) and `compile_applet` (build succeeded).
+
+---
+
 ## Task 175: Version Bump to 1.0.89 & Project Health Verification
 
 ### Summary:

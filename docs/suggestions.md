@@ -12,8 +12,8 @@ In Google AI Studio Build environments, rules defined in repository rule files (
 
 - **Platform Limit**: Files exceeding **24,576 bytes (24 KB)** are hard-truncated by the environment:
   `[TRUNCATED: This file exceeded the 24KB rule limit. Content beyond this point was omitted.]`
-- **Consequence of Truncation**: When `AGENTS.md` reached 25,710 bytes (25.1 KB), critical directives at the bottom of the file (including Subtitles Caching rules and the `## Last raw prompt` section) were omitted from the active agent system prompt, increasing token cost and risking prompt context loss.
-- **Target Size**: Maintain `AGENTS.md` strictly under **20,000 bytes (< 19.5 KB)**, leaving at least **4.5 KB – 6.5 KB of safety headroom** for new raw user prompts.
+- **Consequence of Truncation**: When `AGENTS.md` exceeded 24 KB in earlier revisions, critical directives at the bottom of the file (including Subtitles Caching rules and the `## Last raw prompt` section) were omitted from the active agent system prompt, increasing token cost and risking prompt context loss.
+- **Target Size**: Maintain `AGENTS.md` strictly under **21,000 bytes (< 20.5 KB)**, leaving at least **3,576 – 6,500 bytes of safety headroom** for new raw user prompts.
 
 ---
 
@@ -28,7 +28,7 @@ The following optimization steps are ordered hierarchically by urgency (speed of
 - **Description**: Condense wordy narrative explanations, redundant theoretical justifications, and duplicate Agile/Kanban rationale into concise, high-density bullet directives.
 - **Feasibility**: **Bullet-proof (Recommended to Implement)**.
 - **Implementation Status**: **Fully Implemented**.
-- **Results**: File size reduced from 25,710 bytes to 17,981 bytes (a 30% reduction, saving 7,729 bytes). The file now sits comfortably at 17.55 KB with 6.6 KB of buffer.
+- **Results**: File size reduced from 25,710 bytes to ~18,200 bytes (over 29% reduction, saving >7,500 bytes). The file now sits comfortably at ~18 KB with >6.3 KB of buffer.
 - **Action**: Keep all directives actionable, imperative, and minimal. Avoid multi-paragraph philosophical treatises in `AGENTS.md`.
 
 ---
@@ -75,9 +75,34 @@ The following optimization steps are ordered hierarchically by urgency (speed of
 
 ---
 
-### Priority 4 (Level: Medium Urgency | Medium Importance)
+### Priority 4 (Level: High Urgency | High Importance)
 
-#### Step 4: Extract Application Stages Pipeline & Anti-Bot Tables Entirely Out of AGENTS.md
+#### Step 4: Automated Size Budget Guard & Headroom Assertion
+
+- **Description**: Add an automated test script (`scripts/verify-agents-size-budget.ts`) and npm script (`npm run test:agents-size-budget`) to assert that `AGENTS.md` remains <= 21,000 bytes and guarantees at least 3,576 bytes of headroom below the 24,576 byte platform limit.
+- **Feasibility**: **Bullet-proof (Recommended to Implement)**.
+- **Implementation Status**: **Fully Implemented (Task 182)**.
+- **Contract Enforcement**:
+  - Rejects if `AGENTS.md` size > 21,000 bytes.
+  - Rejects if available headroom < 3,576 bytes.
+  - Warns proactively if size exceeds 19,500 bytes.
+
+---
+
+### Priority 5 (Level: High Urgency | High Importance)
+
+#### Step 5: Unified AGENTS.md Contract Test Suite Runner
+
+- **Description**: Provide a single consolidated test runner (`scripts/verify-agents-all.ts` and `npm run test:agents-all`) that executes all 16 AGENTS.md contract verification scripts in one fast automated run to eliminate regression risk when editing rules.
+- **Feasibility**: **Bullet-proof (Recommended to Implement)**.
+- **Implementation Status**: **Fully Implemented (Task 182)**.
+- **Benefits**: Replaces manual one-by-one verification runs with a single command that produces a consolidated audit report of all constitutional contracts.
+
+---
+
+### Priority 6 (Level: Medium Urgency | Medium Importance)
+
+#### Step 6: Extract Application Stages Pipeline & Anti-Bot Tables Entirely Out of AGENTS.md
 
 - **Description**: Relocating Stage 1–7 definitions and Subtitle Anti-Bot / Good Response criteria completely out of `AGENTS.md` into `docs/parser.md` or `docs/reliable-subtitles-fetching.md`, leaving only brief 1-line links in `AGENTS.md`.
 - **Feasibility**: **NOT Bullet-Proof (HIGH REGRESSION RISK)**.
@@ -85,13 +110,13 @@ The following optimization steps are ordered hierarchically by urgency (speed of
 - **Risk Analysis**:
   - Verification scripts `verify-application-stages-pipeline.ts` and `verify-agents-subtitles-spec.ts` contain regex and string assertion checks looking directly inside `AGENTS.md` for `Stage 1: Acquisition & Interception`, `Special characters removal MUST happen BEFORE the translation stage`, `json3`, `tStartMs`, etc.
   - Completely removing these blocks from `AGENTS.md` breaks CI verification suites immediately unless the test scripts are refactored in tandem.
-  - _Correct Strategy_: Condense the stages into tight, single-sentence bullet points containing the required keywords, rather than deleting the section.
+  - _Correct Strategy_: Keep the stages as tight, single-sentence bullet points containing the required keywords, rather than deleting the section.
 
 ---
 
-### Priority 5 (Level: Low Urgency | Low Importance)
+### Priority 7 (Level: Low Urgency | Low Importance)
 
-#### Step 5: Aggressively Truncate or Summarize `## Last raw prompt`
+#### Step 7: Aggressively Truncate or Summarize `## Last raw prompt`
 
 - **Description**: Truncating long user prompts or replacing the raw prompt with a SHA hash or abbreviated excerpt.
 - **Feasibility**: **NOT Bullet-Proof (HIGH COMPLIANCE RISK)**.
@@ -99,7 +124,7 @@ The following optimization steps are ordered hierarchically by urgency (speed of
 - **Risk Analysis**:
   - Violates the core mandate: _"AGENTS.md must continuously record and preserve the exact, unedited raw text of the user's latest prompt in a dedicated ## Last raw prompt section."_
   - `verify-agents-last-prompt-rule.ts` specifically verifies that the unedited raw text matches verbatim.
-  - Since `AGENTS.md` now sits at ~17.9 KB, there is over 6.5 KB of headroom, making prompt truncation unnecessary.
+  - Since `AGENTS.md` now sits at ~18.2 KB, there is over 6.3 KB of headroom, making prompt truncation unnecessary.
 
 ---
 
@@ -107,16 +132,18 @@ The following optimization steps are ordered hierarchically by urgency (speed of
 
 | Step # | Proposed Optimization                                  | Urgency  | Importance | Bullet-Proof? | Action Taken / Recommendation                    |
 | :----: | :----------------------------------------------------- | :------: | :--------: | :-----------: | :----------------------------------------------- |
-| **1**  | Condense narrative prose & theory                      | Critical |  Critical  |    **Yes**    | **Fully Implemented** (saved 7.7 KB)             |
+| **1**  | Condense narrative prose & theory                      | Critical |  Critical  |    **Yes**    | **Fully Implemented** (saved >7.5 KB)            |
 | **2**  | Preserve all 16 test suite assertion strings           |   High   |  Critical  |    **Yes**    | **Fully Implemented** (100% tests pass)          |
 | **3**  | Delegate deep specs to `docs/*.md` pointers            |   High   |    High    |    **Yes**    | **Fully Implemented**                            |
-| **4**  | Extract Stage 1–7 pipeline entirely out of `AGENTS.md` |  Medium  |   Medium   |    **No**     | **Partially Implemented** (kept keyword anchors) |
-| **5**  | Truncate / summarize `## Last raw prompt`              |   Low    |    Low     |    **No**     | **Skipped** (preserves raw prompt contract)      |
+| **4**  | Automated size budget guard (`test:agents-size-budget`)|   High   |    High    |    **Yes**    | **Fully Implemented** (Task 182)                 |
+| **5**  | Unified AGENTS contract test suite (`test:agents-all`) |   High   |    High    |    **Yes**    | **Fully Implemented** (Task 182)                 |
+| **6**  | Extract Stage 1–7 pipeline entirely out of `AGENTS.md` |  Medium  |   Medium   |    **No**     | **Partially Implemented** (kept keyword anchors) |
+| **7**  | Truncate / summarize `## Last raw prompt`              |   Low    |    Low     |    **No**     | **Skipped** (preserves raw prompt contract)      |
 
 ---
 
 ## 4. Maintenance Guidelines
 
-1. **Size Budget**: Always check byte count with `wc -c AGENTS.md` before concluding any turn modifying `AGENTS.md`. The size must not exceed 21,000 bytes.
-2. **Pre-Action Audit**: Run `npm run test:agents-subtitles-spec` and `npm run test:agents-last-prompt-rule` whenever editing `AGENTS.md`.
+1. **Automated Budget Guard**: Run `npm run test:agents-size-budget` on every turn that edits `AGENTS.md`. The file size must remain strictly <= 21,000 bytes with >= 3,576 bytes of headroom.
+2. **Unified Contract Verification**: Run `npm run test:agents-all` before completing any prompt that alters rules or documentation contracts.
 3. **Docs Hygiene**: Place all supporting analysis under `docs/*.md` and never duplicate files in the root directory.

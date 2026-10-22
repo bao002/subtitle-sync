@@ -1,5 +1,4 @@
 # Active Task Mirror (`docs/todo.md`)
  
-- **Active**: Subtask 175.2: Verify version alignment via `verify-agents-version-rule.ts`, dev server stability via `verify-dev-server-stability.ts`, compile, lint, and migrate to `docs/done.md`.
+- **Active**: Subtask 184.3: Create dedicated automated test `scripts/verify-no-more-tasks-go-on-rule.ts`, add it to `scripts/verify-agents-all.ts`, add script to `package.json`, and register in `docs/files.md`.
 - **Status**: IN PROGRESS.
-

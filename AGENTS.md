@@ -65,6 +65,7 @@ The application processes and presents subtitles through a strict sequential pip
   5. **Resume held task**: After hotfix is verified, restore suspended task back to active status in `current-sub-task.md` and `docs/todo.md`, and resume work.
 - **Always keep last raw prompt in AGENTS.md**: `AGENTS.md` must continuously record and preserve the exact, unedited raw text of the user's latest prompt in a dedicated `## Last raw prompt` section on EVERY single prompt received.
 - **Later tasks protocol**: Any "later" task MUST be stored at the bottom under `## Later Tasks` in `docs/tasks.md` (and `docs/later.md`). When active tasks are complete, ask user whether to proceed with "later" tasks.
+- **No more tasks "go on" handling**: In case no more tasks are left (active backlog in `docs/tasks.md` and `current-sub-task.md` is empty), if prompt is "go on", then just summarize that there are no more tasks left. No need to show anything else.
 - **Numbered chapters as serial tasks protocol**: When user prompt consists of numbered chapters (e.g. `1. ...`, `2. ...`), treat each as a separate distinct task in `docs/tasks.md`, divided into sub-tasks worked on strictly serially: execute, test, verify, compile, lint, commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
 - Check last GitHub Actions result and fix failed flows promptly (`web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, `integrity.yml`).
@@ -136,7 +137,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on
+AGENTS.md - in case no more tasks left - if prompt is "go on" then just summaries that there no more tasks. no need to show anything else
 ```
 
 

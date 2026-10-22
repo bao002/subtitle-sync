@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.89",
+  "version": "1.0.98",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -65,6 +65,8 @@
     "test:agents-subtitles-spec": "tsx scripts/verify-agents-subtitles-spec.ts",
     "test:agents-last-prompt-rule": "tsx scripts/verify-agents-last-prompt-rule.ts",
     "test:agents-version": "tsx scripts/verify-agents-version-rule.ts",
+    "test:agents-size-budget": "tsx scripts/verify-agents-size-budget.ts",
+    "test:agents-all": "tsx scripts/verify-agents-all.ts",
     "test:html-guard-caching": "tsx scripts/verify-html-response-guard-and-caching.ts",
     "test:strict-json3-validation": "tsx scripts/verify-strict-json3-only-validation.ts",
     "test:favorite-dynamic-fetch": "tsx scripts/verify-favorite-lang-dynamic-fetch.ts",
