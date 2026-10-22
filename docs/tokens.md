@@ -4,10 +4,12 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Hotfix (Completed)
+## Active Task: Task 163: Beginner Mode Video Accordion Folded by Default on First Tab Only (Chapter 1)
 
-- **Hotfix**: Fix missing `useEffect` import in `src/components/ShareStateModal.tsx` and bump version to `1.0.78` - COMPLETED and migrated to `docs/done.md`.
-- **Active Subtask**: None pending. All tests pass 100%, app compiled and linted.
+- **Subtask 163.1 (Active)**: Wrap video player in Beginner Mode inside an accordion element that is collapsed/folded by default, and restrict its presence strictly to the first tab (tab 0).
+- **Subtask 163.2**: Verify with dedicated automated test `scripts/verify-beginner-mode-video-accordion.ts`, compile, lint, commit, push, and migrate Task 163 to `docs/done.md`.
+
+
 
 ---
 

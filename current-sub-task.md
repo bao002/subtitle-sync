@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: [COMPLETED]
-- **Active Task**: Hotfix - Fix missing useEffect import in ShareStateModal (Version 1.0.78)
-- **Active Subtask**: Subtask Hotfix.1 - Completed. Imported `useEffect` from `react` in `src/components/ShareStateModal.tsx`, synchronized version 1.0.78 across all 5 targets, all automated tests pass 100%, lint and compilation clean, migrated to `docs/done.md`.
+- **Active Subtask**: Subtask 163.1: Wrap video player in Beginner Mode inside an accordion element that is collapsed/folded by default, and restrict its presence strictly to the first tab (tab 0).
+- **Parent Task**: Task 163: Beginner Mode Video Accordion Folded by Default on First Tab Only (Chapter 1)
+- **Objective**: Ensure that in Beginner Mode, the video player is not displayed bare by default, but contained in a folded accordion element, and that this video player accordion element exists ONLY on the first tab.

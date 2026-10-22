@@ -136,37 +136,12 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-Fix the errors in the app
-[AIS_METADATA_SECTION_START]
-fix_it_trigger: manual
-error 0: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load useEffect is not defined
-error 1: [APP_PAGE_ERROR] This page didn't load: useEffect is not defined
-error 2: ReferenceError: useEffect is not defined
-    at ShareStateModal (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/src/components/ShareStateModal.tsx:54:2)
-    at Object.react_stack_bottom_frame (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:14140:12)
-    at renderWithHooks (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:4398:19)
-    at updateFunctionComponent (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:5773:16)
-    at beginWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:6389:20)
-    at runWithFiberInDEV (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:943:66)
-    at performUnitOfWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:9146:92)
-    at workLoopSync (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:9042:37)
-    at renderRootSync (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:9026:6)
-    at performWo
-    ... [stack truncated]
-error 3: %o
-
-%s
-
-%s ReferenceError: useEffect is not defined
-    at ShareStateModal (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/src/components/ShareStateModal.tsx:54:2)
-    at Object.react_stack_bottom_frame (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:14140:12)
-    at renderWithHooks (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:4398:19)
-    at updateFunctionComponent (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:5773:16)
-    at beginWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:6389:20)
-    at runWithFiberInDEV (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:943:66)
-    at performUnitOfWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=9f0b37ed:9146:92)
-    ... [3 frames omitted]
-error 4: [APP_BOOT_ERROR] Application rendered error boundary: This page didn't load
-[AIS_METADATA_SECTION_END]
+1. by default the beginner mode shouldn't show the video (use a floded accordion element) and this element should exist only on the first tab.
+2. on advance mode - the language boxes should apear for the favorites languages.
+3.parser - contains to much text. this app should show so much text and explanation. it should keep text to the minimum and in allow to show more text which requires a click on an help button. never show text in the app by design - show only buttons with icon of "?" in order to expand for more info.
+4. the parser is a crusial part of the app - and the user must have a realtime simulation of the change of a checkbox parser option is doing.
+there should be auto-scroll to next diff apearance. and it shouldn't show all the subtitles - but only show the sections is does make a difference.
 ```
+
+
 

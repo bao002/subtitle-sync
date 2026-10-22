@@ -10,6 +10,13 @@ import {
 import { BeginnerPlayerTab, SubtitleCueDisplay } from "./tabs/BeginnerPlayerTab";
 import { VideoLibraryPanel } from "@/components/VideoLibraryPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Tv } from "lucide-react";
 import { type Json3, parseCues, type Cue } from "@/lib/subtitles";
 import {
   loadAppSettings,
@@ -235,16 +242,42 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
         onSwitchToAdvanced={onSwitchToAdvanced}
       />
 
-      {/* Persistent Video Player & Controls Container (stays mounted across all tabs) */}
-      {playerSlot && (
-        <div className="w-full max-w-4xl mx-auto px-2 pt-2">
-          <div
-            className="w-full rounded-xl overflow-hidden bg-black aspect-video border border-border shadow-md relative"
-            data-testid="beginner-player-slot-container"
+      {/* Video Player in Folded Accordion (First Tab Only) */}
+      {activeTab === "video" && playerSlot && (
+        <div
+          className="w-full max-w-4xl mx-auto px-2 pt-2"
+          data-testid="beginner-video-accordion-container"
+        >
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue=""
+            className="w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden"
           >
-            {playerSlot}
-          </div>
-          {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}
+            <AccordionItem value="video-player" className="border-b-0">
+              <AccordionTrigger
+                className="px-4 py-2.5 text-xs font-semibold text-foreground hover:no-underline hover:bg-muted/30 flex items-center justify-between"
+                data-testid="beginner-video-accordion-trigger"
+              >
+                <div className="flex items-center gap-2">
+                  <Tv className="h-4 w-4 text-primary" />
+                  <span>Video Player</span>
+                  <span className="text-[11px] font-normal text-muted-foreground">
+                    ({isPlaying ? "Playing" : "Folded / Click to open"})
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="p-2 pt-0" data-testid="beginner-video-accordion-content">
+                <div
+                  className="w-full rounded-lg overflow-hidden bg-black aspect-video border border-border shadow-sm relative"
+                  data-testid="beginner-player-slot-container"
+                >
+                  {playerSlot}
+                </div>
+                {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       )}
 
