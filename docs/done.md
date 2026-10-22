@@ -1,8 +1,75 @@
 # Done tasks
 
+## Task 180: Enable Switching Between Alternative TTS Providers ("lovable", "google", "openrouter") in Advanced and Beginner Modes (Version 1.0.73)
+
+### Summary:
+
+- **Alternative TTS Provider State & Dynamic Persistence (Subtask 180.1)**:
+  - Updated `src/lib/alternative-tts.ts` so `getLovableTtsProvider()` and `setLovableTtsProvider(provider: LovableTtsProvider)` dynamically read and persist the active provider (`"lovable" | "google" | "openrouter"`) in `localStorage` (`lovable_tts_provider`) with in-memory fallback.
+  - Enabled support for switching between all three alternative TTS providers seamlessly.
+- **Provider Switching UI & Dynamic Voice Catalogs with 100% Parity (Subtask 180.2)**:
+  - Advanced Mode (`src/routes/index.tsx`):
+    - Removed `disabled` constraint on `data-testid="lovable-tts-provider-select"` to allow selecting `"lovable"`, `"google"`, or `"openrouter"`.
+    - Made `data-testid="lovable-tts-voice-select"` dynamically populated based on active provider (`LOVABLE_VOICES` for `lovable`, `OPENROUTER_VOICES` for `openrouter`, and Default voice for `google`).
+    - Wired `altProvider` in `speak()` and `data-testid="test-alternative-tts-btn"` so playback and synthesis use the user-selected provider and voice.
+  - Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`):
+    - Achieved 100% parity with Advanced Mode: enabled `data-testid="beginner-lovable-tts-provider-select"` with full options (`lovable`, `google`, `openrouter`).
+    - Dynamic voice dropdown (`data-testid="beginner-lovable-tts-voice-select"`), provider state updates, audition handler, and test button (`data-testid="btn-test-alternative-tts"`).
+- **Version 1.0.73 Synchronization & Dedicated Test Suite (Subtask 180.3)**:
+  - Synchronized application version `1.0.73` and versionCode `10073` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+  - Authored dedicated test suite `scripts/verify-alternative-tts-providers-switching.ts` validating provider selection, persistence, dynamic voice switching, synthesis arguments, and version parity.
+  - Registered `"test:alternative-tts-providers-switching"` in `package.json` and documented in `docs/files.md`.
+  - Updated `scripts/verify-env-and-lockfile-hygiene.ts` to assert version `>= 1.0.72`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-alternative-tts-providers-switching.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-lovable-tts-ui.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-lovable-tts-service-preference.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-env-and-lockfile-hygiene.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-native-tts-speed-for-service.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-openrouter-key-settings.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-apk-version-and-releases.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-agents-last-prompt-rule.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-chars-removal-accordion-order.ts`: PASSED (100%).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
+## Task 179: Chapter 1 ("go on") - Lockfile & Environment Cleanliness, Alternative TTS Speed Optimization & Version 1.0.72 Bump
+
+### Summary:
+
+- **Environment Template & Scanned Variables Declaration (Subtask 179.1)**:
+  - Restored `.env.example` declaring all required scanned environment variables (`GITHUB_REPOSITORY`, `GITHUB_REPOSITORY_OWNER`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_OPENROUTER_API_KEY`, `VITE_COMMIT_SHA`).
+  - Purged forbidden lockfile `bun.lock` from workspace root and verified lockfile hygiene compliance with `scripts/verify-github-import-migration.ts`.
+- **Alternative TTS Native Playback Rate Parity (Subtask 179.2)**:
+  - Updated `playAlternativeTtsAudio` in `src/lib/alternative-tts.ts` to ensure that when switching to `fallbackUrl` (Google Translate fallback) in `onError` and `playPromise.catch`, `audio.playbackRate` is dynamically synchronized with the caller's native speech rate setting (`Math.max(0.3, Math.min(1.5, rate || 0.5))`), eliminating speed mismatch on fallback.
+- **Version 1.0.72 Synchronization & Dedicated Test Suite (Subtask 179.3)**:
+  - Synchronized application version `1.0.72` and versionCode `10072` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+  - Updated `scripts/verify-native-tts-speed-for-service.ts` to assert version `>= 1.0.71` across manifests.
+  - Authored dedicated test suite `scripts/verify-env-and-lockfile-hygiene.ts` validating `.env.example` declarations, lockfile absence, fallback playback rate synchronization, and version parity.
+  - Registered `"test:env-and-lockfile-hygiene"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npx tsx scripts/verify-env-and-lockfile-hygiene.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-native-tts-speed-for-service.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-openrouter-key-settings.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-github-import-migration.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-agents-version-rule.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-apk-version-and-releases.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-agents-last-prompt-rule.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-tokens-economy.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts`: PASSED (100%).
+  - `npx tsx scripts/verify-chars-removal-accordion-order.ts`: PASSED (100%).
+  - `compile_applet`: PASSED (build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
+---
+
 ## Task 178: Chapter 2 - Use Native Settings for TTS Service Speed & Remove Extra TTS Speed Rate Controls (Version 1.0.71)
 
 ### Summary:
+
 - **Removal of Extra TTS Speed Multiplier Slider and Presets (Subtask 178.1)**:
   - Eliminated the separate "Configured TTS Speed Multiplier (0.25 - 4.0)" slider and speed preset buttons (`0.5x`, `0.75x`, `1.0x`, `1.25x`, `1.5x`, `2.0x`, `3.0x`) from the Alternative TTS settings cards in both Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`).
   - Added dedicated notices (`lovable-tts-native-speed-notice` and `beginner-lovable-tts-native-speed-notice`) displaying that the Alternative TTS service uses the native speech rate settings configured per-language or globally.
@@ -27,6 +94,7 @@
 ## Task 177: Chapter 1 ("go on") - OpenRouter Key Settings (Save to LocalStorage) & Server .env Fallback (Version 1.0.70)
 
 ### Summary:
+
 - **OpenRouter Key Configuration & LocalStorage Persistence (Subtask 177.1)**:
   - Added dedicated OpenRouter API key inputs with password show/hide visibility toggle (`Eye`/`EyeOff`), "Save" button with confirmation state, and "Clear" button.
   - Implemented multi-key synchronization across `yt_openrouter_api_key`, `yt_openrouter_api_key_v1`, and `yt_alternative_tts_lovable_api_key_v1` in `src/lib/alternative-tts.ts` and `src/utils/appSettings.ts`.
@@ -50,6 +118,7 @@
 ## Task 176: Chapter 1 - Fix the Testing-TTS-Dashboard Button to Test in Alternative TTS (Version 1.0.69)
 
 ### Summary:
+
 - **Resilient Fallback on Alternative TTS Audio Playback (Subtask 176.1)**:
   - Identified root cause of the testing button failure: `https://tts2.lovable.app/api/public/tts` returned HTTP 402 ("Not enough credits") when called without active credits, throwing an `<audio>` error, while `playAlternativeTtsAudio` blocked fallback due to an over-restrictive `!engineOverride` guard.
   - Removed `!engineOverride` blocker in `src/lib/alternative-tts.ts`, enabling seamless automatic fallback to Google Translate TTS (`buildGoogleTranslateTtsUrl`) and subsequently browser Web Speech API (`fallbackToWebSpeech`).
@@ -68,6 +137,7 @@
 ### Hotfix: Resolve ReferenceError: Slider is not defined in `src/routes/index.tsx`
 
 #### Summary:
+
 - **Root Cause**: `src/routes/index.tsx` rendered the `<Slider ... />` component for Lovable TTS speed control without importing `Slider` from `@/components/ui/slider`, causing a runtime `ReferenceError: Slider is not defined` when loading the application page. In addition, `src/utils/captionParser.ts` had a missing fallback return on empty cues leading to a TypeScript error `TS2366`.
 - **Changes**:
   - Added `import { Slider } from "@/components/ui/slider";` in `src/routes/index.tsx`.

@@ -62,25 +62,25 @@ assert(
 );
 console.log("✓ playAlternativeTtsAudio prioritizes native rate parameter");
 
-// 4. Verify version 1.0.71 across 5 files
+// 4. Verify version >= 1.0.71 across 5 files
 const pkgJson = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
-assert.equal(pkgJson.version, "1.0.71", "package.json version must be 1.0.71");
+assert(pkgJson.version >= "1.0.71", "package.json version must be >= 1.0.71");
 
 const gradleContent = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
   "utf-8",
 );
-assert(gradleContent.includes('versionCode = 10071'), "build.gradle.kts versionCode must be 10071");
-assert(gradleContent.includes('versionName = "1.0.71"'), 'build.gradle.kts versionName must be "1.0.71"');
+assert(/versionCode = 1007[1-9]/.test(gradleContent), "build.gradle.kts versionCode must be >= 10071");
+assert(/versionName = "1\.0\.7[1-9]"/.test(gradleContent), 'build.gradle.kts versionName must be >= "1.0.71"');
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
-assert(appConfigContent.includes('export const APP_VERSION = "1.0.71";'), 'appConfig.ts APP_VERSION must be "1.0.71"');
+assert(/export const APP_VERSION = "1\.0\.7[1-9]";/.test(appConfigContent), 'appConfig.ts APP_VERSION must be >= "1.0.71"');
 
 const apkUpdaterContent = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
-assert(apkUpdaterContent.includes('export const CURRENT_APK_VERSION = "v1.0.71";'), 'apkUpdater.ts CURRENT_APK_VERSION must be "v1.0.71"');
+assert(/export const CURRENT_APK_VERSION = "v1\.0\.7[1-9]";/.test(apkUpdaterContent), 'apkUpdater.ts CURRENT_APK_VERSION must be >= "v1.0.71"');
 
 const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert(appSettingsContent.includes('version: "1.0.71"'), 'appSettings.ts version must be "1.0.71"');
+assert(/version: "1\.0\.7[1-9]"/.test(appSettingsContent), 'appSettings.ts version must be >= "1.0.71"');
 
-console.log("✓ Version 1.0.71 synchronized across all 5 files");
+console.log("✓ Version >= 1.0.71 synchronized across all 5 files");
 console.log("=== ALL TASK 178 ASSERTIONS PASSED ===");

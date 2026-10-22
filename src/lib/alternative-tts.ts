@@ -420,9 +420,20 @@ export function setAlternativeTtsEngine(engine: AlternativeTtsEngine): void {
 }
 
 /**
- * Retrieves the configured Lovable TTS Provider: strictly "lovable".
+ * Retrieves the configured Lovable TTS Provider: "lovable", "google", or "openrouter" (defaults to "lovable").
  */
 export function getLovableTtsProvider(): LovableTtsProvider {
+  try {
+    const stored =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER)
+        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER];
+    if (stored === "google" || stored === "lovable" || stored === "openrouter") {
+      return stored;
+    }
+  } catch {
+    // ignore
+  }
   return "lovable";
 }
 
@@ -430,13 +441,15 @@ export function getLovableTtsProvider(): LovableTtsProvider {
  * Persists the Lovable TTS Provider choice.
  */
 export function setLovableTtsProvider(provider: LovableTtsProvider): void {
+  const p = provider === "google" || provider === "openrouter" ? provider : "lovable";
   try {
     if (typeof localStorage !== "undefined") {
-      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER, "lovable");
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER, p);
     }
   } catch (err) {
     console.warn("Failed to persist Lovable TTS provider:", err);
   }
+  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER] = p;
 }
 
 /**
@@ -813,6 +826,11 @@ export async function playAlternativeTtsAudio(
       console.warn(`Alternative TTS (${engine}) audio error, attempting fallback:`, e);
       const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
       if (fallbackUrl && activeAlternativeAudio === audio && audio.src !== fallbackUrl) {
+        try {
+          audio.playbackRate = Math.max(0.3, Math.min(1.5, rate || 0.5));
+        } catch {
+          // ignore
+        }
         audio.src = fallbackUrl;
         const retryPromise = audio.play();
         if (retryPromise && typeof retryPromise.catch === "function") {
@@ -851,6 +869,11 @@ export async function playAlternativeTtsAudio(
         console.warn("Alternative TTS playback rejected:", err);
         const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
         if (fallbackUrl && activeAlternativeAudio === audio && audio.src !== fallbackUrl) {
+          try {
+            audio.playbackRate = Math.max(0.3, Math.min(1.5, rate || 0.5));
+          } catch {
+            // ignore
+          }
           audio.src = fallbackUrl;
           const retryPromise = audio.play();
           if (retryPromise && typeof retryPromise.catch === "function") {

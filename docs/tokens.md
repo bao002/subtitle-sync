@@ -4,11 +4,19 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+ 
+## Active Task: Task 180 - Enable Switching Between Alternative TTS Providers ("lovable", "google", "openrouter") in Advanced and Beginner Modes (Version 1.0.73)
+
+- **Subtask 180.1**: Update `src/lib/alternative-tts.ts` to allow dynamic retrieval and persistence of `LovableTtsProvider` (`"lovable" | "google" | "openrouter"`).
+- **Subtask 180.2**: Enable provider switcher dropdown and dynamic voice catalogs in Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with 100% parity, wiring active provider into synthesis and playback calls.
+- **Subtask 180.3**: Synchronize version `1.0.73` across all 5 targets, author dedicated test suite `scripts/verify-alternative-tts-providers-switching.ts`, run all quality gates, commit, push, and migrate to `docs/done.md`.
+=======
 ## Active Task: Task 179 - Harmonize Native TTS Speech Rate Bounds (0.3 - 1.5) & Clean Up Residual Speed State (Version 1.0.72)
 
 - **Subtask 179.1**: Align Web Speech fallback in `src/lib/alternative-tts.ts` to clamp rates between 0.3 and 1.5 (default 0.5), perfectly matching native application settings.
 - **Subtask 179.2**: Clean up unused residual `lovableTtsSpeedState` in `src/routes/index.tsx` and `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`.
 - **Subtask 179.3**: Bump app version to 1.0.72 across 5 targets, record latest raw prompt in `AGENTS.md`, author dedicated test `scripts/verify-native-tts-speed-alignment.ts`, compile, lint, and migrate to `docs/done.md`.
+ 
 
 ---
 
