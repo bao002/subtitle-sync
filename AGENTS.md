@@ -136,10 +136,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. go on.
-
-2. no need to set extra tts speed rate for the tts service -  use the native settings for that.
+go on
 ```
+
 
 
 
