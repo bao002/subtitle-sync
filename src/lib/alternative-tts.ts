@@ -810,7 +810,7 @@ export async function playAlternativeTtsAudio(
           window.speechSynthesis.cancel();
           const u = new SpeechSynthesisUtterance(text);
           u.lang = normalizeLanguageCode(lang);
-          u.rate = Math.max(0.5, Math.min(2.0, rate || 1.0));
+          u.rate = Math.max(0.3, Math.min(1.5, rate || 0.5));
           u.onend = () => cleanup();
           u.onerror = () => cleanup();
           window.speechSynthesis.speak(u);
