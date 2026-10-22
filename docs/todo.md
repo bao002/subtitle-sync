@@ -1,11 +1,9 @@
 # Active Task Mirror (`docs/todo.md`)
 
-## Active Subtask: None (All Active Tasks Completed)
-- **Status**: [IDLE]
-- **Completed Tasks**:
-  - Task 177: Chapter 1 - OpenRouter Key Settings (Save to LocalStorage) & Server .env Fallback (Version 1.0.70)
-  - Task 178: Chapter 2 - Use Native Settings for TTS Service Speed & Remove Extra TTS Speed Rate Controls (Version 1.0.71)
-
-
-
-
+## Active Subtask: Subtask 179.1 - Align Web Speech Fallback Speed Clamping in `src/lib/alternative-tts.ts`
+- **Task**: Task 179 - Harmonize Native TTS Speech Rate Bounds (0.3 - 1.5) & Clean Up Residual Speed State (Version 1.0.72)
+- **Status**: [IN PROGRESS]
+- **Target Changes**:
+  - Update `fallbackToWebSpeech()` in `src/lib/alternative-tts.ts` to clamp `u.rate` to `Math.max(0.3, Math.min(1.5, rate || 0.5))` aligning with native settings.
+  - Subtask 179.2: Clean up unused residual `lovableTtsSpeedState` in `src/routes/index.tsx` and `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`.
+  - Subtask 179.3: Version 1.0.72 bump, AGENTS.md raw prompt update, dedicated test suite `scripts/verify-native-tts-speed-alignment.ts`, verification, and migration to `docs/done.md`.

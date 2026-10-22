@@ -4,11 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 177 - Chapter 1: OpenRouter Key Settings (Save to LocalStorage) & Server .env Fallback (Version 1.0.70)
+## Active Task: Task 179 - Harmonize Native TTS Speech Rate Bounds (0.3 - 1.5) & Clean Up Residual Speed State (Version 1.0.72)
 
-- **Subtask 177.1**: Implement OpenRouter key input in Alternative TTS settings (Advanced Mode in `src/routes/index.tsx` and Beginner Mode in `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with show/hide password toggle, save button, and localStorage synchronization.
-- **Subtask 177.2**: Implement server `.env` fallback (`import.meta.env.VITE_OPENROUTER_API_KEY`) when no user key is provided, update `.env.example`, and pass effective key to TTS requests.
-- **Subtask 177.3**: Bump version to 1.0.70 across 5 targets, author dedicated test `scripts/verify-openrouter-key-settings.ts`, update `docs/files.md`, compile, lint, commit, push, and migrate Task 177 to `docs/done.md`.
+- **Subtask 179.1**: Align Web Speech fallback in `src/lib/alternative-tts.ts` to clamp rates between 0.3 and 1.5 (default 0.5), perfectly matching native application settings.
+- **Subtask 179.2**: Clean up unused residual `lovableTtsSpeedState` in `src/routes/index.tsx` and `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`.
+- **Subtask 179.3**: Bump app version to 1.0.72 across 5 targets, record latest raw prompt in `AGENTS.md`, author dedicated test `scripts/verify-native-tts-speed-alignment.ts`, compile, lint, and migrate to `docs/done.md`.
 
 ---
 
