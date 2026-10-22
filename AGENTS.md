@@ -137,10 +137,12 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-AGENTS.md - in case no more tasks left - if prompt is "go on" then just summaries that there no more tasks. no need to show anything else
+not required. there is already a button to switch modes.
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div#mode-switcher-header:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
 ```
-
-
-
-
-

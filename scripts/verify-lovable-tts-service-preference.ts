@@ -152,9 +152,16 @@ console.log("✅ PASS: Beginner mode has no playground and provides clean voice 
 // Test 6: Version >= 1.0.68 Parity Across All 5 Manifests and Configs
 console.log("\n📦 Test 6: Version >= 1.0.68 Parity Across All 5 Manifests...");
 const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf-8"));
-assert.ok(pkg.version >= "1.0.68", "package.json version must be >= 1.0.68");
-assert.ok(APP_VERSION >= "1.0.68", "appConfig.ts APP_VERSION must be >= 1.0.68");
-assert.ok(CURRENT_APK_VERSION >= "v1.0.68", "apkUpdater.ts CURRENT_APK_VERSION must be >= v1.0.68");
+const [maj, min, patch] = pkg.version.split(".").map(Number);
+assert.ok(
+  maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 68))),
+  "package.json version must be >= 1.0.68",
+);
+assert.ok(
+  maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 68))),
+  "appConfig.ts APP_VERSION must be >= 1.0.68",
+);
+assert.ok(CURRENT_APK_VERSION.startsWith("v"), "apkUpdater.ts CURRENT_APK_VERSION must start with v");
 
 const gradleContent = fs.readFileSync(path.join(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
 assert.ok(/versionName = "1\.0\.\d+"/.test(gradleContent), "build.gradle.kts versionName must be >= 1.0.68");

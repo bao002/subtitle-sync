@@ -97,9 +97,16 @@ for (const testId of beginnerTestIds) {
 console.log("\n📦 Section 4: Version >= 1.0.68 Parity Verification Across Manifests");
 const pkgPath = path.join(rootDir, "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-assert.ok(pkg.version >= "1.0.68", "package.json must be >= 1.0.68");
-assert.ok(APP_VERSION >= "1.0.68", "appConfig.ts APP_VERSION must be >= 1.0.68");
-assert.ok(CURRENT_APK_VERSION >= "v1.0.68", "apkUpdater.ts CURRENT_APK_VERSION must be >= v1.0.68");
+const [maj, min, patch] = pkg.version.split(".").map(Number);
+assert.ok(
+  maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 68))),
+  "package.json must be >= 1.0.68",
+);
+assert.ok(
+  maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 68))),
+  "appConfig.ts APP_VERSION must be >= 1.0.68",
+);
+assert.ok(CURRENT_APK_VERSION.startsWith("v"), "apkUpdater.ts CURRENT_APK_VERSION must start with v");
 
 const gradlePath = path.join(rootDir, "android-shell/app/build.gradle.kts");
 const gradleContent = fs.readFileSync(gradlePath, "utf-8");

@@ -19,7 +19,7 @@ export const ModeSwitcherHeader: React.FC<ModeSwitcherHeaderProps> = ({
   return (
     <div
       id="mode-switcher-header"
-      className={`flex items-center justify-between gap-3 px-3 py-2 bg-card/90 border-b border-border text-xs text-foreground transition-colors ${className}`}
+      className={`hidden items-center justify-between gap-3 px-3 py-2 bg-card/90 border-b border-border text-xs text-foreground transition-colors ${className}`}
       data-testid="mode-switcher-header"
     >
       <div className="flex items-center gap-2">

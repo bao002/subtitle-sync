@@ -112,6 +112,7 @@ export function AiSubtitlePunctuationTab({
   // View state
   const [viewMode, setViewMode] = useState<"side-by-side" | "diff">("side-by-side");
   const [searchFilter, setSearchFilter] = useState<string>("");
+  const [showGuide, setShowGuide] = useState<boolean>(false);
   const [, startTransition] = useTransition();
 
   const presets = useMemo(() => getCuratedFreeModelPresets(), []);
@@ -342,10 +343,10 @@ export function AiSubtitlePunctuationTab({
       className="container mx-auto px-4 py-6 max-w-6xl space-y-6"
     >
       {/* Header Banner */}
-      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                 <Sparkles className="h-4 w-4" />
               </span>
@@ -357,21 +358,28 @@ export function AiSubtitlePunctuationTab({
                 OpenRouter Free Models
               </Badge>
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
-              Adds missing punctuation (periods, commas, question marks) and capitalization to raw
-              default subtitles. Clean punctuation allows our sentence parser and lookahead
-              on-demand translation to produce high-fidelity translations.
-            </p>
+            <div className="flex items-center gap-2 pt-0.5">
+              <button
+                type="button"
+                onClick={() => setShowGuide((prev) => !prev)}
+                data-testid="ai-guide-toggle-btn"
+                aria-expanded={showGuide}
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline transition-colors cursor-pointer"
+              >
+                <HelpCircle className="h-3 w-3" />
+                <span>{showGuide ? "Hide Explanation" : "Learn How Punctuation Works"}</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 p-1 shadow-2xs">
             {onOpenShareModal && (
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={onOpenShareModal}
-                className="gap-1.5 text-xs"
+                className="gap-1.5 text-xs h-7 hover:bg-muted text-foreground"
                 data-testid="ai-tab-share-link-btn"
                 title="Share link with default subtitles, OpenRouter key, and target translation language"
               >
@@ -381,10 +389,10 @@ export function AiSubtitlePunctuationTab({
             )}
             <Button
               type="button"
-              variant="outline"
+              variant="default"
               size="sm"
               onClick={onSwitchToViewer}
-              className="gap-1.5 text-xs"
+              className="gap-1.5 text-xs h-7 font-medium shadow-xs"
               data-testid="ai-tab-return-viewer-btn"
             >
               <span>Back to Viewer</span>
@@ -392,6 +400,20 @@ export function AiSubtitlePunctuationTab({
             </Button>
           </div>
         </div>
+
+        {showGuide && (
+          <div
+            data-testid="ai-guide-explanation"
+            className="rounded-lg bg-background/90 border border-primary/20 p-3 text-xs text-muted-foreground mt-3 space-y-1.5 animate-in fade-in duration-150"
+          >
+            <p>
+              Adds missing punctuation (periods, commas, question marks) and capitalization to raw default subtitles.
+            </p>
+            <p>
+              Clean punctuation allows our sentence boundary parser and lookahead on-demand translation to produce high-fidelity translations without broken phrases.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Configuration Card */}
@@ -678,14 +700,14 @@ export function AiSubtitlePunctuationTab({
                     {cachedAiData.videoId}
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border/70 bg-background/90 p-1 shadow-2xs">
                   <Button
                     type="button"
                     size="sm"
                     variant="default"
                     data-testid="load-cached-ai-subtitles-btn"
                     onClick={() => handleLoadCachedAiSubtitles(false)}
-                    className="h-7 px-2.5 text-xs gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                    className="h-7 px-2.5 text-xs gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-xs"
                   >
                     <FileCheck className="h-3.5 w-3.5" />
                     <span>Load &amp; Apply</span>
