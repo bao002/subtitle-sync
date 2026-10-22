@@ -17,6 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { removeSpecialCharacters } from "../../../utils/captionParser";
+import { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation";
+import { computeParserDiff, type ParserDiffResult } from "@/utils/parserDiffHelper";
+import { type Row } from "@/lib/subtitles";
 
 export interface CustomCharRule {
   id: string;
@@ -192,6 +195,46 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         sentences,
       };
     });
+  }, [
+    previewSource,
+    stripSpeakerBrackets,
+    removeChars,
+    customRules,
+    splitByPunctuation,
+    punctuationChars,
+  ]);
+
+  const beginnerDiffResult = useMemo<ParserDiffResult>(() => {
+    const beforeRows: Row[] = previewSource.map((cue) => ({
+      start: cue.start * 1000,
+      end: (cue.start + (cue.duration || 4)) * 1000,
+      texts: { base: cue.text },
+    }));
+
+    const afterRows: Row[] = [];
+    previewSource.forEach((cue) => {
+      const cleaned = cleanSubtitleText(cue.text, {
+        stripSpeakerBrackets,
+        removeChars,
+        customRules,
+      });
+      const sentences = splitByPunctuation
+        ? splitTextByPunctuation(cleaned, punctuationChars)
+        : [cleaned];
+      const count = sentences.length;
+      const totalDurMs = (cue.duration || 4) * 1000;
+      const durPer = count > 0 ? totalDurMs / count : totalDurMs;
+      sentences.forEach((sent, sIdx) => {
+        const start = cue.start * 1000 + sIdx * durPer;
+        afterRows.push({
+          start,
+          end: start + durPer,
+          texts: { base: sent },
+        });
+      });
+    });
+
+    return computeParserDiff(beforeRows, afterRows, "base");
   }, [
     previewSource,
     stripSpeakerBrackets,
@@ -454,43 +497,13 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         )}
       </div>
 
-      {/* 3. Live Preview Card */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-primary" />
-            <h3 className="text-xs font-semibold text-foreground">
-              Real-Time Parsing & Cleanup Preview
-            </h3>
-          </div>
-          <Badge variant="outline" className="text-[10px] text-muted-foreground border-border">
-            {processedPreview.reduce((acc, p) => acc + p.sentences.length, 0)} split sentences
-          </Badge>
-        </div>
-
-        <div className="space-y-2" data-testid="parsing-live-preview">
-          {processedPreview.map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-background border border-border rounded-lg p-2.5 space-y-1.5 text-xs"
-            >
-              <div className="text-muted-foreground/70 line-through text-[11px] font-mono">
-                Original: {item.raw}
-              </div>
-              <div className="space-y-1">
-                {item.sentences.map((sentence, sIdx) => (
-                  <div
-                    key={sIdx}
-                    className="flex items-center gap-2 text-foreground font-medium bg-muted/40 px-2 py-1 rounded border border-border"
-                  >
-                    <span className="text-[10px] text-primary font-mono">#{sIdx + 1}</span>
-                    <span>{sentence}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* 3. Real-Time Parser Diff Simulation (Showing Only Differing Sections with Auto-Scroll) */}
+      <div className="space-y-2" data-testid="parsing-live-preview">
+        <ParserRealtimeSimulation
+          diffResult={beginnerDiffResult}
+          baseLanguage="base"
+          isSimulating={true}
+        />
       </div>
 
       {/* Navigation Footer */}

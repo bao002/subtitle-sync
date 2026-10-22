@@ -136,12 +136,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. by default the beginner mode shouldn't show the video (use a floded accordion element) and this element should exist only on the first tab.
-2. on advance mode - the language boxes should apear for the favorites languages.
-3.parser - contains to much text. this app should show so much text and explanation. it should keep text to the minimum and in allow to show more text which requires a click on an help button. never show text in the app by design - show only buttons with icon of "?" in order to expand for more info.
-4. the parser is a crusial part of the app - and the user must have a realtime simulation of the change of a checkbox parser option is doing.
-there should be auto-scroll to next diff apearance. and it shouldn't show all the subtitles - but only show the sections is does make a difference.
+go on
 ```
+
+
 
 
 
