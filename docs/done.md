@@ -1,5 +1,57 @@
 # Done tasks
 
+## Task 165: Parser Minimal Text & Explanations with '?' Help Buttons (Chapter 3)
+
+### Summary:
+- **Zero Explanatory Text by Default & '?' Help Buttons (Subtask 165.1)**:
+  - Eliminated bulky text paragraphs and verbose explanations across the parser UI by design in both Advanced Mode and Beginner Mode.
+  - In `src/routes/index.tsx`:
+    - Replaced the multi-line criteria overview paragraph with a compact title and clickable `data-testid="help-btn-criteria-overview"` '?' button.
+    - Replaced every static criterion description `{crit.desc}` with `data-testid={`help-btn-${crit.id}`}` '?' icon buttons and conditional rendering `expandedHelp[crit.id]`.
+    - Added `data-testid="help-btn-parser-summary"` '?' button for status & summary cuts explanation.
+  - In `src/components/beginner/tabs/BeginnerParsingTab.tsx`:
+    - Added `data-testid="help-btn-beginner-parsing-header"` for step 3 header explanation.
+    - Added `data-testid="help-btn-beginner-chars-rules"` for character removal rules explanation.
+    - Added `data-testid="help-btn-beginner-strip-brackets"` for speaker brackets explanation.
+    - Added `data-testid="help-btn-beginner-sentence-splitting"` for sentence splitting explanation.
+  - In `src/components/SpecialCharactersRemovalPanel.tsx`:
+    - Added `data-testid="help-btn-advanced-chars-stage"` and `data-testid="help-btn-advanced-strip-brackets"` '?' buttons.
+- **Verification Commands & Outcomes (Subtask 165.2)**:
+  - Created dedicated automated test `scripts/verify-parser-minimal-text-and-help-icons.ts`.
+  - Registered `"test:parser-minimal-text": "tsx scripts/verify-parser-minimal-text-and-help-icons.ts"` in `package.json` and documented in `docs/files.md`.
+  - Verification: `npm run test:parser-minimal-text` (100% PASS), `lint_applet` (100% clean), and `compile_applet` (build succeeded).
+
+---
+
+## Task 164: Advanced Mode Favorite Language Boxes (Chapter 2)
+
+### Summary:
+- **LanguageBoxesSelector Favorites Filtering & Interactive Badges (Subtask 164.1)**:
+  - In `src/components/LanguageBoxesSelector.tsx`, added `effectiveCatalog` filtering so that when favorite languages are configured, the language boxes appear for the favorite languages (and any currently selected language) by default, eliminating visual clutter from 130+ non-favorite languages.
+  - Added `data-testid="toggle-show-all-languages"` toggle button to switch between favorite language boxes only and the full catalog.
+  - Added `data-favorites-only` attribute on `#language-boxes-grid` and active favorites indicator badge `data-testid="favorite-languages-active-badge"`.
+  - In `src/routes/index.tsx`, updated `getInitialFavoriteLanguages` to provide default favorite languages fallback `["he", "it", "es", "fr", "ru", "ar"]` and made Global Favorites badges interactive buttons to toggle video target languages immediately.
+- **Verification Commands & Outcomes (Subtask 164.2)**:
+  - Added dedicated test `scripts/verify-advanced-mode-favorite-language-boxes.ts` asserting component filtering, attributes, UI toggles, index route integration, and functional simulation.
+  - Registered `"test:advanced-mode-favorite-languages": "tsx scripts/verify-advanced-mode-favorite-language-boxes.ts"` in `package.json` and documented in `docs/files.md`.
+  - Verification: `npm run test:advanced-mode-favorite-languages` (100% PASS), `npm run test:language-boxes` (100% PASS), `lint_applet` (100% clean), and `compile_applet` (build succeeded).
+
+---
+
+## Task 163: Beginner Mode Video Accordion Folded by Default on First Tab Only (Chapter 1)
+
+### Summary:
+- **Beginner Mode Video Accordion Integration (Subtask 163.1)**:
+  - In `src/components/beginner/BeginnerFlowContainer.tsx`, wrapped `playerSlot` inside a shadcn/ui collapsible Accordion element (`Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`) with `defaultValue=""` and `collapsible`.
+  - Added dedicated testids `beginner-video-accordion-container` and `beginner-video-accordion-trigger`.
+  - Restricted the entire video accordion container to render strictly on the first tab (`activeTab === "video"`), ensuring that subsequent tabs (Tab 1 Subtitles, Tab 2 Parser, Tab 3 Preferences) do not present the video player.
+- **Verification Commands & Outcomes (Subtask 163.2)**:
+  - Added dedicated test `scripts/verify-beginner-mode-video-accordion.ts` verifying Accordion imports, collapsible defaultValue="" folded state, testids, and strict Tab 0 isolation.
+  - Registered `"test:beginner-video-accordion": "tsx scripts/verify-beginner-mode-video-accordion.ts"` in `package.json` and documented in `docs/files.md`.
+  - Verification: `npm run test:beginner-video-accordion` (100% PASS), `lint_applet` (100% clean), and `compile_applet` (build succeeded).
+
+---
+
 ## Task 162: Fix Share Button & Link State Reproduction for Video, Subtitles & Translations (Chapter 2)
 
 ### Summary:

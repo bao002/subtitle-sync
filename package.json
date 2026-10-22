@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.79",
+  "version": "1.0.80",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -189,6 +189,10 @@
     "test:suggestions-doc-and-link": "tsx scripts/verify-suggestions-doc-and-link.ts",
     "test:no-static-images": "tsx scripts/verify-no-static-images-in-repo.ts",
     "test:chars-removal-accordion-order": "tsx scripts/verify-chars-removal-accordion-order.ts",
+    "test:beginner-video-accordion": "tsx scripts/verify-beginner-mode-video-accordion.ts",
+    "test:advanced-mode-favorite-languages": "tsx scripts/verify-advanced-mode-favorite-language-boxes.ts",
+    "test:parser-minimal-text": "tsx scripts/verify-parser-minimal-text-and-help-icons.ts",
+    "test:parser-realtime-simulation": "tsx scripts/verify-parser-realtime-diff-simulation.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
