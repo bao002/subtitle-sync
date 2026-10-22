@@ -169,6 +169,9 @@ declare global {
       getAppVersionName?: () => string;
       getAppVersionCode?: () => number;
       getInstalledAppInfo?: () => string;
+      openInBrowser?: (url: string) => boolean;
+      shareText?: (text: string, title?: string) => boolean;
+      shareSubtitlesUrl?: (url: string, title?: string) => boolean;
       setBackgroundAudioEnabled?: (enabled: boolean) => boolean;
       updateMediaMetadata?: (
         title: string,

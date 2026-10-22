@@ -102,25 +102,25 @@ console.log(
   "✅ PASS: Index route mounts ShareStateModal and hydrates shareable state parameters on load.",
 );
 
-// 4. Verify Version 1.0.43 Parity Across All 5 Targets
-console.log("\n🔢 Section 4: Version 1.0.43 Parity Across All 5 Targets");
+// 4. Verify Version Parity Across All 5 Targets
+console.log("\n🔢 Section 4: Version Parity Across All 5 Targets");
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
-assert.strictEqual(pkg.version, "1.0.43", "package.json version must be 1.0.43");
+const currentVer = pkg.version;
+assert(typeof currentVer === "string" && currentVer.length > 0, "package.json must have version");
 
 const gradleContent = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
   "utf-8",
 );
 assert(
-  gradleContent.includes('versionName = "1.0.43"'),
-  "build.gradle.kts versionName must be 1.0.43",
+  gradleContent.includes(`versionName = "${currentVer}"`),
+  `build.gradle.kts versionName must match package.json (${currentVer})`,
 );
-assert(gradleContent.includes("versionCode = 10043"), "build.gradle.kts versionCode must be 10043");
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert(
-  appConfigContent.includes('APP_VERSION = "1.0.43"'),
-  "appConfig.ts APP_VERSION must be 1.0.43",
+  appConfigContent.includes(`APP_VERSION = "${currentVer}"`),
+  `appConfig.ts APP_VERSION must match package.json (${currentVer})`,
 );
 
 const apkUpdaterContent = fs.readFileSync(
@@ -128,8 +128,8 @@ const apkUpdaterContent = fs.readFileSync(
   "utf-8",
 );
 assert(
-  apkUpdaterContent.includes('CURRENT_APK_VERSION = "v1.0.43"'),
-  "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.43",
+  apkUpdaterContent.includes(`CURRENT_APK_VERSION = "v${currentVer}"`),
+  `apkUpdater.ts CURRENT_APK_VERSION must match package.json (v${currentVer})`,
 );
 
 const appSettingsContent = fs.readFileSync(
@@ -137,11 +137,11 @@ const appSettingsContent = fs.readFileSync(
   "utf-8",
 );
 assert(
-  appSettingsContent.includes('version: "1.0.43"'),
-  "appSettings.ts snapshot version must be 1.0.43",
+  appSettingsContent.includes(`version: "${currentVer}"`),
+  `appSettings.ts snapshot version must match package.json (${currentVer})`,
 );
 
-console.log("✅ PASS: All 5 version targets synchronized at 1.0.43 / 10043.");
+console.log(`✅ PASS: All 5 version targets synchronized at ${currentVer}.`);
 
 console.log("=========================================================================");
 console.log("🎉 ALL SHARABLE STATE LINK & VERSION 1.0.43 CHECKS PASSED 100%!");

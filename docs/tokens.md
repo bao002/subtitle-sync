@@ -4,9 +4,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: None (Task 182 Completed & Migrated to `docs/done.md`)
+## Active Task: Hotfix (Completed)
 
-- **Task 182 Completed**: Alternative TTS Provider Selector UI Polish, Interactive Styling and Version 1.0.75 Synchronization across Advanced & Beginner modes.
+- **Hotfix**: Fix missing `useEffect` import in `src/components/ShareStateModal.tsx` and bump version to `1.0.78` - COMPLETED and migrated to `docs/done.md`.
+- **Active Subtask**: None pending. All tests pass 100%, app compiled and linted.
 
 ---
 
