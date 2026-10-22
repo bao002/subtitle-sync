@@ -4,10 +4,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: Task 163: Beginner Mode Video Accordion Folded by Default on First Tab Only (Chapter 1)
+## Active Task: Task 166: Parser Real-time Diff Simulation with Auto-Scroll to Differences Only (Chapter 4)
 
-- **Subtask 163.1 (Active)**: Wrap video player in Beginner Mode inside an accordion element that is collapsed/folded by default, and restrict its presence strictly to the first tab (tab 0).
-- **Subtask 163.2**: Verify with dedicated automated test `scripts/verify-beginner-mode-video-accordion.ts`, compile, lint, commit, push, and migrate Task 163 to `docs/done.md`.
+- **Subtask 166.1 (Active)**: Implement live real-time simulation when parser option checkboxes change, filtering to only sections that differ and auto-scrolling to the next difference.
+- **Subtask 166.2**: Bump version to 1.0.80 across all 5 targets, verify with dedicated test `scripts/verify-parser-realtime-diff-simulation.ts`, compile, lint, commit, push, and migrate Task 166 to `docs/done.md`.
 
 
 

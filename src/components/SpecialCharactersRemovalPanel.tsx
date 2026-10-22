@@ -35,6 +35,7 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
     { id: "rule-gt", target: ">", replacement: "" },
     { id: "rule-dgt", target: ">>", replacement: "" },
   ]);
+  const [expandedHelp, setExpandedHelp] = useState<Record<string, boolean>>({});
 
   const handleRemoveCharFromList = (charToRemove: string) => {
     onRemoveCharsChange(removeChars.filter((c) => c !== charToRemove));
@@ -111,16 +112,33 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
       {/* Header Description & Stage Indicator */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
         <div className="space-y-0.5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Scissors className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <span className="text-xs font-semibold text-foreground">
               Stage 3: Special Characters Removal & Sanitization
             </span>
+            <button
+              type="button"
+              data-testid="help-btn-advanced-chars-stage"
+              onClick={() =>
+                setExpandedHelp((prev) => ({ ...prev, stage: !prev.stage }))
+              }
+              className="w-4 h-4 rounded-full border border-indigo-400/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 inline-flex items-center justify-center text-[10px] font-bold"
+              title="More info"
+              aria-label="More info about Stage 3"
+            >
+              ?
+            </button>
           </div>
-          <p className="text-[11px] text-muted-foreground">
-            Strips noise indicators, bracketed speaker labels, and arrow prefixes BEFORE translation
-            and parser splitting.
-          </p>
+          {expandedHelp.stage && (
+            <p
+              data-testid="help-text-advanced-chars-stage"
+              className="text-[11px] text-muted-foreground bg-indigo-500/10 p-1.5 rounded border border-indigo-500/20"
+            >
+              Strips noise indicators, bracketed speaker labels, and arrow prefixes BEFORE translation
+              and parser splitting.
+            </p>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {onResetDefaults && (
@@ -142,16 +160,38 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
       {/* Preset 1: Speaker Brackets & Greater-than arrows */}
       <div className="flex items-center justify-between p-3 rounded-lg border border-border/70 bg-card hover:bg-muted/20 transition-colors">
         <div className="space-y-0.5 pr-2">
-          <label
-            htmlFor="advanced-strip-speaker-brackets"
-            className="text-xs font-semibold text-foreground cursor-pointer"
-          >
-            Strip Speaker Brackets &amp; Noise Cues
-          </label>
-          <p className="text-[11px] text-muted-foreground">
-            Automatically strips <code>[Music]</code>, <code>[Applause]</code>,{" "}
-            <code>(cheers)</code>, and speaker prefixes like <code>[Host]:</code>.
-          </p>
+          <div className="flex items-center gap-1.5">
+            <label
+              htmlFor="advanced-strip-speaker-brackets"
+              className="text-xs font-semibold text-foreground cursor-pointer"
+            >
+              Strip Speaker Brackets &amp; Noise Cues
+            </label>
+            <button
+              type="button"
+              data-testid="help-btn-advanced-strip-brackets"
+              onClick={() =>
+                setExpandedHelp((prev) => ({
+                  ...prev,
+                  stripBrackets: !prev.stripBrackets,
+                }))
+              }
+              className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+              title="More info"
+              aria-label="More info about speaker brackets"
+            >
+              ?
+            </button>
+          </div>
+          {expandedHelp.stripBrackets && (
+            <p
+              data-testid="help-text-advanced-strip-brackets"
+              className="text-[11px] text-muted-foreground bg-muted/20 p-1.5 rounded border border-border/40"
+            >
+              Automatically strips <code>[Music]</code>, <code>[Applause]</code>,{" "}
+              <code>(cheers)</code>, and speaker prefixes like <code>[Host]:</code>.
+            </p>
+          )}
         </div>
         <Switch
           id="advanced-strip-speaker-brackets"

@@ -171,6 +171,7 @@ import { VideoPlayground, type DetectedSubtitleTrack } from "@/components/VideoP
 import { AiSubtitlePunctuationTab } from "@/components/AiSubtitlePunctuationTab";
 import { WebDemoUrlsInput } from "@/components/WebDemoUrlsInput";
 import { ParserTimingLab } from "@/components/ParserTimingLab";
+import { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
 import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
@@ -733,6 +734,7 @@ function Index() {
   });
 
   const [expandedSettingsGroup, setExpandedSettingsGroup] = useState<CriteriaId | null>(null);
+  const [expandedHelp, setExpandedHelp] = useState<Record<string, boolean>>({});
 
   const handleUpdateGroupSettings = <K extends keyof CriteriaGroupSettings>(
     group: K,
@@ -763,8 +765,9 @@ function Index() {
         Boolean(nativeShell()) ||
         new URLSearchParams(window.location.search).get("android") === "true";
       if (isAndroidEnv) return ["he", "it"];
+      return ["he", "it", "es", "fr", "ru", "ar"];
     }
-    return [];
+    return ["he", "it", "es", "fr", "ru", "ar"];
   };
 
   const getInitialTargetLanguages = (): string[] => {
@@ -1044,6 +1047,75 @@ function Index() {
   const handleCancelDiff = useCallback(() => {
     setPendingParserChange(null);
   }, []);
+
+  const realtimeParserDiff = useMemo<ParserDiffResult>(() => {
+    let effectiveTracks = tracks;
+    let effectiveBaseLang = baseLanguage;
+
+    if (
+      !effectiveTracks ||
+      !effectiveBaseLang ||
+      !effectiveTracks[effectiveBaseLang]?.events?.length
+    ) {
+      effectiveBaseLang = "en";
+      effectiveTracks = {
+        en: {
+          events: [
+            {
+              tStartMs: 0,
+              dDurationMs: 4500,
+              segs: [
+                {
+                  utf8: "Welcome to this lesson! Today, we will learn about punctuation splitting. ",
+                },
+              ],
+            },
+            {
+              tStartMs: 4600,
+              dDurationMs: 5000,
+              segs: [
+                {
+                  utf8: "Notice how Dr. Smith explained it? It's very simple, yet powerful! ",
+                },
+              ],
+            },
+            {
+              tStartMs: 9700,
+              dDurationMs: 6200,
+              segs: [
+                {
+                  utf8: "Wait... does it work with long pauses? Yes, absolutely! ",
+                },
+              ],
+            },
+            {
+              tStartMs: 16000,
+              dDurationMs: 5500,
+              segs: [
+                {
+                  utf8: "Here is another section: let's test accumulative criteria and options. ",
+                },
+              ],
+            },
+          ],
+        },
+      };
+    }
+
+    const baselineRows = align(
+      effectiveTracks,
+      effectiveBaseLang,
+      ["punct"],
+      DEFAULT_CRITERIA_SETTINGS,
+    );
+    const activeRows = align(
+      effectiveTracks,
+      effectiveBaseLang,
+      selectedCriteria,
+      criteriaSettings,
+    );
+    return computeParserDiff(baselineRows, activeRows, effectiveBaseLang);
+  }, [tracks, baseLanguage, selectedCriteria, criteriaSettings]);
   // Single attempt per language per observed URL (no automatic retries, like Youtubenet6)
   const attemptedRef = useRef<Set<string>>(new Set());
   const [failedLangs, setFailedLangs] = useState<string[]>([]);
@@ -5270,6 +5342,13 @@ function Index() {
 
                       {panelId === "parser" && (
                         <div className="space-y-4">
+                          {/* Real-time Diff Simulation on Checkbox Changes */}
+                          <ParserRealtimeSimulation
+                            diffResult={realtimeParserDiff}
+                            baseLanguage={baseLanguage || "en"}
+                            isSimulating={true}
+                          />
+
                           {/* Interactive Timing & Punctuation Splitting Lab */}
                           <ParserTimingLab
                             tracks={tracks}
@@ -5344,9 +5423,26 @@ function Index() {
                           {/* Accumulative Criteria Section */}
                           <div>
                             <div className="flex items-center justify-between mb-2">
-                              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                                Accumulative Division Criteria (Multi-Select)
-                              </label>
+                              <div className="flex items-center gap-1.5">
+                                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                                  Accumulative Division Criteria (Multi-Select)
+                                </label>
+                                <button
+                                  type="button"
+                                  data-testid="help-btn-criteria-overview"
+                                  onClick={() =>
+                                    setExpandedHelp((prev) => ({
+                                      ...prev,
+                                      overview: !prev.overview,
+                                    }))
+                                  }
+                                  className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+                                  title="More info"
+                                  aria-label="More info about division criteria"
+                                >
+                                  ?
+                                </button>
+                              </div>
                               <div className="flex items-center gap-2">
                                 <span className="text-xs font-medium text-primary">
                                   {selectedCriteria.length} criteria active
@@ -5389,16 +5485,22 @@ function Index() {
                                 </label>
                               </div>
                             </div>
-                            <p className="text-xs text-muted-foreground mb-3">
-                              Select multiple criteria accumulatively to divide subtitles into
-                              separated, translatable sections of related sentences and cohesive
-                              context. Click settings to tune inner parameters for each group.
-                            </p>
+                            {expandedHelp.overview && (
+                              <p
+                                data-testid="help-text-criteria-overview"
+                                className="text-xs text-muted-foreground mb-3 bg-muted/20 p-2 rounded border border-border/40"
+                              >
+                                Select multiple criteria accumulatively to divide subtitles into
+                                separated, translatable sections of related sentences and cohesive
+                                context.
+                              </p>
+                            )}
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                               {PARSER_CRITERIA.map((crit) => {
                                 const isChecked = selectedCriteria.includes(crit.id);
                                 const isExpanded = expandedSettingsGroup === crit.id;
+                                const isHelpOpen = Boolean(expandedHelp[crit.id]);
                                 return (
                                   <div
                                     key={crit.id}
@@ -5433,6 +5535,22 @@ function Index() {
                                             >
                                               {crit.badge}
                                             </Badge>
+                                            <button
+                                              type="button"
+                                              data-testid={`help-btn-${crit.id}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setExpandedHelp((prev) => ({
+                                                  ...prev,
+                                                  [crit.id]: !prev[crit.id],
+                                                }));
+                                              }}
+                                              className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+                                              title="More info"
+                                              aria-label={`More info about ${crit.name}`}
+                                            >
+                                              ?
+                                            </button>
                                           </div>
                                           <button
                                             type="button"
@@ -5456,9 +5574,14 @@ function Index() {
                                             )}
                                           </button>
                                         </div>
-                                        <p className="text-[11px] leading-tight text-muted-foreground mt-1">
-                                          {crit.desc}
-                                        </p>
+                                        {isHelpOpen && (
+                                          <p
+                                            data-testid={`help-text-${crit.id}`}
+                                            className="text-[11px] leading-tight text-muted-foreground mt-1 bg-muted/30 p-1.5 rounded border border-border/40"
+                                          >
+                                            {crit.desc}
+                                          </p>
+                                        )}
                                       </div>
                                     </div>
 
@@ -5839,8 +5962,28 @@ function Index() {
                                   : "None (waiting for captions)"}
                               </span>
                             </div>
-                            <div className="text-[11px] text-muted-foreground/80">
-                              Cuts accumulate at sentence marks, breath pauses & alignment consensus
+                            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
+                              <button
+                                type="button"
+                                data-testid="help-btn-parser-summary"
+                                onClick={() =>
+                                  setExpandedHelp((prev) => ({
+                                    ...prev,
+                                    summary: !prev.summary,
+                                  }))
+                                }
+                                className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+                                title="More info"
+                                aria-label="More info about parser status"
+                              >
+                                ?
+                              </button>
+                              {expandedHelp.summary && (
+                                <span data-testid="help-text-parser-summary">
+                                  Cuts accumulate at sentence marks, breath pauses & alignment
+                                  consensus
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -5947,22 +6090,32 @@ function Index() {
                                     };
                                     const isCurrent = targetLanguages.includes(code);
                                     return (
-                                      <span
+                                      <button
+                                        type="button"
                                         key={code}
                                         data-testid={`favorite-lang-badge-${code}`}
-                                        className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border ${
+                                        onClick={() => {
+                                          if (targetLanguages.includes(code)) {
+                                            handleTargetLanguagesChange(
+                                              targetLanguages.filter((c) => c !== code),
+                                            );
+                                          } else {
+                                            handleTargetLanguagesChange([...targetLanguages, code]);
+                                          }
+                                        }}
+                                        className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border cursor-pointer transition ${
                                           isCurrent
                                             ? "border-primary/40 bg-primary/10 text-primary"
                                             : "border-muted bg-muted/40 text-muted-foreground line-through opacity-70"
                                         }`}
                                         title={
                                           isCurrent
-                                            ? "Enabled for this video"
-                                            : "Not enabled for this video"
+                                            ? "Click to disable for this video"
+                                            : "Click to enable for this video"
                                         }
                                       >
                                         <span>{langMeta.name}</span>
-                                      </span>
+                                      </button>
                                     );
                                   })
                                 )}
@@ -6640,3 +6793,4 @@ export { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 export { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 export { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
 export { VideoPlayground } from "@/components/VideoPlayground";
+export { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation";

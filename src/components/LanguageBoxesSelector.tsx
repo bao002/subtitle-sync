@@ -69,19 +69,36 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
     setLanguageDisplayModeSetting(nextMode);
   };
 
+  const [showAllLanguages, setShowAllLanguages] = useState(false);
+
+  // When favoriteLanguages are present, language boxes appear for favorite languages (plus any currently selected)
+  const isFavoritesFiltered = Boolean(
+    favoriteLanguages && favoriteLanguages.length > 0 && !showAllLanguages && !searchFilter.trim(),
+  );
+
+  const effectiveCatalog = useMemo(() => {
+    if (isFavoritesFiltered) {
+      const allowedCodes = new Set([...favoriteLanguages, ...selectedLanguages]);
+      const favList = catalog.filter((l) => allowedCodes.has(l.code));
+      if (favList.length > 0) return favList;
+    }
+    return catalog;
+  }, [catalog, favoriteLanguages, selectedLanguages, isFavoritesFiltered]);
+
   // Keep clicked / selected languages strictly at the top
   const sortedCatalog = useMemo(() => {
     const query = searchFilter.trim().toLowerCase();
+    const source = query ? catalog : effectiveCatalog;
     const filtered = query
-      ? catalog.filter(
+      ? source.filter(
           (l) => l.name.toLowerCase().includes(query) || l.code.toLowerCase().includes(query),
         )
-      : catalog;
+      : source;
 
     const selected = filtered.filter((l) => selectedLanguages.includes(l.code));
     const unselected = filtered.filter((l) => !selectedLanguages.includes(l.code));
     return [...selected, ...unselected];
-  }, [catalog, selectedLanguages, searchFilter]);
+  }, [catalog, effectiveCatalog, selectedLanguages, searchFilter]);
 
   const toggleLanguage = (code: string) => {
     let next: string[];
@@ -185,7 +202,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <label htmlFor="target-language-select" className="text-sm font-medium text-foreground">
-            Favorite languages
+            {isFavoritesFiltered ? "Favorite Language Boxes" : "Language Boxes"}
           </label>
           <span
             className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary"
@@ -193,9 +210,34 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           >
             {selectedLanguages.length} selected
           </span>
+          {isFavoritesFiltered && (
+            <span
+              data-testid="favorite-languages-active-badge"
+              className="rounded bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 text-[10px] font-medium"
+            >
+              ⭐ Favorites
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-2">
+          {favoriteLanguages && favoriteLanguages.length > 0 && (
+            <Button
+              type="button"
+              data-testid="toggle-show-all-languages"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAllLanguages((prev) => !prev)}
+              className="h-8 text-xs gap-1"
+              title={
+                showAllLanguages
+                  ? "Show favorite language boxes only"
+                  : "Show all catalog languages"
+              }
+            >
+              {showAllLanguages ? "⭐ Favorites Only" : `+ All Languages (${catalog.length})`}
+            </Button>
+          )}
           <Button
             type="button"
             id="toggle-language-display-mode"
@@ -334,6 +376,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
         <div
           id="language-boxes-grid"
           data-testid="language-boxes-grid"
+          data-favorites-only={isFavoritesFiltered ? "true" : "false"}
           className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 max-h-80 overflow-y-auto p-1 rounded-md border border-border bg-muted/10"
         >
           {sortedCatalog.map((lang) => {

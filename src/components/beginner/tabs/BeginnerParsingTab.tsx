@@ -97,6 +97,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
     { id: "rule-gt", target: ">", replacement: "" },
     { id: "rule-dgt", target: ">>", replacement: "" },
   ]);
+  const [expandedHelp, setExpandedHelp] = useState<Record<string, boolean>>({});
 
   const defaultPunctuationMarks = [
     { char: ".", label: "Period (.)" },
@@ -209,13 +210,32 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
             <Split className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-foreground">
-              Step 3: Subtitle Parsing & Cleanup
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Configure sentence splitting rules and automatically remove speaker labels or arrows
-              (such as &gt;).
-            </p>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-sm font-semibold text-foreground">
+                Step 3: Subtitle Parsing & Cleanup
+              </h2>
+              <button
+                type="button"
+                data-testid="help-btn-beginner-parsing-header"
+                onClick={() =>
+                  setExpandedHelp((prev) => ({ ...prev, header: !prev.header }))
+                }
+                className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+                title="More info"
+                aria-label="More info about Step 3"
+              >
+                ?
+              </button>
+            </div>
+            {expandedHelp.header && (
+              <p
+                data-testid="help-text-beginner-parsing-header"
+                className="text-xs text-muted-foreground mt-1 bg-muted/20 p-2 rounded border border-border/40"
+              >
+                Configure sentence splitting rules and automatically remove speaker labels or arrows
+                (such as &gt;).
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -225,26 +245,62 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3"
         data-testid="beginner-chars-removal-section"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <Scissors className="w-4 h-4 text-primary" />
           <h3 className="text-xs font-semibold text-foreground">
             Character Removal & Rename Rules
           </h3>
+          <button
+            type="button"
+            data-testid="help-btn-beginner-chars-rules"
+            onClick={() =>
+              setExpandedHelp((prev) => ({ ...prev, charsRules: !prev.charsRules }))
+            }
+            className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+            title="More info"
+            aria-label="More info about character removal rules"
+          >
+            ?
+          </button>
         </div>
-        <p className="text-[11px] text-muted-foreground">
-          Clean unwanted artifacts, noise indicators, or speaker prefixes before subtitle rendering
-          and TTS speech.
-        </p>
+        {expandedHelp.charsRules && (
+          <p
+            data-testid="help-text-beginner-chars-rules"
+            className="text-[11px] text-muted-foreground bg-muted/20 p-1.5 rounded border border-border/40"
+          >
+            Clean unwanted artifacts, noise indicators, or speaker prefixes before subtitle rendering
+            and TTS speech.
+          </p>
+        )}
 
         {/* Preset 1: Speaker Brackets & Greater-than symbols */}
         <div className="flex items-center justify-between p-2.5 rounded-lg bg-background border border-border">
           <div className="space-y-0.5">
-            <span className="text-xs font-medium text-foreground">
-              Strip Speaker Brackets &amp; Arrows
-            </span>
-            <p className="text-[11px] text-muted-foreground">
-              Removes [Applause], (Music), and &gt; or &gt;&gt; speaker tags automatically.
-            </p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-medium text-foreground">
+                Strip Speaker Brackets &amp; Arrows
+              </span>
+              <button
+                type="button"
+                data-testid="help-btn-beginner-strip-brackets"
+                onClick={() =>
+                  setExpandedHelp((prev) => ({ ...prev, stripBrackets: !prev.stripBrackets }))
+                }
+                className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+                title="More info"
+                aria-label="More info about speaker brackets"
+              >
+                ?
+              </button>
+            </div>
+            {expandedHelp.stripBrackets && (
+              <p
+                data-testid="help-text-beginner-strip-brackets"
+                className="text-[11px] text-muted-foreground bg-muted/20 p-1.5 rounded border border-border/40"
+              >
+                Removes [Applause], (Music), and &gt; or &gt;&gt; speaker tags automatically.
+              </p>
+            )}
           </div>
           <Switch
             checked={stripSpeakerBrackets}
@@ -323,12 +379,34 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
       >
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xs font-semibold text-foreground">
-              Sentence Punctuation Splitting
-            </h3>
-            <p className="text-[11px] text-muted-foreground">
-              Default to splitting long subtitle blocks into natural sentences at punctuation marks.
-            </p>
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-xs font-semibold text-foreground">
+                Sentence Punctuation Splitting
+              </h3>
+              <button
+                type="button"
+                data-testid="help-btn-beginner-sentence-splitting"
+                onClick={() =>
+                  setExpandedHelp((prev) => ({
+                    ...prev,
+                    sentenceSplitting: !prev.sentenceSplitting,
+                  }))
+                }
+                className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+                title="More info"
+                aria-label="More info about sentence splitting"
+              >
+                ?
+              </button>
+            </div>
+            {expandedHelp.sentenceSplitting && (
+              <p
+                data-testid="help-text-beginner-sentence-splitting"
+                className="text-[11px] text-muted-foreground mt-1 bg-muted/20 p-1.5 rounded border border-border/40"
+              >
+                Default to splitting long subtitle blocks into natural sentences at punctuation marks.
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] text-muted-foreground">
