@@ -1,8 +1,87 @@
 # Done tasks
 
+## Task 186: Focus Mode - Hide Redundant Mode Switcher Header via Targeted Styling
+
+### Summary:
+
+- **Raw Prompt & Version Updates (Subtask 186.1)**:
+  - Recorded user prompt verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.99` to `1.0.100` (`versionCode = 10100`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, and `src/config/appConfig.ts`.
+- **Targeted Element Styling (Subtask 186.2)**:
+  - Applied `hidden` class to target selector `div#root:nth-of-type(1) > div:nth-of-type(1) > div#mode-switcher-header:nth-of-type(1)` in `src/components/ModeSwitcherHeader.tsx`.
+  - Honored user focus-mode instruction ("not required. there is already a button to switch modes. Apply style changes to the selected element(s)").
+  - Preserved semantic tokens (`bg-card/90`, `border-border`, `text-foreground`) and test IDs (`mode-switcher-header`, `btn-mode-beginner`, `btn-mode-expert`, `mode-badge`) to maintain compatibility with test contracts.
+  - Resolved semver comparison logic across test scripts for versions >= 1.0.100.
+- **Dedicated Automated Verification & Build (Subtask 186.3)**:
+  - Created `scripts/verify-mode-switcher-hidden-style.ts` asserting hidden styling, preservation of header mode toggle, and version 1.0.100 alignment.
+  - Added `"test:mode-switcher-hidden-style"` to `package.json` scripts and registered in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:mode-switcher-hidden-style`: 100% PASS.
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional contract checks passed in 14.1s).
+    - `npm run test:agents-size-budget`: 100% PASS (AGENTS.md size: 18,727 bytes with 5,849 bytes headroom).
+    - `lint_applet`: 0 errors.
+    - `compile_applet`: Production build succeeded.
+
+---
+
+## Task 185: Enhanced UI Design: Iconography Over Verbose Text, Progressive Disclosure (Expandable Explanations), and Professional Button Arrangements
+
+### Summary:
+
+- **Raw Prompt & Version Updates (Subtask 185.1)**:
+  - Recorded user prompt verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.98` to `1.0.99` (`versionCode = 10099`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, and `src/config/appConfig.ts`.
+- **Reusable Progressive Disclosure Component (Subtask 185.2)**:
+  - Built `src/components/ExpandableHelp.tsx` with accessible `aria-expanded` and `aria-controls`, `HelpCircle`/`Info` icons, fluid transitions, and inline/block triggers.
+- **Iconography & Professional Button Restructuring (Subtask 185.3)**:
+  - `AttemptOrderSettings.tsx`: Hidden verbose background instructions by default behind progressive disclosure toggle, added dedicated expandable server help, and styled "Update Server URL" in a clean button cluster.
+  - `AiSubtitlePunctuationTab.tsx`: Collapsed long educational guide behind a `showGuide` expandable button, added domain badges and icons (`Sparkles`, `Cpu`, `Wand2`), and organized top action buttons ("Share Setup", "Back to Viewer") and cached model buttons into segmented button groups (`border border-border/80 bg-background/80 p-1 shadow-2xs`).
+  - `BeginnerPreferencesTab.tsx`: Replaced wordy order badges with clean `Film` (Original Video) and `Mic` (Spoken Voice) icons, added expandable `showOrderHelp` toggle, and arranged order controls cleanly.
+  - `LanguageBoxesSelector.tsx`: Clustered the Display Mode toggle and Favorites toggle into an integrated segmented button container.
+  - `src/routes/index.tsx`: Replaced repetitive explanatory text under playback/transcription preferences with icon + short title + expandable info (`autoRetry`, `audioTrack`, `autoScroll`, `debugMode`, `onDemand`, `altTts`); grouped theme controls into a unified segment with `Sun`, `Moon`, and `Sparkles` icons; and organized primary utilities (Captions, APK, Share, Network) into a cohesive action toolbar cluster.
+- **Dedicated Automated Verification & Build (Subtask 185.4)**:
+  - Created `scripts/verify-progressive-disclosure-and-button-design.ts` asserting all new progressive disclosure triggers, icons, and button groupings.
+  - Added `"test:progressive-disclosure-and-button-design"` to `package.json` scripts and registered in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:progressive-disclosure-and-button-design`: 100% PASS.
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks passed in 16.6s).
+    - `npm run test:agents-size-budget`: 100% PASS (AGENTS.md size: 18,786 bytes with 5,790 bytes headroom).
+    - `lint_applet`: 0 errors.
+    - `compile_applet`: Production build succeeded.
+
+---
+
+## Task 184: Add No More Tasks "go on" Rule to AGENTS.md & Implement Dedicated Verification
+
+### Summary:
+
+- **Raw Prompt & Version Updates (Subtask 184.1)**:
+  - Recorded user prompt (`AGENTS.md - in case no more tasks left - if prompt is "go on" then just summaries that there no more tasks. no need to show anything else`) verbatim in `AGENTS.md` under `## Last raw prompt`.
+  - Bumped version from `1.0.97` to `1.0.98` (`versionCode = 10098`) across all targets:
+    - `package.json`: `"version": "1.0.98"`
+    - `android-shell/app/build.gradle.kts`: `versionCode = 10098`, `versionName = "1.0.98"`
+    - `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.98"`
+    - `src/utils/appSettings.ts`: `version: "1.0.98"`
+    - `src/config/appConfig.ts`: `APP_VERSION = "1.0.98"` and `APP_VERSION_DESCRIPTION = ... (Version 1.0.98)`
+- **Rule Directive Implementation (Subtask 184.2)**:
+  - Added `- **No more tasks "go on" handling**:` rule to `AGENTS.md` under `## Work tracking`: in case no more tasks are left (active backlog in `docs/tasks.md` and `current-sub-task.md` is empty), if prompt is "go on", then just summarize that there are no more tasks left without showing anything else.
+- **Dedicated Automated Verification (Subtask 184.3)**:
+  - Created `scripts/verify-no-more-tasks-go-on-rule.ts` validating rule presence, keywords, and behavioral simulation.
+  - Added test script `"test:no-more-tasks-go-on"` to `package.json` and registered in `docs/files.md`.
+  - Integrated into `scripts/verify-agents-all.ts` as check #18.
+- **Verification Commands & Outcomes (Subtask 184.4)**:
+  - `npm run test:no-more-tasks-go-on`: 100% PASS.
+  - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks executed and passed in 19.3s).
+  - `npm run test:agents-size-budget`: 100% PASS (AGENTS.md file size remains within budget).
+  - `lint_applet`: Zero lint errors.
+  - `compile_applet`: Production build succeeded.
+
+---
+
 ## Task 183: Version Bump to 1.0.97 & Unified AGENTS Contract Audit Verification
 
 ### Summary:
+
 - **Raw Prompt & Version Updates (Subtask 183.1)**:
   - Recorded user prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.96` to `1.0.97` (`versionCode = 10097`) across all targets:
@@ -25,6 +104,7 @@
 ## Task 182: Improve and Implement docs/suggestions.md with Size Budget Guard & Unified AGENTS Test Runner
 
 ### Summary:
+
 - **Raw Prompt & Version Updates (Subtask 182.1)**:
   - Recorded user prompt (`docs/suggestions.md - improve and implement`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.95` to `1.0.96` (`versionCode = 10096`) across all targets:
@@ -57,6 +137,7 @@
 ## Task 181: Version Bump to 1.0.95 & Sentence Boundary Detection, Punctuation Splitting & Timing Base Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 181.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.94` to `1.0.95` across all project targets:
@@ -78,6 +159,7 @@
 ## Task 180: Version Bump to 1.0.94 & Multi-Language Alignment, Grid Formulation & TTS Playback Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 180.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.93` to `1.0.94` across all project targets:
@@ -99,6 +181,7 @@
 ## Task 179: Version Bump to 1.0.93 & Subtitles Validation & Caching Architecture Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 179.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.92` to `1.0.93` across all project targets:
@@ -121,6 +204,7 @@
 ## Task 178: Version Bump to 1.0.92 & Subtitles Fetch Strategy and Anti-Bot Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 178.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.91` to `1.0.92` across all project targets:
@@ -142,6 +226,7 @@
 ## Task 177: Version Bump to 1.0.91 & Full System Health & Fixtures Restriction Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 177.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.90` to `1.0.91` across all project targets:
@@ -163,6 +248,7 @@
 ## Task 176: Version Bump to 1.0.90 & Subtitle Processing Pipeline Parity Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 176.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.89` to `1.0.90` across all project targets:
@@ -184,6 +270,7 @@
 ## Task 175: Version Bump to 1.0.89 & Project Health Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 175.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.88` to `1.0.89` across all project targets:
@@ -203,6 +290,7 @@
 ## Task 174: Version Bump to 1.0.88 & Project Health Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 174.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.87` to `1.0.88` across all project targets:
@@ -222,6 +310,7 @@
 ## Task 173: Version Bump to 1.0.87 & Project Health Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 173.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.86` to `1.0.87` across all project targets:
@@ -241,6 +330,7 @@
 ## Task 172: Version Bump to 1.0.86 & Project Health Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 172.1)**:
   - Preserved latest prompt (`go on.`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.85` to `1.0.86` across all project targets:
@@ -260,6 +350,7 @@
 ## Task 171: Version Bump to 1.0.85 & Project Health Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 171.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.84` to `1.0.85` across all project targets:
@@ -279,6 +370,7 @@
 ## Task 170: Version Bump to 1.0.84 & Project Health Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 170.1)**:
   - Preserved latest prompt (`go on.`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.83` to `1.0.84` across all project targets:
@@ -298,6 +390,7 @@
 ## Task 169: Version Bump to 1.0.83 & Project Readiness Audit
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 169.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.82` to `1.0.83` across all project targets:
@@ -316,6 +409,7 @@
 ## Task 168: Version Bump to 1.0.82 & Project Health Verification
 
 ### Summary:
+
 - **Version Bump Across Targets (Subtask 168.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.81` to `1.0.82` across all project targets:
@@ -334,6 +428,7 @@
 ## Task 167: Version Bump to 1.0.81, Dev Server Health Audit & AGENTS.md Prompt Synchronization
 
 ### Summary:
+
 - **AGENTS.md Prompt Tracking & Version Bump (Subtask 167.1)**:
   - Preserved latest prompt (`go on`) verbatim in `AGENTS.md` under `## Last raw prompt`.
   - Bumped version from `1.0.80` to `1.0.81` across all project targets:
@@ -360,6 +455,7 @@
 ## Task 166: Parser Real-time Diff Simulation with Auto-Scroll to Differences Only (Chapter 4)
 
 ### Summary:
+
 - **Parser Real-Time Diff Simulation (Subtask 166.1)**:
   - Implemented live real-time simulation when parser option checkboxes change, providing an interactive side-by-side view of what the option change does.
   - In `src/components/ParserRealtimeSimulation.tsx`:
@@ -379,6 +475,7 @@
 ---
 
 ### Summary:
+
 - **Zero Explanatory Text by Default & '?' Help Buttons (Subtask 165.1)**:
   - Eliminated bulky text paragraphs and verbose explanations across the parser UI by design in both Advanced Mode and Beginner Mode.
   - In `src/routes/index.tsx`:
@@ -402,6 +499,7 @@
 ## Task 164: Advanced Mode Favorite Language Boxes (Chapter 2)
 
 ### Summary:
+
 - **LanguageBoxesSelector Favorites Filtering & Interactive Badges (Subtask 164.1)**:
   - In `src/components/LanguageBoxesSelector.tsx`, added `effectiveCatalog` filtering so that when favorite languages are configured, the language boxes appear for the favorite languages (and any currently selected language) by default, eliminating visual clutter from 130+ non-favorite languages.
   - Added `data-testid="toggle-show-all-languages"` toggle button to switch between favorite language boxes only and the full catalog.
@@ -417,6 +515,7 @@
 ## Task 163: Beginner Mode Video Accordion Folded by Default on First Tab Only (Chapter 1)
 
 ### Summary:
+
 - **Beginner Mode Video Accordion Integration (Subtask 163.1)**:
   - In `src/components/beginner/BeginnerFlowContainer.tsx`, wrapped `playerSlot` inside a shadcn/ui collapsible Accordion element (`Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`) with `defaultValue=""` and `collapsible`.
   - Added dedicated testids `beginner-video-accordion-container` and `beginner-video-accordion-trigger`.
@@ -431,6 +530,7 @@
 ## Task 162: Fix Share Button & Link State Reproduction for Video, Subtitles & Translations (Chapter 2)
 
 ### Summary:
+
 - **Share Modal Base Language & Subtitle URL Synchronization (Subtask 162.1)**:
   - In `src/routes/index.tsx`, passed `baseLanguage={baseLanguage || "en"}` to `<ShareStateModal>`.
   - In `handleWebDemoLoadVideoAndSubtitles` in `src/routes/index.tsx`, updated `setBaseLanguage(detectedBase)` (e.g. `"iw"`) when subtitles and translations load rather than leaving baseLanguage at initial default `"en"`.
@@ -462,6 +562,7 @@
 ## Task 161: Fix Android Kotlin Compilation for `executeTimedTextRepetition` (Chapter 1)
 
 ### Summary:
+
 - **Root Cause & Explicit Qualifier Fix (Subtask 161.1)**:
   - In `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` at line 235 inside the anonymous `object : WebViewClient() { override fun shouldInterceptRequest(...) }`, the call to `executeTimedTextRepetition(url, lang, "json3")` was invoked without outer receiver qualification, which could trigger Kotlin compiler unresolved reference errors during `:app:compileDebugKotlin`.
   - Added explicit outer class qualifier `this@MainActivity.executeTimedTextRepetition(url, lang, "json3")` on line 235.

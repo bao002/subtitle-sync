@@ -36,6 +36,8 @@ import {
   Info,
   Eye,
   EyeOff,
+  HelpCircle,
+  Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -622,6 +624,8 @@ function Index() {
     }
     return "beginner";
   });
+
+  const [expandedPrefsHelp, setExpandedPrefsHelp] = useState<Record<string, boolean>>({});
 
   const handleWorkflowModeChange = (mode: "beginner" | "expert") => {
     setWorkflowMode(mode);
@@ -3838,121 +3842,141 @@ function Index() {
           </div>
         )}
 
+        {/* Theme Selector Segmented Control with Icons */}
         <div
-          className="flex items-center gap-1 rounded-md border border-border bg-card p-1"
+          className="flex items-center gap-0.5 rounded-lg border border-border bg-card p-1 shadow-2xs"
           aria-label="Color theme"
         >
-          {(["light", "dark", "dark-blue"] as const).map((option) => (
-            <Button
-              key={option}
-              type="button"
-              size="sm"
-              variant={theme === option ? "default" : "ghost"}
-              onClick={() => {
-                themeWasSelectedRef.current = true;
-                setTheme(option);
-              }}
-              className="capitalize"
-            >
-              {option.replace("-", " ")}
-            </Button>
-          ))}
+          {(
+            [
+              { id: "light", label: "Light", icon: Sun },
+              { id: "dark", label: "Dark", icon: Moon },
+              { id: "dark-blue", label: "Midnight", icon: Sparkles },
+            ] as const
+          ).map((item) => {
+            const Icon = item.icon;
+            const isSelected = theme === item.id;
+            return (
+              <Button
+                key={item.id}
+                type="button"
+                size="sm"
+                variant={isSelected ? "default" : "ghost"}
+                onClick={() => {
+                  themeWasSelectedRef.current = true;
+                  setTheme(item.id);
+                }}
+                className={`h-7 px-2 sm:px-2.5 text-xs gap-1.5 capitalize font-medium ${
+                  isSelected ? "shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={`Switch to ${item.label} theme`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{item.label}</span>
+              </Button>
+            );
+          })}
         </div>
 
-        {!isAndroid && (
+        {/* Action Toolbar Cluster */}
+        <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-2xs">
+          {!isAndroid && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setNetworkInspectorOpen(true)}
+              className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 text-foreground hover:bg-muted"
+              title="Inspect captured network requests"
+            >
+              <Activity className="h-3.5 w-3.5 text-blue-500" />
+              <span className="hidden sm:inline">Network</span>
+              <span className="rounded-full bg-muted px-1.5 py-0.2 text-[10px] font-mono font-bold">
+                {networkRequests.length}
+              </span>
+            </Button>
+          )}
           <Button
+            id="caption-toggle-button"
+            data-testid="caption-toggle-button"
             type="button"
             size="sm"
-            variant="outline"
-            onClick={() => setNetworkInspectorOpen(true)}
-            className="gap-1.5"
-            title="Inspect captured network requests"
-          >
-            <Activity className="h-4 w-4 text-blue-500" />
-            <span className="hidden sm:inline">Network</span>
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-mono font-bold">
-              {networkRequests.length}
-            </span>
-          </Button>
-        )}
-        <Button
-          id="caption-toggle-button"
-          data-testid="caption-toggle-button"
-          type="button"
-          size="sm"
-          variant={showVideoSubtitles ? "default" : "outline"}
-          aria-pressed={showVideoSubtitles}
-          onClick={() => {
-            const next = !showVideoSubtitles;
-            setShowVideoSubtitles(next);
-            if (next) {
-              setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
-              const shell = nativeShell();
-              const captured = shell?.getLastObservedTimedTextUrl();
-              if (captured && (!tracks || Object.keys(tracks).length === 0)) {
-                setObservedUrl(captured);
-                setDefaultCaptionsLoaded(true);
-                let defaultLang = "";
-                try {
-                  defaultLang = new URL(captured).searchParams.get("lang") || "";
-                } catch {
-                  // ignore malformed url
-                }
-                if (defaultLang && shell) {
+            variant={showVideoSubtitles ? "default" : "ghost"}
+            aria-pressed={showVideoSubtitles}
+            onClick={() => {
+              const next = !showVideoSubtitles;
+              setShowVideoSubtitles(next);
+              if (next) {
+                setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
+                const shell = nativeShell();
+                const captured = shell?.getLastObservedTimedTextUrl();
+                if (captured && (!tracks || Object.keys(tracks).length === 0)) {
+                  setObservedUrl(captured);
+                  setDefaultCaptionsLoaded(true);
+                  let defaultLang = "";
                   try {
-                    const raw = shell.fetchTranslatedCaptionsWithUrl(
-                      captured,
-                      defaultLang,
-                      "json3",
-                    );
-                    if (raw && isValidJsonSubtitleResponse(raw)) {
-                      const json = parseJson3(raw);
-                      if (json) {
-                        setTracks((prev) => ({ ...prev, [defaultLang]: json }));
-                        setShown((prev) =>
-                          prev.includes(defaultLang) ? prev : [defaultLang, ...prev],
-                        );
-                      }
-                    }
+                    defaultLang = new URL(captured).searchParams.get("lang") || "";
                   } catch {
-                    // ignore fetch error
+                    // ignore malformed url
+                  }
+                  if (defaultLang && shell) {
+                    try {
+                      const raw = shell.fetchTranslatedCaptionsWithUrl(
+                        captured,
+                        defaultLang,
+                        "json3",
+                      );
+                      if (raw && isValidJsonSubtitleResponse(raw)) {
+                        const json = parseJson3(raw);
+                        if (json) {
+                          setTracks((prev) => ({ ...prev, [defaultLang]: json }));
+                          setShown((prev) =>
+                            prev.includes(defaultLang) ? prev : [defaultLang, ...prev],
+                          );
+                        }
+                      }
+                    } catch {
+                      // ignore fetch error
+                    }
                   }
                 }
               }
-            }
-          }}
-          className="gap-1.5"
-          title="Toggle video subtitles"
-        >
-          <Subtitles className="h-4 w-4" />
-          <span className="hidden sm:inline">Captions</span>
-        </Button>
-        <Button
-          id="open-apk-release-button"
-          data-testid="open-apk-release-button"
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => setApkModalOpen(true)}
-          className="gap-1.5 border-emerald-500/50 hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-          title="Download latest APK release (mostuf2556 & mostuf25561)"
-        >
-          <Smartphone className="h-4 w-4 text-emerald-500" />
-          <span className="hidden sm:inline">Latest APK</span>
-        </Button>
-        <Button
-          id="open-share-modal-button"
-          data-testid="open-share-modal-button"
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => setShareModalOpen(true)}
-          className="gap-1.5 border-primary/40 hover:bg-primary/10 text-primary"
-          title="Share application state with default subtitles, OpenRouter key, and target language"
-        >
-          <Share2 className="h-4 w-4" />
-          <span className="hidden sm:inline">Share</span>
-        </Button>
+            }}
+            className={`h-7 px-2 sm:px-2.5 text-xs gap-1.5 font-medium ${
+              showVideoSubtitles ? "shadow-xs" : "text-foreground hover:bg-muted"
+            }`}
+            title="Toggle video subtitles overlay"
+          >
+            <Subtitles className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Captions</span>
+          </Button>
+          <Button
+            id="open-apk-release-button"
+            data-testid="open-apk-release-button"
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setApkModalOpen(true)}
+            className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-medium"
+            title="Download latest APK release (mostuf2556 & mostuf25561)"
+          >
+            <Smartphone className="h-3.5 w-3.5 text-emerald-500" />
+            <span className="hidden sm:inline">APK</span>
+          </Button>
+          <Button
+            id="open-share-modal-button"
+            data-testid="open-share-modal-button"
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setShareModalOpen(true)}
+            className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-primary/30 hover:bg-primary/10 text-primary font-medium"
+            title="Share application state with default subtitles, OpenRouter key, and target language"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Share</span>
+          </Button>
+        </div>
       </header>
 
       {/* Mode Switcher Header: Toggle between Guided Beginner Mode & Advanced Studio */}
@@ -4646,23 +4670,45 @@ function Index() {
                                 }}
                               />
                               <div className="pt-2 border-t border-border/60 space-y-2">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                  <input
-                                    data-testid="auto-retry-subtitles-toggle"
-                                    type="checkbox"
-                                    checked={autoRetrySubtitles}
-                                    onChange={(e) => handleToggleAutoRetry(e.target.checked)}
-                                    className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                  />
-                                  <span className="font-medium text-xs text-foreground">
-                                    Auto-retry unfetched favorite languages (safe paced jitter)
-                                  </span>
-                                </label>
-                                <p className="text-[11px] text-muted-foreground ml-6">
-                                  Automatically retries pending favorite subtitles with random
-                                  spacing between X and Y seconds to prevent YouTube HTTP 429 rate
-                                  limit blocks.
-                                </p>
+                                <div className="flex items-center justify-between gap-2">
+                                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                                    <input
+                                      data-testid="auto-retry-subtitles-toggle"
+                                      type="checkbox"
+                                      checked={autoRetrySubtitles}
+                                      onChange={(e) => handleToggleAutoRetry(e.target.checked)}
+                                      className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                    />
+                                    <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                      <RotateCcw className="w-3.5 h-3.5 text-primary" />
+                                      <span>
+                                        Auto-retry unfetched favorite languages (paced jitter)
+                                      </span>
+                                    </span>
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setExpandedPrefsHelp((p) => ({
+                                        ...p,
+                                        autoRetry: !p.autoRetry,
+                                      }))
+                                    }
+                                    className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                    title="Toggle auto-retry explanation"
+                                    aria-expanded={Boolean(expandedPrefsHelp.autoRetry)}
+                                  >
+                                    <HelpCircle className="w-3 h-3" />
+                                    <span>{expandedPrefsHelp.autoRetry ? "Hide" : "Info"}</span>
+                                  </button>
+                                </div>
+                                {expandedPrefsHelp.autoRetry && (
+                                  <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                    Automatically retries pending favorite subtitles with random
+                                    spacing between X and Y seconds to prevent YouTube HTTP 429 rate
+                                    limit blocks.
+                                  </p>
+                                )}
                                 <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
                                   <div>
                                     <label
@@ -4710,59 +4756,134 @@ function Index() {
                               </div>
                             </>
                           )}
-                          <label className="flex items-center gap-2">
-                            <input
-                              id="audio-track-mode-toggle"
-                              type="checkbox"
-                              checked={audioTrackMode}
-                              onChange={(e) => onAudioTrackModeChange(e.target.checked)}
-                            />{" "}
-                            Audio-track mode (repeat segment with native video audio instead of
-                            synthesized TTS)
-                          </label>
-                          <div className="space-y-0.5">
-                            <label className="flex items-center gap-2 cursor-pointer">
+                          <div className="flex items-center justify-between gap-2">
+                            <label className="flex items-center gap-2 cursor-pointer select-none">
                               <input
-                                id="auto-scroll-toggle"
-                                data-testid="auto-scroll-toggle"
+                                id="audio-track-mode-toggle"
                                 type="checkbox"
-                                checked={autoFocus}
-                                onChange={(e) => onAutoFocusChange(e.target.checked)}
-                              />{" "}
-                              <span>Auto-focus and scroll to current subtitle</span>
+                                checked={audioTrackMode}
+                                onChange={(e) => onAudioTrackModeChange(e.target.checked)}
+                                className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                              />
+                              <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                <Volume2 className="w-3.5 h-3.5 text-primary" />
+                                <span>Audio-track mode (native video loop)</span>
+                              </span>
                             </label>
-                            <p className="text-[11px] text-muted-foreground ml-6">
-                              Auto-scroll only starts 5 seconds after last user interaction to avoid
-                              disturbing user actions.
-                            </p>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedPrefsHelp((p) => ({ ...p, audioTrack: !p.audioTrack }))
+                              }
+                              className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                              title="Toggle audio-track mode explanation"
+                              aria-expanded={Boolean(expandedPrefsHelp.audioTrack)}
+                            >
+                              <HelpCircle className="w-3 h-3" />
+                              <span>{expandedPrefsHelp.audioTrack ? "Hide" : "Info"}</span>
+                            </button>
                           </div>
-                          <label className="flex items-center gap-2">
-                            <input
-                              id="debug-mode-toggle"
-                              data-testid="debug-mode-toggle"
-                              type="checkbox"
-                              checked={debugMode}
-                              onChange={(e) => onDebugModeChange(e.target.checked)}
-                            />{" "}
-                            Debug mode (show network traffic inspector and diagnostics)
-                          </label>
-                          <label className="flex items-center gap-2">
+                          {expandedPrefsHelp.audioTrack && (
+                            <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                              Repeats active segment with native video audio instead of synthesized
+                              WebSpeech or alternative TTS.
+                            </p>
+                          )}
+                          <div className="space-y-0.5">
+                            <div className="flex items-center justify-between gap-2">
+                              <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <input
+                                  id="auto-scroll-toggle"
+                                  data-testid="auto-scroll-toggle"
+                                  type="checkbox"
+                                  checked={autoFocus}
+                                  onChange={(e) => onAutoFocusChange(e.target.checked)}
+                                  className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                />
+                                <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                  <LayoutList className="w-3.5 h-3.5 text-primary" />
+                                  <span>Auto-focus and scroll to current subtitle</span>
+                                </span>
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedPrefsHelp((p) => ({ ...p, autoScroll: !p.autoScroll }))
+                                }
+                                className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                title="Toggle auto-scroll explanation"
+                                aria-expanded={Boolean(expandedPrefsHelp.autoScroll)}
+                              >
+                                <HelpCircle className="w-3 h-3" />
+                                <span>{expandedPrefsHelp.autoScroll ? "Hide" : "Info"}</span>
+                              </button>
+                            </div>
+                            {expandedPrefsHelp.autoScroll && (
+                              <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                Auto-scroll only starts 5 seconds after last user interaction to
+                                avoid disturbing user actions.
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                              <input
+                                id="debug-mode-toggle"
+                                data-testid="debug-mode-toggle"
+                                type="checkbox"
+                                checked={debugMode}
+                                onChange={(e) => onDebugModeChange(e.target.checked)}
+                                className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                              />
+                              <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                <Activity className="w-3.5 h-3.5 text-primary" />
+                                <span>Debug mode (network inspector &amp; diagnostics)</span>
+                              </span>
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedPrefsHelp((p) => ({ ...p, debugMode: !p.debugMode }))
+                              }
+                              className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                              title="Toggle debug mode explanation"
+                              aria-expanded={Boolean(expandedPrefsHelp.debugMode)}
+                            >
+                              <HelpCircle className="w-3 h-3" />
+                              <span>{expandedPrefsHelp.debugMode ? "Hide" : "Info"}</span>
+                            </button>
+                          </div>
+                          {expandedPrefsHelp.debugMode && (
+                            <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                              Enables live network traffic capture, headers inspection, and
+                              timedtext diagnostics.
+                            </p>
+                          )}
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
                             <input
                               type="checkbox"
                               checked={showVideoSubtitles}
                               onChange={(e) => setShowVideoSubtitles(e.target.checked)}
-                            />{" "}
-                            Show spoken subtitle over video
+                              className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                            />
+                            <Subtitles className="w-3.5 h-3.5 text-primary" />
+                            <span className="font-medium text-xs text-foreground">
+                              Show spoken subtitle over video
+                            </span>
                           </label>
-                          <label className="flex items-center gap-2">
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
                             <input
                               id="background-audio-toggle"
                               data-testid="background-audio-toggle"
                               type="checkbox"
                               checked={backgroundAudioEnabled}
                               onChange={(e) => handleToggleBackgroundAudio(e.target.checked)}
-                            />{" "}
-                            Background audio &amp; lockscreen playback controls
+                              className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                            />
+                            <Smartphone className="w-3.5 h-3.5 text-primary" />
+                            <span className="font-medium text-xs text-foreground">
+                              Background audio &amp; lockscreen playback controls
+                            </span>
                           </label>
 
                           {/* On-Demand Translation Ahead via Google Translate API */}
@@ -4770,27 +4891,43 @@ function Index() {
                             className="pt-2 border-t border-border/60 space-y-2"
                             data-testid="on-demand-translation-settings-card"
                           >
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <input
-                                id="on-demand-translation-toggle"
-                                data-testid="on-demand-translation-toggle"
-                                type="checkbox"
-                                checked={enableOnDemandTranslation}
-                                onChange={(e) =>
-                                  onEnableOnDemandTranslationChange(e.target.checked)
+                            <div className="flex items-center justify-between gap-2">
+                              <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <input
+                                  id="on-demand-translation-toggle"
+                                  data-testid="on-demand-translation-toggle"
+                                  type="checkbox"
+                                  checked={enableOnDemandTranslation}
+                                  onChange={(e) =>
+                                    onEnableOnDemandTranslationChange(e.target.checked)
+                                  }
+                                  className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                />
+                                <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                                  <span>On-demand sentence translation ahead</span>
+                                </span>
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedPrefsHelp((p) => ({ ...p, onDemand: !p.onDemand }))
                                 }
-                                className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                              />
-                              <span className="font-medium text-xs text-foreground">
-                                On-demand sentence translation ahead (until YouTube subtitles
-                                arrive)
-                              </span>
-                            </label>
-                            <p className="text-[11px] text-muted-foreground ml-6">
-                              Uses Google Translate API to pre-translate upcoming sentences ahead
-                              for selected target languages until authentic YouTube captions are
-                              fetched.
-                            </p>
+                                className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                title="Toggle on-demand translation explanation"
+                                aria-expanded={Boolean(expandedPrefsHelp.onDemand)}
+                              >
+                                <HelpCircle className="w-3 h-3" />
+                                <span>{expandedPrefsHelp.onDemand ? "Hide" : "Info"}</span>
+                              </button>
+                            </div>
+                            {expandedPrefsHelp.onDemand && (
+                              <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                Uses Google Translate API to pre-translate upcoming sentences ahead
+                                for selected target languages until authentic YouTube captions are
+                                fetched.
+                              </p>
+                            )}
                             <div className="ml-6 flex items-center gap-2 pt-1 max-w-xs">
                               <label
                                 htmlFor="on-demand-ahead-count-input"
@@ -4820,26 +4957,52 @@ function Index() {
                             className="pt-2 border-t border-border/60 space-y-2"
                             data-testid="alternative-tts-settings-card"
                           >
-                            <label className="flex items-center gap-2 cursor-pointer">
-                              <input
-                                id="alternative-tts-toggle"
-                                data-testid="alternative-tts-toggle"
-                                type="checkbox"
-                                checked={useAlternativeTtsState}
-                                onChange={(e) => {
-                                  const checked = e.target.checked;
-                                  setUseAlternativeTtsState(checked);
-                                  setUseAlternativeTts(checked);
-                                }}
-                                className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                              />
-                              <span className="font-medium text-xs text-foreground">
-                                Alternative TTS Service (Lovable Speak API &amp; Google Translate)
-                              </span>
-                              <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                                Off by default
-                              </span>
-                            </label>
+                            <div className="flex items-center justify-between gap-2">
+                              <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <input
+                                  id="alternative-tts-toggle"
+                                  data-testid="alternative-tts-toggle"
+                                  type="checkbox"
+                                  checked={useAlternativeTtsState}
+                                  onChange={(e) => {
+                                    const checked = e.target.checked;
+                                    setUseAlternativeTtsState(checked);
+                                    setUseAlternativeTts(checked);
+                                  }}
+                                  className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                />
+                                <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                  <Volume2 className="w-3.5 h-3.5 text-primary" />
+                                  <span>
+                                    Alternative TTS Service (Lovable API &amp; Google Translate)
+                                  </span>
+                                </span>
+                              </label>
+                              <div className="flex items-center gap-1.5">
+                                <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                                  Off by default
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setExpandedPrefsHelp((p) => ({ ...p, altTts: !p.altTts }))
+                                  }
+                                  className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                  title="Toggle alternative TTS explanation"
+                                  aria-expanded={Boolean(expandedPrefsHelp.altTts)}
+                                >
+                                  <HelpCircle className="w-3 h-3" />
+                                  <span>{expandedPrefsHelp.altTts ? "Hide" : "Info"}</span>
+                                </button>
+                              </div>
+                            </div>
+                            {expandedPrefsHelp.altTts && (
+                              <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                Provides high-quality neural voice synthesis via Lovable Speak API
+                                and OpenRouter cloud voices, with automatic fallback when local
+                                device TTS lacks specific language voices.
+                              </p>
+                            )}
 
                             {useAlternativeTtsState && (
                               <div className="ml-6 space-y-2.5 pt-1">

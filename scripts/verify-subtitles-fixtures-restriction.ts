@@ -14,7 +14,11 @@ console.log(
 
 // 1. Version checks
 const pkg = JSON.parse(fs.readFileSync("package.json", "utf-8"));
-assert.ok(pkg.version >= "1.0.57", "package.json version must be >= 1.0.57");
+const [maj, min, patch] = pkg.version.split(".").map(Number);
+assert.ok(
+  maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 57))),
+  "package.json version must be >= 1.0.57",
+);
 assert.strictEqual(APP_VERSION, pkg.version, "appConfig.ts APP_VERSION must match package.json");
 assert.strictEqual(
   CURRENT_APK_VERSION,

@@ -59,7 +59,8 @@ export const AttemptOrderSettings: React.FC<Props> = ({
 }) => {
   const [inputServerUrl, setInputServerUrl] = useState(fetchServerUrl);
   const [showWinnerReport, setShowWinnerReport] = useState(false);
-  const [showExplanation, setShowExplanation] = useState(true);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [showServerHelp, setShowServerHelp] = useState(false);
 
   const [activeStrategyConfig, setActiveStrategyConfig] = useState<SubtitleFetchStrategyConfig>(
     () => strategyConfig || getFetchStrategyConfig(),
@@ -427,8 +428,8 @@ export const AttemptOrderSettings: React.FC<Props> = ({
         )}
       </div>
 
-      <div className="pt-2 border-t border-border/60 space-y-2 opacity-85">
-        <div className="flex items-center gap-2">
+      <div className="pt-2 border-t border-border/60 space-y-2 opacity-90">
+        <div className="flex items-center justify-between gap-2">
           <label className="flex items-center gap-2 cursor-pointer select-none text-foreground font-medium text-[11px]">
             <input
               type="checkbox"
@@ -438,13 +439,31 @@ export const AttemptOrderSettings: React.FC<Props> = ({
               className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
             />
             <Server className="w-3.5 h-3.5 text-primary" />
-            <span>Use server for repeating fetch requests</span>
+            <span>Use server proxy for repeating fetch requests</span>
           </label>
+          <button
+            type="button"
+            onClick={() => setShowServerHelp(!showServerHelp)}
+            className="text-[10px] text-primary hover:underline flex items-center gap-1 font-medium"
+            title="Toggle server proxy details"
+            aria-expanded={showServerHelp}
+          >
+            <HelpCircle className="w-3 h-3" />
+            <span>{showServerHelp ? "Hide Info" : "Server Info"}</span>
+          </button>
         </div>
-        <p className="text-[10px] text-muted-foreground ml-6">
-          Android only. Sends the URL anonymously to <code>&lt;server&gt;/api/proxy?url=…</code>.
-          Defaults: <code>src/config/server.json</code>.
-        </p>
+
+        {showServerHelp && (
+          <div className="ml-6 p-2 rounded-md bg-muted/40 border border-border/60 text-[10.5px] text-muted-foreground space-y-1">
+            <p>
+              Android only. Routes requests to <code>&lt;server&gt;/api/proxy?url=…</code>.
+              Default config lives in <code>src/config/server.json</code>.
+            </p>
+            <p>
+              Enter endpoint receiving target via <code>?url=...</code> or replacing <code>{"{url}"}</code> placeholder.
+            </p>
+          </div>
+        )}
 
         <div className="ml-6 space-y-1 pt-1">
           <label
@@ -467,15 +486,11 @@ export const AttemptOrderSettings: React.FC<Props> = ({
               type="button"
               onClick={handleSaveServerUrl}
               data-testid="update-fetch-server-url-button"
-              className="px-2.5 py-1 rounded-md border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-medium transition active:scale-95"
+              className="px-3 py-1 rounded-md border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold transition active:scale-95 shadow-2xs"
             >
               Update
             </button>
           </div>
-          <p className="text-[10px] text-muted-foreground">
-            Enter server endpoint. URL will receive target via <code>?url=...</code> or replacing{" "}
-            <code>{"{url}"}</code> placeholder.
-          </p>
         </div>
       </div>
 

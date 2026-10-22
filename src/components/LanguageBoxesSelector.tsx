@@ -220,43 +220,43 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 p-1 shadow-2xs">
           {favoriteLanguages && favoriteLanguages.length > 0 && (
             <Button
               type="button"
               data-testid="toggle-show-all-languages"
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => setShowAllLanguages((prev) => !prev)}
-              className="h-8 text-xs gap-1"
+              className="h-7 text-xs gap-1 hover:bg-muted font-medium text-foreground"
               title={
                 showAllLanguages
                   ? "Show favorite language boxes only"
                   : "Show all catalog languages"
               }
             >
-              {showAllLanguages ? "⭐ Favorites Only" : `+ All Languages (${catalog.length})`}
+              {showAllLanguages ? "⭐ Favorites Only" : `+ All (${catalog.length})`}
             </Button>
           )}
           <Button
             type="button"
             id="toggle-language-display-mode"
             data-testid="toggle-language-display-mode"
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={handleToggleMode}
-            className="h-8 gap-1.5 text-xs"
+            className="h-7 gap-1.5 text-xs hover:bg-muted font-medium text-foreground"
             title={`Switch to ${displayMode === "boxes" ? "list" : "boxes"} view`}
           >
             {displayMode === "boxes" ? (
               <>
                 <List className="h-3.5 w-3.5" />
-                <span>Show as List</span>
+                <span>List View</span>
               </>
             ) : (
               <>
                 <LayoutGrid className="h-3.5 w-3.5" />
-                <span>Show as Boxes</span>
+                <span>Boxes View</span>
               </>
             )}
           </Button>
