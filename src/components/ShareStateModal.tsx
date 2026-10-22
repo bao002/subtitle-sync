@@ -62,8 +62,10 @@ export function ShareStateModal({
   const [includeSubtitles, setIncludeSubtitles] = useState<boolean>(true);
   const [includeTtsProvider, setIncludeTtsProvider] = useState<boolean>(true);
   const [selectedTtsProvider, setSelectedTtsProvider] = useState<string>(ttsProvider);
-  const [includeApiKey, setIncludeApiKey] = useState<boolean>(Boolean(openRouterApiKey));
-  const [useDemoBase, setUseDemoBase] = useState<boolean>(true);
+  const [includeApiKey, setIncludeApiKey] = useState<boolean>(false);
+  const isGithubPages =
+    typeof window !== "undefined" && window.location.hostname.includes("github.io");
+  const [useDemoBase, setUseDemoBase] = useState<boolean>(isGithubPages);
   const [copied, setCopied] = useState<boolean>(false);
   const [shared, setShared] = useState<boolean>(false);
 
@@ -96,12 +98,23 @@ export function ShareStateModal({
 
   const [subUrlInput, setSubUrlInput] = useState<string>(detectedSubUrl);
 
-  // Sync if detectedSubUrl becomes available while input is empty
+  // Synchronize subtitle URL whenever modal opens or observedUrl / targetLanguages change
   useEffect(() => {
-    if (detectedSubUrl && !subUrlInput) {
-      setSubUrlInput(detectedSubUrl);
+    if (open) {
+      const activeCandidate = (observedUrl || detectedSubUrl || "").trim();
+      setSubUrlInput(activeCandidate);
+      if (targetLanguages.length > 0) {
+        setSelectedTargetLang(targetLanguages[0]);
+        setIncludeAllTargetLangs(targetLanguages.length > 1);
+      }
     }
-  }, [detectedSubUrl, subUrlInput]);
+  }, [open, observedUrl, detectedSubUrl, targetLanguages]);
+
+  useEffect(() => {
+    if (observedUrl && observedUrl.trim()) {
+      setSubUrlInput(observedUrl.trim());
+    }
+  }, [observedUrl]);
 
   // Compute the subtitle URL or serialized data to share
   const subUrlToShare = useMemo(() => {

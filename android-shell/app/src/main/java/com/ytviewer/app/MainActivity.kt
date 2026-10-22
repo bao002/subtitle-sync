@@ -232,7 +232,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             Log.i(TAG, "Intercepted non-JSON3 caption (${contentType}). Fetching json3 format automatically for URL: $url")
                             val uri = android.net.Uri.parse(url)
                             val lang = uri.getQueryParameter("lang")?.takeIf { it.isNotBlank() } ?: "en"
-                            val json3Body = executeTimedTextRepetition(url, lang, "json3")
+                            val json3Body = this@MainActivity.executeTimedTextRepetition(url, lang, "json3")
                             if (json3Body.isNotBlank() && isValidJsonSubtitle(json3Body)) {
                                 val json3Url = if (url.contains("fmt=")) url.replace(Regex("fmt=[^&]+"), "fmt=json3") else "$url&fmt=json3"
                                 saveCaptionToFile(json3Url, json3Body.toByteArray(StandardCharsets.UTF_8))
@@ -1010,7 +1010,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         @JavascriptInterface
         fun fetchTranslatedCaptions(targetLang: String, format: String): String {
             val base = lastObservedTimedTextUrl ?: return ""
-            return executeTimedTextRepetition(base, targetLang, format)
+            return this@MainActivity.executeTimedTextRepetition(base, targetLang, format)
         }
 
         /**
@@ -1134,7 +1134,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         fun fetchTranslatedCaptionsWithUrl(customUrl: String, targetLang: String, format: String): String {
             val base = if (customUrl.isNotEmpty()) customUrl else (lastObservedTimedTextUrl ?: "")
             if (base.isEmpty()) return ""
-            return executeTimedTextRepetition(base, targetLang, format)
+            return this@MainActivity.executeTimedTextRepetition(base, targetLang, format)
         }
     }
 

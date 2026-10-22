@@ -1,5 +1,53 @@
 # Done tasks
 
+## Task 162: Fix Share Button & Link State Reproduction for Video, Subtitles & Translations (Chapter 2)
+
+### Summary:
+- **Share Modal Base Language & Subtitle URL Synchronization (Subtask 162.1)**:
+  - In `src/routes/index.tsx`, passed `baseLanguage={baseLanguage || "en"}` to `<ShareStateModal>`.
+  - In `handleWebDemoLoadVideoAndSubtitles` in `src/routes/index.tsx`, updated `setBaseLanguage(detectedBase)` (e.g. `"iw"`) when subtitles and translations load rather than leaving baseLanguage at initial default `"en"`.
+  - In `src/components/ShareStateModal.tsx`, added `useEffect` synchronization hooks to update `subUrlInput` immediately upon modal opening or `observedUrl` changes. Defaulted `useDemoBase` to `false` in non-github.io environments (so share links point to the active app origin when testing/sharing) while retaining demo site base option.
+- **Resilient Multi-Tier Subtitle Loading on URL State Restoration (Subtask 162.2)**:
+  - In `src/routes/index.tsx`, replaced naive `fetch(incomingSubUrl)` with multi-tier fallback loader:
+    1. Direct browser `fetch(incomingSubUrl)`.
+    2. Server proxy fallback via `fetchViaServer(getFetchServerUrl(), incomingSubUrl)`.
+    3. Android native shell repetition fallback via `window.AndroidNativeShell.fetchTimedTextExact`.
+    4. Approved fixture fallback for `L2Ryrr6txwA` (`/fixtures/L2Ryrr6txwA/${subLang}.json`).
+  - Correctly hydrates `tracks`, `baseLanguage`, `defaultCaptionsLoaded`, `shown`, and `targetLanguages` from the shared link.
+- **Hotfix: ShareStateModal state declarations and src/routes/index.tsx lint errors (Hotfix 162.H1)**:
+  - Declared `const [includeApiKey, setIncludeApiKey] = useState<boolean>(false);` in `src/components/ShareStateModal.tsx`.
+  - Resolved `no-empty` catch blocks in `src/routes/index.tsx` with `catch (_err) { void _err; }` and formatted `console.warn`.
+  - Restarted Vite dev server to refresh in-memory module cache.
+- **Version 1.0.79 Parity & Verification Suite (Subtask 162.3)**:
+  - Synchronized version `1.0.79` / versionCode `10079` across all 5 version targets:
+    1. `package.json`: `"version": "1.0.79"`
+    2. `android-shell/app/build.gradle.kts`: `versionName = "1.0.79"`, `versionCode = 10079`
+    3. `src/config/appConfig.ts`: `APP_VERSION = "1.0.79"`
+    4. `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v1.0.79"`
+    5. `src/utils/appSettings.ts`: export snapshot `version = "1.0.79"`
+  - Added dedicated test `scripts/verify-share-state-reproduction.ts` and script `test:share-state-reproduction`.
+  - Documented `scripts/verify-share-state-reproduction.ts` in `docs/files.md`.
+  - Verification: `npm run test:share-state-reproduction` (100% PASS), `npm run test:subtitles-url-encoding` (100% PASS), `npm run test:android-share-subtitles-link` (100% PASS), `npm run test:mainactivity-scope` (100% PASS), `lint_applet` (100% clean), and `compile_applet` (build succeeded).
+
+---
+
+## Task 161: Fix Android Kotlin Compilation for `executeTimedTextRepetition` (Chapter 1)
+
+### Summary:
+- **Root Cause & Explicit Qualifier Fix (Subtask 161.1)**:
+  - In `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` at line 235 inside the anonymous `object : WebViewClient() { override fun shouldInterceptRequest(...) }`, the call to `executeTimedTextRepetition(url, lang, "json3")` was invoked without outer receiver qualification, which could trigger Kotlin compiler unresolved reference errors during `:app:compileDebugKotlin`.
+  - Added explicit outer class qualifier `this@MainActivity.executeTimedTextRepetition(url, lang, "json3")` on line 235.
+  - Also explicitly qualified `this@MainActivity.executeTimedTextRepetition` inside `AndroidNativeBridge.fetchTranslatedCaptions` and `AndroidNativeBridge.fetchTranslatedCaptionsWithUrl`.
+- **Verification Commands & Outcomes (Subtask 161.2)**:
+  - Created dedicated test script `scripts/verify-android-mainactivity-repetition-scope.ts` and registered `test:mainactivity-repetition-scope` in `package.json`.
+  - Ran `npm run test:mainactivity-repetition-scope`: PASSED (all 3 assertions passed).
+  - Ran `npm run test:mainactivity-scope`: PASSED (all 5 assertions passed).
+  - Code verification: `lint_applet` passed (0 errors).
+  - Compilation verification: `compile_applet` passed (build succeeded).
+  - Dedicated Git commit checkpointed and pushed.
+
+---
+
 ### Hotfix: Fix missing useEffect import in ShareStateModal (Version 1.0.78)
 
 - **Root Cause & Fix**: In `src/components/ShareStateModal.tsx`, `useEffect` was called to synchronize the detected timedtext URL into state, but was not included in the top-level React named imports (`import React, { useState, useMemo, useCallback } from "react";`), causing runtime `ReferenceError: useEffect is not defined` during modal mount in `src/routes/index.tsx`. Added `useEffect` to `import React, { useState, useEffect, useMemo, useCallback } from "react";`.
