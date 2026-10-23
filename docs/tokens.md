@@ -4,9 +4,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: None (Task 186 Completed & Migrated to docs/done.md)
+## Active Task: IDLE (All Tasks Completed)
 
-- Task 186 (Focus Mode - Hide Redundant Mode Switcher Header via Targeted Styling) is 100% complete and verified. Ready for next prompt.
+- No active tasks pending. Task 188 successfully implemented, verified, and archived in `docs/done.md`.
 
 ---
 

@@ -96,7 +96,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
     typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only",
   );
   const [lovableTtsProviderState, setLovableTtsProviderState] = useState<LovableTtsProvider>(() =>
-    typeof window !== "undefined" ? getLovableTtsProvider() : "lovable",
+    typeof window !== "undefined" ? getLovableTtsProvider() : "google",
   );
   const [lovableTtsVoiceState, setLovableTtsVoiceState] = useState<string>(() =>
     typeof window !== "undefined" ? getLovableTtsVoice() : "Kore",

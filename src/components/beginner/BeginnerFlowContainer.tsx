@@ -113,7 +113,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   const [punctuationChars, setPunctuationChars] = useState<string[]>(
     settings.beginnerPunctuationChars && settings.beginnerPunctuationChars.length > 0
       ? settings.beginnerPunctuationChars
-      : [".", "!", "?", ",", ";", ":"],
+      : [".", "!", "?", "…", "؟"],
   );
   const [removeChars, setRemoveChars] = useState<string[]>(
     settings.beginnerRemoveChars && settings.beginnerRemoveChars.length > 0

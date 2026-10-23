@@ -140,7 +140,8 @@ export const PARSER_CRITERIA: ParserCriteriaOption[] = [
   },
 ];
 
-export const DEFAULT_PARSER_CRITERIA: CriteriaId[] = PARSER_CRITERIA.map((c) => c.id);
+// Default to the best criteria in order not to cut a sentence in the middle: pure grammatical sentence endings
+export const DEFAULT_PARSER_CRITERIA: CriteriaId[] = ["sentence"];
 
 export interface SentenceInnerSettings {
   includeCommas: boolean;
@@ -672,7 +673,8 @@ export function criteriaSections(
   }
 
   const minMs = cfg.window.minSectionMs;
-  const maxMs = activeCriteria.includes("window") ? cfg.window.maxSectionMs : 25000;
+  // When window clamp is not explicitly active, use generous maxMs to avoid slicing sentences in the middle
+  const maxMs = activeCriteria.includes("window") ? cfg.window.maxSectionMs : 60000;
 
   return fromCuts(candidateCuts, start, end, minMs, maxMs);
 }

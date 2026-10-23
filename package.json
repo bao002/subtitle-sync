@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.100",
+  "version": "1.0.102",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -197,6 +197,8 @@
     "test:parser-realtime-simulation": "tsx scripts/verify-parser-realtime-diff-simulation.ts",
     "test:progressive-disclosure-and-button-design": "tsx scripts/verify-progressive-disclosure-and-button-design.ts",
     "test:mode-switcher-hidden-style": "tsx scripts/verify-mode-switcher-hidden-style.ts",
+    "test:tts-parser-fork-apk": "tsx scripts/verify-tts-parser-and-fork-apk-release.ts",
+    "test:beginner-nav-responsive": "tsx scripts/verify-beginner-nav-responsive-styling.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

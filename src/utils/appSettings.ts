@@ -273,7 +273,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   beginnerSubtitlesRatio: 1.0,
   beginnerFavoriteLangs: ["he", "en", "es", "fr", "ar", "ru"],
   beginnerSplitByPunctuation: true,
-  beginnerPunctuationChars: [".", "!", "?", ",", ";", ":"],
+  beginnerPunctuationChars: [".", "!", "?", "…", "؟"],
   beginnerRemoveChars: [">", ">>"],
   beginnerStripSpeakerBrackets: true,
 
@@ -482,7 +482,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "1.0.100",
+    version: "1.0.102",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {

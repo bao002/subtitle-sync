@@ -1,5 +1,83 @@
 # Done tasks
 
+## Task 188: Focus Mode - Responsive Beginner Tab Navigation & Viewport Restraint
+
+### Summary:
+
+- **Raw Prompt & Version Updates (Subtask 188.1)**:
+  - Recorded user prompt verbatim in `AGENTS.md` under `## Last raw prompt`:
+    ```
+    element is not responsive or extend too much
+    Apply style changes to the selected element(s).
+    [AIS_METADATA_SECTION_START]
+    CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > nav:nth-of-type(1)
+    CSS 1: {
+
+    }
+    [AIS_METADATA_SECTION_END]
+    ```
+  - Bumped version from `1.0.101` to `1.0.102` (`versionCode = 10102`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, and `src/config/appConfig.ts`.
+- **Targeted Responsive Styling on Selected Element (Subtask 188.2)**:
+  - Targeted element `div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > nav:nth-of-type(1)` in `src/components/beginner/BeginnerTabNav.tsx`.
+  - Added strict screen bounds and viewport containment: `w-full max-w-full overflow-hidden` with backdrop blur and subtle shadow (`bg-card/95 backdrop-blur-xs border-b border-border px-2 py-1.5 sm:py-2 overflow-hidden shadow-2xs`).
+  - Adjusted inner flex container to `w-full max-w-4xl mx-auto flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-none pb-0.5`.
+  - Replaced fixed `min-w-[120px]` with fluid responsive sizing `min-w-0 sm:min-w-[110px] md:min-w-[130px] max-w-[200px]` on tab buttons, preventing 4 tabs from extending beyond narrow mobile viewports.
+  - Replaced verbose mobile tab subtitle with responsive concealment `hidden sm:block text-[10px] text-muted-foreground truncate`, keeping mobile button heights uniform and compact.
+  - Made step numbers and icons compact on mobile (`w-6 h-6 sm:w-7 sm:h-7`, text `[11px] sm:text-xs`) with responsive text truncation.
+  - Formatted "Advanced Studio" switch button responsively (`h-7 sm:h-8`, text breakpoints `hidden md:inline` vs `hidden sm:inline md:hidden`).
+- **Dedicated Automated Verification & Build (Subtask 188.3)**:
+  - Created `scripts/verify-beginner-nav-responsive-styling.ts` asserting responsive classes, viewport containment, and version 1.0.102 sync across all 5 targets.
+  - Added `"test:beginner-nav-responsive"` script to `package.json` and registered in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:beginner-nav-responsive`: 100% PASS (2/2 suites passed).
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks passed in 25.5s).
+    - `npm run test:agents-size-budget`: 100% PASS (AGENTS.md size: 18,717 bytes with 5,859 bytes headroom).
+    - `lint_applet`: 0 errors.
+    - `compile_applet`: Production build succeeded.
+
+---
+
+## Task 187: TTS Service Defaults & Play Speed, Parser Sentence Integrity, and GitHub Actions Fork APK Releases
+
+### Summary:
+
+- **Raw Prompt & Version Updates (Subtask 187.6)**:
+  - Recorded user prompt verbatim in `AGENTS.md` under `## Last raw prompt`:
+    1. tts service - set default to google provider
+    2. tts service - in case result is an audio file - apply play speed based on the tts rate settings (keep it in the original place and ensure not to duplicate that control).
+    3. parser - default to the best settings in order not to cut a sentence in the middle
+    4. currently the github actions are not producing a newer apk (the github release page doesnt upgraded with the latest version.
+    5. each github fork should generate the same apk version (it should be based on the package.json release)
+  - Bumped version from `1.0.100` to `1.0.101` (`versionCode = 10101`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, and `src/config/appConfig.ts`.
+- **TTS Service Default to Google Provider (Subtask 187.1)**:
+  - Updated `getLovableTtsProvider` and `setLovableTtsProvider` default fallback in `src/lib/alternative-tts.ts` from `"lovable"` to `"google"`.
+  - Updated default state in `src/routes/index.tsx` (`altProvider = "google"` in `speak()` and `lovableTtsProviderState = "google"`).
+  - Updated default state in `src/components/beginner/tabs/BeginnerPreferencesTab.tsx` (`lovableTtsProviderState = "google"`).
+- **TTS Audio Playback Speed Based on TTS Rate Settings (Subtask 187.2)**:
+  - In `playAlternativeTtsAudio` (`src/lib/alternative-tts.ts`), calculated `effectivePlaybackRate` based on passed `rate` parameter (constrained to `[0.25, 4.0]`).
+  - Applied `audio.playbackRate = effectivePlaybackRate` directly and bound to `loadedmetadata` and `canplay` events to ensure audio speed persists across browser stream/blob resets.
+  - Removed previous constraint that forced `playbackRate = 1.0` on lovable audio blobs or URLs.
+  - Kept TTS rate control in its single original place in the settings panel with no duplicated controls.
+- **Parser Default Settings for Complete Sentences (Subtask 187.3)**:
+  - Set `DEFAULT_PARSER_CRITERIA` in `src/lib/subtitles.ts` to `["sentence"]` (avoiding arbitrary time window slicing or mid-sentence cue cuts).
+  - Configured `fromCuts` fallback `maxMs = 60000` when `window` criterion is not active, preventing long sentences from being divided into arbitrary intervals.
+  - Updated `beginnerPunctuationChars` in `src/components/beginner/BeginnerFlowContainer.tsx` and `src/utils/appSettings.ts` to terminal punctuation marks only (`[".", "!", "?", "…", "؟"]`), removing commas, semicolons, and colons that cut sentences in the middle.
+- **GitHub Actions Release APK Workflow & Fork Uniformity (Subtasks 187.4 & 187.5)**:
+  - In `.github/workflows/release-apk.yml`, adjusted job and assembleDebug timeouts (30m job, 20m assemble) preventing runner cancellation.
+  - Added `make_latest: "true"` and `target_commitish: ${{ github.sha }}` to `softprops/action-gh-release@v2` step so GitHub Releases properly updates the release page to the newest version.
+  - Derived uniform release tag `v${BASE}` and title `YouTube Viewer v${BASE}` directly from `package.json` release version, guaranteeing all GitHub forks build identical APK releases for the same codebase version.
+- **Dedicated Automated Verification & Build**:
+  - Created `scripts/verify-tts-parser-and-fork-apk-release.ts` asserting all 5 requirements across core libs, UI components, parser routines, and workflow definitions.
+  - Added `"test:tts-parser-fork-apk"` script to `package.json` and registered in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:tts-parser-fork-apk`: 100% PASS (5/5 checks passed).
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks passed).
+    - `npm run test:agents-size-budget`: 100% PASS (AGENTS.md size: 18,992 bytes with 5,584 bytes headroom).
+    - `lint_applet`: 0 errors.
+    - `compile_applet`: Production build succeeded.
+
+---
+
 ## Task 186: Focus Mode - Hide Redundant Mode Switcher Header via Targeted Styling
 
 ### Summary:
