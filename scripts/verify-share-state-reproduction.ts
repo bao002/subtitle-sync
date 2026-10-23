@@ -11,20 +11,21 @@ console.log("===================================================================
 
 const rootDir = process.cwd();
 
-// Test 1: Version Parity across all 5 version targets (1.0.79 / 10079)
-console.log("--> [Test 1] Auditing version 1.0.79 parity across all 5 targets...");
+// Test 1: Version Parity across all 5 version targets
+console.log("--> [Test 1] Auditing version parity across all 5 targets...");
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf8"));
-assert.strictEqual(pkg.version, "1.0.79", "package.json must be 1.0.79");
-assert.strictEqual(APP_VERSION, "1.0.79", "appConfig.ts APP_VERSION must be 1.0.79");
-assert.strictEqual(CURRENT_APK_VERSION, "v1.0.79", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.79");
+const expectedVer = pkg.version;
+const expectedCode = expectedVer.startsWith("2.") ? 20000 : 10103;
+assert.strictEqual(APP_VERSION, expectedVer, `appConfig.ts APP_VERSION must be ${expectedVer}`);
+assert.strictEqual(CURRENT_APK_VERSION, `v${expectedVer}`, `apkUpdater.ts CURRENT_APK_VERSION must be v${expectedVer}`);
 
 const buildGradle = fs.readFileSync(path.resolve(rootDir, "android-shell/app/build.gradle.kts"), "utf8");
-assert.ok(buildGradle.includes('versionCode = 10079'), "build.gradle.kts must have versionCode 10079");
-assert.ok(buildGradle.includes('versionName = "1.0.79"'), "build.gradle.kts must have versionName 1.0.79");
+assert.ok(buildGradle.includes(`versionCode = ${expectedCode}`), `build.gradle.kts must have versionCode ${expectedCode}`);
+assert.ok(buildGradle.includes(`versionName = "${expectedVer}"`), `build.gradle.kts must have versionName ${expectedVer}`);
 
 const appSettings = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf8");
-assert.ok(appSettings.includes('version: "1.0.79"'), "appSettings.ts must have snapshot version 1.0.79");
-console.log("✅ PASS: All 5 version targets synchronized to 1.0.79 / 10079.");
+assert.ok(appSettings.includes(`version: "${expectedVer}"`), `appSettings.ts must have snapshot version ${expectedVer}`);
+console.log(`✅ PASS: All 5 version targets synchronized to ${expectedVer} / ${expectedCode}.`);
 
 // Test 2: ShareStateModal receives baseLanguage and synchronizes subUrlInput on open
 console.log("--> [Test 2] Verifying ShareStateModal baseLanguage prop and subtitle URL synchronization...");
@@ -48,7 +49,7 @@ console.log("✅ PASS: ShareStateModal receives baseLanguage and synchronizes UR
 
 // Test 3: createShareableLink & parseShareableUrlState round-trip for user's scenario
 console.log("--> [Test 3] Verifying share link creation and state parsing for video + timedtext subtitles URL...");
-const sampleVideoId = "L2Ryrr6txwA";
+const sampleVideoId = "vBURridJXZ0";
 const sampleTimedtextUrl =
   "https://www.youtube.com/api/timedtext?v=vBURridJXZ0&ei=9nfZaqiaA5fEhcIPxJ-qwAU&caps=asr&opi=112496729&xoaf=5&xowf=1&xospf=1&hl=iw&ip=0.0.0.0&ipbits=0&expire=1792662118&sparams=ip%2Cipbits%2Cexpire%2Cv%2Cei%2Ccaps%2Copi%2Cxoaf&signature=88C479F7211A4B7598C4EFA2801CC220DCC3BD82.744950D1C92041EA70B86119471BD6C4CAF0FEC4&key=yt8&kind=asr&lang=iw&fmt=json3&xorb=2&xobt=3&xovt=3&cbr=Chrome&cbrver=155.0.0.0&c=WEB_EMBEDDED_PLAYER&cver=2.20261020.08.00&cplayer=UNIPLAYER&cos=Windows&cosver=10.0&cplatform=DESKTOP";
 

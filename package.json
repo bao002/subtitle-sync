@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "1.0.103",
+  "version": "2.0.0",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -14,6 +14,8 @@
     "lint": "eslint src/lib src/routes",
     "format": "prettier --write .",
     "test:beginner-vs-advanced-video": "tsx scripts/verify-beginner-vs-advanced-video.ts",
+    "test:minimal-share-url": "tsx scripts/verify-minimal-share-url.ts",
+    "test:v2-version-bump": "tsx scripts/verify-v2-version-bump.ts",
     "test:share-state-reproduction": "tsx scripts/verify-share-state-reproduction.ts",
     "test:mainactivity-repetition-scope": "tsx scripts/verify-android-mainactivity-repetition-scope.ts",
     "test:subtitles-url-encoding": "tsx scripts/verify-subtitles-url-encoding-in-share-link.ts",

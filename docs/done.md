@@ -1,5 +1,66 @@
 # Done tasks
 
+## Task 191: Chapter 2 - Implement Major Version Bump to 2.*.* (Version 2.0.0)
+
+### Summary:
+
+- **Major Version Bump across all 5 Targets (Subtask 191.1)**:
+  - Target 1: `package.json` -> `"version": "2.0.0"`.
+  - Target 2: `android-shell/app/build.gradle.kts` -> `versionCode = 20000`, `versionName = "2.0.0"`.
+  - Target 3: `src/config/appConfig.ts` -> `APP_VERSION = "2.0.0"`, `APP_VERSION_DESCRIPTION = "Major version 2.0.0 release with minimal URL sharing and enhanced Android sync"`.
+  - Target 4: `src/utils/apkUpdater.ts` -> `CURRENT_APK_VERSION = "v2.0.0"`.
+  - Target 5: `src/utils/appSettings.ts` -> snapshot `version: "2.0.0"`.
+- **Dedicated Automated Verification Suite (Subtask 191.2)**:
+  - Created dedicated automated test `scripts/verify-v2-version-bump.ts` validating:
+    1. Major version pattern compliance (`/^2\.\d+\.\d+$/`).
+    2. Version 2.0.0 and versionCode 20000 synchronization across all 5 codebase targets.
+  - Registered `"test:v2-version-bump"` in `package.json` and documented in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:v2-version-bump`: 100% PASS (6/6 test sections passed).
+    - `npm run test:minimal-share-url`: 100% PASS.
+    - `npm run test:subtitles-url-encoding`: 100% PASS.
+    - `npm run test:share-state-reproduction`: 100% PASS.
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks passed).
+    - `lint_applet`: 0 errors, 0 warnings.
+    - `compile_applet`: Production build succeeded.
+
+---
+
+## Task 190: Chapter 1 - Re-implement Basic & Shortest URL Sharing with Constant Base URL
+
+### Summary:
+
+- **Minimal Share Link Creation with Constant Base URL (`src/utils/urlStateManager.ts`) (Subtask 190.1)**:
+  - Added `minimal?: boolean` option to `CreateShareableLinkOptions`.
+  - Implemented `extractVideoIdFromSubtitlesUrl` to extract 11-character YouTube video IDs from timedtext URLs (`?v=...`, `&v=...`), fixtures (`/fixtures/<id>/...`), or standard YouTube URLs.
+  - Implemented `extractLanguageFromSubtitlesUrl` to extract language codes (`lang=...`, `tlang=...`, fixture filenames).
+  - Enhanced `createShareableLink`:
+    - Requirement 1.1: The subtitles URL of the default language is encoded as `subtitles_url`.
+    - Requirement 1.2: Video ID is extracted from the subtitles URL (1.1).
+    - Requirement 1.3: Employs constant base URL `https://mostuf2556.github.io/subtitle-sync`.
+    - When `minimal: true` is provided, emits strictly minimal query parameters (`v` and `subtitles_url`) without redundant or duplicated parameters (`sub_url`, `source_lang_code`, `sub_lang`, `Target_langs`, `tts_provider`).
+  - Updated `parseShareableUrlState`: extracts `videoId` from `subtitles_url` if not explicitly given, and infers `subLang` from `subtitles_url` if omitted.
+- **UI Modal & Input Integration (`src/components/ShareStateModal.tsx`, `src/components/WebDemoUrlsInput.tsx`, `src/routes/index.tsx`) (Subtask 190.1)**:
+  - Added `minimalMode` checkbox toggle in `ShareStateModal.tsx` ("Minimal Info Link (Recommended)") default to true.
+  - In `WebDemoUrlsInput.tsx`: extracted video ID from subtitles URL on subtitle fetch if user provided timedtext URL.
+  - In `src/routes/index.tsx`: extracted video ID from `subtitles_url` or `sub_url` parameter on page load; inferred `subLang` from `subtitles_url` with multi-tier fallback.
+- **Dedicated Automated Verification Suite (Subtask 190.2)**:
+  - Created dedicated automated test suite `scripts/verify-minimal-share-url.ts` validating:
+    1. Video ID and language extraction from raw YouTube timedtext URLs and fixture paths.
+    2. Generation of minimal share links with constant base URL `https://mostuf2556.github.io/subtitle-sync`, `v` extracted from subtitles URL, `subtitles_url` encoded, and 0 redundant duplicate parameters.
+    3. State reproduction when recipient opens minimal link (`videoId`, `subtitlesUrl`, `subLang`).
+  - Registered `"test:minimal-share-url"` in `package.json` and documented in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:minimal-share-url`: 100% PASS (4/4 test sections passed).
+    - `npm run test:subtitles-url-encoding`: 100% PASS.
+    - `npm run test:android-share-subtitles-link`: 100% PASS.
+    - `npm run test:share-state-reproduction`: 100% PASS.
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks passed).
+    - `lint_applet`: 0 errors, 0 warnings.
+    - `compile_applet`: Production build succeeded.
+
+---
+
 ## Task 189: Fix Video Functionality in Beginner Mode vs Advanced Mode (Version 1.0.103)
 
 ### Summary:

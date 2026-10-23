@@ -101,7 +101,11 @@ import {
   setRemoveCharsSetting,
 } from "@/utils/appSettings";
 import { SpecialCharactersRemovalPanel } from "@/components/SpecialCharactersRemovalPanel";
-import { getAppStateFromUrl } from "@/utils/urlStateManager";
+import {
+  getAppStateFromUrl,
+  extractVideoIdFromSubtitlesUrl,
+  extractLanguageFromSubtitlesUrl,
+} from "@/utils/urlStateManager";
 import { ShareStateModal } from "@/components/ShareStateModal";
 import { ParserDiffConfirmationModal } from "@/components/ParserDiffConfirmationModal";
 import { VideoMetadataModal } from "@/components/VideoMetadataModal";
@@ -648,6 +652,12 @@ function Index() {
       if (target) {
         const id = parseVideoId(target);
         if (id) return id;
+      }
+      // Requirement 1.2: Video ID is extracted from subtitles URL if present
+      const subUrlParam = params.get("subtitles_url") || params.get("sub_url");
+      if (subUrlParam) {
+        const idFromSub = extractVideoIdFromSubtitlesUrl(subUrlParam);
+        if (idFromSub) return idFromSub;
       }
       const isAndroidEnv = Boolean(nativeShell()) || params.get("android") === "true";
       if (isAndroidEnv) {
@@ -2214,7 +2224,14 @@ function Index() {
     const incomingSubUrl = appState.subUrl || appState.subtitlesUrl;
     if (incomingSubUrl) {
       setObservedUrl(incomingSubUrl);
-      const subLang = (appState.subLang || appState.sourceLangCode || "en").toLowerCase().trim();
+      const subLang = (
+        appState.subLang ||
+        appState.sourceLangCode ||
+        extractLanguageFromSubtitlesUrl(incomingSubUrl) ||
+        "en"
+      )
+        .toLowerCase()
+        .trim();
       setBaseLanguage(subLang);
 
       const loadIncomingSubtitles = async () => {
