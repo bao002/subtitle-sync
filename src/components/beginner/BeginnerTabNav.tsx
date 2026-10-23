@@ -65,11 +65,11 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
 
   return (
     <nav
-      className="w-full bg-card border-b border-border px-2 py-2"
+      className="w-full max-w-full bg-card/95 backdrop-blur-xs border-b border-border px-2 py-1.5 sm:py-2 overflow-hidden shadow-2xs"
       aria-label="Beginner Mode Steps"
       data-testid="beginner-tab-nav"
     >
-      <div className="flex items-center justify-between gap-1 max-w-4xl mx-auto overflow-x-auto no-scrollbar">
+      <div className="w-full max-w-4xl mx-auto flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-none pb-0.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -82,7 +82,7 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
               type="button"
               disabled={isDisabled}
               onClick={() => onTabChange(tab.id)}
-              className={`flex-1 min-w-[120px] max-w-[200px] flex items-center gap-2 p-2 rounded-lg text-left transition-all border ${
+              className={`flex-1 min-w-0 sm:min-w-[110px] md:min-w-[130px] max-w-[200px] flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg text-left transition-all border ${
                 isActive
                   ? "bg-primary/10 border-primary text-foreground shadow-sm ring-1 ring-primary/30"
                   : isDisabled
@@ -93,7 +93,7 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
               aria-current={isActive ? "page" : undefined}
             >
               <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold ${
+                className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 text-[11px] sm:text-xs font-semibold ${
                   isActive
                     ? "bg-primary text-primary-foreground"
                     : isDisabled
@@ -104,9 +104,9 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
                 }`}
               >
                 {isDisabled ? (
-                  <Lock className="w-3.5 h-3.5" />
+                  <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 ) : isCompleted && !isActive ? (
-                  <Check className="w-3.5 h-3.5" />
+                  <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 ) : (
                   <span>{tab.step}</span>
                 )}
@@ -114,9 +114,9 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1">
-                  <span className="text-xs font-medium truncate">{tab.title}</span>
+                  <span className="text-[11px] sm:text-xs font-medium truncate">{tab.title}</span>
                 </div>
-                <div className="text-[10px] text-muted-foreground truncate">{tab.subtitle}</div>
+                <div className="hidden sm:block text-[10px] text-muted-foreground truncate">{tab.subtitle}</div>
               </div>
             </button>
           );
@@ -129,12 +129,13 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
               size="sm"
               variant="outline"
               onClick={onSwitchToAdvanced}
-              className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted border-border rounded-lg flex items-center gap-1.5 transition-colors"
+              className="h-7 sm:h-8 px-2 sm:px-2.5 text-[11px] sm:text-xs text-muted-foreground hover:text-foreground hover:bg-muted border-border rounded-lg flex items-center gap-1 sm:gap-1.5 transition-colors shrink-0"
               data-testid="nav-switch-to-advanced"
               title="Switch to Advanced Studio (Full Controls)"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
-              <span className="hidden sm:inline">Advanced Studio</span>
+              <SlidersHorizontal className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+              <span className="hidden md:inline">Advanced Studio</span>
+              <span className="hidden sm:inline md:hidden">Advanced</span>
             </Button>
           </div>
         )}

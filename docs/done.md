@@ -1,5 +1,42 @@
 # Done tasks
 
+## Task 188: Focus Mode - Responsive Beginner Tab Navigation & Viewport Restraint
+
+### Summary:
+
+- **Raw Prompt & Version Updates (Subtask 188.1)**:
+  - Recorded user prompt verbatim in `AGENTS.md` under `## Last raw prompt`:
+    ```
+    element is not responsive or extend too much
+    Apply style changes to the selected element(s).
+    [AIS_METADATA_SECTION_START]
+    CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > nav:nth-of-type(1)
+    CSS 1: {
+
+    }
+    [AIS_METADATA_SECTION_END]
+    ```
+  - Bumped version from `1.0.101` to `1.0.102` (`versionCode = 10102`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, and `src/config/appConfig.ts`.
+- **Targeted Responsive Styling on Selected Element (Subtask 188.2)**:
+  - Targeted element `div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > nav:nth-of-type(1)` in `src/components/beginner/BeginnerTabNav.tsx`.
+  - Added strict screen bounds and viewport containment: `w-full max-w-full overflow-hidden` with backdrop blur and subtle shadow (`bg-card/95 backdrop-blur-xs border-b border-border px-2 py-1.5 sm:py-2 overflow-hidden shadow-2xs`).
+  - Adjusted inner flex container to `w-full max-w-4xl mx-auto flex items-center justify-between gap-1 sm:gap-2 overflow-x-auto scrollbar-none pb-0.5`.
+  - Replaced fixed `min-w-[120px]` with fluid responsive sizing `min-w-0 sm:min-w-[110px] md:min-w-[130px] max-w-[200px]` on tab buttons, preventing 4 tabs from extending beyond narrow mobile viewports.
+  - Replaced verbose mobile tab subtitle with responsive concealment `hidden sm:block text-[10px] text-muted-foreground truncate`, keeping mobile button heights uniform and compact.
+  - Made step numbers and icons compact on mobile (`w-6 h-6 sm:w-7 sm:h-7`, text `[11px] sm:text-xs`) with responsive text truncation.
+  - Formatted "Advanced Studio" switch button responsively (`h-7 sm:h-8`, text breakpoints `hidden md:inline` vs `hidden sm:inline md:hidden`).
+- **Dedicated Automated Verification & Build (Subtask 188.3)**:
+  - Created `scripts/verify-beginner-nav-responsive-styling.ts` asserting responsive classes, viewport containment, and version 1.0.102 sync across all 5 targets.
+  - Added `"test:beginner-nav-responsive"` script to `package.json` and registered in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:beginner-nav-responsive`: 100% PASS (2/2 suites passed).
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks passed in 25.5s).
+    - `npm run test:agents-size-budget`: 100% PASS (AGENTS.md size: 18,717 bytes with 5,859 bytes headroom).
+    - `lint_applet`: 0 errors.
+    - `compile_applet`: Production build succeeded.
+
+---
+
 ## Task 187: TTS Service Defaults & Play Speed, Parser Sentence Integrity, and GitHub Actions Fork APK Releases
 
 ### Summary:

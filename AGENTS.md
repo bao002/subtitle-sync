@@ -137,6 +137,8 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on
+light mode unlike dark mode - doesnt use multiple background colors
 ```
+
+
 
