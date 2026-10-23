@@ -137,7 +137,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-light mode unlike dark mode - doesnt use multiple background colors
+the video on beginner mode vs advance mode (use the right terminology!) - the beginner mode video is not functioning
 ```
 
 
