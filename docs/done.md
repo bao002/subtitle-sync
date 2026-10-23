@@ -1,5 +1,39 @@
 # Done tasks
 
+## Task 189: Fix Video Functionality in Beginner Mode vs Advanced Mode (Version 1.0.103)
+
+### Summary:
+
+- **Video Player Mount Lifecycle & ForceMount in BeginnerFlowContainer (Subtask 189.1)**:
+  - Added `forceMount={true}` to `AccordionContent` in `src/components/beginner/BeginnerFlowContainer.tsx` to ensure `playerSlot` and its inner DOM host container (`<div ref={handlePlayerRef} />`) mount in the DOM immediately upon initial render, preventing `init()` from aborting due to an unmounted DOM node while the accordion is folded by default.
+  - Added controlled `accordionValue` state and an automated effect that dynamically expands the accordion (`setAccordionValue("video-player")`) when playback starts (`isPlaying`) or when a video is submitted/loaded (`handleSubmitUrl`), ensuring the player is visible during playback while preserving default folded state compatibility.
+  - Connected `onSubmitUrl={handleSubmitUrl}` on `BeginnerVideoTab`.
+- **Dynamic Player Re-initialization & Re-cueing in src/routes/index.tsx (Subtask 189.1)**:
+  - Added `playerContainerNode` state and `handlePlayerRef` callback in `src/routes/index.tsx`, attached to both Beginner Mode (`playerSlot`) and Advanced Mode (`renderPlayerContainer`).
+  - Added `playerContainerNode` to the YouTube player initialization `useEffect` dependency array, guaranteeing that whenever the player container mounts or remounts in the DOM, `new window.YT.Player` is initialized reliably.
+  - Enhanced polling interval to dynamically initialize the YouTube Player if the DOM container and `window.YT.Player` are ready but `player.current` is not yet instantiated.
+  - Enhanced `handleSelectLibraryVideo` so that when loading or playing the same video ID (e.g., initial sample video `L2Ryrr6txwA`), the player re-cues and plays instead of returning early and doing nothing.
+- **Terminology Parity & Version 1.0.103 Synchronization (Subtask 189.2)**:
+  - Enforced correct proper terminology across the application: **Beginner Mode** and **Advanced Mode** (Advanced Studio), ensuring 100% parity and verified absence of improper "advance mode" terms.
+  - Bumped version to `1.0.103` (versionCode `10103`) across all 5 codebase targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, and `src/config/appConfig.ts`.
+- **Dedicated Automated Verification Suite & Audit Gate (Subtask 189.3)**:
+  - Created dedicated automated test suite `scripts/verify-beginner-vs-advanced-video.ts` validating:
+    1. Video player DOM mount node and YouTube Player initialization reliability in both Beginner Mode and Advanced Mode.
+    2. `forceMount={true}` and auto-expand on playback in `BeginnerFlowContainer.tsx`.
+    3. Proper terminology ("Beginner Mode" vs "Advanced Mode") across UI.
+    4. Version 1.0.103 synchronization across all 5 targets.
+  - Registered `"test:beginner-vs-advanced-video"` in `package.json` and documented in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:beginner-vs-advanced-video`: 100% PASS (4/4 test assertions passed).
+    - `npm run test:beginner-video-accordion`: 100% PASS.
+    - `npm run test:beginner-mode`: 100% PASS.
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks passed in 26.6s).
+    - `npm run test:agents-size-budget`: 100% PASS (18,571 bytes with 6,005 bytes headroom).
+    - `lint_applet`: 0 errors, 0 warnings.
+    - `compile_applet`: Production build succeeded.
+
+---
+
 ## Task 188: Focus Mode - Responsive Beginner Tab Navigation & Viewport Restraint
 
 ### Summary:

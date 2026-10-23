@@ -127,6 +127,20 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   // Video Library Modal
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
+  // Accordion open/folded state for Beginner video player
+  const [accordionValue, setAccordionValue] = useState<string>("");
+
+  useEffect(() => {
+    if (isPlaying) {
+      setAccordionValue("video-player");
+    }
+  }, [isPlaying]);
+
+  const handleSubmitUrl = (urlToLoad: string) => {
+    setAccordionValue("video-player");
+    onSubmitUrl(urlToLoad);
+  };
+
   // Sync state changes to localStorage
   const updateSettings = (partial: Partial<AppSettings>) => {
     setSettings((prev) => {
@@ -252,6 +266,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             type="single"
             collapsible
             defaultValue=""
+            value={accordionValue}
+            onValueChange={setAccordionValue}
             className="w-full border border-border rounded-xl bg-card shadow-sm overflow-hidden"
           >
             <AccordionItem value="video-player" className="border-b-0">
@@ -263,11 +279,15 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
                   <Tv className="h-4 w-4 text-primary" />
                   <span>Video Player</span>
                   <span className="text-[11px] font-normal text-muted-foreground">
-                    ({isPlaying ? "Playing" : "Folded / Click to open"})
+                    ({isPlaying ? "Playing" : accordionValue === "video-player" ? "Open" : "Folded / Click to open"})
                   </span>
                 </div>
               </AccordionTrigger>
-              <AccordionContent className="p-2 pt-0" data-testid="beginner-video-accordion-content">
+              <AccordionContent
+                forceMount={true}
+                className="p-2 pt-0"
+                data-testid="beginner-video-accordion-content"
+              >
                 <div
                   className="w-full rounded-lg overflow-hidden bg-black aspect-video border border-border shadow-sm relative"
                   data-testid="beginner-player-slot-container"
@@ -287,7 +307,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
           <BeginnerVideoTab
             url={url}
             onUrlChange={onUrlChange}
-            onSubmitUrl={onSubmitUrl}
+            onSubmitUrl={handleSubmitUrl}
             videoId={videoId}
             onOpenLibrary={() => setIsLibraryOpen(true)}
             observedUrl={observedUrl}

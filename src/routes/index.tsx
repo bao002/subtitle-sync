@@ -1894,7 +1894,21 @@ function Index() {
   }, [videoId]);
 
   const handleSelectLibraryVideo = (newId: string, customUrl?: string) => {
-    if (!newId || newId === videoId) return;
+    if (!newId) return;
+    if (newId === videoId) {
+      try {
+        if (typeof player.current?.loadVideoById === "function") {
+          player.current.loadVideoById(newId);
+          setIsVideoPlaying(true);
+        } else if (typeof player.current?.playVideo === "function") {
+          player.current.playVideo();
+          setIsVideoPlaying(true);
+        }
+      } catch {
+        // ignore
+      }
+      return;
+    }
     cancelSpeech();
     setTracks(null);
     setObservedUrl("");
@@ -2961,6 +2975,11 @@ function Index() {
   };
 
   const playerEl = useRef<HTMLDivElement>(null);
+  const [playerContainerNode, setPlayerContainerNode] = useState<HTMLDivElement | null>(null);
+  const handlePlayerRef = useCallback((el: HTMLDivElement | null) => {
+    (playerEl as React.MutableRefObject<HTMLDivElement | null>).current = el;
+    setPlayerContainerNode(el);
+  }, []);
   const player = useRef<YTPlayer | null>(null);
   const busy = useRef(false);
   const lastRow = useRef(-1);
@@ -3137,12 +3156,25 @@ function Index() {
   useEffect(() => {
     const init = () => {
       if (!playerEl.current) return;
-      // Fresh host node per init so the YouTube API (which replaces its node) never touches the ref
+      if (player.current && typeof player.current.getPlayerState === "function") {
+        try {
+          const curVid = player.current.getVideoData?.()?.video_id;
+          if (curVid === videoId) {
+            return;
+          }
+          if (typeof player.current.loadVideoById === "function") {
+            player.current.loadVideoById(videoId);
+            return;
+          }
+        } catch {
+          // ignore error and re-init
+        }
+      }
       playerEl.current.innerHTML = "";
       const host = document.createElement("div");
       host.className = "h-full w-full";
       playerEl.current.appendChild(host);
-      if (!window.YT) return;
+      if (!window.YT?.Player) return;
       player.current = new window.YT.Player(host, {
         videoId,
         playerVars: {
@@ -3182,14 +3214,20 @@ function Index() {
         multiVideoPlayerRegistry.register("primary", player.current);
       }
     };
-    if (window.YT?.Player) init();
-    else {
+    if (window.YT?.Player) {
+      init();
+    } else {
       window.onYouTubeIframeAPIReady = init;
-      const s = document.createElement("script");
-      s.src = "https://www.youtube.com/iframe_api";
-      document.body.appendChild(s);
+      if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+        const s = document.createElement("script");
+        s.src = "https://www.youtube.com/iframe_api";
+        document.body.appendChild(s);
+      }
     }
     const iv = setInterval(async () => {
+      if (!player.current && playerEl.current && window.YT?.Player) {
+        init();
+      }
       const p = player.current;
       if (!p?.getCurrentTime || busy.current || st.current.isSetupPaused) return;
       if (activeTopTabRef.current === "playground") return;
@@ -3404,7 +3442,7 @@ function Index() {
       player.current?.destroy?.();
       player.current = null;
     };
-  }, [videoId, isAndroid, workflowMode]);
+  }, [videoId, isAndroid, workflowMode, playerContainerNode]);
 
   // Mount and manage dedicated video player instances for each language with speak/audio enabled
   useEffect(() => {
@@ -4015,7 +4053,7 @@ function Index() {
               onMouseEnter={() => setIsPlayerHovered(true)}
               onMouseLeave={() => setIsPlayerHovered(false)}
             >
-              <div ref={playerEl} className="h-full w-full" />
+              <div ref={handlePlayerRef} className="h-full w-full" />
               <div
                 data-testid="video-overlay-play-pause-container"
                 className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
@@ -4378,7 +4416,7 @@ function Index() {
                                     onMouseEnter={() => setIsPlayerHovered(true)}
                                     onMouseLeave={() => setIsPlayerHovered(false)}
                                   >
-                                    <div ref={playerEl} className="h-full w-full" />
+                                    <div ref={handlePlayerRef} className="h-full w-full" />
                                     {/* Overlay Play/Pause Button over video (prominent on pause/stop and hover/tap) */}
                                     <div
                                       data-testid="video-overlay-play-pause-container"
