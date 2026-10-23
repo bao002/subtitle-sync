@@ -374,7 +374,7 @@ function speak(
       const altTtsMode = typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only";
       // Use the native speech rate setting directly (no separate extra speed rate)
       const altSpeed = normalizedRate;
-      const altProvider = typeof window !== "undefined" ? getLovableTtsProvider() : "lovable";
+      const altProvider = typeof window !== "undefined" ? getLovableTtsProvider() : "google";
       const altVoice = typeof window !== "undefined" ? getLovableTtsVoice() : "Kore";
 
       // 1. If alternative TTS service is enabled as preferred / always, speak with it directly
@@ -685,7 +685,7 @@ function Index() {
         // ignore storage error
       }
     }
-    // By default check all options (combine all categories: syntax, timing, alignment)
+    // Default to the best criteria to avoid cutting sentences in the middle
     return DEFAULT_PARSER_CRITERIA;
   });
 
@@ -886,7 +886,7 @@ function Index() {
     typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only",
   );
   const [lovableTtsProviderState, setLovableTtsProviderState] = useState<LovableTtsProvider>(() =>
-    typeof window !== "undefined" ? getLovableTtsProvider() : "lovable",
+    typeof window !== "undefined" ? getLovableTtsProvider() : "google",
   );
   const [lovableTtsVoiceState, setLovableTtsVoiceState] = useState<string>(() =>
     typeof window !== "undefined" ? getLovableTtsVoice() : "Kore",

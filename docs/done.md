@@ -1,5 +1,46 @@
 # Done tasks
 
+## Task 187: TTS Service Defaults & Play Speed, Parser Sentence Integrity, and GitHub Actions Fork APK Releases
+
+### Summary:
+
+- **Raw Prompt & Version Updates (Subtask 187.6)**:
+  - Recorded user prompt verbatim in `AGENTS.md` under `## Last raw prompt`:
+    1. tts service - set default to google provider
+    2. tts service - in case result is an audio file - apply play speed based on the tts rate settings (keep it in the original place and ensure not to duplicate that control).
+    3. parser - default to the best settings in order not to cut a sentence in the middle
+    4. currently the github actions are not producing a newer apk (the github release page doesnt upgraded with the latest version.
+    5. each github fork should generate the same apk version (it should be based on the package.json release)
+  - Bumped version from `1.0.100` to `1.0.101` (`versionCode = 10101`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, and `src/config/appConfig.ts`.
+- **TTS Service Default to Google Provider (Subtask 187.1)**:
+  - Updated `getLovableTtsProvider` and `setLovableTtsProvider` default fallback in `src/lib/alternative-tts.ts` from `"lovable"` to `"google"`.
+  - Updated default state in `src/routes/index.tsx` (`altProvider = "google"` in `speak()` and `lovableTtsProviderState = "google"`).
+  - Updated default state in `src/components/beginner/tabs/BeginnerPreferencesTab.tsx` (`lovableTtsProviderState = "google"`).
+- **TTS Audio Playback Speed Based on TTS Rate Settings (Subtask 187.2)**:
+  - In `playAlternativeTtsAudio` (`src/lib/alternative-tts.ts`), calculated `effectivePlaybackRate` based on passed `rate` parameter (constrained to `[0.25, 4.0]`).
+  - Applied `audio.playbackRate = effectivePlaybackRate` directly and bound to `loadedmetadata` and `canplay` events to ensure audio speed persists across browser stream/blob resets.
+  - Removed previous constraint that forced `playbackRate = 1.0` on lovable audio blobs or URLs.
+  - Kept TTS rate control in its single original place in the settings panel with no duplicated controls.
+- **Parser Default Settings for Complete Sentences (Subtask 187.3)**:
+  - Set `DEFAULT_PARSER_CRITERIA` in `src/lib/subtitles.ts` to `["sentence"]` (avoiding arbitrary time window slicing or mid-sentence cue cuts).
+  - Configured `fromCuts` fallback `maxMs = 60000` when `window` criterion is not active, preventing long sentences from being divided into arbitrary intervals.
+  - Updated `beginnerPunctuationChars` in `src/components/beginner/BeginnerFlowContainer.tsx` and `src/utils/appSettings.ts` to terminal punctuation marks only (`[".", "!", "?", "…", "؟"]`), removing commas, semicolons, and colons that cut sentences in the middle.
+- **GitHub Actions Release APK Workflow & Fork Uniformity (Subtasks 187.4 & 187.5)**:
+  - In `.github/workflows/release-apk.yml`, adjusted job and assembleDebug timeouts (30m job, 20m assemble) preventing runner cancellation.
+  - Added `make_latest: "true"` and `target_commitish: ${{ github.sha }}` to `softprops/action-gh-release@v2` step so GitHub Releases properly updates the release page to the newest version.
+  - Derived uniform release tag `v${BASE}` and title `YouTube Viewer v${BASE}` directly from `package.json` release version, guaranteeing all GitHub forks build identical APK releases for the same codebase version.
+- **Dedicated Automated Verification & Build**:
+  - Created `scripts/verify-tts-parser-and-fork-apk-release.ts` asserting all 5 requirements across core libs, UI components, parser routines, and workflow definitions.
+  - Added `"test:tts-parser-fork-apk"` script to `package.json` and registered in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:tts-parser-fork-apk`: 100% PASS (5/5 checks passed).
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks passed).
+    - `npm run test:agents-size-budget`: 100% PASS (AGENTS.md size: 18,992 bytes with 5,584 bytes headroom).
+    - `lint_applet`: 0 errors.
+    - `compile_applet`: Production build succeeded.
+
+---
+
 ## Task 186: Focus Mode - Hide Redundant Mode Switcher Header via Targeted Styling
 
 ### Summary:
