@@ -137,11 +137,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. use that diff in order to re-implement basic & shortest url sharing with constant base url:
-https://github.com/mostuf2556/subtitle-sync/commit/168864b83a31b843911ac00e12bc47e3834645ce
-
-2. use that diff in order to implement a version bump to 2.*.*.: 
-https://github.com/mostuf2556/subtitle-sync/commit/8ca73f52e9c6266ed1131f06d22340994b4fccbb
+pausing the android application - should have pause both video and tts-play
 ```
 
 
