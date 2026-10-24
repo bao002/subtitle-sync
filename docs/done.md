@@ -1,5 +1,11 @@
 # Done tasks
 
+## Task 213: Reconcile and publish committed worktree changes
+
+- Confirmed the worktree and index had no pre-existing uncommitted changes; reviewed the nine commits ahead of `origin/main`.
+- Attempted `git push origin main`; the push was blocked because Git could not obtain the required password. No source files were changed for this task.
+- Verification: `git status --short --untracked-files=all` was clean before task-tracker updates; `git diff --check` passed. Git push remains blocked pending configured credentials.
+
 ### Hotfix: Synchronize caption-presentation verifier with current app versions
 
 - Replaced the verifier's stale 1.0.51/1.0.52 hard-coded check with a valid three-part version assertion, retaining synchronization checks across all five version targets.

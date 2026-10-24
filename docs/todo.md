@@ -1,5 +1,5 @@
 # Active Task Mirror (`docs/todo.md`)
 
 - **Active**: None.
-- **Status**: COMPLETED.
-- **Next**: Current prompt work is archived and the worktree is clean. Push was attempted but Git credentials are unavailable; Android-platform validation remains in the later backlog.
+- **Status**: COMPLETED WITH PUSH BLOCKED.
+- **Next**: Retry publishing after Git credentials are configured. Android-platform validation remains in the later backlog.

@@ -1,5 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Active Subtask**: None.
-- **Status**: COMPLETED.
-- **Next**: All work is committed and archived; the push was attempted but blocked by missing Git credentials. The worktree is clean, and only the separate Android-platform validation task remains in the later backlog.
+- **Status**: COMPLETED WITH PUSH BLOCKED.
+- **Completed**: Confirmed there were no pre-existing uncommitted changes and reviewed the nine committed changes ahead of `origin/main`. Attempted `git push origin main`; Git could not obtain the required password.
+- **Next**: Retry publishing after Git credentials are configured. Android-platform validation remains in the later backlog.

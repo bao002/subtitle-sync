@@ -145,11 +145,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-mv group of elements where they belong:
-sizing the subtitles should be located beside the video element. another relevant control would be the show-subtitles-overlay:boolean (currently located on the settings element )
-#root > div > div.w-full.min-h-screen.bg-background.text-foreground.flex.flex-col > main > div > div:nth-child(5)
-
-always use a time-window of 5 seconds to fold an accordion back unless the user clicked on the pin-icon of the accordion.
-
-on beginner mode - on the first tab the user should choose a default language -> deprecate it -> move to deprecated.md
+it seems that there are uncommited changes. accomplish that task commit and push
 ```
