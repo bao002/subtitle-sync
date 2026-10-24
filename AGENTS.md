@@ -143,7 +143,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-create video screencast of the web-demo application running a shared linked which built upon the following subtitles and a target_lang=italian
+but the app should be able to load the video based upon pasting a subtitles link.
 
-[signed timedtext URL redacted from persistent prompt log]
+therefor try to show both the video element as it does now but also the subtitles-table and show how changing the parser settings update the text on the subtitles-table view
 ```

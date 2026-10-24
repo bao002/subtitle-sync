@@ -5211,3 +5211,10 @@
 - The focused Docker E2E advanced past the panel/iframe assertions, loaded 126 authentic Hebrew subtitle sections, and produced non-empty Italian translations. The full test remained blocked at playback: YouTube showed “Sign in to confirm you're not a bot,” and no authentic video playback was recorded.
 - Validation: focused Docker web E2E (`PLAYWRIGHT_VIDEO=on`, `--grep 'shared subtitles link'`, `--retries=0`; partial, blocked by YouTube challenge), `npm run build` (passed), `npm run lint` (passed), and `git diff --check` (passed).
 - Task 234 remains in `docs/tasks.md` under Later Tasks until authentic playback is available; the diagnostic Playwright WebM is not represented as a successful screencast.
+
+### Task 235: Demonstrate shared captions and parser updates
+
+- Updated `e2e/web.spec.ts` so the shared-link E2E keeps the YouTube video element and parallel subtitles panel visible together in the recorded viewport.
+- The test verifies the authentic timedtext request, non-empty Hebrew captions, non-empty Italian translation, and a live table update after unchecking “Split on dot”; row count changes from 126 to 7.
+- Captured a successful 1440×1800 Docker Playwright screencast at `docker/artifacts/test-results/web-shared-subtitles-link--cc864-ble-and-live-parser-updates-web/video.webm` (509,011 bytes) and screenshot at `.../test-finished-1.png` (669,597 bytes). The iframe displays the video's thumbnail; actual video playback is not claimed.
+- Verification passed: focused Docker web E2E (`PLAYWRIGHT_VIDEO=on`, `--grep 'shared subtitles link'`, `--retries=0`), `npm run test:parser-live-updates`, `npm run build`, `npm run lint`, `npm run test:agents-last-prompt-rule`, `npm run test:md`, and `git diff --check`.

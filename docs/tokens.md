@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: None. Task 234 remains in the later backlog pending an E2E runtime where authentic YouTube playback is accessible. Active and later work remains tracked in `docs/tasks.md`.
+Current active workstream: None. Task 235 completed: Docker web E2E demonstrates the shared video element, subtitles table, and live parser update. Task 234 remains later because actual YouTube playback has not been verified. Active and later work remains tracked in `docs/tasks.md`.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 
