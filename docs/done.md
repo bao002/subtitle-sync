@@ -1,5 +1,12 @@
 # Done tasks
 
+## Task 232: Capture shared-subtitle E2E screencast
+
+- Added the opt-in `PLAYWRIGHT_VIDEO=on` setting to the Playwright configuration and Docker Compose environment; video remains off by default. Documented the command in `docs/docker-e2e.md`.
+- Ran `PLAYWRIGHT_VIDEO=on ./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0`; the shared subtitle playback test passed.
+- Verified Playwright produced a non-empty WebM recording (`303,979` bytes) in ignored `docker/artifacts/test-results/`. Registered the recording as a downloadable session artifact.
+- Verification: focused Docker E2E, `npx prettier --check playwright.config.ts docker/compose.yml docs/docker-e2e.md`, `npx eslint playwright.config.ts`, `docker compose --project-directory . -f docker/compose.yml config --quiet`, and `git diff --check` passed.
+
 ## Task 231: Verify shared subtitle link playback and language alternation (Version 2.0.16)
 
 - Added a web E2E that restores a shared link for video `WJlWKB8qrf0`, verifies the default Hebrew track and Italian translation, then observes the overlay alternate Hebrew → Italian → Hebrew while the video plays and resumes after speech.

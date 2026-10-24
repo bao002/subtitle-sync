@@ -13,6 +13,13 @@ From the project root:
 ./docker/manage.sh e2e all
 ```
 
+Video recording is off by default. To capture Playwright screencasts in
+`docker/artifacts/test-results/`, set `PLAYWRIGHT_VIDEO=on` for a run:
+
+```bash
+PLAYWRIGHT_VIDEO=on ./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0
+```
+
 The web suite starts Vite inside the container. The emulation suite runs the
 Playwright emulation project; it does not require a physical Android device.
 
