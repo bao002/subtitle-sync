@@ -147,3 +147,25 @@ The following optimization steps are ordered hierarchically by urgency (speed of
 1. **Automated Budget Guard**: Run `npm run test:agents-size-budget` on every turn that edits `AGENTS.md`. The file size must remain strictly <= 21,000 bytes with >= 3,576 bytes of headroom.
 2. **Unified Contract Verification**: Run `npm run test:agents-all` before completing any prompt that alters rules or documentation contracts.
 3. **Docs Hygiene**: Place all supporting analysis under `docs/*.md` and never duplicate files in the root directory.
+
+---
+
+## 5. Current Backlog Reconciliation (Updated)
+
+The current workstream has been rebalanced around the verified subtitle-language integrity fixes already present in the codebase and the need to keep the task ledger honest.
+
+### Status snapshot
+
+- **Task 194 (setBaseLanguage / type integrity)**: The fix is already represented in the live tree (`src/routes/index.tsx` defines the base-language callback, preserves fallback ordering, and guards `loadVideoById` use); the backlog should treat this as resolved in the current worktree rather than leaving it in a stale HOLD state.
+- **Task 197–206**: Confirmed as implemented and archived in [`docs/done.md`](done.md), including subtitle-column isolation, Hebrew alias normalization, default-track TTS exclusion, translation badges, angle-bracket cleanup, expert-mode UX improvements, and resumable-agent tracker fixes.
+- **Task 196**: Still a later platform validation item and should remain in the future/backlog lane until Android validation is actually completed.
+
+### Recommended backlog policy
+
+1. **Do not leave resolved fixes as active HOLD items**: If the fix is already in the live code and validated by the dedicated verifier, move it out of the active backlog and into the archive.
+2. **Keep `docs/tasks.md` as a live next-step ledger only**: Pending work belongs there; previously completed work should be absent from the active backlog and documented in `docs/done.md`.
+3. **Use `docs/suggestions.md` as the policy/decision record**: This file should capture the reason for backlog changes and the status of tasks that are verified, blocked, or intentionally deferred.
+
+### Implementation note for the next pass
+
+The user prompt and the current task ledger both point toward continuing from the verified subtitle-language work rather than re-opening stale task states. The next active work should focus on honest backlog reconciliation, targeted verification, and only then moving into genuinely new feature work.

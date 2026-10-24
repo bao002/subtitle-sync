@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: continue the expert-mode UX cleanup and reflow for Tasks 202-205 (inline parser review, favorite-language visibility placement, separated language selection and settings, and in-place per-language editing).
+Current active workstream: reconcile the backlog with the verified subtitle-language integrity fixes and continue from the current live task state, while keeping the instruction set lean and the task trackers synchronized with the worktree.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 

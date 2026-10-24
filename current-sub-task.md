@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: None.
-- **Status**: IDLE.
-- **Next**: Task 194 is on hold; later platform validation is listed in `docs/tasks.md`.
+- **Active Subtask**: Task 207.1 - refresh `docs/suggestions.md` and align backlog state with verified subtitle fixes.
+- **Status**: ACTIVE.
+- **Next**: Update the suggestions doc, reconcile the tracker mirrors, run the targeted verification script, and then commit/push the backlog sync.
