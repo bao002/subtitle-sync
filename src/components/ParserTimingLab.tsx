@@ -124,7 +124,7 @@ export function ParserTimingLab({
   // 1. Calculate Pure Punctuation baseline (only sentence punctuation)
   const punctuationBaselineSections = useMemo(() => {
     return criteriaSections(activeTracks, activeLang, ["sentence"], {
-      sentence: { includeCommas: false, minWords: 1, splitIntraCue: false },
+      sentence: { includeCommas: false, minWords: 1, splitIntraCue: true },
     });
   }, [activeTracks, activeLang]);
 

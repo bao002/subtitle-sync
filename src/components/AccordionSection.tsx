@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, Pin, PinOff } from "lucide-react";
+import { ChevronDown, ChevronUp, Columns2, Pin, PinOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type PanelId, ACCORDION_THEMES } from "@/config/accordionThemes";
 
@@ -17,6 +17,7 @@ export interface AccordionSectionProps {
   canMoveUp: boolean;
   canMoveDown: boolean;
   wide?: boolean;
+  onToggleWide?: () => void;
 }
 
 export function AccordionSection({
@@ -31,6 +32,7 @@ export function AccordionSection({
   canMoveUp,
   canMoveDown,
   wide = false,
+  onToggleWide,
 }: AccordionSectionProps) {
   const theme = ACCORDION_THEMES[id] || {
     borderLeft: "border-l-4 border-l-neutral-500",
@@ -113,6 +115,22 @@ export function AccordionSection({
         >
           {pinned ? <Pin aria-hidden="true" /> : <PinOff aria-hidden="true" />}
         </Button>
+        {onToggleWide && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            data-testid={`accordion-width-${id}`}
+            aria-label={wide ? `Set ${title} to half width` : `Set ${title} to full width`}
+            title={wide ? "Set to half width" : "Set to full width"}
+            onClick={(event) => {
+              event.preventDefault();
+              onToggleWide();
+            }}
+          >
+            <Columns2 aria-hidden="true" />
+          </Button>
+        )}
         <Button
           type="button"
           variant="ghost"

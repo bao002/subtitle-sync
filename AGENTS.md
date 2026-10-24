@@ -46,6 +46,7 @@ The application processes and presents subtitles through a strict sequential pip
 
 - **New chat window for each sub-task**: Every distinct sub-task must start in a fresh chat window or isolated follow-up turn. Keep each sub-task scoped, resumable, and independent so state is not mixed with unrelated work or previous task context.
 - **Resume after interruption**: At the start of a resumed session, read this section and `current-sub-task.md`, then `docs/todo.md` and the active entries in `docs/tasks.md`. The active sub-task and its recorded next action are the source of truth for where to continue; do not start a different backlog item just because the prior chat is unavailable.
+- **Fresh-chat recommendation for uncommitted work**: Before advising whether to continue or start a new chat, inspect `git status --short`, the relevant diffs, and the active task notes. Recommend continuing in the current chat and replying **“go on”** when the changes form one coherent task, validation is passing, and the next action is clear. Recommend a fresh chat when the uncommitted work spans unrelated tasks, validation or scope is uncertain, or context is too large to safely continue; point the user to `current-sub-task.md` for resumption. State the recommendation and evidence plainly; never imply the work is committed or complete when it is not.
 - Before editing, inspect `git status --short` and the diffs for files named by the active sub-task. Treat uncommitted and untracked work as potentially valuable in-progress work: preserve it, understand it, and never reset, overwrite, or commit unrelated changes.
 - Reconcile the trackers with the worktree. If they disagree, use the task notes and actual diffs to establish what is done, what remains, required tests/build/lint, and any blocker; update `current-sub-task.md` and `docs/todo.md` with a concrete next action before proceeding. Record uncertainty rather than guessing or repeating work.
 - Do not resume a task already recorded as complete in `docs/done.md`; reconcile stale backlog or mirror entries against its verification record before selecting the next task.
@@ -145,5 +146,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-it seems that there are uncommited changes. accomplish that task commit and push
+checkout regarding working with android to produce e2e screencast:
+https://github.com/ReactiveCircus/android-emulator-runner
 ```

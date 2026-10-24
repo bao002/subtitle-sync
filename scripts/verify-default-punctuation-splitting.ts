@@ -99,8 +99,10 @@ const trackWithIntraCueSentences: Record<string, Json3> = {
   },
 };
 
-// Default sentence splitting without intra-cue cutting:
-const cueBoundarySections = criteriaSections(trackWithIntraCueSentences, "en", ["sentence"]);
+// Sentence splitting can be disabled for intra-cue text while retaining cue-boundary cuts.
+const cueBoundarySections = criteriaSections(trackWithIntraCueSentences, "en", ["sentence"], {
+  sentence: { splitIntraCue: false },
+});
 assert(
   cueBoundarySections.length === 2,
   `Expected default sentence splitting at cue boundary (2 cues), got ${cueBoundarySections.length}`,
@@ -128,12 +130,101 @@ console.log(
   "✅ PASS: Intra-cue segment punctuation splitting correctly cuts at word token boundary (3500ms)",
 );
 
-// 4. Test default criteria when no criteria specified (pure sentence)
-console.log("4. Testing default criteria in align and criteriaSections...");
+// Unsegmented JSON3 events are split on punctuation using linear time interpolation.
+const unsegmentedTrack: Record<string, Json3> = {
+  en: {
+    events: [
+      {
+        tStartMs: 1000,
+        dDurationMs: 6000,
+        segs: [{ utf8: "First sentence. Second sentence." }],
+      },
+    ],
+  },
+};
+const unsegmentedSections = criteriaSections(unsegmentedTrack, "en", ["sentence"], {
+  sentence: { splitIntraCue: true },
+});
+assert(
+  unsegmentedSections.length === 2,
+  `Expected an unsegmented two-sentence cue to split into two sections, got ${unsegmentedSections.length}`,
+);
+const interpolatedCut = unsegmentedSections[0]!.end;
+assert(
+  interpolatedCut > 1000 && interpolatedCut < 7000,
+  `Expected an interpolated cut within the cue duration, got ${interpolatedCut}`,
+);
+
+const abbreviationTrack: Record<string, Json3> = {
+  en: {
+    events: [
+      {
+        tStartMs: 0,
+        dDurationMs: 6000,
+        segs: [{ utf8: "We met Dr. Smith. Then left." }],
+      },
+    ],
+  },
+};
+const abbreviationSections = criteriaSections(abbreviationTrack, "en", ["sentence"], {
+  sentence: { splitIntraCue: true },
+});
+assert(
+  abbreviationSections.length === 2,
+  `Expected abbreviation protection to keep 'Dr.' within the first sentence, got ${abbreviationSections.length} sections`,
+);
+const disabledIntraCueSections = criteriaSections(unsegmentedTrack, "en", ["sentence"], {
+  sentence: { splitIntraCue: false },
+});
+assert(
+  disabledIntraCueSections.length === 1,
+  "The intra-cue checkbox must disable punctuation cuts within one event",
+);
+
+const shortSentenceTrack: Record<string, Json3> = {
+  en: {
+    events: [
+      {
+        tStartMs: 0,
+        dDurationMs: 1200,
+        segs: [{ utf8: "Go. Go. Go." }],
+      },
+    ],
+  },
+};
+assert(
+  criteriaSections(shortSentenceTrack, "en", ["sentence"], {
+    sentence: { splitIntraCue: true },
+  }).length === 3,
+  "Pure punctuation mode must not suppress short sentence boundaries with a minimum-duration clamp",
+);
+const unpunctuatedLongTrack: Record<string, Json3> = {
+  en: {
+    events: [
+      {
+        tStartMs: 0,
+        dDurationMs: 90000,
+        segs: [{ utf8: "A long subtitle without any terminal punctuation" }],
+      },
+    ],
+  },
+};
+assert(
+  criteriaSections(unpunctuatedLongTrack, "en", ["sentence"], {
+    sentence: { splitIntraCue: true },
+  }).length === 1,
+  "Pure punctuation mode must not introduce time-window cuts without punctuation",
+);
+console.log(
+  "✅ PASS: Single-segment punctuation splits, abbreviation protection, and checkbox control",
+);
+
+// 4. An explicitly empty criterion list disables criteria; omitted options retain the default.
+console.log("4. Testing empty and omitted criteria behavior...");
 const defaultSections = criteriaSections(trackWithIntraCueSentences, "en", []);
 assert(
-  defaultSections.length === cueBoundarySections.length,
-  "Default criteriaSections should match ['sentence'] criteria",
+  defaultSections.length === 1,
+  "An explicitly empty criteria list must not apply implicit sentence cuts",
 );
 
 const defaultAlign = align(trackWithIntraCueSentences, "en");
@@ -143,9 +234,11 @@ assert(
 );
 assert(
   defaultAlign.length === cueBoundarySections.length,
-  `align() default should produce same row count as ['sentence'] (${defaultAlign.length} vs ${cueBoundarySections.length})`,
+  `align() default should preserve default sentence-only cue behavior (${defaultAlign.length} vs ${cueBoundarySections.length})`,
 );
-console.log("✅ PASS: Default criteria is pure sentence punctuation");
+console.log(
+  "✅ PASS: Explicitly empty criteria disable splitting; omitted criteria default to sentence punctuation",
+);
 
 // 5. Test PARSER_PRESETS default order
 assert(
@@ -156,6 +249,10 @@ assert.deepStrictEqual(
   PARSER_PRESETS[0]!.criteria,
   ["sentence"],
   "First preset should configure ['sentence']",
+);
+assert(
+  PARSER_PRESETS[0]!.desc.includes("inside cues"),
+  "Pure Sentences preset should identify intra-cue punctuation splitting",
 );
 console.log("✅ PASS: PARSER_PRESETS lists 'sentencesOnly' as default primary preset");
 
@@ -168,6 +265,15 @@ assert(
   indexContent.includes("return DEFAULT_PARSER_CRITERIA;") ||
     indexContent.includes('return ["sentence"];'),
   "src/routes/index.tsx must default selectedCriteria state to DEFAULT_PARSER_CRITERIA or ['sentence']",
+);
+assert(
+  indexContent.includes('presetId === "sentencesOnly"') &&
+    indexContent.includes("splitIntraCue: true"),
+  "Pure Sentences preset must enable intra-cue punctuation parsing",
+);
+assert(
+  indexContent.includes("toggle-parser-criterion-"),
+  "Each parser criterion checkbox must have a stable test identifier",
 );
 console.log("✅ PASS: src/routes/index.tsx initializes selectedCriteria properly");
 

@@ -1,6 +1,8 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: None.
-- **Status**: COMPLETED WITH PUSH BLOCKED.
-- **Completed**: Confirmed there were no pre-existing uncommitted changes and reviewed the nine committed changes ahead of `origin/main`. Attempted `git push origin main`; Git could not obtain the required password.
-- **Next**: Retry publishing after Git credentials are configured. Android-platform validation remains in the later backlog.
+# Current Subtask (`current-sub-task.md`)
+
+- **No active subtask**.
+- **Completed**: Task 220 — aligned Android CI screencast recording and timeout behavior with the emulator runner; committed as `7b3fd93`.
+- **Verification**: `npm run test:emulator-screencast-report`, `npm run test:workflows`, `npm run test:android-emulator-docs-evidence`, `npm run test:agents-last-prompt-rule`, `npm run test:doc-contracts`, Prettier checks, and `git diff --check` passed.
+- **Push/runtime follow-up**: `git push origin main` was attempted but blocked because Git credentials are unavailable. API 34 runtime validation remains Task 221; the pending commit must first be integrated with the newer remote README-only commit without overwriting `README.md`.

@@ -1,5 +1,57 @@
 # Done tasks
 
+## Task 220: Correct Android emulator screencast workflow
+
+- Confirmed [`ReactiveCircus/android-emulator-runner`](https://github.com/ReactiveCircus/android-emulator-runner) provisions and boots the configured emulator and runs the supplied script; ADB in the workflow performs the actual screen recording. Upstream guidance recommends Ubuntu larger runners with KVM when available.
+- Updated `.github/workflows/emulation.yml` to finalize `screenrecord` with SIGINT on exit or termination, pull the authentic MP4, fail if it is missing or empty, and remove the still-image-to-video fallback.
+- Raised the emulator boot timeout to the action's documented 600-second default, the emulator step timeout to 15 minutes, and the overall job timeout to 20 minutes. Run 44 (`a6b45db`) failed before the E2E script because the old 300-second boot timeout was exceeded.
+- Updated `docs/android.md` and strengthened `scripts/verify-emulator-screencast-report.ts` for the recording lifecycle, required video, and timeout configuration.
+- Verification: `npm run test:emulator-screencast-report`, `npm run test:workflows`, `npm run test:android-emulator-docs-evidence`, `npm run test:agents-last-prompt-rule`, `npm run test:doc-contracts`, Prettier checks, and `git diff --check` passed.
+- Implementation commit: `7b3fd93`. A `git push origin main` attempt was blocked because Git credentials are unavailable. Runtime validation remains deferred as Task 221 because this Codespace has no `adb` or authenticated Actions access. Remote `main` advanced by a GitHub Actions README-only commit; the README was not copied or overwritten.
+
+## Task 219: Commit remaining Task 217 scratchpad change
+
+- Updated the stale scratchpad to record Task 217's completion and its version-sync/parser implementation commits.
+- Committed the only remaining uncommitted file together with this prompt's tracking updates, leaving no task-related changes uncommitted.
+- Verification: `git diff --check` passed; final repository status was clean.
+
+## Task 217: Support punctuation-only subtitle splitting
+
+- Added punctuation-only sentence splitting for a single subtitle cue by detecting terminal punctuation with linear time interpolation, while preserving the `splitIntraCue` checkbox and abbreviation/decimal guards.
+- Covered the default punctuation flow with dedicated regression checks for periods, abbreviations, disabled intra-cue splitting, and default sentence-only preset behavior.
+- Corrected Advanced parser criterion toggles so unchecking the last criterion disables parsing cuts instead of silently retaining sentence cuts; selecting the Pure Sentences preset enables intra-cue splitting.
+- Documented intra-cue timing interpolation and the explicit-empty-criteria behavior in `docs/parser.md`.
+- Synchronized the app and Android version metadata to `2.0.11` (`versionCode = 20011`) across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- Verification: `npx tsx scripts/verify-default-punctuation-splitting.ts`, `npx tsx scripts/verify-accumulative-parser.ts`, `npx tsx scripts/verify-v2-version-bump.ts`, `npx eslint src/lib/subtitles.ts src/routes/index.tsx src/components/ParserTimingLab.tsx scripts/verify-default-punctuation-splitting.ts scripts/verify-accumulative-parser.ts`, `npm run lint`, `npm run build`, and `git diff --check` all passed.
+- Version synchronization checkpoint: `36961ce`. Parser implementation and regression tests are committed in the accompanying implementation checkpoint.
+
+## Task 215: Quarantine unfinished accordion width toggle
+
+- Removed the interrupted, uncommitted width-toggle additions from `src/components/AccordionSection.tsx` and `src/routes/index.tsx` without changing unrelated files.
+- Deferred Task 214 to the later backlog in `docs/tasks.md` and `docs/later.md`, per user request.
+- Verification: inspected the focused source diff and confirmed it is empty; no runtime test was applicable because the incomplete feature was removed before activation.
+
+## Task 214: Toggle parallel subtitles accordion width
+
+- Reintroduced the web-demo width control per the user's explicit follow-up request. The Parallel subtitles accordion still defaults to full width and can switch to the existing half-width column and back through an accessible header button.
+- Added `scripts/verify-subtitles-table-width-toggle.ts`, registered `npm run test:subtitles-table-width-toggle`, and updated `docs/files.md`.
+- Verification: focused verifier, focused ESLint, `npm run lint`, `npm run build`, and `git diff --check` passed.
+- Commit: `fd0a95b`. Push attempted; blocked because Git credentials are unavailable.
+- This implementation supersedes the Task 215 removal/defer entry above; unrelated Task 217 parser edits remain uncommitted and preserved.
+
+## Task 218: Document fresh-chat recommendation guidance
+
+- Added an AGENTS.md rule requiring recommendations to be based on active task scope, worktree diffs, and validation state; clarified when to suggest replying “go on” in the current chat versus opening a fresh chat.
+- Preserved the exact latest user prompt in the Last raw prompt section.
+- Verification: documentation review and `git diff --check`.
+
+## Task 216: Repair parser option checkbox behavior
+
+- Allowed the last active Advanced parser criterion to be unchecked and preserved an explicit empty selection from localStorage.
+- Removed the implicit sentence-cut fallback so disabled criteria no longer continue changing subtitle alignment when they produce no cuts.
+- Added regression assertions for empty criteria in the parser engine and checkbox state logic.
+- Verification: `npm run test:parser` and `npm run test:default-punctuation` PASS.
+
 ## Task 213: Reconcile and publish committed worktree changes
 
 - Confirmed the worktree and index had no pre-existing uncommitted changes; reviewed the nine commits ahead of `origin/main`.
@@ -182,7 +234,7 @@
 
 ---
 
-## Task 191: Chapter 2 - Implement Major Version Bump to 2.*.* (Version 2.0.0)
+## Task 191: Chapter 2 - Implement Major Version Bump to 2._._ (Version 2.0.0)
 
 ### Summary:
 

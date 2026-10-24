@@ -246,7 +246,7 @@ export const PARSER_PRESETS: ParserPreset[] = [
   {
     id: "sentencesOnly",
     name: "Pure Sentences",
-    desc: "Sentence ends only (. ? !)",
+    desc: "Sentence ends only (. ? !) including punctuation inside cues",
     criteria: ["sentence"],
   },
   {
@@ -394,6 +394,18 @@ export function isSentenceEnding(text: string, includeCommas = false): boolean {
   return regex.test(trimmed);
 }
 
+function sentenceBoundaryOffsets(text: string, includeCommas: boolean): number[] {
+  const boundaryPattern = includeCommas
+    ? /[.?!…。؟،;:]["'»)”]*(?=\s|$)/gu
+    : /[.?!…。؟]["'»)”]*(?=\s|$)/gu;
+  const offsets: number[] = [];
+  for (const match of text.matchAll(boundaryPattern)) {
+    const offset = match.index + match[0].length;
+    if (isSentenceEnding(text.slice(0, offset), includeCommas)) offsets.push(offset);
+  }
+  return offsets;
+}
+
 /** Group sorted boundary candidates into clusters within tol; return cluster centers with vote counts. */
 function cluster(points: { t: number; lang: string }[], tol: number) {
   const pts = [...points].sort((a, b) => a.t - b.t);
@@ -536,7 +548,7 @@ export function criteriaSections(
   criteria: CriteriaId[],
   groupSettings?: Partial<CriteriaGroupSettings>,
 ): Sec[] {
-  const activeCriteria = criteria.length > 0 ? criteria : (["sentence"] as CriteriaId[]);
+  const activeCriteria = criteria;
   const cfg: CriteriaGroupSettings = {
     sentence: { ...DEFAULT_CRITERIA_SETTINGS.sentence, ...(groupSettings?.sentence ?? {}) },
     pause: { ...DEFAULT_CRITERIA_SETTINGS.pause, ...(groupSettings?.pause ?? {}) },
@@ -571,27 +583,66 @@ export function criteriaSections(
       }
     }
 
-    // 1b. Intra-cue segment punctuation cuts (detecting punctuation inside word-timed events)
+    // 1b. Intra-cue punctuation cuts, interpolated through segment or event timing.
     if (cfg.sentence.splitIntraCue) {
       const pivotTrack = tracks[pivot] ?? Object.values(tracks)[0];
       if (pivotTrack?.events) {
         for (const e of pivotTrack.events) {
-          if (!e.segs || e.segs.length < 2) continue;
+          if (!e.segs?.length) continue;
           const base = e.tStartMs ?? 0;
-          let runningText = "";
-          for (let s = 0; s < e.segs.length - 1; s++) {
-            const segText = e.segs[s]!.utf8 ?? "";
-            runningText += segText;
-            const words = runningText.trim().split(/\s+/).length;
-            const nextOffset = e.segs[s + 1]?.tOffsetMs;
-            if (
-              words >= cfg.sentence.minWords &&
-              nextOffset != null &&
-              nextOffset > 0 &&
-              isSentenceEnding(runningText, cfg.sentence.includeCommas)
-            ) {
-              sentenceCuts.push(base + nextOffset);
-              runningText = "";
+          const duration = e.dDurationMs ?? 0;
+          if (duration <= 0) continue;
+          const segments = e.segs.map((segment) => segment.utf8 ?? "");
+          const text = segments.join("");
+          if (!text) continue;
+
+          const segmentSpans: Array<{
+            start: number;
+            end: number;
+            startMs: number;
+            endMs: number;
+          }> = [];
+          let textOffset = 0;
+          for (let index = 0; index < e.segs.length; index++) {
+            const segmentText = segments[index]!;
+            const nextTextOffset = textOffset + segmentText.length;
+            const startMs = e.segs[index]!.tOffsetMs ?? (duration * textOffset) / text.length;
+            const nextSegmentOffset = e.segs[index + 1]?.tOffsetMs;
+            const interpolatedEndMs = (duration * nextTextOffset) / text.length;
+            const endMs =
+              nextSegmentOffset != null && nextSegmentOffset > startMs
+                ? nextSegmentOffset
+                : interpolatedEndMs;
+            segmentSpans.push({
+              start: textOffset,
+              end: nextTextOffset,
+              startMs,
+              endMs,
+            });
+            textOffset = nextTextOffset;
+          }
+
+          const cutTimeAt = (offset: number) => {
+            const span =
+              segmentSpans.find((candidate) => offset <= candidate.end) ??
+              segmentSpans[segmentSpans.length - 1]!;
+            const spanLength = span.end - span.start;
+            const afterBoundary = text.slice(offset, span.end);
+            const ratio =
+              spanLength > 0
+                ? afterBoundary.trim().length === 0
+                  ? 1
+                  : (offset - span.start) / spanLength
+                : 0;
+            return base + span.startMs + (span.endMs - span.startMs) * ratio;
+          };
+
+          let previousBoundary = 0;
+          for (const offset of sentenceBoundaryOffsets(text, cfg.sentence.includeCommas)) {
+            const words = text.slice(previousBoundary, offset).trim().split(/\s+/).filter(Boolean);
+            if (words.length >= cfg.sentence.minWords && offset < text.length) {
+              sentenceCuts.push(cutTimeAt(offset));
+              previousBoundary = offset;
             }
           }
         }
@@ -675,18 +726,14 @@ export function criteriaSections(
     candidateCuts.push(...anchorCuts);
   }
 
-  // If no cut candidate was produced, fallback to sentence or cue boundaries
-  if (candidateCuts.length === 0) {
-    candidateCuts.push(
-      ...pv.flatMap((c, i) =>
-        SENT_END.test(c.text) && pv[i + 1] ? [pv[i + 1]!.start] : [c.start],
-      ),
-    );
-  }
-
-  const minMs = cfg.window.minSectionMs;
+  const punctuationOnly = activeCriteria.length === 1 && activeCriteria[0] === "sentence";
+  const minMs = punctuationOnly ? 0 : cfg.window.minSectionMs;
   // When window clamp is not explicitly active, use generous maxMs to avoid slicing sentences in the middle
-  const maxMs = activeCriteria.includes("window") ? cfg.window.maxSectionMs : 60000;
+  const maxMs = activeCriteria.includes("window")
+    ? cfg.window.maxSectionMs
+    : punctuationOnly
+      ? Number.POSITIVE_INFINITY
+      : 60000;
 
   return fromCuts(candidateCuts, start, end, minMs, maxMs);
 }
