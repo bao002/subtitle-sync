@@ -2,4 +2,4 @@
 
 - **Active Subtask**: None.
 - **Status**: COMPLETED.
-- **Next**: Requested changes are implemented, verified, committed, and archived. The only later backlog item is Android-platform validation for web-demo share links.
+- **Next**: All work for this prompt and the directly related verifier hotfix is committed and archived; perform final push and repository audit.

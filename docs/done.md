@@ -1,5 +1,11 @@
 # Done tasks
 
+### Hotfix: Synchronize caption-presentation verifier with current app versions
+
+- Replaced the verifier's stale 1.0.51/1.0.52 hard-coded check with a valid three-part version assertion, retaining synchronization checks across all five version targets.
+- Verification: `npm run test:default-caption-presentation` PASS against version 2.0.10.
+- Commit: `3d8e322`.
+
 ## Task 212: Deprecate beginner first-tab base-language selection (Version 2.0.10)
 
 - Removed manual base-track selection buttons from the first Beginner tab. It now chooses English when detected, otherwise the first available track, and shows the detected tracks read-only.

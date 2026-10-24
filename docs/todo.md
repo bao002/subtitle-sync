@@ -2,4 +2,4 @@
 
 - **Active**: None.
 - **Status**: COMPLETED.
-- **Next**: The current prompt's tasks are archived; only the separately documented Android-platform validation remains in the later backlog.
+- **Next**: All current prompt work and the related caption verifier hotfix are archived. Android-platform validation remains in the later backlog.
