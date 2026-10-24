@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: none; implementation tasks are archived, with Android-platform validation remaining in the later backlog.
+Current active workstream: No active implementation task. Task 217 punctuation-only splitting and parser criterion behavior are verified and committed; Android-platform validation remains in the later backlog.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 

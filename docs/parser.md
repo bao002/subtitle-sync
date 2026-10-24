@@ -73,7 +73,9 @@ By default, human readers expect subtitles to split into sentences using punctua
 /[.?!…。؟]["'»)”]*$/
 ```
 
-When iterating over caption cues in the base (pivot) track, whenever a cue ends with a sentence-terminating punctuation character, the parser registers a section cut at the start of the subsequent cue (`pv[i + 1].start`).
+When iterating over caption cues in the base (pivot) track, whenever a cue ends with a sentence-terminating punctuation character, the parser registers a section cut at the start of the subsequent cue (`pv[i + 1].start`). The **Pure Sentences** preset also splits punctuation occurring inside a cue. When JSON3 segment timing offsets exist, the cut is interpolated across the segment's text and timing; for a single unsegmented text payload, the event duration is interpolated by text position. This option is controlled by the sentence criterion's **Split sentences inside a subtitle cue** checkbox. Pure Sentences applies punctuation boundaries without minimum- or maximum-duration section clamps.
+
+Each parser criterion checkbox enables or disables only its named criterion. An explicitly empty selection disables all criteria; it is not silently replaced with sentence punctuation.
 
 ---
 

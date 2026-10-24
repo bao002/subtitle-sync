@@ -4,8 +4,11 @@
 
 - Added punctuation-only sentence splitting for a single subtitle cue by detecting terminal punctuation with linear time interpolation, while preserving the `splitIntraCue` checkbox and abbreviation/decimal guards.
 - Covered the default punctuation flow with dedicated regression checks for periods, abbreviations, disabled intra-cue splitting, and default sentence-only preset behavior.
+- Corrected Advanced parser criterion toggles so unchecking the last criterion disables parsing cuts instead of silently retaining sentence cuts; selecting the Pure Sentences preset enables intra-cue splitting.
+- Documented intra-cue timing interpolation and the explicit-empty-criteria behavior in `docs/parser.md`.
 - Synchronized the app and Android version metadata to `2.0.11` (`versionCode = 20011`) across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
-- Verification: `npx tsx scripts/verify-default-punctuation-splitting.ts`, `npx tsx scripts/verify-v2-version-bump.ts`, `npm run lint`, and `npm run build` all passed.
+- Verification: `npx tsx scripts/verify-default-punctuation-splitting.ts`, `npx tsx scripts/verify-accumulative-parser.ts`, `npx tsx scripts/verify-v2-version-bump.ts`, `npx eslint src/lib/subtitles.ts src/routes/index.tsx src/components/ParserTimingLab.tsx scripts/verify-default-punctuation-splitting.ts scripts/verify-accumulative-parser.ts`, `npm run lint`, `npm run build`, and `git diff --check` all passed.
+- Version synchronization checkpoint: `36961ce`. Parser implementation and regression tests are committed in the accompanying implementation checkpoint.
 
 ## Task 215: Quarantine unfinished accordion width toggle
 

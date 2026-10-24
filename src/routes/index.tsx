@@ -706,7 +706,11 @@ function Index() {
         const saved = localStorage.getItem(STORAGE_KEYS.PARSER_CRITERIA_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed)) {
+            return parsed.filter((id): id is CriteriaId =>
+              PARSER_CRITERIA.some((criterion) => criterion.id === id),
+            );
+          }
         }
       } catch {
         // ignore storage error
@@ -1061,7 +1065,6 @@ function Index() {
     (id: CriteriaId) => {
       let updated: CriteriaId[];
       if (selectedCriteria.includes(id)) {
-        if (selectedCriteria.length <= 1) return;
         updated = selectedCriteria.filter((c) => c !== id);
       } else {
         updated = [...selectedCriteria, id];
@@ -1072,8 +1075,15 @@ function Index() {
   );
 
   const handleApplyPreset = useCallback(
-    (presetCriteria: CriteriaId[]) => {
-      checkAndApplyCriteria(presetCriteria, criteriaSettings);
+    (presetCriteria: CriteriaId[], presetId?: string) => {
+      const nextSettings =
+        presetId === "sentencesOnly"
+          ? {
+              ...criteriaSettings,
+              sentence: { ...criteriaSettings.sentence, splitIntraCue: true },
+            }
+          : criteriaSettings;
+      checkAndApplyCriteria(presetCriteria, nextSettings);
     },
     [criteriaSettings, checkAndApplyCriteria],
   );
@@ -5848,7 +5858,7 @@ function Index() {
                                     size="sm"
                                     variant={isPresetActive ? "default" : "outline"}
                                     className="h-7 text-xs px-2.5"
-                                    onClick={() => handleApplyPreset(preset.criteria)}
+                                    onClick={() => handleApplyPreset(preset.criteria, preset.id)}
                                     title={preset.desc}
                                   >
                                     {preset.name}
@@ -5957,6 +5967,8 @@ function Index() {
                                         checked={isChecked}
                                         onChange={() => handleToggleCriterion(crit.id)}
                                         onClick={(e) => e.stopPropagation()}
+                                        aria-label={`${crit.name} criterion`}
+                                        data-testid={`toggle-parser-criterion-${crit.id}`}
                                         className="mt-0.5 rounded border-muted-foreground/40 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                                       />
                                       <div className="flex-1 min-w-0">
@@ -6077,7 +6089,7 @@ function Index() {
                                                 className="rounded border-border text-primary h-3.5 w-3.5"
                                               />
                                               <span className="text-[11px]">
-                                                Split inside word-timed cues (intra-cue segments)
+                                                Split sentences inside a subtitle cue
                                               </span>
                                             </label>
                                             <div className="flex items-center justify-between gap-2">

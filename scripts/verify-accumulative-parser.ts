@@ -174,6 +174,22 @@ console.log(
   `✅ PASS: align() produced ${alignedRows.length} contiguous parallel rows with all 3 languages`,
 );
 
+// 6a. Disabled criteria must not be reintroduced through an implicit sentence fallback.
+const noCriteriaSections = criteriaSections(testTracks, "en", []);
+assert(
+  noCriteriaSections.length === 1,
+  `Expected no active criteria to preserve one unsplit section, got ${noCriteriaSections.length}`,
+);
+assert(
+  noCriteriaSections[0]!.start === 0 && noCriteriaSections[0]!.end === 15000,
+  "No active criteria must preserve the full subtitle time range",
+);
+assert(
+  align(testTracks, "en", []).length === 1,
+  "align() with an explicitly empty criteria list must not apply sentence cuts",
+);
+console.log("✅ PASS: Disabling every criterion leaves a single unsplit section");
+
 // 7. Test backward compatibility: single Strategy string parameter
 const legacyRowSentence = align(testTracks, "en", "sentence");
 assert(legacyRowSentence.length > 0, "align() must support legacy string 'sentence'");
@@ -196,6 +212,10 @@ assert(
 assert(
   indexContent.includes("handleToggleCriterion"),
   "src/routes/index.tsx must provide handleToggleCriterion handler",
+);
+assert(
+  !indexContent.includes("if (selectedCriteria.length <= 1) return;"),
+  "Every criterion checkbox must be able to disable its own effect, including the final active criterion",
 );
 assert(indexContent.includes("PARSER_PRESETS"), "src/routes/index.tsx must render PARSER_PRESETS");
 assert(
