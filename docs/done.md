@@ -1,5 +1,12 @@
 # Done tasks
 
+## Task 209: Compact help icons for parser details and Android-safe review flow
+
+- Replaced the remaining verbose parser details with compact `?` help toggles so the control surface stays minimal and readable.
+- Kept the parser review comparison inline and in-context, preserving the Android-safe no-popup experience while retaining the before/after diff workflow.
+- Used the existing compact help disclosure pattern to keep details available without crowding the parser section.
+- Verification: `npx tsx scripts/verify-parser-minimal-text-and-help-icons.ts` PASS; `npx tsx scripts/verify-parser-inline-review.ts` PASS.
+
 ## Task 208: Improve parser section UX for desktop and Android
 
 - Reworked the parser review pattern to use inline comparison cards instead of popup overlays, keeping the visual comparison usable on Android and in compact layouts.

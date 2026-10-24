@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: Compact help-icon refinement for parser info blocks and Android-safe review UI
-- **Status**: IN PROGRESS
-- **Next**: Replace remaining verbose parser/help text with compact '?' disclosure patterns and validate the inline Android-safe review flow.
+- **Active Subtask**: None.
+- **Status**: COMPLETED.
+- **Next**: The compact parser help-icon refinement and inline Android-safe review flow are archived in `docs/done.md` and the worktree is ready for final review.
