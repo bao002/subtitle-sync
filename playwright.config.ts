@@ -23,7 +23,16 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 2 : 0,
-  reporter: [["list"], ["html", { open: "never" }]],
+  reporter: [
+    ["list"],
+    [
+      "html",
+      {
+        open: "never",
+        outputFolder: process.env.PLAYWRIGHT_HTML_OUTPUT_DIR || "playwright-report",
+      },
+    ],
+  ],
   use: {
     baseURL,
     video: "off",
@@ -39,7 +48,7 @@ export default defineConfig({
       ],
     },
   },
-  outputDir: "test-results",
+  outputDir: process.env.PLAYWRIGHT_OUTPUT_DIR || "test-results",
   webServer: isExternalServer
     ? undefined
     : {

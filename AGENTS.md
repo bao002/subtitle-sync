@@ -143,5 +143,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-ensure page runs without errors
+use docker for next time. use the gained experience to setup a docker for running e2e next time. use dir docker/
 ```

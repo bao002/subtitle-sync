@@ -1,5 +1,14 @@
 # Done tasks
 
+## Task 226: Set up Docker for repeatable E2E
+
+- Pinned the Docker runner to the official Playwright `v1.64.1-noble` image and pinned `@playwright/test` to `1.64.1`.
+- Added `package-lock.json` and switched the Docker build to `npm ci` for repeatable dependency installation.
+- Fixed the web E2E npm script to select the configured `web` project instead of a missing `e2e/web.spec.ts`; the emulation script now explicitly selects the emulation project.
+- Updated Compose to run as the host UID/GID, write reports to the ignored `docker/artifacts/` directory, and avoid mounting Playwright output roots directly. Made `docker/manage.sh` executable and limited its suite choices to available projects.
+- Moved the runner instructions to `docs/docker-e2e.md` and recorded the files in `docs/files.md`.
+- Verification: `./docker/manage.sh e2e all` passed all 4 tests (2 web, 2 emulation); `npm run test:e2e:web -- --list`, `npm run test:e2e:emulation -- --list`, `npm run test:md`, `npx prettier --check package.json playwright.config.ts docker/compose.yml docs/docker-e2e.md`, `docker compose config --quiet`, and `git diff --check` passed.
+
 ## Task 225: Verify the page runs without errors
 
 - Fixed the production runtime crash documented under `Hotfix: Define AI cache status before use`; Chromium confirmed the built page renders its header without page or console errors.
