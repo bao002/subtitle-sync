@@ -115,6 +115,7 @@ export const SUPPORTED_LANGUAGES_CATALOG: { code: string; name: string }[] = [
   { code: "de", name: "German (Deutsch)" },
   { code: "it", name: "Italian (Italiano)" },
   { code: "pt", name: "Portuguese (Português)" },
+  { code: "pt-BR", name: "Portuguese (Brazil)" },
   { code: "ru", name: "Russian (Русский)" },
   { code: "ja", name: "Japanese (日本語)" },
   { code: "ko", name: "Korean (한국어)" },
@@ -483,7 +484,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "2.0.11",
+    version: "2.0.12",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {

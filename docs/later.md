@@ -11,4 +11,5 @@ The following tasks are deferred for later execution after all active tasks are 
   - On an authenticated GitHub Actions runner or a host with `adb` and an API 34 Google APIs emulator, run the updated Android E2E workflow and verify it uploads a non-empty `android-emulator-video.mp4` captured from the emulator. Confirm the MP4 is finalized after `adb shell pkill -2 -f screenrecord`; do not accept a screenshot-generated substitute.
   - Exact CI commands: `gh workflow run emulation.yml --ref main`, `gh run watch <run-id> --exit-status`, and `gh run download <run-id> --name android-emulator-artifacts`.
   - First integrate implementation commit `7b3fd93` with remote `main` without copying or overwriting its newer README-only commit.
-  - Remote run 44 on `a6b45db` failed before E2E because emulator boot exceeded the former 300-second timeout. The updated workflow uses 600 seconds; runtime confirmation is blocked in this Codespace because `adb`, GitHub CLI authentication, and Git credentials are unavailable.
+- [ ] **Task 224: Parser abbreviation exception rules for dot splitting ("dr.", "mrs.", per-language customizations)**
+  - The user should be able to tell the parser not to split when the dot is next to other words such as "dr.", "mrs." (per languages customizations).

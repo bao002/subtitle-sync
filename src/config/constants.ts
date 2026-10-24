@@ -12,6 +12,7 @@ export const SUPPORTED_TARGET_LANGUAGES = [
   { code: "de", name: "German (Deutsch)", color: "#f59e0b" },
   { code: "it", name: "Italian (Italiano)", color: "#10b981" },
   { code: "pt", name: "Portuguese (Português)", color: "#06b6d4" },
+  { code: "pt-BR", name: "Portuguese (Brazil)", color: "#06b6d4" },
   { code: "ru", name: "Russian (Русский)", color: "#ec4899" },
   { code: "ja", name: "Japanese (日本語)", color: "#f43f5e" },
   { code: "ko", name: "Korean (한국어)", color: "#6366f1" },

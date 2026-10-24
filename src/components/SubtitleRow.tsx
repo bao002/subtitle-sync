@@ -12,7 +12,10 @@ export interface SubtitleColumn {
   name: string;
   tts: string;
   isYouTubeTranslated?: boolean;
+  isYouTubeOrJson?: boolean;
+  isOnDemandTranslation?: boolean;
 }
+
 
 export interface SubtitleRowProps {
   r: Row;

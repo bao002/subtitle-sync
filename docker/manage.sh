@@ -11,7 +11,7 @@ usage() {
   cat <<'EOF'
 Usage:
   ./docker/manage.sh [--no-cache] build
-  ./docker/manage.sh [--no-cache] e2e [web|emulation|app|all] [Playwright arguments...]
+  ./docker/manage.sh [--no-cache] e2e [web|emulation|all] [Playwright arguments...]
   ./docker/manage.sh shell
   ./docker/manage.sh clean
 
@@ -34,6 +34,9 @@ require_docker() {
     exit 1
   fi
 }
+
+export DOCKER_UID="$(id -u)"
+export DOCKER_GID="$(id -g)"
 
 prepare_artifacts() {
   mkdir -p "$SCRIPT_DIR/artifacts/test-results" "$SCRIPT_DIR/artifacts/playwright-report"
@@ -59,9 +62,6 @@ run_e2e() {
       ;;
     emulation)
       npm_script="test:e2e:emulation"
-      ;;
-    app)
-      npm_script="test:e2e"
       ;;
     all)
       npm_script="test:e2e:all"

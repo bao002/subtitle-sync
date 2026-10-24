@@ -43,7 +43,7 @@ export function hasCachedJson3ForVideoAndLanguage(videoId: string, langCode: str
 export function getAllCachedLanguageCodesForVideo(videoId: string): string[] {
   if (!videoId) return [];
   if (videoId === "L2Ryrr6txwA") {
-    return ["en", "ru", "he", "it", "ar"];
+    return ["en", "ru", "he", "it", "ar", "es", "pt-BR"];
   }
   return [];
 }

@@ -1,6 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **No active task**.
-- **Completed**: Task 220 — aligned Android CI screencast recording and timeout behavior with the emulator runner; implementation commit `7b3fd93`.
-- **Verification**: `npm run test:emulator-screencast-report`, `npm run test:workflows`, `npm run test:android-emulator-docs-evidence`, `npm run test:agents-last-prompt-rule`, `npm run test:doc-contracts`, Prettier checks, and `git diff --check` passed.
-- **Deferred**: Runtime validation is Task 221; run 44 failed before E2E on the former timeout, this Codespace lacks `adb` and authenticated GitHub CLI access, and the push attempt was blocked by missing Git credentials.
+- **Status**: No active task.
+- **Completed Task**: Task 226 — Set up Docker for repeatable E2E.
+- **Verification**: `./docker/manage.sh e2e all` passed all 4 Playwright tests in Docker.
+- **Next Action**: Remaining tasks require Android platform validation and are listed under Later Tasks in `docs/tasks.md`.

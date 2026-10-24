@@ -63,6 +63,7 @@ cypress/videos/
 cypress/screenshots/
 playwright-report/
 test-results/
+docker/artifacts/
 android-emulator-report.html
 !public/android-emulator-report.html
 gh-pages-staging/

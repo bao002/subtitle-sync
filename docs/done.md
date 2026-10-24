@@ -1,6 +1,55 @@
 # Done tasks
 
+## Task 226: Set up Docker for repeatable E2E
+
+- Pinned the Docker runner to the official Playwright `v1.64.1-noble` image and pinned `@playwright/test` to `1.64.1`.
+- Added `package-lock.json` and switched the Docker build to `npm ci` for repeatable dependency installation.
+- Fixed the web E2E npm script to select the configured `web` project instead of a missing `e2e/web.spec.ts`; the emulation script now explicitly selects the emulation project.
+- Updated Compose to run as the host UID/GID, write reports to the ignored `docker/artifacts/` directory, and avoid mounting Playwright output roots directly. Made `docker/manage.sh` executable and limited its suite choices to available projects.
+- Moved the runner instructions to `docs/docker-e2e.md` and recorded the files in `docs/files.md`.
+- Verification: `./docker/manage.sh e2e all` passed all 4 tests (2 web, 2 emulation); `npm run test:e2e:web -- --list`, `npm run test:e2e:emulation -- --list`, `npm run test:md`, `npx prettier --check package.json playwright.config.ts docker/compose.yml docs/docker-e2e.md`, `docker compose config --quiet`, and `git diff --check` passed.
+
+## Task 225: Verify the page runs without errors
+
+- Fixed the production runtime crash documented under `Hotfix: Define AI cache status before use`; Chromium confirmed the built page renders its header without page or console errors.
+- Verification: `npm run lint`, `npm run build`, and an HTTP/browser smoke test against the production preview. The page and linked JavaScript bundle returned HTTP 200.
+- Build outcome: PASS. Vite emitted a non-fatal warning that the generated JS chunk exceeds 500 kB.
+- Existing verifier limitation: `npm run test:video-switch-table-reset-and-ai-cache` passes the new prop assertion and cache checks but later fails on its hard-coded `1.0.42` version assertion while `package.json` declares `2.0.12`. This does not prevent the page from building or running. The missing web E2E path was corrected in Task 226.
+- Hotfix commit: `b7ae357`. Push to `origin/main` was attempted but blocked because Git credentials are unavailable.
+
+### Hotfix: Define AI cache status before use
+
+- Fixed a production runtime crash in `src/components/SubtitlesTablePanel.tsx` by destructuring the `hasCachedAi` prop before its render conditions use it.
+- Added a source regression assertion to `scripts/verify-video-switch-table-reset-and-ai-cache.ts`.
+- Verification: `npm run build`, `npm run lint`, and a headless Chromium production-preview smoke test passed; the page rendered its header with no page or console errors.
+- The broader `npm run test:video-switch-table-reset-and-ai-cache` reached and passed the new assertion and AI cache checks, then failed at a pre-existing version assertion expecting `1.0.42` while `package.json` declares `2.0.12`.
+
+## Task 224: Parser abbreviation exception rules for dot splitting
+
+- Added abbreviation-aware dot handling in `src/utils/newSubtitlesParser.ts` so common forms such as `Dr.`, `Mrs.`, and custom entries remain intact while genuine sentence-final periods still split.
+- Exposed the abbreviation list in the live parser controls via `src/components/NewSubtitlesParserBar.tsx` so the user can configure exception tokens dynamically.
+- Extended the verification at `scripts/verify-quarantine-and-new-parser.ts` to cover abbreviations and custom exceptions.
+- Verification command: `npm run test:quarantine-and-new-parser && npm run lint && npm run build`
+- Outcome: PASS.
+
+## Task 223: Quarantine the legacy parser and add the simpler dot-splitting parser
+
+- Quarantined the old parser implementation into `quarentined/oldSubtitlesParser.ts`, leaving the historical logic preserved while removing it from active runtime use.
+- Added the simpler, transparent parser in `src/utils/newSubtitlesParser.ts` with reliable dot-based splitting, configurable punctuation toggles, custom delimiters, and interpolated timing.
+- Mounted the live parser controls directly above the subtitles table in `src/components/SubtitlesTablePanel.tsx` via `src/components/NewSubtitlesParserBar.tsx`, and connected the parser state to dynamic subtitle updates in `src/routes/index.tsx`.
+- Added a dedicated verifier at `scripts/verify-quarantine-and-new-parser.ts` and updated the later-task note about abbreviation exceptions in `docs/later.md`.
+- Verification command: `npm run test:quarantine-and-new-parser && npm run lint && npm run build`
+- Outcome: PASS. The implementation was committed as `deb27cd`.
+
+## Task 222: Present all fixture languages including pt-BR with distinct column source indicators
+
+- Inspected `public/fixtures/L2Ryrr6txwA/*.json` and verified all 7 fixture languages: `ar`, `en`, `es`, `he`, `it`, `pt-BR`, `ru`.
+- Added `pt-BR` to `LANGS` in `src/lib/subtitles.ts`, `JSON3_RAW_MAP` and `L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS` in `test/fixtures/L2Ryrr6txwA/jsonStrings.ts`, `SUPPORTED_TARGET_LANGUAGES` in `src/config/constants.ts`, and `SUPPORTED_LANGUAGES_CATALOG` in `src/utils/appSettings.ts`.
+- Added column source distinction: when parsing YouTube subtitles or artifact `.json` files, column header displays `FileCode` icon; when using on-demand translation, column header displays a distinct `Sparkles` icon.
+- Automated verification: `npm run test:fixture-languages-and-source-icons`, `npm run lint`, `compile_applet`. Committed as `d9e769e`.
+
 ## Task 220: Correct Android emulator screencast workflow
+
 
 - Confirmed [`ReactiveCircus/android-emulator-runner`](https://github.com/ReactiveCircus/android-emulator-runner) provisions and boots the configured emulator and runs the supplied script; ADB in the workflow performs the actual screen recording. Upstream guidance recommends Ubuntu larger runners with KVM when available.
 - Updated `.github/workflows/emulation.yml` to finalize `screenrecord` with SIGINT on exit or termination, pull the authentic MP4, fail if it is missing or empty, and remove the still-image-to-video fallback.

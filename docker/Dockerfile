@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright:v1.63.0-noble
+FROM mcr.microsoft.com/playwright:v1.64.1-noble
 
 ENV CI=true
 ENV NODE_ENV=test
@@ -7,15 +7,14 @@ WORKDIR /workspace
 
 COPY package.json package-lock.json .npmrc ./
 
-# The imported lockfile can contain Replit's internal package host. Replace it
-# inside the image so Docker builds remain portable outside Replit. The
-# Playwright image ships a newer npm than the lockfile's original environment;
-# npm install repairs optional-platform metadata while preserving package-lock.
-RUN sed -i -E 's#https?://package-firewall\.replit\.internal/npm/#https://registry.npmjs.org/#g' package-lock.json \
-  && npm install --no-audit --no-fund
+RUN npm ci --no-audit --no-fund
 
 COPY . .
 
-RUN mkdir -p /workspace/test-results /workspace/playwright-report
+ARG DOCKER_UID=1000
+ARG DOCKER_GID=1000
+RUN mkdir -p /workspace/node_modules/.vite \
+  && chown "${DOCKER_UID}:${DOCKER_GID}" /workspace \
+  && chown -R "${DOCKER_UID}:${DOCKER_GID}" /workspace/node_modules/.vite
 
 CMD ["npm", "run", "test:e2e:web"]
