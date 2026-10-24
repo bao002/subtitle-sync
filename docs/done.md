@@ -1,5 +1,13 @@
 # Done tasks
 
+## Task 225: Verify the page runs without errors
+
+- Fixed the production runtime crash documented under `Hotfix: Define AI cache status before use`; Chromium confirmed the built page renders its header without page or console errors.
+- Verification: `npm run lint`, `npm run build`, and an HTTP/browser smoke test against the production preview. The page and linked JavaScript bundle returned HTTP 200.
+- Build outcome: PASS. Vite emitted a non-fatal warning that the generated JS chunk exceeds 500 kB.
+- Existing verifier limitations: `npm run test:e2e:web -- --list` finds no tests because its configured `e2e/web.spec.ts` file is absent. `npm run test:video-switch-table-reset-and-ai-cache` passes the new prop assertion and cache checks but later fails on its hard-coded `1.0.42` version assertion while `package.json` declares `2.0.12`. These do not prevent the page from building or running.
+- Hotfix commit: `b7ae357`. Push to `origin/main` was attempted but blocked because Git credentials are unavailable.
+
 ### Hotfix: Define AI cache status before use
 
 - Fixed a production runtime crash in `src/components/SubtitlesTablePanel.tsx` by destructuring the `hasCachedAi` prop before its render conditions use it.

@@ -1,7 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Status**: In progress.
-- **Status**: In progress.
-- **Active Task**: Task 225 — Verify the page runs without errors.
-- **Completed Hotfix**: `SubtitlesTablePanel` now destructures the `hasCachedAi` prop; production-browser smoke test passes.
-- **Next Action**: Finish the final runtime/build checks and archive verification outcomes.
+- **Status**: No active task.
+- **Completed Task**: Task 225 — Verify the page runs without errors.
+- **Verification**: `npm run lint`, `npm run build`, and a headless Chromium production-preview smoke test passed with zero browser errors.
+- **Next Action**: Remaining tasks require Android platform validation and are listed under Later Tasks in `docs/tasks.md`.

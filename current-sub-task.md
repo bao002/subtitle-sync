@@ -1,6 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: In progress.
-- **Active Task**: Task 225 — Verify the page runs without errors.
-- **Scope**: Validate the built web page in Chromium, run lint/build checks, and record any remaining test-environment or verifier limitations.
-- **Next Action**: Record the clean browser result and existing verifier limitation, then complete the task.
+- **Status**: Completed and archived.
+- **Completed Task**: Task 225 — Verify the page runs without errors.
+- **Verification**: `npm run lint`, `npm run build`, and a headless Chromium production-preview smoke test passed with zero browser errors.
+- **Next Action**: Remaining tasks are blocked Android E2E validations in `docs/tasks.md`; no local page-runtime task remains active.
