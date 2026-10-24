@@ -4,7 +4,11 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- None.
+- [ ] **Task 211: Fold unpinned accordions after five seconds**
+  - Ensure all accordions close five seconds after opening or user activity unless explicitly pinned; preserve pin behavior and verify with focused tests.
+- [ ] **Task 212: Deprecate beginner default-language selection**
+  - Remove default-language selection from the first beginner tab and record the deprecated behavior in `docs/deprecated.md`.
+  - Add focused regression coverage and verify beginner-mode behavior.
 
 ## Later Tasks
 

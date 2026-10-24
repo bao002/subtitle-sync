@@ -1,5 +1,13 @@
 # Done tasks
 
+## Task 210: Move subtitle display controls beside the video
+
+- Moved beginner subtitle sizing from Voice & Preferences to the video-adjacent controls, preserving the saved ratio and its use in the sync player.
+- Moved the spoken-subtitle overlay toggle out of global/settings controls and placed it beside the video in both beginner and advanced views; retained native caption-loading behavior.
+- Added a focused source verifier and updated existing caption/layout assertions to follow the relocated control.
+- Verification: `npm run test:video-display-controls`, `npm run test:beginner-mode`, `npx tsx scripts/verify-progressive-disclosure-and-button-design.ts`, `npx tsx scripts/verify-tts-play-and-mode-switching.ts`, `npm run build`, `npm run lint`, focused ESLint for changed route/video tab, and `git diff --check` PASS. A broader ESLint invocation reports existing Prettier findings in unaffected sections of beginner components.
+- Implementation commit: `1753bcf`.
+
 ## Task 209: Compact help icons for parser details and Android-safe review flow
 
 - Replaced the remaining verbose parser details with compact `?` help toggles so the control surface stays minimal and readable.
