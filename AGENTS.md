@@ -137,7 +137,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-pausing the android application - should have pause both video and tts-play
+show me a working link based on the one i pasted
 ```
 
 

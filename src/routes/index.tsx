@@ -2016,31 +2016,48 @@ function Index() {
   }, [tracks, videoId]);
   const [active, setActive] = useState(-1);
   const [speakingLang, setSpeakingLang] = useState<string | null>(null);
+  const speakingLangRef = useRef<string | null>(null);
+  speakingLangRef.current = speakingLang;
   const [speakingRow, setSpeakingRow] = useState(-1);
   const [speechProgress, setSpeechProgress] = useState<SpeechProgress>(null);
   const [subtitlesLimit, setSubtitlesLimit] = useState<number>(() => (isAndroid ? 10 : 0));
   const [subtitlesPage, setSubtitlesPage] = useState<number>(1);
+
+  const pauseBothVideoAndTts = useCallback(() => {
+    try {
+      multiVideoPlayerRegistry.pauseAllExcept();
+      player.current?.pauseVideo?.();
+    } catch {
+      // ignore
+    }
+    cancelSpeech();
+    busy.current = false;
+    setSpeakingLang(null);
+    setSpeakingRow(-1);
+    setSpeechProgress(null);
+    setIsVideoPlaying(false);
+  }, []);
 
   const handleTogglePlay = useCallback(() => {
     const p = player.current;
     if (!p) return;
     try {
       const state = p.getPlayerState?.();
-      if (state === 1) {
-        p.pauseVideo?.();
-        setIsVideoPlaying(false);
+      const isCurrentlyPlaying = state === 1;
+      const isSpeakingActive = busy.current || Boolean(speakingLangRef.current);
+
+      if (isCurrentlyPlaying || isSpeakingActive) {
+        pauseBothVideoAndTts();
       } else {
-        if (busy.current) {
-          cancelSpeech();
-          busy.current = false;
-        }
+        cancelSpeech();
+        busy.current = false;
         p.playVideo?.();
         setIsVideoPlaying(true);
       }
     } catch (e) {
       console.warn("Toggle play error:", e);
     }
-  }, []);
+  }, [pauseBothVideoAndTts]);
 
   const handleSeek = useCallback((seconds: number) => {
     const p = player.current;
@@ -2645,11 +2662,17 @@ function Index() {
       },
       onPause: () => {
         try {
+          multiVideoPlayerRegistry.pauseAllExcept();
           player.current?.pauseVideo?.();
           setIsVideoPlaying(false);
         } catch (_err) {
           // ignore pause error
         }
+        cancelSpeech();
+        busy.current = false;
+        setSpeakingLang(null);
+        setSpeakingRow(-1);
+        setSpeechProgress(null);
       },
       onSeek: (seconds: number) => {
         try {
@@ -2661,9 +2684,15 @@ function Index() {
       onStop: () => {
         try {
           player.current?.stopVideo?.();
+          setIsVideoPlaying(false);
         } catch (_err) {
           // ignore stop error
         }
+        cancelSpeech();
+        busy.current = false;
+        setSpeakingLang(null);
+        setSpeakingRow(-1);
+        setSpeechProgress(null);
       },
       onNextSection: () => {
         try {
@@ -3221,8 +3250,21 @@ function Index() {
           onStateChange: (event: { data: number }) => {
             if (event.data === 1) {
               setIsVideoPlaying(true);
-            } else if (event.data === 2 || event.data === 0 || event.data === -1) {
+            } else if (event.data === 2) {
               setIsVideoPlaying(false);
+              if (!busy.current) {
+                cancelSpeech();
+                setSpeakingLang(null);
+                setSpeakingRow(-1);
+                setSpeechProgress(null);
+              }
+            } else if (event.data === 0 || event.data === -1) {
+              setIsVideoPlaying(false);
+              cancelSpeech();
+              busy.current = false;
+              setSpeakingLang(null);
+              setSpeakingRow(-1);
+              setSpeechProgress(null);
             }
           },
         },
@@ -3272,7 +3314,10 @@ function Index() {
         const title =
           (p.getVideoData && p.getVideoData()?.title) ||
           (videoId ? `YouTube (${videoId})` : "YouTube Video");
-        const isPlaying = p.getPlayerState ? p.getPlayerState() === 1 : true;
+        const isPlaying =
+          (p.getPlayerState ? p.getPlayerState() === 1 : isVideoPlaying) ||
+          Boolean(speakingLangRef.current) ||
+          busy.current;
         const curSec = ms / 1000;
         const durSec = p.getDuration ? p.getDuration() : 0;
         syncMediaMetadata({
@@ -4074,21 +4119,25 @@ function Index() {
               <div
                 data-testid="video-overlay-play-pause-container"
                 className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
-                  !isVideoPlaying || isPlayerHovered ? "opacity-100" : "opacity-0"
+                  !isVideoPlaying || isPlayerHovered || Boolean(speakingLang)
+                    ? "opacity-100"
+                    : "opacity-0"
                 }`}
               >
                 <button
                   type="button"
                   data-testid="video-overlay-play-pause-btn"
-                  aria-label={isVideoPlaying ? "Pause video" : "Play video"}
-                  title={isVideoPlaying ? "Pause video" : "Play video"}
+                  aria-label={
+                    isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"
+                  }
+                  title={isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"}
                   onClick={(e) => {
                     e.stopPropagation();
                     handleTogglePlay();
                   }}
                   className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
                 >
-                  {isVideoPlaying ? (
+                  {isVideoPlaying || Boolean(speakingLang) ? (
                     <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
                   ) : (
                     <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
@@ -4438,7 +4487,7 @@ function Index() {
                                     <div
                                       data-testid="video-overlay-play-pause-container"
                                       className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
-                                        !isVideoPlaying || isPlayerHovered
+                                        !isVideoPlaying || isPlayerHovered || Boolean(speakingLang)
                                           ? "opacity-100"
                                           : "opacity-0"
                                       }`}
@@ -4446,15 +4495,23 @@ function Index() {
                                       <button
                                         type="button"
                                         data-testid="video-overlay-play-pause-btn"
-                                        aria-label={isVideoPlaying ? "Pause video" : "Play video"}
-                                        title={isVideoPlaying ? "Pause video" : "Play video"}
+                                        aria-label={
+                                          isVideoPlaying || Boolean(speakingLang)
+                                            ? "Pause playback"
+                                            : "Play video"
+                                        }
+                                        title={
+                                          isVideoPlaying || Boolean(speakingLang)
+                                            ? "Pause playback"
+                                            : "Play video"
+                                        }
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleTogglePlay();
                                         }}
                                         className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
                                       >
-                                        {isVideoPlaying ? (
+                                        {isVideoPlaying || Boolean(speakingLang) ? (
                                           <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
                                         ) : (
                                           <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />

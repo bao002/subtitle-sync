@@ -257,6 +257,7 @@ class BackgroundAudioService : Service() {
 
     private fun handlePause() {
         isPlaying = false
+        MainActivity.instance?.stopNativeTTS()
         MainActivity.instance?.dispatchMediaCommand("pause", 0L)
         updateState(mediaTitle, mediaArtist, false, currentPositionMs, totalDurationMs)
     }
@@ -270,6 +271,7 @@ class BackgroundAudioService : Service() {
     }
 
     private fun handleStop() {
+        MainActivity.instance?.stopNativeTTS()
         MainActivity.instance?.dispatchMediaCommand("stop", 0L)
         stopSelf()
     }

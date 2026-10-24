@@ -65,6 +65,8 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     private var textToSpeech: TextToSpeech? = null
     private var isTtsReady: Boolean = false
     @Volatile
+    private var isBackgroundAudioEnabled: Boolean = false
+    @Volatile
     private var lastObservedTimedTextUrl: String? = null
     private val lastObservedHeaders = java.util.concurrent.ConcurrentHashMap<String, String>()
 
@@ -756,12 +758,24 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    fun stopNativeTTS() {
+        mainHandler.post {
+            try {
+                textToSpeech?.stop()
+            } catch (e: Exception) {
+                Log.e(TAG, "Error stopping native TTS: ${e.message}", e)
+            }
+        }
+    }
+
     override fun onPause() {
         super.onPause()
-        // Do not pause the WebView or freeze timers
-        // Keeping WebView active in onPause/onStop ensures continuous background audio playback
-        // and background subtitle synthesis when the app is minimized or backgrounded.
-        Log.d(TAG, "onPause: maintaining webView active for background playback")
+        if (!isBackgroundAudioEnabled) {
+            // When background audio is disabled, pausing the application pauses both video and TTS-play
+            dispatchMediaCommand("pause", 0L)
+            stopNativeTTS()
+        }
+        Log.d(TAG, "onPause: maintaining webView active for background playback, bgEnabled=$isBackgroundAudioEnabled")
     }
 
     override fun onStop() {
@@ -794,6 +808,9 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     fun dispatchMediaCommand(action: String, data: Long = 0L) {
+        if (action == "pause" || action == "stop") {
+            stopNativeTTS()
+        }
         mainHandler.post {
             val js = "if (typeof window !== 'undefined' && window.onNativeMediaCommand) { window.onNativeMediaCommand('$action', $data); }"
             webView.evaluateJavascript(js, null)
@@ -809,6 +826,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
         @JavascriptInterface
         fun setBackgroundAudioEnabled(enabled: Boolean): Boolean {
+            isBackgroundAudioEnabled = enabled
             mainHandler.post {
                 if (enabled) {
                     BackgroundAudioService.startService(this@MainActivity)

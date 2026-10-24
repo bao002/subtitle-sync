@@ -1,5 +1,61 @@
 # Done tasks
 
+## Task 193: Working Link Resolution with Trailing Slash & Query Preservation (Version 2.0.2)
+
+### Summary:
+
+- **Trailing Slash & Query Parameter Preservation for Shared Links**:
+  - Identified why `https://mostuf2556.github.io/subtitle-sync?v=...` failed on GitHub Pages: GitHub Pages static routing without a trailing slash (`/`) resolves relative assets (`./assets/...`) against the root domain (`https://mostuf2556.github.io/assets/...`) resulting in HTTP 404, or strips query parameters during HTTP 301 redirection.
+  - Added an early trailing slash normalizer in `<head>` of `index.html` ensuring GitHub Pages visits automatically preserve search parameters and redirect to `/subtitle-sync/`.
+  - Created `public/404.html` SPA fallback script that catches GitHub Pages routing requests and redirects directly to the `/subtitle-sync/` directory while preserving all query strings and hashes.
+  - Verified working link formatting across GitHub Pages (`https://mostuf2556.github.io/subtitle-sync/?v=...`) and AI Studio Preview (`https://ais-pre-a3mdfqx4p5mgzs5uev4uj6-82169901332.europe-west3.run.app/?v=...`).
+- **App Version Update**:
+  - Synchronized version `2.0.2` (`versionCode = 20002`) across all 5 codebase targets.
+- **Verification Commands & Outcomes**:
+  - `npm run test:agents-version`: 100% PASS.
+  - `npm run test:agents-all`: 100% PASS (18/18 constitutional contract tests).
+  - `compile_applet`: Production build succeeded.
+  - `lint_applet`: 0 errors.
+
+---
+
+## Task 192: Pausing the Android Application Pauses Both Video and TTS-Play (Version 2.0.1)
+
+### Summary:
+
+- **Simultaneous Video and TTS-Play Pause Coordination across Android Shell & Web**:
+  - Android Shell (`MainActivity.kt` & `BackgroundAudioService.kt`):
+    - Added `stopNativeTTS()` to `MainActivity.kt` to immediately silence native Android `textToSpeech?.stop()`.
+    - Enhanced `dispatchMediaCommand(action, data)` to invoke `stopNativeTTS()` whenever `action == "pause"` or `action == "stop"`.
+    - Updated `onPause()` in `MainActivity.kt` so that when background audio playback is disabled, the Android application pause pauses both video and TTS simultaneously.
+    - Updated `handlePause()` and `handleStop()` in `BackgroundAudioService.kt` to call `stopNativeTTS()` before dispatching media commands.
+  - Web Background Media Coordinator (`src/utils/backgroundMediaManager.ts` & `src/routes/index.tsx`):
+    - Added centralized `pauseBothVideoAndTts()` callback in `src/routes/index.tsx` that pauses primary and secondary video players (`player.current?.pauseVideo?.()`, `multiVideoPlayerRegistry.pauseAllExcept()`), cancels TTS speech (`cancelSpeech()`), resets `busy.current = false`, resets speaking states (`speakingLang`, `speakingRow`, `speechProgress`), and sets `isVideoPlaying = false`.
+    - Updated `initBackgroundMediaManager`'s `onPause` and `onStop` callbacks to invoke this simultaneous pause logic.
+    - Updated `onStateChange` so that external video pauses cancel ongoing TTS speech when not in an intentional section pause.
+    - Updated `syncMediaMetadata` to report playback as active while subtitle speech is underway so notifications and lockscreen media sessions provide responsive Pause actions.
+  - UI Playback Controls (`src/components/VideoPlaybackControls.tsx` & `src/components/beginner/tabs/BeginnerPlayerTab.tsx`):
+    - Updated `handleTogglePlay` in `src/routes/index.tsx` to detect whether video is playing or TTS speech is active (`speakingLangRef.current || busy.current`), invoking `pauseBothVideoAndTts()` to pause both simultaneously.
+    - Updated `VideoPlaybackControls.tsx` central button to reflect active media and display "Pause" whenever `isPlaying || isPausedForSpeech` is true.
+    - Updated `BeginnerPlayerTab.tsx` play/pause button to reflect active media and display "Pause" whenever `isPlaying || Boolean(speakingLang)` is true.
+    - Updated video overlay play/pause buttons in `src/routes/index.tsx` to display "Pause" whenever `isVideoPlaying || Boolean(speakingLang)` is true.
+- **Dedicated Automated Verification Suite (Subtask 192.3)**:
+  - Created dedicated automated test `scripts/verify-pause-both-video-and-tts.ts` validating:
+    1. `stopNativeTTS()` definition and invocation in `MainActivity.kt`.
+    2. Native TTS cancellation on media command pause/stop in `MainActivity.kt` and `BackgroundAudioService.kt`.
+    3. `pauseBothVideoAndTts` and `handleTogglePlay` simultaneous video and speech cancellation in `src/routes/index.tsx`.
+    4. Media manager `onPause` and `onStop` speech cancellation and state resets.
+    5. Active pause states in `VideoPlaybackControls.tsx` and `BeginnerPlayerTab.tsx`.
+    6. All 5 app version targets synchronized at 2.0.1 (versionCode 20001).
+  - Registered `"test:pause-both-video-and-tts"` in `package.json` and documented in `docs/files.md`.
+  - Verification Commands & Outcomes:
+    - `npm run test:pause-both-video-and-tts`: 100% PASS (16/16 assertions passed).
+    - `npm run test:agents-all`: 100% PASS (18/18 constitutional checks passed).
+    - `lint_applet`: 0 errors.
+    - `compile_applet`: Production build succeeded.
+
+---
+
 ## Task 191: Chapter 2 - Implement Major Version Bump to 2.*.* (Version 2.0.0)
 
 ### Summary:
