@@ -4,7 +4,9 @@ import assert from "node:assert";
 import { parseJson3 } from "../src/lib/native-captions";
 import {
   align,
+  subtitleColumnName,
   subtitleTextForColumn,
+  RTL,
   type Json3,
   type Row,
   LANGS,
@@ -86,6 +88,12 @@ assert.strictEqual(
   "An absent language key must render empty instead of reusing another column's text",
 );
 console.log("✅ PASS: Subtitle text stays bound to its exact language column when columns reorder");
+assert.strictEqual(subtitleColumnName("iw", "IW"), "Hebrew");
+assert.strictEqual(subtitleColumnName("il", "IL"), "Hebrew");
+assert.strictEqual(subtitleColumnName("he", "Hebrew"), "Hebrew");
+assert.strictEqual(subtitleColumnName("en", "English"), "English");
+assert(RTL.has("iw") && RTL.has("il"), "Legacy Hebrew codes must render right-to-left");
+console.log("✅ PASS: Hebrew aliases display as Hebrew with RTL direction in the table");
 
 // 5. Functional runtime simulation of hasLegitimateSubtitles and cols
 const sampleEnRaw = JSON.stringify({

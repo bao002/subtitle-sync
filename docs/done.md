@@ -7,6 +7,12 @@
 - Added regression coverage proving text stays in its language column after column reordering and missing language keys remain empty.
 - Verification: `npm run test:subtitles-table-visibility` PASS; `npm run test:agents-version` PASS; `npm run build` PASS; `npm run lint` 0 errors with 2 existing route hook-dependency warnings.
 
+## Task 198: Normalize Hebrew Language Aliases in the Table (Version 2.0.7)
+
+- Table headers now display `iw` and `il` as “Hebrew” while keeping their original track keys.
+- Added both legacy aliases to the RTL set so their subtitle cells render right-to-left.
+- Verification: `npm run test:subtitles-table-visibility` PASS; `npm run test:agents-version` PASS; `npm run build` PASS (existing large-chunk warning); `npm run lint` 0 errors with 2 existing route hook-dependency warnings.
+
 ## Task 195: Process Shared Subtitle URLs Reliably (Version 2.0.4)
 
 ### Summary:

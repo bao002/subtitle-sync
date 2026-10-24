@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: Task 198: Normalize Hebrew Language Aliases in the Table.
+- **Active Subtask**: Task 199: Keep Default Subtitle Track Out of TTS.
 - **Status**: IN PROGRESS.
-- **Target**: Normalize `iw` and `il` language codes to Hebrew presentation in the subtitles table.
+- **Target**: Keep default/base subtitles visible in the table while preventing automatic TTS playback of that track.

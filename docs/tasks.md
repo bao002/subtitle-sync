@@ -9,8 +9,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
   - [ ] Sub-task 194.2: Implement `setBaseLanguage` state callback, fix YTPlayer `loadVideoById`, fix criteria type in index.tsx, and fix missing `HelpCircle` in `AiSubtitlePunctuationTab.tsx`.
   - [ ] Sub-task 194.3: Create automated verification test `scripts/verify-set-base-language-fix.ts`, run tests, compile, lint, commit, and migrate to `docs/done.md`.
 
-- [ ] **Task 198: Normalize Hebrew Language Aliases in the Table**
-  - [ ] Render `iw` and `il` language codes as Hebrew in the subtitles table.
 - [ ] **Task 199: Keep Default Subtitle Track Out of TTS**
   - [ ] Show fetched default subtitles in the language table without automatically speaking that track.
 - [ ] **Task 200: Mark YouTube-Translated Subtitle Tracks**

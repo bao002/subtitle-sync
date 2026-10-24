@@ -1,6 +1,6 @@
 import React from "react";
 import { Check, Sparkles } from "lucide-react";
-import { type Row, type Json3 } from "@/lib/subtitles";
+import { type Row, type Json3, subtitleColumnName } from "@/lib/subtitles";
 import { SubtitleRow, type SubtitleColumn } from "@/components/SubtitleRow";
 import { type SpeechProgress } from "@/components/HighlightedSubtitle";
 
@@ -171,7 +171,7 @@ export function SubtitlesTablePanel({
             <th className="w-24 px-3 py-2 text-left font-medium">Time</th>
             {cols.map((l) => (
               <th key={l.code} className="px-3 py-2 text-left font-medium">
-                {l.name}
+                {subtitleColumnName(l.code, l.name)}
               </th>
             ))}
           </tr>

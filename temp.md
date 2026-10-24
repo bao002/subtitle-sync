@@ -1,3 +1,3 @@
 # Ephemeral Scratchpad (temp.md)
 
-Task 197 complete: explicit language-keyed cell lookup, order/missing-key regression, app version 2.0.6, and web build/lint passed. Task 198 is now active.
+Task 198 complete: `iw`/`il` table headers display as Hebrew and cells use RTL direction; tests, version parity, build, and lint passed. Task 199 is now active.

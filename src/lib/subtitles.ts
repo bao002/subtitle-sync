@@ -15,6 +15,10 @@ type Token = { t: number; text: string };
 
 export type Row = { start: number; end: number; texts: Record<string, string> };
 
+export function subtitleColumnName(languageCode: string, name: string): string {
+  return ["iw", "il"].includes(languageCode.trim().toLowerCase()) ? "Hebrew" : name;
+}
+
 export function subtitleTextForColumn(row: Row, languageCode: string): string {
   return Object.prototype.hasOwnProperty.call(row.texts, languageCode)
     ? (row.texts[languageCode] ?? "")
@@ -30,7 +34,7 @@ export const LANGS: { code: string; name: string; tts: string }[] = [
   { code: "ru", name: "Russian", tts: "ru-RU" },
 ];
 
-export const RTL = new Set(["he", "ar"]);
+export const RTL = new Set(["he", "iw", "il", "ar"]);
 
 export function parseCues(j: Json3): Cue[] {
   const out: Cue[] = [];
