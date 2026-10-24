@@ -1,5 +1,13 @@
 # Done tasks
 
+## Task 211: Fold unpinned accordions after five seconds
+
+- Changed the shared accordion auto-fold timeout to exactly 5,000 ms after opening or the latest detected interaction.
+- Preserved per-accordion pin state and the guard that prevents auto-folding while pinned.
+- Tightened the existing verifier to assert the exact interval and pin exception.
+- Verification: `npm run test:compact-ui-language-cleanup`, `npx eslint src/components/AccordionSection.tsx`, `npm run build`, and `git diff --check` PASS.
+- Implementation commit: `c491387`.
+
 ## Task 210: Move subtitle display controls beside the video
 
 - Moved beginner subtitle sizing from Voice & Preferences to the video-adjacent controls, preserving the saved ratio and its use in the sync player.
