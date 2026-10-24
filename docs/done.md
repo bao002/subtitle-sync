@@ -5204,3 +5204,10 @@
 - Ran and passed markdown integrity suites `npm run test:no-duplicate-md` and `npm run test:md`.
 - Verified clean build (`compile_applet`) and zero ESLint issues (`lint_applet`).
 - Migrated Task 102 out of active tracking files to `docs/done.md`.
+
+### Hotfix: Keep shared-video test player accordion open
+
+- Updated `e2e/web.spec.ts` to assert the player panel pin state and reopen the panel if necessary before checking the embedded YouTube iframe.
+- The focused Docker E2E advanced past the panel/iframe assertions, loaded 126 authentic Hebrew subtitle sections, and produced non-empty Italian translations. The full test remained blocked at playback: YouTube showed “Sign in to confirm you're not a bot,” and no authentic video playback was recorded.
+- Validation: focused Docker web E2E (`PLAYWRIGHT_VIDEO=on`, `--grep 'shared subtitles link'`, `--retries=0`; partial, blocked by YouTube challenge), `npm run build` (passed), `npm run lint` (passed), and `git diff --check` (passed).
+- Task 234 remains in `docs/tasks.md` under Later Tasks until authentic playback is available; the diagnostic Playwright WebM is not represented as a successful screencast.

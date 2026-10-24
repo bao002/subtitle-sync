@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: No active task.
-- **Blocked later task**: Task 234 — Capture authentic shared-video subtitle E2E. Authentic Hebrew captions and on-demand Italian translation loaded, but YouTube blocked Docker playback with a bot/login challenge. Details and the retry command are in `docs/tasks.md`.
-- **Next Action**: Retry Task 234 only when the YouTube embed is accessible from the E2E runtime.
+- **Blocked later task**: Task 234 — Capture authentic shared-video subtitle E2E. The latest Docker run loaded Hebrew captions and Italian translations, but YouTube blocked playback with its bot/login challenge. Retry only from a runtime/network where the embed can play.
+- **Next Action**: Resume Task 234 with a fresh signed timedtext URL when authentic YouTube playback is accessible.

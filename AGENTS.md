@@ -143,5 +143,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-what did you invoke?
+create video screencast of the web-demo application running a shared linked which built upon the following subtitles and a target_lang=italian
+
+[signed timedtext URL redacted from persistent prompt log]
 ```

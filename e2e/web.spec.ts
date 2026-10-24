@@ -203,7 +203,12 @@ test("shared subtitles link plays the real video and alternates authentic Hebrew
   if (!(await playerPanel.getAttribute("open"))) {
     await page.getByTestId("accordion-bar-player").click();
   }
-  await page.getByTestId("accordion-pin-player").click();
+  const pinPlayerButton = page.getByTestId("accordion-pin-player");
+  await pinPlayerButton.click();
+  await expect(pinPlayerButton).toHaveAttribute("aria-pressed", "true");
+  if (!(await playerPanel.getAttribute("open"))) {
+    await page.getByTestId("accordion-bar-player").click();
+  }
   const youtubeFrame = page.locator('iframe[src*="youtube.com/embed"]');
   await expect(youtubeFrame).toBeVisible({ timeout: 30000 });
   const sourceCell = page.getByTestId("subtitle-cell-0-iw");
