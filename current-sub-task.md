@@ -1,7 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: Sub-task 196.2: Android build and real-device E2E validation.
-- **Status**: BLOCKED.
-- **Target**: Run `./gradlew assembleDebug` and `scripts/run-android-e2e.sh` with an Android SDK and API 34 emulator/device available.
-- **Completed locally**: Share regression tests, version parity, web build, and lint.
-- **Blocker**: `adb` is not installed and Gradle cannot locate an Android SDK (`ANDROID_HOME`/`sdk.dir`).
+- **Active Subtask**: Task 198: Normalize Hebrew Language Aliases in the Table.
+- **Status**: IN PROGRESS.
+- **Target**: Normalize `iw` and `il` language codes to Hebrew presentation in the subtitles table.

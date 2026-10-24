@@ -65,6 +65,7 @@ The application processes and presents subtitles through a strict sequential pip
   5. **Resume held task**: After hotfix is verified, restore suspended task back to active status in `current-sub-task.md` and `docs/todo.md`, and resume work.
 - **Always keep last raw prompt in AGENTS.md**: `AGENTS.md` must continuously record and preserve the exact, unedited raw text of the user's latest prompt in a dedicated `## Last raw prompt` section on EVERY single prompt received.
 - **Later tasks protocol**: Any "later" task MUST be stored at the bottom under `## Later Tasks` in `docs/tasks.md` (and `docs/later.md`). When active tasks are complete, ask user whether to proceed with "later" tasks.
+- **Codespace platform blockers**: If a required task cannot run in Codespaces because a platform toolchain, device, emulator, or permission is unavailable, move only that blocked work to `## Later Tasks` in `docs/tasks.md` and `docs/later.md`, name the required platform/agent and exact validation command, then resume any remaining Codespace-doable task. Do not leave the blocked work as the active subtask.
 - **No more tasks "go on" handling**: In case no more tasks are left (active backlog in `docs/tasks.md` and `current-sub-task.md` is empty), if prompt is "go on", then just summarize that there are no more tasks left. No need to show anything else.
 - **Numbered chapters as serial tasks protocol**: When user prompt consists of numbered chapters (e.g. `1. ...`, `2. ...`), treat each as a separate distinct task in `docs/tasks.md`, divided into sub-tasks worked on strictly serially: execute, test, verify, compile, lint, commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
@@ -137,7 +138,25 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-git commit and push
+git commit and push.
+
+1. fix case where 1 language text aprears on another. that but happend to me. required a mechnism to ensure correct text presentation based on columns.
+
+2. in case of lang_code:iw or il -> show it as hebrew on the subtitles table view.
+
+3. once the defaut subtitles is fetched - never tts-play it , but do present it on the language-table-view
+
+4. once a translation is fetched from youtube api - add an indication icon next to it.
+
+5. when a char such as ">" , "<" appears - present those subtitles only after cleaning them from those chars! otherwise tts-play pronounce it and it bothering!
+
+6. on advance-mode: the parser design is not convenient - dont show the parser confirmation element as popup (i noticed it on android ) because it failing on-demand visual comparison
+
+7. the selection from  favorite languages - which subtitles to show should be beside the video and not part of the languages section.
+
+8. the languages selection vs per language settings (tts-rate, tts-ratio) should be on different sections.
+
+9. the design of showing the favorite languages customizations and then there configured setting for each language - is a duplication of data. -> wherever showing each lang setup - a click should allow to edit it ! (use space effeciently!)
 ```
 
 

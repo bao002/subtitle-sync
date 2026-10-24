@@ -15,6 +15,12 @@ type Token = { t: number; text: string };
 
 export type Row = { start: number; end: number; texts: Record<string, string> };
 
+export function subtitleTextForColumn(row: Row, languageCode: string): string {
+  return Object.prototype.hasOwnProperty.call(row.texts, languageCode)
+    ? (row.texts[languageCode] ?? "")
+    : "";
+}
+
 export const LANGS: { code: string; name: string; tts: string }[] = [
   { code: "en", name: "English", tts: "en-US" },
   { code: "he", name: "Hebrew", tts: "he-IL" },

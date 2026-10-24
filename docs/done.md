@@ -1,5 +1,12 @@
 # Done tasks
 
+## Task 197: Prevent Subtitle Text Crossing Language Columns (Version 2.0.6)
+
+- Added `subtitleTextForColumn`, which only returns the subtitle text for an exact own language key, and used it for rendered text and per-cell TTS.
+- Added language code metadata to subtitle table cells.
+- Added regression coverage proving text stays in its language column after column reordering and missing language keys remain empty.
+- Verification: `npm run test:subtitles-table-visibility` PASS; `npm run test:agents-version` PASS; `npm run build` PASS; `npm run lint` 0 errors with 2 existing route hook-dependency warnings.
+
 ## Task 195: Process Shared Subtitle URLs Reliably (Version 2.0.4)
 
 ### Summary:
