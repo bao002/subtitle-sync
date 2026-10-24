@@ -91,7 +91,6 @@ export interface AppSettings {
   // Beginner Mode Tab-Based Flow Settings
   workflowMode?: "beginner" | "expert";
   beginnerActiveTab?: "video" | "preferences" | "parsing" | "player";
-  beginnerSelectedBaseLang?: string;
   beginnerTtsSpeed?: number;
   beginnerTtsVoice?: string;
   beginnerSubtitlesRatio?: number;
@@ -267,7 +266,6 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   // Beginner Mode Defaults
   workflowMode: "beginner",
   beginnerActiveTab: "video",
-  beginnerSelectedBaseLang: "",
   beginnerTtsSpeed: 1.0,
   beginnerTtsVoice: "",
   beginnerSubtitlesRatio: 1.0,
@@ -289,6 +287,9 @@ export function loadAppSettings(): AppSettings {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        delete parsed.beginnerSelectedBaseLang;
+      }
       return {
         ...DEFAULT_APP_SETTINGS,
         compactView: parsed.compactView !== undefined ? parsed.compactView : true,
@@ -482,7 +483,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "2.0.9",
+    version: "2.0.10",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {

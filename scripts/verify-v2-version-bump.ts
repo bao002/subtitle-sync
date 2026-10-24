@@ -9,8 +9,11 @@ console.log("🧪 Verifying Major APK Version Bump to 2.*.* Across All 5 Targets
 console.log("=========================================================================");
 
 const rootDir = process.cwd();
-const expectedVersion = "2.0.0";
-const expectedVersionCode = 20000;
+const pkgPath = path.resolve(rootDir, "package.json");
+const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
+const expectedVersion = pkg.version as string;
+const [major, minor, patch] = expectedVersion.split(".").map(Number);
+const expectedVersionCode = major * 10_000 + minor * 100 + patch;
 
 // Section 1: Major version pattern verification
 console.log("\n🔢 Section 1: Major Version 2.*.* Pattern Compliance");
@@ -22,17 +25,12 @@ console.log(`✅ Version ${expectedVersion} conforms to 2.*.* requirement`);
 
 // Section 2: Target 1 - package.json
 console.log("\n📦 Section 2: Target 1 - package.json");
-const pkgPath = path.resolve(rootDir, "package.json");
-const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
 assert.strictEqual(
   pkg.version,
   expectedVersion,
   `package.json version must be ${expectedVersion}, got ${pkg.version}`,
 );
-assert(
-  pkg.version.startsWith("2."),
-  `package.json version must start with 2., got ${pkg.version}`,
-);
+assert(pkg.version.startsWith("2."), `package.json version must start with 2., got ${pkg.version}`);
 console.log(`✅ Target 1: package.json version = ${pkg.version}`);
 
 // Section 3: Target 2 - android-shell/app/build.gradle.kts
@@ -90,5 +88,7 @@ assert(
 console.log(`✅ Target 5: src/utils/appSettings.ts snapshot version = "${expectedVersion}"`);
 
 console.log("\n=========================================================================");
-console.log("🎉 ALL CHECKS PASSED: APK Version 2.0.0 bumped and synchronized across all 5 targets!");
+console.log(
+  `🎉 ALL CHECKS PASSED: APK Version ${expectedVersion} is synchronized across all 5 targets!`,
+);
 console.log("=========================================================================");

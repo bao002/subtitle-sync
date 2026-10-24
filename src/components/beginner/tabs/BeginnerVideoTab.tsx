@@ -33,8 +33,6 @@ export interface BeginnerVideoTabProps {
   onOpenLibrary: () => void;
   observedUrl: string | null;
   observedTracks: ObservedSubtitleTrack[];
-  selectedBaseLang: string;
-  onSelectBaseLang: (lang: string) => void;
   onLoadSampleSubtitles?: () => void;
   onContinueToNextTab?: () => void;
   isAndroidNative?: boolean;
@@ -57,8 +55,6 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   onOpenLibrary,
   observedUrl,
   observedTracks,
-  selectedBaseLang,
-  onSelectBaseLang,
   onLoadSampleSubtitles,
   onContinueToNextTab,
   isAndroidNative = false,
@@ -96,7 +92,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
     }
   };
 
-  const hasSelectedBase = Boolean(selectedBaseLang);
+  const hasSelectedBase = observedTracks.some((track) => track.isBase);
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto p-3" data-testid="beginner-video-tab">
@@ -289,19 +285,19 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
         )}
       </div>
 
-      {/* Step 3: Observed Subtitles & Select Base Track */}
+      {/* Step 3: Automatically Selected Base Track */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div>
             <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-              <span>Observed Subtitle Tracks</span>
+              <span>Detected Subtitle Tracks</span>
               <span className="text-muted-foreground font-normal">
                 ({observedTracks.length} detected)
               </span>
             </h3>
             <p className="text-[11px] text-muted-foreground">
-              Choose which subtitle track to use as the base language. Selecting a base track
-              unlocks the next tabs.
+              The base language is selected automatically: English when available, otherwise the
+              first detected track.
             </p>
           </div>
         </div>
@@ -320,18 +316,17 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             data-testid="observed-subtitles-list"
           >
             {observedTracks.map((track) => {
-              const isSelected = selectedBaseLang === track.lang;
+              const isSelected = track.isBase;
               return (
-                <button
+                <div
                   key={track.lang}
-                  type="button"
-                  onClick={() => onSelectBaseLang(track.lang)}
-                  className={`flex items-center justify-between p-2.5 rounded-lg border text-left transition-all ${
+                  aria-current={isSelected ? "true" : undefined}
+                  className={`flex items-center justify-between p-2.5 rounded-lg border ${
                     isSelected
                       ? "bg-primary/10 border-primary text-foreground ring-1 ring-primary/40"
-                      : "bg-background border-border hover:border-primary/50 text-foreground"
+                      : "bg-background border-border text-foreground"
                   }`}
-                  data-testid={`track-select-${track.lang}`}
+                  data-testid={`observed-subtitle-track-${track.lang}`}
                 >
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-2">
@@ -362,7 +357,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
