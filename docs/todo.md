@@ -2,4 +2,4 @@
 
 - **Active**: None.
 - **Status**: COMPLETED.
-- **Next**: All current prompt work and the related caption verifier hotfix are archived. Android-platform validation remains in the later backlog.
+- **Next**: Current prompt work is archived and the worktree is clean. Push was attempted but Git credentials are unavailable; Android-platform validation remains in the later backlog.

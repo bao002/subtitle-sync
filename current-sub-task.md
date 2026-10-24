@@ -2,4 +2,4 @@
 
 - **Active Subtask**: None.
 - **Status**: COMPLETED.
-- **Next**: All work for this prompt and the directly related verifier hotfix is committed and archived; perform final push and repository audit.
+- **Next**: All work is committed and archived; the push was attempted but blocked by missing Git credentials. The worktree is clean, and only the separate Android-platform validation task remains in the later backlog.
