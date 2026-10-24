@@ -1,5 +1,12 @@
 # Done tasks
 
+### Hotfix: Define AI cache status before use
+
+- Fixed a production runtime crash in `src/components/SubtitlesTablePanel.tsx` by destructuring the `hasCachedAi` prop before its render conditions use it.
+- Added a source regression assertion to `scripts/verify-video-switch-table-reset-and-ai-cache.ts`.
+- Verification: `npm run build`, `npm run lint`, and a headless Chromium production-preview smoke test passed; the page rendered its header with no page or console errors.
+- The broader `npm run test:video-switch-table-reset-and-ai-cache` reached and passed the new assertion and AI cache checks, then failed at a pre-existing version assertion expecting `1.0.42` while `package.json` declares `2.0.12`.
+
 ## Task 224: Parser abbreviation exception rules for dot splitting
 
 - Added abbreviation-aware dot handling in `src/utils/newSubtitlesParser.ts` so common forms such as `Dr.`, `Mrs.`, and custom entries remain intact while genuine sentence-final periods still split.

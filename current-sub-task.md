@@ -1,6 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: Completed and archived.
-- **Completed Task**: Task 224 — Treat abbreviation dots like "Dr." and "Mrs." as non-split boundaries while preserving real sentence endings.
-- **Verification**: `npm run test:quarantine-and-new-parser && npm run lint && npm run build` passed.
-- **Next Action**: The remaining backlog items are blocked Android E2E tasks in `docs/tasks.md`; no local parser task remains active.
+- **Status**: In progress.
+- **Active Task**: Task 225 — Verify the page runs without errors.
+- **Scope**: Validate the built web page in Chromium, run lint/build checks, and record any remaining test-environment or verifier limitations.
+- **Next Action**: Record the clean browser result and existing verifier limitation, then complete the task.

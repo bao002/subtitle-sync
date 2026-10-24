@@ -143,18 +143,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. look into: public/fixtures/L2Ryrr6txwA/*.json
-
-present all those langs (including pt-BR)
-
-In case of parsing a youtube subtitles or artifact .json file - indicate that column using an icon.
-
-in case of using on-demand translation - indicate it differently.
-
-
-2. quarentine the old subtitles parser implementation in favore of a new and easier parser. the new parser will apear just above the subtitles-table and changing its configuration will dynamicly update the presented subtitles.
-
-the old subtitles parser design wasn't simple enough and was growing with too safisticated features while i couldnt even splitting based on the location of a dot charecter: "."
-
-update later.md: the user should be able to tell the parser not to split when the dot is next to other words such as "dr.", "mrs." (per languages customizations).
+ensure page runs without errors
 ```

@@ -2,6 +2,11 @@
 
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
+## Active Tasks
+
+- [ ] **Task 225: Verify the page runs without errors**
+  - Run the project checks and start the web page; investigate and fix any error that prevents a clean build or page runtime, then verify the fix.
+
 ## Later Tasks
 
 - [ ] **Task 196: Android-platform validation for web-demo share links**

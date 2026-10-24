@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: Task 223 (Subtask 223.1) — Quarantining old subtitles parser in favor of an easier, simpler parser that reliably splits on dot ".".
+Current active workstream: Keep this protocol task-focused; record the active task in `docs/tasks.md` and `current-sub-task.md`.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 

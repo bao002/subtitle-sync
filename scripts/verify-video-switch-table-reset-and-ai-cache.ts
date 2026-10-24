@@ -115,6 +115,14 @@ const subtitlesTablePath = path.join(rootDir, "src/components/SubtitlesTablePane
 assert(fs.existsSync(subtitlesTablePath), "src/components/SubtitlesTablePanel.tsx must exist");
 const subtitlesTableContent = fs.readFileSync(subtitlesTablePath, "utf8");
 
+const subtitlesTableProps = subtitlesTableContent.match(
+  /export function SubtitlesTablePanel\(\{([\s\S]*?)\}: SubtitlesTablePanelProps\)/,
+);
+assert(
+  subtitlesTableProps?.[1].includes("hasCachedAi"),
+  "SubtitlesTablePanel must destructure hasCachedAi from its props before rendering the cached AI controls",
+);
+
 assert(
   subtitlesTableContent.includes('data-testid="load-cached-ai-subtitles-viewer-btn"'),
   "SubtitlesTablePanel.tsx must render load-cached-ai-subtitles-viewer-btn when cached AI subtitles are available",

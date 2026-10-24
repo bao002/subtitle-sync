@@ -56,6 +56,7 @@ export function SubtitlesTablePanel({
   spokenLangs,
   ttsRatios,
   onLoadCachedAiSubtitles,
+  hasCachedAi,
   onSpeakCue,
   parserConfig: externalParserConfig,
   onParserConfigChange,
