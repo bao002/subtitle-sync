@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: Keep this protocol task-focused; record the active task in `docs/tasks.md` and `current-sub-task.md`.
+Current active workstream: None. Active and later work remains tracked in `docs/tasks.md`.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 

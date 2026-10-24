@@ -1,4 +1,4 @@
 # Active Task Mirror (`docs/todo.md`)
 
 - **Status**: No active task.
-- **Completed**: Task 230 — Remove parser diff review for live table updates; recorded in [done.md](done.md).
+- **Next Action**: Select a task from the later backlog in `docs/tasks.md`.

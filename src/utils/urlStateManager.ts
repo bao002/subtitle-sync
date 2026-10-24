@@ -7,6 +7,7 @@
 import { validateYouTubeUrl, DEFAULT_VIDEO_ID, DEFAULT_VIDEO_URL } from "./youtube";
 import { clearSubtitleCache } from "./subtitleCache";
 import { logInfo, logWarn } from "./logBuffer";
+import { LANGS } from "@/lib/subtitles";
 
 export const DEMO_SITE_BASE_URL = "https://mostuf2556.github.io/subtitle-sync";
 
@@ -259,7 +260,16 @@ export function parseShareableUrlState(searchOrQuery: string): UrlAppState {
     if (rawTargetLangs) {
       const langs = rawTargetLangs
         .split(",")
-        .map((l) => l.toLowerCase().trim())
+        .map((l) => {
+          const normalized = l.toLowerCase().trim();
+          return (
+            LANGS.find(
+              (language) =>
+                language.code.toLowerCase() === normalized ||
+                language.name.toLowerCase() === normalized,
+            )?.code ?? normalized
+          );
+        })
         .filter(Boolean);
       if (langs.length > 0) {
         state.targetLanguages = langs;

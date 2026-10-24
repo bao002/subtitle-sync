@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.15";
+export const APP_VERSION = "2.0.16";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "b840e11";
 export const APP_VERSION_DESCRIPTION =
-  "Parser changes apply immediately with live subtitle output (Version 2.0.15)";
+  "Shared subtitle links support Italian language names (Version 2.0.16)";
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 

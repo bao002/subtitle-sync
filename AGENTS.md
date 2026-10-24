@@ -143,5 +143,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-parser - no need to show diff if we put the parser next to the subtitles-table and any change can be dynamicly observed directly and immidiatly
+e2e test link sharing using the following url, ensuring the video plays correctly and subtitles are alternating between the default subtitles language and italian
+
+sharing details:
+target_lang:italian
+subtitles link: (it also satisfied the video id based on the "&v=" parameter)
+[Signed timedtext URL redacted; includes temporary signature and token parameters]
 ```

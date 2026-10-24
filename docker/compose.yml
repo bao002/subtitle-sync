@@ -13,6 +13,7 @@ services:
       CI: "true"
       NODE_ENV: test
       PLAYWRIGHT_BASE_URL: ${PLAYWRIGHT_BASE_URL:-}
+      E2E_SHARED_SUBTITLES_URL: ${E2E_SHARED_SUBTITLES_URL:-}
       PLAYWRIGHT_OUTPUT_DIR: /workspace/artifacts/test-results
       PLAYWRIGHT_HTML_OUTPUT_DIR: /workspace/artifacts/playwright-report
     volumes:

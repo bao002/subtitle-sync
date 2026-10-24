@@ -23,6 +23,18 @@ Vite server:
 PLAYWRIGHT_BASE_URL=https://example.com/app/ ./docker/manage.sh e2e web
 ```
 
+The shared-subtitle playback test uses a sanitized test URL by default. To pass
+an unexpired timedtext URL for a specific scenario without saving its signed
+parameters in the repository, provide it only in the local command environment:
+
+```bash
+E2E_SHARED_SUBTITLES_URL='https://www.youtube.com/api/timedtext?...' ./docker/manage.sh e2e web --grep 'shared subtitles link'
+```
+
+The E2E intercepts YouTube timedtext and translation responses locally, so the
+test validates share-link hydration, language selection, and playback behavior
+without sending the signed URL to YouTube.
+
 `./docker/manage.sh build` only builds the image. `./docker/manage.sh shell`
 opens a shell in it, and `./docker/manage.sh clean` removes local Docker test
 artifacts and Compose resources.

@@ -1,5 +1,13 @@
 # Done tasks
 
+## Task 231: Verify shared subtitle link playback and language alternation (Version 2.0.16)
+
+- Added a web E2E that restores a shared link for video `WJlWKB8qrf0`, verifies the default Hebrew track and Italian translation, then observes the overlay alternate Hebrew → Italian → Hebrew while the video plays and resumes after speech.
+- Normalized named target-language parameters such as `italian` to the supported language code `it`; extended the share-state verifier to cover that behavior and derive Android `versionCode` from the full version.
+- Added optional `E2E_SHARED_SUBTITLES_URL` forwarding for Docker runs without committing the signed timedtext URL. The E2E stubs the timedtext and translation endpoints, so the repeatable test does not depend on an expiring external URL.
+- Synchronized app version metadata to 2.0.16.
+- Verification: `./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0`, `npm run test:share-state-reproduction`, `npm run test:minimal-share-url`, `npm run test:v2-version-bump`, `npm run lint`, `npx eslint e2e/web.spec.ts scripts/verify-share-state-reproduction.ts`, `npm run test:md`, Prettier checks on changed supported files, `npm run build`, and `git diff --check` passed. Build emitted the existing non-fatal large-chunk warning.
+
 ## Task 230: Remove parser diff review for live table updates (Version 2.0.15)
 
 - Removed diff-review toggles, pending-change confirmation state, comparison calculations, inline/modal review UI, and diff-only components.
