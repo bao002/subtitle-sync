@@ -1,6 +1,6 @@
 import React, { memo } from "react";
 import { Volume2 } from "lucide-react";
-import { type Row, type Json3, fmt, RTL } from "@/lib/subtitles";
+import { type Row, type Json3, fmt, RTL, subtitleTextForColumn } from "@/lib/subtitles";
 import {
   isSubtitleInstanceEligibleForTTS,
   shouldHighlightSentenceForTTS,
@@ -11,6 +11,7 @@ export interface SubtitleColumn {
   code: string;
   name: string;
   tts: string;
+  isYouTubeTranslated?: boolean;
 }
 
 export interface SubtitleRowProps {
@@ -18,6 +19,7 @@ export interface SubtitleRowProps {
   actualIndex: number;
   isActive: boolean;
   cols: SubtitleColumn[];
+  baseLanguage?: string;
   speechProgress: SpeechProgress;
   tracks: Record<string, Json3> | null;
   onSeek: (r: Row, index: number) => void;
@@ -31,6 +33,7 @@ export const SubtitleRow = memo(function SubtitleRow({
   actualIndex,
   isActive,
   cols,
+  baseLanguage,
   speechProgress,
   tracks,
   onSeek,
@@ -51,6 +54,7 @@ export const SubtitleRow = memo(function SubtitleRow({
         {fmt(r.start)}–{fmt(r.end)}
       </td>
       {cols.map((l) => {
+        const columnText = subtitleTextForColumn(r, l.code);
         const isSpoken = Boolean(spokenLangs?.includes(l.code));
         const ratio = ttsRatios?.[l.code] ?? 1;
         const isEligible = isSubtitleInstanceEligibleForTTS(actualIndex, ratio);
@@ -59,6 +63,7 @@ export const SubtitleRow = memo(function SubtitleRow({
           <td
             key={l.code}
             dir={RTL.has(l.code) ? "rtl" : "ltr"}
+            data-language-column={l.code}
             data-testid={`subtitle-cell-${actualIndex}-${l.code}`}
             data-tts-pronounced={isPronouncedHighlight ? "true" : undefined}
             className={`px-3 py-2 leading-relaxed transition-colors ${
@@ -67,7 +72,7 @@ export const SubtitleRow = memo(function SubtitleRow({
                 : ""
             }`}
           >
-            {tracks && !tracks[l.code] && !r.texts[l.code] ? null : (
+            {tracks && !tracks[l.code] && !columnText ? null : (
               <div
                 data-testid={`sentence-container-${actualIndex}-${l.code}`}
                 data-tts-pronounced-highlight={isPronouncedHighlight ? "true" : "false"}
@@ -79,7 +84,7 @@ export const SubtitleRow = memo(function SubtitleRow({
               >
                 <div className="flex-1">
                   <HighlightedSubtitle
-                    text={r.texts[l.code] ?? ""}
+                    text={columnText}
                     progress={
                       speechProgress?.row === actualIndex && speechProgress.lang === l.code
                         ? speechProgress
@@ -89,12 +94,12 @@ export const SubtitleRow = memo(function SubtitleRow({
                   />
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  {onSpeakCue && r.texts[l.code] && (
+                  {onSpeakCue && columnText && l.code !== baseLanguage && (
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onSpeakCue(r.texts[l.code] || "", l.code);
+                        onSpeakCue(columnText, l.code);
                       }}
                       className="opacity-40 hover:opacity-100 p-0.5 rounded text-muted-foreground hover:text-foreground transition-opacity"
                       data-testid={`btn-speak-cell-${actualIndex}-${l.code}`}

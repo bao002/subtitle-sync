@@ -67,6 +67,7 @@ import {
   parseVideoId,
   timedTextVideoId,
 } from "@/lib/native-captions";
+import { removeAngleBrackets } from "@/utils/captionParser";
 import {
   SUPPORTED_LANGUAGES_CATALOG,
   getUserLearningLanguages,
@@ -186,6 +187,7 @@ import {
   getSectionOrder,
   getSubtitleRequestMode,
   getTtsRatiosPreference,
+  isTtsSpeakableLanguage,
   isSubtitleInstanceEligibleForTTS,
   shouldHighlightSentenceForTTS,
   setSectionOrder as saveSectionOrder,
@@ -232,6 +234,7 @@ import {
   getFetchStrategyConfig,
   DEFAULT_FETCH_STRATEGY_CONFIG,
   buildActiveAttemptOrder,
+  isYouTubeTranslatedSubtitle,
 } from "@/lib/subtitle-fetch-plan";
 import type { VideoMetadata } from "@/types";
 import { recordVideoWatch, updateVideoLibraryTitle } from "@/utils/videoLibraryManager";
@@ -610,6 +613,16 @@ function getLanguageMeta(code: string): { code: string; name: string; tts: strin
   return { code, name: code.toUpperCase(), tts: code };
 }
 
+const addYouTubeTranslatedLanguage = (
+  code: string,
+  setList: React.Dispatch<React.SetStateAction<string[]>>,
+  url?: string,
+) => {
+  if (!code) return;
+  if (url && !isYouTubeTranslatedSubtitle(url, code)) return;
+  setList((prev) => (prev.includes(code) ? prev : [...prev, code]));
+};
+
 function Index() {
   const [isAndroid, setIsAndroid] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -630,6 +643,7 @@ function Index() {
     }
     return "beginner";
   });
+  const useInlineParserReview = isAndroid || workflowMode === "expert";
 
   const [expandedPrefsHelp, setExpandedPrefsHelp] = useState<Record<string, boolean>>({});
 
@@ -683,6 +697,7 @@ function Index() {
   const [observedUrl, setObservedUrl] = useState("");
   const [defaultCaptionsLoaded, setDefaultCaptionsLoaded] = useState(false);
   const [tracks, setTracks] = useState<Record<string, Json3> | null>(null);
+  const [youtubeTranslatedLanguages, setYoutubeTranslatedLanguages] = useState<string[]>([]);
   const [isSubtitlesPending, startSubtitlesTransition] = useTransition();
   const [strategy, setStrategy] = useState<Strategy>("sentence");
   const [selectedCriteria, setSelectedCriteria] = useState<CriteriaId[]>(() => {
@@ -977,6 +992,14 @@ function Index() {
     }
     return "";
   }, [explicitBaseLanguage, observedUrl, tracks]);
+
+  useEffect(() => {
+    if (!baseLanguage) return;
+    setSpoken((prev) => {
+      const next = prev.filter((lang) => isTtsSpeakableLanguage(lang, baseLanguage));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [baseLanguage]);
 
   const tracksRef = useRef<Record<string, Json3> | null>(tracks);
   tracksRef.current = tracks;
@@ -1445,12 +1468,12 @@ function Index() {
           Object.keys(next)[0],
         );
         if (autoSpeakOnFetch) {
-          // Auto-enable "Speak" checkbox for the fetched languages
-          setSpoken((prev) => Array.from(new Set([...prev, ...Object.keys(next)])));
+          const speakableLanguages = Object.keys(next).filter((lang) => lang !== baseLanguage);
+          setSpoken((prev) => Array.from(new Set([...prev, ...speakableLanguages])));
         }
       }
     },
-    [isAndroid, autoSpeakOnFetch, videoId, speakFetchedLanguageName],
+    [isAndroid, autoSpeakOnFetch, baseLanguage, videoId, speakFetchedLanguageName],
   );
 
   const handleFloatingFetchSingleLanguage = useCallback(
@@ -1580,6 +1603,11 @@ function Index() {
         if (videoId) saveCachedRawJson3(videoId, target, rawBody);
         setTracks((prev) => ({ ...prev, [target]: json }));
         setShown((prev) => (prev.includes(target) ? prev : [...prev, target]));
+        if (new URL(url, "https://www.youtube.com").searchParams.has("tlang")) {
+          setYoutubeTranslatedLanguages((prev) =>
+            prev.includes(target) ? prev : [...prev, target],
+          );
+        }
         notifySubtitleFetch("completed", `Applied and cached subtitles for ${target}`, target);
       }
     },
@@ -1649,6 +1677,9 @@ function Index() {
     }
   };
   const [languageOrder, setLanguageOrder] = useState(() => LANGS.map((lang) => lang.code));
+  const [expandedLanguageSettings, setExpandedLanguageSettings] = useState<Record<string, boolean>>(
+    {},
+  );
   const [ttsRatios, setTtsRatios] = useState<Record<string, number>>(() => {
     const saved = getTtsRatiosPreference();
     const defaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 1]));
@@ -1783,13 +1814,16 @@ function Index() {
       }));
       setShown((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
       setTargetLanguages((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
+      if (url) {
+        addYouTubeTranslatedLanguage(langCode, setYoutubeTranslatedLanguages, url);
+      }
       if (videoId) {
         saveCachedRawJson3(videoId, langCode, JSON.stringify(track));
       }
       if (url && url.startsWith("http") && !observedUrl) {
         setObservedUrl(url);
       }
-      if (autoSpeakOnFetch) {
+      if (autoSpeakOnFetch && langCode !== baseLanguage) {
         setSpoken((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
       }
       notifySubtitleFetch(
@@ -1799,7 +1833,7 @@ function Index() {
         getLanguageMeta(langCode).name,
       );
     },
-    [videoId, observedUrl, autoSpeakOnFetch],
+    [videoId, observedUrl, autoSpeakOnFetch, baseLanguage],
   );
 
   const handleFetchTableUrl = async (langCode: string, langName: string) => {
@@ -1884,6 +1918,40 @@ function Index() {
     subtitles: true,
     library: false,
   });
+
+  const handleToggleVideoSubtitles = () => {
+    const next = !showVideoSubtitles;
+    setShowVideoSubtitles(next);
+    if (!next) return;
+
+    setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
+    const shell = nativeShell();
+    const captured = shell?.getLastObservedTimedTextUrl();
+    if (!captured || (tracks && Object.keys(tracks).length > 0)) return;
+
+    setObservedUrl(captured);
+    setDefaultCaptionsLoaded(true);
+    let defaultLang = "";
+    try {
+      defaultLang = new URL(captured).searchParams.get("lang") || "";
+    } catch {
+      // ignore malformed url
+    }
+    if (!defaultLang || !shell) return;
+
+    try {
+      const raw = shell.fetchTranslatedCaptionsWithUrl(captured, defaultLang, "json3");
+      if (raw && isValidJsonSubtitleResponse(raw)) {
+        const json = parseJson3(raw);
+        if (json) {
+          setTracks((prev) => ({ ...prev, [defaultLang]: json }));
+          setShown((prev) => (prev.includes(defaultLang) ? prev : [defaultLang, ...prev]));
+        }
+      }
+    } catch {
+      // ignore fetch error
+    }
+  };
 
   const [stripSpeakerBrackets, setStripSpeakerBrackets] = useState<boolean>(() =>
     getStripSpeakerBracketsSetting(),
@@ -2512,12 +2580,15 @@ function Index() {
         }
         setTracks((prev) => ({ ...prev, [lang]: json }));
         setShown((prev) => (prev.includes(lang) ? prev : [lang, ...prev]));
+        if (targetLanguage) {
+          setYoutubeTranslatedLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
+        }
         setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
-        if (autoSpeakOnFetch) {
+        if (autoSpeakOnFetch && targetLanguage && isTtsSpeakableLanguage(lang, baseLanguage)) {
           // Auto-enable "Speak" checkbox for the fetched language
           setSpoken((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
         }
-        speakFetchedLanguageName(lang);
+        if (targetLanguage) speakFetchedLanguageName(lang);
 
         const langMeta = LANGS.find((l) => l.code === lang);
         const cuesCount =
@@ -2539,7 +2610,7 @@ function Index() {
     return () => {
       delete window.onNativeCaptionsInterceptedBase64;
     };
-  }, [isAndroid, videoId, autoSpeakOnFetch, speakFetchedLanguageName]);
+  }, [isAndroid, videoId, autoSpeakOnFetch, baseLanguage, speakFetchedLanguageName]);
 
   useEffect(() => {
     if (!tracks) return;
@@ -2855,14 +2926,19 @@ function Index() {
 
   const rows = useMemo<Row[]>(() => {
     if (!rawRows || rawRows.length === 0) return rawRows;
-    const hasAnyOnDemand = Object.keys(onDemandTranslations).length > 0;
-    if (!hasAnyOnDemand) return rawRows;
     return rawRows.map((r, idx) => {
       let changed = false;
       const texts = { ...r.texts };
+      for (const [lang, text] of Object.entries(texts)) {
+        const cleaned = removeAngleBrackets(text);
+        if (cleaned !== text) {
+          texts[lang] = cleaned;
+          changed = true;
+        }
+      }
       for (const [lang, map] of Object.entries(onDemandTranslations)) {
         if ((!texts[lang] || texts[lang].trim().length === 0) && map[idx]) {
-          texts[lang] = map[idx];
+          texts[lang] = removeAngleBrackets(map[idx]);
           changed = true;
         }
       }
@@ -3130,10 +3206,12 @@ function Index() {
       videoId: newVideoId,
       tracks: newTracks,
       observedUrl: newObservedUrl,
+      youtubeTranslatedLanguages: translatedLangs,
     }: {
       videoId: string;
       tracks: Record<string, Json3>;
       observedUrl?: string;
+      youtubeTranslatedLanguages?: string[];
     }) => {
       startSubtitlesTransition(() => {
         const isDifferentVideo = Boolean(newVideoId && newVideoId !== videoId);
@@ -3148,6 +3226,7 @@ function Index() {
           setSubtitlesPage(1);
           setOnDemandTranslations({});
           setDetectedPlaygroundTracks({});
+          setYoutubeTranslatedLanguages([]);
           if (typeof window !== "undefined") {
             const currentSearch = new URLSearchParams(window.location.search);
             if (currentSearch.get("v") !== newVideoId) {
@@ -3174,23 +3253,25 @@ function Index() {
           const detectedBase = trackLangs[0];
           setBaseLanguage(detectedBase);
           setDefaultCaptionsLoaded(true);
-          // Strictly set tracks to ONLY the new tracks — never merge with previous or default video's tracks
           setTracks(newTracks);
           setShown(trackLangs);
           setTargetLanguages(trackLangs);
           setSpoken(trackLangs);
+          setYoutubeTranslatedLanguages(
+            translatedLangs && translatedLangs.length > 0 ? translatedLangs : [],
+          );
           setOpenPanels((prev) => ({ ...prev, subtitles: true }));
         } else if (isDifferentVideo) {
-          // Reset cleanly when changing video without new subtitle tracks
           setDefaultCaptionsLoaded(false);
           setTracks(null);
           setShown([]);
           setTargetLanguages([]);
           setSpoken([]);
+          setYoutubeTranslatedLanguages([]);
         }
       });
     },
-    [videoId],
+    [setBaseLanguage, videoId],
   );
 
   const handleSaveLanguageTrackFromModal = useCallback(
@@ -3365,6 +3446,7 @@ function Index() {
         if (rowIdx < 0 || playedTtsRecords.current.has(rowIdx)) return [];
         const matched = orderedLangs.filter(
           (l) =>
+            isTtsSpeakableLanguage(l.code, currentBaseLanguage) &&
             spoken.includes(l.code) &&
             isSubtitleInstanceEligibleForTTS(
               rowIdx,
@@ -3515,7 +3597,7 @@ function Index() {
       player.current?.destroy?.();
       player.current = null;
     };
-  }, [videoId, isAndroid, workflowMode, playerContainerNode]);
+  }, [videoId, isAndroid, workflowMode, playerContainerNode, isVideoPlaying]);
 
   // Mount and manage dedicated video player instances for each language with speak/audio enabled
   useEffect(() => {
@@ -3677,8 +3759,14 @@ function Index() {
     if (!tracks || Object.keys(tracks).length === 0) {
       return [];
     }
-    const list: { code: string; name: string; tts: string }[] = [];
+    const list: Array<{
+      code: string;
+      name: string;
+      tts: string;
+      isYouTubeTranslated?: boolean;
+    }> = [];
     const addedCodes = new Set<string>();
+    const translatedSet = new Set(youtubeTranslatedLanguages.map((lang) => lang.toLowerCase()));
 
     const hasTrackCues = (t: Json3 | undefined): boolean => {
       if (!t) return false;
@@ -3693,10 +3781,15 @@ function Index() {
       return Boolean(m && Object.keys(m).length > 0);
     };
 
+    const withTranslationBadge = (meta: { code: string; name: string; tts: string }) => ({
+      ...meta,
+      isYouTubeTranslated: translatedSet.has(meta.code.toLowerCase()),
+    });
+
     // 1. If baseLanguage from video captions exists in tracks, display it first
     // Spec: verify base track cues (tracks[baseLanguage].length > 0 || hasTrackCues)
     if (baseLanguage && tracks?.[baseLanguage] && hasTrackCues(tracks[baseLanguage])) {
-      list.push(getLanguageMeta(baseLanguage));
+      list.push(withTranslationBadge(getLanguageMeta(baseLanguage)));
       addedCodes.add(baseLanguage);
     }
 
@@ -3711,7 +3804,10 @@ function Index() {
           (tracks ? Boolean(tracks[l.code]) : true) ||
           hasOnDemandCues(l.code))
       ) {
-        list.push(l);
+        list.push({
+          ...l,
+          isYouTubeTranslated: translatedSet.has(l.code.toLowerCase()),
+        });
         addedCodes.add(l.code);
       }
     }
@@ -3721,7 +3817,7 @@ function Index() {
     if (tracks) {
       for (const code of Object.keys(tracks)) {
         if (!addedCodes.has(code) && shown.includes(code) && hasTrackCues(tracks[code])) {
-          list.push(getLanguageMeta(code));
+          list.push(withTranslationBadge(getLanguageMeta(code)));
           addedCodes.add(code);
         }
       }
@@ -3731,7 +3827,7 @@ function Index() {
     if (list.length === 0 && tracks) {
       for (const code of Object.keys(tracks)) {
         if (!addedCodes.has(code) && hasTrackCues(tracks[code])) {
-          list.push(getLanguageMeta(code));
+          list.push(withTranslationBadge(getLanguageMeta(code)));
           addedCodes.add(code);
         }
       }
@@ -3746,6 +3842,7 @@ function Index() {
     targetLanguages,
     favoriteLanguages,
     onDemandTranslations,
+    youtubeTranslatedLanguages,
   ]);
 
   const hasLegitimateSubtitles = useMemo(() => {
@@ -4008,60 +4105,6 @@ function Index() {
             </Button>
           )}
           <Button
-            id="caption-toggle-button"
-            data-testid="caption-toggle-button"
-            type="button"
-            size="sm"
-            variant={showVideoSubtitles ? "default" : "ghost"}
-            aria-pressed={showVideoSubtitles}
-            onClick={() => {
-              const next = !showVideoSubtitles;
-              setShowVideoSubtitles(next);
-              if (next) {
-                setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
-                const shell = nativeShell();
-                const captured = shell?.getLastObservedTimedTextUrl();
-                if (captured && (!tracks || Object.keys(tracks).length === 0)) {
-                  setObservedUrl(captured);
-                  setDefaultCaptionsLoaded(true);
-                  let defaultLang = "";
-                  try {
-                    defaultLang = new URL(captured).searchParams.get("lang") || "";
-                  } catch {
-                    // ignore malformed url
-                  }
-                  if (defaultLang && shell) {
-                    try {
-                      const raw = shell.fetchTranslatedCaptionsWithUrl(
-                        captured,
-                        defaultLang,
-                        "json3",
-                      );
-                      if (raw && isValidJsonSubtitleResponse(raw)) {
-                        const json = parseJson3(raw);
-                        if (json) {
-                          setTracks((prev) => ({ ...prev, [defaultLang]: json }));
-                          setShown((prev) =>
-                            prev.includes(defaultLang) ? prev : [defaultLang, ...prev],
-                          );
-                        }
-                      }
-                    } catch {
-                      // ignore fetch error
-                    }
-                  }
-                }
-              }
-            }}
-            className={`h-7 px-2 sm:px-2.5 text-xs gap-1.5 font-medium ${
-              showVideoSubtitles ? "shadow-xs" : "text-foreground hover:bg-muted"
-            }`}
-            title="Toggle video subtitles overlay"
-          >
-            <Subtitles className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Captions</span>
-          </Button>
-          <Button
             id="open-apk-release-button"
             data-testid="open-apk-release-button"
             type="button"
@@ -4120,6 +4163,8 @@ function Index() {
             setObservedUrl("https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3");
           }}
           isAndroidNative={isAndroid}
+          showVideoSubtitles={showVideoSubtitles}
+          onToggleVideoSubtitles={handleToggleVideoSubtitles}
           playerSlot={
             <div
               className="relative h-full w-full group"
@@ -4273,6 +4318,7 @@ function Index() {
               rows={rows}
               displayedRows={displayedRows}
               cols={cols}
+              baseLanguage={baseLanguage}
               subtitlesLimit={subtitlesLimit}
               setSubtitlesLimit={setSubtitlesLimit}
               subtitlesPage={subtitlesPage}
@@ -4406,6 +4452,71 @@ function Index() {
                     </Button>
                   </form>
                 )}
+              </div>
+
+              <div className="px-4 pt-3 md:px-6 md:pt-4">
+                <div className="mx-auto max-w-6xl">
+                  <div
+                    data-testid="favorite-visibility-toolbar"
+                    className="rounded-xl border border-border bg-card/80 p-3 shadow-sm"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                          Favorite subtitle visibility
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Toggle each favorite language to keep it visible in the subtitle table or
+                          read aloud.
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {favoriteLanguages.length === 0 ? (
+                          <span className="text-[11px] text-muted-foreground italic">
+                            No favorites selected yet
+                          </span>
+                        ) : (
+                          favoriteLanguages.map((code) => {
+                            const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+                              (lang) => lang.code === code,
+                            ) || { code, name: code };
+                            const visible = shown.includes(code);
+                            const spokenNow = spoken.includes(code);
+                            return (
+                              <button
+                                key={code}
+                                type="button"
+                                data-testid={`favorite-visibility-item-${code}`}
+                                onClick={() => {
+                                  setShown((prev) =>
+                                    prev.includes(code)
+                                      ? prev.filter((item) => item !== code)
+                                      : [...prev, code],
+                                  );
+                                  setSpoken((prev) =>
+                                    prev.includes(code)
+                                      ? prev.filter((item) => item !== code)
+                                      : [...prev, code],
+                                  );
+                                }}
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-medium transition ${
+                                  visible || spokenNow
+                                    ? "border-primary/40 bg-primary/10 text-primary"
+                                    : "border-border bg-background text-muted-foreground"
+                                }`}
+                                title={`${langMeta.name}: ${visible ? "visible" : "hidden"}, ${spokenNow ? "spoken" : "silent"}`}
+                              >
+                                <span>{langMeta.name}</span>
+                                <span className="text-[10px]">{visible ? "👁" : "○"}</span>
+                                <span className="text-[10px]">{spokenNow ? "🔊" : "🔈"}</span>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">
@@ -4583,6 +4694,24 @@ function Index() {
                               );
                             }}
                           />
+                          <div
+                            data-testid="video-display-controls"
+                            className="flex justify-end border-t border-border bg-card/80 px-3 py-2"
+                          >
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={showVideoSubtitles ? "default" : "outline"}
+                              aria-pressed={showVideoSubtitles}
+                              data-testid="video-subtitles-overlay-toggle"
+                              onClick={handleToggleVideoSubtitles}
+                              className="h-7 gap-1.5 px-2.5 text-xs"
+                              title="Toggle spoken subtitles over the video"
+                            >
+                              <Subtitles className="h-3.5 w-3.5" />
+                              {showVideoSubtitles ? "Overlay on" : "Overlay off"}
+                            </Button>
+                          </div>
                           {/* Video metadata card (Client-side title & channel author) */}
                           {videoMetadata && (
                             <div
@@ -4982,18 +5111,6 @@ function Index() {
                               timedtext diagnostics.
                             </p>
                           )}
-                          <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={showVideoSubtitles}
-                              onChange={(e) => setShowVideoSubtitles(e.target.checked)}
-                              className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                            />
-                            <Subtitles className="w-3.5 h-3.5 text-primary" />
-                            <span className="font-medium text-xs text-foreground">
-                              Show spoken subtitle over video
-                            </span>
-                          </label>
                           <label className="flex items-center gap-2 cursor-pointer select-none">
                             <input
                               id="background-audio-toggle"
@@ -5646,33 +5763,62 @@ function Index() {
                           />
 
                           {/* Difference Confirmation Toggle */}
-                          <div className="flex items-center justify-between rounded-lg border border-border/70 p-3 bg-muted/20">
-                            <div className="space-y-0.5 pr-2">
-                              <label
-                                htmlFor="confirm-parser-diff-toggle"
-                                className="text-xs font-semibold text-foreground cursor-pointer"
-                              >
-                                Confirm before applying parser changes
-                              </label>
-                              <p className="text-[11px] text-muted-foreground">
-                                Preview alignment differences, changed records, and sentence
-                                splitting in a modal before updating.
-                              </p>
+                          <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex min-w-0 items-center gap-1.5">
+                                <label
+                                  htmlFor="confirm-parser-diff-toggle"
+                                  className="text-xs font-semibold text-foreground cursor-pointer"
+                                >
+                                  Review parser changes
+                                </label>
+                                <button
+                                  type="button"
+                                  data-testid="help-btn-parser-review"
+                                  onClick={() =>
+                                    setExpandedHelp((prev) => ({
+                                      ...prev,
+                                      review: !prev.review,
+                                    }))
+                                  }
+                                  className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+                                  title="More info"
+                                  aria-label="More info about parser review behavior"
+                                >
+                                  ?
+                                </button>
+                              </div>
+                              <Switch
+                                id="confirm-parser-diff-toggle"
+                                data-testid="confirm-parser-diff-toggle"
+                                checked={confirmParserDiffEnabled}
+                                onCheckedChange={(checked) => {
+                                  setConfirmParserDiffEnabled(checked);
+                                  try {
+                                    localStorage.setItem("yt_confirm_parser_diff", String(checked));
+                                  } catch {
+                                    // ignore storage error
+                                  }
+                                }}
+                              />
                             </div>
-                            <Switch
-                              id="confirm-parser-diff-toggle"
-                              data-testid="confirm-parser-diff-toggle"
-                              checked={confirmParserDiffEnabled}
-                              onCheckedChange={(checked) => {
-                                setConfirmParserDiffEnabled(checked);
-                                try {
-                                  localStorage.setItem("yt_confirm_parser_diff", String(checked));
-                                } catch {
-                                  // ignore storage error
-                                }
-                              }}
-                            />
+                            {Boolean(expandedHelp.review) && (
+                              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground rounded border border-border/60 bg-background/70 p-2">
+                                Compare the updated alignment inline without blocking the screen.
+                              </p>
+                            )}
                           </div>
+
+                          {pendingParserChange && (
+                            <ParserDiffConfirmationModal
+                              isOpen={true}
+                              inline={useInlineParserReview}
+                              onClose={handleCancelDiff}
+                              onConfirm={handleConfirmDiff}
+                              diffResult={pendingParserChange.diffResult}
+                              proposedCriteriaNames={pendingParserChange.criteriaNames}
+                            />
+                          )}
 
                           {/* Presets Header */}
                           <div>
@@ -6787,6 +6933,55 @@ function Index() {
                               })}
                             </tbody>
                           </table>
+                          <div
+                            data-testid="per-language-settings-panel"
+                            className="mt-2 space-y-2 border-t border-border pt-2"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                                Per-language settings
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">
+                                Click any row to edit
+                              </span>
+                            </div>
+                            <div className="space-y-1">
+                              {orderedLangs
+                                .filter((lang) => spoken.includes(lang.code))
+                                .map((lang) => {
+                                  const ratio = ttsRatios[lang.code] ?? 1;
+                                  return (
+                                    <button
+                                      key={lang.code}
+                                      type="button"
+                                      data-testid={`tts-settings-summary-${lang.code}`}
+                                      onClick={() =>
+                                        setExpandedLanguageSettings((prev) => ({
+                                          ...prev,
+                                          [lang.code]: !prev[lang.code],
+                                        }))
+                                      }
+                                      className="flex w-full items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/20 px-2 py-1.5 text-left text-xs text-foreground"
+                                    >
+                                      <span className="font-medium">{lang.name}</span>
+                                      <span className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                        <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-primary">
+                                          1:{ratio}
+                                        </span>
+                                        <span>
+                                          {voiceSelections[lang.code] ? "voice" : "default"}
+                                        </span>
+                                        <ChevronDown
+                                          className={`h-3.5 w-3.5 transition-transform ${
+                                            expandedLanguageSettings[lang.code] ? "rotate-180" : ""
+                                          }`}
+                                        />
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                            </div>
+                          </div>
                           <div className="mt-2 space-y-1 border-t border-border pt-2">
                             {orderedLangs
                               .filter((lang) => spoken.includes(lang.code))
@@ -6949,6 +7144,7 @@ function Index() {
                             rows={rows}
                             displayedRows={displayedRows}
                             cols={cols}
+                            baseLanguage={baseLanguage}
                             subtitlesLimit={subtitlesLimit}
                             setSubtitlesLimit={setSubtitlesLimit}
                             subtitlesPage={subtitlesPage}
@@ -7048,13 +7244,15 @@ function Index() {
         maxPacingSec={retryPacingMaxSec}
         onToggleAutoRetry={handleToggleAutoRetry}
       />
-      <ParserDiffConfirmationModal
-        isOpen={Boolean(pendingParserChange)}
-        onClose={handleCancelDiff}
-        onConfirm={handleConfirmDiff}
-        diffResult={pendingParserChange?.diffResult || null}
-        proposedCriteriaNames={pendingParserChange?.criteriaNames || []}
-      />
+      {!useInlineParserReview && (
+        <ParserDiffConfirmationModal
+          isOpen={Boolean(pendingParserChange)}
+          onClose={handleCancelDiff}
+          onConfirm={handleConfirmDiff}
+          diffResult={pendingParserChange?.diffResult || null}
+          proposedCriteriaNames={pendingParserChange?.criteriaNames || []}
+        />
+      )}
       <VideoMetadataModal
         open={videoMetadataModalOpen}
         onOpenChange={setVideoMetadataModalOpen}

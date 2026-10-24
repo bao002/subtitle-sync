@@ -73,8 +73,9 @@ console.log(
 // ------------------------------------------------------------------
 console.log("--> [Check 2] Validating Subtask 59.2: Accordion auto-fold and pin toggles...");
 assert(
-  accordionContent.includes("ACCORDION_AUTO_FOLD_MS") || accordionContent.includes("setTimeout"),
-  "AccordionSection must implement auto-fold timer",
+  accordionContent.includes("const ACCORDION_AUTO_FOLD_MS = 5_000;") &&
+    accordionContent.includes("setTimeout(() => onOpenChange(false), ACCORDION_AUTO_FOLD_MS)"),
+  "AccordionSection must auto-fold after exactly five seconds",
 );
 assert(
   accordionContent.includes("pinKey") && accordionContent.includes("yt_accordion_pinned_"),

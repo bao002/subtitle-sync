@@ -52,18 +52,19 @@ assert(
   "index.tsx cols must include baseLanguage immediately when track has valid cues",
 );
 assert(
-  indexContent.includes('id="caption-toggle-button"'),
-  "index.tsx must contain caption-toggle-button",
+  indexContent.includes('data-testid="video-subtitles-overlay-toggle"') &&
+    indexContent.includes("handleToggleVideoSubtitles"),
+  "subtitle overlay toggle must be available beside the video and preserve its caption handling",
 );
 console.log("✅ PASS: index.tsx immediately reflects base language and opens subtitles panel.");
 
-// Test 3: Validate version synchronization across all 5 targets (version >= 1.0.51)
+// Test 3: Validate version synchronization across all 5 targets
 console.log("--> [Test 3] Auditing Version synchronization across all 5 targets...");
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf8"));
 const currentVer = pkg.version;
 assert(
-  currentVer === "1.0.51" || currentVer === "1.0.52",
-  `package.json version (${currentVer}) must be at least 1.0.51`,
+  /^\d+\.\d+\.\d+$/.test(currentVer),
+  `package.json version (${currentVer}) must be a valid three-part version`,
 );
 
 const gradleContent = fs.readFileSync(

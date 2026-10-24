@@ -10,7 +10,7 @@ import { APP_VERSION } from "../src/config/appConfig";
 import { CURRENT_APK_VERSION } from "../src/utils/apkUpdater";
 
 console.log("=========================================================================");
-console.log("🧪 Verifying Android App Subtitles Link Sharing & Version 1.0.76 Parity");
+console.log("🧪 Verifying Android App Subtitles Link Sharing & Version Parity");
 console.log("=========================================================================");
 
 const rootDir = process.cwd();
@@ -95,6 +95,21 @@ assert(
   "MainActivity.kt must invoke Intent.createChooser for sharing",
 );
 console.log("✅ PASS: Android Native Shell shareText & shareSubtitlesUrl verified in MainActivity.kt");
+assert(
+  mainActivityContent.includes("candidates.firstOrNull { extractDemoShareUri(it) != null }"),
+  "MainActivity.kt must prefer a demo URL found across Android share payload fields",
+);
+assert(
+  mainActivityContent.includes("fun extractDemoShareUri(rawText: String?)") &&
+    mainActivityContent.includes("sharedDemoUri.encodedQuery.orEmpty()"),
+  "MainActivity.kt must preserve the encoded query from a shared demo-web URL",
+);
+assert(
+  /if\s*\(sharedDemoUri != null\)\s*\{[\s\S]*?webView\.loadUrl\("https:\/\/\$LOCAL_ASSET_DOMAIN\/index\.html\$querySuffix"\)/.test(
+    mainActivityContent,
+  ),
+  "Warm Android shares must reload the local app with the complete share query",
+);
 
 // 3. Verify TypeScript Declarations for NativeShell
 console.log("\n📜 Section 3: TypeScript NativeShell Bridge Definitions");
@@ -183,32 +198,34 @@ console.log("✅ PASS: Index route mounts ShareStateModal and hydrates all share
 
 // 6. Verify Version Synchronization Across All 5 Targets
 console.log("\n🔢 Section 6: Version Synchronization Across All 5 Targets");
-const validVersions = ["1.0.76", "1.0.77", "1.0.78", "1.0.79", "1.0.103", "2.0.0"];
-
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
-assert(validVersions.includes(pkg.version), `package.json version must be one of ${validVersions.join(", ")}, got ${pkg.version}`);
+const expectedVersion = pkg.version;
+const versionParts = expectedVersion.split(".").map((part: string) => Number.parseInt(part, 10) || 0);
+const expectedVersionCode =
+  (versionParts[0] || 1) * 10000 + (versionParts[1] || 0) * 100 + (versionParts[2] || 0);
 
 const gradlePath = path.resolve(rootDir, "android-shell/app/build.gradle.kts");
 const gradleContent = fs.readFileSync(gradlePath, "utf-8");
 assert(
-  validVersions.some((v) => gradleContent.includes(`versionName = "${v}"`)),
-  `build.gradle.kts versionName must match active version`,
+  gradleContent.includes(`versionName = "${expectedVersion}"`) &&
+    gradleContent.includes(`versionCode = ${expectedVersionCode}`),
+  "build.gradle.kts versionName and versionCode must match package.json",
 );
 
-assert(validVersions.includes(APP_VERSION), `appConfig.ts APP_VERSION must be valid`);
+assert.strictEqual(APP_VERSION, expectedVersion, "appConfig.ts APP_VERSION must match package.json");
 assert(
-  validVersions.some((v) => CURRENT_APK_VERSION === `v${v}`),
-  `apkUpdater.ts CURRENT_APK_VERSION must match active version`,
+  CURRENT_APK_VERSION === `v${expectedVersion}`,
+  "apkUpdater.ts CURRENT_APK_VERSION must match package.json",
 );
 
 const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
 assert(
-  validVersions.some((v) => appSettingsContent.includes(`version: "${v}"`)),
-  `appSettings.ts snapshot version must match active version`,
+  appSettingsContent.includes(`version: "${expectedVersion}"`),
+  "appSettings.ts snapshot version must match package.json",
 );
 
-console.log(`✅ PASS: All 5 version targets synchronized.`);
+console.log(`✅ PASS: All 5 version targets synchronized at ${expectedVersion}.`);
 
 console.log("=========================================================================");
-console.log("🎉 ALL ANDROID SUBTITLES SHARING & VERSION 1.0.76 CHECKS PASSED 100%!");
+console.log("🎉 ALL ANDROID SUBTITLES SHARING & VERSION CHECKS PASSED 100%!");
 console.log("=========================================================================");

@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { extractYouTubeId } from "@/utils/youtube";
 
 export interface ObservedSubtitleTrack {
@@ -32,8 +33,6 @@ export interface BeginnerVideoTabProps {
   onOpenLibrary: () => void;
   observedUrl: string | null;
   observedTracks: ObservedSubtitleTrack[];
-  selectedBaseLang: string;
-  onSelectBaseLang: (lang: string) => void;
   onLoadSampleSubtitles?: () => void;
   onContinueToNextTab?: () => void;
   isAndroidNative?: boolean;
@@ -42,6 +41,10 @@ export interface BeginnerVideoTabProps {
   subtitlesTableSlot?: React.ReactNode;
   webDemoUrlsSlot?: React.ReactNode;
   hasSubtitles?: boolean;
+  subtitlesRatio: number;
+  onSubtitlesRatioChange: (ratio: number) => void;
+  showVideoSubtitles: boolean;
+  onToggleVideoSubtitles: () => void;
 }
 
 export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
@@ -52,8 +55,6 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   onOpenLibrary,
   observedUrl,
   observedTracks,
-  selectedBaseLang,
-  onSelectBaseLang,
   onLoadSampleSubtitles,
   onContinueToNextTab,
   isAndroidNative = false,
@@ -62,6 +63,10 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   subtitlesTableSlot,
   webDemoUrlsSlot,
   hasSubtitles = false,
+  subtitlesRatio,
+  onSubtitlesRatioChange,
+  showVideoSubtitles,
+  onToggleVideoSubtitles,
 }) => {
   const [inputVal, setInputVal] = useState(url);
 
@@ -87,7 +92,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
     }
   };
 
-  const hasSelectedBase = Boolean(selectedBaseLang);
+  const hasSelectedBase = observedTracks.some((track) => track.isBase);
 
   return (
     <div className="space-y-4 max-w-4xl mx-auto p-3" data-testid="beginner-video-tab">
@@ -176,6 +181,51 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             {playerSlot}
           </div>
         )}
+        {playerSlot && (
+          <div
+            data-testid="video-display-controls"
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-border bg-background/70 px-3 py-2"
+          >
+            <div className="flex min-w-[220px] flex-1 items-center gap-2">
+              <label
+                htmlFor="beginner-subtitles-sizing"
+                className="shrink-0 text-[11px] font-medium text-foreground"
+              >
+                Subtitle size
+              </label>
+              <Slider
+                id="beginner-subtitles-sizing"
+                aria-label="Subtitle sizing ratio"
+                data-testid="subtitles-ratio-slider"
+                value={[subtitlesRatio]}
+                onValueChange={([ratio]) => onSubtitlesRatioChange(ratio)}
+                min={0.6}
+                max={1.8}
+                step={0.05}
+                className="min-w-20 flex-1"
+              />
+              <span
+                className="w-10 text-right font-mono text-[11px] font-semibold text-primary"
+                data-testid="ratio-val"
+              >
+                {subtitlesRatio.toFixed(2)}x
+              </span>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant={showVideoSubtitles ? "default" : "outline"}
+              aria-pressed={showVideoSubtitles}
+              data-testid="video-subtitles-overlay-toggle"
+              onClick={onToggleVideoSubtitles}
+              className="h-7 shrink-0 gap-1.5 px-2.5 text-xs"
+              title="Toggle spoken subtitles over the video"
+            >
+              <Subtitles className="h-3.5 w-3.5" />
+              {showVideoSubtitles ? "Overlay on" : "Overlay off"}
+            </Button>
+          </div>
+        )}
         {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}
       </div>
 
@@ -235,19 +285,19 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
         )}
       </div>
 
-      {/* Step 3: Observed Subtitles & Select Base Track */}
+      {/* Step 3: Automatically Selected Base Track */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div>
             <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-              <span>Observed Subtitle Tracks</span>
+              <span>Detected Subtitle Tracks</span>
               <span className="text-muted-foreground font-normal">
                 ({observedTracks.length} detected)
               </span>
             </h3>
             <p className="text-[11px] text-muted-foreground">
-              Choose which subtitle track to use as the base language. Selecting a base track
-              unlocks the next tabs.
+              The base language is selected automatically: English when available, otherwise the
+              first detected track.
             </p>
           </div>
         </div>
@@ -266,18 +316,17 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             data-testid="observed-subtitles-list"
           >
             {observedTracks.map((track) => {
-              const isSelected = selectedBaseLang === track.lang;
+              const isSelected = track.isBase;
               return (
-                <button
+                <div
                   key={track.lang}
-                  type="button"
-                  onClick={() => onSelectBaseLang(track.lang)}
-                  className={`flex items-center justify-between p-2.5 rounded-lg border text-left transition-all ${
+                  aria-current={isSelected ? "true" : undefined}
+                  className={`flex items-center justify-between p-2.5 rounded-lg border ${
                     isSelected
                       ? "bg-primary/10 border-primary text-foreground ring-1 ring-primary/40"
-                      : "bg-background border-border hover:border-primary/50 text-foreground"
+                      : "bg-background border-border text-foreground"
                   }`}
-                  data-testid={`track-select-${track.lang}`}
+                  data-testid={`observed-subtitle-track-${track.lang}`}
                 >
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-2">
@@ -308,7 +357,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>

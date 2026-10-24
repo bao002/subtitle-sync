@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { LANGS, type Json3 } from "@/lib/subtitles";
 import { parseVideoId } from "@/lib/native-captions";
+import { removeAngleBrackets } from "@/utils/captionParser";
 
 export interface DetectedSubtitleTrack {
   lang: string;
@@ -155,11 +156,12 @@ export function VideoPlayground({
       .map((ev, idx) => ({
         id: idx,
         startMs: ev.tStartMs || 0,
-        text:
+        text: removeAngleBrackets(
           ev.segs
             ?.map((s) => s.utf8)
             .join("")
             .trim() || "",
+        ),
       }));
   }, [previewTrackLang, detectedTracks]);
 

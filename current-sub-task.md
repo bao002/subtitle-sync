@@ -1,5 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: Sub-task 194.2: Implement `setBaseLanguage` state callback, fix YTPlayer `loadVideoById`, fix criteria type in index.tsx, and fix missing `HelpCircle` in `AiSubtitlePunctuationTab.tsx`.
-- **Status**: IN PROGRESS.
-- **Target**: Eliminate `ReferenceError: setBaseLanguage is not defined` runtime error and TypeScript typing issues.
+- **Active Subtask**: None.
+- **Status**: COMPLETED WITH PUSH BLOCKED.
+- **Completed**: Confirmed there were no pre-existing uncommitted changes and reviewed the nine committed changes ahead of `origin/main`. Attempted `git push origin main`; Git could not obtain the required password.
+- **Next**: Retry publishing after Git credentials are configured. Android-platform validation remains in the later backlog.

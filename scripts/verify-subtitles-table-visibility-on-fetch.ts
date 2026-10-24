@@ -2,7 +2,15 @@ import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert";
 import { parseJson3 } from "../src/lib/native-captions";
-import { align, type Json3, type Row, LANGS } from "../src/lib/subtitles";
+import {
+  align,
+  subtitleColumnName,
+  subtitleTextForColumn,
+  RTL,
+  type Json3,
+  type Row,
+  LANGS,
+} from "../src/lib/subtitles";
 
 console.log("=========================================================================");
 console.log("🧪 Starting Subtitles Table Visibility On Fetch Verification Test");
@@ -61,6 +69,31 @@ assert(
   "cols must retain track length assertions for full spec compliance",
 );
 console.log("✅ PASS: cols properly extracts language columns from Json3 tracks");
+
+// Column order is presentation-only; cell text is resolved strictly by language code.
+const reorderedRow: Row = {
+  start: 0,
+  end: 1000,
+  texts: { en: "English text", he: "טקסט בעברית" },
+};
+const reorderedColumns = ["he", "en"];
+assert.deepStrictEqual(
+  reorderedColumns.map((code) => subtitleTextForColumn(reorderedRow, code)),
+  ["טקסט בעברית", "English text"],
+  "Changing column order must not move text between language columns",
+);
+assert.strictEqual(
+  subtitleTextForColumn(reorderedRow, "es"),
+  "",
+  "An absent language key must render empty instead of reusing another column's text",
+);
+console.log("✅ PASS: Subtitle text stays bound to its exact language column when columns reorder");
+assert.strictEqual(subtitleColumnName("iw", "IW"), "Hebrew");
+assert.strictEqual(subtitleColumnName("il", "IL"), "Hebrew");
+assert.strictEqual(subtitleColumnName("he", "Hebrew"), "Hebrew");
+assert.strictEqual(subtitleColumnName("en", "English"), "English");
+assert(RTL.has("iw") && RTL.has("il"), "Legacy Hebrew codes must render right-to-left");
+console.log("✅ PASS: Hebrew aliases display as Hebrew with RTL direction in the table");
 
 // 5. Functional runtime simulation of hasLegitimateSubtitles and cols
 const sampleEnRaw = JSON.stringify({

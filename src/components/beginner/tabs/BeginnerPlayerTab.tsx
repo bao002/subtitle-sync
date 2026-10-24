@@ -103,7 +103,7 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
             <span>{fmt(currentTime)}</span>
           </div>
 
-          {onSpeakCue && cues.length > 0 && (
+          {onSpeakCue && cues.some((cue) => cue.targetText) && (
             <Button
               type="button"
               size="sm"
@@ -111,10 +111,9 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
               onClick={() => {
                 const targetCue = activeCueIndex >= 0 ? cues[activeCueIndex] : cues[0];
                 if (targetCue) {
-                  const textToSpeak = targetCue.targetText || targetCue.baseText;
-                  const langToSpeak =
-                    targetCue.targetText && targetLanguage ? targetLanguage : baseLanguage;
-                  onSpeakCue(textToSpeak, langToSpeak);
+                  if (targetCue.targetText && targetLanguage) {
+                    onSpeakCue(targetCue.targetText, targetLanguage);
+                  }
                 }
               }}
               className="h-8 px-2.5 text-xs border-border hover:bg-muted text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5"
@@ -223,17 +222,14 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0 pt-0.5">
-                      {onSpeakCue && (
+                      {onSpeakCue && cue.targetText && targetLanguage && (
                         <Button
                           type="button"
                           size="sm"
                           variant="ghost"
                           onClick={(e) => {
                             e.stopPropagation();
-                            const textToSpeak = cue.targetText || cue.baseText;
-                            const langToSpeak =
-                              cue.targetText && targetLanguage ? targetLanguage : baseLanguage;
-                            onSpeakCue(textToSpeak, langToSpeak);
+                            onSpeakCue(cue.targetText, targetLanguage);
                           }}
                           className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                           data-testid={`btn-speak-cue-${idx}`}

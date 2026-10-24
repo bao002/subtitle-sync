@@ -44,6 +44,13 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Work tracking
 
+- **New chat window for each sub-task**: Every distinct sub-task must start in a fresh chat window or isolated follow-up turn. Keep each sub-task scoped, resumable, and independent so state is not mixed with unrelated work or previous task context.
+- **Resume after interruption**: At the start of a resumed session, read this section and `current-sub-task.md`, then `docs/todo.md` and the active entries in `docs/tasks.md`. The active sub-task and its recorded next action are the source of truth for where to continue; do not start a different backlog item just because the prior chat is unavailable.
+- Before editing, inspect `git status --short` and the diffs for files named by the active sub-task. Treat uncommitted and untracked work as potentially valuable in-progress work: preserve it, understand it, and never reset, overwrite, or commit unrelated changes.
+- Reconcile the trackers with the worktree. If they disagree, use the task notes and actual diffs to establish what is done, what remains, required tests/build/lint, and any blocker; update `current-sub-task.md` and `docs/todo.md` with a concrete next action before proceeding. Record uncertainty rather than guessing or repeating work.
+- Do not resume a task already recorded as complete in `docs/done.md`; reconcile stale backlog or mirror entries against its verification record before selecting the next task.
+- Keep progress resumable throughout execution: after each meaningful step, update the active sub-task with completed work, changed files, validation results, and the next exact action. If stopping unexpectedly is likely, leave those notes and the worktree in a safe, uncommitted state.
+
 - **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**: ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md` (or its subdirectories `docs/designs/`, `docs/specifications/`, and `docs/operations/`). There must be ZERO duplicate `.md` files in the repository. No Markdown file located under `docs/*.md` may have a redundant copy in root (`docs/tokens.md`, `docs/android.md`, `docs/parser.md`, `docs/self-verification.md`, and `docs/roadmap.md` reside exclusively in `docs/`). Only `README.md`, `AGENTS.md`, `current-sub-task.md`, and `temp.md` are permitted in root.
 - **Mandatory token economy flow on every prompt (`docs/tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `docs/tokens.md` and maintain `current-sub-task.md`.
 - **Task management protocol with `current-sub-task.md` & `temp.md`**: Break every prompt into clear numbered tasks and smaller sub-tasks in `docs/tasks.md` before performing actions. Maintain `current-sub-task.md` (and `docs/todo.md`) by staging the single active sub-task before executing any step. Use `temp.md` as an ephemeral scratchpad for draft diffs, checklists, or intermediate calculations.
@@ -65,6 +72,7 @@ The application processes and presents subtitles through a strict sequential pip
   5. **Resume held task**: After hotfix is verified, restore suspended task back to active status in `current-sub-task.md` and `docs/todo.md`, and resume work.
 - **Always keep last raw prompt in AGENTS.md**: `AGENTS.md` must continuously record and preserve the exact, unedited raw text of the user's latest prompt in a dedicated `## Last raw prompt` section on EVERY single prompt received.
 - **Later tasks protocol**: Any "later" task MUST be stored at the bottom under `## Later Tasks` in `docs/tasks.md` (and `docs/later.md`). When active tasks are complete, ask user whether to proceed with "later" tasks.
+- **Codespace platform blockers**: If a required task cannot run in Codespaces because a platform toolchain, device, emulator, or permission is unavailable, move only that blocked work to `## Later Tasks` in `docs/tasks.md` and `docs/later.md`, name the required platform/agent and exact validation command, then resume any remaining Codespace-doable task. Do not leave the blocked work as the active subtask.
 - **No more tasks "go on" handling**: In case no more tasks are left (active backlog in `docs/tasks.md` and `current-sub-task.md` is empty), if prompt is "go on", then just summarize that there are no more tasks left. No need to show anything else.
 - **Numbered chapters as serial tasks protocol**: When user prompt consists of numbered chapters (e.g. `1. ...`, `2. ...`), treat each as a separate distinct task in `docs/tasks.md`, divided into sub-tasks worked on strictly serially: execute, test, verify, compile, lint, commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
@@ -137,9 +145,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-git commit and push
+it seems that there are uncommited changes. accomplish that task commit and push
 ```
-
-
-
-

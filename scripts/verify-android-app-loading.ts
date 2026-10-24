@@ -56,6 +56,18 @@ function simulateBuildQuerySuffix(rawText: string | null | undefined): string {
     return "";
   }
   const trimmed = rawText.trim();
+  const sharedUrl = /https?:\/\/[^\s<>]+/i.exec(trimmed)?.[0]?.replace(/[.,;:)\]}]+$/, "");
+  if (sharedUrl) {
+    const sharedUri = new URL(sharedUrl);
+    if (
+      sharedUri.host.toLowerCase() === "mostuf2556.github.io" &&
+      sharedUri.pathname.replace(/\/$/, "") === "/subtitle-sync"
+    ) {
+      const params = new URLSearchParams(sharedUri.search);
+      if (!params.has("android")) params.set("android", "true");
+      return `?${params.toString()}`;
+    }
+  }
   const idMatch =
     trimmed.match(/^[a-zA-Z0-9_-]{11}$/) ||
     trimmed.match(/(?:youtu\.be|y2u\.be)\/([a-zA-Z0-9_-]{11})/) ||
@@ -86,6 +98,22 @@ assert.strictEqual(
   simulateBuildQuerySuffix("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
   "?v=dQw4w9WgXcQ&android=true",
   "watch URL returns video query suffix",
+);
+const sharedSubtitleUrl = "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=iw&fmt=json3";
+const demoShareUrl = new URL("https://mostuf2556.github.io/subtitle-sync/?v=L2Ryrr6txwA");
+demoShareUrl.searchParams.set("subtitles_url", sharedSubtitleUrl);
+const sharedQuerySuffix = simulateBuildQuerySuffix(demoShareUrl.toString());
+const sharedQueryParams = new URLSearchParams(sharedQuerySuffix.slice(1));
+assert.strictEqual(sharedQueryParams.get("v"), "L2Ryrr6txwA");
+assert.strictEqual(sharedQueryParams.get("subtitles_url"), sharedSubtitleUrl);
+assert.strictEqual(sharedQueryParams.get("android"), "true");
+assert(
+  activityContent.includes("fun extractDemoShareUri(rawText: String?)"),
+  "MainActivity.kt must recognize a shared GitHub Pages app link",
+);
+assert(
+  activityContent.includes('webView.loadUrl("https://$LOCAL_ASSET_DOMAIN/index.html$querySuffix")'),
+  "MainActivity.kt must reload the local app with full shared state for a warm web-demo share",
 );
 console.log("✅ PASS: buildQuerySuffix safely handles empty/null strings and parses video IDs");
 

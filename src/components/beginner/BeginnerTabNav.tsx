@@ -41,7 +41,7 @@ export const BeginnerTabNav: React.FC<BeginnerTabNavProps> = ({
       id: "preferences",
       step: 2,
       title: "Voice & Preferences",
-      subtitle: "Order, TTS & Ratio",
+      subtitle: "Order & TTS",
       icon: Sliders,
       requiresUnlock: true,
     },

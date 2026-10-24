@@ -1,4 +1,5 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Active**: Sub-task 194.2: Implement `setBaseLanguage` state callback, fix YTPlayer `loadVideoById`, fix criteria type in index.tsx, and fix missing `HelpCircle` in `AiSubtitlePunctuationTab.tsx`.
-- **Status**: IN PROGRESS.
+- **Active**: None.
+- **Status**: COMPLETED WITH PUSH BLOCKED.
+- **Next**: Retry publishing after Git credentials are configured. Android-platform validation remains in the later backlog.

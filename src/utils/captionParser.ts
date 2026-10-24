@@ -108,6 +108,10 @@ export function cleanAndFixEncoding(text: string): string {
   return result.trim();
 }
 
+export function removeAngleBrackets(text: string): string {
+  return decodeHtmlEntities(text).replace(/[<>]/g, "");
+}
+
 /**
  * Removes special characters, sound cues, speaker brackets, and noise indicators.
  * MANDATORY APPLICATION STAGE: Special characters removal MUST happen BEFORE translation stage.
@@ -148,7 +152,7 @@ export function removeSpecialCharacters(
   }
 
   // 4. Normalize excess whitespace
-  return result.replace(/\s+/g, " ").trim();
+  return removeAngleBrackets(result).replace(/\s+/g, " ").trim();
 }
 
 // ─── Timestamp Helpers ──────────────────────────────────────────

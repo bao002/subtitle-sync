@@ -1,5 +1,116 @@
 # Done tasks
 
+## Task 213: Reconcile and publish committed worktree changes
+
+- Confirmed the worktree and index had no pre-existing uncommitted changes; reviewed the nine commits ahead of `origin/main`.
+- Attempted `git push origin main`; the push was blocked because Git could not obtain the required password. No source files were changed for this task.
+- Verification: `git status --short --untracked-files=all` was clean before task-tracker updates; `git diff --check` passed. Git push remains blocked pending configured credentials.
+
+### Hotfix: Synchronize caption-presentation verifier with current app versions
+
+- Replaced the verifier's stale 1.0.51/1.0.52 hard-coded check with a valid three-part version assertion, retaining synchronization checks across all five version targets.
+- Verification: `npm run test:default-caption-presentation` PASS against version 2.0.10.
+- Commit: `3d8e322`.
+
+## Task 212: Deprecate beginner first-tab base-language selection (Version 2.0.10)
+
+- Removed manual base-track selection buttons from the first Beginner tab. It now chooses English when detected, otherwise the first available track, and shows the detected tracks read-only.
+- Downstream tabs unlock only once the automatically chosen base track is present. Legacy `beginnerSelectedBaseLang` data is ignored and removed from loaded settings.
+- Recorded the retired behavior and replacement in `docs/deprecated.md`, and added focused regression tests for language priority and chooser removal.
+- Bumped synchronized app and Android versions to `2.0.10` / `versionCode = 20010`.
+- Verification: `npm run test:beginner-default-language`, `npm run test:beginner-mode`, `npm run test:video-display-controls`, `npm run test:compact-ui-language-cleanup`, `npm run test:v2-version-bump`, `npm run test:agents-version`, `npm run test:md`, `npm run test:doc-contracts`, `npm run build`, `npm run lint`, focused ESLint, and `git diff --check` PASS.
+- Implementation commit: `b952daf`.
+
+## Task 211: Fold unpinned accordions after five seconds
+
+- Changed the shared accordion auto-fold timeout to exactly 5,000 ms after opening or the latest detected interaction.
+- Preserved per-accordion pin state and the guard that prevents auto-folding while pinned.
+- Tightened the existing verifier to assert the exact interval and pin exception.
+- Verification: `npm run test:compact-ui-language-cleanup`, `npx eslint src/components/AccordionSection.tsx`, `npm run build`, and `git diff --check` PASS.
+- Implementation commit: `c491387`.
+
+## Task 210: Move subtitle display controls beside the video
+
+- Moved beginner subtitle sizing from Voice & Preferences to the video-adjacent controls, preserving the saved ratio and its use in the sync player.
+- Moved the spoken-subtitle overlay toggle out of global/settings controls and placed it beside the video in both beginner and advanced views; retained native caption-loading behavior.
+- Added a focused source verifier and updated existing caption/layout assertions to follow the relocated control.
+- Verification: `npm run test:video-display-controls`, `npm run test:beginner-mode`, `npx tsx scripts/verify-progressive-disclosure-and-button-design.ts`, `npx tsx scripts/verify-tts-play-and-mode-switching.ts`, `npm run build`, `npm run lint`, focused ESLint for changed route/video tab, and `git diff --check` PASS. A broader ESLint invocation reports existing Prettier findings in unaffected sections of beginner components.
+- Implementation commit: `1753bcf`.
+
+## Task 209: Compact help icons for parser details and Android-safe review flow
+
+- Replaced the remaining verbose parser details with compact `?` help toggles so the control surface stays minimal and readable.
+- Kept the parser review comparison inline and in-context, preserving the Android-safe no-popup experience while retaining the before/after diff workflow.
+- Used the existing compact help disclosure pattern to keep details available without crowding the parser section.
+- Verification: `npx tsx scripts/verify-parser-minimal-text-and-help-icons.ts` PASS; `npx tsx scripts/verify-parser-inline-review.ts` PASS.
+
+## Task 208: Improve parser section UX for desktop and Android
+
+- Reworked the parser review pattern to use inline comparison cards instead of popup overlays, keeping the visual comparison usable on Android and in compact layouts.
+- Kept the review flow in the parser section itself so the before/after alignment can be checked in context without blocking the screen.
+- Updated the wording and behavior of the parser confirmation toggle to describe a non-modal inline review flow.
+- Added a focused verifier for the inline review mode and confirmed the relevant parser review markup renders without the popup overlay.
+- Verification: `npx tsx scripts/verify-parser-inline-review.ts` PASS; `npx eslint src/routes/index.tsx src/components/ParserDiffConfirmationModal.tsx` PASS.
+
+## Task 207: Reconcile backlog state with verified subtitle integrity fixes
+
+- Refreshed the task ledger and `docs/suggestions.md` to reflect the verified live fixes for subtitle-column isolation, Hebrew alias normalization, default-track TTS exclusion, translation badges, angle-bracket sanitization, expert-mode UX cleanup, and resumable-agent tracking.
+- Confirmed the stale HOLD state should be reconciled rather than reopened; the live worktree already reflects the resolved `setBaseLanguage`, `loadVideoById`, and `HelpCircle` fixes.
+- Archived the completed task state so the active backlog is clean and the mirrors are synchronized with the confirmed implementation history.
+- Verification: `git diff --check` PASS; targeted tracker audit confirms Task 194 and Tasks 197–206 are archived in `docs/done.md`, and the active backlog no longer carries stale in-flight work.
+
+## Task 206: Make Agent Work Resumable After Session Interruption
+
+- Clarified in `AGENTS.md` and `docs/tokens.md` that resumed work must reconcile task trackers with the worktree and must not resume tasks already archived as complete.
+- Reconciled the stale Task 200 note: its implementation and verification were already complete and preserved in this archive.
+- Updated the current-task mirror and backlog to reflect the verified state.
+- Verification: `git diff --check` PASS; targeted tracker search confirmed Task 200 is archived, Task 206 is removed from the active backlog, and the current-task mirror is idle. Documentation-only change; no code tests required.
+
+## Task 202–205: Expert-mode Language UX Cleanup
+
+- Added an inline parser diff review for expert mode so the confirmation comparison stays in-context without the popup modal blocking the visual comparison workflow.
+- Moved the favorite subtitle visibility buttons beside the video area and outside the language settings block, with one shared toggle for visibility and speech state as requested.
+- Split language selection from per-language TTS configuration so the control surfaces are distinct instead of duplicated.
+- Reworked repeated per-language settings into a compact, editable card layout that keeps the details space-efficient and directly editable in place.
+- Added focused UI verification for the expert-mode layout and parser review behavior.
+- Verification: `npx tsx scripts/verify-expert-mode-ui-layout.ts` PASS; `npm run lint` PASS; `npm run build` PASS.
+
+## Task 201: Clean Angle Brackets Before Display and Speech (Version 2.0.9)
+
+- Added shared angle-bracket sanitization for literal and HTML-encoded `<`/`>` markers in beginner-mode cleanup, aligned subtitle rows, on-demand translations, and the intercepted-track preview.
+- Ensured subtitle row text passed to the table and TTS scheduler is cleaned before presentation or speech.
+- Added `scripts/verify-angle-bracket-subtitle-cleanup.ts`, updated the beginner-mode regression, registered the test command, and inventoried the verifier.
+- Synchronized app version `2.0.9` / Android `versionCode = 20009`.
+- Verification: `npm run test:angle-bracket-subtitle-cleanup`, `npm run test:beginner-mode`, `npm run test:application-stages-pipeline`, `npm run test:agents-version`, and `npm run build` PASS. Focused ESLint had 0 errors; `src/routes/index.tsx` reports 2 pre-existing hook-dependency warnings.
+
+## Task 200: Mark YouTube-Translated Subtitle Tracks
+
+- Added a translation-origin detector to recognize YouTube timedtext URLs that use `tlang`, and centralized the logic in `src/lib/subtitle-fetch-plan.ts`.
+- Propagated the detected translation metadata through the web-demo subtitle loader and the in-memory subtitle table columns so only actual YouTube translation tracks get the translation badge.
+- Updated the subtitle table headers to display a compact language icon next to translated tracks and added the focused regression verifier `scripts/verify-youtube-translation-indicator.ts`.
+- Verification: `npm run test:youtube-translation-indicator` PASS; `npm run build` PASS; ESLint on the changed files reported 0 errors with only two pre-existing useCallback/useEffect hook dependency warnings in `src/routes/index.tsx`.
+
+## Task 197: Prevent Subtitle Text Crossing Language Columns (Version 2.0.6)
+
+- Added `subtitleTextForColumn`, which only returns the subtitle text for an exact own language key, and used it for rendered text and per-cell TTS.
+- Added language code metadata to subtitle table cells.
+- Added regression coverage proving text stays in its language column after column reordering and missing language keys remain empty.
+- Verification: `npm run test:subtitles-table-visibility` PASS; `npm run test:agents-version` PASS; `npm run build` PASS; `npm run lint` 0 errors with 2 existing route hook-dependency warnings.
+
+## Task 198: Normalize Hebrew Language Aliases in the Table (Version 2.0.7)
+
+- Table headers now display `iw` and `il` as “Hebrew” while keeping their original track keys.
+- Added both legacy aliases to the RTL set so their subtitle cells render right-to-left.
+- Verification: `npm run test:subtitles-table-visibility` PASS; `npm run test:agents-version` PASS; `npm run build` PASS (existing large-chunk warning); `npm run lint` 0 errors with 2 existing route hook-dependency warnings.
+
+## Task 199: Keep Default Subtitle Track Out of TTS (Version 2.0.8)
+
+- Default/base captions remain stored and shown in the language table but are excluded from automatic speak-list enrollment and subtitle-text scheduling.
+- Default/base columns no longer expose manual TTS controls; beginner player speech controls speak only a translated target cue, not the base fallback.
+- Translation tracks retain auto-speak-on-fetch behavior.
+- Added and registered `test:exclude-default-subtitles-tts`; updated the related auto-speak verifier to cover a base-plus-translations fetch and fixed its Node localStorage test setup.
+- Verification: `npm run test:exclude-default-subtitles-tts`, `npm run test:auto-speak-on-fetch`, `npm run test:subtitles-table-visibility`, `npm run test:agents-version`, `npm run build` PASS; `npm run lint` 0 errors with 2 existing route hook-dependency warnings.
+
 ## Task 195: Process Shared Subtitle URLs Reliably (Version 2.0.4)
 
 ### Summary:
