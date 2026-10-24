@@ -4,9 +4,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 206: Make Agent Work Resumable After Session Interruption**
-  - [ ] Add explicit resume instructions to AGENTS.md and document the recovery sequence in the token-economy workflow.
-  - [ ] Stage and verify tracker updates while preserving Task 200's in-progress work.
 - [ ] **Task 194 [ON HOLD]: Fix setBaseLanguage ReferenceError and Type Integrity (Version 2.0.3)**
   - [x] Sub-task 194.1: Bump version to 2.0.3 across all 5 targets and record last raw prompt in AGENTS.md.
   - [ ] Sub-task 194.2: Implement `setBaseLanguage` state callback, fix YTPlayer `loadVideoById`, fix criteria type in index.tsx, and fix missing `HelpCircle` in `AiSubtitlePunctuationTab.tsx`.

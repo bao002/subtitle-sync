@@ -84,6 +84,7 @@ To guarantee token economy without heavy processing, maintain the following file
 - On resumption, read `AGENTS.md`'s `## Resume after interruption` section first, then inspect `current-sub-task.md`, `docs/todo.md`, and the active entries in `docs/tasks.md`.
 - Treat `git status` and the relevant `git diff` as authoritative evidence of uncommitted work. Preserve existing edits; do not reset, overwrite, or assume they are complete.
 - Record the exact next action, validation still needed, and any blockers in `current-sub-task.md` before continuing. If the active state is missing or inconsistent, reconcile it from the task backlog, scratchpad, and worktree, and explicitly note any uncertainty rather than guessing.
+- Do not resume an item already marked complete in `docs/done.md`; reconcile stale backlog or mirror entries against the archived verification record before selecting the next task.
 - Update `AGENTS.md`'s `## Last raw prompt` only with the exact latest user message; do not use that section as a substitute for durable task progress notes.
 
 ### Protocol Requirements:

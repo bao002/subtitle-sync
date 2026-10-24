@@ -1,5 +1,12 @@
 # Done tasks
 
+## Task 206: Make Agent Work Resumable After Session Interruption
+
+- Clarified in `AGENTS.md` and `docs/tokens.md` that resumed work must reconcile task trackers with the worktree and must not resume tasks already archived as complete.
+- Reconciled the stale Task 200 note: its implementation and verification were already complete and preserved in this archive.
+- Updated the current-task mirror and backlog to reflect the verified state.
+- Verification: `git diff --check` PASS; targeted tracker search confirmed Task 200 is archived, Task 206 is removed from the active backlog, and the current-task mirror is idle. Documentation-only change; no code tests required.
+
 ## Task 202–205: Expert-mode Language UX Cleanup
 
 - Added an inline parser diff review for expert mode so the confirmation comparison stays in-context without the popup modal blocking the visual comparison workflow.

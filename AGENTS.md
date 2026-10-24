@@ -48,6 +48,7 @@ The application processes and presents subtitles through a strict sequential pip
 - **Resume after interruption**: At the start of a resumed session, read this section and `current-sub-task.md`, then `docs/todo.md` and the active entries in `docs/tasks.md`. The active sub-task and its recorded next action are the source of truth for where to continue; do not start a different backlog item just because the prior chat is unavailable.
 - Before editing, inspect `git status --short` and the diffs for files named by the active sub-task. Treat uncommitted and untracked work as potentially valuable in-progress work: preserve it, understand it, and never reset, overwrite, or commit unrelated changes.
 - Reconcile the trackers with the worktree. If they disagree, use the task notes and actual diffs to establish what is done, what remains, required tests/build/lint, and any blocker; update `current-sub-task.md` and `docs/todo.md` with a concrete next action before proceeding. Record uncertainty rather than guessing or repeating work.
+- Do not resume a task already recorded as complete in `docs/done.md`; reconcile stale backlog or mirror entries against its verification record before selecting the next task.
 - Keep progress resumable throughout execution: after each meaningful step, update the active sub-task with completed work, changed files, validation results, and the next exact action. If stopping unexpectedly is likely, leave those notes and the worktree in a safe, uncommitted state.
 
 - **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**: ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md` (or its subdirectories `docs/designs/`, `docs/specifications/`, and `docs/operations/`). There must be ZERO duplicate `.md` files in the repository. No Markdown file located under `docs/*.md` may have a redundant copy in root (`docs/tokens.md`, `docs/android.md`, `docs/parser.md`, `docs/self-verification.md`, and `docs/roadmap.md` reside exclusively in `docs/`). Only `README.md`, `AGENTS.md`, `current-sub-task.md`, and `temp.md` are permitted in root.
@@ -144,7 +145,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-201
+go on
 ```
-
 
