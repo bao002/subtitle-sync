@@ -145,6 +145,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-checkout  docs/suggestions.md , upgrade it and update tasks accordingly. then go on
+can u improve the parser section design (include the design for android (without any popups)) ?
 ```
 
