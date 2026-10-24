@@ -2,4 +2,4 @@
 
 - **Active**: None.
 - **Status**: READY.
-- **Next**: Await the next task selection; Task 200 is complete, committed, and logged in `docs/done.md`.
+- **Next**: Await the next task selection; Task 201 is complete and archived in `docs/done.md`.

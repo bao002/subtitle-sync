@@ -1,4 +1,5 @@
 // json3 subtitle parsing + parallel sentence alignment strategies.
+import { removeAngleBrackets } from "../utils/captionParser";
 
 export type Json3 = {
   events?: {
@@ -45,9 +46,10 @@ export function parseCues(j: Json3): Cue[] {
       .join("")
       .replace(/\s+/g, " ")
       .trim();
-    if (!text) continue;
+    const cleanText = removeAngleBrackets(text);
+    if (!cleanText) continue;
     const start = e.tStartMs ?? 0;
-    out.push({ start, end: start + (e.dDurationMs ?? 0), text });
+    out.push({ start, end: start + (e.dDurationMs ?? 0), text: cleanText });
   }
   // Clip overlaps (ASR tracks overlap the next cue).
   for (let i = 0; i < out.length - 1; i++) out[i]!.end = Math.min(out[i]!.end, out[i + 1]!.start);
@@ -61,7 +63,7 @@ function tokens(j: Json3): Token[] {
     const base = e.tStartMs ?? 0;
     e.segs.forEach((s, i) => {
       // Cue boundaries are word boundaries: prefix the first segment with a space.
-      const text = (i === 0 ? " " : "") + (s.utf8 ?? "").replace(/\s+/g, " ");
+      const text = (i === 0 ? " " : "") + removeAngleBrackets(s.utf8 ?? "").replace(/\s+/g, " ");
       if (text.trim()) out.push({ t: base + (s.tOffsetMs ?? 0), text });
     });
   }

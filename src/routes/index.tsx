@@ -67,6 +67,7 @@ import {
   parseVideoId,
   timedTextVideoId,
 } from "@/lib/native-captions";
+import { removeAngleBrackets } from "@/utils/captionParser";
 import {
   SUPPORTED_LANGUAGES_CATALOG,
   getUserLearningLanguages,
@@ -2887,14 +2888,19 @@ function Index() {
 
   const rows = useMemo<Row[]>(() => {
     if (!rawRows || rawRows.length === 0) return rawRows;
-    const hasAnyOnDemand = Object.keys(onDemandTranslations).length > 0;
-    if (!hasAnyOnDemand) return rawRows;
     return rawRows.map((r, idx) => {
       let changed = false;
       const texts = { ...r.texts };
+      for (const [lang, text] of Object.entries(texts)) {
+        const cleaned = removeAngleBrackets(text);
+        if (cleaned !== text) {
+          texts[lang] = cleaned;
+          changed = true;
+        }
+      }
       for (const [lang, map] of Object.entries(onDemandTranslations)) {
         if ((!texts[lang] || texts[lang].trim().length === 0) && map[idx]) {
-          texts[lang] = map[idx];
+          texts[lang] = removeAngleBrackets(map[idx]);
           changed = true;
         }
       }

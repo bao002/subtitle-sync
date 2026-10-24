@@ -24,12 +24,12 @@ const cleaned2 = cleanSubtitleText(input2, {
 });
 assert.equal(cleaned2, "That was a funny joke!");
 
-// 3. Verify Arrow and Greater-Than Symbols Stripping
-console.log("Checking '>' and '>>' arrow marker stripping...");
-const input3 = ">> [SPEAKER 1]: Hello there! > Yes, hello.";
+// 3. Verify angle bracket symbols are stripped regardless of the configured character list.
+console.log("Checking angle bracket stripping...");
+const input3 = ">> [SPEAKER 1]: Hello <there>! > Yes, hello.";
 const cleaned3 = cleanSubtitleText(input3, {
   stripSpeakerBrackets: true,
-  removeChars: [">", ">>"],
+  removeChars: [],
 });
 assert.equal(cleaned3, ": Hello there! Yes, hello.");
 

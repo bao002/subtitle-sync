@@ -12,8 +12,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
   - [ ] Sub-task 194.2: Implement `setBaseLanguage` state callback, fix YTPlayer `loadVideoById`, fix criteria type in index.tsx, and fix missing `HelpCircle` in `AiSubtitlePunctuationTab.tsx`.
   - [ ] Sub-task 194.3: Create automated verification test `scripts/verify-set-base-language-fix.ts`, run tests, compile, lint, commit, and migrate to `docs/done.md`.
 
-- [ ] **Task 201: Clean Angle Brackets Before Display and Speech**
-  - [ ] Remove `<` and `>` before subtitles render or enter TTS and add regression tests.
 - [ ] **Task 202: Make Advanced Parser Confirmation Inline**
   - [ ] Replace the parser confirmation popup with an inline comparison-friendly control in advanced mode.
 - [ ] **Task 203: Move Favorite Subtitle Visibility Beside the Video**

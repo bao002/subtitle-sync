@@ -1,5 +1,13 @@
 # Done tasks
 
+## Task 201: Clean Angle Brackets Before Display and Speech (Version 2.0.9)
+
+- Added shared angle-bracket sanitization for literal and HTML-encoded `<`/`>` markers in beginner-mode cleanup, aligned subtitle rows, on-demand translations, and the intercepted-track preview.
+- Ensured subtitle row text passed to the table and TTS scheduler is cleaned before presentation or speech.
+- Added `scripts/verify-angle-bracket-subtitle-cleanup.ts`, updated the beginner-mode regression, registered the test command, and inventoried the verifier.
+- Synchronized app version `2.0.9` / Android `versionCode = 20009`.
+- Verification: `npm run test:angle-bracket-subtitle-cleanup`, `npm run test:beginner-mode`, `npm run test:application-stages-pipeline`, `npm run test:agents-version`, and `npm run build` PASS. Focused ESLint had 0 errors; `src/routes/index.tsx` reports 2 pre-existing hook-dependency warnings.
+
 ## Task 200: Mark YouTube-Translated Subtitle Tracks
 
 - Added a translation-origin detector to recognize YouTube timedtext URLs that use `tlang`, and centralized the logic in `src/lib/subtitle-fetch-plan.ts`.

@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.8",
+  "version": "2.0.9",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -34,6 +34,7 @@
     "test:e2e": "playwright test",
     "test:beginner-mode": "tsx scripts/verify-beginner-mode-tab-flow.ts",
     "test:application-stages-pipeline": "tsx scripts/verify-application-stages-pipeline.ts",
+    "test:angle-bracket-subtitle-cleanup": "tsx scripts/verify-angle-bracket-subtitle-cleanup.ts",
     "test:subtitles-fixtures-restriction": "tsx scripts/verify-subtitles-fixtures-restriction.ts",
     "test:emulator-captions-detection": "tsx scripts/verify-emulator-captions-detection.ts",
     "test:video-metadata": "tsx scripts/verify-client-video-metadata.ts",
