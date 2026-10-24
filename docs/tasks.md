@@ -2,11 +2,6 @@
 
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
-## Active Tasks
-
-- [ ] **Task 229: Replace on-demand language columns with fetched subtitle tracks**
-  - Prevent duplicate columns for the same language; when a full subtitle track is fetched later, replace the on-demand translation column and its data.
-
 ## Later Tasks
 
 - [ ] **Task 196: Android-platform validation for web-demo share links**

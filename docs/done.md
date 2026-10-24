@@ -1,5 +1,14 @@
 # Done tasks
 
+## Task 229: Replace on-demand language columns with fetched subtitle tracks (Version 2.0.14)
+
+- Added language identity handling for Hebrew/legacy aliases and equivalent language tags while preserving explicit regional variants such as Portuguese (Brazil) and Chinese Simplified/Traditional.
+- Deduplicated rendered subtitle columns by language identity. When a fetched track arrives under an alias, it replaces the on-demand column and uses the fetched track's code/data.
+- Made fetched tracks authoritative in aligned rows, skipped lookahead translation for aliases with a valid fetched track, cleared translated state on arrival, and guarded late callbacks from restoring stale translations.
+- Added `scripts/verify-subtitle-language-columns.ts` and the `test:subtitle-language-columns` package script. Updated app version metadata to 2.0.14.
+- Verification: `npm run test:subtitle-language-columns`, `npm run test:on-demand-translation`, `npm run test:v2-version-bump`, `npm run test:md`, `npm run lint`, `npm run build`, Prettier checks, and `git diff --check` passed.
+- Existing unrelated verifier limitation: `npm run test:subtitles-table-visibility` fails at its `align()` row-text expectation before executing its column assertions; the dedicated new test covers column uniqueness and fetched-track replacement directly.
+
 ### Hotfix: Remove duplicate subtitle track ref declaration
 
 - Reused the route's existing synchronized `tracksRef` instead of declaring a second ref.

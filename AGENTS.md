@@ -143,6 +143,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1.the app enters into a loop while playing a video - it repeats itself
-2.on the web-demo - the video input pauses forever
+dont duplicate column of the same language. in case of a later subtitles fetching - replace the on-demand translation column with the complete fetched subtitles file.
 ```
