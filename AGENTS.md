@@ -146,5 +146,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on there are still uncommited changes
+checkout regarding working with android to produce e2e screencast:
+https://github.com/ReactiveCircus/android-emulator-runner
 ```

@@ -56,18 +56,44 @@ console.log(
   "✓ Check 2 Passed: Runner script includes screenrecord lifecycle or deprecation notice, and adb pull.",
 );
 
-// 3. Verify .github/workflows/emulation.yml records screencast or documents deprecation
-console.log("--> [Check 3] Verifying .github/workflows/emulation.yml video recording & staging...");
+// 3. Verify .github/workflows/emulation.yml records and stages an authentic screencast
+console.log(
+  "--> [Check 3] Verifying .github/workflows/emulation.yml authentic video recording & staging...",
+);
 const emulationYmlPath = path.join(rootDir, ".github", "workflows", "emulation.yml");
 assert(fs.existsSync(emulationYmlPath), ".github/workflows/emulation.yml must exist");
 const emulationYmlContent = fs.readFileSync(emulationYmlPath, "utf8");
 assert(
-  emulationYmlContent.includes("screenrecord"),
-  ".github/workflows/emulation.yml must reference screenrecord or document deprecation",
+  emulationYmlContent.includes("uses: reactivecircus/android-emulator-runner@v2") &&
+    emulationYmlContent.includes("api-level: 34") &&
+    emulationYmlContent.includes("target: google_apis") &&
+    emulationYmlContent.includes("emulator-boot-timeout: 600") &&
+    emulationYmlContent.includes("timeout-minutes: 15"),
+  ".github/workflows/emulation.yml must run API 34 Google APIs with the action's 600-second boot timeout",
 );
 assert(
-  emulationYmlContent.includes("android-emulator-video.mp4"),
-  ".github/workflows/emulation.yml must reference android-emulator-video.mp4",
+  emulationYmlContent.includes(
+    "adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4",
+  ) &&
+    emulationYmlContent.includes("adb shell pkill -2 -f screenrecord") &&
+    emulationYmlContent.includes("trap 'exit 130' INT") &&
+    emulationYmlContent.includes("trap 'exit 143' TERM") &&
+    emulationYmlContent.includes(
+      "adb pull /sdcard/android-emulator-video.mp4 ./android-emulator-video.mp4",
+    ),
+  ".github/workflows/emulation.yml must finalize recording on exit or signal before pulling the video",
+);
+assert(
+  emulationYmlContent.includes(
+    "if [ -f ./android-emulator-video.mp4 ] && [ -s ./android-emulator-video.mp4 ]; then",
+  ) &&
+    emulationYmlContent.includes("RESULT=1") &&
+    emulationYmlContent.includes('exit "$RESULT"'),
+  ".github/workflows/emulation.yml must fail when recording produces no non-empty video",
+);
+assert(
+  !emulationYmlContent.includes("ffmpeg") && !emulationYmlContent.includes("DEPRECATED flow"),
+  ".github/workflows/emulation.yml must not synthesize a video from screenshots or label active capture deprecated",
 );
 assert(
   emulationYmlContent.includes("name: android-emulator-artifacts"),
@@ -79,7 +105,7 @@ assert(
   ".github/workflows/emulation.yml must stage video to gh-pages-staging/screenshots/ or document deprecation",
 );
 console.log(
-  "✓ Check 3 Passed: Emulation workflow handles screenrecord lifecycle/deprecation, artifacts, and staging.",
+  "✓ Check 3 Passed: Emulation workflow records, finalizes, validates, uploads, and stages the authentic emulator video.",
 );
 
 // 4. Verify public/android-emulator-report.html embeds video player

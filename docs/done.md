@@ -1,5 +1,14 @@
 # Done tasks
 
+## Task 220: Correct Android emulator screencast workflow
+
+- Confirmed [`ReactiveCircus/android-emulator-runner`](https://github.com/ReactiveCircus/android-emulator-runner) provisions and boots the configured emulator and runs the supplied script; ADB in the workflow performs the actual screen recording. Upstream guidance recommends Ubuntu larger runners with KVM when available.
+- Updated `.github/workflows/emulation.yml` to finalize `screenrecord` with SIGINT on exit or termination, pull the authentic MP4, fail if it is missing or empty, and remove the still-image-to-video fallback.
+- Raised the emulator boot timeout to the action's documented 600-second default, the emulator step timeout to 15 minutes, and the overall job timeout to 20 minutes. Run 44 (`a6b45db`) failed before the E2E script because the old 300-second boot timeout was exceeded.
+- Updated `docs/android.md` and strengthened `scripts/verify-emulator-screencast-report.ts` for the recording lifecycle, required video, and timeout configuration.
+- Verification: `npm run test:emulator-screencast-report`, `npm run test:workflows`, `npm run test:android-emulator-docs-evidence`, `npm run test:agents-last-prompt-rule`, `npm run test:doc-contracts`, Prettier checks, and `git diff --check` passed.
+- Runtime validation remains deferred as Task 221 because this Codespace has no `adb` and GitHub CLI authentication is unavailable. Remote `main` also advanced by a GitHub Actions README-only commit; the README was not copied or overwritten, and no push was attempted.
+
 ## Task 219: Commit remaining Task 217 scratchpad change
 
 - Updated the stale scratchpad to record Task 217's completion and its version-sync/parser implementation commits.
@@ -225,7 +234,7 @@
 
 ---
 
-## Task 191: Chapter 2 - Implement Major Version Bump to 2.*.* (Version 2.0.0)
+## Task 191: Chapter 2 - Implement Major Version Bump to 2._._ (Version 2.0.0)
 
 ### Summary:
 

@@ -56,12 +56,14 @@ Automated testing of the Android native shell executes within GitHub Actions usi
 ### Runner Environment & Hardware Virtualization
 
 - **macOS Apple Silicon Host (`runs-on: macos-14`)**: GitHub Actions provisions macOS 14 runners powered by Apple Silicon M-series hardware. This enables native hypervisor framework acceleration (`Hypervisor.framework`) to achieve fast, fluid Android ARM64 virtualization.
+- **Upstream Runner Guidance**: The [`android-emulator-runner` action](https://github.com/ReactiveCircus/android-emulator-runner) provisions the emulator and runs the supplied script; ADB `screenrecord` in this workflow produces the screencast. Its upstream documentation recommends Ubuntu larger runners with KVM when available for improved speed and cost. This workflow retains `macos-14`; switching runner classes requires confirming repository runner entitlements and validating the API 34 ARM64 image separately.
 - **Android Virtual Device (AVD) Configuration**:
   - **Runner Action**: `reactivecircus/android-emulator-runner@v2`
   - **API Level**: 34 (Android 14, `api-level: 34`)
   - **Target Image**: `google_apis` (includes official Google Play Services and system libraries)
   - **CPU Architecture**: `arm64-v8a` (native execution without costly cross-architecture translation)
   - **Allocated Memory**: `2048M` RAM
+  - **Boot Timeout**: `600` seconds, matching the action default after run 44 timed out with a 300-second override
   - **Headless Optimized Flags**: `-no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none`
   - **Animation Suppression**: `disable-animations: true` (eliminates window and transition animation latency)
 
@@ -134,11 +136,11 @@ Tests strictly fail if the app displays error states:
 
 ---
 
-## 5. Screencast Video Deprecation & Authentic Live Caption Text Exposure (DEPRECATED SCREENCAST)
+## 5. Screencast Video Recording & Authentic Live Caption Text Exposure
 
-> **Deprecation Notice (Version 1.0.60)**: Automated screencast video generation (`screenrecord`, MP4 artifacts) is **deprecated by default** (`ENABLE_DEPRECATED_SCREENCAST=false`) in favor of authentic multi-step milestone screenshots, live device hardware telemetry (`android-emulator-device-info.json`), real-time ADB logcat interception telemetry (`AUTHENTIC_CAPTIONS_EXPOSED`), and on-device extracted dialogue text (`authentic_captions_exposed.txt`). Test passage asserts real dialogue text exposure directly from authentic YouTube timedtext responses without any mocks or fixtures.
+`reactivecircus/android-emulator-runner@v2` creates and boots the configured emulator, then executes the provided `script`; it does not record video itself. The Android GitHub Actions E2E script captures the actual emulator display with Android's `screenrecord`, finalizes the recording, and pulls the resulting MP4. The Android E2E pipeline never generates a video from a still screenshot.
 
-Video recording is optional and non-blocking for visual reviews.
+CI treats a missing or empty MP4 as a recording failure. Screenshots, device telemetry, and live caption evidence continue to be collected independently for diagnostics.
 
 ```
        [Initialize Runner]
@@ -169,8 +171,8 @@ Video recording is optional and non-blocking for visual reviews.
 
 1. **Authentic Screenshots & Text Evidence Over Heavy Videos**: Capture authentic full-resolution screenshots at each key milestone (boot, share intent, captions discovery) using `adb shell screencap -p`.
 2. **Authentic Live Caption Text Exposure (Zero Mocks / Fixtures)**: Real dialogue text from the live YouTube timedtext stream is extracted and logged to logcat with `AUTHENTIC_CAPTIONS_EXPOSED lang=<lang> cues=<count> sample="<text>"` and saved to `/sdcard/Android/data/com.ytviewer.app/files/authentic_captions_exposed.txt`.
-3. **Deprecate Screenrecord Overhead**: Screenrecord is skipped by default to eliminate flaky runner timeouts, container corruption, and CI stalls. If requested via `ENABLE_DEPRECATED_SCREENCAST=true`, it runs in background and finalizes gracefully.
-4. **Clean Container Finalization**: If an authentic legacy MP4 is recorded, it must be cleanly stopped with SIGINT (`adb shell pkill -2 -f screenrecord`), allowing the container `moov` header to be cleanly written before pulling via `adb pull`, but is no longer mandatory for test passage.
+3. **Record the Real Emulator Display**: The GitHub Actions E2E workflow starts `adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4` before launching the app.
+4. **Finalize Before Pulling**: Stop the recorder gracefully with `adb shell pkill -2 -f screenrecord`, wait for it to finish writing the MP4 container, then pull the file using `adb pull`. A missing or empty recording fails the E2E step; no screenshot-to-video fallback is allowed.
 5. **Orientation and Wake Locking**:
    - Disable auto-rotation: `adb shell settings put system accelerometer_rotation 0`.
    - Dismiss lock screen: `adb shell input keyevent KEYCODE_WAKEUP && adb shell wm dismiss-keyguard`.
