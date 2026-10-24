@@ -1,5 +1,11 @@
 # Done tasks
 
+## Task 219: Commit remaining Task 217 scratchpad change
+
+- Updated the stale scratchpad to record Task 217's completion and its version-sync/parser implementation commits.
+- Committed the only remaining uncommitted file together with this prompt's tracking updates, leaving no task-related changes uncommitted.
+- Verification: `git diff --check` passed; final repository status was clean.
+
 ## Task 217: Support punctuation-only subtitle splitting
 
 - Added punctuation-only sentence splitting for a single subtitle cue by detecting terminal punctuation with linear time interpolation, while preserving the `splitIntraCue` checkbox and abbreviation/decimal guards.

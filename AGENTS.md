@@ -146,5 +146,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-commit. then i will push
+go on there are still uncommited changes
 ```
