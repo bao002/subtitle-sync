@@ -1,5 +1,12 @@
 # Done tasks
 
+## Task 227.1: Stop primary video player recreation on play-state changes (Version 2.0.13)
+
+- Removed `isVideoPlaying` from the YouTube player's lifecycle effect dependencies. Playback state changes no longer destroy and recreate the player, preventing Android playback restarts and the web player resetting to paused.
+- Read the latest playback state from a ref inside the stable player lifecycle effect.
+- Added `scripts/verify-stable-video-player-lifecycle.ts` and its package script; synchronized the app version across package metadata, Android Gradle, OTA updater, app configuration, and exported settings.
+- Verification: `npm run test:stable-video-player`, `npm run test:playground-tab`, `npm run test:v2-version-bump`, `npm run lint`, and `npm run build` all passed. `git diff --check` passed.
+
 ## Task 226: Set up Docker for repeatable E2E
 
 - Pinned the Docker runner to the official Playwright `v1.64.1-noble` image and pinned `@playwright/test` to `1.64.1`.

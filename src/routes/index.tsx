@@ -1812,6 +1812,8 @@ function Index() {
     });
   }, []);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const isVideoPlayingRef = useRef(isVideoPlaying);
+  isVideoPlayingRef.current = isVideoPlaying;
   const [playbackCurrentTime, setPlaybackCurrentTime] = useState(0);
   const [playbackDuration, setPlaybackDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1.0);
@@ -3426,7 +3428,7 @@ function Index() {
           (p.getVideoData && p.getVideoData()?.title) ||
           (videoId ? `YouTube (${videoId})` : "YouTube Video");
         const isPlaying =
-          (p.getPlayerState ? p.getPlayerState() === 1 : isVideoPlaying) ||
+          (p.getPlayerState ? p.getPlayerState() === 1 : isVideoPlayingRef.current) ||
           Boolean(speakingLangRef.current) ||
           busy.current;
         const curSec = ms / 1000;
@@ -3616,7 +3618,7 @@ function Index() {
       player.current?.destroy?.();
       player.current = null;
     };
-  }, [videoId, isAndroid, workflowMode, playerContainerNode, isVideoPlaying]);
+  }, [videoId, isAndroid, workflowMode, playerContainerNode]);
 
   // Mount and manage dedicated video player instances for each language with speak/audio enabled
   useEffect(() => {

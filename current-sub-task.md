@@ -1,6 +1,7 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: Completed and archived.
-- **Completed Task**: Task 226 — Set up Docker for repeatable E2E.
-- **Verification**: `./docker/manage.sh e2e all` passed all 4 Playwright tests in Docker; `npm run test:md` and Prettier checks passed.
-- **Next Action**: Remaining tasks are blocked Android E2E validations in `docs/tasks.md`; no local Docker E2E task remains active.
+- **Status**: In progress.
+- **Active Task**: Task 227 — Add web-demo regression for frozen playback.
+- **Scope**: Add an E2E check that playback remains active without recreating the YouTube player.
+- **Completed Subtask**: Task 227.1 — Removed the playing-state dependency that repeatedly destroyed and recreated the player; added a targeted lifecycle verifier.
+- **Next Action**: Add and run the browser regression with the Docker Playwright runner.

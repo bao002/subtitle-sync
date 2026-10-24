@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.12",
+  "version": "2.0.13",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -16,6 +16,7 @@
     "test:quarantine-and-new-parser": "tsx scripts/verify-quarantine-and-new-parser.ts",
     "test:fixture-languages-and-source-icons": "tsx scripts/verify-fixture-languages-and-source-icons.ts",
     "test:pause-both-video-and-tts": "tsx scripts/verify-pause-both-video-and-tts.ts",
+    "test:stable-video-player": "tsx scripts/verify-stable-video-player-lifecycle.ts",
     "test:beginner-vs-advanced-video": "tsx scripts/verify-beginner-vs-advanced-video.ts",
     "test:minimal-share-url": "tsx scripts/verify-minimal-share-url.ts",
     "test:v2-version-bump": "tsx scripts/verify-v2-version-bump.ts",
