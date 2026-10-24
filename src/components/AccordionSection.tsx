@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Pin, PinOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type PanelId, ACCORDION_THEMES } from "@/config/accordionThemes";
 
-const ACCORDION_AUTO_FOLD_MS = 30_000;
+const ACCORDION_AUTO_FOLD_MS = 5_000;
 
 export interface AccordionSectionProps {
   id: PanelId;
@@ -39,7 +39,7 @@ export function AccordionSection({
     dotBg: "bg-neutral-500",
     tagColor: "neutral",
   };
-  // Auto-fold: an open, unpinned section folds after a period without interaction inside it.
+  // Auto-fold an open, unpinned section after five seconds without interaction.
   const pinKey = `yt_accordion_pinned_${id}`;
   const [pinned, setPinned] = useState(false);
   useEffect(() => {
