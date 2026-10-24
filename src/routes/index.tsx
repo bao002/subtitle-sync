@@ -1676,6 +1676,9 @@ function Index() {
     }
   };
   const [languageOrder, setLanguageOrder] = useState(() => LANGS.map((lang) => lang.code));
+  const [expandedLanguageSettings, setExpandedLanguageSettings] = useState<Record<string, boolean>>(
+    {},
+  );
   const [ttsRatios, setTtsRatios] = useState<Record<string, number>>(() => {
     const saved = getTtsRatiosPreference();
     const defaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 1]));
@@ -3233,7 +3236,7 @@ function Index() {
         }
       });
     },
-    [videoId],
+    [setBaseLanguage, videoId],
   );
 
   const handleSaveLanguageTrackFromModal = useCallback(
@@ -3559,7 +3562,7 @@ function Index() {
       player.current?.destroy?.();
       player.current = null;
     };
-  }, [videoId, isAndroid, workflowMode, playerContainerNode]);
+  }, [videoId, isAndroid, workflowMode, playerContainerNode, isVideoPlaying]);
 
   // Mount and manage dedicated video player instances for each language with speak/audio enabled
   useEffect(() => {
@@ -4466,6 +4469,71 @@ function Index() {
                     </Button>
                   </form>
                 )}
+              </div>
+
+              <div className="px-4 pt-3 md:px-6 md:pt-4">
+                <div className="mx-auto max-w-6xl">
+                  <div
+                    data-testid="favorite-visibility-toolbar"
+                    className="rounded-xl border border-border bg-card/80 p-3 shadow-sm"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                          Favorite subtitle visibility
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Toggle each favorite language to keep it visible in the subtitle table or
+                          read aloud.
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {favoriteLanguages.length === 0 ? (
+                          <span className="text-[11px] text-muted-foreground italic">
+                            No favorites selected yet
+                          </span>
+                        ) : (
+                          favoriteLanguages.map((code) => {
+                            const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+                              (lang) => lang.code === code,
+                            ) || { code, name: code };
+                            const visible = shown.includes(code);
+                            const spokenNow = spoken.includes(code);
+                            return (
+                              <button
+                                key={code}
+                                type="button"
+                                data-testid={`favorite-visibility-item-${code}`}
+                                onClick={() => {
+                                  setShown((prev) =>
+                                    prev.includes(code)
+                                      ? prev.filter((item) => item !== code)
+                                      : [...prev, code],
+                                  );
+                                  setSpoken((prev) =>
+                                    prev.includes(code)
+                                      ? prev.filter((item) => item !== code)
+                                      : [...prev, code],
+                                  );
+                                }}
+                                className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-medium transition ${
+                                  visible || spokenNow
+                                    ? "border-primary/40 bg-primary/10 text-primary"
+                                    : "border-border bg-background text-muted-foreground"
+                                }`}
+                                title={`${langMeta.name}: ${visible ? "visible" : "hidden"}, ${spokenNow ? "spoken" : "silent"}`}
+                              >
+                                <span>{langMeta.name}</span>
+                                <span className="text-[10px]">{visible ? "👁" : "○"}</span>
+                                <span className="text-[10px]">{spokenNow ? "🔊" : "🔈"}</span>
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">
@@ -5734,6 +5802,17 @@ function Index() {
                             />
                           </div>
 
+                          {workflowMode === "expert" && pendingParserChange && (
+                            <ParserDiffConfirmationModal
+                              isOpen={true}
+                              inline
+                              onClose={handleCancelDiff}
+                              onConfirm={handleConfirmDiff}
+                              diffResult={pendingParserChange.diffResult}
+                              proposedCriteriaNames={pendingParserChange.criteriaNames}
+                            />
+                          )}
+
                           {/* Presets Header */}
                           <div>
                             <div className="flex items-center justify-between mb-2">
@@ -6847,6 +6926,55 @@ function Index() {
                               })}
                             </tbody>
                           </table>
+                          <div
+                            data-testid="per-language-settings-panel"
+                            className="mt-2 space-y-2 border-t border-border pt-2"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                                Per-language settings
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">
+                                Click any row to edit
+                              </span>
+                            </div>
+                            <div className="space-y-1">
+                              {orderedLangs
+                                .filter((lang) => spoken.includes(lang.code))
+                                .map((lang) => {
+                                  const ratio = ttsRatios[lang.code] ?? 1;
+                                  return (
+                                    <button
+                                      key={lang.code}
+                                      type="button"
+                                      data-testid={`tts-settings-summary-${lang.code}`}
+                                      onClick={() =>
+                                        setExpandedLanguageSettings((prev) => ({
+                                          ...prev,
+                                          [lang.code]: !prev[lang.code],
+                                        }))
+                                      }
+                                      className="flex w-full items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/20 px-2 py-1.5 text-left text-xs text-foreground"
+                                    >
+                                      <span className="font-medium">{lang.name}</span>
+                                      <span className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                        <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-primary">
+                                          1:{ratio}
+                                        </span>
+                                        <span>
+                                          {voiceSelections[lang.code] ? "voice" : "default"}
+                                        </span>
+                                        <ChevronDown
+                                          className={`h-3.5 w-3.5 transition-transform ${
+                                            expandedLanguageSettings[lang.code] ? "rotate-180" : ""
+                                          }`}
+                                        />
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                            </div>
+                          </div>
                           <div className="mt-2 space-y-1 border-t border-border pt-2">
                             {orderedLangs
                               .filter((lang) => spoken.includes(lang.code))
@@ -7110,7 +7238,7 @@ function Index() {
         onToggleAutoRetry={handleToggleAutoRetry}
       />
       <ParserDiffConfirmationModal
-        isOpen={Boolean(pendingParserChange)}
+        isOpen={workflowMode !== "expert" && Boolean(pendingParserChange)}
         onClose={handleCancelDiff}
         onConfirm={handleConfirmDiff}
         diffResult={pendingParserChange?.diffResult || null}

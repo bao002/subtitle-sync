@@ -1,6 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Active Subtask**: None.
-- **Status**: READY.
-- **Target**: Await the next task selection; Task 201 is complete, committed, and archived.
-- **Execution note**: Tasks 194 [ON HOLD] and 202–206 remain in the active backlog.
+- **Status**: COMPLETED.
+- **Target**: Expert-mode UX cleanup Tasks 202–205 is finished, validated, and archived into docs/done.md.
+- **Execution note**: The work was verified with the focused UI script, lint, and production build before the final commit.

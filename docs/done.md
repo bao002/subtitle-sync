@@ -1,5 +1,14 @@
 # Done tasks
 
+## Task 202–205: Expert-mode Language UX Cleanup
+
+- Added an inline parser diff review for expert mode so the confirmation comparison stays in-context without the popup modal blocking the visual comparison workflow.
+- Moved the favorite subtitle visibility buttons beside the video area and outside the language settings block, with one shared toggle for visibility and speech state as requested.
+- Split language selection from per-language TTS configuration so the control surfaces are distinct instead of duplicated.
+- Reworked repeated per-language settings into a compact, editable card layout that keeps the details space-efficient and directly editable in place.
+- Added focused UI verification for the expert-mode layout and parser review behavior.
+- Verification: `npx tsx scripts/verify-expert-mode-ui-layout.ts` PASS; `npm run lint` PASS; `npm run build` PASS.
+
 ## Task 201: Clean Angle Brackets Before Display and Speech (Version 2.0.9)
 
 - Added shared angle-bracket sanitization for literal and HTML-encoded `<`/`>` markers in beginner-mode cleanup, aligned subtitle rows, on-demand translations, and the intercepted-track preview.

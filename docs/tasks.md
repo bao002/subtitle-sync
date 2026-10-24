@@ -12,17 +12,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
   - [ ] Sub-task 194.2: Implement `setBaseLanguage` state callback, fix YTPlayer `loadVideoById`, fix criteria type in index.tsx, and fix missing `HelpCircle` in `AiSubtitlePunctuationTab.tsx`.
   - [ ] Sub-task 194.3: Create automated verification test `scripts/verify-set-base-language-fix.ts`, run tests, compile, lint, commit, and migrate to `docs/done.md`.
 
-- [ ] **Task 202: Make Advanced Parser Confirmation Inline**
-  - [ ] Replace the parser confirmation popup with an inline comparison-friendly control in advanced mode.
-- [ ] **Task 203: Move Favorite Subtitle Visibility Beside the Video**
-  - [ ] Place favorite-language visibility selection beside the video rather than inside Languages.
-- [ ] **Task 204: Separate Language Selection from Per-Language Settings**
-  - [ ] Place language selection and per-language TTS rate/ratio controls in distinct sections.
-- [ ] **Task 205: Edit Per-Language Settings In Place**
-  - [ ] Remove duplicated customization data and make each displayed language setup directly editable in a space-efficient layout.
-
----
-
 ## Later Tasks
 
 - [ ] **Task 196: Android-platform validation for web-demo share links**
