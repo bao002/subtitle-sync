@@ -6,6 +6,7 @@ import {
   getExcludeDefaultSubtitlesFromTTSSetting,
   setExcludeDefaultSubtitlesFromTTSSetting,
 } from "../src/utils/appSettings";
+import { isTtsSpeakableLanguage } from "../src/lib/playback-preferences";
 
 console.log("=========================================================================");
 console.log("🧪 Verifying Default Subtitles Exclusion from TTS-Play (Task 142)");
@@ -23,6 +24,16 @@ assert.strictEqual(
 console.log("✅ PASS: DEFAULT_APP_SETTINGS.excludeDefaultSubtitlesFromTTS is true by default.");
 
 console.log("--> [Test 2] Validating get/setExcludeDefaultSubtitlesFromTTSSetting...");
+const settingsStorage = new Map<string, string>();
+Object.defineProperty(globalThis, "window", {
+  configurable: true,
+  value: {
+    localStorage: {
+      getItem: (key: string) => settingsStorage.get(key) ?? null,
+      setItem: (key: string, value: string) => settingsStorage.set(key, value),
+    },
+  },
+});
 assert.strictEqual(
   typeof getExcludeDefaultSubtitlesFromTTSSetting,
   "function",
@@ -57,20 +68,29 @@ assert(fs.existsSync(indexTsxPath), "src/routes/index.tsx must exist");
 const indexContent = fs.readFileSync(indexTsxPath, "utf8");
 
 assert(
-  indexContent.includes("getExcludeDefaultSubtitlesFromTTSSetting"),
-  "src/routes/index.tsx must import and use getExcludeDefaultSubtitlesFromTTSSetting",
-);
-
-assert(
-  indexContent.includes("exclude-default-subtitles-tts-toggle"),
-  "src/routes/index.tsx must render settings checkbox with data-testid 'exclude-default-subtitles-tts-toggle'",
+  indexContent.includes("isTtsSpeakableLanguage"),
+  "src/routes/index.tsx must use the base-language TTS exclusion rule",
 );
 
 assert(
   indexContent.includes("setSpoken((prev) => prev.filter((lang) => lang !== baseLanguage))") ||
-    indexContent.includes("setSpoken((prev) => prev.filter"),
+    indexContent.includes("isTtsSpeakableLanguage(lang, baseLanguage)"),
   "src/routes/index.tsx must filter baseLanguage from spoken state when discovered",
 );
+assert(
+  indexContent.includes("isTtsSpeakableLanguage(l.code, currentBaseLanguage)"),
+  "Automatic TTS scheduling must exclude the base subtitle language",
+);
+assert(
+  indexContent.includes("autoSpeakOnFetch && targetLanguage && isTtsSpeakableLanguage(lang, baseLanguage)"),
+  "Fetching the default caption must not auto-enable its language for TTS",
+);
+assert.strictEqual(isTtsSpeakableLanguage("en", "en"), false);
+assert.strictEqual(isTtsSpeakableLanguage("he", "en"), true);
+const autoSpokenTranslations = ["en", "he", "es"].filter((lang) =>
+  isTtsSpeakableLanguage(lang, "en"),
+);
+assert.deepStrictEqual(autoSpokenTranslations, ["he", "es"]);
 console.log("✅ PASS: src/routes/index.tsx correctly integrates default subtitle exclusion logic.");
 
 // Test 4: Validate BeginnerFlowContainer.tsx logic
@@ -79,17 +99,23 @@ const beginnerFlowPath = path.resolve(rootDir, "src/components/beginner/Beginner
 assert(fs.existsSync(beginnerFlowPath), "BeginnerFlowContainer.tsx must exist");
 const beginnerFlowContent = fs.readFileSync(beginnerFlowPath, "utf8");
 
+const beginnerPlayerPath = path.resolve(rootDir, "src/components/beginner/tabs/BeginnerPlayerTab.tsx");
+const beginnerPlayerContent = fs.readFileSync(beginnerPlayerPath, "utf8");
 assert(
-  beginnerFlowContent.includes("excludeDefaultSubtitlesFromTTS"),
-  "BeginnerFlowContainer.tsx must check excludeDefaultSubtitlesFromTTS",
+  beginnerPlayerContent.includes("cues.some((cue) => cue.targetText)") &&
+    beginnerPlayerContent.includes("cue.targetText && targetLanguage") &&
+    !beginnerPlayerContent.includes("targetCue.targetText || targetCue.baseText"),
+  "Beginner mode must offer subtitle TTS only for translated target text, never base text",
 );
+console.log("✅ PASS: Beginner player speaks only translated target text.");
 
+const subtitleRowPath = path.resolve(rootDir, "src/components/SubtitleRow.tsx");
+const subtitleRowContent = fs.readFileSync(subtitleRowPath, "utf8");
 assert(
-  beginnerFlowContent.includes("nextFavs = favoriteLanguages.filter((l) => l !== lang)") ||
-    beginnerFlowContent.includes("favoriteLanguages.filter"),
-  "BeginnerFlowContainer.tsx must exclude base language from beginnerFavoriteLangs when selected",
+  subtitleRowContent.includes("l.code !== baseLanguage"),
+  "Advanced subtitle cells must not offer TTS for the default/base column",
 );
-console.log("✅ PASS: BeginnerFlowContainer.tsx correctly excludes base language from favorites.");
+console.log("✅ PASS: Advanced table hides TTS controls on the default/base column.");
 
 // Test 5: Validate package.json script
 console.log("--> [Test 5] Auditing package.json script registration...");

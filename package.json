@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -83,6 +83,7 @@
     "test:e2e-report-links": "tsx scripts/verify-e2e-report-links.ts",
     "test:default-timing-base": "tsx scripts/verify-default-timing-base.ts",
     "test:default-subtitles-e2e": "tsx scripts/verify-default-video-subtitles-e2e.ts",
+    "test:exclude-default-subtitles-tts": "tsx scripts/verify-exclude-default-subtitles-tts.ts",
     "test:beginner-subtitles-table": "tsx scripts/verify-beginner-subtitles-table.ts",
     "test:agents-push-rule": "tsx scripts/verify-agents-push-rule.ts",
     "test:youtube-share-intent": "tsx scripts/verify-youtube-share-intent.ts",

@@ -1,4 +1,4 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Active**: Task 199: Keep Default Subtitle Track Out of TTS.
+- **Active**: Task 200: Mark YouTube-Translated Subtitle Tracks.
 - **Status**: IN PROGRESS.

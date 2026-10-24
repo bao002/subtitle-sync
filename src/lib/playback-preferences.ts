@@ -3,6 +3,9 @@
 export type SubtitleRequestMode = "tlang" | "lang";
 export type SectionOrder = "video-first" | "tts-first";
 
+export const isTtsSpeakableLanguage = (languageCode: string, baseLanguage: string): boolean =>
+  !baseLanguage || languageCode !== baseLanguage;
+
 const KEYS = {
   requestMode: "yt_subtitle_request_mode_v1",
   sectionOrder: "yt_section_order_v1",

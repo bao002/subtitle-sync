@@ -18,6 +18,7 @@ export interface SubtitleRowProps {
   actualIndex: number;
   isActive: boolean;
   cols: SubtitleColumn[];
+  baseLanguage?: string;
   speechProgress: SpeechProgress;
   tracks: Record<string, Json3> | null;
   onSeek: (r: Row, index: number) => void;
@@ -31,6 +32,7 @@ export const SubtitleRow = memo(function SubtitleRow({
   actualIndex,
   isActive,
   cols,
+  baseLanguage,
   speechProgress,
   tracks,
   onSeek,
@@ -91,7 +93,7 @@ export const SubtitleRow = memo(function SubtitleRow({
                   />
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  {onSpeakCue && columnText && (
+                  {onSpeakCue && columnText && l.code !== baseLanguage && (
                     <button
                       type="button"
                       onClick={(e) => {

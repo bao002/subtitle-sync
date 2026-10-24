@@ -13,6 +13,14 @@
 - Added both legacy aliases to the RTL set so their subtitle cells render right-to-left.
 - Verification: `npm run test:subtitles-table-visibility` PASS; `npm run test:agents-version` PASS; `npm run build` PASS (existing large-chunk warning); `npm run lint` 0 errors with 2 existing route hook-dependency warnings.
 
+## Task 199: Keep Default Subtitle Track Out of TTS (Version 2.0.8)
+
+- Default/base captions remain stored and shown in the language table but are excluded from automatic speak-list enrollment and subtitle-text scheduling.
+- Default/base columns no longer expose manual TTS controls; beginner player speech controls speak only a translated target cue, not the base fallback.
+- Translation tracks retain auto-speak-on-fetch behavior.
+- Added and registered `test:exclude-default-subtitles-tts`; updated the related auto-speak verifier to cover a base-plus-translations fetch and fixed its Node localStorage test setup.
+- Verification: `npm run test:exclude-default-subtitles-tts`, `npm run test:auto-speak-on-fetch`, `npm run test:subtitles-table-visibility`, `npm run test:agents-version`, `npm run build` PASS; `npm run lint` 0 errors with 2 existing route hook-dependency warnings.
+
 ## Task 195: Process Shared Subtitle URLs Reliably (Version 2.0.4)
 
 ### Summary:

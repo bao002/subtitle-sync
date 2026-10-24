@@ -9,6 +9,7 @@ export interface SubtitlesTablePanelProps {
   rows: Row[];
   displayedRows: Row[];
   cols: SubtitleColumn[];
+  baseLanguage?: string;
   subtitlesLimit: number;
   setSubtitlesLimit: (limit: number) => void;
   subtitlesPage: number;
@@ -31,6 +32,7 @@ export function SubtitlesTablePanel({
   rows,
   displayedRows,
   cols,
+  baseLanguage,
   subtitlesLimit,
   setSubtitlesLimit,
   subtitlesPage,
@@ -198,6 +200,7 @@ export function SubtitlesTablePanel({
                   actualIndex={actualIndex}
                   isActive={actualIndex === active}
                   cols={cols}
+                  baseLanguage={baseLanguage}
                   speechProgress={speechProgress}
                   tracks={tracks}
                   onSeek={onSeek}

@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: Task 199: Keep Default Subtitle Track Out of TTS.
+- **Active Subtask**: Task 200: Mark YouTube-Translated Subtitle Tracks.
 - **Status**: IN PROGRESS.
-- **Target**: Keep default/base subtitles visible in the table while preventing automatic TTS playback of that track.
+- **Target**: Show a clear icon beside subtitle text fetched as a YouTube translation without mislabeling direct tracks.

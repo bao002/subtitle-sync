@@ -186,6 +186,7 @@ import {
   getSectionOrder,
   getSubtitleRequestMode,
   getTtsRatiosPreference,
+  isTtsSpeakableLanguage,
   isSubtitleInstanceEligibleForTTS,
   shouldHighlightSentenceForTTS,
   setSectionOrder as saveSectionOrder,
@@ -978,6 +979,14 @@ function Index() {
     return "";
   }, [explicitBaseLanguage, observedUrl, tracks]);
 
+  useEffect(() => {
+    if (!baseLanguage) return;
+    setSpoken((prev) => {
+      const next = prev.filter((lang) => isTtsSpeakableLanguage(lang, baseLanguage));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [baseLanguage]);
+
   const tracksRef = useRef<Record<string, Json3> | null>(tracks);
   tracksRef.current = tracks;
   const observedUrlRef = useRef(observedUrl);
@@ -1445,12 +1454,12 @@ function Index() {
           Object.keys(next)[0],
         );
         if (autoSpeakOnFetch) {
-          // Auto-enable "Speak" checkbox for the fetched languages
-          setSpoken((prev) => Array.from(new Set([...prev, ...Object.keys(next)])));
+          const speakableLanguages = Object.keys(next).filter((lang) => lang !== baseLanguage);
+          setSpoken((prev) => Array.from(new Set([...prev, ...speakableLanguages])));
         }
       }
     },
-    [isAndroid, autoSpeakOnFetch, videoId, speakFetchedLanguageName],
+    [isAndroid, autoSpeakOnFetch, baseLanguage, videoId, speakFetchedLanguageName],
   );
 
   const handleFloatingFetchSingleLanguage = useCallback(
@@ -1789,7 +1798,7 @@ function Index() {
       if (url && url.startsWith("http") && !observedUrl) {
         setObservedUrl(url);
       }
-      if (autoSpeakOnFetch) {
+      if (autoSpeakOnFetch && langCode !== baseLanguage) {
         setSpoken((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
       }
       notifySubtitleFetch(
@@ -1799,7 +1808,7 @@ function Index() {
         getLanguageMeta(langCode).name,
       );
     },
-    [videoId, observedUrl, autoSpeakOnFetch],
+    [videoId, observedUrl, autoSpeakOnFetch, baseLanguage],
   );
 
   const handleFetchTableUrl = async (langCode: string, langName: string) => {
@@ -2513,11 +2522,11 @@ function Index() {
         setTracks((prev) => ({ ...prev, [lang]: json }));
         setShown((prev) => (prev.includes(lang) ? prev : [lang, ...prev]));
         setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
-        if (autoSpeakOnFetch) {
+        if (autoSpeakOnFetch && targetLanguage && isTtsSpeakableLanguage(lang, baseLanguage)) {
           // Auto-enable "Speak" checkbox for the fetched language
           setSpoken((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
         }
-        speakFetchedLanguageName(lang);
+        if (targetLanguage) speakFetchedLanguageName(lang);
 
         const langMeta = LANGS.find((l) => l.code === lang);
         const cuesCount =
@@ -2539,7 +2548,7 @@ function Index() {
     return () => {
       delete window.onNativeCaptionsInterceptedBase64;
     };
-  }, [isAndroid, videoId, autoSpeakOnFetch, speakFetchedLanguageName]);
+  }, [isAndroid, videoId, autoSpeakOnFetch, baseLanguage, speakFetchedLanguageName]);
 
   useEffect(() => {
     if (!tracks) return;
@@ -3365,6 +3374,7 @@ function Index() {
         if (rowIdx < 0 || playedTtsRecords.current.has(rowIdx)) return [];
         const matched = orderedLangs.filter(
           (l) =>
+            isTtsSpeakableLanguage(l.code, currentBaseLanguage) &&
             spoken.includes(l.code) &&
             isSubtitleInstanceEligibleForTTS(
               rowIdx,
@@ -4273,6 +4283,7 @@ function Index() {
               rows={rows}
               displayedRows={displayedRows}
               cols={cols}
+              baseLanguage={baseLanguage}
               subtitlesLimit={subtitlesLimit}
               setSubtitlesLimit={setSubtitlesLimit}
               subtitlesPage={subtitlesPage}
@@ -6949,6 +6960,7 @@ function Index() {
                             rows={rows}
                             displayedRows={displayedRows}
                             cols={cols}
+                            baseLanguage={baseLanguage}
                             subtitlesLimit={subtitlesLimit}
                             setSubtitlesLimit={setSubtitlesLimit}
                             subtitlesPage={subtitlesPage}

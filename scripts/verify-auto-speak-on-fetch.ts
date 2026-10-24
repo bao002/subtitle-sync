@@ -57,10 +57,9 @@ console.log("✅ PASS: Auto-speak toggle UI element exposed in index.tsx");
 
 // 4. Verify that fetching subtitles auto-checks the "Speak" checkbox (updates spoken state)
 assert(
-  indexContent.includes(
-    "setSpoken((prev) => Array.from(new Set([...prev, ...Object.keys(next)])))",
-  ),
-  "fetchFavoriteLanguageSubtitles must auto-enable Speak checkbox (setSpoken) for fetched languages",
+  indexContent.includes("Object.keys(next).filter((lang) => lang !== baseLanguage)") &&
+    indexContent.includes("...speakableLanguages"),
+  "fetchFavoriteLanguageSubtitles must auto-enable translations but exclude the base language",
 );
 assert(
   indexContent.includes("setSpoken((prev) => Array.from(new Set([...prev, ...newlyAdded])))"),
@@ -78,12 +77,13 @@ console.log("✅ PASS: Language name pronunciation removed; Speak checkbox is au
 // 6. Functional simulation of auto-enabling Speak checkbox upon fetch
 let simulatedSpoken: string[] = [];
 
-function simulateFetchComplete(fetchedLangs: string[], autoSpeak: boolean) {
+function simulateFetchComplete(fetchedLangs: string[], autoSpeak: boolean, baseLanguage = "en") {
   if (!autoSpeak) return;
-  simulatedSpoken = Array.from(new Set([...simulatedSpoken, ...fetchedLangs]));
+  const speakableLanguages = fetchedLangs.filter((lang) => lang !== baseLanguage);
+  simulatedSpoken = Array.from(new Set([...simulatedSpoken, ...speakableLanguages]));
 }
 
-simulateFetchComplete(["es", "he"], true);
+simulateFetchComplete(["en", "es", "he"], true);
 assert.deepStrictEqual(simulatedSpoken, ["es", "he"], "Must add fetched languages to spoken list");
 
 simulateFetchComplete(["ru"], true);
