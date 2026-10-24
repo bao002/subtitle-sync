@@ -1,4 +1,4 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Active**: None (Task 193 completed and migrated to `docs/done.md`).
-- **Status**: COMPLETE.
+- **Active**: Sub-task 194.2: Implement `setBaseLanguage` state callback, fix YTPlayer `loadVideoById`, fix criteria type in index.tsx, and fix missing `HelpCircle` in `AiSubtitlePunctuationTab.tsx`.
+- **Status**: IN PROGRESS.

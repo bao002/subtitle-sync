@@ -302,6 +302,8 @@ type YTPlayer = {
   getAudioTrack?(): unknown;
   setPlaybackRate?(rate: number): void;
   getPlaybackRate?(): number;
+  loadVideoById?(videoId: string | { videoId: string; startSeconds?: number }): void;
+  cueVideoById?(videoId: string | { videoId: string; startSeconds?: number }): void;
 };
 declare global {
   interface Window {
@@ -952,7 +954,16 @@ function Index() {
     [videoId, speakFetchedLanguageName],
   );
 
+  const [explicitBaseLanguage, setExplicitBaseLanguage] = useState<string>("");
+
+  const setBaseLanguage = useCallback((lang: string) => {
+    setExplicitBaseLanguage(lang);
+  }, []);
+
   const baseLanguage = useMemo(() => {
+    if (explicitBaseLanguage) {
+      return explicitBaseLanguage;
+    }
     if (observedUrl) {
       try {
         const l = new URL(observedUrl).searchParams.get("lang");
@@ -965,7 +976,7 @@ function Index() {
       return Object.keys(tracks)[0];
     }
     return "";
-  }, [observedUrl, tracks]);
+  }, [explicitBaseLanguage, observedUrl, tracks]);
 
   const tracksRef = useRef<Record<string, Json3> | null>(tracks);
   tracksRef.current = tracks;
@@ -1119,7 +1130,7 @@ function Index() {
     const baselineRows = align(
       effectiveTracks,
       effectiveBaseLang,
-      ["punct"],
+      ["sentence"],
       DEFAULT_CRITERIA_SETTINGS,
     );
     const activeRows = align(

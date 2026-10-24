@@ -10,7 +10,7 @@ import { APP_VERSION } from "../src/config/appConfig";
 import { CURRENT_APK_VERSION } from "../src/utils/apkUpdater";
 
 console.log("=========================================================================");
-console.log("🧪 Verifying Subtitles URL Encoding in Share Links & Version 1.0.77 Parity");
+console.log("🧪 Verifying Subtitles URL Encoding in Share Links & Version Parity");
 console.log("=========================================================================");
 
 const rootDir = process.cwd();
@@ -134,7 +134,9 @@ console.log("\n🏷️ Section 5: Version Parity Verification across all 5 Targe
 const pkgJsonPath = path.resolve(rootDir, "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
 const expectedVer = pkg.version;
-const expectedCode = expectedVer.startsWith("2.") ? 20000 : 10103;
+const versionParts = expectedVer.split(".").map((part) => Number.parseInt(part, 10) || 0);
+const expectedCode =
+  (versionParts[0] || 1) * 10000 + (versionParts[1] || 0) * 100 + (versionParts[2] || 0);
 console.log(`✅ Target 1: package.json version = ${pkg.version}`);
 
 // Target 2: android-shell/app/build.gradle.kts

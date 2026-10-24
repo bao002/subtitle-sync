@@ -1,4 +1,4 @@
-import { useState, useCallback, useId } from "react";
+import { useState, useCallback, useId, useEffect } from "react";
 import { Button } from "./ui/button";
 import { parseVideoId, parseJson3 } from "../lib/native-captions";
 import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
@@ -58,6 +58,10 @@ export function WebDemoUrlsInput({
   const [statusType, setStatusType] = useState<"info" | "success" | "error">("info");
   // Default to collapsed (false) to preserve the original clean single-row web-demo design
   const [isExpanded, setIsExpanded] = useState(false);
+
+  useEffect(() => {
+    setSubtitlesUrlsInput(initialObservedUrl || "");
+  }, [initialObservedUrl, currentVideoId]);
 
   // Helper to extract language code from a line or URL
   const extractLangFromLine = useCallback((line: string, index: number): ParsedUrlEntry | null => {
@@ -140,15 +144,20 @@ export function WebDemoUrlsInput({
       const baseUrl = lines[0];
       try {
         const u = new URL(baseUrl);
-        const originalLang = u.searchParams.get("lang") || "en";
+        const sourceLang = u.searchParams.get("lang") || "en";
+        const originalLang = u.searchParams.get("tlang") || sourceLang;
+
+        entriesToFetch.push({ lang: originalLang, url: baseUrl });
 
         for (const targetCode of selectedLangs) {
+          if (targetCode === originalLang) continue;
+
           const derived = new URL(baseUrl);
-          if (targetCode === originalLang) {
+          if (targetCode === sourceLang) {
             derived.searchParams.set("lang", targetCode);
             derived.searchParams.delete("tlang");
           } else {
-            derived.searchParams.set("lang", originalLang);
+            derived.searchParams.set("lang", sourceLang);
             derived.searchParams.set("tlang", targetCode);
           }
           entriesToFetch.push({ lang: targetCode, url: derived.toString() });

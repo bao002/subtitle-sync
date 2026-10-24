@@ -4,10 +4,6 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: None (Task 193 Completed & Migrated to `docs/done.md`)
-
-- All active tasks completed, verified, and logged in `docs/done.md`.
-
 ---
 
 ## 1. The Token Economy Problem: Why Big Tasks Fail

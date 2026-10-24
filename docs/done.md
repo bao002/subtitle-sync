@@ -1,5 +1,20 @@
 # Done tasks
 
+## Task 195: Process Shared Subtitle URLs Reliably (Version 2.0.4)
+
+### Summary:
+
+- Synchronized the incoming `observedUrl` prop into the web-demo subtitle URL input so shared `subtitles_url` links appear after route hydration.
+- Kept the exact signed timedtext URL as the first URL fetched for a single-URL submission, then retained the existing selected-language variants.
+- Synchronized the app version to 2.0.4 across `package.json`, Android Gradle, app config, APK updater, and app settings.
+- Corrected the share-link verifier to derive Android `versionCode` from the semantic version instead of assuming every 2.x release uses 20000.
+- Verification outcomes:
+  - `npm run test:web-demo-subtitles-urls`: PASS.
+  - `npm run test:subtitles-url-encoding`: PASS.
+  - `npm run test:agents-version`: PASS.
+  - `npm run build`: PASS (existing large-chunk warning).
+  - `npm run lint`: 0 errors; 2 existing hook-dependency warnings in `src/routes/index.tsx`.
+
 ## Task 193: Working Link Resolution with Trailing Slash & Query Preservation (Version 2.0.2)
 
 ### Summary:
