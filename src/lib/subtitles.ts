@@ -809,4 +809,3 @@ export {
   type SimpleParserConfig,
   type SplitSegment,
 } from "@/utils/newSubtitlesParser";
-

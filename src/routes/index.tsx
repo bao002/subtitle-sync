@@ -2939,11 +2939,9 @@ function Index() {
   }, [isAndroid, videoId]);
 
   const rawRows = useMemo<Row[]>(
-    () =>
-      tracks && baseLanguage ? simpleAlign(tracks, baseLanguage, simpleParserConfig) : [],
+    () => (tracks && baseLanguage ? simpleAlign(tracks, baseLanguage, simpleParserConfig) : []),
     [tracks, baseLanguage, simpleParserConfig],
   );
-
 
   const rows = useMemo<Row[]>(() => {
     if (!rawRows || rawRows.length === 0) return rawRows;
@@ -7209,7 +7207,6 @@ function Index() {
                             parserConfig={simpleParserConfig}
                             onParserConfigChange={setSimpleParserConfig}
                           />
-
                         ))}
                     </AccordionSection>
                   );
