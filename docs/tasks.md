@@ -4,9 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 212: Deprecate beginner default-language selection**
-  - Remove default-language selection from the first beginner tab and record the deprecated behavior in `docs/deprecated.md`.
-  - Add focused regression coverage and verify beginner-mode behavior.
+- None.
 
 ## Later Tasks
 

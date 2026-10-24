@@ -1,5 +1,14 @@
 # Done tasks
 
+## Task 212: Deprecate beginner first-tab base-language selection (Version 2.0.10)
+
+- Removed manual base-track selection buttons from the first Beginner tab. It now chooses English when detected, otherwise the first available track, and shows the detected tracks read-only.
+- Downstream tabs unlock only once the automatically chosen base track is present. Legacy `beginnerSelectedBaseLang` data is ignored and removed from loaded settings.
+- Recorded the retired behavior and replacement in `docs/deprecated.md`, and added focused regression tests for language priority and chooser removal.
+- Bumped synchronized app and Android versions to `2.0.10` / `versionCode = 20010`.
+- Verification: `npm run test:beginner-default-language`, `npm run test:beginner-mode`, `npm run test:video-display-controls`, `npm run test:compact-ui-language-cleanup`, `npm run test:v2-version-bump`, `npm run test:agents-version`, `npm run test:md`, `npm run test:doc-contracts`, `npm run build`, `npm run lint`, focused ESLint, and `git diff --check` PASS.
+- Implementation commit: `b952daf`.
+
 ## Task 211: Fold unpinned accordions after five seconds
 
 - Changed the shared accordion auto-fold timeout to exactly 5,000 ms after opening or the latest detected interaction.
