@@ -1,5 +1,39 @@
 # Done tasks
 
+## Task 217: Support punctuation-only subtitle splitting
+
+- Added punctuation-only sentence splitting for a single subtitle cue by detecting terminal punctuation with linear time interpolation, while preserving the `splitIntraCue` checkbox and abbreviation/decimal guards.
+- Covered the default punctuation flow with dedicated regression checks for periods, abbreviations, disabled intra-cue splitting, and default sentence-only preset behavior.
+- Synchronized the app and Android version metadata to `2.0.11` (`versionCode = 20011`) across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- Verification: `npx tsx scripts/verify-default-punctuation-splitting.ts`, `npx tsx scripts/verify-v2-version-bump.ts`, `npm run lint`, and `npm run build` all passed.
+
+## Task 215: Quarantine unfinished accordion width toggle
+
+- Removed the interrupted, uncommitted width-toggle additions from `src/components/AccordionSection.tsx` and `src/routes/index.tsx` without changing unrelated files.
+- Deferred Task 214 to the later backlog in `docs/tasks.md` and `docs/later.md`, per user request.
+- Verification: inspected the focused source diff and confirmed it is empty; no runtime test was applicable because the incomplete feature was removed before activation.
+
+## Task 214: Toggle parallel subtitles accordion width
+
+- Reintroduced the web-demo width control per the user's explicit follow-up request. The Parallel subtitles accordion still defaults to full width and can switch to the existing half-width column and back through an accessible header button.
+- Added `scripts/verify-subtitles-table-width-toggle.ts`, registered `npm run test:subtitles-table-width-toggle`, and updated `docs/files.md`.
+- Verification: focused verifier, focused ESLint, `npm run lint`, `npm run build`, and `git diff --check` passed.
+- Commit: `fd0a95b`. Push attempted; blocked because Git credentials are unavailable.
+- This implementation supersedes the Task 215 removal/defer entry above; unrelated Task 217 parser edits remain uncommitted and preserved.
+
+## Task 218: Document fresh-chat recommendation guidance
+
+- Added an AGENTS.md rule requiring recommendations to be based on active task scope, worktree diffs, and validation state; clarified when to suggest replying “go on” in the current chat versus opening a fresh chat.
+- Preserved the exact latest user prompt in the Last raw prompt section.
+- Verification: documentation review and `git diff --check`.
+
+## Task 216: Repair parser option checkbox behavior
+
+- Allowed the last active Advanced parser criterion to be unchecked and preserved an explicit empty selection from localStorage.
+- Removed the implicit sentence-cut fallback so disabled criteria no longer continue changing subtitle alignment when they produce no cuts.
+- Added regression assertions for empty criteria in the parser engine and checkbox state logic.
+- Verification: `npm run test:parser` and `npm run test:default-punctuation` PASS.
+
 ## Task 213: Reconcile and publish committed worktree changes
 
 - Confirmed the worktree and index had no pre-existing uncommitted changes; reviewed the nine commits ahead of `origin/main`.

@@ -1,6 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: None.
-- **Status**: COMPLETED WITH PUSH BLOCKED.
-- **Completed**: Confirmed there were no pre-existing uncommitted changes and reviewed the nine committed changes ahead of `origin/main`. Attempted `git push origin main`; Git could not obtain the required password.
-- **Next**: Retry publishing after Git credentials are configured. Android-platform validation remains in the later backlog.
+- **No active subtask**.
+- **Completed**: Task 217 — support punctuation-only subtitle splitting.
+- **Verification**: `npx tsx scripts/verify-default-punctuation-splitting.ts`, `npx tsx scripts/verify-v2-version-bump.ts`, `npm run lint`, and `npm run build` passed.
+- **Commit**: pending final repository commit for the version sync and parser completion work.

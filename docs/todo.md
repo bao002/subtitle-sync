@@ -1,5 +1,5 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Active**: None.
-- **Status**: COMPLETED WITH PUSH BLOCKED.
-- **Next**: Retry publishing after Git credentials are configured. Android-platform validation remains in the later backlog.
+- **No active task**.
+- **Completed**: Task 217 — support punctuation-only subtitle splitting.
+- **Verification**: `npx tsx scripts/verify-default-punctuation-splitting.ts`, `npx tsx scripts/verify-v2-version-bump.ts`, `npm run lint`, and `npm run build` passed.
