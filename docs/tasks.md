@@ -2,6 +2,8 @@
 
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
+## Active Tasks
+
 ## Later Tasks
 
 - [ ] **Task 196: Android-platform validation for web-demo share links**

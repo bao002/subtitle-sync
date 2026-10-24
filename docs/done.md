@@ -1,5 +1,14 @@
 # Done tasks
 
+## Task 230: Remove parser diff review for live table updates (Version 2.0.15)
+
+- Removed diff-review toggles, pending-change confirmation state, comparison calculations, inline/modal review UI, and diff-only components.
+- Parser criteria and presets now apply directly. The parser bar remains immediately above the subtitles table, whose rows are recalculated from each parser configuration update.
+- Replaced Beginner Mode's before/after diff simulator with direct output derived from loaded subtitle cues; the preview updates when parser options change and does not inject hardcoded subtitle samples.
+- Replaced obsolete diff verifiers with `scripts/verify-parser-live-updates.ts`, updated the file inventory, and synchronized app version metadata to 2.0.15.
+- Verification: `npm run test:parser-live-updates`, `npx tsx scripts/verify-parser-minimal-text-and-help-icons.ts`, `npx tsx scripts/verify-chars-removal-accordion-order.ts`, `npx tsx scripts/verify-expert-mode-ui-layout.ts`, `npx tsx scripts/verify-v2-version-bump.ts`, `npm run lint`, `npx eslint` on the changed parser/test files, `npm run build`, Prettier checks, and `git diff --check` passed.
+- Type-check caveat: `npx tsc --noEmit` reports existing errors in untouched `src/components/SubtitlesTablePanel.tsx` (Lucide `title` props) and `src/components/beginner/tabs/BeginnerPlayerTab.tsx` (possibly undefined string). It reported no errors in the changed parser files. Vite build succeeds; its existing large-chunk warning is non-fatal.
+
 ## Task 229: Replace on-demand language columns with fetched subtitle tracks (Version 2.0.14)
 
 - Added language identity handling for Hebrew/legacy aliases and equivalent language tags while preserving explicit regional variants such as Portuguese (Brazil) and Chinese Simplified/Traditional.

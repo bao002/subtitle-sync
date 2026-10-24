@@ -143,5 +143,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-dont duplicate column of the same language. in case of a later subtitles fetching - replace the on-demand translation column with the complete fetched subtitles file.
+parser - no need to show diff if we put the parser next to the subtitles-table and any change can be dynamicly observed directly and immidiatly
 ```

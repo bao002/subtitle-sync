@@ -43,7 +43,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import {
-  align,
   fmt,
   LANGS,
   RTL,
@@ -108,10 +107,7 @@ import {
   extractLanguageFromSubtitlesUrl,
 } from "@/utils/urlStateManager";
 import { ShareStateModal } from "@/components/ShareStateModal";
-import { ParserDiffConfirmationModal } from "@/components/ParserDiffConfirmationModal";
 import { VideoMetadataModal } from "@/components/VideoMetadataModal";
-import { computeParserDiff, type ParserDiffResult } from "@/utils/parserDiffHelper";
-import { Switch } from "@/components/ui/switch";
 import {
   translateSentencesAhead,
   getStoredOnDemandTranslation,
@@ -184,7 +180,6 @@ import { VideoPlayground, type DetectedSubtitleTrack } from "@/components/VideoP
 import { AiSubtitlePunctuationTab } from "@/components/AiSubtitlePunctuationTab";
 import { WebDemoUrlsInput } from "@/components/WebDemoUrlsInput";
 import { ParserTimingLab } from "@/components/ParserTimingLab";
-import { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
 import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
 import {
@@ -655,7 +650,6 @@ function Index() {
     }
     return "beginner";
   });
-  const useInlineParserReview = isAndroid || workflowMode === "expert";
 
   const [expandedPrefsHelp, setExpandedPrefsHelp] = useState<Record<string, boolean>>({});
 
@@ -731,29 +725,6 @@ function Index() {
     // Default to the best criteria to avoid cutting sentences in the middle
     return DEFAULT_PARSER_CRITERIA;
   });
-
-  const [confirmParserDiff, setConfirmParserDiff] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved =
-          localStorage.getItem(STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY) ||
-          localStorage.getItem("yt_confirm_parser_diff");
-        return saved === "true";
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  });
-  const confirmParserDiffEnabled = confirmParserDiff;
-  const setConfirmParserDiffEnabled = setConfirmParserDiff;
-
-  const [pendingParserChange, setPendingParserChange] = useState<{
-    criteria: CriteriaId[];
-    settings?: CriteriaGroupSettings;
-    criteriaNames: string[];
-    diffResult: ParserDiffResult;
-  } | null>(null);
 
   const [criteriaSettings, setCriteriaSettings] = useState<CriteriaGroupSettings>(() => {
     if (typeof window !== "undefined") {
@@ -1045,37 +1016,6 @@ function Index() {
     [criteriaSettings],
   );
 
-  const checkAndApplyCriteria = useCallback(
-    (nextCriteria: CriteriaId[], nextSettings: CriteriaGroupSettings = criteriaSettings) => {
-      if (!confirmParserDiff || !tracks || !baseLanguage) {
-        applyCriteriaNow(nextCriteria, nextSettings);
-        return;
-      }
-
-      const currentRows = align(tracks, baseLanguage, selectedCriteria, criteriaSettings);
-      const proposedRows = align(tracks, baseLanguage, nextCriteria, nextSettings);
-      const diff = computeParserDiff(currentRows, proposedRows, baseLanguage);
-
-      if (!diff.hasChanges) {
-        applyCriteriaNow(nextCriteria, nextSettings);
-        return;
-      }
-
-      const proposedNames = nextCriteria.map((c) => {
-        const found = PARSER_CRITERIA.find((item) => item.id === c);
-        return found ? found.name : c;
-      });
-
-      setPendingParserChange({
-        criteria: nextCriteria,
-        settings: nextSettings,
-        criteriaNames: proposedNames,
-        diffResult: diff,
-      });
-    },
-    [confirmParserDiff, tracks, baseLanguage, selectedCriteria, criteriaSettings, applyCriteriaNow],
-  );
-
   const handleToggleCriterion = useCallback(
     (id: CriteriaId) => {
       let updated: CriteriaId[];
@@ -1084,9 +1024,9 @@ function Index() {
       } else {
         updated = [...selectedCriteria, id];
       }
-      checkAndApplyCriteria(updated, criteriaSettings);
+      applyCriteriaNow(updated, criteriaSettings);
     },
-    [selectedCriteria, criteriaSettings, checkAndApplyCriteria],
+    [selectedCriteria, criteriaSettings, applyCriteriaNow],
   );
 
   const handleApplyPreset = useCallback(
@@ -1098,97 +1038,14 @@ function Index() {
               sentence: { ...criteriaSettings.sentence, splitIntraCue: true },
             }
           : criteriaSettings;
-      checkAndApplyCriteria(presetCriteria, nextSettings);
+      applyCriteriaNow(presetCriteria, nextSettings);
     },
-    [criteriaSettings, checkAndApplyCriteria],
+    [criteriaSettings, applyCriteriaNow],
   );
 
   const handleResetGroupSettings = useCallback(() => {
-    checkAndApplyCriteria(selectedCriteria, DEFAULT_CRITERIA_SETTINGS);
-  }, [selectedCriteria, checkAndApplyCriteria]);
-
-  const handleConfirmDiff = useCallback(() => {
-    if (pendingParserChange) {
-      applyCriteriaNow(
-        pendingParserChange.criteria,
-        pendingParserChange.settings || criteriaSettings,
-      );
-      setPendingParserChange(null);
-    }
-  }, [pendingParserChange, criteriaSettings, applyCriteriaNow]);
-
-  const handleCancelDiff = useCallback(() => {
-    setPendingParserChange(null);
-  }, []);
-
-  const realtimeParserDiff = useMemo<ParserDiffResult>(() => {
-    let effectiveTracks = tracks;
-    let effectiveBaseLang = baseLanguage;
-
-    if (
-      !effectiveTracks ||
-      !effectiveBaseLang ||
-      !effectiveTracks[effectiveBaseLang]?.events?.length
-    ) {
-      effectiveBaseLang = "en";
-      effectiveTracks = {
-        en: {
-          events: [
-            {
-              tStartMs: 0,
-              dDurationMs: 4500,
-              segs: [
-                {
-                  utf8: "Welcome to this lesson! Today, we will learn about punctuation splitting. ",
-                },
-              ],
-            },
-            {
-              tStartMs: 4600,
-              dDurationMs: 5000,
-              segs: [
-                {
-                  utf8: "Notice how Dr. Smith explained it? It's very simple, yet powerful! ",
-                },
-              ],
-            },
-            {
-              tStartMs: 9700,
-              dDurationMs: 6200,
-              segs: [
-                {
-                  utf8: "Wait... does it work with long pauses? Yes, absolutely! ",
-                },
-              ],
-            },
-            {
-              tStartMs: 16000,
-              dDurationMs: 5500,
-              segs: [
-                {
-                  utf8: "Here is another section: let's test accumulative criteria and options. ",
-                },
-              ],
-            },
-          ],
-        },
-      };
-    }
-
-    const baselineRows = align(
-      effectiveTracks,
-      effectiveBaseLang,
-      ["sentence"],
-      DEFAULT_CRITERIA_SETTINGS,
-    );
-    const activeRows = align(
-      effectiveTracks,
-      effectiveBaseLang,
-      selectedCriteria,
-      criteriaSettings,
-    );
-    return computeParserDiff(baselineRows, activeRows, effectiveBaseLang);
-  }, [tracks, baseLanguage, selectedCriteria, criteriaSettings]);
+    applyCriteriaNow(selectedCriteria, DEFAULT_CRITERIA_SETTINGS);
+  }, [selectedCriteria, applyCriteriaNow]);
   // Single attempt per language per observed URL (no automatic retries, like Youtubenet6)
   const attemptedRef = useRef<Set<string>>(new Set());
   const [failedLangs, setFailedLangs] = useState<string[]>([]);
@@ -5795,13 +5652,6 @@ function Index() {
 
                       {panelId === "parser" && (
                         <div className="space-y-4">
-                          {/* Real-time Diff Simulation on Checkbox Changes */}
-                          <ParserRealtimeSimulation
-                            diffResult={realtimeParserDiff}
-                            baseLanguage={baseLanguage || "en"}
-                            isSimulating={true}
-                          />
-
                           {/* Interactive Timing & Punctuation Splitting Lab */}
                           <ParserTimingLab
                             tracks={tracks}
@@ -5811,64 +5661,6 @@ function Index() {
                             onApplyCriteria={handleApplyPreset}
                             onUpdateGroupSettings={handleUpdateGroupSettings}
                           />
-
-                          {/* Difference Confirmation Toggle */}
-                          <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex min-w-0 items-center gap-1.5">
-                                <label
-                                  htmlFor="confirm-parser-diff-toggle"
-                                  className="text-xs font-semibold text-foreground cursor-pointer"
-                                >
-                                  Review parser changes
-                                </label>
-                                <button
-                                  type="button"
-                                  data-testid="help-btn-parser-review"
-                                  onClick={() =>
-                                    setExpandedHelp((prev) => ({
-                                      ...prev,
-                                      review: !prev.review,
-                                    }))
-                                  }
-                                  className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
-                                  title="More info"
-                                  aria-label="More info about parser review behavior"
-                                >
-                                  ?
-                                </button>
-                              </div>
-                              <Switch
-                                id="confirm-parser-diff-toggle"
-                                data-testid="confirm-parser-diff-toggle"
-                                checked={confirmParserDiffEnabled}
-                                onCheckedChange={(checked) => {
-                                  setConfirmParserDiffEnabled(checked);
-                                  try {
-                                    localStorage.setItem("yt_confirm_parser_diff", String(checked));
-                                  } catch {
-                                    // ignore storage error
-                                  }
-                                }}
-                              />
-                            </div>
-                            {Boolean(expandedHelp.review) && (
-                              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground rounded border border-border/60 bg-background/70 p-2">
-                                Compare the updated alignment inline without blocking the screen.
-                              </p>
-                            )}
-                          </div>
-
-                          {pendingParserChange && (
-                            <ParserDiffConfirmationModal
-                              isOpen={true}
-                              inline={useInlineParserReview}
-                              onClose={handleCancelDiff}
-                              onConfirm={handleConfirmDiff}
-                              diffResult={pendingParserChange.diffResult}
-                              proposedCriteriaNames={pendingParserChange.criteriaNames}
-                            />
-                          )}
 
                           {/* Presets Header */}
                           <div>
@@ -5940,31 +5732,6 @@ function Index() {
                                   <RotateCcw className="h-3 w-3 mr-1" />
                                   Reset settings
                                 </Button>
-                                <label
-                                  data-testid="toggle-confirm-parser-diff-label"
-                                  className="flex items-center gap-1.5 cursor-pointer text-[11px] text-muted-foreground hover:text-foreground select-none ml-1 pl-2 border-l border-border/60"
-                                  title="Display preview diff showing changed records and alignment divisions before applying parser options"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    data-testid="toggle-confirm-parser-diff"
-                                    checked={confirmParserDiff}
-                                    onChange={(e) => {
-                                      const next = e.target.checked;
-                                      setConfirmParserDiff(next);
-                                      try {
-                                        localStorage.setItem(
-                                          STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY,
-                                          String(next),
-                                        );
-                                      } catch {
-                                        // ignore storage error
-                                      }
-                                    }}
-                                    className="h-3.5 w-3.5 rounded border-muted-foreground/40 text-primary accent-primary cursor-pointer"
-                                  />
-                                  <span>Confirm diff</span>
-                                </label>
                               </div>
                             </div>
                             {expandedHelp.overview && (
@@ -7298,15 +7065,6 @@ function Index() {
         maxPacingSec={retryPacingMaxSec}
         onToggleAutoRetry={handleToggleAutoRetry}
       />
-      {!useInlineParserReview && (
-        <ParserDiffConfirmationModal
-          isOpen={Boolean(pendingParserChange)}
-          onClose={handleCancelDiff}
-          onConfirm={handleConfirmDiff}
-          diffResult={pendingParserChange?.diffResult || null}
-          proposedCriteriaNames={pendingParserChange?.criteriaNames || []}
-        />
-      )}
       <VideoMetadataModal
         open={videoMetadataModalOpen}
         onOpenChange={setVideoMetadataModalOpen}
@@ -7331,4 +7089,3 @@ export { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 export { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 export { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
 export { VideoPlayground } from "@/components/VideoPlayground";
-export { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation";

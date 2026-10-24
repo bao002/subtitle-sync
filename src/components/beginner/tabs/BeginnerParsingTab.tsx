@@ -1,25 +1,11 @@
 import React, { useState, useMemo } from "react";
-import {
-  Split,
-  Scissors,
-  Check,
-  Plus,
-  Trash2,
-  ArrowRight,
-  Eye,
-  RefreshCw,
-  Sparkles,
-  Layers,
-} from "lucide-react";
+import { Split, Scissors, Plus, Trash2, ArrowRight, Eye, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { removeSpecialCharacters } from "../../../utils/captionParser";
-import { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation";
-import { computeParserDiff, type ParserDiffResult } from "@/utils/parserDiffHelper";
-import { type Row } from "@/lib/subtitles";
 
 export interface CustomCharRule {
   id: string;
@@ -155,29 +141,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
     setCustomRules(customRules.filter((r) => r.id !== id));
   };
 
-  // Preview data
-  const fallbackSamples = useMemo(
-    () => [
-      {
-        text: ">> [Music] Hello and welcome to this video! Today we'll learn subtitles.",
-        start: 0,
-        duration: 4,
-      },
-      {
-        text: "> [Applause] Here is sentence one. And here is sentence two; it's quite clear!",
-        start: 4,
-        duration: 5,
-      },
-      {
-        text: ">> Can you hear the difference? Let's check how clean this looks.",
-        start: 9,
-        duration: 4,
-      },
-    ],
-    [],
-  );
-
-  const previewSource = sampleCues.length > 0 ? sampleCues.slice(0, 4) : fallbackSamples;
+  const previewSource = useMemo(() => sampleCues.slice(0, 4), [sampleCues]);
 
   const processedPreview = useMemo(() => {
     return previewSource.map((cue) => {
@@ -190,51 +154,9 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         ? splitTextByPunctuation(cleaned, punctuationChars)
         : [cleaned];
       return {
-        raw: cue.text,
-        cleaned,
         sentences,
       };
     });
-  }, [
-    previewSource,
-    stripSpeakerBrackets,
-    removeChars,
-    customRules,
-    splitByPunctuation,
-    punctuationChars,
-  ]);
-
-  const beginnerDiffResult = useMemo<ParserDiffResult>(() => {
-    const beforeRows: Row[] = previewSource.map((cue) => ({
-      start: cue.start * 1000,
-      end: (cue.start + (cue.duration || 4)) * 1000,
-      texts: { base: cue.text },
-    }));
-
-    const afterRows: Row[] = [];
-    previewSource.forEach((cue) => {
-      const cleaned = cleanSubtitleText(cue.text, {
-        stripSpeakerBrackets,
-        removeChars,
-        customRules,
-      });
-      const sentences = splitByPunctuation
-        ? splitTextByPunctuation(cleaned, punctuationChars)
-        : [cleaned];
-      const count = sentences.length;
-      const totalDurMs = (cue.duration || 4) * 1000;
-      const durPer = count > 0 ? totalDurMs / count : totalDurMs;
-      sentences.forEach((sent, sIdx) => {
-        const start = cue.start * 1000 + sIdx * durPer;
-        afterRows.push({
-          start,
-          end: start + durPer,
-          texts: { base: sent },
-        });
-      });
-    });
-
-    return computeParserDiff(beforeRows, afterRows, "base");
   }, [
     previewSource,
     stripSpeakerBrackets,
@@ -260,9 +182,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
               <button
                 type="button"
                 data-testid="help-btn-beginner-parsing-header"
-                onClick={() =>
-                  setExpandedHelp((prev) => ({ ...prev, header: !prev.header }))
-                }
+                onClick={() => setExpandedHelp((prev) => ({ ...prev, header: !prev.header }))}
                 className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
                 title="More info"
                 aria-label="More info about Step 3"
@@ -296,9 +216,7 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
           <button
             type="button"
             data-testid="help-btn-beginner-chars-rules"
-            onClick={() =>
-              setExpandedHelp((prev) => ({ ...prev, charsRules: !prev.charsRules }))
-            }
+            onClick={() => setExpandedHelp((prev) => ({ ...prev, charsRules: !prev.charsRules }))}
             className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
             title="More info"
             aria-label="More info about character removal rules"
@@ -311,8 +229,8 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
             data-testid="help-text-beginner-chars-rules"
             className="text-[11px] text-muted-foreground bg-muted/20 p-1.5 rounded border border-border/40"
           >
-            Clean unwanted artifacts, noise indicators, or speaker prefixes before subtitle rendering
-            and TTS speech.
+            Clean unwanted artifacts, noise indicators, or speaker prefixes before subtitle
+            rendering and TTS speech.
           </p>
         )}
 
@@ -447,7 +365,8 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
                 data-testid="help-text-beginner-sentence-splitting"
                 className="text-[11px] text-muted-foreground mt-1 bg-muted/20 p-1.5 rounded border border-border/40"
               >
-                Default to splitting long subtitle blocks into natural sentences at punctuation marks.
+                Default to splitting long subtitle blocks into natural sentences at punctuation
+                marks.
               </p>
             )}
           </div>
@@ -497,13 +416,30 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
         )}
       </div>
 
-      {/* 3. Real-Time Parser Diff Simulation (Showing Only Differing Sections with Auto-Scroll) */}
       <div className="space-y-2" data-testid="parsing-live-preview">
-        <ParserRealtimeSimulation
-          diffResult={beginnerDiffResult}
-          baseLanguage="base"
-          isSimulating={true}
-        />
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+          <Eye className="h-3.5 w-3.5" />
+          Live parser output
+        </div>
+        {processedPreview.length > 0 ? (
+          <ol className="space-y-1.5 rounded-lg border border-border/70 bg-muted/20 p-3 text-sm">
+            {processedPreview.flatMap((cue, cueIndex) =>
+              cue.sentences.map((sentence, sentenceIndex) => (
+                <li
+                  key={`${cueIndex}-${sentenceIndex}`}
+                  className="text-foreground"
+                  data-testid="parser-live-output-sentence"
+                >
+                  {sentence}
+                </li>
+              )),
+            )}
+          </ol>
+        ) : (
+          <p className="rounded-lg border border-border/70 bg-muted/20 p-3 text-xs text-muted-foreground">
+            Load subtitles to see the parser output update here.
+          </p>
+        )}
       </div>
 
       {/* Navigation Footer */}
