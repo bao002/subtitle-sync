@@ -1,5 +1,14 @@
 # Done tasks
 
+## Task 233: Make shared-link E2E screencast visually verifiable (Version 2.0.17)
+
+- Fixed the black player area in the shared-link E2E recording by giving the test-only simulated player an illustrative scene marked as an E2E simulation; mocked caption/translation content and the illustration are not presented as actual YouTube footage or captions.
+- Added a language-name badge to the floating subtitle overlay so viewers can identify Hebrew and Italian while the overlay alternates between those tracks.
+- Extended the shared-link E2E to assert the visible simulated scene and Hebrew → Italian → Hebrew overlay sequence. Slowed the mocked speech completion to keep each language legible in the screencast.
+- Bumped app metadata to 2.0.17.
+- Verification: `PLAYWRIGHT_VIDEO=on ./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0`, `npm run build`, `npm run test:v2-version-bump`, targeted ESLint and Prettier checks, and `git diff --check` passed.
+- The screencast is a deterministic UI/playback simulation. A genuine video frame requires an E2E run against YouTube’s live player and is not claimed by this artifact.
+
 ## Task 232: Capture shared-subtitle E2E screencast
 
 - Added the opt-in `PLAYWRIGHT_VIDEO=on` setting to the Playwright configuration and Docker Compose environment; video remains off by default. Documented the command in `docs/docker-e2e.md`.

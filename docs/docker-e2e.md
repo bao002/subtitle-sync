@@ -20,6 +20,12 @@ Video recording is off by default. To capture Playwright screencasts in
 PLAYWRIGHT_VIDEO=on ./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0
 ```
 
+The shared-link playback E2E uses mocked timedtext/translation responses, a
+simulated YouTube player, and simulated speech synthesis so playback and
+Hebrew/Italian overlay alternation remain deterministic. Its recording shows an
+illustrative scene clearly labelled as simulated; it is not footage of the
+actual YouTube video.
+
 The web suite starts Vite inside the container. The emulation suite runs the
 Playwright emulation project; it does not require a physical Android device.
 

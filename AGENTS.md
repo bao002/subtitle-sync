@@ -143,5 +143,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-lets me see the screencast product of the e2e test
+1. the video doesnt present any picture - but only a black screen
+2. there are no floating subtitles overlay over the video which shows alternation between 2 parallel subtitles based on language
 ```

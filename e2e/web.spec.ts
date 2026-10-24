@@ -166,10 +166,26 @@ test("shared subtitles link plays video and alternates Hebrew and Italian subtit
       private timer: number | undefined;
 
       constructor(
-        _target: HTMLElement,
+        target: HTMLElement,
         private readonly options: PlayerOptions,
       ) {
         stats.created += 1;
+        const scene = document.createElement("div");
+        scene.style.cssText =
+          "position:relative;width:100%;height:100%;overflow:hidden;background:#14213d";
+        const frame = document.createElement("div");
+        frame.dataset.testid = "e2e-video-frame";
+        frame.setAttribute("role", "img");
+        frame.setAttribute("aria-label", "Illustrative scene in the E2E playback simulation");
+        frame.style.cssText = "width:100%;height:100%";
+        frame.innerHTML =
+          '<svg viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#14213d"/><stop offset="1" stop-color="#fca17d"/></linearGradient></defs><rect width="1280" height="720" fill="url(#sky)"/><circle cx="990" cy="205" r="86" fill="#ffe3a3"/><path d="M0 510 260 250l260 260 220-310 390 370v150H0Z" fill="#415a77"/><path d="m0 585 360-230 260 200 280-250 380 270v145H0Z" fill="#263b54"/><path d="M0 610q240-100 450 0t420 0 410 0v110H0Z" fill="#172a3d"/><path d="M0 660q270-85 520 5t400-5 360 0v60H0Z" fill="#0b1b2b"/></svg>';
+        const simulationLabel = document.createElement("span");
+        simulationLabel.textContent = `Illustrative E2E player · ${options.videoId}`;
+        simulationLabel.style.cssText =
+          "position:absolute;right:12px;bottom:12px;padding:4px 8px;border-radius:999px;background:#111c;color:white;font:12px sans-serif";
+        scene.append(frame, simulationLabel);
+        target.replaceChildren(scene);
         queueMicrotask(() => options.events.onReady?.());
       }
 
@@ -246,7 +262,7 @@ test("shared subtitles link plays video and alternates Hebrew and Italian subtit
       removeEventListener() {},
       speak(utterance: UtteranceLike) {
         speechCalls.push({ text: utterance.text, lang: utterance.lang });
-        window.setTimeout(() => utterance.onend?.(new Event("end") as SpeechSynthesisEvent), 80);
+        window.setTimeout(() => utterance.onend?.(new Event("end") as SpeechSynthesisEvent), 450);
       },
     };
 
@@ -326,6 +342,7 @@ test("shared subtitles link plays video and alternates Hebrew and Italian subtit
   await page.goto(sharedLink, { waitUntil: "domcontentloaded" });
 
   await expect(page.locator("header")).toContainText(`video ${videoId}`);
+  await expect(page.getByTestId("e2e-video-frame")).toBeVisible();
   await expect(page.getByTestId("subtitle-cell-0-iw")).toContainText(
     "Default subtitle sentence one.",
   );
@@ -346,15 +363,22 @@ test("shared subtitles link plays video and alternates Hebrew and Italian subtit
   const overlayToggle = page.getByTestId("video-subtitles-overlay-toggle");
   await expect(overlayToggle).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("active-subtitle-cue-text")).toBeVisible();
+  await expect(page.getByTestId("active-subtitle-language")).toHaveText("Hebrew");
   await page.evaluate(() => {
     const overlay = document.querySelector('[data-testid="active-subtitle-cue-text"]');
+    const language = document.querySelector('[data-testid="active-subtitle-language"]');
     const testWindow = window as typeof window & { __sharedOverlayHistory?: string[] };
-    testWindow.__sharedOverlayHistory = overlay?.textContent ? [overlay.textContent] : [];
-    if (!overlay) return;
-    new MutationObserver(() => {
-      const text = overlay.textContent?.trim();
-      if (text) testWindow.__sharedOverlayHistory?.push(text);
-    }).observe(overlay, { childList: true, subtree: true, characterData: true });
+    const recordOverlay = () => {
+      const text = overlay?.textContent?.trim();
+      const lang = language?.textContent?.trim();
+      if (text && lang) testWindow.__sharedOverlayHistory?.push(`${lang}: ${text}`);
+    };
+    testWindow.__sharedOverlayHistory = [];
+    recordOverlay();
+    const observer = new MutationObserver(recordOverlay);
+    if (overlay) observer.observe(overlay, { childList: true, subtree: true, characterData: true });
+    if (language)
+      observer.observe(language, { childList: true, subtree: true, characterData: true });
   });
 
   const playerLifecycleBeforePlayback = await page.evaluate(() => {
@@ -415,7 +439,19 @@ test("shared subtitles link plays video and alternates Hebrew and Italian subtit
   expect(
     playbackEvidence.overlayHistory.some((text) => text.includes("Default subtitle sentence one.")),
   ).toBe(true);
+  const firstHebrewOverlay = playbackEvidence.overlayHistory.findIndex((text) =>
+    text.startsWith("Hebrew:"),
+  );
+  const firstItalianLanguageOverlay = playbackEvidence.overlayHistory.findIndex((text) =>
+    text.startsWith("Italian:"),
+  );
+  const nextHebrewOverlay = playbackEvidence.overlayHistory.findIndex(
+    (text, index) => index > firstItalianLanguageOverlay && text.startsWith("Hebrew:"),
+  );
   expect(firstItalianOverlay).toBeGreaterThanOrEqual(0);
+  expect(firstHebrewOverlay).toBeGreaterThanOrEqual(0);
+  expect(firstItalianLanguageOverlay).toBeGreaterThan(firstHebrewOverlay);
+  expect(nextHebrewOverlay).toBeGreaterThan(firstItalianLanguageOverlay);
   expect(
     playbackEvidence.overlayHistory.some(
       (text, index) =>

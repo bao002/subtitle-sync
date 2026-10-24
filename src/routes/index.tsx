@@ -4552,6 +4552,24 @@ function Index() {
                                         className="pointer-events-none absolute inset-x-3 top-3 text-center"
                                         aria-live="polite"
                                       >
+                                        <span
+                                          data-testid="active-subtitle-language"
+                                          className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 text-xs font-semibold text-background shadow-lg"
+                                        >
+                                          {(() => {
+                                            const languageCode =
+                                              speakingLang && speakingRow >= 0
+                                                ? speakingLang
+                                                : baseLanguage;
+                                            const normalizedCode =
+                                              languageCode === "iw" ? "he" : languageCode;
+                                            return (
+                                              LANGS.find(
+                                                (language) => language.code === normalizedCode,
+                                              )?.name ?? normalizedCode.toUpperCase()
+                                            );
+                                          })()}
+                                        </span>
                                         <p
                                           id="active-subtitle-cue-text"
                                           data-testid="active-subtitle-cue-text"
