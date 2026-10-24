@@ -8,6 +8,7 @@ services:
         DOCKER_GID: ${DOCKER_GID:-1000}
     init: true
     working_dir: /workspace
+    network_mode: ${E2E_NETWORK_MODE:-bridge}
     user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
     environment:
       CI: "true"

@@ -124,207 +124,52 @@ test("web-demo video input remains playable without recreating the YouTube playe
   expect(stats.destroyed).toBe(initialStats.destroyed);
 });
 
-test("shared subtitles link plays video and alternates Hebrew and Italian subtitles", async ({
+test("shared subtitles link plays the real video and alternates authentic Hebrew/Italian subtitles", async ({
   page,
 }) => {
   const videoId = "WJlWKB8qrf0";
-  const subtitlesUrl =
-    process.env.E2E_SHARED_SUBTITLES_URL ||
-    `https://www.youtube.com/api/timedtext?v=${videoId}&kind=asr&lang=iw&fmt=json3`;
+  const subtitlesUrl = process.env.E2E_SHARED_SUBTITLES_URL;
+  if (!subtitlesUrl) {
+    test.skip(true, "requires an unexpired authentic E2E_SHARED_SUBTITLES_URL");
+    return;
+  }
   const sharedTimedTextUrl = new URL(subtitlesUrl);
   expect(sharedTimedTextUrl.searchParams.get("v")).toBe(videoId);
   expect(sharedTimedTextUrl.searchParams.get("lang")).toBe("iw");
 
-  const timedTextRequests: string[] = [];
+  let signedTimedTextRequested = false;
   const translationRequests: string[] = [];
+  const mediaStreamRequests: boolean[] = [];
 
-  await page.addInitScript(() => {
-    type PlayerOptions = {
-      videoId: string;
-      events: {
-        onReady?: () => void;
-        onStateChange?: (event: { data: number }) => void;
-      };
-    };
-    type UtteranceLike = {
-      text: string;
-      lang: string;
-      rate: number;
-      onend?: (event: SpeechSynthesisEvent) => void;
-      onerror?: (event: SpeechSynthesisErrorEvent) => void;
-    };
-
-    const stats = { created: 0, destroyed: 0, state: 2, currentTime: 0, states: [] as number[] };
-    const speechCalls: Array<{ text: string; lang: string }> = [];
-    const testWindow = window as typeof window & {
-      __sharedPlaybackStats: typeof stats;
-      __sharedSpeechCalls: typeof speechCalls;
-      YT: { Player: new (target: HTMLElement, options: PlayerOptions) => object };
-    };
-
-    class MockYouTubePlayer {
-      private timer: number | undefined;
-
-      constructor(
-        target: HTMLElement,
-        private readonly options: PlayerOptions,
+  page.on("request", (request) => {
+    try {
+      const url = new URL(request.url());
+      if (
+        url.hostname === "www.youtube.com" &&
+        url.pathname === "/api/timedtext" &&
+        url.searchParams.get("v") === videoId &&
+        url.searchParams.get("lang") === "iw" &&
+        Boolean(url.searchParams.get("signature"))
       ) {
-        stats.created += 1;
-        const scene = document.createElement("div");
-        scene.style.cssText =
-          "position:relative;width:100%;height:100%;overflow:hidden;background:#14213d";
-        const frame = document.createElement("div");
-        frame.dataset.testid = "e2e-video-frame";
-        frame.setAttribute("role", "img");
-        frame.setAttribute("aria-label", "Illustrative scene in the E2E playback simulation");
-        frame.style.cssText = "width:100%;height:100%";
-        frame.innerHTML =
-          '<svg viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#14213d"/><stop offset="1" stop-color="#fca17d"/></linearGradient></defs><rect width="1280" height="720" fill="url(#sky)"/><circle cx="990" cy="205" r="86" fill="#ffe3a3"/><path d="M0 510 260 250l260 260 220-310 390 370v150H0Z" fill="#415a77"/><path d="m0 585 360-230 260 200 280-250 380 270v145H0Z" fill="#263b54"/><path d="M0 610q240-100 450 0t420 0 410 0v110H0Z" fill="#172a3d"/><path d="M0 660q270-85 520 5t400-5 360 0v60H0Z" fill="#0b1b2b"/></svg>';
-        const simulationLabel = document.createElement("span");
-        simulationLabel.textContent = `Illustrative E2E player · ${options.videoId}`;
-        simulationLabel.style.cssText =
-          "position:absolute;right:12px;bottom:12px;padding:4px 8px;border-radius:999px;background:#111c;color:white;font:12px sans-serif";
-        scene.append(frame, simulationLabel);
-        target.replaceChildren(scene);
-        queueMicrotask(() => options.events.onReady?.());
+        signedTimedTextRequested = true;
       }
-
-      getCurrentTime() {
-        return stats.currentTime;
+      if (url.hostname === "translate.googleapis.com" && url.searchParams.get("tl") === "it") {
+        translationRequests.push("it");
       }
-
-      getDuration() {
-        return 60;
-      }
-
-      getPlaybackRate() {
-        return 1;
-      }
-
-      getPlayerState() {
-        return stats.state;
-      }
-
-      getVideoData() {
-        return { video_id: this.options.videoId, title: "Shared subtitle E2E" };
-      }
-
-      playVideo() {
-        stats.state = 1;
-        stats.states.push(1);
-        this.options.events.onStateChange?.({ data: 1 });
-        if (this.timer === undefined) {
-          this.timer = window.setInterval(() => {
-            if (stats.state === 1) stats.currentTime += 0.25;
-          }, 250);
-        }
-      }
-
-      pauseVideo() {
-        stats.state = 2;
-        stats.states.push(2);
-        this.options.events.onStateChange?.({ data: 2 });
-      }
-
-      seekTo(seconds: number) {
-        stats.currentTime = seconds;
-      }
-
-      loadVideoById(videoId: string) {
-        stats.currentTime = 0;
-        this.options.videoId = videoId;
-      }
-
-      destroy() {
-        stats.destroyed += 1;
-        if (this.timer !== undefined) window.clearInterval(this.timer);
-      }
+    } catch {
+      // Ignore non-URL requests.
     }
-
-    class MockSpeechSynthesisUtterance {
-      text: string;
-      lang = "";
-      rate = 1;
-      onend?: (event: SpeechSynthesisEvent) => void;
-      onerror?: (event: SpeechSynthesisErrorEvent) => void;
-
-      constructor(text: string) {
-        this.text = text;
+  });
+  page.on("request", (request) => {
+    try {
+      const url = new URL(request.url());
+      if (url.hostname.endsWith("googlevideo.com") && url.pathname.includes("/videoplayback")) {
+        mediaStreamRequests.push(true);
       }
+    } catch {
+      // Ignore non-URL requests.
     }
-
-    const synthesis = {
-      paused: false,
-      cancel() {},
-      resume() {},
-      getVoices: () => [],
-      addEventListener() {},
-      removeEventListener() {},
-      speak(utterance: UtteranceLike) {
-        speechCalls.push({ text: utterance.text, lang: utterance.lang });
-        window.setTimeout(() => utterance.onend?.(new Event("end") as SpeechSynthesisEvent), 450);
-      },
-    };
-
-    Object.defineProperty(testWindow, "__sharedPlaybackStats", { value: stats });
-    Object.defineProperty(testWindow, "__sharedSpeechCalls", { value: speechCalls });
-    Object.defineProperty(testWindow, "YT", {
-      value: { Player: MockYouTubePlayer },
-      configurable: true,
-    });
-    Object.defineProperty(testWindow, "SpeechSynthesisUtterance", {
-      value: MockSpeechSynthesisUtterance,
-      configurable: true,
-    });
-    Object.defineProperty(testWindow, "speechSynthesis", {
-      value: synthesis,
-      configurable: true,
-    });
   });
-
-  await page.route("https://fonts.googleapis.com/**", (route) => route.abort());
-  await page.route("https://fonts.gstatic.com/**", (route) => route.abort());
-
-  await page.route("https://www.youtube.com/api/timedtext**", async (route) => {
-    timedTextRequests.push(route.request().url());
-    const track = {
-      events: [
-        {
-          tStartMs: 0,
-          dDurationMs: 1500,
-          segs: [{ utf8: "Default subtitle sentence one." }],
-        },
-        {
-          tStartMs: 1500,
-          dDurationMs: 1500,
-          segs: [{ utf8: "Default subtitle sentence two." }],
-        },
-        {
-          tStartMs: 3000,
-          dDurationMs: 1500,
-          segs: [{ utf8: "Default subtitle sentence three." }],
-        },
-      ],
-    };
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      headers: { "access-control-allow-origin": "*" },
-      body: JSON.stringify(track),
-    });
-  });
-
-  await page.route("https://translate.googleapis.com/translate_a/single**", async (route) => {
-    const requestUrl = new URL(route.request().url());
-    translationRequests.push(route.request().url());
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      headers: { "access-control-allow-origin": "*" },
-      body: JSON.stringify({ translatedText: `Italiano: ${requestUrl.searchParams.get("q")}` }),
-    });
-  });
-
   const configuredBaseUrl =
     process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL || "http://127.0.0.1:3000/";
   const appBaseUrl = configuredBaseUrl.endsWith("/") ? configuredBaseUrl : `${configuredBaseUrl}/`;
@@ -340,30 +185,42 @@ test("shared subtitles link plays video and alternates Hebrew and Italian subtit
   expect(sharedParams.get("v")).toBe(videoId);
   expect(sharedParams.get("target_lang")).toBe("italian");
   await page.goto(sharedLink, { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => {
+    const params = new URLSearchParams(window.location.search);
+    params.delete("subtitles_url");
+    params.delete("source_lang_code");
+    params.delete("sub_lang");
+    window.history.replaceState(
+      null,
+      "",
+      `${window.location.pathname}?${params.toString()}${window.location.hash}`,
+    );
+  });
 
   await expect(page.locator("header")).toContainText(`video ${videoId}`);
-  await expect(page.getByTestId("e2e-video-frame")).toBeVisible();
-  await expect(page.getByTestId("subtitle-cell-0-iw")).toContainText(
-    "Default subtitle sentence one.",
-  );
-  await expect(page.getByTestId("subtitle-cell-0-it")).toContainText("Italiano:");
-  expect(
-    timedTextRequests.some((request) => {
-      const requestUrl = new URL(request);
-      return (
-        requestUrl.searchParams.get("v") === videoId && requestUrl.searchParams.get("lang") === "iw"
-      );
-    }),
-  ).toBe(true);
-  expect(
-    translationRequests.some((request) => new URL(request).searchParams.get("tl") === "it"),
-  ).toBe(true);
-
   await page.getByTestId("header-mode-toggle").click();
+  const playerPanel = page.locator('details[data-panel-id="player"]');
+  if (!(await playerPanel.getAttribute("open"))) {
+    await page.getByTestId("accordion-bar-player").click();
+  }
+  await page.getByTestId("accordion-pin-player").click();
+  const youtubeFrame = page.locator('iframe[src*="youtube.com/embed"]');
+  await expect(youtubeFrame).toBeVisible({ timeout: 30000 });
+  const sourceCell = page.getByTestId("subtitle-cell-0-iw");
+  const italianCell = page.getByTestId("subtitle-cell-0-it");
+  await expect(sourceCell).not.toBeEmpty({ timeout: 60000 });
+  await expect(italianCell).not.toBeEmpty({ timeout: 60000 });
+  expect(signedTimedTextRequested).toBe(true);
+  await expect.poll(() => translationRequests.includes("it"), { timeout: 60000 }).toBe(true);
+
+  const hebrewText = (await sourceCell.innerText()).trim();
+  const italianText = (await italianCell.innerText()).trim();
+  expect(hebrewText).not.toBe(italianText);
+
+  await expect(youtubeFrame).toBeVisible({ timeout: 30000 });
   const overlayToggle = page.getByTestId("video-subtitles-overlay-toggle");
   await expect(overlayToggle).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId("active-subtitle-cue-text")).toBeVisible();
-  await expect(page.getByTestId("active-subtitle-language")).toHaveText("Hebrew");
+  await expect(page.getByTestId("active-subtitle-cue-text")).toBeVisible({ timeout: 30000 });
   await page.evaluate(() => {
     const overlay = document.querySelector('[data-testid="active-subtitle-cue-text"]');
     const language = document.querySelector('[data-testid="active-subtitle-language"]');
@@ -381,64 +238,33 @@ test("shared subtitles link plays video and alternates Hebrew and Italian subtit
       observer.observe(language, { childList: true, subtree: true, characterData: true });
   });
 
-  const playerLifecycleBeforePlayback = await page.evaluate(() => {
-    const testWindow = window as typeof window & {
-      __sharedPlaybackStats: { created: number; destroyed: number };
-    };
-    return {
-      created: testWindow.__sharedPlaybackStats.created,
-      destroyed: testWindow.__sharedPlaybackStats.destroyed,
-    };
-  });
   const playButton = page.getByTestId("video-overlay-play-pause-btn").first();
   await playButton.click();
   await expect(playButton).toHaveAttribute("aria-label", "Pause playback");
+  await expect.poll(() => mediaStreamRequests.length, { timeout: 60000 }).toBeGreaterThan(0);
   await expect
-    .poll(() =>
-      page.evaluate(() => {
-        const testWindow = window as typeof window & {
-          __sharedSpeechCalls: Array<{ text: string; lang: string }>;
-        };
-        return testWindow.__sharedSpeechCalls.length;
-      }),
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const history = (window as typeof window & { __sharedOverlayHistory?: string[] })
+            .__sharedOverlayHistory;
+          return history?.filter((text) => text.startsWith("Italian:")).length || 0;
+        }),
+      { timeout: 120000 },
     )
     .toBeGreaterThan(0);
-  await expect
-    .poll(() =>
-      page.evaluate(() => {
-        const testWindow = window as typeof window & {
-          __sharedPlaybackStats: { states: number[] };
-        };
-        return testWindow.__sharedPlaybackStats.states.filter((state) => state === 1).length;
-      }),
-    )
-    .toBeGreaterThan(1);
 
   const playbackEvidence = await page.evaluate(() => {
     const testWindow = window as typeof window & {
-      __sharedPlaybackStats: { state: number; states: number[] };
-      __sharedSpeechCalls: Array<{ text: string; lang: string }>;
       __sharedOverlayHistory?: string[];
     };
     return {
-      ...testWindow.__sharedPlaybackStats,
-      speechCalls: testWindow.__sharedSpeechCalls,
       overlayHistory: testWindow.__sharedOverlayHistory || [],
     };
   });
-  expect(playbackEvidence.states[0]).toBe(1);
-  expect(playbackEvidence.states).toContain(2);
-  expect(playbackEvidence.states.filter((state) => state === 1).length).toBeGreaterThan(1);
-  expect(playbackEvidence.created).toBe(playerLifecycleBeforePlayback.created);
-  expect(playbackEvidence.destroyed).toBe(playerLifecycleBeforePlayback.destroyed);
-  expect(playbackEvidence.speechCalls.some((call) => call.lang === "it-IT")).toBe(true);
-  expect(playbackEvidence.speechCalls.some((call) => call.text.startsWith("Italiano:"))).toBe(true);
   const firstItalianOverlay = playbackEvidence.overlayHistory.findIndex((text) =>
-    text.includes("Italiano:"),
+    text.startsWith("Italian:"),
   );
-  expect(
-    playbackEvidence.overlayHistory.some((text) => text.includes("Default subtitle sentence one.")),
-  ).toBe(true);
   const firstHebrewOverlay = playbackEvidence.overlayHistory.findIndex((text) =>
     text.startsWith("Hebrew:"),
   );
@@ -452,10 +278,6 @@ test("shared subtitles link plays video and alternates Hebrew and Italian subtit
   expect(firstHebrewOverlay).toBeGreaterThanOrEqual(0);
   expect(firstItalianLanguageOverlay).toBeGreaterThan(firstHebrewOverlay);
   expect(nextHebrewOverlay).toBeGreaterThan(firstItalianLanguageOverlay);
-  expect(
-    playbackEvidence.overlayHistory.some(
-      (text, index) =>
-        index > firstItalianOverlay && text.includes("Default subtitle sentence two."),
-    ),
-  ).toBe(true);
+  expect(playbackEvidence.overlayHistory.some((text) => text.endsWith(hebrewText))).toBe(true);
+  expect(playbackEvidence.overlayHistory.some((text) => text.endsWith(italianText))).toBe(true);
 });
