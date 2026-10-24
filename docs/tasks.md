@@ -4,7 +4,10 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- None.
+- [ ] **Task 197: Compact help-icon refinement for parser info blocks and Android-safe review UI**
+  - Replace verbose inline explanatory text with compact help icons for parser controls and related info/detail sections.
+  - Keep Android review flow inline and free of blocking popups while preserving the parser diff confirmation flow.
+  - Validate with the focused parser-help and inline-review scripts.
 
 ## Later Tasks
 

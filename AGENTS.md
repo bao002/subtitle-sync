@@ -145,6 +145,24 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-can u improve the parser section design (include the design for android (without any popups)) ?
+git commit and push.
+
+1. fix case where 1 language text aprears on another. that but happend to me. required a mechnism to ensure correct text presentation based on columns.
+
+2. in case of lang_code:iw or il -> show it as hebrew on the subtitles table view.
+
+3. once the defaut subtitles is fetched - never tts-play it , but do present it on the language-table-view
+
+4. once a translation is fetched from youtube api - add an indication icon next to it.
+
+5. when a char such as ">" , "<" appears - present those subtitles only after cleaning them from those chars! otherwise tts-play pronounce it and it bothering!
+
+6. on advance-mode: the parser design is not convenient - dont show the parser confirmation element as popup (i noticed it on android ) because it failing on-demand visual comparison
+
+7. the selection from  favorite languages - which subtitles to show should be beside the video and not part of the languages section.
+
+8. the languages selection vs per language settings (tts-rate, tts-ratio) should be on different sections.
+
+9. the design of showing the favorite languages customizations and then there configured setting for each language - is a duplication of data. -> wherever showing each lang setup - a click should allow to edit it ! (use space effeciently!)
 ```
 

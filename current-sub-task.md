@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: None.
-- **Status**: COMPLETED.
-- **Next**: Keep the active backlog synchronized with the archived verification record and leave the worktree ready for review.
+- **Active Subtask**: Compact help-icon refinement for parser info blocks and Android-safe review UI
+- **Status**: IN PROGRESS
+- **Next**: Replace remaining verbose parser/help text with compact '?' disclosure patterns and validate the inline Android-safe review flow.

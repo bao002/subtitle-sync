@@ -5775,31 +5775,50 @@ function Index() {
                           />
 
                           {/* Difference Confirmation Toggle */}
-                          <div className="flex items-center justify-between rounded-lg border border-border/70 p-3 bg-muted/20">
-                            <div className="space-y-0.5 pr-2">
-                              <label
-                                htmlFor="confirm-parser-diff-toggle"
-                                className="text-xs font-semibold text-foreground cursor-pointer"
-                              >
-                                Review parser changes before applying
-                              </label>
-                              <p className="text-[11px] text-muted-foreground">
+                          <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex min-w-0 items-center gap-1.5">
+                                <label
+                                  htmlFor="confirm-parser-diff-toggle"
+                                  className="text-xs font-semibold text-foreground cursor-pointer"
+                                >
+                                  Review parser changes
+                                </label>
+                                <button
+                                  type="button"
+                                  data-testid="help-btn-parser-review"
+                                  onClick={() =>
+                                    setExpandedHelp((prev) => ({
+                                      ...prev,
+                                      review: !prev.review,
+                                    }))
+                                  }
+                                  className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+                                  title="More info"
+                                  aria-label="More info about parser review behavior"
+                                >
+                                  ?
+                                </button>
+                              </div>
+                              <Switch
+                                id="confirm-parser-diff-toggle"
+                                data-testid="confirm-parser-diff-toggle"
+                                checked={confirmParserDiffEnabled}
+                                onCheckedChange={(checked) => {
+                                  setConfirmParserDiffEnabled(checked);
+                                  try {
+                                    localStorage.setItem("yt_confirm_parser_diff", String(checked));
+                                  } catch {
+                                    // ignore storage error
+                                  }
+                                }}
+                              />
+                            </div>
+                            {Boolean(expandedHelp.review) && (
+                              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground rounded border border-border/60 bg-background/70 p-2">
                                 Compare the updated alignment inline without blocking the screen.
                               </p>
-                            </div>
-                            <Switch
-                              id="confirm-parser-diff-toggle"
-                              data-testid="confirm-parser-diff-toggle"
-                              checked={confirmParserDiffEnabled}
-                              onCheckedChange={(checked) => {
-                                setConfirmParserDiffEnabled(checked);
-                                try {
-                                  localStorage.setItem("yt_confirm_parser_diff", String(checked));
-                                } catch {
-                                  // ignore storage error
-                                }
-                              }}
-                            />
+                            )}
                           </div>
 
                           {pendingParserChange && (
