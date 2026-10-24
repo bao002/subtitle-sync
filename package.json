@@ -193,6 +193,7 @@
     "test:parser-diff-confirmation": "tsx scripts/verify-parser-diff-confirmation.ts",
     "test:default-caption-presentation": "tsx scripts/verify-default-caption-presentation.ts",
     "test:video-display-controls": "tsx scripts/verify-video-display-control-placement.ts",
+    "test:subtitles-table-width-toggle": "tsx scripts/verify-subtitles-table-width-toggle.ts",
     "test:mainactivity-scope": "tsx scripts/verify-android-mainactivity-compilation.ts",
     "test:floating-dropdown-menu": "tsx scripts/verify-floating-dropdown-menu.ts",
     "test:client-side-metadata": "tsx scripts/verify-client-side-metadata.ts",

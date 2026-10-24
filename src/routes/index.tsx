@@ -1909,6 +1909,7 @@ function Index() {
   };
 
   const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => PANELS.map((panel) => panel.id));
+  const [subtitlesPanelWide, setSubtitlesPanelWide] = useState(true);
   const [openPanels, setOpenPanels] = useState<Record<PanelId, boolean>>({
     player: true,
     playback: false,
@@ -4538,7 +4539,12 @@ function Index() {
                       onMoveDown={() => movePanel(panelId, 1)}
                       canMoveUp={panelIndex > 0}
                       canMoveDown={panelIndex < panelOrder.length - 1}
-                      wide={panelId === "subtitles"}
+                      wide={panelId === "subtitles" && subtitlesPanelWide}
+                      onToggleWide={
+                        panelId === "subtitles"
+                          ? () => setSubtitlesPanelWide((wide) => !wide)
+                          : undefined
+                      }
                     >
                       {panelId === "player" && (
                         <div>
