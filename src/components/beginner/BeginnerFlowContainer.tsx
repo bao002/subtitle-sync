@@ -47,6 +47,8 @@ export interface BeginnerFlowContainerProps {
   subtitlesTableSlot?: React.ReactNode;
   webDemoUrlsSlot?: React.ReactNode;
   hasSubtitles?: boolean;
+  showVideoSubtitles: boolean;
+  onToggleVideoSubtitles: () => void;
   isAndroidNative?: boolean;
   onOrderChange?: (order: "video-first" | "tts-first") => void;
   onTtsSpeedChange?: (speed: number) => void;
@@ -77,6 +79,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   subtitlesTableSlot,
   webDemoUrlsSlot,
   hasSubtitles = false,
+  showVideoSubtitles,
+  onToggleVideoSubtitles,
   onOrderChange,
   onTtsSpeedChange,
   onTtsVoiceChange,
@@ -320,6 +324,14 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             webDemoUrlsSlot={webDemoUrlsSlot}
             hasSubtitles={hasSubtitles}
             subtitlesTableSlot={subtitlesTableSlot}
+            subtitlesRatio={subtitlesRatio}
+            onSubtitlesRatioChange={(ratio) => {
+              setSubtitlesRatio(ratio);
+              updateSettings({ beginnerSubtitlesRatio: ratio });
+              onSubtitlesRatioChange?.(ratio);
+            }}
+            showVideoSubtitles={showVideoSubtitles}
+            onToggleVideoSubtitles={onToggleVideoSubtitles}
           />
         )}
 
@@ -344,12 +356,6 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
               setTtsVoice(v);
               updateSettings({ beginnerTtsVoice: v });
               onTtsVoiceChange?.(v);
-            }}
-            subtitlesRatio={subtitlesRatio}
-            onSubtitlesRatioChange={(r) => {
-              setSubtitlesRatio(r);
-              updateSettings({ beginnerSubtitlesRatio: r });
-              onSubtitlesRatioChange?.(r);
             }}
             favoriteLanguages={favoriteLanguages}
             onFavoriteLanguagesChange={(langs) => {

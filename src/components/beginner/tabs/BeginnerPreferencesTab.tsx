@@ -64,8 +64,6 @@ export interface BeginnerPreferencesTabProps {
   onTtsSpeedChange: (speed: number) => void;
   ttsVoice: string;
   onTtsVoiceChange: (voiceURI: string) => void;
-  subtitlesRatio: number;
-  onSubtitlesRatioChange: (ratio: number) => void;
   favoriteLanguages: string[];
   onFavoriteLanguagesChange: (langs: string[]) => void;
   baseLanguage?: string;
@@ -79,8 +77,6 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   onTtsSpeedChange,
   ttsVoice,
   onTtsVoiceChange,
-  subtitlesRatio,
-  onSubtitlesRatioChange,
   favoriteLanguages,
   onFavoriteLanguagesChange,
   baseLanguage = "en",
@@ -761,44 +757,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         )}
       </div>
 
-      {/* 3. Subtitles Ratio Slider */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-2.5">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-foreground">Subtitles Sizing Ratio</h3>
-          <span className="font-semibold text-primary text-xs font-mono" data-testid="ratio-val">
-            {subtitlesRatio.toFixed(2)}x
-          </span>
-        </div>
-        <p className="text-[11px] text-muted-foreground">
-          Scale primary subtitles font size relative to translated subtitles for comfortable
-          reading.
-        </p>
-
-        <Slider
-          value={[subtitlesRatio]}
-          onValueChange={([val]) => onSubtitlesRatioChange(val)}
-          min={0.6}
-          max={1.8}
-          step={0.05}
-          className="w-full"
-          data-testid="subtitles-ratio-slider"
-        />
-
-        {/* Visual Live Sizing Preview */}
-        <div className="bg-background border border-border rounded-lg p-3 text-center space-y-1">
-          <div
-            className="text-foreground font-medium transition-all"
-            style={{ fontSize: `${Math.round(14 * subtitlesRatio)}px` }}
-          >
-            Base Subtitle Line Preview
-          </div>
-          <div className="text-xs text-muted-foreground">
-            Translated Secondary Subtitle Line Preview
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Favorite Languages Selector & Extender */}
+      {/* 3. Favorite Languages Selector & Extender */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

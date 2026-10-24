@@ -1919,6 +1919,40 @@ function Index() {
     library: false,
   });
 
+  const handleToggleVideoSubtitles = () => {
+    const next = !showVideoSubtitles;
+    setShowVideoSubtitles(next);
+    if (!next) return;
+
+    setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
+    const shell = nativeShell();
+    const captured = shell?.getLastObservedTimedTextUrl();
+    if (!captured || (tracks && Object.keys(tracks).length > 0)) return;
+
+    setObservedUrl(captured);
+    setDefaultCaptionsLoaded(true);
+    let defaultLang = "";
+    try {
+      defaultLang = new URL(captured).searchParams.get("lang") || "";
+    } catch {
+      // ignore malformed url
+    }
+    if (!defaultLang || !shell) return;
+
+    try {
+      const raw = shell.fetchTranslatedCaptionsWithUrl(captured, defaultLang, "json3");
+      if (raw && isValidJsonSubtitleResponse(raw)) {
+        const json = parseJson3(raw);
+        if (json) {
+          setTracks((prev) => ({ ...prev, [defaultLang]: json }));
+          setShown((prev) => (prev.includes(defaultLang) ? prev : [defaultLang, ...prev]));
+        }
+      }
+    } catch {
+      // ignore fetch error
+    }
+  };
+
   const [stripSpeakerBrackets, setStripSpeakerBrackets] = useState<boolean>(() =>
     getStripSpeakerBracketsSetting(),
   );
@@ -4071,60 +4105,6 @@ function Index() {
             </Button>
           )}
           <Button
-            id="caption-toggle-button"
-            data-testid="caption-toggle-button"
-            type="button"
-            size="sm"
-            variant={showVideoSubtitles ? "default" : "ghost"}
-            aria-pressed={showVideoSubtitles}
-            onClick={() => {
-              const next = !showVideoSubtitles;
-              setShowVideoSubtitles(next);
-              if (next) {
-                setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
-                const shell = nativeShell();
-                const captured = shell?.getLastObservedTimedTextUrl();
-                if (captured && (!tracks || Object.keys(tracks).length === 0)) {
-                  setObservedUrl(captured);
-                  setDefaultCaptionsLoaded(true);
-                  let defaultLang = "";
-                  try {
-                    defaultLang = new URL(captured).searchParams.get("lang") || "";
-                  } catch {
-                    // ignore malformed url
-                  }
-                  if (defaultLang && shell) {
-                    try {
-                      const raw = shell.fetchTranslatedCaptionsWithUrl(
-                        captured,
-                        defaultLang,
-                        "json3",
-                      );
-                      if (raw && isValidJsonSubtitleResponse(raw)) {
-                        const json = parseJson3(raw);
-                        if (json) {
-                          setTracks((prev) => ({ ...prev, [defaultLang]: json }));
-                          setShown((prev) =>
-                            prev.includes(defaultLang) ? prev : [defaultLang, ...prev],
-                          );
-                        }
-                      }
-                    } catch {
-                      // ignore fetch error
-                    }
-                  }
-                }
-              }
-            }}
-            className={`h-7 px-2 sm:px-2.5 text-xs gap-1.5 font-medium ${
-              showVideoSubtitles ? "shadow-xs" : "text-foreground hover:bg-muted"
-            }`}
-            title="Toggle video subtitles overlay"
-          >
-            <Subtitles className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Captions</span>
-          </Button>
-          <Button
             id="open-apk-release-button"
             data-testid="open-apk-release-button"
             type="button"
@@ -4183,6 +4163,8 @@ function Index() {
             setObservedUrl("https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3");
           }}
           isAndroidNative={isAndroid}
+          showVideoSubtitles={showVideoSubtitles}
+          onToggleVideoSubtitles={handleToggleVideoSubtitles}
           playerSlot={
             <div
               className="relative h-full w-full group"
@@ -4712,6 +4694,24 @@ function Index() {
                               );
                             }}
                           />
+                          <div
+                            data-testid="video-display-controls"
+                            className="flex justify-end border-t border-border bg-card/80 px-3 py-2"
+                          >
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={showVideoSubtitles ? "default" : "outline"}
+                              aria-pressed={showVideoSubtitles}
+                              data-testid="video-subtitles-overlay-toggle"
+                              onClick={handleToggleVideoSubtitles}
+                              className="h-7 gap-1.5 px-2.5 text-xs"
+                              title="Toggle spoken subtitles over the video"
+                            >
+                              <Subtitles className="h-3.5 w-3.5" />
+                              {showVideoSubtitles ? "Overlay on" : "Overlay off"}
+                            </Button>
+                          </div>
                           {/* Video metadata card (Client-side title & channel author) */}
                           {videoMetadata && (
                             <div
@@ -5111,18 +5111,6 @@ function Index() {
                               timedtext diagnostics.
                             </p>
                           )}
-                          <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={showVideoSubtitles}
-                              onChange={(e) => setShowVideoSubtitles(e.target.checked)}
-                              className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                            />
-                            <Subtitles className="w-3.5 h-3.5 text-primary" />
-                            <span className="font-medium text-xs text-foreground">
-                              Show spoken subtitle over video
-                            </span>
-                          </label>
                           <label className="flex items-center gap-2 cursor-pointer select-none">
                             <input
                               id="background-audio-toggle"

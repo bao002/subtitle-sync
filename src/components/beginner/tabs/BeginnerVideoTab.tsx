@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { extractYouTubeId } from "@/utils/youtube";
 
 export interface ObservedSubtitleTrack {
@@ -42,6 +43,10 @@ export interface BeginnerVideoTabProps {
   subtitlesTableSlot?: React.ReactNode;
   webDemoUrlsSlot?: React.ReactNode;
   hasSubtitles?: boolean;
+  subtitlesRatio: number;
+  onSubtitlesRatioChange: (ratio: number) => void;
+  showVideoSubtitles: boolean;
+  onToggleVideoSubtitles: () => void;
 }
 
 export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
@@ -62,6 +67,10 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   subtitlesTableSlot,
   webDemoUrlsSlot,
   hasSubtitles = false,
+  subtitlesRatio,
+  onSubtitlesRatioChange,
+  showVideoSubtitles,
+  onToggleVideoSubtitles,
 }) => {
   const [inputVal, setInputVal] = useState(url);
 
@@ -174,6 +183,51 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             data-testid="beginner-player-slot-container"
           >
             {playerSlot}
+          </div>
+        )}
+        {playerSlot && (
+          <div
+            data-testid="video-display-controls"
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-border bg-background/70 px-3 py-2"
+          >
+            <div className="flex min-w-[220px] flex-1 items-center gap-2">
+              <label
+                htmlFor="beginner-subtitles-sizing"
+                className="shrink-0 text-[11px] font-medium text-foreground"
+              >
+                Subtitle size
+              </label>
+              <Slider
+                id="beginner-subtitles-sizing"
+                aria-label="Subtitle sizing ratio"
+                data-testid="subtitles-ratio-slider"
+                value={[subtitlesRatio]}
+                onValueChange={([ratio]) => onSubtitlesRatioChange(ratio)}
+                min={0.6}
+                max={1.8}
+                step={0.05}
+                className="min-w-20 flex-1"
+              />
+              <span
+                className="w-10 text-right font-mono text-[11px] font-semibold text-primary"
+                data-testid="ratio-val"
+              >
+                {subtitlesRatio.toFixed(2)}x
+              </span>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant={showVideoSubtitles ? "default" : "outline"}
+              aria-pressed={showVideoSubtitles}
+              data-testid="video-subtitles-overlay-toggle"
+              onClick={onToggleVideoSubtitles}
+              className="h-7 shrink-0 gap-1.5 px-2.5 text-xs"
+              title="Toggle spoken subtitles over the video"
+            >
+              <Subtitles className="h-3.5 w-3.5" />
+              {showVideoSubtitles ? "Overlay on" : "Overlay off"}
+            </Button>
           </div>
         )}
         {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}

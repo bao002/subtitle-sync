@@ -85,10 +85,10 @@ function run() {
   assert(fs.existsSync(indexPath), "src/routes/index.tsx must exist");
   const indexCode = fs.readFileSync(indexPath, "utf-8");
   assert(
-    indexCode.includes("caption-toggle-button") &&
+    indexCode.includes("video-subtitles-overlay-toggle") &&
       indexCode.includes("open-apk-release-button") &&
       indexCode.includes("open-share-modal-button"),
-    "index.tsx header must preserve all top action button IDs and test IDs",
+    "index.tsx must preserve top action buttons and place subtitle overlay control by the video",
   );
   assert(
     indexCode.includes("expandedPrefsHelp"),

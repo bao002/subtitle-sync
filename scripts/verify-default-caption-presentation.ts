@@ -52,8 +52,9 @@ assert(
   "index.tsx cols must include baseLanguage immediately when track has valid cues",
 );
 assert(
-  indexContent.includes('id="caption-toggle-button"'),
-  "index.tsx must contain caption-toggle-button",
+  indexContent.includes('data-testid="video-subtitles-overlay-toggle"') &&
+    indexContent.includes("handleToggleVideoSubtitles"),
+  "subtitle overlay toggle must be available beside the video and preserve its caption handling",
 );
 console.log("✅ PASS: index.tsx immediately reflects base language and opens subtitles panel.");
 
