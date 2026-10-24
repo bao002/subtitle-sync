@@ -1,5 +1,5 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Active**: None. Task 207 is archived as complete.
+- **Active**: None.
 - **Status**: COMPLETED.
-- **Next**: Keep the backlog mirrors synchronized with `docs/done.md` and leave the repo in a clean, commit-ready state.
+- **Next**: Keep the backlog mirror synchronized with the archived parser UX verification and final review state.

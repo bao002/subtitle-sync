@@ -1,5 +1,13 @@
 # Done tasks
 
+## Task 208: Improve parser section UX for desktop and Android
+
+- Reworked the parser review pattern to use inline comparison cards instead of popup overlays, keeping the visual comparison usable on Android and in compact layouts.
+- Kept the review flow in the parser section itself so the before/after alignment can be checked in context without blocking the screen.
+- Updated the wording and behavior of the parser confirmation toggle to describe a non-modal inline review flow.
+- Added a focused verifier for the inline review mode and confirmed the relevant parser review markup renders without the popup overlay.
+- Verification: `npx tsx scripts/verify-parser-inline-review.ts` PASS; `npx eslint src/routes/index.tsx src/components/ParserDiffConfirmationModal.tsx` PASS.
+
 ## Task 207: Reconcile backlog state with verified subtitle integrity fixes
 
 - Refreshed the task ledger and `docs/suggestions.md` to reflect the verified live fixes for subtitle-column isolation, Hebrew alias normalization, default-track TTS exclusion, translation badges, angle-bracket sanitization, expert-mode UX cleanup, and resumable-agent tracking.

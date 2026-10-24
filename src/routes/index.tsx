@@ -643,6 +643,7 @@ function Index() {
     }
     return "beginner";
   });
+  const useInlineParserReview = isAndroid || workflowMode === "expert";
 
   const [expandedPrefsHelp, setExpandedPrefsHelp] = useState<Record<string, boolean>>({});
 
@@ -5780,11 +5781,10 @@ function Index() {
                                 htmlFor="confirm-parser-diff-toggle"
                                 className="text-xs font-semibold text-foreground cursor-pointer"
                               >
-                                Confirm before applying parser changes
+                                Review parser changes before applying
                               </label>
                               <p className="text-[11px] text-muted-foreground">
-                                Preview alignment differences, changed records, and sentence
-                                splitting in a modal before updating.
+                                Compare the updated alignment inline without blocking the screen.
                               </p>
                             </div>
                             <Switch
@@ -5802,10 +5802,10 @@ function Index() {
                             />
                           </div>
 
-                          {workflowMode === "expert" && pendingParserChange && (
+                          {pendingParserChange && (
                             <ParserDiffConfirmationModal
                               isOpen={true}
-                              inline
+                              inline={useInlineParserReview}
                               onClose={handleCancelDiff}
                               onConfirm={handleConfirmDiff}
                               diffResult={pendingParserChange.diffResult}
@@ -7237,13 +7237,15 @@ function Index() {
         maxPacingSec={retryPacingMaxSec}
         onToggleAutoRetry={handleToggleAutoRetry}
       />
-      <ParserDiffConfirmationModal
-        isOpen={workflowMode !== "expert" && Boolean(pendingParserChange)}
-        onClose={handleCancelDiff}
-        onConfirm={handleConfirmDiff}
-        diffResult={pendingParserChange?.diffResult || null}
-        proposedCriteriaNames={pendingParserChange?.criteriaNames || []}
-      />
+      {!useInlineParserReview && (
+        <ParserDiffConfirmationModal
+          isOpen={Boolean(pendingParserChange)}
+          onClose={handleCancelDiff}
+          onConfirm={handleConfirmDiff}
+          diffResult={pendingParserChange?.diffResult || null}
+          proposedCriteriaNames={pendingParserChange?.criteriaNames || []}
+        />
+      )}
       <VideoMetadataModal
         open={videoMetadataModalOpen}
         onOpenChange={setVideoMetadataModalOpen}

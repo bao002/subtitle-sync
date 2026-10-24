@@ -334,11 +334,10 @@ export function ParserDiffConfirmationModal({
 
   return inline ? (
     <div
-      role="dialog"
-      aria-modal="true"
+      role="region"
       aria-labelledby="parser-diff-dialog-title"
       data-testid="parser-diff-inline-review-container"
-      className="rounded-xl border border-border bg-card p-2 shadow-sm"
+      className="w-full rounded-xl border border-border bg-card p-2 shadow-sm"
     >
       {body}
     </div>
