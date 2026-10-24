@@ -67,13 +67,13 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
             size="sm"
             onClick={onTogglePlay}
             className={`h-8 px-3 text-xs font-medium rounded-lg flex items-center gap-1.5 ${
-              isPlaying
+              isPlaying || Boolean(speakingLang)
                 ? "bg-amber-600 hover:bg-amber-500 text-white"
                 : "bg-emerald-600 hover:bg-emerald-500 text-white"
             }`}
             data-testid="btn-player-play-pause"
           >
-            {isPlaying ? (
+            {isPlaying || Boolean(speakingLang) ? (
               <>
                 <Pause className="w-3.5 h-3.5" />
                 <span>Pause</span>

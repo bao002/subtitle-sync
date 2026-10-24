@@ -213,18 +213,18 @@ export const VideoPlaybackControls: React.FC<VideoPlaybackControlsProps> = ({
         <Button
           type="button"
           size="default"
-          variant={isPlaying ? "secondary" : "default"}
+          variant={isPlaying || isPausedForSpeech ? "secondary" : "default"}
           data-testid="player-control-play-pause"
-          aria-label={isPlaying ? "Pause video" : "Play video"}
-          title={isPlaying ? "Pause video (Space)" : "Play video (Space)"}
+          aria-label={isPlaying || isPausedForSpeech ? "Pause playback" : "Play video"}
+          title={isPlaying || isPausedForSpeech ? "Pause playback (Space)" : "Play video (Space)"}
           onClick={onTogglePlay}
           className={`h-11 flex-1 max-w-[170px] min-w-[90px] gap-2 rounded-lg font-bold text-sm shadow-sm transition-transform active:scale-95 ${
-            isPlaying
+            isPlaying || isPausedForSpeech
               ? "bg-secondary text-secondary-foreground hover:bg-secondary/80 border border-border"
               : "bg-primary text-primary-foreground hover:bg-primary/90 ring-2 ring-primary/20"
           }`}
         >
-          {isPlaying ? (
+          {isPlaying || isPausedForSpeech ? (
             <>
               <Pause className="h-5 w-5 fill-current shrink-0" />
               <span>Pause</span>
