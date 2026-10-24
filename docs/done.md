@@ -1,5 +1,22 @@
 # Done tasks
 
+## Task 224: Parser abbreviation exception rules for dot splitting
+
+- Added abbreviation-aware dot handling in `src/utils/newSubtitlesParser.ts` so common forms such as `Dr.`, `Mrs.`, and custom entries remain intact while genuine sentence-final periods still split.
+- Exposed the abbreviation list in the live parser controls via `src/components/NewSubtitlesParserBar.tsx` so the user can configure exception tokens dynamically.
+- Extended the verification at `scripts/verify-quarantine-and-new-parser.ts` to cover abbreviations and custom exceptions.
+- Verification command: `npm run test:quarantine-and-new-parser && npm run lint && npm run build`
+- Outcome: PASS.
+
+## Task 223: Quarantine the legacy parser and add the simpler dot-splitting parser
+
+- Quarantined the old parser implementation into `quarentined/oldSubtitlesParser.ts`, leaving the historical logic preserved while removing it from active runtime use.
+- Added the simpler, transparent parser in `src/utils/newSubtitlesParser.ts` with reliable dot-based splitting, configurable punctuation toggles, custom delimiters, and interpolated timing.
+- Mounted the live parser controls directly above the subtitles table in `src/components/SubtitlesTablePanel.tsx` via `src/components/NewSubtitlesParserBar.tsx`, and connected the parser state to dynamic subtitle updates in `src/routes/index.tsx`.
+- Added a dedicated verifier at `scripts/verify-quarantine-and-new-parser.ts` and updated the later-task note about abbreviation exceptions in `docs/later.md`.
+- Verification command: `npm run test:quarantine-and-new-parser && npm run lint && npm run build`
+- Outcome: PASS. The implementation was committed as `deb27cd`.
+
 ## Task 222: Present all fixture languages including pt-BR with distinct column source indicators
 
 - Inspected `public/fixtures/L2Ryrr6txwA/*.json` and verified all 7 fixture languages: `ar`, `en`, `es`, `he`, `it`, `pt-BR`, `ru`.

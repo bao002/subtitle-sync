@@ -34,6 +34,13 @@ export function NewSubtitlesParserBar({
     });
   };
 
+  const handleAbbreviationExceptionsChange = (val: string) => {
+    onChange({
+      ...config,
+      dotAbbreviationExceptions: val,
+    });
+  };
+
   const handleReset = () => {
     onChange({ ...DEFAULT_SIMPLE_PARSER_CONFIG });
   };
@@ -145,6 +152,22 @@ export function NewSubtitlesParserBar({
             />
             <span>Intra-cue splitting</span>
           </label>
+
+          {/* Abbreviation exceptions input */}
+          <div className="flex items-center gap-1.5">
+            <label htmlFor="parser-abbreviation-exceptions-input" className="text-[11px]">
+              Ignore dots:
+            </label>
+            <input
+              id="parser-abbreviation-exceptions-input"
+              data-testid="parser-abbreviation-exceptions-input"
+              type="text"
+              placeholder="dr., mrs."
+              value={config.dotAbbreviationExceptions}
+              onChange={(e) => handleAbbreviationExceptionsChange(e.target.value)}
+              className="h-6 w-28 rounded border border-input bg-background px-1.5 font-mono text-[11px] text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-ring"
+            />
+          </div>
 
           {/* Custom Delimiters input */}
           <div className="flex items-center gap-1.5">

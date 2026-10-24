@@ -1,4 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: Subtask 223.1 — Quarantine the old subtitles parser implementation into `/quarentined/oldSubtitlesParser.ts`.
-- **Next Exact Action**: Copy the old complex multi-criteria parser implementation into `/quarentined/oldSubtitlesParser.ts`, design the new clean, easy parser module with reliable `.` (dot) sentence splitting and interpolated timings.
+- **Status**: Completed and archived.
+- **Completed Task**: Task 224 — Treat abbreviation dots like "Dr." and "Mrs." as non-split boundaries while preserving real sentence endings.
+- **Verification**: `npm run test:quarantine-and-new-parser && npm run lint && npm run build` passed.
+- **Next Action**: The remaining backlog items are blocked Android E2E tasks in `docs/tasks.md`; no local parser task remains active.

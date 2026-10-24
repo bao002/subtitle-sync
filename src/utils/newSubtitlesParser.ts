@@ -14,6 +14,7 @@ export interface SimpleParserConfig {
   splitOnComma: boolean;
   splitIntraCue: boolean;
   customDelimiters: string;
+  dotAbbreviationExceptions: string;
 }
 
 export const DEFAULT_SIMPLE_PARSER_CONFIG: SimpleParserConfig = {
@@ -24,7 +25,43 @@ export const DEFAULT_SIMPLE_PARSER_CONFIG: SimpleParserConfig = {
   splitOnComma: false,
   splitIntraCue: true,
   customDelimiters: "",
+  dotAbbreviationExceptions: "dr., mrs., mr., ms., prof., etc., e.g., i.e.",
 };
+
+export function parseAbbreviationExceptions(rawValue: string): string[] {
+  if (!rawValue || rawValue.trim().length === 0) return [];
+
+  return Array.from(
+    new Set(
+      rawValue
+        .split(/[\n,;|]+/)
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .map((part) => part.toLowerCase().replace(/[^a-z]/g, ""))
+        .filter(Boolean),
+    ),
+  );
+}
+
+export function isDotAbbreviationBoundary(
+  text: string,
+  dotIndex: number,
+  config: SimpleParserConfig,
+): boolean {
+  if (dotIndex < 0 || dotIndex >= text.length || text[dotIndex] !== ".") return false;
+
+  const prefix = text.slice(0, dotIndex + 1);
+  const match = prefix.match(/(?:^|[\s(\[])(([a-z][a-z'.-]{0,15}))\.$/i);
+  if (!match) return false;
+
+  const normalized = match[1]!.toLowerCase().replace(/[^a-z]/g, "");
+  if (!normalized) return false;
+
+  const exceptions = parseAbbreviationExceptions(
+    config.dotAbbreviationExceptions || DEFAULT_SIMPLE_PARSER_CONFIG.dotAbbreviationExceptions,
+  );
+  return exceptions.includes(normalized);
+}
 
 /**
  * Builds a regex pattern matching any configured sentence-splitting delimiter.
@@ -145,6 +182,11 @@ export function splitCuesIntoSentences(
       for (let mIdx = 0; mIdx < matches.length; mIdx++) {
         const match = matches[mIdx]!;
         const delimiterEnd = match.index + match[0].length;
+        const actualDotIndex = match[0].includes(".") ? match.index + match[0].lastIndexOf(".") : -1;
+        if (actualDotIndex >= 0 && isDotAbbreviationBoundary(cueText, actualDotIndex, config)) {
+          continue;
+        }
+
         const partText = cueText.slice(lastMatchEnd, delimiterEnd).trim();
 
         // Interpolate time within the cue

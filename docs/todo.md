@@ -1,5 +1,6 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Active Task**: Task 223 — Quarantine old subtitles parser implementation, create an easy, clean new parser positioned just above the subtitles-table with live dynamic updates.
-- **Active Subtask**: Subtask 223.1 — Quarantine the old parser into `/quarentined/oldSubtitlesParser.ts`.
-- **Next Exact Action**: Copy old complex parser into `/quarentined/oldSubtitlesParser.ts`, implement simple, transparent new parser that splits on dot `.` and configurable punctuation with linear time interpolation.
+- **Status**: No active task.
+- **Completed Task**: Task 224 — Treat abbreviation dots like "Dr." and "Mrs." as non-split boundaries while preserving real sentence endings.
+- **Verification**: `npm run test:quarantine-and-new-parser && npm run lint && npm run build` passed.
+- **Next Action**: The remaining backlog items are blocked Android E2E tasks in `docs/tasks.md`; no local parser task remains active.

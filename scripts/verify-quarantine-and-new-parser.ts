@@ -108,6 +108,25 @@ assert.strictEqual(customSplit[0]?.text, "First part;");
 assert.strictEqual(customSplit[1]?.text, "second part");
 console.log("  ✓ Custom delimiters verified");
 
+// Case E: Abbreviation exceptions should not split on dots inside names like "Dr." or "Mrs."
+const abbreviationCues: Cue[] = [
+  { start: 0, end: 3000, text: "Dr. Smith arrived today. We met him at noon." },
+  { start: 3000, end: 6000, text: "Mrs. Johnson stayed late." },
+];
+const abbreviationSplit = splitCuesIntoSentences(abbreviationCues, {
+  ...DEFAULT_SIMPLE_PARSER_CONFIG,
+  dotAbbreviationExceptions: "dr., mrs.",
+});
+assert.strictEqual(
+  abbreviationSplit.length,
+  3,
+  `Expected 3 sentences with abbreviation exceptions, got ${abbreviationSplit.length}`,
+);
+assert.strictEqual(abbreviationSplit[0]?.text, "Dr. Smith arrived today.");
+assert.strictEqual(abbreviationSplit[1]?.text, "We met him at noon.");
+assert.strictEqual(abbreviationSplit[2]?.text, "Mrs. Johnson stayed late.");
+console.log("  ✓ Abbreviation exceptions keep names like Dr. and Mrs. intact while still splitting real sentence ends");
+
 // 3. Verify simpleAlign generates aligned parallel Rows
 console.log("3. Verifying simpleAlign with multi-track alignment...");
 const testTracks: Record<string, Json3> = {
