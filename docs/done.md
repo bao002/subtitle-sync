@@ -1,11 +1,13 @@
 # Done tasks
 
-## Task 227.1: Stop primary video player recreation on play-state changes (Version 2.0.13)
+## Task 227: Stabilize playback and keep web-demo video input playable (Version 2.0.13)
 
 - Removed `isVideoPlaying` from the YouTube player's lifecycle effect dependencies. Playback state changes no longer destroy and recreate the player, preventing Android playback restarts and the web player resetting to paused.
 - Read the latest playback state from a ref inside the stable player lifecycle effect.
-- Added `scripts/verify-stable-video-player-lifecycle.ts` and its package script; synchronized the app version across package metadata, Android Gradle, OTA updater, app configuration, and exported settings.
-- Verification: `npm run test:stable-video-player`, `npm run test:playground-tab`, `npm run test:v2-version-bump`, `npm run lint`, and `npm run build` all passed. `git diff --check` passed.
+- Added `scripts/verify-stable-video-player-lifecycle.ts` and `e2e/web.spec.ts`. The web E2E loads a video through the demo URL input and verifies the video remains playing without player teardown.
+- Synchronized the app version across package metadata, Android Gradle, OTA updater, app configuration, and exported settings.
+- Verification: `./docker/manage.sh e2e web` passed all 3 tests; the focused Docker web playback E2E, `npm run test:stable-video-player`, `npm run test:playground-tab`, `npm run test:v2-version-bump`, `npm run test:md`, `npm run lint`, `npm run build`, Prettier, and `git diff --check` passed.
+- Android API 34 runtime E2E remains unverified because `adb` is unavailable; tracked as Task 228 in the later backlog.
 
 ## Task 226: Set up Docker for repeatable E2E
 
@@ -56,7 +58,6 @@
 - Automated verification: `npm run test:fixture-languages-and-source-icons`, `npm run lint`, `compile_applet`. Committed as `d9e769e`.
 
 ## Task 220: Correct Android emulator screencast workflow
-
 
 - Confirmed [`ReactiveCircus/android-emulator-runner`](https://github.com/ReactiveCircus/android-emulator-runner) provisions and boots the configured emulator and runs the supplied script; ADB in the workflow performs the actual screen recording. Upstream guidance recommends Ubuntu larger runners with KVM when available.
 - Updated `.github/workflows/emulation.yml` to finalize `screenrecord` with SIGINT on exit or termination, pull the authentic MP4, fail if it is missing or empty, and remove the still-image-to-video fallback.

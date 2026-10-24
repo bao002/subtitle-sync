@@ -13,3 +13,6 @@ The following tasks are deferred for later execution after all active tasks are 
   - First integrate implementation commit `7b3fd93` with remote `main` without copying or overwriting its newer README-only commit.
 - [ ] **Task 224: Parser abbreviation exception rules for dot splitting ("dr.", "mrs.", per-language customizations)**
   - The user should be able to tell the parser not to split when the dot is next to other words such as "dr.", "mrs." (per languages customizations).
+- [ ] **Task 228: Validate playback lifecycle on Android API 34**
+  - Run `bash android-shell/gradlew assembleDebug && bash scripts/run-android-e2e.sh && bash scripts/android-e2e-assert.sh` on a host with JDK 21, Android SDK, `adb`, and an API 34 Google APIs emulator or device.
+  - Confirm playback does not restart repeatedly during play-state updates. Runtime validation is blocked in this Codespace because `adb` is unavailable.
