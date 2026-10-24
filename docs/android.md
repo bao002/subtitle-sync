@@ -172,7 +172,7 @@ CI treats a missing or empty MP4 as a recording failure. Screenshots, device tel
 1. **Authentic Screenshots & Text Evidence Over Heavy Videos**: Capture authentic full-resolution screenshots at each key milestone (boot, share intent, captions discovery) using `adb shell screencap -p`.
 2. **Authentic Live Caption Text Exposure (Zero Mocks / Fixtures)**: Real dialogue text from the live YouTube timedtext stream is extracted and logged to logcat with `AUTHENTIC_CAPTIONS_EXPOSED lang=<lang> cues=<count> sample="<text>"` and saved to `/sdcard/Android/data/com.ytviewer.app/files/authentic_captions_exposed.txt`.
 3. **Record the Real Emulator Display**: The GitHub Actions E2E workflow starts `adb shell screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-emulator-video.mp4` before launching the app.
-4. **Finalize Before Pulling**: Stop the recorder gracefully with `adb shell pkill -2 -f screenrecord`, wait for it to finish writing the MP4 container, then pull the file using `adb pull`. A missing or empty recording fails the E2E step; no screenshot-to-video fallback is allowed.
+4. **Finalize Before Pulling**: Stop the recorder gracefully with SIGINT (`adb shell pkill -2 -f screenrecord`), wait for it to finish writing the moov container atom into the MP4 container, then pull the file using `adb pull`. A missing or empty recording fails the E2E step; no screenshot-to-video fallback is allowed.
 5. **Orientation and Wake Locking**:
    - Disable auto-rotation: `adb shell settings put system accelerometer_rotation 0`.
    - Dismiss lock screen: `adb shell input keyevent KEYCODE_WAKEUP && adb shell wm dismiss-keyguard`.

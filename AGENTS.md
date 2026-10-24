@@ -44,13 +44,10 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Work tracking
 
-- **New chat window for each sub-task**: Every distinct sub-task must start in a fresh chat window or isolated follow-up turn. Keep each sub-task scoped, resumable, and independent so state is not mixed with unrelated work or previous task context.
-- **Resume after interruption**: At the start of a resumed session, read this section and `current-sub-task.md`, then `docs/todo.md` and the active entries in `docs/tasks.md`. The active sub-task and its recorded next action are the source of truth for where to continue; do not start a different backlog item just because the prior chat is unavailable.
-- **Fresh-chat recommendation for uncommitted work**: Before advising whether to continue or start a new chat, inspect `git status --short`, the relevant diffs, and the active task notes. Recommend continuing in the current chat and replying **“go on”** when the changes form one coherent task, validation is passing, and the next action is clear. Recommend a fresh chat when the uncommitted work spans unrelated tasks, validation or scope is uncertain, or context is too large to safely continue; point the user to `current-sub-task.md` for resumption. State the recommendation and evidence plainly; never imply the work is committed or complete when it is not.
-- Before editing, inspect `git status --short` and the diffs for files named by the active sub-task. Treat uncommitted and untracked work as potentially valuable in-progress work: preserve it, understand it, and never reset, overwrite, or commit unrelated changes.
-- Reconcile the trackers with the worktree. If they disagree, use the task notes and actual diffs to establish what is done, what remains, required tests/build/lint, and any blocker; update `current-sub-task.md` and `docs/todo.md` with a concrete next action before proceeding. Record uncertainty rather than guessing or repeating work.
-- Do not resume a task already recorded as complete in `docs/done.md`; reconcile stale backlog or mirror entries against its verification record before selecting the next task.
-- Keep progress resumable throughout execution: after each meaningful step, update the active sub-task with completed work, changed files, validation results, and the next exact action. If stopping unexpectedly is likely, leave those notes and the worktree in a safe, uncommitted state.
+- **New chat window for each sub-task**: Keep each sub-task scoped, resumable, and independent.
+- **Resume after interruption**: Read this section, `current-sub-task.md`, `docs/todo.md`, and active entries in `docs/tasks.md` to identify the source of truth for where to continue.
+- **Fresh-chat recommendation for uncommitted work**: Inspect `git status --short` and diffs. Reply **“go on”** when changes form one coherent task with passing validation. If uncertain, point user to `current-sub-task.md`.
+- Inspect diffs before editing, reconcile trackers with worktree, and do not resume tasks already recorded in `docs/done.md`.
 
 - **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**: ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md` (or its subdirectories `docs/designs/`, `docs/specifications/`, and `docs/operations/`). There must be ZERO duplicate `.md` files in the repository. No Markdown file located under `docs/*.md` may have a redundant copy in root (`docs/tokens.md`, `docs/android.md`, `docs/parser.md`, `docs/self-verification.md`, and `docs/roadmap.md` reside exclusively in `docs/`). Only `README.md`, `AGENTS.md`, `current-sub-task.md`, and `temp.md` are permitted in root.
 - **Mandatory token economy flow on every prompt (`docs/tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `docs/tokens.md` and maintain `current-sub-task.md`.
@@ -140,12 +137,24 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 
 - **Pre-cache validation gate**: Every subtitle response must be verified with `isValidJsonSubtitleResponse()` before being written to memory cache, `localStorage`, or SQLite/file storage.
 - **Never cache invalidated responses**: Responses that return HTTP errors, network timeouts, or non-200 status codes MUST NEVER be cached. HTML error pages, malformed payloads, synthetic placeholders, and empty cue lists (`events: []`) MUST NEVER be cached. Only responses satisfying all "good" response criteria above are eligible for storage.
-- **Read-time eviction**: When reading cached data, if an entry is found to be corrupted, malformed, or contains zero cues, it must be purged and evicted from the cache immediately.
+- **Read-time eviction**: Purge and evict corrupted, malformed, or zero-cue entries from cache immediately.
 - **Explicit cache management**: The application must provide explicit cache controls ("Clear cache" and "Fetch from scratch") allowing users to clear cached entries and re-fetch authentic subtitle data on demand.
 
 ## Last raw prompt
 
 ```
-checkout regarding working with android to produce e2e screencast:
-https://github.com/ReactiveCircus/android-emulator-runner
+1. look into: public/fixtures/L2Ryrr6txwA/*.json
+
+present all those langs (including pt-BR)
+
+In case of parsing a youtube subtitles or artifact .json file - indicate that column using an icon.
+
+in case of using on-demand translation - indicate it differently.
+
+
+2. quarentine the old subtitles parser implementation in favore of a new and easier parser. the new parser will apear just above the subtitles-table and changing its configuration will dynamicly update the presented subtitles.
+
+the old subtitles parser design wasn't simple enough and was growing with too safisticated features while i couldnt even splitting based on the location of a dot charecter: "."
+
+update later.md: the user should be able to tell the parser not to split when the dot is next to other words such as "dr.", "mrs." (per languages customizations).
 ```

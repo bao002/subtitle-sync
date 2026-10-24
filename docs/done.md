@@ -1,6 +1,14 @@
 # Done tasks
 
+## Task 222: Present all fixture languages including pt-BR with distinct column source indicators
+
+- Inspected `public/fixtures/L2Ryrr6txwA/*.json` and verified all 7 fixture languages: `ar`, `en`, `es`, `he`, `it`, `pt-BR`, `ru`.
+- Added `pt-BR` to `LANGS` in `src/lib/subtitles.ts`, `JSON3_RAW_MAP` and `L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS` in `test/fixtures/L2Ryrr6txwA/jsonStrings.ts`, `SUPPORTED_TARGET_LANGUAGES` in `src/config/constants.ts`, and `SUPPORTED_LANGUAGES_CATALOG` in `src/utils/appSettings.ts`.
+- Added column source distinction: when parsing YouTube subtitles or artifact `.json` files, column header displays `FileCode` icon; when using on-demand translation, column header displays a distinct `Sparkles` icon.
+- Automated verification: `npm run test:fixture-languages-and-source-icons`, `npm run lint`, `compile_applet`. Committed as `d9e769e`.
+
 ## Task 220: Correct Android emulator screencast workflow
+
 
 - Confirmed [`ReactiveCircus/android-emulator-runner`](https://github.com/ReactiveCircus/android-emulator-runner) provisions and boots the configured emulator and runs the supplied script; ADB in the workflow performs the actual screen recording. Upstream guidance recommends Ubuntu larger runners with KVM when available.
 - Updated `.github/workflows/emulation.yml` to finalize `screenrecord` with SIGINT on exit or termination, pull the authentic MP4, fail if it is missing or empty, and remove the still-image-to-video fallback.

@@ -26,7 +26,7 @@ assert.ok(
 );
 
 assert.ok(
-  selectorCode.includes("data-testid=\"toggle-show-all-languages\""),
+  selectorCode.includes('data-testid="toggle-show-all-languages"'),
   "LanguageBoxesSelector must provide a toggle button with data-testid='toggle-show-all-languages'",
 );
 
@@ -36,7 +36,7 @@ assert.ok(
 );
 
 assert.ok(
-  selectorCode.includes("data-testid=\"favorite-languages-active-badge\""),
+  selectorCode.includes('data-testid="favorite-languages-active-badge"'),
   "LanguageBoxesSelector must display favorite-languages-active-badge when favorites filter is active",
 );
 console.log("✅ PASS: LanguageBoxesSelector favorites filtering and UI controls verified.");
@@ -56,7 +56,7 @@ assert.ok(
 );
 
 assert.ok(
-  indexCode.includes('data-testid={`favorite-lang-badge-${code}`}') &&
+  indexCode.includes("data-testid={`favorite-lang-badge-${code}`}") &&
     indexCode.includes("onClick="),
   "index.tsx must provide clickable favorite language badges to toggle target languages",
 );
@@ -118,7 +118,11 @@ assert.deepStrictEqual(
 
 // Case B: User toggles showAll
 const res2 = computeLanguageBoxes(mockFullCatalog, favs1, ["he"], true, "");
-assert.strictEqual(res2.isFavoritesFiltered, false, "Favorites filter should be inactive when showAll is true");
+assert.strictEqual(
+  res2.isFavoritesFiltered,
+  false,
+  "Favorites filter should be inactive when showAll is true",
+);
 assert.strictEqual(res2.boxes.length, 10, "All catalog languages must appear when showAll is true");
 
 // Case C: User searches for a non-favorite language e.g. 'french'

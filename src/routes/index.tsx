@@ -181,7 +181,13 @@ import { ParserTimingLab } from "@/components/ParserTimingLab";
 import { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
 import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
+import {
+  simpleAlign,
+  type SimpleParserConfig,
+  DEFAULT_SIMPLE_PARSER_CONFIG,
+} from "@/utils/newSubtitlesParser";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
+
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
 import {
   getSectionOrder,
@@ -800,9 +806,9 @@ function Index() {
         Boolean(nativeShell()) ||
         new URLSearchParams(window.location.search).get("android") === "true";
       if (isAndroidEnv) return ["he", "it"];
-      return ["he", "it", "es", "fr", "ru", "ar"];
+      return ["he", "it", "es", "fr", "ru", "ar", "pt-BR"];
     }
-    return ["he", "it", "es", "fr", "ru", "ar"];
+    return ["he", "it", "es", "fr", "ru", "ar", "pt-BR"];
   };
 
   const getInitialTargetLanguages = (): string[] => {
@@ -974,6 +980,9 @@ function Index() {
   );
 
   const [explicitBaseLanguage, setExplicitBaseLanguage] = useState<string>("");
+  const [simpleParserConfig, setSimpleParserConfig] = useState<SimpleParserConfig>(
+    DEFAULT_SIMPLE_PARSER_CONFIG,
+  );
 
   const setBaseLanguage = useCallback((lang: string) => {
     setExplicitBaseLanguage(lang);
@@ -2920,8 +2929,8 @@ function Index() {
       const newTracks = Object.fromEntries(validEntries);
       startSubtitlesTransition(() => {
         setTracks(newTracks);
-        // Automatically show loaded demo tracks
-        setShown((prev) => (prev.length === 0 ? Object.keys(newTracks) : prev));
+        // Automatically show all loaded demo tracks
+        setShown((prev) => Array.from(new Set([...prev, ...Object.keys(newTracks)])));
       });
     });
     return () => {
@@ -2931,9 +2940,10 @@ function Index() {
 
   const rawRows = useMemo<Row[]>(
     () =>
-      tracks && baseLanguage ? align(tracks, baseLanguage, selectedCriteria, criteriaSettings) : [],
-    [tracks, baseLanguage, selectedCriteria, criteriaSettings],
+      tracks && baseLanguage ? simpleAlign(tracks, baseLanguage, simpleParserConfig) : [],
+    [tracks, baseLanguage, simpleParserConfig],
   );
+
 
   const rows = useMemo<Row[]>(() => {
     if (!rawRows || rawRows.length === 0) return rawRows;
@@ -3792,10 +3802,24 @@ function Index() {
       return Boolean(m && Object.keys(m).length > 0);
     };
 
-    const withTranslationBadge = (meta: { code: string; name: string; tts: string }) => ({
-      ...meta,
-      isYouTubeTranslated: translatedSet.has(meta.code.toLowerCase()),
-    });
+    const determineColumnSource = (code: string) => {
+      const hasRealTrack = tracks?.[code] && hasTrackCues(tracks[code]);
+      const hasOnDemand = hasOnDemandCues(code);
+      return {
+        isYouTubeOrJson: Boolean(hasRealTrack),
+        isOnDemandTranslation: Boolean(!hasRealTrack && hasOnDemand),
+      };
+    };
+
+    const withTranslationBadge = (meta: { code: string; name: string; tts: string }) => {
+      const source = determineColumnSource(meta.code);
+      return {
+        ...meta,
+        isYouTubeTranslated: translatedSet.has(meta.code.toLowerCase()),
+        isYouTubeOrJson: source.isYouTubeOrJson,
+        isOnDemandTranslation: source.isOnDemandTranslation,
+      };
+    };
 
     // 1. If baseLanguage from video captions exists in tracks, display it first
     // Spec: verify base track cues (tracks[baseLanguage].length > 0 || hasTrackCues)
@@ -3815,9 +3839,12 @@ function Index() {
           (tracks ? Boolean(tracks[l.code]) : true) ||
           hasOnDemandCues(l.code))
       ) {
+        const source = determineColumnSource(l.code);
         list.push({
           ...l,
           isYouTubeTranslated: translatedSet.has(l.code.toLowerCase()),
+          isYouTubeOrJson: source.isYouTubeOrJson,
+          isOnDemandTranslation: source.isOnDemandTranslation,
         });
         addedCodes.add(l.code);
       }
@@ -4344,6 +4371,8 @@ function Index() {
               ttsRatios={ttsRatios}
               hasCachedAi={hasCachedAi}
               onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
+              parserConfig={simpleParserConfig}
+              onParserConfigChange={setSimpleParserConfig}
               onSpeakCue={(text, lang) => {
                 const rate = rates[lang] ?? 0.8;
                 const voice = voiceSelections[lang] || "";
@@ -7177,7 +7206,10 @@ function Index() {
                             ttsRatios={ttsRatios}
                             hasCachedAi={hasCachedAi}
                             onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
+                            parserConfig={simpleParserConfig}
+                            onParserConfigChange={setSimpleParserConfig}
                           />
+
                         ))}
                     </AccordionSection>
                   );

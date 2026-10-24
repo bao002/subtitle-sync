@@ -1,6 +1,5 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **No active task**.
-- **Completed**: Task 220 — aligned Android CI screencast recording and timeout behavior with the emulator runner; implementation commit `7b3fd93`.
-- **Verification**: `npm run test:emulator-screencast-report`, `npm run test:workflows`, `npm run test:android-emulator-docs-evidence`, `npm run test:agents-last-prompt-rule`, `npm run test:doc-contracts`, Prettier checks, and `git diff --check` passed.
-- **Deferred**: Runtime validation is Task 221; run 44 failed before E2E on the former timeout, this Codespace lacks `adb` and authenticated GitHub CLI access, and the push attempt was blocked by missing Git credentials.
+- **Active Task**: Task 223 — Quarantine old subtitles parser implementation, create an easy, clean new parser positioned just above the subtitles-table with live dynamic updates.
+- **Active Subtask**: Subtask 223.1 — Quarantine the old parser into `/quarentined/oldSubtitlesParser.ts`.
+- **Next Exact Action**: Copy old complex parser into `/quarentined/oldSubtitlesParser.ts`, implement simple, transparent new parser that splits on dot `.` and configurable punctuation with linear time interpolation.

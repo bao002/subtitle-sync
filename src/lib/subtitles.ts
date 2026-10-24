@@ -33,6 +33,7 @@ export const LANGS: { code: string; name: string; tts: string }[] = [
   { code: "it", name: "Italian", tts: "it-IT" },
   { code: "es", name: "Spanish", tts: "es-ES" },
   { code: "ru", name: "Russian", tts: "ru-RU" },
+  { code: "pt-BR", name: "Portuguese (Brazil)", tts: "pt-BR" },
 ];
 
 export const RTL = new Set(["he", "iw", "il", "ar"]);
@@ -799,3 +800,13 @@ export function fmt(ms: number) {
   const s = Math.floor(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
+
+export {
+  simpleAlign,
+  splitCuesIntoSentences,
+  buildSplitRegex,
+  DEFAULT_SIMPLE_PARSER_CONFIG,
+  type SimpleParserConfig,
+  type SplitSegment,
+} from "@/utils/newSubtitlesParser";
+

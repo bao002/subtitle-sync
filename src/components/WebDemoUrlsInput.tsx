@@ -44,7 +44,9 @@ const COMMON_DEMO_LANGS = [
   { code: "it", name: "Italian (Italiano)" },
   { code: "ar", name: "Arabic (العربية)" },
   { code: "ru", name: "Russian (Русский)" },
+  { code: "pt-BR", name: "Portuguese (Português Brasil)" },
 ];
+
 
 export function WebDemoUrlsInput({
   currentVideoId,
@@ -266,9 +268,10 @@ export function WebDemoUrlsInput({
     const sampleId = "L2Ryrr6txwA";
     setVideoUrlInput(`https://www.youtube.com/watch?v=${sampleId}`);
     setSubtitlesUrlsInput(
-      `/fixtures/${sampleId}/en.json\n/fixtures/${sampleId}/he.json\n/fixtures/${sampleId}/es.json\n/fixtures/${sampleId}/de.json`,
+      `/fixtures/${sampleId}/en.json\n/fixtures/${sampleId}/he.json\n/fixtures/${sampleId}/es.json\n/fixtures/${sampleId}/it.json\n/fixtures/${sampleId}/ar.json\n/fixtures/${sampleId}/ru.json\n/fixtures/${sampleId}/pt-BR.json`,
     );
-    setSelectedLangs(["en", "he", "es", "de"]);
+    setSelectedLangs(["en", "he", "es", "it", "ar", "ru", "pt-BR"]);
+
     setStatusType("info");
     setStatusMessage(
       "Populated sample local fixtures. Click 'Fetch Subtitles per Language' to load.",

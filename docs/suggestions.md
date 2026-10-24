@@ -130,15 +130,15 @@ The following optimization steps are ordered hierarchically by urgency (speed of
 
 ## 3. Decision Matrix & Action Summary
 
-| Step # | Proposed Optimization                                  | Urgency  | Importance | Bullet-Proof? | Action Taken / Recommendation                    |
-| :----: | :----------------------------------------------------- | :------: | :--------: | :-----------: | :----------------------------------------------- |
-| **1**  | Condense narrative prose & theory                      | Critical |  Critical  |    **Yes**    | **Fully Implemented** (saved >7.5 KB)            |
-| **2**  | Preserve all 16 test suite assertion strings           |   High   |  Critical  |    **Yes**    | **Fully Implemented** (100% tests pass)          |
-| **3**  | Delegate deep specs to `docs/*.md` pointers            |   High   |    High    |    **Yes**    | **Fully Implemented**                            |
-| **4**  | Automated size budget guard (`test:agents-size-budget`)|   High   |    High    |    **Yes**    | **Fully Implemented** (Task 182)                 |
-| **5**  | Unified AGENTS contract test suite (`test:agents-all`) |   High   |    High    |    **Yes**    | **Fully Implemented** (Task 182)                 |
-| **6**  | Extract Stage 1–7 pipeline entirely out of `AGENTS.md` |  Medium  |   Medium   |    **No**     | **Partially Implemented** (kept keyword anchors) |
-| **7**  | Truncate / summarize `## Last raw prompt`              |   Low    |    Low     |    **No**     | **Skipped** (preserves raw prompt contract)      |
+| Step # | Proposed Optimization                                   | Urgency  | Importance | Bullet-Proof? | Action Taken / Recommendation                    |
+| :----: | :------------------------------------------------------ | :------: | :--------: | :-----------: | :----------------------------------------------- |
+| **1**  | Condense narrative prose & theory                       | Critical |  Critical  |    **Yes**    | **Fully Implemented** (saved >7.5 KB)            |
+| **2**  | Preserve all 16 test suite assertion strings            |   High   |  Critical  |    **Yes**    | **Fully Implemented** (100% tests pass)          |
+| **3**  | Delegate deep specs to `docs/*.md` pointers             |   High   |    High    |    **Yes**    | **Fully Implemented**                            |
+| **4**  | Automated size budget guard (`test:agents-size-budget`) |   High   |    High    |    **Yes**    | **Fully Implemented** (Task 182)                 |
+| **5**  | Unified AGENTS contract test suite (`test:agents-all`)  |   High   |    High    |    **Yes**    | **Fully Implemented** (Task 182)                 |
+| **6**  | Extract Stage 1–7 pipeline entirely out of `AGENTS.md`  |  Medium  |   Medium   |    **No**     | **Partially Implemented** (kept keyword anchors) |
+| **7**  | Truncate / summarize `## Last raw prompt`               |   Low    |    Low     |    **No**     | **Skipped** (preserves raw prompt contract)      |
 
 ---
 

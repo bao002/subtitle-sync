@@ -1,8 +1,15 @@
 import React from "react";
-import { Check, Languages, Sparkles } from "lucide-react";
+import { Check, Languages, Sparkles, FileCode } from "lucide-react";
+
 import { type Row, type Json3, subtitleColumnName } from "@/lib/subtitles";
 import { SubtitleRow, type SubtitleColumn } from "@/components/SubtitleRow";
 import { type SpeechProgress } from "@/components/HighlightedSubtitle";
+import { NewSubtitlesParserBar } from "@/components/NewSubtitlesParserBar";
+import {
+  SimpleParserConfig,
+  DEFAULT_SIMPLE_PARSER_CONFIG,
+} from "@/utils/newSubtitlesParser";
+
 
 export interface SubtitlesTablePanelProps {
   isAndroid: boolean;
@@ -25,7 +32,10 @@ export interface SubtitlesTablePanelProps {
   onLoadCachedAiSubtitles?: () => void;
   hasCachedAi?: boolean;
   onSpeakCue?: (text: string, lang: string) => void;
+  parserConfig?: SimpleParserConfig;
+  onParserConfigChange?: (config: SimpleParserConfig) => void;
 }
+
 
 export function SubtitlesTablePanel({
   isAndroid,
@@ -46,9 +56,16 @@ export function SubtitlesTablePanel({
   spokenLangs,
   ttsRatios,
   onLoadCachedAiSubtitles,
-  hasCachedAi,
   onSpeakCue,
+  parserConfig: externalParserConfig,
+  onParserConfigChange,
 }: SubtitlesTablePanelProps) {
+  const [localParserConfig, setLocalParserConfig] = React.useState<SimpleParserConfig>(
+    DEFAULT_SIMPLE_PARSER_CONFIG,
+  );
+  const activeParserConfig = externalParserConfig || localParserConfig;
+  const handleParserConfigChange = onParserConfigChange || setLocalParserConfig;
+
   return (
     <div
       id="subtitles-table-panel"
@@ -167,6 +184,11 @@ export function SubtitlesTablePanel({
           </button>
         </div>
       )}
+      <NewSubtitlesParserBar
+        config={activeParserConfig}
+        onChange={handleParserConfigChange}
+        sentenceCount={rows.length}
+      />
       <table className="w-full border-collapse text-sm">
         <thead className="sticky top-0 z-10 bg-secondary">
           <tr>
@@ -175,6 +197,22 @@ export function SubtitlesTablePanel({
               <th key={l.code} className="px-3 py-2 text-left font-medium">
                 <span className="inline-flex items-center gap-1.5">
                   {subtitleColumnName(l.code, l.name)}
+                  {l.isYouTubeOrJson && (
+                    <FileCode
+                      className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"
+                      aria-label="YouTube subtitles or JSON artifact"
+                      data-testid={`column-source-youtube-or-json-${l.code}`}
+                      title="Parsed from YouTube subtitles or .json artifact"
+                    />
+                  )}
+                  {l.isOnDemandTranslation && (
+                    <Sparkles
+                      className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400"
+                      aria-label="On-demand translation"
+                      data-testid={`column-source-on-demand-${l.code}`}
+                      title="On-demand translation"
+                    />
+                  )}
                   {l.isYouTubeTranslated && (
                     <Languages
                       className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400"
