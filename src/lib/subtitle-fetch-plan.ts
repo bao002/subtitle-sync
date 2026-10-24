@@ -39,6 +39,23 @@ export type ExactFetchResult = {
   error?: string;
 };
 
+export function isYouTubeTranslatedSubtitle(url: string, languageCode: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    const isYouTubeHost = host === "youtube.com" || host.endsWith(".youtube.com");
+    const targetLanguage = parsed.searchParams.get("tlang");
+    return (
+      isYouTubeHost &&
+      parsed.pathname === "/api/timedtext" &&
+      !!targetLanguage &&
+      targetLanguage.toLowerCase() === languageCode.toLowerCase()
+    );
+  } catch {
+    return false;
+  }
+}
+
 export const DEFAULT_ATTEMPT_ORDER: FetchAttempt[] = [
   { mode: "tlang", send: "session", enabled: true },
   { mode: "lang", send: "session", enabled: true },

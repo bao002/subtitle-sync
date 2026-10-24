@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Languages, Sparkles } from "lucide-react";
 import { type Row, type Json3, subtitleColumnName } from "@/lib/subtitles";
 import { SubtitleRow, type SubtitleColumn } from "@/components/SubtitleRow";
 import { type SpeechProgress } from "@/components/HighlightedSubtitle";
@@ -173,7 +173,17 @@ export function SubtitlesTablePanel({
             <th className="w-24 px-3 py-2 text-left font-medium">Time</th>
             {cols.map((l) => (
               <th key={l.code} className="px-3 py-2 text-left font-medium">
-                {subtitleColumnName(l.code, l.name)}
+                <span className="inline-flex items-center gap-1.5">
+                  {subtitleColumnName(l.code, l.name)}
+                  {l.isYouTubeTranslated && (
+                    <Languages
+                      className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400"
+                      aria-label="YouTube translation"
+                      data-testid={`youtube-translation-indicator-${l.code}`}
+                      title="Translated by YouTube"
+                    />
+                  )}
+                </span>
               </th>
             ))}
           </tr>

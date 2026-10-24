@@ -233,6 +233,7 @@ import {
   getFetchStrategyConfig,
   DEFAULT_FETCH_STRATEGY_CONFIG,
   buildActiveAttemptOrder,
+  isYouTubeTranslatedSubtitle,
 } from "@/lib/subtitle-fetch-plan";
 import type { VideoMetadata } from "@/types";
 import { recordVideoWatch, updateVideoLibraryTitle } from "@/utils/videoLibraryManager";
@@ -611,6 +612,16 @@ function getLanguageMeta(code: string): { code: string; name: string; tts: strin
   return { code, name: code.toUpperCase(), tts: code };
 }
 
+const addYouTubeTranslatedLanguage = (
+  code: string,
+  setList: React.Dispatch<React.SetStateAction<string[]>>,
+  url?: string,
+) => {
+  if (!code) return;
+  if (url && !isYouTubeTranslatedSubtitle(url, code)) return;
+  setList((prev) => (prev.includes(code) ? prev : [...prev, code]));
+};
+
 function Index() {
   const [isAndroid, setIsAndroid] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -684,6 +695,7 @@ function Index() {
   const [observedUrl, setObservedUrl] = useState("");
   const [defaultCaptionsLoaded, setDefaultCaptionsLoaded] = useState(false);
   const [tracks, setTracks] = useState<Record<string, Json3> | null>(null);
+  const [youtubeTranslatedLanguages, setYoutubeTranslatedLanguages] = useState<string[]>([]);
   const [isSubtitlesPending, startSubtitlesTransition] = useTransition();
   const [strategy, setStrategy] = useState<Strategy>("sentence");
   const [selectedCriteria, setSelectedCriteria] = useState<CriteriaId[]>(() => {
@@ -1589,6 +1601,11 @@ function Index() {
         if (videoId) saveCachedRawJson3(videoId, target, rawBody);
         setTracks((prev) => ({ ...prev, [target]: json }));
         setShown((prev) => (prev.includes(target) ? prev : [...prev, target]));
+        if (new URL(url, "https://www.youtube.com").searchParams.has("tlang")) {
+          setYoutubeTranslatedLanguages((prev) =>
+            prev.includes(target) ? prev : [...prev, target],
+          );
+        }
         notifySubtitleFetch("completed", `Applied and cached subtitles for ${target}`, target);
       }
     },
@@ -1792,6 +1809,9 @@ function Index() {
       }));
       setShown((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
       setTargetLanguages((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
+      if (url) {
+        addYouTubeTranslatedLanguage(langCode, setYoutubeTranslatedLanguages, url);
+      }
       if (videoId) {
         saveCachedRawJson3(videoId, langCode, JSON.stringify(track));
       }
@@ -2521,6 +2541,9 @@ function Index() {
         }
         setTracks((prev) => ({ ...prev, [lang]: json }));
         setShown((prev) => (prev.includes(lang) ? prev : [lang, ...prev]));
+        if (targetLanguage) {
+          setYoutubeTranslatedLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
+        }
         setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
         if (autoSpeakOnFetch && targetLanguage && isTtsSpeakableLanguage(lang, baseLanguage)) {
           // Auto-enable "Speak" checkbox for the fetched language
@@ -3139,10 +3162,12 @@ function Index() {
       videoId: newVideoId,
       tracks: newTracks,
       observedUrl: newObservedUrl,
+      youtubeTranslatedLanguages: translatedLangs,
     }: {
       videoId: string;
       tracks: Record<string, Json3>;
       observedUrl?: string;
+      youtubeTranslatedLanguages?: string[];
     }) => {
       startSubtitlesTransition(() => {
         const isDifferentVideo = Boolean(newVideoId && newVideoId !== videoId);
@@ -3157,6 +3182,7 @@ function Index() {
           setSubtitlesPage(1);
           setOnDemandTranslations({});
           setDetectedPlaygroundTracks({});
+          setYoutubeTranslatedLanguages([]);
           if (typeof window !== "undefined") {
             const currentSearch = new URLSearchParams(window.location.search);
             if (currentSearch.get("v") !== newVideoId) {
@@ -3183,19 +3209,21 @@ function Index() {
           const detectedBase = trackLangs[0];
           setBaseLanguage(detectedBase);
           setDefaultCaptionsLoaded(true);
-          // Strictly set tracks to ONLY the new tracks — never merge with previous or default video's tracks
           setTracks(newTracks);
           setShown(trackLangs);
           setTargetLanguages(trackLangs);
           setSpoken(trackLangs);
+          setYoutubeTranslatedLanguages(
+            translatedLangs && translatedLangs.length > 0 ? translatedLangs : [],
+          );
           setOpenPanels((prev) => ({ ...prev, subtitles: true }));
         } else if (isDifferentVideo) {
-          // Reset cleanly when changing video without new subtitle tracks
           setDefaultCaptionsLoaded(false);
           setTracks(null);
           setShown([]);
           setTargetLanguages([]);
           setSpoken([]);
+          setYoutubeTranslatedLanguages([]);
         }
       });
     },
@@ -3687,8 +3715,14 @@ function Index() {
     if (!tracks || Object.keys(tracks).length === 0) {
       return [];
     }
-    const list: { code: string; name: string; tts: string }[] = [];
+    const list: Array<{
+      code: string;
+      name: string;
+      tts: string;
+      isYouTubeTranslated?: boolean;
+    }> = [];
     const addedCodes = new Set<string>();
+    const translatedSet = new Set(youtubeTranslatedLanguages.map((lang) => lang.toLowerCase()));
 
     const hasTrackCues = (t: Json3 | undefined): boolean => {
       if (!t) return false;
@@ -3703,10 +3737,15 @@ function Index() {
       return Boolean(m && Object.keys(m).length > 0);
     };
 
+    const withTranslationBadge = (meta: { code: string; name: string; tts: string }) => ({
+      ...meta,
+      isYouTubeTranslated: translatedSet.has(meta.code.toLowerCase()),
+    });
+
     // 1. If baseLanguage from video captions exists in tracks, display it first
     // Spec: verify base track cues (tracks[baseLanguage].length > 0 || hasTrackCues)
     if (baseLanguage && tracks?.[baseLanguage] && hasTrackCues(tracks[baseLanguage])) {
-      list.push(getLanguageMeta(baseLanguage));
+      list.push(withTranslationBadge(getLanguageMeta(baseLanguage)));
       addedCodes.add(baseLanguage);
     }
 
@@ -3721,7 +3760,10 @@ function Index() {
           (tracks ? Boolean(tracks[l.code]) : true) ||
           hasOnDemandCues(l.code))
       ) {
-        list.push(l);
+        list.push({
+          ...l,
+          isYouTubeTranslated: translatedSet.has(l.code.toLowerCase()),
+        });
         addedCodes.add(l.code);
       }
     }
@@ -3731,7 +3773,7 @@ function Index() {
     if (tracks) {
       for (const code of Object.keys(tracks)) {
         if (!addedCodes.has(code) && shown.includes(code) && hasTrackCues(tracks[code])) {
-          list.push(getLanguageMeta(code));
+          list.push(withTranslationBadge(getLanguageMeta(code)));
           addedCodes.add(code);
         }
       }
@@ -3741,7 +3783,7 @@ function Index() {
     if (list.length === 0 && tracks) {
       for (const code of Object.keys(tracks)) {
         if (!addedCodes.has(code) && hasTrackCues(tracks[code])) {
-          list.push(getLanguageMeta(code));
+          list.push(withTranslationBadge(getLanguageMeta(code)));
           addedCodes.add(code);
         }
       }
@@ -3756,6 +3798,7 @@ function Index() {
     targetLanguages,
     favoriteLanguages,
     onDemandTranslations,
+    youtubeTranslatedLanguages,
   ]);
 
   const hasLegitimateSubtitles = useMemo(() => {

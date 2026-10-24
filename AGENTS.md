@@ -44,6 +44,12 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Work tracking
 
+- **New chat window for each sub-task**: Every distinct sub-task must start in a fresh chat window or isolated follow-up turn. Keep each sub-task scoped, resumable, and independent so state is not mixed with unrelated work or previous task context.
+- **Resume after interruption**: At the start of a resumed session, read this section and `current-sub-task.md`, then `docs/todo.md` and the active entries in `docs/tasks.md`. The active sub-task and its recorded next action are the source of truth for where to continue; do not start a different backlog item just because the prior chat is unavailable.
+- Before editing, inspect `git status --short` and the diffs for files named by the active sub-task. Treat uncommitted and untracked work as potentially valuable in-progress work: preserve it, understand it, and never reset, overwrite, or commit unrelated changes.
+- Reconcile the trackers with the worktree. If they disagree, use the task notes and actual diffs to establish what is done, what remains, required tests/build/lint, and any blocker; update `current-sub-task.md` and `docs/todo.md` with a concrete next action before proceeding. Record uncertainty rather than guessing or repeating work.
+- Keep progress resumable throughout execution: after each meaningful step, update the active sub-task with completed work, changed files, validation results, and the next exact action. If stopping unexpectedly is likely, leave those notes and the worktree in a safe, uncommitted state.
+
 - **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**: ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md` (or its subdirectories `docs/designs/`, `docs/specifications/`, and `docs/operations/`). There must be ZERO duplicate `.md` files in the repository. No Markdown file located under `docs/*.md` may have a redundant copy in root (`docs/tokens.md`, `docs/android.md`, `docs/parser.md`, `docs/self-verification.md`, and `docs/roadmap.md` reside exclusively in `docs/`). Only `README.md`, `AGENTS.md`, `current-sub-task.md`, and `temp.md` are permitted in root.
 - **Mandatory token economy flow on every prompt (`docs/tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `docs/tokens.md` and maintain `current-sub-task.md`.
 - **Task management protocol with `current-sub-task.md` & `temp.md`**: Break every prompt into clear numbered tasks and smaller sub-tasks in `docs/tasks.md` before performing actions. Maintain `current-sub-task.md` (and `docs/todo.md`) by staging the single active sub-task before executing any step. Use `temp.md` as an ephemeral scratchpad for draft diffs, checklists, or intermediate calculations.
@@ -138,27 +144,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-git commit and push.
-
-1. fix case where 1 language text aprears on another. that but happend to me. required a mechnism to ensure correct text presentation based on columns.
-
-2. in case of lang_code:iw or il -> show it as hebrew on the subtitles table view.
-
-3. once the defaut subtitles is fetched - never tts-play it , but do present it on the language-table-view
-
-4. once a translation is fetched from youtube api - add an indication icon next to it.
-
-5. when a char such as ">" , "<" appears - present those subtitles only after cleaning them from those chars! otherwise tts-play pronounce it and it bothering!
-
-6. on advance-mode: the parser design is not convenient - dont show the parser confirmation element as popup (i noticed it on android ) because it failing on-demand visual comparison
-
-7. the selection from  favorite languages - which subtitles to show should be beside the video and not part of the languages section.
-
-8. the languages selection vs per language settings (tts-rate, tts-ratio) should be on different sections.
-
-9. the design of showing the favorite languages customizations and then there configured setting for each language - is a duplication of data. -> wherever showing each lang setup - a click should allow to edit it ! (use space effeciently!)
+AGENTS.md update - use new chat window for every sub-task!
+2. go on
 ```
-
 
 
 

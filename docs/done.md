@@ -1,5 +1,12 @@
 # Done tasks
 
+## Task 200: Mark YouTube-Translated Subtitle Tracks
+
+- Added a translation-origin detector to recognize YouTube timedtext URLs that use `tlang`, and centralized the logic in `src/lib/subtitle-fetch-plan.ts`.
+- Propagated the detected translation metadata through the web-demo subtitle loader and the in-memory subtitle table columns so only actual YouTube translation tracks get the translation badge.
+- Updated the subtitle table headers to display a compact language icon next to translated tracks and added the focused regression verifier `scripts/verify-youtube-translation-indicator.ts`.
+- Verification: `npm run test:youtube-translation-indicator` PASS; `npm run build` PASS; ESLint on the changed files reported 0 errors with only two pre-existing useCallback/useEffect hook dependency warnings in `src/routes/index.tsx`.
+
 ## Task 197: Prevent Subtitle Text Crossing Language Columns (Version 2.0.6)
 
 - Added `subtitleTextForColumn`, which only returns the subtitle text for an exact own language key, and used it for rendered text and per-cell TTS.

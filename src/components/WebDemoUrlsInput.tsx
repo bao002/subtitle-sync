@@ -3,7 +3,11 @@ import { Button } from "./ui/button";
 import { parseVideoId, parseJson3 } from "../lib/native-captions";
 import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
 import { extractVideoIdFromSubtitlesUrl } from "../utils/urlStateManager";
-import { fetchViaServer, getFetchServerUrl } from "../lib/subtitle-fetch-plan";
+import {
+  fetchViaServer,
+  getFetchServerUrl,
+  isYouTubeTranslatedSubtitle,
+} from "../lib/subtitle-fetch-plan";
 import { Json3 } from "../types";
 import {
   RefreshCw,
@@ -21,6 +25,7 @@ export interface WebDemoUrlsInputProps {
     videoId: string;
     tracks: Record<string, Json3>;
     observedUrl?: string;
+    youtubeTranslatedLanguages?: string[];
   }) => void;
   className?: string;
 }
@@ -181,6 +186,7 @@ export function WebDemoUrlsInput({
 
     const loadedTracks: Record<string, Json3> = {};
     const successLangs: string[] = [];
+    const youtubeTranslatedLanguages = new Set<string>();
     const failedLangs: string[] = [];
     const serverUrl = getFetchServerUrl();
 
@@ -212,6 +218,9 @@ export function WebDemoUrlsInput({
         if (parsed && isValidJsonSubtitleResponse(parsed)) {
           loadedTracks[entry.lang] = parsed;
           successLangs.push(entry.lang);
+          if (isYouTubeTranslatedSubtitle(entry.url, entry.lang)) {
+            youtubeTranslatedLanguages.add(entry.lang);
+          }
         } else {
           failedLangs.push(entry.lang);
         }
@@ -237,6 +246,7 @@ export function WebDemoUrlsInput({
         videoId: extractedVideoId,
         tracks: loadedTracks,
         observedUrl: lines[0]?.startsWith("http") ? lines[0] : undefined,
+        youtubeTranslatedLanguages: Array.from(youtubeTranslatedLanguages),
       });
     } else {
       setStatusType("error");

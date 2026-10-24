@@ -75,6 +75,7 @@
     "test:strict-json3-validation": "tsx scripts/verify-strict-json3-only-validation.ts",
     "test:favorite-dynamic-fetch": "tsx scripts/verify-favorite-lang-dynamic-fetch.ts",
     "test:subtitle-toast": "tsx scripts/verify-subtitle-toast.ts",
+    "test:youtube-translation-indicator": "tsx scripts/verify-youtube-translation-indicator.ts",
     "test:network-inspector": "tsx scripts/verify-network-inspector.ts",
     "test:workflows": "tsx scripts/verify-workflows-alignment.ts",
     "test:doc-contracts": "tsx scripts/verify-doc-contracts.ts",
