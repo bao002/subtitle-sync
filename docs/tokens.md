@@ -4,9 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-## Active Task: None (Task 193 Completed & Migrated to `docs/done.md`)
+## Active Task: Task 194 - Fix setBaseLanguage ReferenceError and Type Integrity (Version 2.0.3)
 
-- All active tasks completed, verified, and logged in `docs/done.md`.
+- Sub-task 194.1: Bump version to 2.0.3 across all 5 targets and record last raw prompt in AGENTS.md.
+- Sub-task 194.2: Implement `setBaseLanguage` state callback, fix YTPlayer `loadVideoById`, fix criteria type in index.tsx, and fix missing `HelpCircle` in `AiSubtitlePunctuationTab.tsx`.
+- Sub-task 194.3: Create automated verification test `scripts/verify-set-base-language-fix.ts`, run tests, compile, lint, commit, and migrate to `docs/done.md`.
 
 ---
 

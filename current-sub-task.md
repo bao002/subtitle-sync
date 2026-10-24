@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: None (Active backlog in `docs/tasks.md` is empty).
-- **Status**: IDLE / COMPLETE.
-- **Target**: All prompt tasks completed, tested, and migrated to `docs/done.md`.
+- **Active Subtask**: Sub-task 194.2: Implement `setBaseLanguage` state callback, fix YTPlayer `loadVideoById`, fix criteria type in index.tsx, and fix missing `HelpCircle` in `AiSubtitlePunctuationTab.tsx`.
+- **Status**: IN PROGRESS.
+- **Target**: Eliminate `ReferenceError: setBaseLanguage is not defined` runtime error and TypeScript typing issues.
