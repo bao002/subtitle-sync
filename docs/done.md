@@ -1,5 +1,10 @@
 # Done tasks
 
+### Hotfix: Remove duplicate subtitle track ref declaration
+
+- Reused the route's existing synchronized `tracksRef` instead of declaring a second ref.
+- Verification: `npm run lint` and `npm run build` passed.
+
 ## Task 227: Stabilize playback and keep web-demo video input playable (Version 2.0.13)
 
 - Removed `isVideoPlaying` from the YouTube player's lifecycle effect dependencies. Playback state changes no longer destroy and recreate the player, preventing Android playback restarts and the web player resetting to paused.

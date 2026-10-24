@@ -121,6 +121,12 @@ import {
 import { LanguageBoxesSelector } from "@/components/LanguageBoxesSelector";
 import { LanguageSubtitleUrlModal } from "@/components/LanguageSubtitleUrlModal";
 import {
+  addUniqueSubtitleColumn,
+  findFetchedSubtitleLanguage,
+  mergeOnDemandSubtitleRows,
+  subtitleLanguageIdentity,
+} from "@/utils/subtitleLanguageColumns";
+import {
   getAudioTrackMode,
   setAudioTrackMode,
   repeatSegmentWithAudioTrack,
@@ -2946,10 +2952,9 @@ function Index() {
   );
 
   const rows = useMemo<Row[]>(() => {
-    if (!rawRows || rawRows.length === 0) return rawRows;
-    return rawRows.map((r, idx) => {
+    const cleanedRows = rawRows.map((row) => {
       let changed = false;
-      const texts = { ...r.texts };
+      const texts = { ...row.texts };
       for (const [lang, text] of Object.entries(texts)) {
         const cleaned = removeAngleBrackets(text);
         if (cleaned !== text) {
@@ -2957,31 +2962,31 @@ function Index() {
           changed = true;
         }
       }
-      for (const [lang, map] of Object.entries(onDemandTranslations)) {
-        if ((!texts[lang] || texts[lang].trim().length === 0) && map[idx]) {
-          texts[lang] = removeAngleBrackets(map[idx]);
-          changed = true;
-        }
-      }
-      return changed ? { ...r, texts } : r;
+      return changed ? { ...row, texts } : row;
     });
-  }, [rawRows, onDemandTranslations]);
+    return mergeOnDemandSubtitleRows(cleanedRows, onDemandTranslations, tracks);
+  }, [rawRows, onDemandTranslations, tracks]);
 
   // Clear on-demand translations when full authentic YouTube subtitles arrive for a language
   useEffect(() => {
-    if (tracks) {
-      Object.keys(tracks).forEach((code) => {
-        if (tracks[code]?.events && tracks[code]!.events!.length > 0) {
+    if (!tracks) return;
+    Object.keys(tracks).forEach((code) => {
+      if (tracks[code]?.events && tracks[code]!.events!.length > 0) {
+        clearOnDemandTranslations(videoId, code);
+      }
+    });
+    setOnDemandTranslations((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      Object.keys(next).forEach((code) => {
+        if (findFetchedSubtitleLanguage(tracks, code)) {
           clearOnDemandTranslations(videoId, code);
-          setOnDemandTranslations((prev) => {
-            if (!prev[code]) return prev;
-            const next = { ...prev };
-            delete next[code];
-            return next;
-          });
+          delete next[code];
+          changed = true;
         }
       });
-    }
+      return changed ? next : prev;
+    });
   }, [tracks, videoId]);
 
   // Translate next X=10 sentences ahead on demand until YouTube timedtext subtitles arrive
@@ -2991,11 +2996,7 @@ function Index() {
 
     const pendingLangs = Array.from(
       new Set([...targetLanguages, ...favoriteLanguages, ...spoken, ...shown]),
-    ).filter(
-      (code) =>
-        code !== baseLanguage &&
-        (!tracks || !tracks[code] || !tracks[code]?.events || tracks[code]!.events!.length === 0),
-    );
+    ).filter((code) => code !== baseLanguage && !findFetchedSubtitleLanguage(tracks, code));
 
     if (pendingLangs.length === 0) return;
 
@@ -3011,7 +3012,9 @@ function Index() {
         startIndex,
         sentencesAhead: onDemandAheadCount,
         onSentenceTranslated: (idx, trans) => {
+          if (findFetchedSubtitleLanguage(tracksRef.current, targetLang)) return;
           setOnDemandTranslations((prev) => {
+            if (findFetchedSubtitleLanguage(tracksRef.current, targetLang)) return prev;
             const lMap = prev[targetLang] || {};
             if (lMap[idx] === trans) return prev;
             return {
@@ -3786,7 +3789,7 @@ function Index() {
       tts: string;
       isYouTubeTranslated?: boolean;
     }> = [];
-    const addedCodes = new Set<string>();
+    const addedLanguageKeys = new Set<string>();
     const translatedSet = new Set(youtubeTranslatedLanguages.map((lang) => lang.toLowerCase()));
 
     const hasTrackCues = (t: Json3 | undefined): boolean => {
@@ -3803,7 +3806,7 @@ function Index() {
     };
 
     const determineColumnSource = (code: string) => {
-      const hasRealTrack = tracks?.[code] && hasTrackCues(tracks[code]);
+      const hasRealTrack = findFetchedSubtitleLanguage(tracks, code);
       const hasOnDemand = hasOnDemandCues(code);
       return {
         isYouTubeOrJson: Boolean(hasRealTrack),
@@ -3812,41 +3815,41 @@ function Index() {
     };
 
     const withTranslationBadge = (meta: { code: string; name: string; tts: string }) => {
-      const source = determineColumnSource(meta.code);
+      const trackCode = findFetchedSubtitleLanguage(tracks, meta.code);
+      const columnMeta = trackCode ? getLanguageMeta(trackCode) : meta;
+      const source = determineColumnSource(columnMeta.code);
       return {
-        ...meta,
-        isYouTubeTranslated: translatedSet.has(meta.code.toLowerCase()),
+        ...columnMeta,
+        isYouTubeTranslated:
+          translatedSet.has(columnMeta.code.toLowerCase()) ||
+          translatedSet.has(meta.code.toLowerCase()),
         isYouTubeOrJson: source.isYouTubeOrJson,
         isOnDemandTranslation: source.isOnDemandTranslation,
       };
+    };
+    const addColumn = (column: ReturnType<typeof withTranslationBadge>) => {
+      addUniqueSubtitleColumn(list, column);
+      addedLanguageKeys.add(subtitleLanguageIdentity(column.code));
     };
 
     // 1. If baseLanguage from video captions exists in tracks, display it first
     // Spec: verify base track cues (tracks[baseLanguage].length > 0 || hasTrackCues)
     if (baseLanguage && tracks?.[baseLanguage] && hasTrackCues(tracks[baseLanguage])) {
-      list.push(withTranslationBadge(getLanguageMeta(baseLanguage)));
-      addedCodes.add(baseLanguage);
+      addColumn(withTranslationBadge(getLanguageMeta(baseLanguage)));
     }
 
     // 2. Add all ordered languages that are shown in the table
     // Spec: include any shown languages from targetLanguages, favoriteLanguages, loaded tracks (tracks[l.code].length > 0 || hasTrackCues), or on-demand translations
     for (const l of orderedLangs) {
       if (
-        !addedCodes.has(l.code) &&
+        !addedLanguageKeys.has(subtitleLanguageIdentity(l.code)) &&
         shown.includes(l.code) &&
         (targetLanguages.includes(l.code) ||
           favoriteLanguages.includes(l.code) ||
           (tracks ? Boolean(tracks[l.code]) : true) ||
           hasOnDemandCues(l.code))
       ) {
-        const source = determineColumnSource(l.code);
-        list.push({
-          ...l,
-          isYouTubeTranslated: translatedSet.has(l.code.toLowerCase()),
-          isYouTubeOrJson: source.isYouTubeOrJson,
-          isOnDemandTranslation: source.isOnDemandTranslation,
-        });
-        addedCodes.add(l.code);
+        addColumn(withTranslationBadge(l));
       }
     }
 
@@ -3854,9 +3857,12 @@ function Index() {
     // Spec: verify fallback track cues (tracks[code]?.length > 0 || hasTrackCues)
     if (tracks) {
       for (const code of Object.keys(tracks)) {
-        if (!addedCodes.has(code) && shown.includes(code) && hasTrackCues(tracks[code])) {
-          list.push(withTranslationBadge(getLanguageMeta(code)));
-          addedCodes.add(code);
+        if (
+          !addedLanguageKeys.has(subtitleLanguageIdentity(code)) &&
+          shown.includes(code) &&
+          hasTrackCues(tracks[code])
+        ) {
+          addColumn(withTranslationBadge(getLanguageMeta(code)));
         }
       }
     }
@@ -3864,9 +3870,8 @@ function Index() {
     // 4. Ultimate fallback: if no columns matched shown filter yet tracks exist with cues, include them
     if (list.length === 0 && tracks) {
       for (const code of Object.keys(tracks)) {
-        if (!addedCodes.has(code) && hasTrackCues(tracks[code])) {
-          list.push(withTranslationBadge(getLanguageMeta(code)));
-          addedCodes.add(code);
+        if (!addedLanguageKeys.has(subtitleLanguageIdentity(code)) && hasTrackCues(tracks[code])) {
+          addColumn(withTranslationBadge(getLanguageMeta(code)));
         }
       }
     }

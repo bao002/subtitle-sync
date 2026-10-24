@@ -1,6 +1,7 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: Completed and archived.
-- **Completed Task**: Task 227 — Stabilize playback and keep web-demo video input playable.
-- **Verification**: `./docker/manage.sh e2e web` passed all 3 browser E2E tests; focused playback E2E, lifecycle verifier, lint, build, version-parity, and Markdown checks passed.
-- **Next Action**: Android API 34 playback E2E remains platform-blocked and is recorded as Task 228 in `docs/tasks.md` and `docs/later.md`.
+- **Status**: In progress.
+- **Active Task**: Task 229 — Replace on-demand language columns with fetched subtitle tracks.
+- **Scope**: Keep one column per language and ensure any valid fetched track replaces on-demand data, including alias codes and late callback races.
+- **Completed Hotfix**: Removed the duplicate `tracksRef` declaration that blocked compilation; lint and production build now pass.
+- **Next Action**: Resume regression tests and address any failures in the feature implementation.
