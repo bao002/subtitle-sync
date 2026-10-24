@@ -54,6 +54,16 @@
                 <data android:host="m.youtube.com" />
                 <data android:host="youtu.be" />
             </intent-filter>
+            <!-- Allow shared web-demo state links to open directly in the app -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="mostuf2556.github.io"
+                    android:pathPrefix="/subtitle-sync" />
+            </intent-filter>
         </activity>
 
         <!-- MediaSession Foreground Service for screen-off & background audio playback -->

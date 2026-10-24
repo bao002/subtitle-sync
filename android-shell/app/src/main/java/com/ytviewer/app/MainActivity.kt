@@ -443,6 +443,15 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (!sharedText.isNullOrBlank()) {
             val querySuffix = buildQuerySuffix(sharedText)
             Log.i(TAG, "Navigating to shared URL via local asset domain: https://$LOCAL_ASSET_DOMAIN/index.html$querySuffix")
+            val sharedDemoUri = extractDemoShareUri(sharedText)
+            if (sharedDemoUri != null) {
+                val targetVideoId = extractYouTubeVideoId(sharedText) ?: "vBURridJXZ0"
+                lastObservedTimedTextUrl = null
+                lastObservedHeaders.clear()
+                webView.loadUrl("https://$LOCAL_ASSET_DOMAIN/index.html$querySuffix")
+                proactiveDetectSubtitles(targetVideoId)
+                return
+            }
             val target = extractYouTubeVideoId(sharedText) ?: sharedText
             val targetVideoId = extractYouTubeVideoId(sharedText) ?: "vBURridJXZ0"
             lastObservedTimedTextUrl = null
@@ -469,22 +478,28 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private fun extractSharedText(intent: Intent?): String? {
         if (intent == null) return null
-        val extraText = intent.getStringExtra(Intent.EXTRA_TEXT)
-            ?: intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
-            ?: intent.getStringExtra(Intent.EXTRA_SUBJECT)
-        if (!extraText.isNullOrBlank()) return extraText.trim()
+        val candidates = mutableListOf<String>()
+        try {
+            intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()?.let(candidates::add)
+            intent.getStringExtra(Intent.EXTRA_SUBJECT)?.let(candidates::add)
+        } catch (e: Exception) {
+            Log.w(TAG, "Unable to read shared text extras: ${e.message}")
+        }
 
         val clipData = intent.clipData
         if (clipData != null && clipData.itemCount > 0) {
-            val item = clipData.getItemAt(0)
-            val clipText = item.text?.toString() ?: item.uri?.toString()
-            if (!clipText.isNullOrBlank()) return clipText.trim()
+            for (index in 0 until clipData.itemCount) {
+                val item = clipData.getItemAt(index)
+                item.text?.toString()?.let(candidates::add)
+                item.uri?.toString()?.let(candidates::add)
+            }
         }
 
         val dataString = intent.dataString ?: intent.data?.toString()
-        if (!dataString.isNullOrBlank()) return dataString.trim()
+        dataString?.let(candidates::add)
 
-        return null
+        return candidates.firstOrNull { extractDemoShareUri(it) != null }?.trim()
+            ?: candidates.firstOrNull { it.isNotBlank() }?.trim()
     }
 
     private fun extractYouTubeVideoId(input: String?): String? {
@@ -509,10 +524,33 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         if (rawText.isNullOrBlank() || rawText.trim() == "null" || rawText.trim() == "undefined") {
             return ""
         }
+        val sharedDemoUri = extractDemoShareUri(rawText)
+        if (sharedDemoUri != null) {
+            val query = sharedDemoUri.encodedQuery.orEmpty()
+            val completeQuery = when {
+                query.isEmpty() -> "android=true"
+                sharedDemoUri.getQueryParameterNames().contains("android") -> query
+                else -> "$query&android=true"
+            }
+            return "?$completeQuery"
+        }
         val videoId = extractYouTubeVideoId(rawText)
         return when {
             !videoId.isNullOrBlank() -> "?v=$videoId&android=true"
             else -> "?url=" + android.net.Uri.encode(rawText) + "&android=true"
+        }
+    }
+
+    private fun extractDemoShareUri(rawText: String?): android.net.Uri? {
+        if (rawText.isNullOrBlank()) return null
+        return Regex("https?://[^\\s<>]+", RegexOption.IGNORE_CASE)
+            .findAll(rawText)
+            .mapNotNull { match ->
+                android.net.Uri.parse(match.value.trimEnd('.', ',', ';', ':', ')', ']', '}'))
+            }
+            .firstOrNull { uri ->
+                uri.host.equals("mostuf2556.github.io", ignoreCase = true) &&
+                    uri.path?.trimEnd('/') == "/subtitle-sync"
         }
     }
 
@@ -624,7 +662,7 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun dispatchToJavaScript(url: String, rawData: String, contentType: String, status: Int) {
-        val uri = try { android.net.Uri.parse(url) } catch (_: Exception) { null }
+        val uri = try { android.net.Uri.parse(url) } catch (exception: Exception) { null }
         val lang = uri?.getQueryParameter("tlang") ?: uri?.getQueryParameter("lang") ?: "unknown"
         val cuesCount = countCaptionCues(rawData)
         val sampleText = extractCaptionSampleText(rawData)

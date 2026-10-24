@@ -155,6 +155,11 @@ assert(
   "AndroidManifest.xml must filter youtu.be domain",
 );
 assert(
+  manifestContent.includes('android:host="mostuf2556.github.io"') &&
+    manifestContent.includes('android:pathPrefix="/subtitle-sync"'),
+  "AndroidManifest.xml must route demo-web share links to the app",
+);
+assert(
   manifestContent.includes('android:launchMode="singleTask"'),
   "AndroidManifest.xml must specify singleTask launchMode to reuse active activity",
 );
