@@ -137,26 +137,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-Fix the errors in the app
-[AIS_METADATA_SECTION_START]
-fix_it_trigger: manual
-error 0: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load setBaseLanguage is not defined
-error 1: [APP_PAGE_ERROR] This page didn't load: setBaseLanguage is not defined
-error 2: ReferenceError: setBaseLanguage is not defined
-    at https://ais-dev-a3mdfqx4p5mgzs5uev4uj6-82169901332.europe-west3.run.app/src/routes/index.tsx:2484:5
-    at startTransition (https://ais-dev-a3mdfqx4p5mgzs5uev4uj6-82169901332.europe-west3.run.app/node_modules/.vite/deps/react-dom_client.js?v=9513d139:5189:23)
-    at https://ais-dev-a3mdfqx4p5mgzs5uev4uj6-82169901332.europe-west3.run.app/src/routes/index.tsx:2453:3
-    at https://ais-dev-a3mdfqx4p5mgzs5uev4uj6-82169901332.europe-west3.run.app/src/components/WebDemoUrlsInput.tsx:202:4
-error 3: %o
-
-%s
-
-%s ReferenceError: setBaseLanguage is not defined
-    at https://ais-dev-a3mdfqx4p5mgzs5uev4uj6-82169901332.europe-west3.run.app/src/routes/index.tsx:2484:5
-    at startTransition (https://ais-dev-a3mdfqx4p5mgzs5uev4uj6-82169901332.europe-west3.run.app/node_modules/.vite/deps/react-dom_client.js?v=9513d139:5189:23)
-    at https://ais-dev-a3mdfqx4p5mgzs5uev4uj6-82169901332.europe-west3.run.app/src/routes/index.tsx:2453:3
-    at https://ais-dev-a3mdfqx4p5mgzs5uev4uj6-82169901332.europe-west3.run.app/src/components/WebDemoUrlsInput.tsx:202:4 The above error occurred in the <Index> component. React will try to recreate this component tree from scratch using the error boundary you provided, CatchBoundaryImpl.
-[AIS_METADATA_SECTION_END]
+git commit and push
 ```
 
 

@@ -48,7 +48,7 @@ assert.ok(
   `appSettings.ts must declare version ${expectedVersion}`,
 );
 
-console.log("✅ PASS: Version 1.0.25 strictly aligned across all target files.");
+console.log(`✅ PASS: Version ${expectedVersion} strictly aligned across all target files.`);
 
 // 2. Component Structure Check: src/components/WebDemoUrlsInput.tsx
 console.log("\n🧩 Section 2: Modular WebDemoUrlsInput Component Structure");
@@ -87,6 +87,16 @@ assert.ok(
 assert.ok(
   componentSource.includes("parseVideoId"),
   "WebDemoUrlsInput must parse and validate YouTube video URLs/IDs",
+);
+assert.ok(
+  componentSource.includes("useEffect(() => {") &&
+    componentSource.includes('setSubtitlesUrlsInput(initialObservedUrl || "")') &&
+    componentSource.includes("[initialObservedUrl, currentVideoId]"),
+  "WebDemoUrlsInput must sync late-arriving shared subtitle URLs into the input",
+);
+assert.ok(
+  componentSource.includes("entriesToFetch.push({ lang: originalLang, url: baseUrl })"),
+  "A single timedtext share URL must be fetched unchanged before generated target-language URLs",
 );
 console.log("✅ PASS: WebDemoUrlsInput component correctly structured with all required controls.");
 
