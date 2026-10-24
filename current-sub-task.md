@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Active Subtask**: Task 207.1 - refresh `docs/suggestions.md` and align backlog state with verified subtitle fixes.
-- **Status**: ACTIVE.
-- **Next**: Update the suggestions doc, reconcile the tracker mirrors, run the targeted verification script, and then commit/push the backlog sync.
+- **Active Subtask**: None. Task 207 has been reconciled and archived.
+- **Status**: COMPLETED.
+- **Next**: Confirm the backlog mirrors are synchronized with `docs/done.md`, run the final tracker sanity check, and leave the worktree ready for commit/push.

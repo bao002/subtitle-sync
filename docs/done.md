@@ -1,5 +1,12 @@
 # Done tasks
 
+## Task 207: Reconcile backlog state with verified subtitle integrity fixes
+
+- Refreshed the task ledger and `docs/suggestions.md` to reflect the verified live fixes for subtitle-column isolation, Hebrew alias normalization, default-track TTS exclusion, translation badges, angle-bracket sanitization, expert-mode UX cleanup, and resumable-agent tracking.
+- Confirmed the stale HOLD state should be reconciled rather than reopened; the live worktree already reflects the resolved `setBaseLanguage`, `loadVideoById`, and `HelpCircle` fixes.
+- Archived the completed task state so the active backlog is clean and the mirrors are synchronized with the confirmed implementation history.
+- Verification: `git diff --check` PASS; targeted tracker audit confirms Task 194 and Tasks 197–206 are archived in `docs/done.md`, and the active backlog no longer carries stale in-flight work.
+
 ## Task 206: Make Agent Work Resumable After Session Interruption
 
 - Clarified in `AGENTS.md` and `docs/tokens.md` that resumed work must reconcile task trackers with the worktree and must not resume tasks already archived as complete.

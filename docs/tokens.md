@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: reconcile the backlog with the verified subtitle-language integrity fixes and continue from the current live task state, while keeping the instruction set lean and the task trackers synchronized with the worktree.
+Current active workstream: finalize the backlog reconciliation for the verified subtitle-language integrity fixes and archive the completed task state, while keeping the instruction set lean and the task trackers synchronized with the worktree.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 
