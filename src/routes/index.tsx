@@ -192,6 +192,10 @@ import {
 } from "@/utils/newSubtitlesParser";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
 import { PerLanguageTtsPreferences } from "@/components/beginner/PerLanguageTtsPreferences";
+import {
+  BeginnerTtsServiceControl,
+  type BeginnerTtsService,
+} from "@/components/beginner/BeginnerTtsServiceControl";
 import { getPlaybackSectionId } from "@/lib/playback-section-identity";
 
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
@@ -4315,6 +4319,30 @@ function Index() {
               setSpoken((prev) => [...prev, lang]);
             }
           }}
+          ttsServiceControlsSlot={
+            <BeginnerTtsServiceControl
+              service={
+                useAlternativeTtsState &&
+                alternativeTtsModeState === "always" &&
+                lovableTtsProviderState === "google"
+                  ? "google"
+                  : "native"
+              }
+              onServiceChange={(service: BeginnerTtsService) => {
+                if (service === "google") {
+                  setLovableTtsProviderState("google");
+                  setLovableTtsProvider("google");
+                  setAlternativeTtsModeState("always");
+                  setAlternativeTtsMode("always");
+                  setUseAlternativeTtsState(true);
+                  setUseAlternativeTts(true);
+                  return;
+                }
+                setUseAlternativeTtsState(false);
+                setUseAlternativeTts(false);
+              }}
+            />
+          }
           perLanguageTtsSettingsSlot={
             <PerLanguageTtsPreferences
               languages={orderedLangs.filter(

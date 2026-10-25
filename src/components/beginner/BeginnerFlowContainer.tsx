@@ -23,6 +23,7 @@ export interface BeginnerFlowContainerProps {
   onLoadSampleSubtitles?: () => void;
   playerSlot?: React.ReactNode;
   playbackControlsSlot?: React.ReactNode;
+  ttsServiceControlsSlot?: React.ReactNode;
   charsRemovalSlot?: React.ReactNode;
   subtitlesTableSlot?: React.ReactNode;
   perLanguageTtsSettingsSlot?: React.ReactNode;
@@ -51,6 +52,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   onLoadSampleSubtitles,
   playerSlot,
   playbackControlsSlot,
+  ttsServiceControlsSlot,
   charsRemovalSlot,
   subtitlesTableSlot,
   perLanguageTtsSettingsSlot,
@@ -172,6 +174,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             onTargetLanguagesChange={onTargetLanguagesChange}
             playerSlot={playerSlot}
             playbackControlsSlot={playbackControlsSlot}
+            ttsServiceControlsSlot={ttsServiceControlsSlot}
             charsRemovalSlot={charsRemovalSlot}
             subtitlesTableSlot={subtitlesTableSlot}
             subtitlesRatio={subtitlesRatio}

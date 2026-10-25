@@ -14,6 +14,14 @@
 - Added focused Docker Playwright coverage for per-language controls, language-specific voice options, and ratio/rate/voice persistence.
 - Verification passed: `./docker/manage.sh e2e web --grep "Beginner preferences persist ratio" --retries=0`, `npm run test:beginner-mode`, `npm run test:no-repeated-video-section-after-tts`, `npm run build`, `npm run lint`, focused Prettier checks, and `git diff --check`.
 
+## Task 240.3: Add direct Native/Google TTS selection under the video (Version 2.0.22)
+
+- Added a daily-use service selector directly below the video controls. Selecting Google sets the existing alternative TTS provider to Google, enables it, and selects `always` mode so it is the primary service; Native explicitly disables the alternative service.
+- Kept voice choices language-specific in Beginner General Preferences, and verified Italian options are not restricted to Hebrew voices.
+- Synchronized app metadata to 2.0.22 / Android versionCode 20022 across package files, Gradle, app config, the APK updater, and app-state exports.
+- Verification passed: focused Docker Playwright tests for per-language settings and Native/Google selection, `npm run test:beginner-mode`, `npm run test:v2-version-bump`, `npm run test:alternative-tts-providers-switching`, `npm run build`, `npm run lint`, `npm run test:md`, focused Prettier checks, and `git diff --check`.
+- GitHub Actions history could not be inspected because GitHub CLI authentication is unavailable in this environment.
+
 ## Task 239: Simplify Beginner mode into General Preferences and Daily Video (Version 2.0.21)
 
 - Reduced Beginner navigation to two flows: General Preferences and Daily Video. The daily view now combines the video, favorite-language quick selector, sanitization accordion, shared parser controls, and parallel subtitle table.

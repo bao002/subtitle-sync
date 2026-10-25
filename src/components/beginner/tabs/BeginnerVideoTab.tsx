@@ -35,6 +35,7 @@ export interface BeginnerVideoTabProps {
   onLoadSampleSubtitles?: () => void;
   playerSlot?: React.ReactNode;
   playbackControlsSlot?: React.ReactNode;
+  ttsServiceControlsSlot?: React.ReactNode;
   charsRemovalSlot?: React.ReactNode;
   subtitlesTableSlot?: React.ReactNode;
   favoriteLanguages: string[];
@@ -59,6 +60,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   onLoadSampleSubtitles,
   playerSlot,
   playbackControlsSlot,
+  ttsServiceControlsSlot,
   charsRemovalSlot,
   subtitlesTableSlot,
   favoriteLanguages,
@@ -249,6 +251,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             </div>
           </div>
         )}
+        {playerSlot && ttsServiceControlsSlot}
         {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}
       </div>
 

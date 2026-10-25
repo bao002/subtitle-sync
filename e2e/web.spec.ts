@@ -205,6 +205,46 @@ test("Beginner preferences persist ratio, speed, and voice per favorite language
   expect(savedPreferences.voices.it).toBe("italian-test-voice");
 });
 
+test("Daily Video switches between native speech and primary Google TTS", async ({ page }) => {
+  await page.goto("./");
+  await page.getByTestId("beginner-tab-video").click();
+
+  const serviceControl = page.getByTestId("beginner-tts-service-control");
+  const nativeService = page.getByTestId("beginner-tts-service-native");
+  const googleService = page.getByTestId("beginner-tts-service-google");
+  await expect(serviceControl).toBeVisible();
+  await expect(nativeService).toBeChecked();
+
+  const serviceFollowsVideoControls = await serviceControl.evaluate((control) => {
+    const controls = document.querySelector('[data-testid="video-display-controls"]');
+    return controls
+      ? Boolean(controls.compareDocumentPosition(control) & Node.DOCUMENT_POSITION_FOLLOWING)
+      : false;
+  });
+  expect(serviceFollowsVideoControls).toBe(true);
+
+  await googleService.check();
+  await expect(googleService).toBeChecked();
+  const googleSettings = await page.evaluate(() => ({
+    enabled: localStorage.getItem("yt_use_alternative_tts_v1"),
+    mode: localStorage.getItem("yt_alternative_tts_mode_v1"),
+    provider: localStorage.getItem("yt_alternative_tts_lovable_provider_v1"),
+  }));
+  expect(googleSettings).toEqual({
+    enabled: "true",
+    mode: "always",
+    provider: "google",
+  });
+
+  await page.reload();
+  await expect(page.getByTestId("beginner-tts-service-google")).toBeChecked();
+  await page.getByTestId("beginner-tts-service-native").check();
+  await expect(page.getByTestId("beginner-tts-service-native")).toBeChecked();
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem("yt_use_alternative_tts_v1")))
+    .toBe("false");
+});
+
 test("web-demo video input remains playable without recreating the YouTube player", async ({
   page,
 }) => {

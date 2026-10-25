@@ -4,9 +4,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 240.3: Add explicit native/Google TTS selection under the video**
-  - Add a direct Native vs Google TTS selection below the video (Google must not be fallback-only), ensure native voice choices reflect each target language rather than only Hebrew, add focused tests, and synchronize app version metadata.
-
 ## Later Tasks
 
 - [ ] **Task 234: Capture authentic shared-video subtitle E2E**
