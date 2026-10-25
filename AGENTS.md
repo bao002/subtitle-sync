@@ -151,7 +151,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-beginner mode - show 2 flows:
-1. general preferences
-2. video+from-favorites-lang-selector+parallel-subtitles-table-view(with parser on top)+controls under the video:show-overlay-enable-or-disable , show-overlay-size-plus-minus
+1. it happends that a video section repeat itself after the tts-play finishes and this loop continue forever for the same video sequence.
+
+2. beginner mode: preferences must contain per-language settings (tts-ratio, tts-speed, available-voices-per-lang)
+
+3. under the video - missing contol to switch between native tts voice to the default service (google)[not-as-fallback] (fix: dont show only hebrew voice)
 ```

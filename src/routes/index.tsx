@@ -191,6 +191,7 @@ import {
   DEFAULT_SIMPLE_PARSER_CONFIG,
 } from "@/utils/newSubtitlesParser";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
+import { getPlaybackSectionId } from "@/lib/playback-section-identity";
 
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
 import {
@@ -3024,14 +3025,14 @@ function Index() {
   const lastRow = useRef(-1);
   const handledRow = useRef(-1);
   const lastMs = useRef(0);
-  const playedTtsRecords = useRef<Set<number>>(new Set());
+  const playedTtsRecords = useRef<Set<string>>(new Set());
   const [playedRecordsCount, setPlayedRecordsCount] = useState(0);
 
   useEffect(() => {
     playedTtsRecords.current.clear();
     handledRow.current = -1;
     setPlayedRecordsCount(0);
-  }, [videoId, rows]);
+  }, [videoId]);
 
   const handleSwitchToViewerAtTime = useCallback(
     (timeSec: number) => {
@@ -3350,16 +3351,13 @@ function Index() {
       lastRow.current = idx;
 
       const getEligibleLangs = (rowIdx: number) => {
-        if (rowIdx < 0 || playedTtsRecords.current.has(rowIdx)) return [];
+        if (rowIdx < 0 || playedTtsRecords.current.has(getPlaybackSectionId(rows[rowIdx]!)))
+          return [];
         const matched = orderedLangs.filter(
           (l) =>
             isTtsSpeakableLanguage(l.code, currentBaseLanguage) &&
             spoken.includes(l.code) &&
-            isSubtitleInstanceEligibleForTTS(
-              rowIdx,
-              currentTtsRatios?.[l.code] ?? 1,
-              playedTtsRecords.current,
-            ),
+            isSubtitleInstanceEligibleForTTS(rowIdx, currentTtsRatios?.[l.code] ?? 1),
         );
         if (matched.length > 0) return matched;
         // When audioTrackMode is enabled with no spoken languages selected,
@@ -3375,11 +3373,7 @@ function Index() {
             orderedLangs.find((l) => l.code !== currentBaseLanguage) || orderedLangs[0];
           if (
             fallbackLang &&
-            isSubtitleInstanceEligibleForTTS(
-              rowIdx,
-              currentTtsRatios?.[fallbackLang.code] ?? 1,
-              playedTtsRecords.current,
-            )
+            isSubtitleInstanceEligibleForTTS(rowIdx, currentTtsRatios?.[fallbackLang.code] ?? 1)
           ) {
             return [fallbackLang];
           }
@@ -3388,11 +3382,11 @@ function Index() {
       };
 
       const speakRow = async (rowIdx: number) => {
-        if (rowIdx < 0 || playedTtsRecords.current.has(rowIdx)) return;
+        if (rowIdx < 0 || playedTtsRecords.current.has(getPlaybackSectionId(rows[rowIdx]!))) return;
         const langs = getEligibleLangs(rowIdx);
         if (langs.length === 0) return;
         // Strictly skip this subtitles record from being TTS-played more than once
-        playedTtsRecords.current.add(rowIdx);
+        playedTtsRecords.current.add(getPlaybackSectionId(rows[rowIdx]!));
         setPlayedRecordsCount(playedTtsRecords.current.size);
         for (const l of langs) {
           if (!busy.current) break;
@@ -3440,7 +3434,7 @@ function Index() {
         if (
           idx >= 0 &&
           isPlaying &&
-          !playedTtsRecords.current.has(idx) &&
+          !playedTtsRecords.current.has(getPlaybackSectionId(rows[idx]!)) &&
           handledRow.current !== idx
         ) {
           handledRow.current = idx;
@@ -3468,7 +3462,7 @@ function Index() {
           prev >= 0 && (idx !== prev || ms >= (rows[prev]?.end ?? Infinity) - 80) ? prev : -1;
         if (
           candidateRow >= 0 &&
-          !playedTtsRecords.current.has(candidateRow) &&
+          !playedTtsRecords.current.has(getPlaybackSectionId(rows[candidateRow]!)) &&
           handledRow.current !== candidateRow
         ) {
           handledRow.current = candidateRow;
@@ -3617,7 +3611,7 @@ function Index() {
     busy.current = false;
     lastRow.current = i;
     handledRow.current = -1;
-    playedTtsRecords.current.delete(i);
+    playedTtsRecords.current.delete(getPlaybackSectionId(r));
     lastMs.current = r.start;
     setActive(i);
     player.current?.seekTo(r.start / 1000, true);

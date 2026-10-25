@@ -4,7 +4,10 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-No active tasks.
+- [ ] **Task 240.2: Add per-language Beginner TTS preferences**
+  - Show and persist each language's TTS ratio, speed, and available voices in General Preferences, preserving existing settings and voice-service behavior; add focused tests and commit before proceeding.
+- [ ] **Task 240.3: Add explicit native/Google TTS selection under the video**
+  - Provide a non-fallback Google TTS option alongside native voices, ensure voice options are not restricted to Hebrew, and expose it below the video; add focused tests and synchronize app version metadata.
 
 ## Later Tasks
 

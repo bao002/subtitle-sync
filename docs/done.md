@@ -1,5 +1,12 @@
 # Done tasks
 
+## Task 240.1: Prevent replay of the same video section after TTS
+
+- Fixed repeat-loop protection by tracking spoken subtitle sections with stable start/end timing identities rather than mutable row indexes.
+- Kept completed-section state across row-array updates, which can occur as on-demand translations arrive; it now resets when the video changes. Explicitly seeking a section still makes that section replayable.
+- Added `scripts/verify-no-repeated-video-section-after-tts.ts` and updated the related ratio/audio-time-section source checks to assert stable section identity.
+- Verification passed: `npm run test:no-repeated-video-section-after-tts`, `npm run test:tts-ratio`, `npm run test:audio-track-time-sections`, `npm run test:multi-video-audio-sync`, `npm run build`, `npm run lint`, focused ESLint/Prettier, and `git diff --check`.
+
 ## Task 239: Simplify Beginner mode into General Preferences and Daily Video (Version 2.0.21)
 
 - Reduced Beginner navigation to two flows: General Preferences and Daily Video. The daily view now combines the video, favorite-language quick selector, sanitization accordion, shared parser controls, and parallel subtitle table.

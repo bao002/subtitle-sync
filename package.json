@@ -117,6 +117,7 @@
     "test:fork-readme-links": "tsx scripts/verify-fork-readme-links.ts",
     "test:fork-ci-workflows": "tsx scripts/verify-fork-ci-workflows.ts",
     "test:tts-ratio": "tsx scripts/verify-tts-subtitles-ratio.ts",
+    "test:no-repeated-video-section-after-tts": "tsx scripts/verify-no-repeated-video-section-after-tts.ts",
     "test:multi-video-player": "tsx scripts/verify-multi-video-player-state.ts",
     "test:video-instances-swiper": "tsx scripts/verify-video-instances-swiper.ts",
     "test:multi-video-audio-sync": "tsx scripts/verify-multi-video-audio-sync.ts",

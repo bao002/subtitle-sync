@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: none. Task 239 (Beginner two-flow layout) is complete and archived in [`docs/done.md`](done.md).
+Current active subtask: Task 240.2 — expose per-language TTS ratio, speed, and voice preferences in Beginner General Preferences. Task 240.1 (duplicate video-section replay after TTS) is archived in [`docs/done.md`](done.md).
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 

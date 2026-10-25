@@ -261,14 +261,14 @@ assert.ok(
 
 // Assert fallback in getEligibleLangs
 assert.ok(
-  indexCode.includes("if (matched.length === 0 && isAudioTrackMode && spoken.length === 0)"),
+  indexCode.includes("if (isAudioTrackMode && spoken.length === 0)"),
   "src/routes/index.tsx must provide fallback when audioTrackMode is active and spoken is empty",
 );
 
 // Assert seek playedRecords cleanup
 assert.ok(
-  indexCode.includes("playedTtsRecords.current.delete(i);"),
-  "src/routes/index.tsx seek() must delete row from playedTtsRecords",
+  indexCode.includes("playedTtsRecords.current.delete(getPlaybackSectionId(r));"),
+  "src/routes/index.tsx seek() must delete the timed section from playedTtsRecords",
 );
 
 // Assert pre-seek guard in manager
