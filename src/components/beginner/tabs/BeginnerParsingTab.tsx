@@ -167,7 +167,11 @@ export const BeginnerParsingTab: React.FC<BeginnerParsingTabProps> = ({
   ]);
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto p-3" data-testid="beginner-parsing-tab">
+    <div
+      className="space-y-4 max-w-4xl mx-auto p-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/5"
+      data-testid="beginner-parsing-tab"
+      data-control-category="daily-usage"
+    >
       {/* Tab Header */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-1">
         <div className="flex items-center gap-2">

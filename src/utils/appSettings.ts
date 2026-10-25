@@ -266,7 +266,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 
   // Beginner Mode Defaults
   workflowMode: "beginner",
-  beginnerActiveTab: "video",
+  beginnerActiveTab: "preferences",
   beginnerTtsSpeed: 1.0,
   beginnerTtsVoice: "",
   beginnerSubtitlesRatio: 1.0,
@@ -484,7 +484,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "2.0.19",
+    version: "2.0.20",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {

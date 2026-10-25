@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.19";
+export const APP_VERSION = "2.0.20";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "b840e11";
 export const APP_VERSION_DESCRIPTION =
-  "YouTube playback initializes with the page origin (Version 2.0.19)";
+  "YouTube playback initializes with the page origin (Version 2.0.20)";
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 

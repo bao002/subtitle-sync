@@ -47,7 +47,6 @@ const COMMON_DEMO_LANGS = [
   { code: "pt-BR", name: "Portuguese (Português Brasil)" },
 ];
 
-
 export function WebDemoUrlsInput({
   currentVideoId,
   observedUrl: initialObservedUrl,
@@ -412,8 +411,9 @@ export function WebDemoUrlsInput({
 
   return (
     <div
-      className={`max-w-2xl mx-auto space-y-2 ${className}`}
+      className={`max-w-2xl mx-auto space-y-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-2 ${className}`}
       data-testid="web-demo-urls-input-container"
+      data-control-category="daily-usage"
     >
       {/* 1. Original Clean Single-Row Input Form (Preserves Old Design 100%) */}
       <form

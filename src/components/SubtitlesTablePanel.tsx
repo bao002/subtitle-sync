@@ -5,11 +5,7 @@ import { type Row, type Json3, subtitleColumnName } from "@/lib/subtitles";
 import { SubtitleRow, type SubtitleColumn } from "@/components/SubtitleRow";
 import { type SpeechProgress } from "@/components/HighlightedSubtitle";
 import { NewSubtitlesParserBar } from "@/components/NewSubtitlesParserBar";
-import {
-  SimpleParserConfig,
-  DEFAULT_SIMPLE_PARSER_CONFIG,
-} from "@/utils/newSubtitlesParser";
-
+import { SimpleParserConfig, DEFAULT_SIMPLE_PARSER_CONFIG } from "@/utils/newSubtitlesParser";
 
 export interface SubtitlesTablePanelProps {
   isAndroid: boolean;
@@ -35,7 +31,6 @@ export interface SubtitlesTablePanelProps {
   parserConfig?: SimpleParserConfig;
   onParserConfigChange?: (config: SimpleParserConfig) => void;
 }
-
 
 export function SubtitlesTablePanel({
   isAndroid,
@@ -71,7 +66,8 @@ export function SubtitlesTablePanel({
     <div
       id="subtitles-table-panel"
       data-testid="subtitles-table-panel"
-      className="max-h-[calc(100vh-8rem)] overflow-auto"
+      data-control-category="daily-usage"
+      className="max-h-[calc(100vh-8rem)] overflow-auto rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-1"
     >
       {isAndroid && rows.length > 0 && (
         <div

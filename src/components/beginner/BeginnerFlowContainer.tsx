@@ -95,7 +95,9 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   // Load initial settings
   const [settings, setSettings] = useState<AppSettings>(() => loadAppSettings());
 
-  const [activeTab, setActiveTab] = useState<BeginnerTabId>(settings.beginnerActiveTab || "video");
+  const [activeTab, setActiveTab] = useState<BeginnerTabId>(
+    settings.beginnerActiveTab || "preferences",
+  );
   const [selectedBaseLang, setSelectedBaseLang] = useState("");
   const [order, setOrder] = useState<"video-first" | "tts-first">(
     settings.playOrder === "tts_then_video" ? "tts-first" : "video-first",
@@ -189,7 +191,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   const isUnlocked = hasObservedBaseLanguage;
 
   useEffect(() => {
-    if (!isUnlocked && activeTab !== "video") {
+    if (!isUnlocked && activeTab !== "video" && activeTab !== "preferences") {
       setActiveTab("video");
       updateSettings({ beginnerActiveTab: "video" });
     }
@@ -197,7 +199,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
 
   const handleTabChange = (newTab: BeginnerTabId) => {
     // If user clicks a locked tab, do nothing
-    if (newTab !== "video" && !isUnlocked) return;
+    if (newTab !== "video" && newTab !== "preferences" && !isUnlocked) return;
     setActiveTab(newTab);
     updateSettings({ beginnerActiveTab: newTab });
   };
@@ -284,7 +286,13 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
                   <Tv className="h-4 w-4 text-primary" />
                   <span>Video Player</span>
                   <span className="text-[11px] font-normal text-muted-foreground">
-                    ({isPlaying ? "Playing" : accordionValue === "video-player" ? "Open" : "Folded / Click to open"})
+                    (
+                    {isPlaying
+                      ? "Playing"
+                      : accordionValue === "video-player"
+                        ? "Open"
+                        : "Folded / Click to open"}
+                    )
                   </span>
                 </div>
               </AccordionTrigger>
@@ -318,7 +326,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             observedUrl={observedUrl}
             observedTracks={observedTracks}
             onLoadSampleSubtitles={onLoadSampleSubtitles}
-            onContinueToNextTab={() => handleTabChange("preferences")}
+            onContinueToNextTab={() => handleTabChange("parsing")}
             isAndroidNative={isAndroidNative}
             webDemoUrlsSlot={webDemoUrlsSlot}
             hasSubtitles={hasSubtitles}
@@ -362,8 +370,10 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
               updateSettings({ beginnerFavoriteLangs: langs });
               onFavoriteLanguagesChange?.(langs);
             }}
+            showVideoSubtitles={showVideoSubtitles}
+            onToggleVideoSubtitles={onToggleVideoSubtitles}
             baseLanguage={selectedBaseLang}
-            onContinueToNextTab={() => handleTabChange("parsing")}
+            onContinueToNextTab={() => handleTabChange("video")}
           />
         )}
 

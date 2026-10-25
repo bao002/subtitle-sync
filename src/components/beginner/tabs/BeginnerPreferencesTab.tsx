@@ -66,6 +66,8 @@ export interface BeginnerPreferencesTabProps {
   onTtsVoiceChange: (voiceURI: string) => void;
   favoriteLanguages: string[];
   onFavoriteLanguagesChange: (langs: string[]) => void;
+  showVideoSubtitles: boolean;
+  onToggleVideoSubtitles: () => void;
   baseLanguage?: string;
   onContinueToNextTab?: () => void;
 }
@@ -79,6 +81,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   onTtsVoiceChange,
   favoriteLanguages,
   onFavoriteLanguagesChange,
+  showVideoSubtitles,
+  onToggleVideoSubtitles,
   baseLanguage = "en",
   onContinueToNextTab,
 }) => {
@@ -165,7 +169,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           voice:
             lovableTtsProviderState === "google"
               ? undefined
-              : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
+              : lovableTtsVoiceState ||
+                (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
           speed: ttsSpeed,
         })
           .catch(() => {})
@@ -194,7 +199,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
             voice:
               lovableTtsProviderState === "google"
                 ? undefined
-                : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
+                : lovableTtsVoiceState ||
+                  (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
             speed: ttsSpeed,
           })
             .catch(() => {})
@@ -212,7 +218,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           voice:
             lovableTtsProviderState === "google"
               ? undefined
-              : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
+              : lovableTtsVoiceState ||
+                (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
           speed: ttsSpeed,
         })
           .catch(() => {})
@@ -247,7 +254,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   ];
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto p-3" data-testid="beginner-preferences-tab">
+    <div
+      className="space-y-4 max-w-4xl mx-auto p-3 rounded-2xl border border-amber-500/30 bg-amber-500/5"
+      data-testid="beginner-preferences-tab"
+      data-control-category="new-user"
+    >
       {/* Tab Title */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-1">
         <div className="flex items-center gap-2">
@@ -256,7 +267,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           </div>
           <div>
             <h2 className="text-sm font-semibold text-foreground">
-              Step 2: Voice & Playback Preferences
+              Step 1: Voice & Playback Preferences
             </h2>
             <p className="text-xs text-muted-foreground">
               Configure playback order, narration speed, speech voice, subtitle sizing, and favorite
@@ -265,6 +276,24 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           </div>
         </div>
       </div>
+
+      <label className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3.5 text-xs">
+        <span className="flex items-center gap-2 font-medium text-foreground">
+          {showVideoSubtitles ? (
+            <Eye className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+          ) : (
+            <EyeOff className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+          )}
+          Show subtitles over the video by default
+        </span>
+        <input
+          type="checkbox"
+          checked={showVideoSubtitles}
+          onChange={onToggleVideoSubtitles}
+          className="h-4 w-4 rounded border-input text-primary focus:ring-primary"
+          data-testid="beginner-overlay-preference"
+        />
+      </label>
 
       {/* 1. Playback Order */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-2.5">
@@ -292,7 +321,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
 
         {showOrderHelp && (
           <div className="rounded-md border border-border/60 bg-muted/30 p-2.5 text-[11px] leading-relaxed text-muted-foreground animate-in fade-in duration-150">
-            Determine whether video audio leads and TTS follows, or TTS narrates the translated subtitle before continuing video playback.
+            Determine whether video audio leads and TTS follows, or TTS narrates the translated
+            subtitle before continuing video playback.
           </div>
         )}
 
@@ -563,7 +593,10 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                   ) : (
                     <select
                       data-testid="beginner-lovable-tts-voice-select"
-                      value={lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}
+                      value={
+                        lovableTtsVoiceState ||
+                        (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")
+                      }
                       onChange={(e) => {
                         const v = e.target.value;
                         setLovableTtsVoiceState(v);
@@ -571,19 +604,17 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                       }}
                       className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
                     >
-                      {lovableTtsProviderState === "openrouter" ? (
-                        OPENROUTER_VOICES.map((v) => (
-                          <option key={v} value={v}>
-                            {v} {v === "alloy" ? "(Default)" : ""}
-                          </option>
-                        ))
-                      ) : (
-                        LOVABLE_VOICES.map((v) => (
-                          <option key={v} value={v}>
-                            {v} {v === "Kore" ? "(Default)" : ""}
-                          </option>
-                        ))
-                      )}
+                      {lovableTtsProviderState === "openrouter"
+                        ? OPENROUTER_VOICES.map((v) => (
+                            <option key={v} value={v}>
+                              {v} {v === "alloy" ? "(Default)" : ""}
+                            </option>
+                          ))
+                        : LOVABLE_VOICES.map((v) => (
+                            <option key={v} value={v}>
+                              {v} {v === "Kore" ? "(Default)" : ""}
+                            </option>
+                          ))}
                     </select>
                   )}
                 </div>
@@ -705,7 +736,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 rate with voice:{" "}
                 {lovableTtsProviderState === "google"
                   ? "Default"
-                  : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}.
+                  : lovableTtsVoiceState ||
+                    (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}
+                .
               </p>
             </div>
 
@@ -728,7 +761,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                         voice:
                           lovableTtsProviderState === "google"
                             ? undefined
-                            : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
+                            : lovableTtsVoiceState ||
+                              (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
                         speed: ttsSpeed,
                       },
                     );
@@ -844,9 +878,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
             size="sm"
             onClick={onContinueToNextTab}
             className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium flex items-center gap-1.5"
-            data-testid="btn-continue-to-parsing"
+            data-testid="btn-continue-to-video"
           >
-            <span>Next: Subtitle Parsing</span>
+            <span>Next: Video &amp; Captions</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Button>
         </div>

@@ -95,8 +95,12 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   const hasSelectedBase = observedTracks.some((track) => track.isBase);
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto p-3" data-testid="beginner-video-tab">
-      {/* Step 1 Header & Controls */}
+    <div
+      className="space-y-4 max-w-4xl mx-auto p-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/5"
+      data-testid="beginner-video-tab"
+      data-control-category="daily-usage"
+    >
+      {/* Step 2 Header & Controls */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -105,7 +109,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             </div>
             <div>
               <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <span>Step 1: YouTube Video & Subtitle Discovery</span>
+                <span>Step 2: YouTube Video & Subtitle Discovery</span>
                 {videoId && (
                   <Badge
                     variant="outline"
@@ -217,8 +221,9 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
               variant={showVideoSubtitles ? "default" : "outline"}
               aria-pressed={showVideoSubtitles}
               data-testid="video-subtitles-overlay-toggle"
+              data-control-category="new-user"
               onClick={onToggleVideoSubtitles}
-              className="h-7 shrink-0 gap-1.5 px-2.5 text-xs"
+              className="h-7 shrink-0 gap-1.5 border border-amber-500/30 bg-amber-500/10 px-2.5 text-xs text-amber-800 hover:bg-amber-500/20 dark:text-amber-200"
               title="Toggle spoken subtitles over the video"
             >
               <Subtitles className="h-3.5 w-3.5" />
@@ -375,9 +380,9 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
               size="sm"
               onClick={onContinueToNextTab}
               className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium flex items-center gap-1.5"
-              data-testid="btn-continue-to-prefs"
+              data-testid="btn-continue-to-parsing"
             >
-              <span>Next: Voice & Preferences</span>
+              <span>Next: Subtitle Parsing</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>

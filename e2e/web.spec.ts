@@ -1,5 +1,62 @@
 import { expect, test } from "@playwright/test";
 
+test("developer-only views are hidden unless debug=true is in the URL", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("app_workflow_mode", "expert");
+    window.localStorage.setItem("yt_debug_mode", "true");
+  });
+
+  await page.goto("./");
+  await expect(page.getByTestId("top-tabs-nav")).toBeVisible();
+  await expect(page.getByTestId("tab-viewer")).toBeVisible();
+  await expect(page.getByTestId("tab-playground")).toHaveCount(0);
+  await expect(page.getByTestId("tab-ai-punctuation")).toHaveCount(0);
+  await expect(page.getByTestId("developer-mode-indicator")).toHaveCount(0);
+
+  await page.goto("./?debug=false");
+  await expect(page.getByTestId("tab-playground")).toHaveCount(0);
+  await expect(page.getByTestId("tab-ai-punctuation")).toHaveCount(0);
+
+  await page.goto("./?android=true&debug=false");
+  await page.locator('details[data-panel-id="playback"] > summary').click();
+  await expect(page.getByTestId("experimental-server-fetch-controls")).toHaveCount(0);
+
+  await page.goto("./?android=true&debug=true");
+  await page.locator('details[data-panel-id="playback"] > summary').click();
+  await expect(page.getByTestId("experimental-server-fetch-controls")).toBeVisible();
+  await expect(page.getByTestId("fetch-server-url-input")).toBeVisible();
+
+  await page.goto("./?debug=true");
+  await expect(page.getByTestId("tab-playground")).toBeVisible();
+  await expect(page.getByTestId("tab-ai-punctuation")).toBeVisible();
+  await expect(page.getByTestId("developer-mode-indicator")).toHaveAttribute(
+    "data-control-category",
+    "experimental",
+  );
+  await expect(page.getByTestId("tab-playground")).toHaveAttribute(
+    "data-control-category",
+    "experimental",
+  );
+});
+
+test("beginner setup starts with preferences and leads to daily video viewing", async ({ page }) => {
+  await page.goto("./");
+
+  await expect(page.getByTestId("beginner-tab-nav")).toBeVisible();
+  await expect(page.getByTestId("beginner-tab-preferences")).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  await expect(page.getByTestId("beginner-preferences-tab")).toBeVisible();
+  await expect(page.getByText("Step 1: Voice & Playback Preferences")).toBeVisible();
+  await expect(page.getByTestId("beginner-overlay-preference")).toBeVisible();
+  await expect(page.getByTestId("beginner-flow-arrow-preferences")).toBeVisible();
+
+  await page.getByTestId("btn-continue-to-video").click();
+  await expect(page.getByTestId("beginner-tab-video")).toHaveAttribute("aria-current", "page");
+  await expect(page.getByTestId("beginner-video-tab")).toBeVisible();
+});
+
 test("web-demo video input remains playable without recreating the YouTube player", async ({
   page,
 }) => {
