@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: Task 238 — document and classify user-facing controls by new-user, daily-usage, and developer/experimental roles; gate specified experimental surfaces using `debug=true`; make first-time Beginner setup start at preferences before the daily video/table view.
+Current active workstream: No active tasks. Resume from the Later Tasks section in `docs/tasks.md` when instructed.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 

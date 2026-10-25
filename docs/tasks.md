@@ -4,8 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 238: Document and classify user-facing controls**
-  - Update `docs/design.md`, `docs/developer.md`, `AGENTS.md`, and applicable later-task notes with the new-user/daily-use/developer model, `debug=true` semantics, app mission/challenges, and requested experimental surfaces. Gate listed experimental views, apply provisional category colors, and make Beginner setup start with preferences before the daily video-and-subtitles-table view. Add focused verification, synchronize app version, run checks, and archive the task.
+No active tasks.
 
 ## Later Tasks
 

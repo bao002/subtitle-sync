@@ -5241,3 +5241,14 @@
 
 - Corrected JSX nesting for the developer-only Android auto-retry and pacing controls in `src/routes/index.tsx`.
 - Verification passed: `npm run build` and `npm run lint`.
+
+### Task 238: Document and classify user-facing controls
+
+- Added `docs/design.md` and `docs/developer.md` to define the product mission, new-user setup versus daily usage, provisional category colors, and the exact `debug=true` developer-mode gate.
+- Gated developer tabs, network inspection, Android retry/pacing controls, and manual server-fetch configuration behind `debug=true`; saved diagnostic preferences alone no longer expose developer UI.
+- Reordered first-time Beginner setup to start with preferences (including TTS, favorite languages, and subtitle-overlay default), then continue to the daily video/captions/table view. Kept parsing/player steps available after a base subtitle is selected.
+- Added amber/green/blue review cues to new-user, daily-use, and experimental controls. Updated docs inventory, Beginner workflow design, later tasks, and AGENTS.md.
+- Synchronized app version 2.0.20 across package manifests, Android Gradle, app config, APK updater, and app settings.
+- Added Docker Playwright coverage for `debug=true` gates (including Android server-fetch controls) and the preferences-first Beginner flow.
+- Verification passed: `./docker/manage.sh e2e web --grep 'developer-only views|beginner setup starts' --retries=0` (2 tests), `npm run test:beginner-mode`, `npm run test:v2-version-bump`, `npm run test:agents-version`, `npm run test:agents-last-prompt-rule`, `npm run test:md`, `npm run test:doc-contracts`, `npm run test:no-duplicate-md`, `npm run build`, `npm run lint`, and `git diff --check`.
+- Commits: hotfix `09826e2`; feature `2394d60`. Push attempts failed because Git credentials were unavailable.
