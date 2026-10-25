@@ -69,6 +69,11 @@ export function SubtitlesTablePanel({
       data-control-category="daily-usage"
       className="max-h-[calc(100vh-8rem)] overflow-auto rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-1"
     >
+      <NewSubtitlesParserBar
+        config={activeParserConfig}
+        onChange={handleParserConfigChange}
+        sentenceCount={rows.length}
+      />
       {isAndroid && rows.length > 0 && (
         <div
           data-testid="android-subtitles-pagination-bar"
@@ -181,11 +186,6 @@ export function SubtitlesTablePanel({
           </button>
         </div>
       )}
-      <NewSubtitlesParserBar
-        config={activeParserConfig}
-        onChange={handleParserConfigChange}
-        sentenceCount={rows.length}
-      />
       <table className="w-full border-collapse text-sm">
         <thead className="sticky top-0 z-10 bg-secondary">
           <tr>

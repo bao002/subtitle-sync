@@ -14,7 +14,7 @@ These are occasional preferences, not controls that should dominate every viewin
 - Set the default subtitle-overlay behavior.
 - Choose favorite languages.
 
-The beginner experience should start with a clearly marked preferences step, then lead to the daily video-and-subtitles-table view. Use a clear directional/time arrow to communicate this first-time sequence. Parsing and player steps remain available, but are not prerequisites for ordinary daily viewing.
+Beginner mode has exactly two flows: General Preferences, then Daily Video. Use a clear directional arrow between them. The Daily Video flow contains the video, a quick target-language selector from favorites, and the parallel subtitles table. Keep the Stage 3 character-removal accordion before the parser controls at the top of the table. Place overlay on/off and overlay-size minus/plus controls directly below the video. Keep caption discovery details secondary to this core daily view.
 
 ### Daily usage
 
@@ -37,11 +37,11 @@ The shared video, active subtitle content, and selected target languages should 
 
 Color is a review cue for the control's intended audience and placement, not a substitute for labels, accessibility, or actual relocation. Apply a subtle tint to the containing card/panel rather than coloring every nested button.
 
-| Category | Visual cue | Intended use |
-| --- | --- | --- |
-| Daily usage | Subtle green/emerald border and background | Frequent viewing actions that belong near the video/table, including favorite-language selection, sharing, playback, and live parsing feedback |
-| New-user setup | Subtle amber border and background | Infrequent preference setup such as TTS service, overlay defaults, and favorite-language configuration |
-| Experimental/developer | Blue border and background | Experimental tools and diagnostics; these controls are hidden unless `debug=true` |
+| Category               | Visual cue                                 | Intended use                                                                                                                                   |
+| ---------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Daily usage            | Subtle green/emerald border and background | Frequent viewing actions that belong near the video/table, including favorite-language selection, sharing, playback, and live parsing feedback |
+| New-user setup         | Subtle amber border and background         | Infrequent preference setup such as TTS service, overlay defaults, and favorite-language configuration                                         |
+| Experimental/developer | Blue border and background                 | Experimental tools and diagnostics; these controls are hidden unless `debug=true`                                                              |
 
 Do not treat the colors as final placement decisions. The user will review these category cues and decide which controls should move. Preserve the existing layout and control placement until that review; the preferences-first Beginner sequence is an explicit requested change.
 

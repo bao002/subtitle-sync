@@ -99,8 +99,11 @@ import {
   setStripSpeakerBracketsSetting,
   getRemoveCharsSetting,
   setRemoveCharsSetting,
+  loadAppSettings,
+  saveAppSettings,
 } from "@/utils/appSettings";
 import { SpecialCharactersRemovalPanel } from "@/components/SpecialCharactersRemovalPanel";
+import { BeginnerCharsRemovalAccordion } from "@/components/beginner/BeginnerCharsRemovalAccordion";
 import {
   getAppStateFromUrl,
   extractVideoIdFromSubtitlesUrl,
@@ -1696,7 +1699,12 @@ function Index() {
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [isPlayerHovered, setIsPlayerHovered] = useState(false);
 
-  const [showVideoSubtitles, setShowVideoSubtitles] = useState(true);
+  const [showVideoSubtitles, setShowVideoSubtitles] = useState(
+    () => loadAppSettings().showVideoSubtitles ?? true,
+  );
+  const [videoSubtitleRatio, setVideoSubtitleRatio] = useState(
+    () => loadAppSettings().beginnerSubtitlesRatio ?? 1,
+  );
   const [urlModalLang, setUrlModalLang] = useState<string | null>(null);
   const [expandedTableUrlLang, setExpandedTableUrlLang] = useState<string | null>(null);
   const [tableUrlInputs, setTableUrlInputs] = useState<Record<string, string>>({});
@@ -1821,6 +1829,7 @@ function Index() {
   const handleToggleVideoSubtitles = () => {
     const next = !showVideoSubtitles;
     setShowVideoSubtitles(next);
+    saveAppSettings({ ...loadAppSettings(), showVideoSubtitles: next });
     if (!next) return;
 
     setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
@@ -3818,6 +3827,36 @@ function Index() {
     }
   }, [active, speakingRow, isSetupPaused, autoFocus, isAndroid, subtitlesLimit, subtitlesPage]);
 
+  const specialCharactersRemovalSampleCues =
+    tracks && baseLanguage && tracks[baseLanguage]?.events
+      ? tracks[baseLanguage].events.slice(0, 5).map((event) => ({
+          text: (event.segs || []).map((segment) => segment.utf8).join(""),
+          start: (event.tStartMs || 0) / 1000,
+          duration: (event.dDurationMs || 0) / 1000,
+        }))
+      : [];
+  const specialCharactersRemovalPanel = (
+    <SpecialCharactersRemovalPanel
+      stripSpeakerBrackets={stripSpeakerBrackets}
+      onStripSpeakerBracketsChange={(enabled) => {
+        setStripSpeakerBrackets(enabled);
+        setStripSpeakerBracketsSetting(enabled);
+      }}
+      removeChars={removeChars}
+      onRemoveCharsChange={(chars) => {
+        setRemoveChars(chars);
+        setRemoveCharsSetting(chars);
+      }}
+      sampleCues={specialCharactersRemovalSampleCues}
+      onResetDefaults={() => {
+        setStripSpeakerBrackets(true);
+        setStripSpeakerBracketsSetting(true);
+        setRemoveChars([">", ">>"]);
+        setRemoveCharsSetting([">", ">>"]);
+      }}
+    />
+  );
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header
@@ -4083,10 +4122,6 @@ function Index() {
           }}
           observedUrl={observedUrl}
           rawTracks={tracks || {}}
-          currentTime={playbackCurrentTime}
-          isPlaying={isVideoPlaying}
-          onTogglePlay={handleTogglePlay}
-          onSeek={handleSeek}
           onLoadSampleSubtitles={() => {
             const validEntries = Object.entries(JSON3_RAW_MAP)
               .map(([code, raw]) => {
@@ -4097,7 +4132,6 @@ function Index() {
             setTracks(Object.fromEntries(validEntries));
             setObservedUrl("https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3");
           }}
-          isAndroidNative={isAndroid}
           showVideoSubtitles={showVideoSubtitles}
           onToggleVideoSubtitles={handleToggleVideoSubtitles}
           playerSlot={
@@ -4135,6 +4169,51 @@ function Index() {
                   )}
                 </button>
               </div>
+              {showVideoSubtitles && (
+                <div
+                  className="pointer-events-none absolute inset-x-3 top-3 text-center"
+                  aria-live="polite"
+                  data-testid="beginner-active-video-subtitle"
+                >
+                  <span
+                    className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
+                    style={{ fontSize: `calc(0.75rem * ${videoSubtitleRatio})` }}
+                  >
+                    {(() => {
+                      const languageCode =
+                        speakingLang && speakingRow >= 0 ? speakingLang : baseLanguage;
+                      const normalizedCode = languageCode === "iw" ? "he" : languageCode;
+                      return (
+                        LANGS.find((language) => language.code === normalizedCode)?.name ??
+                        normalizedCode.toUpperCase()
+                      );
+                    })()}
+                  </span>
+                  <p
+                    className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
+                    style={{ fontSize: `calc(1rem * ${videoSubtitleRatio})` }}
+                    dir={speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"}
+                  >
+                    {speakingLang && speakingRow >= 0 ? (
+                      <HighlightedSubtitle
+                        text={rows[speakingRow]?.texts[speakingLang] ?? ""}
+                        progress={
+                          speechProgress?.row === speakingRow &&
+                          speechProgress.lang === speakingLang
+                            ? speechProgress
+                            : null
+                        }
+                      />
+                    ) : active >= 0 && rows[active] ? (
+                      (rows[active]?.texts[baseLanguage] ??
+                      Object.values(rows[active]?.texts || {})[0] ??
+                      "")
+                    ) : (
+                      <span className="text-xs opacity-75">Subtitles active</span>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
           }
           playbackControlsSlot={
@@ -4203,7 +4282,9 @@ function Index() {
               />
             ) : undefined
           }
-          hasSubtitles={hasLegitimateSubtitles && rows.length > 0}
+          favoriteLanguageCatalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
+          selectedTargetLanguages={targetLanguages}
+          onTargetLanguagesChange={handleTargetLanguagesChange}
           onOrderChange={(newOrder) => {
             const prefOrder = newOrder === "tts-first" ? "tts-first" : "video-first";
             setSectionOrderState(prefOrder);
@@ -4224,13 +4305,7 @@ function Index() {
             }
           }}
           onSubtitlesRatioChange={(ratio) => {
-            setTtsRatios((prev) => {
-              const updated = { ...prev };
-              Object.keys(updated).forEach((k) => {
-                updated[k] = ratio;
-              });
-              return updated;
-            });
+            setVideoSubtitleRatio(ratio);
           }}
           onFavoriteLanguagesChange={(newFavs) => {
             handleUpdateFavoriteLanguages(newFavs);
@@ -4240,13 +4315,12 @@ function Index() {
               setSpoken((prev) => [...prev, lang]);
             }
           }}
-          onSpeakCue={(text, lang) => {
-            const rate = rates[lang] ?? 0.8;
-            const voice = voiceSelections[lang] || "";
-            void speak(text, lang, rate, voice, -1, () => {});
-          }}
-          speakingLang={speakingLang}
           onSwitchToAdvanced={() => handleWorkflowModeChange("expert")}
+          charsRemovalSlot={
+            <BeginnerCharsRemovalAccordion>
+              {specialCharactersRemovalPanel}
+            </BeginnerCharsRemovalAccordion>
+          }
           subtitlesTableSlot={
             <SubtitlesTablePanel
               isAndroid={isAndroid}
@@ -4589,7 +4663,10 @@ function Index() {
                                       >
                                         <span
                                           data-testid="active-subtitle-language"
-                                          className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 text-xs font-semibold text-background shadow-lg"
+                                          className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
+                                          style={{
+                                            fontSize: `calc(0.75rem * ${videoSubtitleRatio})`,
+                                          }}
                                         >
                                           {(() => {
                                             const languageCode =
@@ -4611,7 +4688,8 @@ function Index() {
                                           dir={
                                             speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"
                                           }
-                                          className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 text-base font-medium text-background shadow-lg md:text-lg"
+                                          className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
+                                          style={{ fontSize: `calc(1rem * ${videoSubtitleRatio})` }}
                                         >
                                           {speakingLang && speakingRow >= 0 ? (
                                             <HighlightedSubtitle
@@ -5693,35 +5771,7 @@ function Index() {
                         />
                       )}
 
-                      {panelId === "charsRemoval" && (
-                        <SpecialCharactersRemovalPanel
-                          stripSpeakerBrackets={stripSpeakerBrackets}
-                          onStripSpeakerBracketsChange={(enabled) => {
-                            setStripSpeakerBrackets(enabled);
-                            setStripSpeakerBracketsSetting(enabled);
-                          }}
-                          removeChars={removeChars}
-                          onRemoveCharsChange={(chars) => {
-                            setRemoveChars(chars);
-                            setRemoveCharsSetting(chars);
-                          }}
-                          sampleCues={
-                            tracks && baseLanguage && tracks[baseLanguage]?.events
-                              ? tracks[baseLanguage].events.slice(0, 5).map((e) => ({
-                                  text: (e.segs || []).map((s) => s.utf8).join(""),
-                                  start: (e.tStartMs || 0) / 1000,
-                                  duration: (e.dDurationMs || 0) / 1000,
-                                }))
-                              : undefined
-                          }
-                          onResetDefaults={() => {
-                            setStripSpeakerBrackets(true);
-                            setStripSpeakerBracketsSetting(true);
-                            setRemoveChars([">", ">>"]);
-                            setRemoveCharsSetting([">", ">>"]);
-                          }}
-                        />
-                      )}
+                      {panelId === "charsRemoval" && specialCharactersRemovalPanel}
 
                       {panelId === "parser" && (
                         <div className="space-y-4">

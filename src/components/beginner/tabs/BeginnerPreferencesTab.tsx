@@ -266,12 +266,10 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
             <Sliders className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-foreground">
-              Step 1: Voice & Playback Preferences
-            </h2>
+            <h2 className="text-sm font-semibold text-foreground">Step 1: General Preferences</h2>
             <p className="text-xs text-muted-foreground">
-              Configure playback order, narration speed, speech voice, subtitle sizing, and favorite
-              languages.
+              Configure playback order, narration speed, speech voice, subtitle-overlay defaults,
+              and favorite languages.
             </p>
           </div>
         </div>

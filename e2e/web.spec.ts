@@ -39,22 +39,101 @@ test("developer-only views are hidden unless debug=true is in the URL", async ({
   );
 });
 
-test("beginner setup starts with preferences and leads to daily video viewing", async ({ page }) => {
+test("beginner mode has two flows and presents the daily video, favorites, parser, and table", async ({
+  page,
+}) => {
   await page.goto("./");
 
   await expect(page.getByTestId("beginner-tab-nav")).toBeVisible();
+  await expect(page.locator('button[data-testid^="beginner-tab-"]')).toHaveCount(2);
   await expect(page.getByTestId("beginner-tab-preferences")).toHaveAttribute(
     "aria-current",
     "page",
   );
   await expect(page.getByTestId("beginner-preferences-tab")).toBeVisible();
-  await expect(page.getByText("Step 1: Voice & Playback Preferences")).toBeVisible();
+  await expect(page.getByText("Step 1: General Preferences")).toBeVisible();
   await expect(page.getByTestId("beginner-overlay-preference")).toBeVisible();
   await expect(page.getByTestId("beginner-flow-arrow-preferences")).toBeVisible();
+
+  const overlayPreference = page.getByTestId("beginner-overlay-preference");
+  const initialOverlayPreference = await overlayPreference.isChecked();
 
   await page.getByTestId("btn-continue-to-video").click();
   await expect(page.getByTestId("beginner-tab-video")).toHaveAttribute("aria-current", "page");
   await expect(page.getByTestId("beginner-video-tab")).toBeVisible();
+  await expect(page.getByTestId("beginner-player-slot-container")).toBeVisible();
+  await expect(page.getByTestId("video-display-controls")).toBeVisible();
+  await expect(page.getByTestId("subtitle-overlay-size-decrease")).toBeVisible();
+  await expect(page.getByTestId("subtitle-overlay-size-increase")).toBeVisible();
+  await expect(page.getByTestId("video-subtitles-overlay-toggle")).toBeVisible();
+  await expect(page.getByTestId("beginner-favorite-language-selector")).toBeVisible();
+  await expect(page.getByTestId("beginner-parallel-subtitles")).toBeVisible();
+  await expect(page.getByTestId("beginner-chars-removal-accordion")).toBeVisible();
+  await expect(page.getByTestId("subtitles-table-panel")).toBeVisible();
+  await expect(page.getByTestId("new-subtitles-parser-bar")).toBeVisible();
+  await expect(page.getByTestId("video-subtitles-overlay-toggle")).toHaveAttribute(
+    "aria-pressed",
+    String(initialOverlayPreference),
+  );
+
+  const controlsBeforeFavorites = await page
+    .getByTestId("video-display-controls")
+    .evaluate((controls) =>
+      Boolean(
+        controls.compareDocumentPosition(
+          document.querySelector('[data-testid="beginner-favorite-language-selector"]')!,
+        ) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    );
+  expect(controlsBeforeFavorites).toBe(true);
+
+  const favoritesBeforeTable = await page
+    .getByTestId("beginner-favorite-language-selector")
+    .evaluate((selector) =>
+      Boolean(
+        selector.compareDocumentPosition(
+          document.querySelector('[data-testid="beginner-parallel-subtitles"]')!,
+        ) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    );
+  expect(favoritesBeforeTable).toBe(true);
+
+  const charsRemovalBeforeTable = await page
+    .getByTestId("beginner-chars-removal-accordion")
+    .evaluate((accordion) =>
+      Boolean(
+        accordion.compareDocumentPosition(
+          document.querySelector('[data-testid="subtitles-table-panel"]')!,
+        ) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    );
+  expect(charsRemovalBeforeTable).toBe(true);
+
+  await page.getByTestId("beginner-chars-removal-accordion").locator("summary").click();
+  await expect(page.getByTestId("special-characters-removal-panel")).toBeVisible();
+
+  const controlsImmediatelyFollowPlayer = await page
+    .getByTestId("beginner-player-slot-container")
+    .evaluate((player) => player.nextElementSibling?.getAttribute("data-testid"));
+  expect(controlsImmediatelyFollowPlayer).toBe("video-display-controls");
+
+  const parserIsFirstInTable = await page
+    .getByTestId("subtitles-table-panel")
+    .evaluate((panel) => panel.firstElementChild?.getAttribute("data-testid"));
+  expect(parserIsFirstInTable).toBe("new-subtitles-parser-bar");
+
+  await page.getByTestId("subtitle-overlay-size-increase").click();
+  await expect(page.getByTestId("subtitle-overlay-size-value")).toHaveText("1.10x");
+  await page.getByTestId("subtitle-overlay-size-decrease").click();
+  await expect(page.getByTestId("subtitle-overlay-size-value")).toHaveText("1.00x");
+
+  await page.getByTestId("video-subtitles-overlay-toggle").click();
+  await expect(page.getByTestId("video-subtitles-overlay-toggle")).toHaveAttribute(
+    "aria-pressed",
+    String(!initialOverlayPreference),
+  );
+  await page.getByTestId("beginner-tab-preferences").click();
+  await expect(overlayPreference).toBeChecked({ checked: !initialOverlayPreference });
 });
 
 test("web-demo video input remains playable without recreating the YouTube player", async ({
@@ -152,6 +231,8 @@ test("web-demo video input remains playable without recreating the YouTube playe
 
   await page.goto("./");
   await expect(page.locator("header")).toBeVisible();
+  await page.getByTestId("btn-continue-to-video").click();
+  await expect(page.getByTestId("beginner-video-tab")).toBeVisible();
 
   await page.getByTestId("youtube-url-input").fill("dQw4w9WgXcQ");
   await page.getByTestId("play-video-button").click();
@@ -276,11 +357,7 @@ test("shared subtitles link shows the video, subtitle table, and live parser upd
   const timedTextJson3 = await timedTextResponse.json();
   const nativeTimedCueCount = Array.isArray(timedTextJson3.events)
     ? timedTextJson3.events.filter(
-        (event: {
-          tStartMs?: unknown;
-          dDurationMs?: unknown;
-          segs?: { utf8?: unknown }[];
-        }) =>
+        (event: { tStartMs?: unknown; dDurationMs?: unknown; segs?: { utf8?: unknown }[] }) =>
           typeof event.tStartMs === "number" &&
           typeof event.dDurationMs === "number" &&
           Array.isArray(event.segs) &&

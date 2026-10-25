@@ -151,40 +151,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-update design standards: design.md
-differ new user usage from a daily usage
-and use param: debug=true for developer mode. experimental stuff will move to the developer mode and therefor help clean the views. currently some views are not places where the naturally should be associated and be placed.
-
-beginer mode vs advance mode:
-- in beginner mode there is a clear time arrow, first the user need to set general preferences and later he can use only the video+subtitles-table-view
-- advance-mode: now is splitted to developer mode and controls are attached to where they belong
-
-new user:
-- do it once in a while updating the preferences - set prefered tts service (default to google) [later.md: extend support for more services]
-- set default for subtitles overlay
-- set  favorite languages
-
-daily usage:
-- quick selection from favorite langs
-- sharing a video button
-- immidiate parsing check and observe the effect on the subtitles-table-view
-
-developer.md: experimental views for develper only:
-- openrouter filtering
-- video playground
-- fetching subtitles using server
-
-
- AGENTS.md - success and challenges: the app main benefits: allow to view youtube videos while listening to prefered translations (while on android subtitles are nativly fetched and observerd in web-app accessing the subtitles is still a challenge which currently can be overcome only by sharing a link from the app while running on android  ) .
- current challenges are to parser subtitles more efficiantly.
-
-mission:
-mv any non-obligatory view to developer mode.
-
-later:
-use few backgroud colors to signify if control is in a good place or not based on your AI logic.
-
-use blue color to signify experimental control (to be viewed only on developer mode)
-
-i will look at the controls and the backgrounds u set for each based on type: experimental/new-user/daily-usage and then i will try to relocate the control based upon your color recomendation.
+beginner mode - show 2 flows:
+1. general preferences
+2. video+from-favorites-lang-selector+parallel-subtitles-table-view(with parser on top)+controls under the video:show-overlay-enable-or-disable , show-overlay-size-plus-minus
 ```

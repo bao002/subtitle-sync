@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: No active tasks. Resume from the Later Tasks section in `docs/tasks.md` when instructed.
+Current active workstream: Task 239 — simplify Beginner mode into General Preferences and Daily Video flows, arranging favorite-language selection and parser above the parallel subtitle table and overlay/size controls below the video.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 

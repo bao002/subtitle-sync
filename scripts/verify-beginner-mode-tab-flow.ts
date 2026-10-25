@@ -1,75 +1,31 @@
 import assert from "node:assert/strict";
-import {
-  cleanSubtitleText,
-  splitTextByPunctuation,
-} from "../src/components/beginner/tabs/BeginnerParsingTab";
+import fs from "node:fs";
+import path from "node:path";
 
-console.log("=== Verifying Beginner Mode Tab-Based Flow ===");
+const root = process.cwd();
+const read = (file: string) => fs.readFileSync(path.join(root, file), "utf8");
+const navigation = read("src/components/beginner/BeginnerTabNav.tsx");
+const flow = read("src/components/beginner/BeginnerFlowContainer.tsx");
+const dailyVideo = read("src/components/beginner/tabs/BeginnerVideoTab.tsx");
+const table = read("src/components/SubtitlesTablePanel.tsx");
+const route = read("src/routes/index.tsx");
 
-// 1. Verify Bracketed Speaker Markers Stripping
-console.log("Checking speaker bracket stripping...");
-const input1 = "[Music] Welcome to the tutorial [Applause]";
-const cleaned1 = cleanSubtitleText(input1, {
-  stripSpeakerBrackets: true,
-  removeChars: [">", ">>"],
-});
-assert.equal(cleaned1, "Welcome to the tutorial");
+assert.equal((navigation.match(/id: "(?:preferences|video)"/g) ?? []).length, 2);
+assert.match(navigation, /title: "General Preferences"/);
+assert.match(navigation, /id: "video"/);
+assert.doesNotMatch(navigation, /id: "(?:parsing|player)"/);
+assert.match(flow, /settings\.beginnerActiveTab === "video" \? "video" : "preferences"/);
+assert.doesNotMatch(flow, /Accordion/);
+assert.match(dailyVideo, /<BeginnerFavoriteLanguageSelector/);
+assert.match(dailyVideo, /charsRemovalSlot/);
+assert.match(dailyVideo, /data-testid="subtitle-overlay-size-decrease"/);
+assert.match(dailyVideo, /data-testid="subtitle-overlay-size-increase"/);
+assert.match(dailyVideo, /data-testid="video-subtitles-overlay-toggle"/);
+assert.match(dailyVideo, /data-testid="beginner-parallel-subtitles"/);
+assert.ok(
+  table.indexOf("<NewSubtitlesParserBar") < table.indexOf("<table "),
+  "Parser controls must render before the parallel subtitle table",
+);
+assert.match(route, /onToggleVideoSubtitles=\{handleToggleVideoSubtitles\}/);
 
-// 2. Verify Parenthesis Markers Stripping
-console.log("Checking parenthesis sound marker stripping...");
-const input2 = "(Laughter) That was a funny joke!";
-const cleaned2 = cleanSubtitleText(input2, {
-  stripSpeakerBrackets: true,
-  removeChars: [">", ">>"],
-});
-assert.equal(cleaned2, "That was a funny joke!");
-
-// 3. Verify angle bracket symbols are stripped regardless of the configured character list.
-console.log("Checking angle bracket stripping...");
-const input3 = ">> [SPEAKER 1]: Hello <there>! > Yes, hello.";
-const cleaned3 = cleanSubtitleText(input3, {
-  stripSpeakerBrackets: true,
-  removeChars: [],
-});
-assert.equal(cleaned3, ": Hello there! Yes, hello.");
-
-// 4. Verify Sentence Punctuation Splitting
-console.log("Checking sentence punctuation splitting...");
-const input4 = "First sentence. Second sentence! Third sentence? All done.";
-const segments = splitTextByPunctuation(input4, [".", "!", "?", ",", ";", ":"]);
-assert.equal(segments.length, 4);
-assert.equal(segments[0], "First sentence.");
-assert.equal(segments[1], "Second sentence!");
-assert.equal(segments[2], "Third sentence?");
-assert.equal(segments[3], "All done.");
-
-// 5. Verify Punctuation Selection Filtering
-console.log("Checking selective punctuation filtering...");
-const input5 = "Wait, is this one sentence? Yes, it is!";
-const segments5 = splitTextByPunctuation(input5, [".", "!"]);
-assert.equal(segments5.length, 1);
-assert.equal(segments5[0], "Wait, is this one sentence? Yes, it is!");
-
-// 6. Verify Tab Lock Condition Logic
-console.log("Checking tab unlock condition logic...");
-let selectedBaseLang = "";
-assert.equal(Boolean(selectedBaseLang), false, "Tabs must remain locked when base lang is empty");
-
-selectedBaseLang = "he";
-assert.equal(Boolean(selectedBaseLang), true, "Tabs must unlock when base lang is selected");
-
-// 7. Verify Non-Resetting Navigation Freedom
-console.log("Checking navigation freedom without state reset...");
-let activeTab = "video";
-if (Boolean(selectedBaseLang)) activeTab = "preferences";
-assert.equal(activeTab, "preferences");
-
-if (Boolean(selectedBaseLang)) activeTab = "parsing";
-assert.equal(activeTab, "parsing");
-
-// Jump back freely to video tab
-activeTab = "video";
-assert.equal(activeTab, "video");
-assert.equal(selectedBaseLang, "he", "Selected base language must be preserved");
-
-console.log("✓ All Beginner Mode Tab-Based Flow assertions passed successfully!");
+console.log("PASS: Beginner mode contains two flows and the daily video/table layout.");
