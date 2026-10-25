@@ -1,5 +1,15 @@
 # Done tasks
 
+## Task 239: Simplify Beginner mode into General Preferences and Daily Video (Version 2.0.21)
+
+- Reduced Beginner navigation to two flows: General Preferences and Daily Video. The daily view now combines the video, favorite-language quick selector, sanitization accordion, shared parser controls, and parallel subtitle table.
+- Placed the overlay toggle first and subtitle-size minus/plus controls directly below the video. Persisted overlay preference and size, and preserved those settings when navigating between the two flows.
+- Kept Stage 3 special-character removal before the shared parser/table, and removed hardcoded fallback subtitle samples from its preview; the preview now requires loaded cues.
+- Updated design standards, Beginner flow specification, source inventory, related checks, and app metadata to 2.0.21.
+- Verification passed: focused Docker Playwright E2E (two Beginner/player tests), `npm run test:beginner-mode-two-flows`, `npm run test:beginner-default-language`, `npm run test:video-display-controls`, `npm run test:chars-removal-accordion-order`, `npm run test:beginner-subtitles-table`, `npm run test:parser-live-updates`, `npm run test:application-stages-pipeline`, `npm run test:subtitles-fixtures-restriction`, `npm run test:v2-version-bump`, `npm run test:pause-both-video-and-tts`, `npm run build`, `npm run lint`, focused ESLint/Prettier, Markdown validation, repository hygiene checks, and `git diff --check`.
+- The existing `npm run test:theme-colors-consistency` still fails at its stale assertion expecting 6 accordion panels when `src/config/accordionThemes.ts` defines 7; the configuration was not changed in this task.
+- Commit: `532d27f` (`feat(beginner): consolidate daily viewing flow`). Push was attempted but unavailable because Git credentials are missing.
+
 ## Task 233: Make shared-link E2E screencast visually verifiable (Version 2.0.17)
 
 - Fixed the black player area in the shared-link E2E recording by giving the test-only simulated player an illustrative scene marked as an E2E simulation; mocked caption/translation content and the illustration are not presented as actual YouTube footage or captions.

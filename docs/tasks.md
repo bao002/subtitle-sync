@@ -4,8 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 239: Simplify Beginner mode into preferences and daily viewing flows**
-  - Replace the four-step Beginner navigation with exactly two flows: General Preferences and Daily Video. Keep favorite-language selection, the Stage 3 sanitization accordion, shared parser controls, and parallel subtitles table together in Daily Video; keep overlay on/off and subtitle-size minus/plus controls under the video. Preserve Advanced behavior, test persistence and layout, update docs, and synchronize the app version.
+No active tasks.
 
 ## Later Tasks
 
