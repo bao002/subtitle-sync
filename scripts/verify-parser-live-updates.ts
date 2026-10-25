@@ -42,8 +42,14 @@ assert(
   "table rows must be derived from current parser configuration",
 );
 assert(
-  route.includes("onParserConfigChange={setSimpleParserConfig}"),
+  route.includes("onParserConfigChange={handleSimpleParserConfigChange}") &&
+    route.includes("setSimpleParserConfig(config)"),
   "table parser edits must update the configuration used to derive rows",
+);
+assert(
+  route.includes("clearOnDemandTranslations(videoId)") &&
+    route.includes("translationGeneration !== parserTranslationGeneration.current"),
+  "parser edits must realign on-demand translations and ignore stale translation results",
 );
 
 const parserBarIndex = panel.indexOf("<NewSubtitlesParserBar");

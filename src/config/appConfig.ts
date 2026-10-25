@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.17";
+export const APP_VERSION = "2.0.18";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "b840e11";
 export const APP_VERSION_DESCRIPTION =
-  "Shared video displays subtitle language labels (Version 2.0.17)";
+  "Subtitle rows preserve native timed cues and align on-demand translations (Version 2.0.18)";
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 

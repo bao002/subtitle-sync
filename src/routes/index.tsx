@@ -1643,6 +1643,16 @@ function Index() {
   const [onDemandTranslations, setOnDemandTranslations] = useState<
     Record<string, Record<number, string>>
   >({});
+  const parserTranslationGeneration = useRef(0);
+  const handleSimpleParserConfigChange = useCallback(
+    (config: SimpleParserConfig) => {
+      parserTranslationGeneration.current += 1;
+      clearOnDemandTranslations(videoId);
+      setOnDemandTranslations({});
+      setSimpleParserConfig(config);
+    },
+    [videoId],
+  );
   const [enableOnDemandTranslation, setEnableOnDemandTranslationState] = useState(() =>
     typeof window !== "undefined" ? getOnDemandTranslationSetting() : true,
   );
@@ -2859,6 +2869,7 @@ function Index() {
 
     const sourceSentences = rawRows.map((r) => r.texts[baseLanguage] || "");
     const startIndex = Math.max(0, active >= 0 ? active : 0);
+    const translationGeneration = parserTranslationGeneration.current;
 
     pendingLangs.forEach((targetLang) => {
       translateSentencesAhead({
@@ -2869,6 +2880,7 @@ function Index() {
         startIndex,
         sentencesAhead: onDemandAheadCount,
         onSentenceTranslated: (idx, trans) => {
+          if (translationGeneration !== parserTranslationGeneration.current) return;
           if (findFetchedSubtitleLanguage(tracksRef.current, targetLang)) return;
           setOnDemandTranslations((prev) => {
             if (findFetchedSubtitleLanguage(tracksRef.current, targetLang)) return prev;
@@ -4234,7 +4246,7 @@ function Index() {
               hasCachedAi={hasCachedAi}
               onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
               parserConfig={simpleParserConfig}
-              onParserConfigChange={setSimpleParserConfig}
+              onParserConfigChange={handleSimpleParserConfigChange}
               onSpeakCue={(text, lang) => {
                 const rate = rates[lang] ?? 0.8;
                 const voice = voiceSelections[lang] || "";
@@ -6997,7 +7009,7 @@ function Index() {
                             hasCachedAi={hasCachedAi}
                             onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
                             parserConfig={simpleParserConfig}
-                            onParserConfigChange={setSimpleParserConfig}
+                            onParserConfigChange={handleSimpleParserConfigChange}
                           />
                         ))}
                     </AccordionSection>

@@ -127,6 +127,7 @@ test("web-demo video input remains playable without recreating the YouTube playe
 test("shared subtitles link shows the video, subtitle table, and live parser updates", async ({
   page,
 }) => {
+  test.setTimeout(120_000);
   const videoId = "WJlWKB8qrf0";
   const subtitlesUrl = process.env.E2E_SHARED_SUBTITLES_URL;
   if (!subtitlesUrl) {
@@ -138,6 +139,20 @@ test("shared subtitles link shows the video, subtitle table, and live parser upd
   expect(sharedTimedTextUrl.searchParams.get("lang")).toBe("iw");
   let signedTimedTextRequested = false;
   const translationRequests: string[] = [];
+  const timedTextResponsePromise = page.waitForResponse((response) => {
+    try {
+      const url = new URL(response.url());
+      return (
+        url.hostname === "www.youtube.com" &&
+        url.pathname === "/api/timedtext" &&
+        url.searchParams.get("v") === videoId &&
+        url.searchParams.get("lang") === "iw" &&
+        Boolean(url.searchParams.get("signature"))
+      );
+    } catch {
+      return false;
+    }
+  });
 
   page.on("request", (request) => {
     try {
@@ -175,6 +190,23 @@ test("shared subtitles link shows the video, subtitle table, and live parser upd
   expect(sharedParams.get("v")).toBe(videoId);
   expect(sharedParams.get("target_lang")).toBe("italian");
   await page.goto(sharedLink, { waitUntil: "domcontentloaded" });
+  const timedTextResponse = await timedTextResponsePromise;
+  expect(timedTextResponse.ok()).toBe(true);
+  const timedTextJson3 = await timedTextResponse.json();
+  const nativeTimedCueCount = Array.isArray(timedTextJson3.events)
+    ? timedTextJson3.events.filter(
+        (event: {
+          tStartMs?: unknown;
+          dDurationMs?: unknown;
+          segs?: { utf8?: unknown }[];
+        }) =>
+          typeof event.tStartMs === "number" &&
+          typeof event.dDurationMs === "number" &&
+          Array.isArray(event.segs) &&
+          event.segs.some((segment) => typeof segment.utf8 === "string" && segment.utf8.trim()),
+      ).length
+    : 0;
+  expect(nativeTimedCueCount).toBeGreaterThan(1);
   await page.evaluate(() => {
     const params = new URLSearchParams(window.location.search);
     params.delete("subtitles_url");
@@ -186,8 +218,24 @@ test("shared subtitles link shows the video, subtitle table, and live parser upd
       `${window.location.pathname}?${params.toString()}${window.location.hash}`,
     );
   });
+  const setExplanationCaption = (text: string) =>
+    page.evaluate((captionText) => {
+      let caption = document.querySelector<HTMLElement>('[data-testid="e2e-explainer-caption"]');
+      if (!caption) {
+        caption = document.createElement("aside");
+        caption.dataset.testid = "e2e-explainer-caption";
+        caption.setAttribute("aria-label", "E2E demonstration explanation");
+        caption.style.cssText =
+          "position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:1000;max-width:760px;width:calc(100vw - 32px);padding:12px 18px;border-radius:10px;background:rgba(15,23,42,.94);color:white;text-align:center;font:600 15px/1.45 system-ui,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25);pointer-events:none";
+        document.body.append(caption);
+      }
+      caption.textContent = captionText;
+    }, text);
 
   await expect(page.locator("header")).toContainText(`video ${videoId}`);
+  await setExplanationCaption(
+    "Video context: a Hebrew interview discussing Russia and new drones. The captions below are authentic Hebrew with Italian on-demand translation.",
+  );
   await page.getByTestId("header-mode-toggle").click();
   const playerPanel = page.locator('details[data-panel-id="player"]');
   if (!(await playerPanel.getAttribute("open"))) {
@@ -217,29 +265,45 @@ test("shared subtitles link shows the video, subtitle table, and live parser upd
   await expect(youtubeFrame).toBeVisible({ timeout: 30000 });
   const subtitlesTable = page.getByTestId("subtitles-table-panel");
   await expect(subtitlesTable).toBeVisible();
-  const sourceCell = page.getByTestId("subtitle-cell-0-iw");
-  const italianCell = page.getByTestId("subtitle-cell-0-it");
-  await expect(sourceCell).not.toBeEmpty({ timeout: 60000 });
-  await expect(italianCell).not.toBeEmpty({ timeout: 60000 });
+  await expect(page.getByTestId("subtitle-cell-0-iw")).not.toBeEmpty();
   expect(signedTimedTextRequested).toBe(true);
+  const getAlignedRows = () =>
+    subtitlesTable.locator("tbody tr[data-row]").evaluateAll((rows) =>
+      rows.flatMap((row, index) => {
+        const source = row.querySelector('[data-language-column="iw"]')?.textContent?.trim() || "";
+        const translation =
+          row.querySelector('[data-language-column="it"]')?.textContent?.trim() || "";
+        return source && translation ? [{ index, source, translation }] : [];
+      }),
+    );
   await expect.poll(() => translationRequests.includes("it"), { timeout: 60000 }).toBe(true);
-
-  const hebrewText = (await sourceCell.innerText()).trim();
-  const italianText = (await italianCell.innerText()).trim();
-  expect(hebrewText).not.toBe(italianText);
+  await expect(subtitlesTable.getByTestId("column-source-on-demand-it")).toBeVisible();
+  await expect.poll(async () => (await getAlignedRows()).length).toBeGreaterThan(0);
+  const initialAlignedRows = await getAlignedRows();
+  expect(initialAlignedRows.some(({ source, translation }) => source !== translation)).toBe(true);
 
   const initialRowCount = await subtitlesTable.locator("tbody tr[data-row]").count();
-  const dotSplitToggle = page.getByTestId("parser-split-dot-toggle");
-  await expect(dotSplitToggle).toBeVisible();
-  await expect(dotSplitToggle).toBeChecked();
-  await dotSplitToggle.uncheck();
-  await expect(dotSplitToggle).not.toBeChecked();
+  expect(initialRowCount).toBeGreaterThan(nativeTimedCueCount);
+  await setExplanationCaption(
+    `Native caption track: ${nativeTimedCueCount} timed cues. The parser currently divides those cues into ${initialRowCount} readable sentence rows.`,
+  );
+  const intraCueToggle = page.getByTestId("parser-intra-cue-toggle");
+  await expect(intraCueToggle).toBeVisible();
+  await expect(intraCueToggle).toBeChecked();
+  await intraCueToggle.uncheck();
+  await expect(intraCueToggle).not.toBeChecked();
   await expect
     .poll(async () => subtitlesTable.locator("tbody tr[data-row]").count())
-    .not.toBe(initialRowCount);
-  await expect(subtitlesTable.getByTestId("subtitle-cell-0-iw")).not.toHaveText(hebrewText);
+    .toBe(nativeTimedCueCount);
+  await setExplanationCaption(
+    `Parser setting changed: intra-cue splitting is off, so the table now has exactly ${nativeTimedCueCount} separate native timed-cue rows. Italian on-demand translation is realigned to the updated rows.`,
+  );
+  await expect.poll(async () => (await getAlignedRows()).length).toBeGreaterThan(0);
+  const updatedAlignedRows = await getAlignedRows();
+  expect(updatedAlignedRows.some(({ source, translation }) => source !== translation)).toBe(true);
 
   const bothPanelsVisibleInViewport = await page.evaluate(() => {
+    window.scrollTo(0, 240);
     const frame = document.querySelector('iframe[src*="youtube.com/embed"]');
     const table = document.querySelector('[data-testid="subtitles-table-panel"]');
     if (!frame || !table) return false;
@@ -253,4 +317,16 @@ test("shared subtitles link shows the video, subtitle table, and live parser upd
     );
   });
   expect(bothPanelsVisibleInViewport).toBe(true);
+  const firstAlignedRow = updatedAlignedRows[0];
+  if (!firstAlignedRow) throw new Error("No Hebrew subtitle row has an Italian translation.");
+  await expect(
+    subtitlesTable.getByTestId(`subtitle-cue-row-${firstAlignedRow.index}`),
+  ).toBeInViewport();
+  await expect(
+    subtitlesTable.getByTestId(`subtitle-cell-${firstAlignedRow.index}-iw`),
+  ).not.toBeEmpty();
+  await expect(
+    subtitlesTable.getByTestId(`subtitle-cell-${firstAlignedRow.index}-it`),
+  ).not.toBeEmpty();
+  await page.waitForTimeout(1200);
 });

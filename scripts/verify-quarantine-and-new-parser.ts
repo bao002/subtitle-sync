@@ -82,18 +82,33 @@ assert.strictEqual(splitWithoutDot[0]?.text, "Hello world. How are you?");
 assert.strictEqual(splitWithoutDot[1]?.text, "Everything is fine.");
 console.log("  ✓ Toggling splitOnDot OFF correctly suppresses dot splitting");
 
-// Case C: Multi-cue sentence accumulation until dot '.'
+// Case C: Native timed-cue boundaries are preserved between sentences.
 const multiCues: Cue[] = [
   { start: 0, end: 2000, text: "I went to the store" },
   { start: 2000, end: 4000, text: "and bought bread. It was warm." },
 ];
 const multiSplit = splitCuesIntoSentences(multiCues, DEFAULT_SIMPLE_PARSER_CONFIG);
-assert.strictEqual(multiSplit.length, 2, `Expected 2 sentences, got ${multiSplit.length}`);
-assert.strictEqual(multiSplit[0]?.text, "I went to the store and bought bread.");
-assert.strictEqual(multiSplit[1]?.text, "It was warm.");
+assert.strictEqual(multiSplit.length, 3, `Expected 3 native/parser sections, got ${multiSplit.length}`);
+assert.strictEqual(multiSplit[0]?.text, "I went to the store");
+assert.strictEqual(multiSplit[1]?.text, "and bought bread.");
+assert.strictEqual(multiSplit[2]?.text, "It was warm.");
 assert.strictEqual(multiSplit[0]?.start, 0);
-assert.strictEqual(multiSplit[1]?.end, 4000);
-console.log("  ✓ Cross-cue sentence accumulation ending at dot '.' verified");
+assert.strictEqual(multiSplit[0]?.end, 2000);
+assert.strictEqual(multiSplit[1]?.start, 2000);
+assert.strictEqual(multiSplit[2]?.end, 4000);
+console.log("  ✓ Native timed-cue boundaries remain intact while parser splits within each cue");
+
+const nativeCueOnly = splitCuesIntoSentences(multiCues, {
+  ...DEFAULT_SIMPLE_PARSER_CONFIG,
+  splitIntraCue: false,
+});
+assert.strictEqual(nativeCueOnly.length, multiCues.length);
+assert.deepStrictEqual(
+  nativeCueOnly.map(({ start, end, text }) => ({ start, end, text })),
+  multiCues,
+  "Disabling intra-cue splitting must leave one row per native timed cue",
+);
+console.log("  ✓ Disabling intra-cue splitting renders native timed cues as separate rows");
 
 // Case D: Custom delimiters (e.g. semicolon ';')
 const customCues: Cue[] = [
@@ -181,7 +196,9 @@ const indexContent = fs.readFileSync(path.join(rootDir, "src/routes/index.tsx"),
 assert(indexContent.includes("simpleParserConfig"), "index.tsx must manage simpleParserConfig state");
 assert(indexContent.includes("simpleAlign(tracks, baseLanguage, simpleParserConfig)"), "rawRows must use simpleAlign with simpleParserConfig");
 assert(indexContent.includes("parserConfig={simpleParserConfig}"), "SubtitlesTablePanel must receive parserConfig");
-assert(indexContent.includes("onParserConfigChange={setSimpleParserConfig}"), "SubtitlesTablePanel must receive onParserConfigChange");
+assert(indexContent.includes("onParserConfigChange={handleSimpleParserConfigChange}"), "SubtitlesTablePanel must receive onParserConfigChange");
+assert(indexContent.includes("clearOnDemandTranslations(videoId)"), "Parser changes must invalidate index-aligned on-demand translations");
+assert(indexContent.includes("translationGeneration !== parserTranslationGeneration.current"), "Stale translations must not be applied after parser changes");
 console.log("  ✓ Dynamic updating of presented subtitles upon configuration changes verified");
 
 // 6. Verify documentation in later.md

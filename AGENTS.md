@@ -143,7 +143,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-but the app should be able to load the video based upon pasting a subtitles link.
-
-therefor try to show both the video element as it does now but also the subtitles-table and show how changing the parser settings update the text on the subtitles-table view
+add e2e captions which explaining what the video is showing and ensure it will show correct subtitles (& on demand translation) presentation
 ```
