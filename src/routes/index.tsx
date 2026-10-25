@@ -191,6 +191,7 @@ import {
   DEFAULT_SIMPLE_PARSER_CONFIG,
 } from "@/utils/newSubtitlesParser";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
+import { PerLanguageTtsPreferences } from "@/components/beginner/PerLanguageTtsPreferences";
 import { getPlaybackSectionId } from "@/lib/playback-section-identity";
 
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
@@ -198,12 +199,14 @@ import {
   getSectionOrder,
   getSubtitleRequestMode,
   getTtsRatiosPreference,
+  getTtsRatesPreference,
   isTtsSpeakableLanguage,
   isSubtitleInstanceEligibleForTTS,
   shouldHighlightSentenceForTTS,
   setSectionOrder as saveSectionOrder,
   setSubtitleRequestMode as saveSubtitleRequestMode,
   setTtsRatioPreference as saveTtsRatioPreference,
+  setTtsRatePreference as saveTtsRatePreference,
   subtitleRequestModeOrder,
   getAutoRetrySubtitles,
   setAutoRetrySubtitles as saveAutoRetrySubtitles,
@@ -899,7 +902,10 @@ function Index() {
     typeof window !== "undefined" ? getSubtitleFetchWindowSeconds() : 5,
   );
   const [rates, setRates] = useState<Record<string, number>>(() =>
-    Object.fromEntries(LANGS.map((lang) => [lang.code, 0.5])),
+    Object.fromEntries([
+      ...LANGS.map((lang) => [lang.code, 0.5] as const),
+      ...Object.entries(getTtsRatesPreference()),
+    ]),
   );
   const [useAlternativeTtsState, setUseAlternativeTtsState] = useState<boolean>(() =>
     typeof window !== "undefined" ? getUseAlternativeTts() : false,
@@ -4309,6 +4315,42 @@ function Index() {
               setSpoken((prev) => [...prev, lang]);
             }
           }}
+          perLanguageTtsSettingsSlot={
+            <PerLanguageTtsPreferences
+              languages={orderedLangs.filter(
+                (lang) => favoriteLanguages.includes(lang.code) || spoken.includes(lang.code),
+              )}
+              voices={voices}
+              ratios={ttsRatios}
+              rates={rates}
+              voiceSelections={voiceSelections}
+              onRatioChange={(languageCode, ratio) => {
+                setTtsRatios((current) => ({ ...current, [languageCode]: ratio }));
+                saveTtsRatioPreference(languageCode, ratio);
+                if (videoId) {
+                  saveVideoSettings(videoId, { ttsRatios: { [languageCode]: ratio } });
+                }
+              }}
+              onRateChange={(languageCode, rate) => {
+                setRates((current) => ({ ...current, [languageCode]: rate }));
+                saveTtsRatePreference(languageCode, rate);
+                if (videoId) {
+                  saveVideoSettings(videoId, { ttsRates: { [languageCode]: rate } });
+                }
+              }}
+              onVoiceChange={(languageCode, voiceURI) => {
+                setVoiceSelections((current) => {
+                  const next = { ...current, [languageCode]: voiceURI };
+                  try {
+                    localStorage.setItem("yt_tts_voice_selections_v1", JSON.stringify(next));
+                  } catch {
+                    // ignore storage errors
+                  }
+                  return next;
+                });
+              }}
+            />
+          }
           onSwitchToAdvanced={() => handleWorkflowModeChange("expert")}
           charsRemovalSlot={
             <BeginnerCharsRemovalAccordion>
@@ -6993,6 +7035,7 @@ function Index() {
                                             ...current,
                                             [lang.code]: val,
                                           }));
+                                          saveTtsRatePreference(lang.code, val);
                                           if (videoId) {
                                             saveVideoSettings(videoId, {
                                               ttsRates: { [lang.code]: val },

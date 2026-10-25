@@ -7,6 +7,13 @@
 - Added `scripts/verify-no-repeated-video-section-after-tts.ts` and updated the related ratio/audio-time-section source checks to assert stable section identity.
 - Verification passed: `npm run test:no-repeated-video-section-after-tts`, `npm run test:tts-ratio`, `npm run test:audio-track-time-sections`, `npm run test:multi-video-audio-sync`, `npm run build`, `npm run lint`, focused ESLint/Prettier, and `git diff --check`.
 
+## Task 240.2: Add per-language Beginner TTS preferences
+
+- Added per-language sentence ratio, speech rate, and available device voice controls to Beginner General Preferences for favorite/spoken languages.
+- Reused the route's existing per-video ratio/rate and voice-selection state, while persisting ratios and speech rates as device-level preferences so General Preferences remain effective before a video is selected.
+- Added focused Docker Playwright coverage for per-language controls, language-specific voice options, and ratio/rate/voice persistence.
+- Verification passed: `./docker/manage.sh e2e web --grep "Beginner preferences persist ratio" --retries=0`, `npm run test:beginner-mode`, `npm run test:no-repeated-video-section-after-tts`, `npm run build`, `npm run lint`, focused Prettier checks, and `git diff --check`.
+
 ## Task 239: Simplify Beginner mode into General Preferences and Daily Video (Version 2.0.21)
 
 - Reduced Beginner navigation to two flows: General Preferences and Daily Video. The daily view now combines the video, favorite-language quick selector, sanitization accordion, shared parser controls, and parallel subtitle table.

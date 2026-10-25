@@ -10,6 +10,7 @@ const KEYS = {
   requestMode: "yt_subtitle_request_mode_v1",
   sectionOrder: "yt_section_order_v1",
   ttsRatios: "yt_tts_ratios_v1",
+  ttsRates: "yt_tts_rates_v1",
   autoRetrySubtitles: "yt_auto_retry_subtitles_v1",
   retryPacingMinSec: "yt_retry_pacing_min_sec_v1",
   retryPacingMaxSec: "yt_retry_pacing_max_sec_v1",
@@ -84,6 +85,35 @@ export const setTtsRatioPreference = (langCode: string, ratio: number) => {
     const existing = getTtsRatiosPreference();
     existing[langCode] = Math.max(1, Math.round(ratio));
     window.localStorage.setItem(KEYS.ttsRatios, JSON.stringify(existing));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+export const getTtsRatesPreference = (): Record<string, number> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(KEYS.ttsRates);
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        ([, rate]) =>
+          typeof rate === "number" && Number.isFinite(rate) && rate >= 0.3 && rate <= 1.5,
+      ),
+    );
+  } catch {
+    return {};
+  }
+};
+
+export const setTtsRatePreference = (langCode: string, rate: number) => {
+  if (typeof window === "undefined" || !Number.isFinite(rate)) return;
+  try {
+    const existing = getTtsRatesPreference();
+    existing[langCode] = Math.max(0.3, Math.min(1.5, Math.round(rate * 10) / 10));
+    window.localStorage.setItem(KEYS.ttsRates, JSON.stringify(existing));
   } catch {
     // ignore storage errors
   }

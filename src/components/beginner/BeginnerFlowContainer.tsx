@@ -25,6 +25,7 @@ export interface BeginnerFlowContainerProps {
   playbackControlsSlot?: React.ReactNode;
   charsRemovalSlot?: React.ReactNode;
   subtitlesTableSlot?: React.ReactNode;
+  perLanguageTtsSettingsSlot?: React.ReactNode;
   favoriteLanguageCatalog: Array<{ code: string; name: string }>;
   selectedTargetLanguages: string[];
   onTargetLanguagesChange: (languages: string[]) => void;
@@ -52,6 +53,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   playbackControlsSlot,
   charsRemovalSlot,
   subtitlesTableSlot,
+  perLanguageTtsSettingsSlot,
   favoriteLanguageCatalog,
   selectedTargetLanguages,
   onTargetLanguagesChange,
@@ -214,6 +216,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             showVideoSubtitles={showVideoSubtitles}
             onToggleVideoSubtitles={onToggleVideoSubtitles}
             baseLanguage={selectedBaseLang}
+            perLanguageTtsSettingsSlot={perLanguageTtsSettingsSlot}
             onContinueToNextTab={() => handleTabChange("video")}
           />
         )}

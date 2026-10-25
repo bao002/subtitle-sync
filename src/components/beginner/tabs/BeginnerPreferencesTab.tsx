@@ -69,6 +69,7 @@ export interface BeginnerPreferencesTabProps {
   showVideoSubtitles: boolean;
   onToggleVideoSubtitles: () => void;
   baseLanguage?: string;
+  perLanguageTtsSettingsSlot?: React.ReactNode;
   onContinueToNextTab?: () => void;
 }
 
@@ -84,6 +85,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   showVideoSubtitles,
   onToggleVideoSubtitles,
   baseLanguage = "en",
+  perLanguageTtsSettingsSlot,
   onContinueToNextTab,
 }) => {
   const [voices, setVoices] = useState<SpeechVoiceLike[]>(() => getCachedVoices());
@@ -788,6 +790,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           </div>
         )}
       </div>
+
+      {perLanguageTtsSettingsSlot}
 
       {/* 3. Favorite Languages Selector & Extender */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">

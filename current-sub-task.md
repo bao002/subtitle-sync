@@ -1,8 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-# Current Subtask (`current-sub-task.md`)
-
-- **Status**: Active — Task 240.2.
-- **Task**: Add per-language TTS ratio, speed, and available-voice settings to Beginner General Preferences.
-- **Scope**: Reuse existing per-language route state and voice discovery; ensure preferences show all applicable languages and persist ratio/speed/voice choices without changing translation or fetch behavior.
-- **Next Action**: Inspect current Beginner preference controls, voice enumeration, and existing per-language settings update paths.
+- **Status**: Active — Task 240.3.
+- **Task**: Add an explicit Native vs Google TTS choice below the video.
+- **Scope**: Expose Google as a direct primary service rather than only a fallback, preserve native TTS as a selectable service, ensure native voice choices are language-appropriate rather than restricted to Hebrew, and synchronize app version metadata.
+- **Next Action**: Inspect the current Beginner video controls and TTS service-selection path before implementing Task 240.3.

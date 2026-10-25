@@ -136,6 +136,75 @@ test("beginner mode has two flows and presents the daily video, favorites, parse
   await expect(overlayPreference).toBeChecked({ checked: !initialOverlayPreference });
 });
 
+test("Beginner preferences persist ratio, speed, and voice per favorite language", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    const testVoices = [
+      {
+        voiceURI: "english-test-voice",
+        name: "English Test",
+        lang: "en-US",
+        localService: true,
+        default: false,
+      },
+      {
+        voiceURI: "italian-test-voice",
+        name: "Italian Test",
+        lang: "it-IT",
+        localService: true,
+        default: false,
+      },
+      {
+        voiceURI: "hebrew-test-voice",
+        name: "Hebrew Test",
+        lang: "he-IL",
+        localService: true,
+        default: false,
+      },
+    ];
+    Object.defineProperty(window.speechSynthesis, "getVoices", {
+      configurable: true,
+      value: () => testVoices,
+    });
+  });
+
+  await page.goto("./");
+  await expect(page.getByTestId("beginner-per-language-tts-settings")).toBeVisible();
+  if (
+    !(await page
+      .getByTestId("fav-lang-it")
+      .isVisible()
+      .catch(() => false))
+  ) {
+    await page.getByTestId("add-lang-select").selectOption("it");
+  }
+
+  const italianSettings = page.getByTestId("beginner-tts-language-it");
+  await expect(italianSettings).toBeVisible();
+
+  const italianVoice = page.getByTestId("beginner-tts-voice-it");
+  await expect(italianVoice.locator('option[value="italian-test-voice"]')).toContainText(
+    "Italian Test (it-IT)",
+  );
+  await expect(italianVoice.locator('option[value="hebrew-test-voice"]')).toHaveCount(0);
+  await italianVoice.selectOption("italian-test-voice");
+  await page.getByTestId("beginner-tts-ratio-it").selectOption("3");
+  const italianSpeed = page.getByTestId("beginner-tts-speed-it");
+  await italianSpeed.focus();
+  await italianSpeed.press("End");
+
+  await expect(italianSpeed).toHaveValue("1.5");
+  const savedPreferences = await page.evaluate(() => ({
+    ratios: JSON.parse(localStorage.getItem("yt_tts_ratios_v1") || "{}"),
+    rates: JSON.parse(localStorage.getItem("yt_tts_rates_v1") || "{}"),
+    voices: JSON.parse(localStorage.getItem("yt_tts_voice_selections_v1") || "{}"),
+  }));
+  expect(savedPreferences.ratios.it).toBe(3);
+  expect(savedPreferences.rates.it).toBe(1.5);
+  expect(savedPreferences.voices.it).toBe("italian-test-voice");
+});
+
 test("web-demo video input remains playable without recreating the YouTube player", async ({
   page,
 }) => {
