@@ -4,7 +4,8 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- No active tasks.
+- [ ] **Task 238: Document and classify user-facing controls**
+  - Update `docs/design.md`, `docs/developer.md`, `AGENTS.md`, and applicable later-task notes with the new-user/daily-use/developer model, `debug=true` semantics, app mission/challenges, and requested experimental surfaces. Gate listed experimental views, apply provisional category colors, and make Beginner setup start with preferences before the daily video-and-subtitles-table view. Add focused verification, synchronize app version, run checks, and archive the task.
 
 ## Later Tasks
 
@@ -20,3 +21,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 - [ ] **Task 228: Validate playback lifecycle on Android API 34**
   - Run `bash android-shell/gradlew assembleDebug && bash scripts/run-android-e2e.sh && bash scripts/android-e2e-assert.sh` on a host with JDK 21, Android SDK, `adb`, and an API 34 Google APIs emulator or device. Confirm playback does not restart repeatedly during play-state updates.
   - Runtime validation is blocked in this Codespace because `adb` is unavailable. The player lifecycle fix and web-demo regression are implemented and verified in commit `042b8ed` plus the current web E2E changes.
+- [ ] **Later: Extend text-to-speech service support**
+  - Add support for additional TTS services beyond the current Google default. Keep this separate from the new-user/daily-usage design update.
+- [ ] **Later: Review control-placement category colors**
+  - After the user reviews the provisional new-user, daily-usage, and experimental control backgrounds, relocate controls according to the agreed placement recommendations.

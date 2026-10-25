@@ -262,6 +262,7 @@ import {
   hasCachedAiSubtitles,
 } from "@/utils/subtitleCache";
 import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
+import { isDeveloperModeEnabled } from "@/utils/developerMode";
 import {
   STORAGE_KEYS,
   APP_VERSION,
@@ -631,6 +632,8 @@ const addYouTubeTranslatedLanguage = (
 };
 
 function Index() {
+  const isDeveloperMode =
+    typeof window !== "undefined" && isDeveloperModeEnabled(window.location.search);
   const [isAndroid, setIsAndroid] = useState(() => {
     if (typeof window === "undefined") return false;
     return (
@@ -641,6 +644,7 @@ function Index() {
 
   const [workflowMode, setWorkflowMode] = useState<"beginner" | "expert">(() => {
     if (typeof window !== "undefined") {
+      if (isDeveloperModeEnabled(window.location.search)) return "expert";
       try {
         const saved = localStorage.getItem("app_workflow_mode");
         if (saved === "expert" || saved === "beginner") return saved;
@@ -1095,7 +1099,7 @@ function Index() {
   const promoteSuccessRef = useRef(promoteSuccess);
   promoteSuccessRef.current = promoteSuccess;
   const useFetchServerRef = useRef(useFetchServer);
-  useFetchServerRef.current = useFetchServer;
+  useFetchServerRef.current = isDeveloperMode && useFetchServer;
   const fetchServerUrlRef = useRef(fetchServerUrl);
   fetchServerUrlRef.current = fetchServerUrl;
   const targetLanguagesRef = useRef(targetLanguages);
@@ -3892,75 +3896,91 @@ function Index() {
               onClick={() => setActiveTopTab("viewer")}
               className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
                 activeTopTab === "viewer"
-                  ? "bg-primary text-primary-foreground shadow-sm"
+                  ? "bg-emerald-600 text-white shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
+              data-control-category="daily-usage"
             >
               <LayoutList className="h-3.5 w-3.5" />
               <span>Parallel Viewer</span>
             </button>
-            <button
-              id="tab-playground"
-              data-testid="tab-playground"
-              role="tab"
-              aria-selected={activeTopTab === "playground"}
-              type="button"
-              onClick={() => {
-                setActiveTopTab("playground");
-                cancelSpeech();
-                try {
-                  player.current?.pauseVideo?.();
-                } catch {
-                  // ignore
-                }
-              }}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
-                activeTopTab === "playground"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Tv className="h-3.5 w-3.5" />
-              <span>Playground</span>
-              {Object.keys(detectedPlaygroundTracks).length > 0 && (
-                <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-[10px] font-mono font-bold">
-                  {Object.keys(detectedPlaygroundTracks).length}
-                </span>
-              )}
-            </button>
-            <button
-              id="tab-ai-punctuation"
-              data-testid="tab-ai-punctuation"
-              role="tab"
-              aria-selected={activeTopTab === "ai-punctuation"}
-              type="button"
-              onClick={() => {
-                setActiveTopTab("ai-punctuation");
-                cancelSpeech();
-                try {
-                  player.current?.pauseVideo?.();
-                } catch {
-                  // ignore
-                }
-              }}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
-                activeTopTab === "ai-punctuation"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>AI Punctuation</span>
-              {hasCachedAi && (
-                <span
-                  data-testid="tab-ai-cached-indicator"
-                  className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold"
-                  title="Cached AI subtitles available"
-                >
-                  Cached
-                </span>
-              )}
-            </button>
+            {isDeveloperMode && (
+              <button
+                id="tab-playground"
+                data-testid="tab-playground"
+                role="tab"
+                aria-selected={activeTopTab === "playground"}
+                type="button"
+                onClick={() => {
+                  setActiveTopTab("playground");
+                  cancelSpeech();
+                  try {
+                    player.current?.pauseVideo?.();
+                  } catch {
+                    // ignore
+                  }
+                }}
+                data-control-category="experimental"
+                className={`inline-flex items-center gap-1.5 rounded-md border border-sky-500/30 px-3 py-1.5 text-xs font-semibold transition-all ${
+                  activeTopTab === "playground"
+                    ? "bg-sky-600 text-white shadow-sm"
+                    : "bg-sky-500/10 text-sky-800 hover:bg-sky-500/20 dark:text-sky-200"
+                }`}
+              >
+                <Tv className="h-3.5 w-3.5" />
+                <span>Playground</span>
+                {Object.keys(detectedPlaygroundTracks).length > 0 && (
+                  <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-[10px] font-mono font-bold">
+                    {Object.keys(detectedPlaygroundTracks).length}
+                  </span>
+                )}
+              </button>
+            )}
+            {isDeveloperMode && (
+              <button
+                id="tab-ai-punctuation"
+                data-testid="tab-ai-punctuation"
+                role="tab"
+                aria-selected={activeTopTab === "ai-punctuation"}
+                type="button"
+                onClick={() => {
+                  setActiveTopTab("ai-punctuation");
+                  cancelSpeech();
+                  try {
+                    player.current?.pauseVideo?.();
+                  } catch {
+                    // ignore
+                  }
+                }}
+                data-control-category="experimental"
+                className={`inline-flex items-center gap-1.5 rounded-md border border-sky-500/30 px-3 py-1.5 text-xs font-semibold transition-all ${
+                  activeTopTab === "ai-punctuation"
+                    ? "bg-sky-600 text-white shadow-sm"
+                    : "bg-sky-500/10 text-sky-800 hover:bg-sky-500/20 dark:text-sky-200"
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>AI Punctuation</span>
+                {hasCachedAi && (
+                  <span
+                    data-testid="tab-ai-cached-indicator"
+                    className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold"
+                    title="Cached AI subtitles available"
+                  >
+                    Cached
+                  </span>
+                )}
+              </button>
+            )}
+            {isDeveloperMode && (
+              <span
+                data-testid="developer-mode-indicator"
+                data-control-category="experimental"
+                className="rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-1.5 text-[10px] font-semibold text-sky-800 dark:text-sky-200"
+              >
+                Developer mode
+              </span>
+            )}
           </div>
         )}
 
@@ -4002,7 +4022,7 @@ function Index() {
 
         {/* Action Toolbar Cluster */}
         <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-2xs">
-          {!isAndroid && (
+          {isDeveloperMode && debugMode && !isAndroid && (
             <Button
               type="button"
               size="sm"
@@ -4038,7 +4058,8 @@ function Index() {
             size="sm"
             variant="ghost"
             onClick={() => setShareModalOpen(true)}
-            className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-primary/30 hover:bg-primary/10 text-primary font-medium"
+            className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-medium"
+            data-control-category="daily-usage"
             title="Share application state with default subtitles, OpenRouter key, and target language"
           >
             <Share2 className="h-3.5 w-3.5" />
@@ -4836,114 +4857,124 @@ function Index() {
                                   <option value="lang">Replace lang=&lt;language&gt;</option>
                                 </select>
                               </label>
-                              <AttemptOrderSettings
-                                order={attemptOrder}
-                                onChangeOrder={handleUpdateAttemptOrder}
-                                promoteSuccess={promoteSuccess}
-                                onTogglePromoteSuccess={handleTogglePromoteSuccess}
-                                useFetchServer={useFetchServer}
-                                onToggleUseFetchServer={handleToggleUseFetchServer}
-                                fetchServerUrl={fetchServerUrl}
-                                onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
-                                onSelectVideo={handleSelectLibraryVideo}
-                                strategyConfig={strategyConfig}
-                                onChangeStrategyConfig={(next) => {
-                                  setStrategyConfigState(next);
-                                  setSubtitleFetchWindowSeconds(next.windowSeconds);
-                                  setFetchWindowSecondsState(next.windowSeconds);
-                                  subtitleRequestQueue.setWindowSeconds(next.windowSeconds);
-                                }}
-                                windowSeconds={fetchWindowSeconds}
-                                onChangeWindowSeconds={(sec) => {
-                                  setFetchWindowSecondsState(sec);
-                                  setSubtitleFetchWindowSeconds(sec);
-                                  subtitleRequestQueue.setWindowSeconds(sec);
-                                }}
-                              />
+                              {isDeveloperMode && (
+                                <AttemptOrderSettings
+                                  order={attemptOrder}
+                                  onChangeOrder={handleUpdateAttemptOrder}
+                                  promoteSuccess={promoteSuccess}
+                                  onTogglePromoteSuccess={handleTogglePromoteSuccess}
+                                  useFetchServer={useFetchServer}
+                                  onToggleUseFetchServer={handleToggleUseFetchServer}
+                                  fetchServerUrl={fetchServerUrl}
+                                  onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
+                                  onSelectVideo={handleSelectLibraryVideo}
+                                  strategyConfig={strategyConfig}
+                                  onChangeStrategyConfig={(next) => {
+                                    setStrategyConfigState(next);
+                                    setSubtitleFetchWindowSeconds(next.windowSeconds);
+                                    setFetchWindowSecondsState(next.windowSeconds);
+                                    subtitleRequestQueue.setWindowSeconds(next.windowSeconds);
+                                  }}
+                                  windowSeconds={fetchWindowSeconds}
+                                  onChangeWindowSeconds={(sec) => {
+                                    setFetchWindowSecondsState(sec);
+                                    setSubtitleFetchWindowSeconds(sec);
+                                    subtitleRequestQueue.setWindowSeconds(sec);
+                                  }}
+                                  developerMode={isDeveloperMode}
+                                />
+                              )}
                               <div className="pt-2 border-t border-border/60 space-y-2">
-                                <div className="flex items-center justify-between gap-2">
-                                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                                    <input
-                                      data-testid="auto-retry-subtitles-toggle"
-                                      type="checkbox"
-                                      checked={autoRetrySubtitles}
-                                      onChange={(e) => handleToggleAutoRetry(e.target.checked)}
-                                      className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                    />
-                                    <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                      <RotateCcw className="w-3.5 h-3.5 text-primary" />
-                                      <span>
-                                        Auto-retry unfetched favorite languages (paced jitter)
-                                      </span>
-                                    </span>
-                                  </label>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setExpandedPrefsHelp((p) => ({
-                                        ...p,
-                                        autoRetry: !p.autoRetry,
-                                      }))
-                                    }
-                                    className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                    title="Toggle auto-retry explanation"
-                                    aria-expanded={Boolean(expandedPrefsHelp.autoRetry)}
+                                {isDeveloperMode && (
+                                  <div
+                                    className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-2"
+                                    data-control-category="experimental"
                                   >
-                                    <HelpCircle className="w-3 h-3" />
-                                    <span>{expandedPrefsHelp.autoRetry ? "Hide" : "Info"}</span>
-                                  </button>
-                                </div>
-                                {expandedPrefsHelp.autoRetry && (
-                                  <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                    Automatically retries pending favorite subtitles with random
-                                    spacing between X and Y seconds to prevent YouTube HTTP 429 rate
-                                    limit blocks.
-                                  </p>
+                                    <div className="flex items-center justify-between gap-2">
+                                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <input
+                                          data-testid="auto-retry-subtitles-toggle"
+                                          type="checkbox"
+                                          checked={autoRetrySubtitles}
+                                          onChange={(e) => handleToggleAutoRetry(e.target.checked)}
+                                          className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                        />
+                                        <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                          <RotateCcw className="w-3.5 h-3.5 text-primary" />
+                                          <span>
+                                            Auto-retry unfetched favorite languages (paced jitter)
+                                          </span>
+                                        </span>
+                                      </label>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setExpandedPrefsHelp((p) => ({
+                                            ...p,
+                                            autoRetry: !p.autoRetry,
+                                          }))
+                                        }
+                                        className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                        title="Toggle auto-retry explanation"
+                                        aria-expanded={Boolean(expandedPrefsHelp.autoRetry)}
+                                      >
+                                        <HelpCircle className="w-3 h-3" />
+                                        <span>{expandedPrefsHelp.autoRetry ? "Hide" : "Info"}</span>
+                                      </button>
+                                    </div>
+                                    {expandedPrefsHelp.autoRetry && (
+                                      <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                        Automatically retries pending favorite subtitles with random
+                                        spacing between X and Y seconds to prevent YouTube HTTP 429
+                                        rate limit blocks.
+                                      </p>
+                                    )}
+                                    <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
+                                      <div>
+                                        <label
+                                          htmlFor="retry-pacing-min-input"
+                                          className="text-[11px] font-medium text-muted-foreground block mb-1"
+                                        >
+                                          Min interval (X seconds):
+                                        </label>
+                                        <input
+                                          id="retry-pacing-min-input"
+                                          data-testid="retry-pacing-min-input"
+                                          type="number"
+                                          min={1}
+                                          max={retryPacingMaxSec}
+                                          value={retryPacingMinSec}
+                                          onChange={(e) =>
+                                            handleUpdatePacingMin(parseInt(e.target.value, 10) || 1)
+                                          }
+                                          className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label
+                                          htmlFor="retry-pacing-max-input"
+                                          className="text-[11px] font-medium text-muted-foreground block mb-1"
+                                        >
+                                          Max interval (Y seconds):
+                                        </label>
+                                        <input
+                                          id="retry-pacing-max-input"
+                                          data-testid="retry-pacing-max-input"
+                                          type="number"
+                                          min={retryPacingMinSec}
+                                          max={60}
+                                          value={retryPacingMaxSec}
+                                          onChange={(e) =>
+                                            handleUpdatePacingMax(
+                                              parseInt(e.target.value, 10) || retryPacingMinSec,
+                                            )
+                                          }
+                                          className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 )}
-                                <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
-                                  <div>
-                                    <label
-                                      htmlFor="retry-pacing-min-input"
-                                      className="text-[11px] font-medium text-muted-foreground block mb-1"
-                                    >
-                                      Min interval (X seconds):
-                                    </label>
-                                    <input
-                                      id="retry-pacing-min-input"
-                                      data-testid="retry-pacing-min-input"
-                                      type="number"
-                                      min={1}
-                                      max={retryPacingMaxSec}
-                                      value={retryPacingMinSec}
-                                      onChange={(e) =>
-                                        handleUpdatePacingMin(parseInt(e.target.value, 10) || 1)
-                                      }
-                                      className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label
-                                      htmlFor="retry-pacing-max-input"
-                                      className="text-[11px] font-medium text-muted-foreground block mb-1"
-                                    >
-                                      Max interval (Y seconds):
-                                    </label>
-                                    <input
-                                      id="retry-pacing-max-input"
-                                      data-testid="retry-pacing-max-input"
-                                      type="number"
-                                      min={retryPacingMinSec}
-                                      max={60}
-                                      value={retryPacingMaxSec}
-                                      onChange={(e) =>
-                                        handleUpdatePacingMax(
-                                          parseInt(e.target.value, 10) || retryPacingMinSec,
-                                        )
-                                      }
-                                      className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
-                                    />
-                                  </div>
-                                </div>
                               </div>
                             </>
                           )}
@@ -5016,39 +5047,49 @@ function Index() {
                               </p>
                             )}
                           </div>
-                          <div className="flex items-center justify-between gap-2">
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                              <input
-                                id="debug-mode-toggle"
-                                data-testid="debug-mode-toggle"
-                                type="checkbox"
-                                checked={debugMode}
-                                onChange={(e) => onDebugModeChange(e.target.checked)}
-                                className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                              />
-                              <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                <Activity className="w-3.5 h-3.5 text-primary" />
-                                <span>Debug mode (network inspector &amp; diagnostics)</span>
-                              </span>
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setExpandedPrefsHelp((p) => ({ ...p, debugMode: !p.debugMode }))
-                              }
-                              className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                              title="Toggle debug mode explanation"
-                              aria-expanded={Boolean(expandedPrefsHelp.debugMode)}
+                          {isDeveloperMode && (
+                            <div
+                              className="space-y-2 rounded-lg border border-sky-500/30 bg-sky-500/5 p-2"
+                              data-control-category="experimental"
                             >
-                              <HelpCircle className="w-3 h-3" />
-                              <span>{expandedPrefsHelp.debugMode ? "Hide" : "Info"}</span>
-                            </button>
-                          </div>
-                          {expandedPrefsHelp.debugMode && (
-                            <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                              Enables live network traffic capture, headers inspection, and
-                              timedtext diagnostics.
-                            </p>
+                              <div className="flex items-center justify-between gap-2">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                  <input
+                                    id="debug-mode-toggle"
+                                    data-testid="debug-mode-toggle"
+                                    type="checkbox"
+                                    checked={debugMode}
+                                    onChange={(e) => onDebugModeChange(e.target.checked)}
+                                    className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                  />
+                                  <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                    <Activity className="w-3.5 h-3.5 text-primary" />
+                                    <span>Network inspector &amp; diagnostics</span>
+                                  </span>
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setExpandedPrefsHelp((p) => ({
+                                      ...p,
+                                      debugMode: !p.debugMode,
+                                    }))
+                                  }
+                                  className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                  title="Toggle diagnostics explanation"
+                                  aria-expanded={Boolean(expandedPrefsHelp.debugMode)}
+                                >
+                                  <HelpCircle className="w-3 h-3" />
+                                  <span>{expandedPrefsHelp.debugMode ? "Hide" : "Info"}</span>
+                                </button>
+                              </div>
+                              {expandedPrefsHelp.debugMode && (
+                                <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                  Enables live network traffic capture, headers inspection, and
+                                  timedtext diagnostics while developer mode is active.
+                                </p>
+                              )}
+                            </div>
                           )}
                           <label className="flex items-center gap-2 cursor-pointer select-none">
                             <input
@@ -7028,7 +7069,7 @@ function Index() {
         </>
       )}
 
-      {debugMode && (
+      {isDeveloperMode && debugMode && (
         <NetworkRequestsInspector
           isOpen={networkInspectorOpen}
           onClose={() => setNetworkInspectorOpen(false)}

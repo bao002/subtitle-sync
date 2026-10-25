@@ -1,5 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: No active task.
-- **Completed**: Task 237 — added the current page origin to primary and secondary YouTube IFrame API players, and extended Docker E2E coverage to verify the player receives the origin and Play changes playback state. App version 2.0.19 is synchronized.
-- **Next Action**: Resume a task from `docs/tasks.md` when requested.
+- **Status**: Active — Task 238.1.
+- **Task**: Document and classify user-facing controls using the new-user, daily-usage, and developer model.
+- **Scope**: Inspect docs and UI entry points, establish `debug=true` semantics, gate requested experimental surfaces, apply provisional category colors, and make first-time Beginner setup lead with preferences before the daily video/table view. Validate, version, commit, and archive.
+- **Next Action**: Run the focused Docker E2E assertions for developer-mode visibility and the Beginner first-time setup sequence.

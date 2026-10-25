@@ -5236,3 +5236,8 @@
 - Synchronized app version 2.0.19 across `package.json`, `package-lock.json`, Android Gradle, app configuration, APK updater, and exported app settings.
 - Verification passed: `./docker/manage.sh e2e web --grep 'web-demo video input remains playable' --retries=0`, `npm run test:stable-video-player`, `npm run test:v2-version-bump`, `npm run test:android-build-version-details`, `npm run build`, `npm run lint`, and `git diff --check`.
 - The regression test uses a controlled YouTube player stub; real YouTube playback remains dependent on video embedding permissions and YouTube availability. Earlier Docker playback attempts for this video encountered YouTube's bot-check screen, so no live playback is claimed.
+
+### Hotfix: Repair developer-gated retry settings JSX
+
+- Corrected JSX nesting for the developer-only Android auto-retry and pacing controls in `src/routes/index.tsx`.
+- Verification passed: `npm run build` and `npm run lint`.
