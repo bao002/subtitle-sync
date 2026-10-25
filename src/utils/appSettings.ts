@@ -90,10 +90,11 @@ export interface AppSettings {
 
   // Beginner Mode Tab-Based Flow Settings
   workflowMode?: "beginner" | "expert";
-  beginnerActiveTab?: "video" | "preferences" | "parsing" | "player";
+  beginnerActiveTab?: "video" | "preferences";
   beginnerTtsSpeed?: number;
   beginnerTtsVoice?: string;
   beginnerSubtitlesRatio?: number;
+  showVideoSubtitles?: boolean;
   beginnerFavoriteLangs?: string[];
   beginnerSplitByPunctuation?: boolean;
   beginnerPunctuationChars?: string[];
@@ -266,10 +267,11 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 
   // Beginner Mode Defaults
   workflowMode: "beginner",
-  beginnerActiveTab: "video",
+  beginnerActiveTab: "preferences",
   beginnerTtsSpeed: 1.0,
   beginnerTtsVoice: "",
   beginnerSubtitlesRatio: 1.0,
+  showVideoSubtitles: true,
   beginnerFavoriteLangs: ["he", "en", "es", "fr", "ar", "ru"],
   beginnerSplitByPunctuation: true,
   beginnerPunctuationChars: [".", "!", "?", "…", "؟"],
@@ -484,7 +486,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "2.0.19",
+    version: "2.0.22",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {

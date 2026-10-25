@@ -567,12 +567,12 @@ assert.ok(
   "src/routes/index.tsx must define and use playedTtsRecords ref",
 );
 assert.ok(
-  indexCode.includes("!playedTtsRecords.current.has(idx)"),
-  "src/routes/index.tsx must check playedTtsRecords in tts-first mode",
+  indexCode.includes("!playedTtsRecords.current.has(getPlaybackSectionId(rows[idx]!))"),
+  "src/routes/index.tsx must check stable section identity in tts-first mode",
 );
 assert.ok(
-  indexCode.includes("!playedTtsRecords.current.has(candidateRow)"),
-  "src/routes/index.tsx must check playedTtsRecords in video-first mode",
+  indexCode.includes("!playedTtsRecords.current.has(getPlaybackSectionId(rows[candidateRow]!))"),
+  "src/routes/index.tsx must check stable section identity in video-first mode",
 );
 assert.ok(
   indexCode.includes("reset-played-subtitles-btn"),

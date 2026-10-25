@@ -5,17 +5,16 @@ import {
   Library,
   CheckCircle2,
   Sparkles,
-  RefreshCw,
   Play,
-  ArrowRight,
   Database,
-  ExternalLink,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
 import { extractYouTubeId } from "@/utils/youtube";
+import { BeginnerFavoriteLanguageSelector } from "../BeginnerFavoriteLanguageSelector";
 
 export interface ObservedSubtitleTrack {
   lang: string;
@@ -34,13 +33,16 @@ export interface BeginnerVideoTabProps {
   observedUrl: string | null;
   observedTracks: ObservedSubtitleTrack[];
   onLoadSampleSubtitles?: () => void;
-  onContinueToNextTab?: () => void;
-  isAndroidNative?: boolean;
   playerSlot?: React.ReactNode;
   playbackControlsSlot?: React.ReactNode;
+  ttsServiceControlsSlot?: React.ReactNode;
+  charsRemovalSlot?: React.ReactNode;
   subtitlesTableSlot?: React.ReactNode;
+  favoriteLanguages: string[];
+  favoriteLanguageCatalog: Array<{ code: string; name: string }>;
+  selectedTargetLanguages: string[];
+  onTargetLanguagesChange: (languages: string[]) => void;
   webDemoUrlsSlot?: React.ReactNode;
-  hasSubtitles?: boolean;
   subtitlesRatio: number;
   onSubtitlesRatioChange: (ratio: number) => void;
   showVideoSubtitles: boolean;
@@ -56,13 +58,16 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   observedUrl,
   observedTracks,
   onLoadSampleSubtitles,
-  onContinueToNextTab,
-  isAndroidNative = false,
   playerSlot,
   playbackControlsSlot,
+  ttsServiceControlsSlot,
+  charsRemovalSlot,
   subtitlesTableSlot,
+  favoriteLanguages,
+  favoriteLanguageCatalog,
+  selectedTargetLanguages,
+  onTargetLanguagesChange,
   webDemoUrlsSlot,
-  hasSubtitles = false,
   subtitlesRatio,
   onSubtitlesRatioChange,
   showVideoSubtitles,
@@ -92,11 +97,13 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
     }
   };
 
-  const hasSelectedBase = observedTracks.some((track) => track.isBase);
-
   return (
-    <div className="space-y-4 max-w-4xl mx-auto p-3" data-testid="beginner-video-tab">
-      {/* Step 1 Header & Controls */}
+    <div
+      className="space-y-4 max-w-4xl mx-auto p-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/5"
+      data-testid="beginner-video-tab"
+      data-control-category="daily-usage"
+    >
+      {/* Daily video and subtitle controls */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -105,7 +112,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             </div>
             <div>
               <h2 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                <span>Step 1: YouTube Video & Subtitle Discovery</span>
+                <span>Daily Video &amp; Subtitles</span>
                 {videoId && (
                   <Badge
                     variant="outline"
@@ -184,39 +191,16 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
         {playerSlot && (
           <div
             data-testid="video-display-controls"
-            className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-border bg-background/70 px-3 py-2"
+            className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2"
+            data-control-category="daily-usage"
           >
-            <div className="flex min-w-[220px] flex-1 items-center gap-2">
-              <label
-                htmlFor="beginner-subtitles-sizing"
-                className="shrink-0 text-[11px] font-medium text-foreground"
-              >
-                Subtitle size
-              </label>
-              <Slider
-                id="beginner-subtitles-sizing"
-                aria-label="Subtitle sizing ratio"
-                data-testid="subtitles-ratio-slider"
-                value={[subtitlesRatio]}
-                onValueChange={([ratio]) => onSubtitlesRatioChange(ratio)}
-                min={0.6}
-                max={1.8}
-                step={0.05}
-                className="min-w-20 flex-1"
-              />
-              <span
-                className="w-10 text-right font-mono text-[11px] font-semibold text-primary"
-                data-testid="ratio-val"
-              >
-                {subtitlesRatio.toFixed(2)}x
-              </span>
-            </div>
             <Button
               type="button"
               size="sm"
               variant={showVideoSubtitles ? "default" : "outline"}
               aria-pressed={showVideoSubtitles}
               data-testid="video-subtitles-overlay-toggle"
+              data-control-category="daily-usage"
               onClick={onToggleVideoSubtitles}
               className="h-7 shrink-0 gap-1.5 px-2.5 text-xs"
               title="Toggle spoken subtitles over the video"
@@ -224,178 +208,223 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
               <Subtitles className="h-3.5 w-3.5" />
               {showVideoSubtitles ? "Overlay on" : "Overlay off"}
             </Button>
+            <div className="flex items-center gap-1.5">
+              <span className="mr-1 text-[11px] font-medium text-foreground">Subtitle size</span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                aria-label="Decrease subtitle overlay size"
+                data-testid="subtitle-overlay-size-decrease"
+                disabled={subtitlesRatio <= 0.6}
+                onClick={() =>
+                  onSubtitlesRatioChange(
+                    Math.max(0.6, Math.round((subtitlesRatio - 0.1) * 10) / 10),
+                  )
+                }
+                className="h-8 w-8 p-0"
+              >
+                <Minus className="h-3.5 w-3.5" />
+              </Button>
+              <span
+                className="min-w-12 text-center font-mono text-[11px] font-semibold text-primary"
+                data-testid="subtitle-overlay-size-value"
+              >
+                {subtitlesRatio.toFixed(2)}x
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                aria-label="Increase subtitle overlay size"
+                data-testid="subtitle-overlay-size-increase"
+                disabled={subtitlesRatio >= 1.8}
+                onClick={() =>
+                  onSubtitlesRatioChange(
+                    Math.min(1.8, Math.round((subtitlesRatio + 0.1) * 10) / 10),
+                  )
+                }
+                className="h-8 w-8 p-0"
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            </div>
           </div>
         )}
+        {playerSlot && ttsServiceControlsSlot}
         {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}
       </div>
 
-      {/* Step 2: Captions Interception Prompt */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0 mt-0.5">
-            <Subtitles className="w-4 h-4" />
+      <BeginnerFavoriteLanguageSelector
+        catalog={favoriteLanguageCatalog}
+        favoriteLanguages={favoriteLanguages}
+        selectedLanguages={selectedTargetLanguages}
+        onSelectionChange={onTargetLanguagesChange}
+      />
+
+      {subtitlesTableSlot && (
+        <section
+          className="space-y-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3"
+          aria-label="Parallel subtitles table"
+          data-testid="beginner-parallel-subtitles"
+          data-control-category="daily-usage"
+        >
+          <h3 className="text-xs font-semibold text-foreground">Parallel subtitles</h3>
+          {charsRemovalSlot}
+          {subtitlesTableSlot}
+        </section>
+      )}
+
+      <details
+        className="rounded-xl border border-border bg-card p-3.5 shadow-sm"
+        data-testid="beginner-caption-discovery-details"
+      >
+        <summary className="cursor-pointer text-xs font-semibold text-foreground">
+          Caption discovery details ({observedTracks.length} tracks)
+        </summary>
+        <div className="mt-3 space-y-3">
+          {/* Caption interception prompt */}
+          <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0 mt-0.5">
+                <Subtitles className="w-4 h-4" />
+              </div>
+              <div className="space-y-1 flex-1">
+                <h3 className="text-xs font-semibold text-foreground flex items-center gap-2">
+                  <span>Enable Captions (CC) in Video</span>
+                  {observedUrl && (
+                    <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] py-0">
+                      <CheckCircle2 className="w-3 h-3 mr-1" />
+                      TimedText Intercepted
+                    </Badge>
+                  )}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Play the video and turn on{" "}
+                  <strong className="text-foreground">CC (Captions)</strong> in the YouTube player.
+                  The app intercepts the authentic{" "}
+                  <code className="text-primary bg-muted px-1 py-0.5 rounded text-[11px]">
+                    timedtext
+                  </code>{" "}
+                  network calls and securely saves the subtitle tracks into offline local storage.
+                </p>
+                {onLoadSampleSubtitles && observedTracks.length === 0 && (
+                  <div className="pt-1.5 flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={onLoadSampleSubtitles}
+                      className="h-7 px-2.5 text-[11px] border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10 dark:hover:bg-sky-950/40"
+                      data-testid="btn-load-sample-subs"
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      Load Sample Captions (Instant Test)
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Intercepted URL Info */}
+            {observedUrl && (
+              <div className="bg-muted/50 border border-border rounded-lg p-2 text-[11px] text-muted-foreground flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 truncate">
+                  <Database className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span className="text-foreground font-mono text-[10px] truncate">
+                    {observedUrl}
+                  </span>
+                </div>
+                <span className="text-[10px] text-emerald-500 shrink-0 font-medium">
+                  Cached Locally
+                </span>
+              </div>
+            )}
           </div>
-          <div className="space-y-1 flex-1">
-            <h3 className="text-xs font-semibold text-foreground flex items-center gap-2">
-              <span>Enable Captions (CC) in Video</span>
-              {observedUrl && (
-                <Badge className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[10px] py-0">
-                  <CheckCircle2 className="w-3 h-3 mr-1" />
-                  TimedText Intercepted
-                </Badge>
-              )}
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Play the video and turn on <strong className="text-foreground">CC (Captions)</strong>{" "}
-              in the YouTube player. The app intercepts the authentic{" "}
-              <code className="text-primary bg-muted px-1 py-0.5 rounded text-[11px]">
-                timedtext
-              </code>{" "}
-              network calls and securely saves the subtitle tracks into offline local storage.
-            </p>
-            {onLoadSampleSubtitles && observedTracks.length === 0 && (
-              <div className="pt-1.5 flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onLoadSampleSubtitles}
-                  className="h-7 px-2.5 text-[11px] border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10 dark:hover:bg-sky-950/40"
-                  data-testid="btn-load-sample-subs"
-                >
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  Load Sample Captions (Instant Test)
-                </Button>
+
+          {/* Automatically selected base track */}
+          <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <span>Detected Subtitle Tracks</span>
+                  <span className="text-muted-foreground font-normal">
+                    ({observedTracks.length} detected)
+                  </span>
+                </h3>
+                <p className="text-[11px] text-muted-foreground">
+                  The base language is selected automatically: English when available, otherwise the
+                  first detected track.
+                </p>
+              </div>
+            </div>
+
+            {observedTracks.length === 0 ? (
+              <div className="bg-background border border-dashed border-border rounded-lg p-6 text-center text-xs text-muted-foreground space-y-1">
+                <Subtitles className="w-6 h-6 mx-auto text-muted-foreground/60 mb-1" />
+                <p>No subtitle tracks detected yet.</p>
+                <p className="text-[11px] text-muted-foreground/70">
+                  Start video playback or toggle CC on the player to trigger caption discovery.
+                </p>
+              </div>
+            ) : (
+              <div
+                className="grid grid-cols-1 sm:grid-cols-2 gap-2"
+                data-testid="observed-subtitles-list"
+              >
+                {observedTracks.map((track) => {
+                  const isSelected = track.isBase;
+                  return (
+                    <div
+                      key={track.lang}
+                      aria-current={isSelected ? "true" : undefined}
+                      className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                        isSelected
+                          ? "bg-primary/10 border-primary text-foreground ring-1 ring-primary/40"
+                          : "bg-background border-border text-foreground"
+                      }`}
+                      data-testid={`observed-subtitle-track-${track.lang}`}
+                    >
+                      <div className="space-y-0.5 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-xs text-foreground">
+                            {track.name || track.lang.toUpperCase()}
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] px-1.5 py-0 border-border"
+                          >
+                            {track.lang}
+                          </Badge>
+                          {track.isCached && (
+                            <span className="text-[10px] text-emerald-500 flex items-center gap-0.5">
+                              <CheckCircle2 className="w-2.5 h-2.5" />
+                              Cached
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {track.cuesCount} subtitle cues available
+                        </div>
+                      </div>
+
+                      <div
+                        className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ml-2 ${
+                          isSelected
+                            ? "bg-primary border-primary text-primary-foreground"
+                            : "border-border bg-card text-transparent"
+                        }`}
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
-
-        {/* Intercepted URL Info */}
-        {observedUrl && (
-          <div className="bg-muted/50 border border-border rounded-lg p-2 text-[11px] text-muted-foreground flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 truncate">
-              <Database className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span className="text-foreground font-mono text-[10px] truncate">{observedUrl}</span>
-            </div>
-            <span className="text-[10px] text-emerald-500 shrink-0 font-medium">
-              Cached Locally
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Step 3: Automatically Selected Base Track */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h3 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-              <span>Detected Subtitle Tracks</span>
-              <span className="text-muted-foreground font-normal">
-                ({observedTracks.length} detected)
-              </span>
-            </h3>
-            <p className="text-[11px] text-muted-foreground">
-              The base language is selected automatically: English when available, otherwise the
-              first detected track.
-            </p>
-          </div>
-        </div>
-
-        {observedTracks.length === 0 ? (
-          <div className="bg-background border border-dashed border-border rounded-lg p-6 text-center text-xs text-muted-foreground space-y-1">
-            <Subtitles className="w-6 h-6 mx-auto text-muted-foreground/60 mb-1" />
-            <p>No subtitle tracks detected yet.</p>
-            <p className="text-[11px] text-muted-foreground/70">
-              Start video playback or toggle CC on the player to trigger caption discovery.
-            </p>
-          </div>
-        ) : (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 gap-2"
-            data-testid="observed-subtitles-list"
-          >
-            {observedTracks.map((track) => {
-              const isSelected = track.isBase;
-              return (
-                <div
-                  key={track.lang}
-                  aria-current={isSelected ? "true" : undefined}
-                  className={`flex items-center justify-between p-2.5 rounded-lg border ${
-                    isSelected
-                      ? "bg-primary/10 border-primary text-foreground ring-1 ring-primary/40"
-                      : "bg-background border-border text-foreground"
-                  }`}
-                  data-testid={`observed-subtitle-track-${track.lang}`}
-                >
-                  <div className="space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-xs text-foreground">
-                        {track.name || track.lang.toUpperCase()}
-                      </span>
-                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-border">
-                        {track.lang}
-                      </Badge>
-                      {track.isCached && (
-                        <span className="text-[10px] text-emerald-500 flex items-center gap-0.5">
-                          <CheckCircle2 className="w-2.5 h-2.5" />
-                          Cached
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">
-                      {track.cuesCount} subtitle cues available
-                    </div>
-                  </div>
-
-                  <div
-                    className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ml-2 ${
-                      isSelected
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : "border-border bg-card text-transparent"
-                    }`}
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Continuation Banner */}
-        {hasSelectedBase && onContinueToNextTab && (
-          <div className="pt-2 flex items-center justify-between gap-3 border-t border-border">
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4" />
-              Base track selected. Next tabs unlocked!
-            </span>
-            <Button
-              type="button"
-              size="sm"
-              onClick={onContinueToNextTab}
-              className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium flex items-center gap-1.5"
-              data-testid="btn-continue-to-prefs"
-            >
-              <span>Next: Voice & Preferences</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Subtitles Table (as exists on Advanced Mode) */}
-      {hasSubtitles && subtitlesTableSlot && (
-        <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-semibold text-foreground flex items-center gap-2">
-              <Subtitles className="w-4 h-4 text-primary" />
-              <span>Synchronized Subtitles Table</span>
-            </h3>
-          </div>
-          {subtitlesTableSlot}
-        </div>
-      )}
+      </details>
     </div>
   );
 };

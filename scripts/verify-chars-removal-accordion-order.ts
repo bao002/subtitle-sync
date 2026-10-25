@@ -8,28 +8,31 @@ console.log("===================================================================
 
 const rootDir = process.cwd();
 
-// 1. Beginner Mode: Chars Removal before Parser in BeginnerParsingTab.tsx
-console.log("\n🐣 Section 1: Beginner Mode Ordering in BeginnerParsingTab.tsx");
-const beginnerTabPath = path.resolve(
+// 1. Beginner Mode: Chars Removal accordion before the shared table parser
+console.log("\n🐣 Section 1: Beginner Mode Ordering in the daily video flow");
+const beginnerAccordionPath = path.resolve(
   rootDir,
-  "src/components/beginner/tabs/BeginnerParsingTab.tsx",
+  "src/components/beginner/BeginnerCharsRemovalAccordion.tsx",
 );
-assert(fs.existsSync(beginnerTabPath), "BeginnerParsingTab.tsx must exist");
-const beginnerContent = fs.readFileSync(beginnerTabPath, "utf-8");
-
-const beginnerCharsIndex = beginnerContent.indexOf('data-testid="beginner-chars-removal-section"');
-const beginnerParserIndex = beginnerContent.indexOf('data-testid="beginner-parser-section"');
+const beginnerVideoPath = path.resolve(
+  rootDir,
+  "src/components/beginner/tabs/BeginnerVideoTab.tsx",
+);
+assert(fs.existsSync(beginnerAccordionPath), "BeginnerCharsRemovalAccordion.tsx must exist");
+const beginnerAccordion = fs.readFileSync(beginnerAccordionPath, "utf-8");
+const beginnerVideo = fs.readFileSync(beginnerVideoPath, "utf-8");
+const beginnerCharsIndex = beginnerVideo.indexOf("{charsRemovalSlot}");
+const beginnerTableIndex = beginnerVideo.indexOf("{subtitlesTableSlot}");
 
 assert(
-  beginnerCharsIndex !== -1,
-  "BeginnerParsingTab must render 'beginner-chars-removal-section'",
+  beginnerAccordion.includes('data-testid="beginner-chars-removal-accordion"'),
+  "Beginner mode must render a dedicated Chars Removal accordion",
 );
-assert(beginnerParserIndex !== -1, "BeginnerParsingTab must render 'beginner-parser-section'");
 assert(
-  beginnerCharsIndex < beginnerParserIndex,
-  `In Beginner Mode, Chars Removal section (index ${beginnerCharsIndex}) must appear BEFORE Parser section (index ${beginnerParserIndex})`,
+  beginnerCharsIndex !== -1 && beginnerCharsIndex < beginnerTableIndex,
+  "In Beginner mode, Chars Removal must appear before the table and its parser controls",
 );
-console.log("✅ PASS: In Beginner Mode, Chars Removal is rendered before Parser.");
+console.log("✅ PASS: In Beginner Mode, Chars Removal is rendered before the table parser.");
 
 // 2. Accordion Themes Configuration: charsRemoval in PANELS and ACCORDION_THEMES
 console.log("\n🎨 Section 2: Accordion Themes Configuration");
@@ -120,6 +123,12 @@ assert(
 assert(
   panelCompContent.includes('data-testid="advanced-chars-removal-preview"'),
   "SpecialCharactersRemovalPanel must render testid 'advanced-chars-removal-preview'",
+);
+assert(
+  panelCompContent.includes("sampleCues.slice(0, 3)") &&
+    panelCompContent.includes("Load subtitles to see the sanitization preview.") &&
+    !panelCompContent.includes("fallbackSamples"),
+  "Sanitization previews must use authentic loaded cues and never fall back to hardcoded subtitle text",
 );
 console.log("✅ PASS: SpecialCharactersRemovalPanel exports all required interactive elements.");
 

@@ -1,5 +1,37 @@
 # Done tasks
 
+## Task 240.1: Prevent replay of the same video section after TTS
+
+- Fixed repeat-loop protection by tracking spoken subtitle sections with stable start/end timing identities rather than mutable row indexes.
+- Kept completed-section state across row-array updates, which can occur as on-demand translations arrive; it now resets when the video changes. Explicitly seeking a section still makes that section replayable.
+- Added `scripts/verify-no-repeated-video-section-after-tts.ts` and updated the related ratio/audio-time-section source checks to assert stable section identity.
+- Verification passed: `npm run test:no-repeated-video-section-after-tts`, `npm run test:tts-ratio`, `npm run test:audio-track-time-sections`, `npm run test:multi-video-audio-sync`, `npm run build`, `npm run lint`, focused ESLint/Prettier, and `git diff --check`.
+
+## Task 240.2: Add per-language Beginner TTS preferences
+
+- Added per-language sentence ratio, speech rate, and available device voice controls to Beginner General Preferences for favorite/spoken languages.
+- Reused the route's existing per-video ratio/rate and voice-selection state, while persisting ratios and speech rates as device-level preferences so General Preferences remain effective before a video is selected.
+- Added focused Docker Playwright coverage for per-language controls, language-specific voice options, and ratio/rate/voice persistence.
+- Verification passed: `./docker/manage.sh e2e web --grep "Beginner preferences persist ratio" --retries=0`, `npm run test:beginner-mode`, `npm run test:no-repeated-video-section-after-tts`, `npm run build`, `npm run lint`, focused Prettier checks, and `git diff --check`.
+
+## Task 240.3: Add direct Native/Google TTS selection under the video (Version 2.0.22)
+
+- Added a daily-use service selector directly below the video controls. Selecting Google sets the existing alternative TTS provider to Google, enables it, and selects `always` mode so it is the primary service; Native explicitly disables the alternative service.
+- Kept voice choices language-specific in Beginner General Preferences, and verified Italian options are not restricted to Hebrew voices.
+- Synchronized app metadata to 2.0.22 / Android versionCode 20022 across package files, Gradle, app config, the APK updater, and app-state exports.
+- Verification passed: focused Docker Playwright tests for per-language settings and Native/Google selection, `npm run test:beginner-mode`, `npm run test:v2-version-bump`, `npm run test:alternative-tts-providers-switching`, `npm run build`, `npm run lint`, `npm run test:md`, focused Prettier checks, and `git diff --check`.
+- GitHub Actions history could not be inspected because GitHub CLI authentication is unavailable in this environment.
+
+## Task 239: Simplify Beginner mode into General Preferences and Daily Video (Version 2.0.21)
+
+- Reduced Beginner navigation to two flows: General Preferences and Daily Video. The daily view now combines the video, favorite-language quick selector, sanitization accordion, shared parser controls, and parallel subtitle table.
+- Placed the overlay toggle first and subtitle-size minus/plus controls directly below the video. Persisted overlay preference and size, and preserved those settings when navigating between the two flows.
+- Kept Stage 3 special-character removal before the shared parser/table, and removed hardcoded fallback subtitle samples from its preview; the preview now requires loaded cues.
+- Updated design standards, Beginner flow specification, source inventory, related checks, and app metadata to 2.0.21.
+- Verification passed: focused Docker Playwright E2E (two Beginner/player tests), `npm run test:beginner-mode-two-flows`, `npm run test:beginner-default-language`, `npm run test:video-display-controls`, `npm run test:chars-removal-accordion-order`, `npm run test:beginner-subtitles-table`, `npm run test:parser-live-updates`, `npm run test:application-stages-pipeline`, `npm run test:subtitles-fixtures-restriction`, `npm run test:v2-version-bump`, `npm run test:pause-both-video-and-tts`, `npm run build`, `npm run lint`, focused ESLint/Prettier, Markdown validation, repository hygiene checks, and `git diff --check`.
+- The existing `npm run test:theme-colors-consistency` still fails at its stale assertion expecting 6 accordion panels when `src/config/accordionThemes.ts` defines 7; the configuration was not changed in this task.
+- Commit: `532d27f` (`feat(beginner): consolidate daily viewing flow`). Push was attempted but unavailable because Git credentials are missing.
+
 ## Task 233: Make shared-link E2E screencast visually verifiable (Version 2.0.17)
 
 - Fixed the black player area in the shared-link E2E recording by giving the test-only simulated player an illustrative scene marked as an E2E simulation; mocked caption/translation content and the illustration are not presented as actual YouTube footage or captions.
@@ -5236,3 +5268,19 @@
 - Synchronized app version 2.0.19 across `package.json`, `package-lock.json`, Android Gradle, app configuration, APK updater, and exported app settings.
 - Verification passed: `./docker/manage.sh e2e web --grep 'web-demo video input remains playable' --retries=0`, `npm run test:stable-video-player`, `npm run test:v2-version-bump`, `npm run test:android-build-version-details`, `npm run build`, `npm run lint`, and `git diff --check`.
 - The regression test uses a controlled YouTube player stub; real YouTube playback remains dependent on video embedding permissions and YouTube availability. Earlier Docker playback attempts for this video encountered YouTube's bot-check screen, so no live playback is claimed.
+
+### Hotfix: Repair developer-gated retry settings JSX
+
+- Corrected JSX nesting for the developer-only Android auto-retry and pacing controls in `src/routes/index.tsx`.
+- Verification passed: `npm run build` and `npm run lint`.
+
+### Task 238: Document and classify user-facing controls
+
+- Added `docs/design.md` and `docs/developer.md` to define the product mission, new-user setup versus daily usage, provisional category colors, and the exact `debug=true` developer-mode gate.
+- Gated developer tabs, network inspection, Android retry/pacing controls, and manual server-fetch configuration behind `debug=true`; saved diagnostic preferences alone no longer expose developer UI.
+- Reordered first-time Beginner setup to start with preferences (including TTS, favorite languages, and subtitle-overlay default), then continue to the daily video/captions/table view. Kept parsing/player steps available after a base subtitle is selected.
+- Added amber/green/blue review cues to new-user, daily-use, and experimental controls. Updated docs inventory, Beginner workflow design, later tasks, and AGENTS.md.
+- Synchronized app version 2.0.20 across package manifests, Android Gradle, app config, APK updater, and app settings.
+- Added Docker Playwright coverage for `debug=true` gates (including Android server-fetch controls) and the preferences-first Beginner flow.
+- Verification passed: `./docker/manage.sh e2e web --grep 'developer-only views|beginner setup starts' --retries=0` (2 tests), `npm run test:beginner-mode`, `npm run test:v2-version-bump`, `npm run test:agents-version`, `npm run test:agents-last-prompt-rule`, `npm run test:md`, `npm run test:doc-contracts`, `npm run test:no-duplicate-md`, `npm run build`, `npm run lint`, and `git diff --check`.
+- Commits: hotfix `09826e2`; feature `2394d60`. Push attempts failed because Git credentials were unavailable.

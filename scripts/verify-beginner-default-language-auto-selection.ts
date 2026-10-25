@@ -12,6 +12,10 @@ const flow = fs.readFileSync(
   path.join(root, "src/components/beginner/BeginnerFlowContainer.tsx"),
   "utf8",
 );
+const navigation = fs.readFileSync(
+  path.join(root, "src/components/beginner/BeginnerTabNav.tsx"),
+  "utf8",
+);
 const appSettings = fs.readFileSync(path.join(root, "src/utils/appSettings.ts"), "utf8");
 const deprecation = fs.readFileSync(path.join(root, "docs/deprecated.md"), "utf8");
 
@@ -29,14 +33,16 @@ assert.equal(getBeginnerDefaultBaseLanguage([]), "", "No detected tracks yields 
 
 assert(
   flow.includes("getBeginnerDefaultBaseLanguage(observedTracks)") &&
-    flow.includes("const isUnlocked = hasObservedBaseLanguage"),
-  "The detected default base track must automatically unlock downstream tabs",
+    !flow.includes("isUnlocked") &&
+    navigation.includes('id: "preferences"') &&
+    navigation.includes('id: "video"'),
+  "Base-language selection must remain automatic without gating the two Beginner flows",
 );
 assert(
   !videoTab.includes("onSelectBaseLang") &&
     !videoTab.includes("track-select-") &&
     videoTab.includes("automatically: English when available"),
-  "The first Beginner tab must display detected tracks without manual selection controls",
+  "The daily Beginner view must display detected tracks without manual selection controls",
 );
 assert(
   appSettings.includes("delete parsed.beginnerSelectedBaseLang") &&

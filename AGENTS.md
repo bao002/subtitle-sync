@@ -140,10 +140,20 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 - **Read-time eviction**: Purge and evict corrupted, malformed, or zero-cue entries from cache immediately.
 - **Explicit cache management**: The application must provide explicit cache controls ("Clear cache" and "Fetch from scratch") allowing users to clear cached entries and re-fetch authentic subtitle data on demand.
 
+## Product design standards
+
+- Help users watch YouTube videos while listening to preferred translations. Android can observe authentic native subtitle traffic; web subtitle access remains challenging and is currently most reliable through Android-shared subtitle links. Improving subtitle parsing efficiency is an ongoing challenge.
+- Distinguish occasional new-user preference setup from daily viewing actions; keep the video and subtitles table central to repeat use.
+- Beginner mode is guided setup and should lead to video-plus-table daily use. Advanced mode contains useful feature controls. Experimental and diagnostic views require the explicit URL parameter `debug=true`.
+- Use subtle category backgrounds for review: green for daily-use controls, amber for new-user setup, and blue for experimental/developer-only controls. Color is an accessible supplemental cue, not a placement decision.
+- Follow [`docs/design.md`](docs/design.md) and [`docs/developer.md`](docs/developer.md). Do not relocate controls before the user reviews the category color recommendations.
+
 ## Last raw prompt
 
 ```
-great. the state of video, subs and target langs are loaded correctly.
+1. it happends that a video section repeat itself after the tts-play finishes and this loop continue forever for the same video sequence.
 
-fix player - playing doesnt play
+2. beginner mode: preferences must contain per-language settings (tts-ratio, tts-speed, available-voices-per-lang)
+
+3. under the video - missing contol to switch between native tts voice to the default service (google)[not-as-fallback] (fix: dont show only hebrew voice)
 ```

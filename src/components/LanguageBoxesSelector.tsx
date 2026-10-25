@@ -198,7 +198,11 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
   };
 
   return (
-    <div className="space-y-3" data-testid="language-boxes-selector-wrapper">
+    <div
+      className="space-y-3 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3"
+      data-testid="language-boxes-selector-wrapper"
+      data-control-category="daily-usage"
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <label htmlFor="target-language-select" className="text-sm font-medium text-foreground">

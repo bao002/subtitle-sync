@@ -58,7 +58,11 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
   }, [cues, currentTime]);
 
   return (
-    <div className="space-y-3 max-w-4xl mx-auto p-3" data-testid="beginner-player-tab">
+    <div
+      className="space-y-3 max-w-4xl mx-auto p-3 rounded-2xl border border-emerald-500/25 bg-emerald-500/5"
+      data-testid="beginner-player-tab"
+      data-control-category="daily-usage"
+    >
       {/* Player Header Controls */}
       <div className="bg-card border border-border rounded-xl p-3 shadow-sm flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">

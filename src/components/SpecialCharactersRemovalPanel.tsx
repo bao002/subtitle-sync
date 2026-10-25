@@ -65,28 +65,7 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
     setCustomRules((prev) => prev.filter((r) => r.id !== id));
   };
 
-  const fallbackSamples = useMemo(
-    () => [
-      {
-        text: ">> [Music] Welcome back to the tutorial! [Host]: Today we cover subtitles.",
-        start: 0,
-        duration: 4,
-      },
-      {
-        text: "> [Applause] Here is sentence one. (cheers) And sentence two is starting now.",
-        start: 4,
-        duration: 5,
-      },
-      {
-        text: ">> [Speaker 1]: Notice how all sound tags and arrow prefixes get stripped cleanly.",
-        start: 9,
-        duration: 4,
-      },
-    ],
-    [],
-  );
-
-  const previewSource = sampleCues.length > 0 ? sampleCues.slice(0, 3) : fallbackSamples;
+  const previewSource = sampleCues.slice(0, 3);
 
   const processedPreview = useMemo(() => {
     return previewSource.map((cue) => {
@@ -110,20 +89,18 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
       aria-label="Special characters removal panel"
     >
       {/* Header Description & Stage Indicator */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
         <div className="space-y-0.5">
           <div className="flex items-center gap-1.5">
-            <Scissors className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <Scissors className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span className="text-xs font-semibold text-foreground">
               Stage 3: Special Characters Removal & Sanitization
             </span>
             <button
               type="button"
               data-testid="help-btn-advanced-chars-stage"
-              onClick={() =>
-                setExpandedHelp((prev) => ({ ...prev, stage: !prev.stage }))
-              }
-              className="w-4 h-4 rounded-full border border-indigo-400/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 inline-flex items-center justify-center text-[10px] font-bold"
+              onClick={() => setExpandedHelp((prev) => ({ ...prev, stage: !prev.stage }))}
+              className="w-4 h-4 rounded-full border border-emerald-400/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 inline-flex items-center justify-center text-[10px] font-bold"
               title="More info"
               aria-label="More info about Stage 3"
             >
@@ -133,10 +110,10 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
           {expandedHelp.stage && (
             <p
               data-testid="help-text-advanced-chars-stage"
-              className="text-[11px] text-muted-foreground bg-indigo-500/10 p-1.5 rounded border border-indigo-500/20"
+              className="text-[11px] text-muted-foreground bg-emerald-500/10 p-1.5 rounded border border-emerald-500/20"
             >
-              Strips noise indicators, bracketed speaker labels, and arrow prefixes BEFORE translation
-              and parser splitting.
+              Strips noise indicators, bracketed speaker labels, and arrow prefixes BEFORE
+              translation and parser splitting.
             </p>
           )}
         </div>
@@ -147,7 +124,7 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
               variant="outline"
               size="sm"
               onClick={onResetDefaults}
-              className="h-7 text-xs border-indigo-500/30 hover:bg-indigo-500/10 text-foreground"
+              className="h-7 text-xs border-emerald-500/30 hover:bg-emerald-500/10 text-foreground"
               data-testid="btn-reset-chars-defaults"
             >
               <RefreshCw className="w-3 h-3 mr-1" />
@@ -264,7 +241,7 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
             type="button"
             size="sm"
             onClick={handleAddCustomRule}
-            className="h-8 px-3 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium"
+            className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
             data-testid="advanced-btn-add-char-rule"
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
@@ -274,37 +251,43 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
       </div>
 
       {/* Live Preview Card */}
-      <div className="space-y-2 p-3 rounded-lg border border-indigo-500/20 bg-indigo-500/5">
+      <div className="space-y-2 p-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            <Eye className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span className="text-xs font-semibold text-foreground">Sanitization Live Preview</span>
           </div>
           <Badge
             variant="outline"
-            className="text-[10px] border-indigo-500/30 text-indigo-700 dark:text-indigo-300"
+            className="text-[10px] border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
           >
             Stage 3 (Pre-Translation)
           </Badge>
         </div>
 
         <div className="space-y-1.5" data-testid="advanced-chars-removal-preview">
-          {processedPreview.map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-background border border-border/80 rounded-md p-2 space-y-1 text-xs"
-            >
-              {item.hasChanged && (
-                <div className="text-muted-foreground/70 line-through text-[11px] font-mono">
-                  {item.raw}
+          {processedPreview.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              Load subtitles to see the sanitization preview.
+            </p>
+          ) : (
+            processedPreview.map((item, idx) => (
+              <div
+                key={idx}
+                className="bg-background border border-border/80 rounded-md p-2 space-y-1 text-xs"
+              >
+                {item.hasChanged && (
+                  <div className="text-muted-foreground/70 line-through text-[11px] font-mono">
+                    {item.raw}
+                  </div>
+                )}
+                <div className="text-foreground font-medium flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>{item.cleaned}</span>
                 </div>
-              )}
-              <div className="text-foreground font-medium flex items-center gap-1.5">
-                <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span>{item.cleaned}</span>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

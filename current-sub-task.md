@@ -1,5 +1,4 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: No active task.
-- **Completed**: Task 237 — added the current page origin to primary and secondary YouTube IFrame API players, and extended Docker E2E coverage to verify the player receives the origin and Play changes playback state. App version 2.0.19 is synchronized.
-- **Next Action**: Resume a task from `docs/tasks.md` when requested.
+- **Status**: No active subtask for Tasks 240.1–240.3; all are complete and archived.
+- **Next Action**: Await the next user task.

@@ -30,11 +30,17 @@ assert(
 assert(
   beginnerVideo.includes('data-testid="video-display-controls"') &&
     beginnerVideo.includes('data-testid="video-subtitles-overlay-toggle"') &&
-    beginnerVideo.includes('data-testid="subtitles-ratio-slider"'),
-  "Beginner video tab must colocate overlay and subtitle sizing controls with the video",
+    beginnerVideo.includes('data-testid="subtitle-overlay-size-decrease"') &&
+    beginnerVideo.includes('data-testid="subtitle-overlay-size-increase"'),
+  "Beginner video tab must colocate overlay toggle and plus/minus size controls with the video",
 );
 assert(
-  !beginnerPreferences.includes('data-testid="subtitles-ratio-slider"') &&
+  beginnerVideo.indexOf('data-testid="video-subtitles-overlay-toggle"') <
+    beginnerVideo.indexOf('data-testid="subtitle-overlay-size-decrease"'),
+  "Beginner video controls must show the overlay toggle before subtitle size adjustments",
+);
+assert(
+  !beginnerPreferences.includes('data-testid="subtitle-overlay-size-increase"') &&
     !route.includes("Show spoken subtitle over video"),
   "Subtitle sizing and overlay controls must no longer live in preferences/settings",
 );

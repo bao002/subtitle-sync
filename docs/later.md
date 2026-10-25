@@ -4,6 +4,10 @@
 
 The following tasks are deferred for later execution after all active tasks are complete:
 
+- [ ] **Extend text-to-speech service support**
+  - Add additional TTS service integrations while retaining Google as the default until the user selects another service.
+- [ ] **Review and relocate controls by category**
+  - After the user reviews provisional new-user, daily-usage, and experimental control backgrounds, relocate controls according to the user's feedback.
 - [ ] **Task 196: Android-platform validation for web-demo share links**
   - Run `bash android-shell/gradlew assembleDebug` and `bash scripts/run-android-e2e.sh` using JDK 21, an Android SDK, `adb`, and an API 34 Google APIs emulator or physical device.
   - The implementation and source-level checks are committed as `595732f`; validate the Android build and real-device share flow on a platform with the required tools.

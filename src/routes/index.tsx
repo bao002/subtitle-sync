@@ -99,8 +99,11 @@ import {
   setStripSpeakerBracketsSetting,
   getRemoveCharsSetting,
   setRemoveCharsSetting,
+  loadAppSettings,
+  saveAppSettings,
 } from "@/utils/appSettings";
 import { SpecialCharactersRemovalPanel } from "@/components/SpecialCharactersRemovalPanel";
+import { BeginnerCharsRemovalAccordion } from "@/components/beginner/BeginnerCharsRemovalAccordion";
 import {
   getAppStateFromUrl,
   extractVideoIdFromSubtitlesUrl,
@@ -188,18 +191,26 @@ import {
   DEFAULT_SIMPLE_PARSER_CONFIG,
 } from "@/utils/newSubtitlesParser";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
+import { PerLanguageTtsPreferences } from "@/components/beginner/PerLanguageTtsPreferences";
+import {
+  BeginnerTtsServiceControl,
+  type BeginnerTtsService,
+} from "@/components/beginner/BeginnerTtsServiceControl";
+import { getPlaybackSectionId } from "@/lib/playback-section-identity";
 
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
 import {
   getSectionOrder,
   getSubtitleRequestMode,
   getTtsRatiosPreference,
+  getTtsRatesPreference,
   isTtsSpeakableLanguage,
   isSubtitleInstanceEligibleForTTS,
   shouldHighlightSentenceForTTS,
   setSectionOrder as saveSectionOrder,
   setSubtitleRequestMode as saveSubtitleRequestMode,
   setTtsRatioPreference as saveTtsRatioPreference,
+  setTtsRatePreference as saveTtsRatePreference,
   subtitleRequestModeOrder,
   getAutoRetrySubtitles,
   setAutoRetrySubtitles as saveAutoRetrySubtitles,
@@ -262,6 +273,7 @@ import {
   hasCachedAiSubtitles,
 } from "@/utils/subtitleCache";
 import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
+import { isDeveloperModeEnabled } from "@/utils/developerMode";
 import {
   STORAGE_KEYS,
   APP_VERSION,
@@ -631,6 +643,8 @@ const addYouTubeTranslatedLanguage = (
 };
 
 function Index() {
+  const isDeveloperMode =
+    typeof window !== "undefined" && isDeveloperModeEnabled(window.location.search);
   const [isAndroid, setIsAndroid] = useState(() => {
     if (typeof window === "undefined") return false;
     return (
@@ -641,6 +655,7 @@ function Index() {
 
   const [workflowMode, setWorkflowMode] = useState<"beginner" | "expert">(() => {
     if (typeof window !== "undefined") {
+      if (isDeveloperModeEnabled(window.location.search)) return "expert";
       try {
         const saved = localStorage.getItem("app_workflow_mode");
         if (saved === "expert" || saved === "beginner") return saved;
@@ -891,7 +906,10 @@ function Index() {
     typeof window !== "undefined" ? getSubtitleFetchWindowSeconds() : 5,
   );
   const [rates, setRates] = useState<Record<string, number>>(() =>
-    Object.fromEntries(LANGS.map((lang) => [lang.code, 0.5])),
+    Object.fromEntries([
+      ...LANGS.map((lang) => [lang.code, 0.5] as const),
+      ...Object.entries(getTtsRatesPreference()),
+    ]),
   );
   const [useAlternativeTtsState, setUseAlternativeTtsState] = useState<boolean>(() =>
     typeof window !== "undefined" ? getUseAlternativeTts() : false,
@@ -1095,7 +1113,7 @@ function Index() {
   const promoteSuccessRef = useRef(promoteSuccess);
   promoteSuccessRef.current = promoteSuccess;
   const useFetchServerRef = useRef(useFetchServer);
-  useFetchServerRef.current = useFetchServer;
+  useFetchServerRef.current = isDeveloperMode && useFetchServer;
   const fetchServerUrlRef = useRef(fetchServerUrl);
   fetchServerUrlRef.current = fetchServerUrl;
   const targetLanguagesRef = useRef(targetLanguages);
@@ -1692,7 +1710,12 @@ function Index() {
   const [playbackRate, setPlaybackRate] = useState(1.0);
   const [isPlayerHovered, setIsPlayerHovered] = useState(false);
 
-  const [showVideoSubtitles, setShowVideoSubtitles] = useState(true);
+  const [showVideoSubtitles, setShowVideoSubtitles] = useState(
+    () => loadAppSettings().showVideoSubtitles ?? true,
+  );
+  const [videoSubtitleRatio, setVideoSubtitleRatio] = useState(
+    () => loadAppSettings().beginnerSubtitlesRatio ?? 1,
+  );
   const [urlModalLang, setUrlModalLang] = useState<string | null>(null);
   const [expandedTableUrlLang, setExpandedTableUrlLang] = useState<string | null>(null);
   const [tableUrlInputs, setTableUrlInputs] = useState<Record<string, string>>({});
@@ -1817,6 +1840,7 @@ function Index() {
   const handleToggleVideoSubtitles = () => {
     const next = !showVideoSubtitles;
     setShowVideoSubtitles(next);
+    saveAppSettings({ ...loadAppSettings(), showVideoSubtitles: next });
     if (!next) return;
 
     setOpenPanels((prev) => (prev.subtitles ? prev : { ...prev, subtitles: true }));
@@ -3011,14 +3035,14 @@ function Index() {
   const lastRow = useRef(-1);
   const handledRow = useRef(-1);
   const lastMs = useRef(0);
-  const playedTtsRecords = useRef<Set<number>>(new Set());
+  const playedTtsRecords = useRef<Set<string>>(new Set());
   const [playedRecordsCount, setPlayedRecordsCount] = useState(0);
 
   useEffect(() => {
     playedTtsRecords.current.clear();
     handledRow.current = -1;
     setPlayedRecordsCount(0);
-  }, [videoId, rows]);
+  }, [videoId]);
 
   const handleSwitchToViewerAtTime = useCallback(
     (timeSec: number) => {
@@ -3337,16 +3361,13 @@ function Index() {
       lastRow.current = idx;
 
       const getEligibleLangs = (rowIdx: number) => {
-        if (rowIdx < 0 || playedTtsRecords.current.has(rowIdx)) return [];
+        if (rowIdx < 0 || playedTtsRecords.current.has(getPlaybackSectionId(rows[rowIdx]!)))
+          return [];
         const matched = orderedLangs.filter(
           (l) =>
             isTtsSpeakableLanguage(l.code, currentBaseLanguage) &&
             spoken.includes(l.code) &&
-            isSubtitleInstanceEligibleForTTS(
-              rowIdx,
-              currentTtsRatios?.[l.code] ?? 1,
-              playedTtsRecords.current,
-            ),
+            isSubtitleInstanceEligibleForTTS(rowIdx, currentTtsRatios?.[l.code] ?? 1),
         );
         if (matched.length > 0) return matched;
         // When audioTrackMode is enabled with no spoken languages selected,
@@ -3362,11 +3383,7 @@ function Index() {
             orderedLangs.find((l) => l.code !== currentBaseLanguage) || orderedLangs[0];
           if (
             fallbackLang &&
-            isSubtitleInstanceEligibleForTTS(
-              rowIdx,
-              currentTtsRatios?.[fallbackLang.code] ?? 1,
-              playedTtsRecords.current,
-            )
+            isSubtitleInstanceEligibleForTTS(rowIdx, currentTtsRatios?.[fallbackLang.code] ?? 1)
           ) {
             return [fallbackLang];
           }
@@ -3375,11 +3392,11 @@ function Index() {
       };
 
       const speakRow = async (rowIdx: number) => {
-        if (rowIdx < 0 || playedTtsRecords.current.has(rowIdx)) return;
+        if (rowIdx < 0 || playedTtsRecords.current.has(getPlaybackSectionId(rows[rowIdx]!))) return;
         const langs = getEligibleLangs(rowIdx);
         if (langs.length === 0) return;
         // Strictly skip this subtitles record from being TTS-played more than once
-        playedTtsRecords.current.add(rowIdx);
+        playedTtsRecords.current.add(getPlaybackSectionId(rows[rowIdx]!));
         setPlayedRecordsCount(playedTtsRecords.current.size);
         for (const l of langs) {
           if (!busy.current) break;
@@ -3427,7 +3444,7 @@ function Index() {
         if (
           idx >= 0 &&
           isPlaying &&
-          !playedTtsRecords.current.has(idx) &&
+          !playedTtsRecords.current.has(getPlaybackSectionId(rows[idx]!)) &&
           handledRow.current !== idx
         ) {
           handledRow.current = idx;
@@ -3455,7 +3472,7 @@ function Index() {
           prev >= 0 && (idx !== prev || ms >= (rows[prev]?.end ?? Infinity) - 80) ? prev : -1;
         if (
           candidateRow >= 0 &&
-          !playedTtsRecords.current.has(candidateRow) &&
+          !playedTtsRecords.current.has(getPlaybackSectionId(rows[candidateRow]!)) &&
           handledRow.current !== candidateRow
         ) {
           handledRow.current = candidateRow;
@@ -3604,7 +3621,7 @@ function Index() {
     busy.current = false;
     lastRow.current = i;
     handledRow.current = -1;
-    playedTtsRecords.current.delete(i);
+    playedTtsRecords.current.delete(getPlaybackSectionId(r));
     lastMs.current = r.start;
     setActive(i);
     player.current?.seekTo(r.start / 1000, true);
@@ -3814,6 +3831,36 @@ function Index() {
     }
   }, [active, speakingRow, isSetupPaused, autoFocus, isAndroid, subtitlesLimit, subtitlesPage]);
 
+  const specialCharactersRemovalSampleCues =
+    tracks && baseLanguage && tracks[baseLanguage]?.events
+      ? tracks[baseLanguage].events.slice(0, 5).map((event) => ({
+          text: (event.segs || []).map((segment) => segment.utf8).join(""),
+          start: (event.tStartMs || 0) / 1000,
+          duration: (event.dDurationMs || 0) / 1000,
+        }))
+      : [];
+  const specialCharactersRemovalPanel = (
+    <SpecialCharactersRemovalPanel
+      stripSpeakerBrackets={stripSpeakerBrackets}
+      onStripSpeakerBracketsChange={(enabled) => {
+        setStripSpeakerBrackets(enabled);
+        setStripSpeakerBracketsSetting(enabled);
+      }}
+      removeChars={removeChars}
+      onRemoveCharsChange={(chars) => {
+        setRemoveChars(chars);
+        setRemoveCharsSetting(chars);
+      }}
+      sampleCues={specialCharactersRemovalSampleCues}
+      onResetDefaults={() => {
+        setStripSpeakerBrackets(true);
+        setStripSpeakerBracketsSetting(true);
+        setRemoveChars([">", ">>"]);
+        setRemoveCharsSetting([">", ">>"]);
+      }}
+    />
+  );
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header
@@ -3892,75 +3939,91 @@ function Index() {
               onClick={() => setActiveTopTab("viewer")}
               className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
                 activeTopTab === "viewer"
-                  ? "bg-primary text-primary-foreground shadow-sm"
+                  ? "bg-emerald-600 text-white shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
               }`}
+              data-control-category="daily-usage"
             >
               <LayoutList className="h-3.5 w-3.5" />
               <span>Parallel Viewer</span>
             </button>
-            <button
-              id="tab-playground"
-              data-testid="tab-playground"
-              role="tab"
-              aria-selected={activeTopTab === "playground"}
-              type="button"
-              onClick={() => {
-                setActiveTopTab("playground");
-                cancelSpeech();
-                try {
-                  player.current?.pauseVideo?.();
-                } catch {
-                  // ignore
-                }
-              }}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
-                activeTopTab === "playground"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Tv className="h-3.5 w-3.5" />
-              <span>Playground</span>
-              {Object.keys(detectedPlaygroundTracks).length > 0 && (
-                <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-[10px] font-mono font-bold">
-                  {Object.keys(detectedPlaygroundTracks).length}
-                </span>
-              )}
-            </button>
-            <button
-              id="tab-ai-punctuation"
-              data-testid="tab-ai-punctuation"
-              role="tab"
-              aria-selected={activeTopTab === "ai-punctuation"}
-              type="button"
-              onClick={() => {
-                setActiveTopTab("ai-punctuation");
-                cancelSpeech();
-                try {
-                  player.current?.pauseVideo?.();
-                } catch {
-                  // ignore
-                }
-              }}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
-                activeTopTab === "ai-punctuation"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>AI Punctuation</span>
-              {hasCachedAi && (
-                <span
-                  data-testid="tab-ai-cached-indicator"
-                  className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold"
-                  title="Cached AI subtitles available"
-                >
-                  Cached
-                </span>
-              )}
-            </button>
+            {isDeveloperMode && (
+              <button
+                id="tab-playground"
+                data-testid="tab-playground"
+                role="tab"
+                aria-selected={activeTopTab === "playground"}
+                type="button"
+                onClick={() => {
+                  setActiveTopTab("playground");
+                  cancelSpeech();
+                  try {
+                    player.current?.pauseVideo?.();
+                  } catch {
+                    // ignore
+                  }
+                }}
+                data-control-category="experimental"
+                className={`inline-flex items-center gap-1.5 rounded-md border border-sky-500/30 px-3 py-1.5 text-xs font-semibold transition-all ${
+                  activeTopTab === "playground"
+                    ? "bg-sky-600 text-white shadow-sm"
+                    : "bg-sky-500/10 text-sky-800 hover:bg-sky-500/20 dark:text-sky-200"
+                }`}
+              >
+                <Tv className="h-3.5 w-3.5" />
+                <span>Playground</span>
+                {Object.keys(detectedPlaygroundTracks).length > 0 && (
+                  <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-[10px] font-mono font-bold">
+                    {Object.keys(detectedPlaygroundTracks).length}
+                  </span>
+                )}
+              </button>
+            )}
+            {isDeveloperMode && (
+              <button
+                id="tab-ai-punctuation"
+                data-testid="tab-ai-punctuation"
+                role="tab"
+                aria-selected={activeTopTab === "ai-punctuation"}
+                type="button"
+                onClick={() => {
+                  setActiveTopTab("ai-punctuation");
+                  cancelSpeech();
+                  try {
+                    player.current?.pauseVideo?.();
+                  } catch {
+                    // ignore
+                  }
+                }}
+                data-control-category="experimental"
+                className={`inline-flex items-center gap-1.5 rounded-md border border-sky-500/30 px-3 py-1.5 text-xs font-semibold transition-all ${
+                  activeTopTab === "ai-punctuation"
+                    ? "bg-sky-600 text-white shadow-sm"
+                    : "bg-sky-500/10 text-sky-800 hover:bg-sky-500/20 dark:text-sky-200"
+                }`}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>AI Punctuation</span>
+                {hasCachedAi && (
+                  <span
+                    data-testid="tab-ai-cached-indicator"
+                    className="rounded-full bg-emerald-500/20 px-1.5 py-0.2 text-[9px] font-mono text-emerald-600 dark:text-emerald-400 font-bold"
+                    title="Cached AI subtitles available"
+                  >
+                    Cached
+                  </span>
+                )}
+              </button>
+            )}
+            {isDeveloperMode && (
+              <span
+                data-testid="developer-mode-indicator"
+                data-control-category="experimental"
+                className="rounded-md border border-sky-500/30 bg-sky-500/10 px-2 py-1.5 text-[10px] font-semibold text-sky-800 dark:text-sky-200"
+              >
+                Developer mode
+              </span>
+            )}
           </div>
         )}
 
@@ -4002,7 +4065,7 @@ function Index() {
 
         {/* Action Toolbar Cluster */}
         <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-2xs">
-          {!isAndroid && (
+          {isDeveloperMode && debugMode && !isAndroid && (
             <Button
               type="button"
               size="sm"
@@ -4038,7 +4101,8 @@ function Index() {
             size="sm"
             variant="ghost"
             onClick={() => setShareModalOpen(true)}
-            className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-primary/30 hover:bg-primary/10 text-primary font-medium"
+            className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-emerald-500/30 hover:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-medium"
+            data-control-category="daily-usage"
             title="Share application state with default subtitles, OpenRouter key, and target language"
           >
             <Share2 className="h-3.5 w-3.5" />
@@ -4062,10 +4126,6 @@ function Index() {
           }}
           observedUrl={observedUrl}
           rawTracks={tracks || {}}
-          currentTime={playbackCurrentTime}
-          isPlaying={isVideoPlaying}
-          onTogglePlay={handleTogglePlay}
-          onSeek={handleSeek}
           onLoadSampleSubtitles={() => {
             const validEntries = Object.entries(JSON3_RAW_MAP)
               .map(([code, raw]) => {
@@ -4076,7 +4136,6 @@ function Index() {
             setTracks(Object.fromEntries(validEntries));
             setObservedUrl("https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3");
           }}
-          isAndroidNative={isAndroid}
           showVideoSubtitles={showVideoSubtitles}
           onToggleVideoSubtitles={handleToggleVideoSubtitles}
           playerSlot={
@@ -4114,6 +4173,51 @@ function Index() {
                   )}
                 </button>
               </div>
+              {showVideoSubtitles && (
+                <div
+                  className="pointer-events-none absolute inset-x-3 top-3 text-center"
+                  aria-live="polite"
+                  data-testid="beginner-active-video-subtitle"
+                >
+                  <span
+                    className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
+                    style={{ fontSize: `calc(0.75rem * ${videoSubtitleRatio})` }}
+                  >
+                    {(() => {
+                      const languageCode =
+                        speakingLang && speakingRow >= 0 ? speakingLang : baseLanguage;
+                      const normalizedCode = languageCode === "iw" ? "he" : languageCode;
+                      return (
+                        LANGS.find((language) => language.code === normalizedCode)?.name ??
+                        normalizedCode.toUpperCase()
+                      );
+                    })()}
+                  </span>
+                  <p
+                    className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
+                    style={{ fontSize: `calc(1rem * ${videoSubtitleRatio})` }}
+                    dir={speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"}
+                  >
+                    {speakingLang && speakingRow >= 0 ? (
+                      <HighlightedSubtitle
+                        text={rows[speakingRow]?.texts[speakingLang] ?? ""}
+                        progress={
+                          speechProgress?.row === speakingRow &&
+                          speechProgress.lang === speakingLang
+                            ? speechProgress
+                            : null
+                        }
+                      />
+                    ) : active >= 0 && rows[active] ? (
+                      (rows[active]?.texts[baseLanguage] ??
+                      Object.values(rows[active]?.texts || {})[0] ??
+                      "")
+                    ) : (
+                      <span className="text-xs opacity-75">Subtitles active</span>
+                    )}
+                  </p>
+                </div>
+              )}
             </div>
           }
           playbackControlsSlot={
@@ -4182,7 +4286,9 @@ function Index() {
               />
             ) : undefined
           }
-          hasSubtitles={hasLegitimateSubtitles && rows.length > 0}
+          favoriteLanguageCatalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
+          selectedTargetLanguages={targetLanguages}
+          onTargetLanguagesChange={handleTargetLanguagesChange}
           onOrderChange={(newOrder) => {
             const prefOrder = newOrder === "tts-first" ? "tts-first" : "video-first";
             setSectionOrderState(prefOrder);
@@ -4203,13 +4309,7 @@ function Index() {
             }
           }}
           onSubtitlesRatioChange={(ratio) => {
-            setTtsRatios((prev) => {
-              const updated = { ...prev };
-              Object.keys(updated).forEach((k) => {
-                updated[k] = ratio;
-              });
-              return updated;
-            });
+            setVideoSubtitleRatio(ratio);
           }}
           onFavoriteLanguagesChange={(newFavs) => {
             handleUpdateFavoriteLanguages(newFavs);
@@ -4219,13 +4319,72 @@ function Index() {
               setSpoken((prev) => [...prev, lang]);
             }
           }}
-          onSpeakCue={(text, lang) => {
-            const rate = rates[lang] ?? 0.8;
-            const voice = voiceSelections[lang] || "";
-            void speak(text, lang, rate, voice, -1, () => {});
-          }}
-          speakingLang={speakingLang}
+          ttsServiceControlsSlot={
+            <BeginnerTtsServiceControl
+              service={
+                useAlternativeTtsState &&
+                alternativeTtsModeState === "always" &&
+                lovableTtsProviderState === "google"
+                  ? "google"
+                  : "native"
+              }
+              onServiceChange={(service: BeginnerTtsService) => {
+                if (service === "google") {
+                  setLovableTtsProviderState("google");
+                  setLovableTtsProvider("google");
+                  setAlternativeTtsModeState("always");
+                  setAlternativeTtsMode("always");
+                  setUseAlternativeTtsState(true);
+                  setUseAlternativeTts(true);
+                  return;
+                }
+                setUseAlternativeTtsState(false);
+                setUseAlternativeTts(false);
+              }}
+            />
+          }
+          perLanguageTtsSettingsSlot={
+            <PerLanguageTtsPreferences
+              languages={orderedLangs.filter(
+                (lang) => favoriteLanguages.includes(lang.code) || spoken.includes(lang.code),
+              )}
+              voices={voices}
+              ratios={ttsRatios}
+              rates={rates}
+              voiceSelections={voiceSelections}
+              onRatioChange={(languageCode, ratio) => {
+                setTtsRatios((current) => ({ ...current, [languageCode]: ratio }));
+                saveTtsRatioPreference(languageCode, ratio);
+                if (videoId) {
+                  saveVideoSettings(videoId, { ttsRatios: { [languageCode]: ratio } });
+                }
+              }}
+              onRateChange={(languageCode, rate) => {
+                setRates((current) => ({ ...current, [languageCode]: rate }));
+                saveTtsRatePreference(languageCode, rate);
+                if (videoId) {
+                  saveVideoSettings(videoId, { ttsRates: { [languageCode]: rate } });
+                }
+              }}
+              onVoiceChange={(languageCode, voiceURI) => {
+                setVoiceSelections((current) => {
+                  const next = { ...current, [languageCode]: voiceURI };
+                  try {
+                    localStorage.setItem("yt_tts_voice_selections_v1", JSON.stringify(next));
+                  } catch {
+                    // ignore storage errors
+                  }
+                  return next;
+                });
+              }}
+            />
+          }
           onSwitchToAdvanced={() => handleWorkflowModeChange("expert")}
+          charsRemovalSlot={
+            <BeginnerCharsRemovalAccordion>
+              {specialCharactersRemovalPanel}
+            </BeginnerCharsRemovalAccordion>
+          }
           subtitlesTableSlot={
             <SubtitlesTablePanel
               isAndroid={isAndroid}
@@ -4568,7 +4727,10 @@ function Index() {
                                       >
                                         <span
                                           data-testid="active-subtitle-language"
-                                          className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 text-xs font-semibold text-background shadow-lg"
+                                          className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
+                                          style={{
+                                            fontSize: `calc(0.75rem * ${videoSubtitleRatio})`,
+                                          }}
                                         >
                                           {(() => {
                                             const languageCode =
@@ -4590,7 +4752,8 @@ function Index() {
                                           dir={
                                             speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"
                                           }
-                                          className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 text-base font-medium text-background shadow-lg md:text-lg"
+                                          className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
+                                          style={{ fontSize: `calc(1rem * ${videoSubtitleRatio})` }}
                                         >
                                           {speakingLang && speakingRow >= 0 ? (
                                             <HighlightedSubtitle
@@ -4836,114 +4999,124 @@ function Index() {
                                   <option value="lang">Replace lang=&lt;language&gt;</option>
                                 </select>
                               </label>
-                              <AttemptOrderSettings
-                                order={attemptOrder}
-                                onChangeOrder={handleUpdateAttemptOrder}
-                                promoteSuccess={promoteSuccess}
-                                onTogglePromoteSuccess={handleTogglePromoteSuccess}
-                                useFetchServer={useFetchServer}
-                                onToggleUseFetchServer={handleToggleUseFetchServer}
-                                fetchServerUrl={fetchServerUrl}
-                                onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
-                                onSelectVideo={handleSelectLibraryVideo}
-                                strategyConfig={strategyConfig}
-                                onChangeStrategyConfig={(next) => {
-                                  setStrategyConfigState(next);
-                                  setSubtitleFetchWindowSeconds(next.windowSeconds);
-                                  setFetchWindowSecondsState(next.windowSeconds);
-                                  subtitleRequestQueue.setWindowSeconds(next.windowSeconds);
-                                }}
-                                windowSeconds={fetchWindowSeconds}
-                                onChangeWindowSeconds={(sec) => {
-                                  setFetchWindowSecondsState(sec);
-                                  setSubtitleFetchWindowSeconds(sec);
-                                  subtitleRequestQueue.setWindowSeconds(sec);
-                                }}
-                              />
+                              {isDeveloperMode && (
+                                <AttemptOrderSettings
+                                  order={attemptOrder}
+                                  onChangeOrder={handleUpdateAttemptOrder}
+                                  promoteSuccess={promoteSuccess}
+                                  onTogglePromoteSuccess={handleTogglePromoteSuccess}
+                                  useFetchServer={useFetchServer}
+                                  onToggleUseFetchServer={handleToggleUseFetchServer}
+                                  fetchServerUrl={fetchServerUrl}
+                                  onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
+                                  onSelectVideo={handleSelectLibraryVideo}
+                                  strategyConfig={strategyConfig}
+                                  onChangeStrategyConfig={(next) => {
+                                    setStrategyConfigState(next);
+                                    setSubtitleFetchWindowSeconds(next.windowSeconds);
+                                    setFetchWindowSecondsState(next.windowSeconds);
+                                    subtitleRequestQueue.setWindowSeconds(next.windowSeconds);
+                                  }}
+                                  windowSeconds={fetchWindowSeconds}
+                                  onChangeWindowSeconds={(sec) => {
+                                    setFetchWindowSecondsState(sec);
+                                    setSubtitleFetchWindowSeconds(sec);
+                                    subtitleRequestQueue.setWindowSeconds(sec);
+                                  }}
+                                  developerMode={isDeveloperMode}
+                                />
+                              )}
                               <div className="pt-2 border-t border-border/60 space-y-2">
-                                <div className="flex items-center justify-between gap-2">
-                                  <label className="flex items-center gap-2 cursor-pointer select-none">
-                                    <input
-                                      data-testid="auto-retry-subtitles-toggle"
-                                      type="checkbox"
-                                      checked={autoRetrySubtitles}
-                                      onChange={(e) => handleToggleAutoRetry(e.target.checked)}
-                                      className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                    />
-                                    <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                      <RotateCcw className="w-3.5 h-3.5 text-primary" />
-                                      <span>
-                                        Auto-retry unfetched favorite languages (paced jitter)
-                                      </span>
-                                    </span>
-                                  </label>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setExpandedPrefsHelp((p) => ({
-                                        ...p,
-                                        autoRetry: !p.autoRetry,
-                                      }))
-                                    }
-                                    className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                    title="Toggle auto-retry explanation"
-                                    aria-expanded={Boolean(expandedPrefsHelp.autoRetry)}
+                                {isDeveloperMode && (
+                                  <div
+                                    className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-2"
+                                    data-control-category="experimental"
                                   >
-                                    <HelpCircle className="w-3 h-3" />
-                                    <span>{expandedPrefsHelp.autoRetry ? "Hide" : "Info"}</span>
-                                  </button>
-                                </div>
-                                {expandedPrefsHelp.autoRetry && (
-                                  <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                    Automatically retries pending favorite subtitles with random
-                                    spacing between X and Y seconds to prevent YouTube HTTP 429 rate
-                                    limit blocks.
-                                  </p>
+                                    <div className="flex items-center justify-between gap-2">
+                                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <input
+                                          data-testid="auto-retry-subtitles-toggle"
+                                          type="checkbox"
+                                          checked={autoRetrySubtitles}
+                                          onChange={(e) => handleToggleAutoRetry(e.target.checked)}
+                                          className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                        />
+                                        <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                          <RotateCcw className="w-3.5 h-3.5 text-primary" />
+                                          <span>
+                                            Auto-retry unfetched favorite languages (paced jitter)
+                                          </span>
+                                        </span>
+                                      </label>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setExpandedPrefsHelp((p) => ({
+                                            ...p,
+                                            autoRetry: !p.autoRetry,
+                                          }))
+                                        }
+                                        className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                        title="Toggle auto-retry explanation"
+                                        aria-expanded={Boolean(expandedPrefsHelp.autoRetry)}
+                                      >
+                                        <HelpCircle className="w-3 h-3" />
+                                        <span>{expandedPrefsHelp.autoRetry ? "Hide" : "Info"}</span>
+                                      </button>
+                                    </div>
+                                    {expandedPrefsHelp.autoRetry && (
+                                      <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                        Automatically retries pending favorite subtitles with random
+                                        spacing between X and Y seconds to prevent YouTube HTTP 429
+                                        rate limit blocks.
+                                      </p>
+                                    )}
+                                    <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
+                                      <div>
+                                        <label
+                                          htmlFor="retry-pacing-min-input"
+                                          className="text-[11px] font-medium text-muted-foreground block mb-1"
+                                        >
+                                          Min interval (X seconds):
+                                        </label>
+                                        <input
+                                          id="retry-pacing-min-input"
+                                          data-testid="retry-pacing-min-input"
+                                          type="number"
+                                          min={1}
+                                          max={retryPacingMaxSec}
+                                          value={retryPacingMinSec}
+                                          onChange={(e) =>
+                                            handleUpdatePacingMin(parseInt(e.target.value, 10) || 1)
+                                          }
+                                          className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label
+                                          htmlFor="retry-pacing-max-input"
+                                          className="text-[11px] font-medium text-muted-foreground block mb-1"
+                                        >
+                                          Max interval (Y seconds):
+                                        </label>
+                                        <input
+                                          id="retry-pacing-max-input"
+                                          data-testid="retry-pacing-max-input"
+                                          type="number"
+                                          min={retryPacingMinSec}
+                                          max={60}
+                                          value={retryPacingMaxSec}
+                                          onChange={(e) =>
+                                            handleUpdatePacingMax(
+                                              parseInt(e.target.value, 10) || retryPacingMinSec,
+                                            )
+                                          }
+                                          className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                                        />
+                                      </div>
+                                    </div>
+                                  </div>
                                 )}
-                                <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
-                                  <div>
-                                    <label
-                                      htmlFor="retry-pacing-min-input"
-                                      className="text-[11px] font-medium text-muted-foreground block mb-1"
-                                    >
-                                      Min interval (X seconds):
-                                    </label>
-                                    <input
-                                      id="retry-pacing-min-input"
-                                      data-testid="retry-pacing-min-input"
-                                      type="number"
-                                      min={1}
-                                      max={retryPacingMaxSec}
-                                      value={retryPacingMinSec}
-                                      onChange={(e) =>
-                                        handleUpdatePacingMin(parseInt(e.target.value, 10) || 1)
-                                      }
-                                      className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label
-                                      htmlFor="retry-pacing-max-input"
-                                      className="text-[11px] font-medium text-muted-foreground block mb-1"
-                                    >
-                                      Max interval (Y seconds):
-                                    </label>
-                                    <input
-                                      id="retry-pacing-max-input"
-                                      data-testid="retry-pacing-max-input"
-                                      type="number"
-                                      min={retryPacingMinSec}
-                                      max={60}
-                                      value={retryPacingMaxSec}
-                                      onChange={(e) =>
-                                        handleUpdatePacingMax(
-                                          parseInt(e.target.value, 10) || retryPacingMinSec,
-                                        )
-                                      }
-                                      className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
-                                    />
-                                  </div>
-                                </div>
                               </div>
                             </>
                           )}
@@ -5016,39 +5189,49 @@ function Index() {
                               </p>
                             )}
                           </div>
-                          <div className="flex items-center justify-between gap-2">
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                              <input
-                                id="debug-mode-toggle"
-                                data-testid="debug-mode-toggle"
-                                type="checkbox"
-                                checked={debugMode}
-                                onChange={(e) => onDebugModeChange(e.target.checked)}
-                                className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                              />
-                              <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                <Activity className="w-3.5 h-3.5 text-primary" />
-                                <span>Debug mode (network inspector &amp; diagnostics)</span>
-                              </span>
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setExpandedPrefsHelp((p) => ({ ...p, debugMode: !p.debugMode }))
-                              }
-                              className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                              title="Toggle debug mode explanation"
-                              aria-expanded={Boolean(expandedPrefsHelp.debugMode)}
+                          {isDeveloperMode && (
+                            <div
+                              className="space-y-2 rounded-lg border border-sky-500/30 bg-sky-500/5 p-2"
+                              data-control-category="experimental"
                             >
-                              <HelpCircle className="w-3 h-3" />
-                              <span>{expandedPrefsHelp.debugMode ? "Hide" : "Info"}</span>
-                            </button>
-                          </div>
-                          {expandedPrefsHelp.debugMode && (
-                            <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                              Enables live network traffic capture, headers inspection, and
-                              timedtext diagnostics.
-                            </p>
+                              <div className="flex items-center justify-between gap-2">
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                  <input
+                                    id="debug-mode-toggle"
+                                    data-testid="debug-mode-toggle"
+                                    type="checkbox"
+                                    checked={debugMode}
+                                    onChange={(e) => onDebugModeChange(e.target.checked)}
+                                    className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                  />
+                                  <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                    <Activity className="w-3.5 h-3.5 text-primary" />
+                                    <span>Network inspector &amp; diagnostics</span>
+                                  </span>
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setExpandedPrefsHelp((p) => ({
+                                      ...p,
+                                      debugMode: !p.debugMode,
+                                    }))
+                                  }
+                                  className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                  title="Toggle diagnostics explanation"
+                                  aria-expanded={Boolean(expandedPrefsHelp.debugMode)}
+                                >
+                                  <HelpCircle className="w-3 h-3" />
+                                  <span>{expandedPrefsHelp.debugMode ? "Hide" : "Info"}</span>
+                                </button>
+                              </div>
+                              {expandedPrefsHelp.debugMode && (
+                                <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                  Enables live network traffic capture, headers inspection, and
+                                  timedtext diagnostics while developer mode is active.
+                                </p>
+                              )}
+                            </div>
                           )}
                           <label className="flex items-center gap-2 cursor-pointer select-none">
                             <input
@@ -5652,35 +5835,7 @@ function Index() {
                         />
                       )}
 
-                      {panelId === "charsRemoval" && (
-                        <SpecialCharactersRemovalPanel
-                          stripSpeakerBrackets={stripSpeakerBrackets}
-                          onStripSpeakerBracketsChange={(enabled) => {
-                            setStripSpeakerBrackets(enabled);
-                            setStripSpeakerBracketsSetting(enabled);
-                          }}
-                          removeChars={removeChars}
-                          onRemoveCharsChange={(chars) => {
-                            setRemoveChars(chars);
-                            setRemoveCharsSetting(chars);
-                          }}
-                          sampleCues={
-                            tracks && baseLanguage && tracks[baseLanguage]?.events
-                              ? tracks[baseLanguage].events.slice(0, 5).map((e) => ({
-                                  text: (e.segs || []).map((s) => s.utf8).join(""),
-                                  start: (e.tStartMs || 0) / 1000,
-                                  duration: (e.dDurationMs || 0) / 1000,
-                                }))
-                              : undefined
-                          }
-                          onResetDefaults={() => {
-                            setStripSpeakerBrackets(true);
-                            setStripSpeakerBracketsSetting(true);
-                            setRemoveChars([">", ">>"]);
-                            setRemoveCharsSetting([">", ">>"]);
-                          }}
-                        />
-                      )}
+                      {panelId === "charsRemoval" && specialCharactersRemovalPanel}
 
                       {panelId === "parser" && (
                         <div className="space-y-4">
@@ -6908,6 +7063,7 @@ function Index() {
                                             ...current,
                                             [lang.code]: val,
                                           }));
+                                          saveTtsRatePreference(lang.code, val);
                                           if (videoId) {
                                             saveVideoSettings(videoId, {
                                               ttsRates: { [lang.code]: val },
@@ -7028,7 +7184,7 @@ function Index() {
         </>
       )}
 
-      {debugMode && (
+      {isDeveloperMode && debugMode && (
         <NetworkRequestsInspector
           isOpen={networkInspectorOpen}
           onClose={() => setNetworkInspectorOpen(false)}
