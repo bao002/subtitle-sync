@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.12";
+export const APP_VERSION = "2.0.19";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "b840e11";
 export const APP_VERSION_DESCRIPTION =
-  "New easy subtitles parser above table with dot splitting and all 7 fixture languages (Version 2.0.12)";
+  "YouTube playback initializes with the page origin (Version 2.0.19)";
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 
@@ -45,7 +45,6 @@ export const STORAGE_KEYS = {
   VIDEO_SETTINGS_PREFIX: "yt_vsettings_",
   PARSER_CRITERIA_STORAGE_KEY: "yt_parser_criteria_v1",
   PARSER_SETTINGS_STORAGE_KEY: "yt_parser_settings_v1",
-  PARSER_CONFIRM_DIFF_STORAGE_KEY: "yt_parser_confirm_diff_v1",
 } as const;
 
 // Default Library Items (cues start empty; populated dynamically via authentic fetch or approved demo fixture for L2Ryrr6txwA)

@@ -43,7 +43,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import {
-  align,
   fmt,
   LANGS,
   RTL,
@@ -108,10 +107,7 @@ import {
   extractLanguageFromSubtitlesUrl,
 } from "@/utils/urlStateManager";
 import { ShareStateModal } from "@/components/ShareStateModal";
-import { ParserDiffConfirmationModal } from "@/components/ParserDiffConfirmationModal";
 import { VideoMetadataModal } from "@/components/VideoMetadataModal";
-import { computeParserDiff, type ParserDiffResult } from "@/utils/parserDiffHelper";
-import { Switch } from "@/components/ui/switch";
 import {
   translateSentencesAhead,
   getStoredOnDemandTranslation,
@@ -120,6 +116,12 @@ import {
 } from "@/utils/onDemandTranslationManager";
 import { LanguageBoxesSelector } from "@/components/LanguageBoxesSelector";
 import { LanguageSubtitleUrlModal } from "@/components/LanguageSubtitleUrlModal";
+import {
+  addUniqueSubtitleColumn,
+  findFetchedSubtitleLanguage,
+  mergeOnDemandSubtitleRows,
+  subtitleLanguageIdentity,
+} from "@/utils/subtitleLanguageColumns";
 import {
   getAudioTrackMode,
   setAudioTrackMode,
@@ -178,7 +180,6 @@ import { VideoPlayground, type DetectedSubtitleTrack } from "@/components/VideoP
 import { AiSubtitlePunctuationTab } from "@/components/AiSubtitlePunctuationTab";
 import { WebDemoUrlsInput } from "@/components/WebDemoUrlsInput";
 import { ParserTimingLab } from "@/components/ParserTimingLab";
-import { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation";
 import { FloatingSubtitleRetryIndicator } from "@/components/FloatingSubtitleRetryIndicator";
 import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
 import {
@@ -649,7 +650,6 @@ function Index() {
     }
     return "beginner";
   });
-  const useInlineParserReview = isAndroid || workflowMode === "expert";
 
   const [expandedPrefsHelp, setExpandedPrefsHelp] = useState<Record<string, boolean>>({});
 
@@ -725,29 +725,6 @@ function Index() {
     // Default to the best criteria to avoid cutting sentences in the middle
     return DEFAULT_PARSER_CRITERIA;
   });
-
-  const [confirmParserDiff, setConfirmParserDiff] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved =
-          localStorage.getItem(STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY) ||
-          localStorage.getItem("yt_confirm_parser_diff");
-        return saved === "true";
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  });
-  const confirmParserDiffEnabled = confirmParserDiff;
-  const setConfirmParserDiffEnabled = setConfirmParserDiff;
-
-  const [pendingParserChange, setPendingParserChange] = useState<{
-    criteria: CriteriaId[];
-    settings?: CriteriaGroupSettings;
-    criteriaNames: string[];
-    diffResult: ParserDiffResult;
-  } | null>(null);
 
   const [criteriaSettings, setCriteriaSettings] = useState<CriteriaGroupSettings>(() => {
     if (typeof window !== "undefined") {
@@ -1039,37 +1016,6 @@ function Index() {
     [criteriaSettings],
   );
 
-  const checkAndApplyCriteria = useCallback(
-    (nextCriteria: CriteriaId[], nextSettings: CriteriaGroupSettings = criteriaSettings) => {
-      if (!confirmParserDiff || !tracks || !baseLanguage) {
-        applyCriteriaNow(nextCriteria, nextSettings);
-        return;
-      }
-
-      const currentRows = align(tracks, baseLanguage, selectedCriteria, criteriaSettings);
-      const proposedRows = align(tracks, baseLanguage, nextCriteria, nextSettings);
-      const diff = computeParserDiff(currentRows, proposedRows, baseLanguage);
-
-      if (!diff.hasChanges) {
-        applyCriteriaNow(nextCriteria, nextSettings);
-        return;
-      }
-
-      const proposedNames = nextCriteria.map((c) => {
-        const found = PARSER_CRITERIA.find((item) => item.id === c);
-        return found ? found.name : c;
-      });
-
-      setPendingParserChange({
-        criteria: nextCriteria,
-        settings: nextSettings,
-        criteriaNames: proposedNames,
-        diffResult: diff,
-      });
-    },
-    [confirmParserDiff, tracks, baseLanguage, selectedCriteria, criteriaSettings, applyCriteriaNow],
-  );
-
   const handleToggleCriterion = useCallback(
     (id: CriteriaId) => {
       let updated: CriteriaId[];
@@ -1078,9 +1024,9 @@ function Index() {
       } else {
         updated = [...selectedCriteria, id];
       }
-      checkAndApplyCriteria(updated, criteriaSettings);
+      applyCriteriaNow(updated, criteriaSettings);
     },
-    [selectedCriteria, criteriaSettings, checkAndApplyCriteria],
+    [selectedCriteria, criteriaSettings, applyCriteriaNow],
   );
 
   const handleApplyPreset = useCallback(
@@ -1092,97 +1038,14 @@ function Index() {
               sentence: { ...criteriaSettings.sentence, splitIntraCue: true },
             }
           : criteriaSettings;
-      checkAndApplyCriteria(presetCriteria, nextSettings);
+      applyCriteriaNow(presetCriteria, nextSettings);
     },
-    [criteriaSettings, checkAndApplyCriteria],
+    [criteriaSettings, applyCriteriaNow],
   );
 
   const handleResetGroupSettings = useCallback(() => {
-    checkAndApplyCriteria(selectedCriteria, DEFAULT_CRITERIA_SETTINGS);
-  }, [selectedCriteria, checkAndApplyCriteria]);
-
-  const handleConfirmDiff = useCallback(() => {
-    if (pendingParserChange) {
-      applyCriteriaNow(
-        pendingParserChange.criteria,
-        pendingParserChange.settings || criteriaSettings,
-      );
-      setPendingParserChange(null);
-    }
-  }, [pendingParserChange, criteriaSettings, applyCriteriaNow]);
-
-  const handleCancelDiff = useCallback(() => {
-    setPendingParserChange(null);
-  }, []);
-
-  const realtimeParserDiff = useMemo<ParserDiffResult>(() => {
-    let effectiveTracks = tracks;
-    let effectiveBaseLang = baseLanguage;
-
-    if (
-      !effectiveTracks ||
-      !effectiveBaseLang ||
-      !effectiveTracks[effectiveBaseLang]?.events?.length
-    ) {
-      effectiveBaseLang = "en";
-      effectiveTracks = {
-        en: {
-          events: [
-            {
-              tStartMs: 0,
-              dDurationMs: 4500,
-              segs: [
-                {
-                  utf8: "Welcome to this lesson! Today, we will learn about punctuation splitting. ",
-                },
-              ],
-            },
-            {
-              tStartMs: 4600,
-              dDurationMs: 5000,
-              segs: [
-                {
-                  utf8: "Notice how Dr. Smith explained it? It's very simple, yet powerful! ",
-                },
-              ],
-            },
-            {
-              tStartMs: 9700,
-              dDurationMs: 6200,
-              segs: [
-                {
-                  utf8: "Wait... does it work with long pauses? Yes, absolutely! ",
-                },
-              ],
-            },
-            {
-              tStartMs: 16000,
-              dDurationMs: 5500,
-              segs: [
-                {
-                  utf8: "Here is another section: let's test accumulative criteria and options. ",
-                },
-              ],
-            },
-          ],
-        },
-      };
-    }
-
-    const baselineRows = align(
-      effectiveTracks,
-      effectiveBaseLang,
-      ["sentence"],
-      DEFAULT_CRITERIA_SETTINGS,
-    );
-    const activeRows = align(
-      effectiveTracks,
-      effectiveBaseLang,
-      selectedCriteria,
-      criteriaSettings,
-    );
-    return computeParserDiff(baselineRows, activeRows, effectiveBaseLang);
-  }, [tracks, baseLanguage, selectedCriteria, criteriaSettings]);
+    applyCriteriaNow(selectedCriteria, DEFAULT_CRITERIA_SETTINGS);
+  }, [selectedCriteria, applyCriteriaNow]);
   // Single attempt per language per observed URL (no automatic retries, like Youtubenet6)
   const attemptedRef = useRef<Set<string>>(new Set());
   const [failedLangs, setFailedLangs] = useState<string[]>([]);
@@ -1780,6 +1643,16 @@ function Index() {
   const [onDemandTranslations, setOnDemandTranslations] = useState<
     Record<string, Record<number, string>>
   >({});
+  const parserTranslationGeneration = useRef(0);
+  const handleSimpleParserConfigChange = useCallback(
+    (config: SimpleParserConfig) => {
+      parserTranslationGeneration.current += 1;
+      clearOnDemandTranslations(videoId);
+      setOnDemandTranslations({});
+      setSimpleParserConfig(config);
+    },
+    [videoId],
+  );
   const [enableOnDemandTranslation, setEnableOnDemandTranslationState] = useState(() =>
     typeof window !== "undefined" ? getOnDemandTranslationSetting() : true,
   );
@@ -1812,6 +1685,8 @@ function Index() {
     });
   }, []);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const isVideoPlayingRef = useRef(isVideoPlaying);
+  isVideoPlayingRef.current = isVideoPlaying;
   const [playbackCurrentTime, setPlaybackCurrentTime] = useState(0);
   const [playbackDuration, setPlaybackDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1.0);
@@ -2944,10 +2819,9 @@ function Index() {
   );
 
   const rows = useMemo<Row[]>(() => {
-    if (!rawRows || rawRows.length === 0) return rawRows;
-    return rawRows.map((r, idx) => {
+    const cleanedRows = rawRows.map((row) => {
       let changed = false;
-      const texts = { ...r.texts };
+      const texts = { ...row.texts };
       for (const [lang, text] of Object.entries(texts)) {
         const cleaned = removeAngleBrackets(text);
         if (cleaned !== text) {
@@ -2955,31 +2829,31 @@ function Index() {
           changed = true;
         }
       }
-      for (const [lang, map] of Object.entries(onDemandTranslations)) {
-        if ((!texts[lang] || texts[lang].trim().length === 0) && map[idx]) {
-          texts[lang] = removeAngleBrackets(map[idx]);
-          changed = true;
-        }
-      }
-      return changed ? { ...r, texts } : r;
+      return changed ? { ...row, texts } : row;
     });
-  }, [rawRows, onDemandTranslations]);
+    return mergeOnDemandSubtitleRows(cleanedRows, onDemandTranslations, tracks);
+  }, [rawRows, onDemandTranslations, tracks]);
 
   // Clear on-demand translations when full authentic YouTube subtitles arrive for a language
   useEffect(() => {
-    if (tracks) {
-      Object.keys(tracks).forEach((code) => {
-        if (tracks[code]?.events && tracks[code]!.events!.length > 0) {
+    if (!tracks) return;
+    Object.keys(tracks).forEach((code) => {
+      if (tracks[code]?.events && tracks[code]!.events!.length > 0) {
+        clearOnDemandTranslations(videoId, code);
+      }
+    });
+    setOnDemandTranslations((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      Object.keys(next).forEach((code) => {
+        if (findFetchedSubtitleLanguage(tracks, code)) {
           clearOnDemandTranslations(videoId, code);
-          setOnDemandTranslations((prev) => {
-            if (!prev[code]) return prev;
-            const next = { ...prev };
-            delete next[code];
-            return next;
-          });
+          delete next[code];
+          changed = true;
         }
       });
-    }
+      return changed ? next : prev;
+    });
   }, [tracks, videoId]);
 
   // Translate next X=10 sentences ahead on demand until YouTube timedtext subtitles arrive
@@ -2989,16 +2863,13 @@ function Index() {
 
     const pendingLangs = Array.from(
       new Set([...targetLanguages, ...favoriteLanguages, ...spoken, ...shown]),
-    ).filter(
-      (code) =>
-        code !== baseLanguage &&
-        (!tracks || !tracks[code] || !tracks[code]?.events || tracks[code]!.events!.length === 0),
-    );
+    ).filter((code) => code !== baseLanguage && !findFetchedSubtitleLanguage(tracks, code));
 
     if (pendingLangs.length === 0) return;
 
     const sourceSentences = rawRows.map((r) => r.texts[baseLanguage] || "");
     const startIndex = Math.max(0, active >= 0 ? active : 0);
+    const translationGeneration = parserTranslationGeneration.current;
 
     pendingLangs.forEach((targetLang) => {
       translateSentencesAhead({
@@ -3009,7 +2880,10 @@ function Index() {
         startIndex,
         sentencesAhead: onDemandAheadCount,
         onSentenceTranslated: (idx, trans) => {
+          if (translationGeneration !== parserTranslationGeneration.current) return;
+          if (findFetchedSubtitleLanguage(tracksRef.current, targetLang)) return;
           setOnDemandTranslations((prev) => {
+            if (findFetchedSubtitleLanguage(tracksRef.current, targetLang)) return prev;
             const lMap = prev[targetLang] || {};
             if (lMap[idx] === trans) return prev;
             return {
@@ -3339,6 +3213,7 @@ function Index() {
           autoplay: isAndroid ? 1 : 0,
           cc_load_policy: isAndroid ? 1 : 0,
           playsinline: 1,
+          origin: window.location.origin,
         },
         events: {
           onReady: () => {
@@ -3426,7 +3301,7 @@ function Index() {
           (p.getVideoData && p.getVideoData()?.title) ||
           (videoId ? `YouTube (${videoId})` : "YouTube Video");
         const isPlaying =
-          (p.getPlayerState ? p.getPlayerState() === 1 : isVideoPlaying) ||
+          (p.getPlayerState ? p.getPlayerState() === 1 : isVideoPlayingRef.current) ||
           Boolean(speakingLangRef.current) ||
           busy.current;
         const curSec = ms / 1000;
@@ -3616,7 +3491,7 @@ function Index() {
       player.current?.destroy?.();
       player.current = null;
     };
-  }, [videoId, isAndroid, workflowMode, playerContainerNode, isVideoPlaying]);
+  }, [videoId, isAndroid, workflowMode, playerContainerNode]);
 
   // Mount and manage dedicated video player instances for each language with speak/audio enabled
   useEffect(() => {
@@ -3638,6 +3513,7 @@ function Index() {
               autoplay: 0,
               cc_load_policy: 0,
               playsinline: 1,
+              origin: window.location.origin,
             },
             events: {
               onReady: () => {
@@ -3784,7 +3660,7 @@ function Index() {
       tts: string;
       isYouTubeTranslated?: boolean;
     }> = [];
-    const addedCodes = new Set<string>();
+    const addedLanguageKeys = new Set<string>();
     const translatedSet = new Set(youtubeTranslatedLanguages.map((lang) => lang.toLowerCase()));
 
     const hasTrackCues = (t: Json3 | undefined): boolean => {
@@ -3801,7 +3677,7 @@ function Index() {
     };
 
     const determineColumnSource = (code: string) => {
-      const hasRealTrack = tracks?.[code] && hasTrackCues(tracks[code]);
+      const hasRealTrack = findFetchedSubtitleLanguage(tracks, code);
       const hasOnDemand = hasOnDemandCues(code);
       return {
         isYouTubeOrJson: Boolean(hasRealTrack),
@@ -3810,41 +3686,41 @@ function Index() {
     };
 
     const withTranslationBadge = (meta: { code: string; name: string; tts: string }) => {
-      const source = determineColumnSource(meta.code);
+      const trackCode = findFetchedSubtitleLanguage(tracks, meta.code);
+      const columnMeta = trackCode ? getLanguageMeta(trackCode) : meta;
+      const source = determineColumnSource(columnMeta.code);
       return {
-        ...meta,
-        isYouTubeTranslated: translatedSet.has(meta.code.toLowerCase()),
+        ...columnMeta,
+        isYouTubeTranslated:
+          translatedSet.has(columnMeta.code.toLowerCase()) ||
+          translatedSet.has(meta.code.toLowerCase()),
         isYouTubeOrJson: source.isYouTubeOrJson,
         isOnDemandTranslation: source.isOnDemandTranslation,
       };
+    };
+    const addColumn = (column: ReturnType<typeof withTranslationBadge>) => {
+      addUniqueSubtitleColumn(list, column);
+      addedLanguageKeys.add(subtitleLanguageIdentity(column.code));
     };
 
     // 1. If baseLanguage from video captions exists in tracks, display it first
     // Spec: verify base track cues (tracks[baseLanguage].length > 0 || hasTrackCues)
     if (baseLanguage && tracks?.[baseLanguage] && hasTrackCues(tracks[baseLanguage])) {
-      list.push(withTranslationBadge(getLanguageMeta(baseLanguage)));
-      addedCodes.add(baseLanguage);
+      addColumn(withTranslationBadge(getLanguageMeta(baseLanguage)));
     }
 
     // 2. Add all ordered languages that are shown in the table
     // Spec: include any shown languages from targetLanguages, favoriteLanguages, loaded tracks (tracks[l.code].length > 0 || hasTrackCues), or on-demand translations
     for (const l of orderedLangs) {
       if (
-        !addedCodes.has(l.code) &&
+        !addedLanguageKeys.has(subtitleLanguageIdentity(l.code)) &&
         shown.includes(l.code) &&
         (targetLanguages.includes(l.code) ||
           favoriteLanguages.includes(l.code) ||
           (tracks ? Boolean(tracks[l.code]) : true) ||
           hasOnDemandCues(l.code))
       ) {
-        const source = determineColumnSource(l.code);
-        list.push({
-          ...l,
-          isYouTubeTranslated: translatedSet.has(l.code.toLowerCase()),
-          isYouTubeOrJson: source.isYouTubeOrJson,
-          isOnDemandTranslation: source.isOnDemandTranslation,
-        });
-        addedCodes.add(l.code);
+        addColumn(withTranslationBadge(l));
       }
     }
 
@@ -3852,9 +3728,12 @@ function Index() {
     // Spec: verify fallback track cues (tracks[code]?.length > 0 || hasTrackCues)
     if (tracks) {
       for (const code of Object.keys(tracks)) {
-        if (!addedCodes.has(code) && shown.includes(code) && hasTrackCues(tracks[code])) {
-          list.push(withTranslationBadge(getLanguageMeta(code)));
-          addedCodes.add(code);
+        if (
+          !addedLanguageKeys.has(subtitleLanguageIdentity(code)) &&
+          shown.includes(code) &&
+          hasTrackCues(tracks[code])
+        ) {
+          addColumn(withTranslationBadge(getLanguageMeta(code)));
         }
       }
     }
@@ -3862,9 +3741,8 @@ function Index() {
     // 4. Ultimate fallback: if no columns matched shown filter yet tracks exist with cues, include them
     if (list.length === 0 && tracks) {
       for (const code of Object.keys(tracks)) {
-        if (!addedCodes.has(code) && hasTrackCues(tracks[code])) {
-          list.push(withTranslationBadge(getLanguageMeta(code)));
-          addedCodes.add(code);
+        if (!addedLanguageKeys.has(subtitleLanguageIdentity(code)) && hasTrackCues(tracks[code])) {
+          addColumn(withTranslationBadge(getLanguageMeta(code)));
         }
       }
     }
@@ -4370,7 +4248,7 @@ function Index() {
               hasCachedAi={hasCachedAi}
               onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
               parserConfig={simpleParserConfig}
-              onParserConfigChange={setSimpleParserConfig}
+              onParserConfigChange={handleSimpleParserConfigChange}
               onSpeakCue={(text, lang) => {
                 const rate = rates[lang] ?? 0.8;
                 const voice = voiceSelections[lang] || "";
@@ -4688,6 +4566,24 @@ function Index() {
                                         className="pointer-events-none absolute inset-x-3 top-3 text-center"
                                         aria-live="polite"
                                       >
+                                        <span
+                                          data-testid="active-subtitle-language"
+                                          className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 text-xs font-semibold text-background shadow-lg"
+                                        >
+                                          {(() => {
+                                            const languageCode =
+                                              speakingLang && speakingRow >= 0
+                                                ? speakingLang
+                                                : baseLanguage;
+                                            const normalizedCode =
+                                              languageCode === "iw" ? "he" : languageCode;
+                                            return (
+                                              LANGS.find(
+                                                (language) => language.code === normalizedCode,
+                                              )?.name ?? normalizedCode.toUpperCase()
+                                            );
+                                          })()}
+                                        </span>
                                         <p
                                           id="active-subtitle-cue-text"
                                           data-testid="active-subtitle-cue-text"
@@ -5788,13 +5684,6 @@ function Index() {
 
                       {panelId === "parser" && (
                         <div className="space-y-4">
-                          {/* Real-time Diff Simulation on Checkbox Changes */}
-                          <ParserRealtimeSimulation
-                            diffResult={realtimeParserDiff}
-                            baseLanguage={baseLanguage || "en"}
-                            isSimulating={true}
-                          />
-
                           {/* Interactive Timing & Punctuation Splitting Lab */}
                           <ParserTimingLab
                             tracks={tracks}
@@ -5804,64 +5693,6 @@ function Index() {
                             onApplyCriteria={handleApplyPreset}
                             onUpdateGroupSettings={handleUpdateGroupSettings}
                           />
-
-                          {/* Difference Confirmation Toggle */}
-                          <div className="rounded-lg border border-border/70 bg-muted/20 p-3">
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex min-w-0 items-center gap-1.5">
-                                <label
-                                  htmlFor="confirm-parser-diff-toggle"
-                                  className="text-xs font-semibold text-foreground cursor-pointer"
-                                >
-                                  Review parser changes
-                                </label>
-                                <button
-                                  type="button"
-                                  data-testid="help-btn-parser-review"
-                                  onClick={() =>
-                                    setExpandedHelp((prev) => ({
-                                      ...prev,
-                                      review: !prev.review,
-                                    }))
-                                  }
-                                  className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
-                                  title="More info"
-                                  aria-label="More info about parser review behavior"
-                                >
-                                  ?
-                                </button>
-                              </div>
-                              <Switch
-                                id="confirm-parser-diff-toggle"
-                                data-testid="confirm-parser-diff-toggle"
-                                checked={confirmParserDiffEnabled}
-                                onCheckedChange={(checked) => {
-                                  setConfirmParserDiffEnabled(checked);
-                                  try {
-                                    localStorage.setItem("yt_confirm_parser_diff", String(checked));
-                                  } catch {
-                                    // ignore storage error
-                                  }
-                                }}
-                              />
-                            </div>
-                            {Boolean(expandedHelp.review) && (
-                              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground rounded border border-border/60 bg-background/70 p-2">
-                                Compare the updated alignment inline without blocking the screen.
-                              </p>
-                            )}
-                          </div>
-
-                          {pendingParserChange && (
-                            <ParserDiffConfirmationModal
-                              isOpen={true}
-                              inline={useInlineParserReview}
-                              onClose={handleCancelDiff}
-                              onConfirm={handleConfirmDiff}
-                              diffResult={pendingParserChange.diffResult}
-                              proposedCriteriaNames={pendingParserChange.criteriaNames}
-                            />
-                          )}
 
                           {/* Presets Header */}
                           <div>
@@ -5933,31 +5764,6 @@ function Index() {
                                   <RotateCcw className="h-3 w-3 mr-1" />
                                   Reset settings
                                 </Button>
-                                <label
-                                  data-testid="toggle-confirm-parser-diff-label"
-                                  className="flex items-center gap-1.5 cursor-pointer text-[11px] text-muted-foreground hover:text-foreground select-none ml-1 pl-2 border-l border-border/60"
-                                  title="Display preview diff showing changed records and alignment divisions before applying parser options"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    data-testid="toggle-confirm-parser-diff"
-                                    checked={confirmParserDiff}
-                                    onChange={(e) => {
-                                      const next = e.target.checked;
-                                      setConfirmParserDiff(next);
-                                      try {
-                                        localStorage.setItem(
-                                          STORAGE_KEYS.PARSER_CONFIRM_DIFF_STORAGE_KEY,
-                                          String(next),
-                                        );
-                                      } catch {
-                                        // ignore storage error
-                                      }
-                                    }}
-                                    className="h-3.5 w-3.5 rounded border-muted-foreground/40 text-primary accent-primary cursor-pointer"
-                                  />
-                                  <span>Confirm diff</span>
-                                </label>
                               </div>
                             </div>
                             {expandedHelp.overview && (
@@ -7205,7 +7011,7 @@ function Index() {
                             hasCachedAi={hasCachedAi}
                             onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
                             parserConfig={simpleParserConfig}
-                            onParserConfigChange={setSimpleParserConfig}
+                            onParserConfigChange={handleSimpleParserConfigChange}
                           />
                         ))}
                     </AccordionSection>
@@ -7291,15 +7097,6 @@ function Index() {
         maxPacingSec={retryPacingMaxSec}
         onToggleAutoRetry={handleToggleAutoRetry}
       />
-      {!useInlineParserReview && (
-        <ParserDiffConfirmationModal
-          isOpen={Boolean(pendingParserChange)}
-          onClose={handleCancelDiff}
-          onConfirm={handleConfirmDiff}
-          diffResult={pendingParserChange?.diffResult || null}
-          proposedCriteriaNames={pendingParserChange?.criteriaNames || []}
-        />
-      )}
       <VideoMetadataModal
         open={videoMetadataModalOpen}
         onOpenChange={setVideoMetadataModalOpen}
@@ -7324,4 +7121,3 @@ export { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 export { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 export { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
 export { VideoPlayground } from "@/components/VideoPlayground";
-export { ParserRealtimeSimulation } from "@/components/ParserRealtimeSimulation";

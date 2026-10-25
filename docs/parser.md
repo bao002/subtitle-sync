@@ -159,3 +159,9 @@ The application provides an interactive **Parser Panel** allowing users to exper
    - Snaps parallel columns so sentences start and end synchronously.
 4. **Custom Tuning**:
    - Configure minimum pause length, snap tolerance, minimum words per sentence, and context window clamps.
+
+## 8. Native Timed-Cue Boundaries and Live Parser Settings
+
+The current parallel-table simple parser treats every valid JSON3 event as an independent timed source cue. It may split text **inside that event** according to the selected punctuation settings, interpolating the resulting row times within the event duration. It never concatenates text from separate native events into one row. When **Intra-cue splitting** is off, each native timed cue is rendered as its own row.
+
+On-demand translations are indexed against the parsed source rows. Changing parser settings therefore clears index-aligned on-demand results, discards any late results from the previous parser configuration, and requests translations for the newly parsed rows. This keeps the target-language column aligned with the currently displayed source rows.

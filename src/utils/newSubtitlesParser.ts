@@ -105,7 +105,7 @@ export interface SplitSegment {
 }
 
 /**
- * Parses cues from the base language track into sentence-split segments based on config.
+ * Splits each native timed cue independently so parser output never crosses cue boundaries.
  */
 export function splitCuesIntoSentences(
   cues: Cue[],
@@ -123,123 +123,62 @@ export function splitCuesIntoSentences(
 
   const segments: SplitSegment[] = [];
 
-  let curStart = 0;
-  let curEnd = 0;
-  let curText = "";
-  let inProgress = false;
-
-  for (let cIdx = 0; cIdx < cues.length; cIdx++) {
-    const cue = cues[cIdx]!;
+  for (const cue of cues) {
     const cueText = cue.text.trim();
     if (!cueText) continue;
 
     const cueStart = cue.start;
-    const cueEnd = Math.max(cue.end, cueStart + 50);
+    const cueEnd = cue.end;
     const cueDuration = cueEnd - cueStart;
 
     if (!config.splitIntraCue) {
-      // Split only across cues when cue ends with a delimiter
-      if (!inProgress) {
-        curStart = cueStart;
-        curText = cueText;
-        inProgress = true;
-      } else {
-        curText += " " + cueText;
-      }
-      curEnd = cueEnd;
-
-      // Check if current accumulated text ends with a delimiter
-      splitRegex.lastIndex = 0;
-      if (splitRegex.test(curText.trim())) {
-        segments.push({
-          start: curStart,
-          end: curEnd,
-          text: curText.trim(),
-        });
-        inProgress = false;
-        curText = "";
-      }
+      segments.push({ start: cueStart, end: cueEnd, text: cueText });
       continue;
     }
 
-    // Intra-cue splitting: scan for delimiters inside the cue text
     splitRegex.lastIndex = 0;
     const matches = Array.from(cueText.matchAll(splitRegex));
+    let lastMatchEnd = 0;
+    const cueSegments: SplitSegment[] = [];
 
-    if (matches.length === 0) {
-      // No delimiter inside this cue: accumulate
-      if (!inProgress) {
-        curStart = cueStart;
-        curText = cueText;
-        inProgress = true;
-      } else {
-        curText += " " + cueText;
-      }
-      curEnd = cueEnd;
-    } else {
-      let lastMatchEnd = 0;
-
-      for (let mIdx = 0; mIdx < matches.length; mIdx++) {
-        const match = matches[mIdx]!;
-        const delimiterEnd = match.index + match[0].length;
-        const actualDotIndex = match[0].includes(".") ? match.index + match[0].lastIndexOf(".") : -1;
-        if (actualDotIndex >= 0 && isDotAbbreviationBoundary(cueText, actualDotIndex, config)) {
-          continue;
-        }
-
-        const partText = cueText.slice(lastMatchEnd, delimiterEnd).trim();
-
-        // Interpolate time within the cue
-        const charFraction = Math.min(1, Math.max(0, delimiterEnd / cueText.length));
-        const splitTime = Math.round(cueStart + charFraction * cueDuration);
-
-        if (partText) {
-          if (inProgress) {
-            curText += " " + partText;
-            curEnd = splitTime;
-            segments.push({
-              start: curStart,
-              end: Math.max(curEnd, curStart + 100),
-              text: curText.trim(),
-            });
-            inProgress = false;
-            curText = "";
-          } else {
-            const charStartFraction = Math.min(1, Math.max(0, lastMatchEnd / cueText.length));
-            const partStart = Math.round(cueStart + charStartFraction * cueDuration);
-            segments.push({
-              start: partStart,
-              end: Math.max(splitTime, partStart + 100),
-              text: partText,
-            });
-          }
-        }
-
-        lastMatchEnd = delimiterEnd;
+    for (const match of matches) {
+      const delimiterEnd = match.index + match[0].length;
+      const actualDotIndex = match[0].includes(".") ? match.index + match[0].lastIndexOf(".") : -1;
+      if (actualDotIndex >= 0 && isDotAbbreviationBoundary(cueText, actualDotIndex, config)) {
+        continue;
       }
 
-      // Any remaining text after the last delimiter in this cue
-      const leftover = cueText.slice(lastMatchEnd).trim();
-      if (leftover) {
-        const charStartFraction = Math.min(1, Math.max(0, lastMatchEnd / cueText.length));
-        curStart = Math.round(cueStart + charStartFraction * cueDuration);
-        curEnd = cueEnd;
-        curText = leftover;
-        inProgress = true;
-      } else {
-        inProgress = false;
-        curText = "";
+      const partText = cueText.slice(lastMatchEnd, delimiterEnd).trim();
+      const charStartFraction = Math.min(1, Math.max(0, lastMatchEnd / cueText.length));
+      const charEndFraction = Math.min(1, Math.max(0, delimiterEnd / cueText.length));
+      const partStart =
+        lastMatchEnd === 0
+          ? cueStart
+          : Math.round(cueStart + charStartFraction * cueDuration);
+      const partEnd = Math.round(cueStart + charEndFraction * cueDuration);
+
+      if (partText) {
+        cueSegments.push({ start: partStart, end: partEnd, text: partText });
       }
+      lastMatchEnd = delimiterEnd;
     }
-  }
 
-  // Flush any final segment
-  if (inProgress && curText.trim()) {
-    segments.push({
-      start: curStart,
-      end: curEnd,
-      text: curText.trim(),
-    });
+    const leftover = cueText.slice(lastMatchEnd).trim();
+    if (leftover) {
+      const charStartFraction = Math.min(1, Math.max(0, lastMatchEnd / cueText.length));
+      const partStart =
+        lastMatchEnd === 0
+          ? cueStart
+          : Math.round(cueStart + charStartFraction * cueDuration);
+      cueSegments.push({ start: partStart, end: cueEnd, text: leftover });
+    }
+
+    if (cueSegments.length === 0) {
+      segments.push({ start: cueStart, end: cueEnd, text: cueText });
+    } else {
+      cueSegments[cueSegments.length - 1]!.end = cueEnd;
+      segments.push(...cueSegments);
+    }
   }
 
   return segments;

@@ -13,8 +13,26 @@ From the project root:
 ./docker/manage.sh e2e all
 ```
 
-The web suite starts Vite inside the container. The emulation suite runs the
-Playwright emulation project; it does not require a physical Android device.
+Video recording is off by default. To capture Playwright screencasts in
+`docker/artifacts/test-results/`, set `PLAYWRIGHT_VIDEO=on` for a run:
+
+```bash
+PLAYWRIGHT_VIDEO=on ./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0
+```
+
+The shared-link playback E2E uses the real YouTube player, timedtext response,
+and on-demand translation service. It requires an unexpired timedtext URL from
+`E2E_SHARED_SUBTITLES_URL`; without that environment variable, this one test is
+skipped. Use host networking when the Docker bridge has no external DNS/network:
+
+```bash
+E2E_NETWORK_MODE=host E2E_SHARED_SUBTITLES_URL='https://www.youtube.com/api/timedtext?...' PLAYWRIGHT_VIDEO=on ./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0
+```
+
+The test removes signed subtitle parameters from browser history immediately
+after app startup. Keep the URL out of source control, screenshots, and logs.
+The emulation suite runs the Playwright emulation project; it does not require
+a physical Android device.
 
 To run the web suite against a deployed site instead of the container's local
 Vite server:

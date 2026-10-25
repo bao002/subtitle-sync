@@ -1,6 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: Completed and archived.
-- **Completed Task**: Task 226 — Set up Docker for repeatable E2E.
-- **Verification**: `./docker/manage.sh e2e all` passed all 4 Playwright tests in Docker; `npm run test:md` and Prettier checks passed.
-- **Next Action**: Remaining tasks are blocked Android E2E validations in `docs/tasks.md`; no local Docker E2E task remains active.
+- **Status**: No active task.
+- **Completed**: Task 237 — added the current page origin to primary and secondary YouTube IFrame API players, and extended Docker E2E coverage to verify the player receives the origin and Play changes playback state. App version 2.0.19 is synchronized.
+- **Next Action**: Resume a task from `docs/tasks.md` when requested.

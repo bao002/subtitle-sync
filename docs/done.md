@@ -1,5 +1,61 @@
 # Done tasks
 
+## Task 233: Make shared-link E2E screencast visually verifiable (Version 2.0.17)
+
+- Fixed the black player area in the shared-link E2E recording by giving the test-only simulated player an illustrative scene marked as an E2E simulation; mocked caption/translation content and the illustration are not presented as actual YouTube footage or captions.
+- Added a language-name badge to the floating subtitle overlay so viewers can identify Hebrew and Italian while the overlay alternates between those tracks.
+- Extended the shared-link E2E to assert the visible simulated scene and Hebrew → Italian → Hebrew overlay sequence. Slowed the mocked speech completion to keep each language legible in the screencast.
+- Bumped app metadata to 2.0.17.
+- Verification: `PLAYWRIGHT_VIDEO=on ./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0`, `npm run build`, `npm run test:v2-version-bump`, targeted ESLint and Prettier checks, and `git diff --check` passed.
+- The screencast is a deterministic UI/playback simulation. A genuine video frame requires an E2E run against YouTube’s live player and is not claimed by this artifact.
+
+## Task 232: Capture shared-subtitle E2E screencast
+
+- Added the opt-in `PLAYWRIGHT_VIDEO=on` setting to the Playwright configuration and Docker Compose environment; video remains off by default. Documented the command in `docs/docker-e2e.md`.
+- Ran `PLAYWRIGHT_VIDEO=on ./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0`; the shared subtitle playback test passed.
+- Verified Playwright produced a non-empty WebM recording (`303,979` bytes) in ignored `docker/artifacts/test-results/`. Registered the recording as a downloadable session artifact.
+- Verification: focused Docker E2E, `npx prettier --check playwright.config.ts docker/compose.yml docs/docker-e2e.md`, `npx eslint playwright.config.ts`, `docker compose --project-directory . -f docker/compose.yml config --quiet`, and `git diff --check` passed.
+
+## Task 231: Verify shared subtitle link playback and language alternation (Version 2.0.16)
+
+- Added a web E2E that restores a shared link for video `WJlWKB8qrf0`, verifies the default Hebrew track and Italian translation, then observes the overlay alternate Hebrew → Italian → Hebrew while the video plays and resumes after speech.
+- Normalized named target-language parameters such as `italian` to the supported language code `it`; extended the share-state verifier to cover that behavior and derive Android `versionCode` from the full version.
+- Added optional `E2E_SHARED_SUBTITLES_URL` forwarding for Docker runs without committing the signed timedtext URL. The E2E stubs the timedtext and translation endpoints, so the repeatable test does not depend on an expiring external URL.
+- Synchronized app version metadata to 2.0.16.
+- Verification: `./docker/manage.sh e2e web --grep 'shared subtitles link' --retries=0`, `npm run test:share-state-reproduction`, `npm run test:minimal-share-url`, `npm run test:v2-version-bump`, `npm run lint`, `npx eslint e2e/web.spec.ts scripts/verify-share-state-reproduction.ts`, `npm run test:md`, Prettier checks on changed supported files, `npm run build`, and `git diff --check` passed. Build emitted the existing non-fatal large-chunk warning.
+
+## Task 230: Remove parser diff review for live table updates (Version 2.0.15)
+
+- Removed diff-review toggles, pending-change confirmation state, comparison calculations, inline/modal review UI, and diff-only components.
+- Parser criteria and presets now apply directly. The parser bar remains immediately above the subtitles table, whose rows are recalculated from each parser configuration update.
+- Replaced Beginner Mode's before/after diff simulator with direct output derived from loaded subtitle cues; the preview updates when parser options change and does not inject hardcoded subtitle samples.
+- Replaced obsolete diff verifiers with `scripts/verify-parser-live-updates.ts`, updated the file inventory, and synchronized app version metadata to 2.0.15.
+- Verification: `npm run test:parser-live-updates`, `npx tsx scripts/verify-parser-minimal-text-and-help-icons.ts`, `npx tsx scripts/verify-chars-removal-accordion-order.ts`, `npx tsx scripts/verify-expert-mode-ui-layout.ts`, `npx tsx scripts/verify-v2-version-bump.ts`, `npm run lint`, `npx eslint` on the changed parser/test files, `npm run build`, Prettier checks, and `git diff --check` passed.
+- Type-check caveat: `npx tsc --noEmit` reports existing errors in untouched `src/components/SubtitlesTablePanel.tsx` (Lucide `title` props) and `src/components/beginner/tabs/BeginnerPlayerTab.tsx` (possibly undefined string). It reported no errors in the changed parser files. Vite build succeeds; its existing large-chunk warning is non-fatal.
+
+## Task 229: Replace on-demand language columns with fetched subtitle tracks (Version 2.0.14)
+
+- Added language identity handling for Hebrew/legacy aliases and equivalent language tags while preserving explicit regional variants such as Portuguese (Brazil) and Chinese Simplified/Traditional.
+- Deduplicated rendered subtitle columns by language identity. When a fetched track arrives under an alias, it replaces the on-demand column and uses the fetched track's code/data.
+- Made fetched tracks authoritative in aligned rows, skipped lookahead translation for aliases with a valid fetched track, cleared translated state on arrival, and guarded late callbacks from restoring stale translations.
+- Added `scripts/verify-subtitle-language-columns.ts` and the `test:subtitle-language-columns` package script. Updated app version metadata to 2.0.14.
+- Verification: `npm run test:subtitle-language-columns`, `npm run test:on-demand-translation`, `npm run test:v2-version-bump`, `npm run test:md`, `npm run lint`, `npm run build`, Prettier checks, and `git diff --check` passed.
+- Existing unrelated verifier limitation: `npm run test:subtitles-table-visibility` fails at its `align()` row-text expectation before executing its column assertions; the dedicated new test covers column uniqueness and fetched-track replacement directly.
+
+### Hotfix: Remove duplicate subtitle track ref declaration
+
+- Reused the route's existing synchronized `tracksRef` instead of declaring a second ref.
+- Verification: `npm run lint` and `npm run build` passed.
+
+## Task 227: Stabilize playback and keep web-demo video input playable (Version 2.0.13)
+
+- Removed `isVideoPlaying` from the YouTube player's lifecycle effect dependencies. Playback state changes no longer destroy and recreate the player, preventing Android playback restarts and the web player resetting to paused.
+- Read the latest playback state from a ref inside the stable player lifecycle effect.
+- Added `scripts/verify-stable-video-player-lifecycle.ts` and `e2e/web.spec.ts`. The web E2E loads a video through the demo URL input and verifies the video remains playing without player teardown.
+- Synchronized the app version across package metadata, Android Gradle, OTA updater, app configuration, and exported settings.
+- Verification: `./docker/manage.sh e2e web` passed all 3 tests; the focused Docker web playback E2E, `npm run test:stable-video-player`, `npm run test:playground-tab`, `npm run test:v2-version-bump`, `npm run test:md`, `npm run lint`, `npm run build`, Prettier, and `git diff --check` passed.
+- Android API 34 runtime E2E remains unverified because `adb` is unavailable; tracked as Task 228 in the later backlog.
+
 ## Task 226: Set up Docker for repeatable E2E
 
 - Pinned the Docker runner to the official Playwright `v1.64.1-noble` image and pinned `@playwright/test` to `1.64.1`.
@@ -49,7 +105,6 @@
 - Automated verification: `npm run test:fixture-languages-and-source-icons`, `npm run lint`, `compile_applet`. Committed as `d9e769e`.
 
 ## Task 220: Correct Android emulator screencast workflow
-
 
 - Confirmed [`ReactiveCircus/android-emulator-runner`](https://github.com/ReactiveCircus/android-emulator-runner) provisions and boots the configured emulator and runs the supplied script; ADB in the workflow performs the actual screen recording. Upstream guidance recommends Ubuntu larger runners with KVM when available.
 - Updated `.github/workflows/emulation.yml` to finalize `screenrecord` with SIGINT on exit or termination, pull the authentic MP4, fail if it is missing or empty, and remove the still-image-to-video fallback.
@@ -5149,3 +5204,35 @@
 - Ran and passed markdown integrity suites `npm run test:no-duplicate-md` and `npm run test:md`.
 - Verified clean build (`compile_applet`) and zero ESLint issues (`lint_applet`).
 - Migrated Task 102 out of active tracking files to `docs/done.md`.
+
+### Hotfix: Keep shared-video test player accordion open
+
+- Updated `e2e/web.spec.ts` to assert the player panel pin state and reopen the panel if necessary before checking the embedded YouTube iframe.
+- The focused Docker E2E advanced past the panel/iframe assertions, loaded 126 authentic Hebrew subtitle sections, and produced non-empty Italian translations. The full test remained blocked at playback: YouTube showed “Sign in to confirm you're not a bot,” and no authentic video playback was recorded.
+- Validation: focused Docker web E2E (`PLAYWRIGHT_VIDEO=on`, `--grep 'shared subtitles link'`, `--retries=0`; partial, blocked by YouTube challenge), `npm run build` (passed), `npm run lint` (passed), and `git diff --check` (passed).
+- Task 234 remains in `docs/tasks.md` under Later Tasks until authentic playback is available; the diagnostic Playwright WebM is not represented as a successful screencast.
+
+### Task 235: Demonstrate shared captions and parser updates
+
+- Updated `e2e/web.spec.ts` so the shared-link E2E keeps the YouTube video element and parallel subtitles panel visible together in the recorded viewport.
+- The test verifies the authentic timedtext request, non-empty Hebrew captions, non-empty Italian translation, and a live table update after unchecking “Split on dot”; row count changes from 126 to 7.
+- Captured a successful 1440×1800 Docker Playwright screencast at `docker/artifacts/test-results/web-shared-subtitles-link--cc864-ble-and-live-parser-updates-web/video.webm` (509,011 bytes) and screenshot at `.../test-finished-1.png` (669,597 bytes). The iframe displays the video's thumbnail; actual video playback is not claimed.
+- Verification passed: focused Docker web E2E (`PLAYWRIGHT_VIDEO=on`, `--grep 'shared subtitles link'`, `--retries=0`), `npm run test:parser-live-updates`, `npm run build`, `npm run lint`, `npm run test:agents-last-prompt-rule`, `npm run test:md`, and `git diff --check`.
+
+### Task 236: Preserve native cue boundaries and explain subtitle E2E
+
+- Fixed `splitCuesIntoSentences` so native JSON3 timed cues are processed independently: parser delimiters may split within a cue, but text from separate timed cues is never merged. Disabling intra-cue splitting now yields one row per native timed cue.
+- Parser setting changes clear index-based on-demand translation state and ignore stale in-flight callbacks, allowing Italian translations to be regenerated for the new row segmentation.
+- Extended the shared-link Docker E2E to inspect the authentic timedtext response, verify the initial parser-generated row count exceeds the native cue count, toggle intra-cue splitting off, and assert the final table row count exactly matches the valid native cue count. It also checks visible Hebrew source/Italian translated cells and records an `[E2E demonstration explanation]` describing the video context and each presentation step.
+- Bumped and synchronized app version to 2.0.18 across package manifests, Android Gradle, app configuration, APK updater, and exported app settings.
+- Captured the final-version WebM at `docker/artifacts/test-results/web-shared-subtitles-link--cc864-ble-and-live-parser-updates-web/video.webm` (788,066 bytes) and screenshot at `.../test-finished-1.png` (592,128 bytes). The final view shows the YouTube thumbnail, separate timed subtitle rows, and aligned Italian on-demand text; actual video playback is not claimed.
+- Verification passed: focused Docker web E2E (`PLAYWRIGHT_VIDEO=on`, `--grep 'shared subtitles link'`, `--retries=0`), `npm run test:quarantine-and-new-parser`, `npm run test:parser-live-updates`, `npm run test:v2-version-bump`, `npm run test:android-build-version-details`, `npm run build`, `npm run lint`, `npm run test:agents-last-prompt-rule`, `npm run test:md`, `npm run test:tokens-economy`, `npm run test:hotfix-workflow`, and `git diff --check`.
+- `npx tsc --noEmit` remains blocked by existing TypeScript errors in `SubtitlesTablePanel.tsx` (unsupported Lucide `title` props) and `BeginnerPlayerTab.tsx` (possibly undefined string); neither file was changed for this task.
+
+### Task 237: Fix web-demo YouTube player playback
+
+- Added the current page origin to `playerVars` for both primary and secondary YouTube IFrame API players. This supplies the origin required for the embedded API player to accept playback commands from the web demo.
+- Extended the Docker Playwright player regression to verify that the app passes the correct page origin and that pressing Play transitions the player to the playing state without recreating it.
+- Synchronized app version 2.0.19 across `package.json`, `package-lock.json`, Android Gradle, app configuration, APK updater, and exported app settings.
+- Verification passed: `./docker/manage.sh e2e web --grep 'web-demo video input remains playable' --retries=0`, `npm run test:stable-video-player`, `npm run test:v2-version-bump`, `npm run test:android-build-version-details`, `npm run build`, `npm run lint`, and `git diff --check`.
+- The regression test uses a controlled YouTube player stub; real YouTube playback remains dependent on video embedding permissions and YouTube availability. Earlier Docker playback attempts for this video encountered YouTube's bot-check screen, so no live playback is claimed.

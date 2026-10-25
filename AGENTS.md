@@ -143,5 +143,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-use docker for next time. use the gained experience to setup a docker for running e2e next time. use dir docker/
+great. the state of video, subs and target langs are loaded correctly.
+
+fix player - playing doesnt play
 ```

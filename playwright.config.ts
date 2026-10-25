@@ -4,6 +4,7 @@ import { defineConfig, devices } from "@playwright/test";
 const rawBaseURL =
   process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL || "http://127.0.0.1:3000";
 const baseURL = rawBaseURL.endsWith("/") ? rawBaseURL : `${rawBaseURL}/`;
+const videoMode = process.env.PLAYWRIGHT_VIDEO === "on" ? "on" : "off";
 
 const isExternalServer = Boolean(
   process.env.PLAYWRIGHT_BASE_URL &&
@@ -35,7 +36,7 @@ export default defineConfig({
   ],
   use: {
     baseURL,
-    video: "off",
+    video: videoMode,
     trace: "off",
     screenshot: "on",
     launchOptions: {
@@ -64,7 +65,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1280, height: 720 },
-        video: "off",
+        video: videoMode,
       },
     },
     {
@@ -72,7 +73,7 @@ export default defineConfig({
       testMatch: /.*emulation\.spec\.ts/,
       use: {
         ...devices["Pixel 7"],
-        video: "off",
+        video: videoMode,
       },
     },
     {
@@ -81,7 +82,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         viewport: { width: 1280, height: 720 },
-        video: "off",
+        video: videoMode,
       },
     },
   ],

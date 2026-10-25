@@ -8,11 +8,14 @@ services:
         DOCKER_GID: ${DOCKER_GID:-1000}
     init: true
     working_dir: /workspace
+    network_mode: ${E2E_NETWORK_MODE:-bridge}
     user: "${DOCKER_UID:-1000}:${DOCKER_GID:-1000}"
     environment:
       CI: "true"
       NODE_ENV: test
       PLAYWRIGHT_BASE_URL: ${PLAYWRIGHT_BASE_URL:-}
+      PLAYWRIGHT_VIDEO: ${PLAYWRIGHT_VIDEO:-off}
+      E2E_SHARED_SUBTITLES_URL: ${E2E_SHARED_SUBTITLES_URL:-}
       PLAYWRIGHT_OUTPUT_DIR: /workspace/artifacts/test-results
       PLAYWRIGHT_HTML_OUTPUT_DIR: /workspace/artifacts/playwright-report
     volumes:
