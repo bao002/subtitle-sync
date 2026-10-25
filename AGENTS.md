@@ -143,5 +143,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-add e2e captions which explaining what the video is showing and ensure it will show correct subtitles (& on demand translation) presentation
+great. the state of video, subs and target langs are loaded correctly.
+
+fix player - playing doesnt play
 ```

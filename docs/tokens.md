@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active workstream: None. Task 236 is complete: version 2.0.18 is synchronized, and the final Docker E2E verifies native cue boundaries, parser updates, explanatory captions, and Hebrew/Italian alignment. Active and later work remains tracked in `docs/tasks.md`.
+Current active workstream: None. Task 237 is complete: the primary and secondary YouTube IFrame API players receive the page origin, and Docker E2E verifies origin configuration and Play behavior. App version 2.0.19 is synchronized.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 

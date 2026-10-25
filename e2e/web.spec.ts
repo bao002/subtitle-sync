@@ -4,16 +4,29 @@ test("web-demo video input remains playable without recreating the YouTube playe
   page,
 }) => {
   await page.addInitScript(() => {
-    type PlayerStats = { created: number; destroyed: number; state: number; currentTime: number };
+    type PlayerStats = {
+      created: number;
+      destroyed: number;
+      state: number;
+      currentTime: number;
+      origin: string;
+    };
     type PlayerOptions = {
       videoId: string;
+      playerVars?: { origin?: string };
       events: {
         onReady?: () => void;
         onStateChange?: (event: { data: number }) => void;
       };
     };
 
-    const stats: PlayerStats = { created: 0, destroyed: 0, state: 2, currentTime: 0 };
+    const stats: PlayerStats = {
+      created: 0,
+      destroyed: 0,
+      state: 2,
+      currentTime: 0,
+      origin: "",
+    };
     const testWindow = window as typeof window & {
       __playbackTestStats: PlayerStats;
       YT: { Player: new (target: HTMLElement, options: PlayerOptions) => object };
@@ -25,6 +38,7 @@ test("web-demo video input remains playable without recreating the YouTube playe
         private readonly options: PlayerOptions,
       ) {
         stats.created += 1;
+        stats.origin = options.playerVars?.origin || "";
         queueMicrotask(() => options.events.onReady?.());
       }
 
@@ -97,6 +111,16 @@ test("web-demo video input remains playable without recreating the YouTube playe
       return stats;
     })
     .toBeGreaterThan(0);
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const testWindow = window as typeof window & {
+          __playbackTestStats: { origin: string };
+        };
+        return testWindow.__playbackTestStats.origin;
+      }),
+    )
+    .toBe(new URL(page.url()).origin);
   await page.waitForTimeout(300);
 
   const initialStats = await page.evaluate(() => {

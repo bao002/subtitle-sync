@@ -3213,6 +3213,7 @@ function Index() {
           autoplay: isAndroid ? 1 : 0,
           cc_load_policy: isAndroid ? 1 : 0,
           playsinline: 1,
+          origin: window.location.origin,
         },
         events: {
           onReady: () => {
@@ -3512,6 +3513,7 @@ function Index() {
               autoplay: 0,
               cc_load_policy: 0,
               playsinline: 1,
+              origin: window.location.origin,
             },
             events: {
               onReady: () => {

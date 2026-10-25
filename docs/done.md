@@ -5228,3 +5228,11 @@
 - Captured the final-version WebM at `docker/artifacts/test-results/web-shared-subtitles-link--cc864-ble-and-live-parser-updates-web/video.webm` (788,066 bytes) and screenshot at `.../test-finished-1.png` (592,128 bytes). The final view shows the YouTube thumbnail, separate timed subtitle rows, and aligned Italian on-demand text; actual video playback is not claimed.
 - Verification passed: focused Docker web E2E (`PLAYWRIGHT_VIDEO=on`, `--grep 'shared subtitles link'`, `--retries=0`), `npm run test:quarantine-and-new-parser`, `npm run test:parser-live-updates`, `npm run test:v2-version-bump`, `npm run test:android-build-version-details`, `npm run build`, `npm run lint`, `npm run test:agents-last-prompt-rule`, `npm run test:md`, `npm run test:tokens-economy`, `npm run test:hotfix-workflow`, and `git diff --check`.
 - `npx tsc --noEmit` remains blocked by existing TypeScript errors in `SubtitlesTablePanel.tsx` (unsupported Lucide `title` props) and `BeginnerPlayerTab.tsx` (possibly undefined string); neither file was changed for this task.
+
+### Task 237: Fix web-demo YouTube player playback
+
+- Added the current page origin to `playerVars` for both primary and secondary YouTube IFrame API players. This supplies the origin required for the embedded API player to accept playback commands from the web demo.
+- Extended the Docker Playwright player regression to verify that the app passes the correct page origin and that pressing Play transitions the player to the playing state without recreating it.
+- Synchronized app version 2.0.19 across `package.json`, `package-lock.json`, Android Gradle, app configuration, APK updater, and exported app settings.
+- Verification passed: `./docker/manage.sh e2e web --grep 'web-demo video input remains playable' --retries=0`, `npm run test:stable-video-player`, `npm run test:v2-version-bump`, `npm run test:android-build-version-details`, `npm run build`, `npm run lint`, and `git diff --check`.
+- The regression test uses a controlled YouTube player stub; real YouTube playback remains dependent on video embedding permissions and YouTube availability. Earlier Docker playback attempts for this video encountered YouTube's bot-check screen, so no live playback is claimed.
