@@ -15,6 +15,11 @@
 
 - The subtitle fetch design (attempt order, session vs link-only sending, refetch buttons, web demo = local fixtures only) lives in [docs/reliable-subtitles-fetching.md](docs/reliable-subtitles-fetching.md). Follow it for any change to subtitle fetching.
 
+## Codespaces, Docker, and E2E runbooks (read before running)
+
+- Before running or troubleshooting these workflows, read [docs/codespace.md](docs/codespace.md), [docs/docker.md](docs/docker.md), and [docs/e2e.md](docs/e2e.md). Follow [docker/manage.sh](docker/manage.sh) for containerized Playwright runs and the detailed [docs/docker-e2e.md](docs/docker-e2e.md) and [docs/e2e-android.md](docs/e2e-android.md) guides for specific suites.
+- When an experiment fails or succeeds, record its environment, exact command, observed result, resolution, and remaining limitations in the relevant runbook so future attempts do not repeat diagnosed failures.
+
 ## Subtitles fixtures restriction & zero hardcoded subtitles policy
 
 - **Single permitted fixture video and directory**: The ONLY subtitles fixtures this application will ever have is strictly for video `L2Ryrr6txwA` and located strictly at `public/fixtures/L2Ryrr6txwA`. No other video ID, path, or directory may ever contain, bundle, or use static subtitle fixtures.
@@ -93,7 +98,7 @@ The application processes and presents subtitles through a strict sequential pip
 
 - This project should remain identical in architecture, tooling, workflows, scripts, and conventions to [mostuf2556/Youtubenet6](https://github.com/mostuf2556/Youtubenet6), with deliberate differences limited strictly to the views and the subtitles parser. For every issue or discrepancy, inspect and compare against the corresponding solution in `https://github.com/mostuf2556/Youtubenet6`.
 - **README.md is to be created by GitHub Actions — do not copy it when syncing git**: `README.md` is to be created and dynamically updated by GitHub Actions (via `.github/workflows/update-readme.yml` and `scripts/update-readme.mjs`). When syncing git, **`README.md` MUST NOT be copied or overwritten**.
-- **App version updates**: The app version number must not stay 1.0 always; it should be updated across `package.json`, `android-shell/app/build.gradle.kts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts` when delivering updates for prompt response.
+- **App version updates**: The app version number must not stay 1.0 always; it should be updated across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts` when delivering updates for prompt response.
 - **Strict UI & Web-Demo Design Preservation Mandate**: NEVER alter, redesign, replace, re-theme, or disrupt the user interface, page layout, component structure, or web-demo design without explicit user confirmation and request. The clean, original web-demo layout MUST remain intact.
 - **Zero GitHub Actions cron jobs policy**: All GitHub Actions workflows under `.github/workflows/` must strictly be event-driven (`push`, `pull_request`, `workflow_dispatch`, `workflow_run`). No workflow may define a `schedule:` or `cron` trigger under any circumstances.
 
@@ -151,9 +156,11 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. it happends that a video section repeat itself after the tts-play finishes and this loop continue forever for the same video sequence.
+1. 
+AGENTS.md -
+being aware of docs/codespace.md and docs/docker.md and docs/e2e.md
 
-2. beginner mode: preferences must contain per-language settings (tts-ratio, tts-speed, available-voices-per-lang)
+2. those docs should summaries previous trials/experiments in order to make those effective for future usage and not to experience same issue over and over.
 
-3. under the video - missing contol to switch between native tts voice to the default service (google)[not-as-fallback] (fix: dont show only hebrew voice)
+3. ensure finalize current feature.
 ```

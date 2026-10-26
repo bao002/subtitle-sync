@@ -8,7 +8,8 @@ export interface LogEntry {
   id: string;
   timestamp: number;
   formattedTime: string;
-  level: "INFO" | "SUCCESS" | "WARN" | "ERROR" | "NETWORK" | "SUBTITLES" | "TTS" | "SYNC";
+  level:
+    "INFO" | "SUCCESS" | "WARN" | "ERROR" | "ACTION" | "NETWORK" | "SUBTITLES" | "TTS" | "SYNC";
   category: string;
   message: string;
   details?: any;
@@ -102,10 +103,7 @@ class LogRingBuffer {
       duration: entry.duration,
     };
 
-    this.buffer.push(newEntry);
-    if (this.buffer.length > MAX_LOG_ENTRIES) {
-      this.buffer.shift();
-    }
+    this.buffer = [...this.buffer, newEntry].slice(-MAX_LOG_ENTRIES);
 
     this.notify();
     return newEntry;
@@ -113,6 +111,10 @@ class LogRingBuffer {
 
   public getEntries(): LogEntry[] {
     return [...this.buffer];
+  }
+
+  public getSnapshot(): readonly LogEntry[] {
+    return this.buffer;
   }
 
   public clear(): void {
@@ -260,6 +262,9 @@ export const logWarn = (category: string, message: string, details?: any) =>
 export const logError = (category: string, message: string, details?: any) =>
   logBuffer.add({ level: "ERROR", category, message, details });
 
+export const logStateMachineAction = (action: string, details?: any) =>
+  logBuffer.add({ level: "ACTION", category: "State Machine", message: action, details });
+
 export const logNetwork = (entry: {
   category?: string;
   url: string;
@@ -290,3 +295,6 @@ export const logSync = (message: string, details?: any) =>
 
 export const registerAppStateProvider = (provider: AppStateProvider) =>
   logBuffer.registerAppStateProvider(provider);
+
+export const subscribeToLogEntries = (listener: () => void) => logBuffer.subscribe(listener);
+export const getLogEntriesSnapshot = () => logBuffer.getSnapshot();

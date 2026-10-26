@@ -1,3 +1,3 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- No active subtask for the completed Task 240 work.
+- Task 242.2: Add `docs/codespace.md`, `docs/docker.md`, and `docs/e2e.md` with reusable commands and previous trial outcomes.
