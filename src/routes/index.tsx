@@ -37,6 +37,7 @@ import {
   Eye,
   EyeOff,
   HelpCircle,
+  History,
   Volume2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -175,6 +176,8 @@ import { VideoPlaybackControls } from "@/components/VideoPlaybackControls";
 import { FloatingDraggablePauseButton } from "@/components/FloatingDraggablePauseButton";
 import { trackNetworkRequest, useNetworkRequests } from "@/utils/networkTracker";
 import { NetworkRequestsInspector } from "@/components/NetworkRequestsInspector";
+import { StateMachineActionLogsInspector } from "@/components/StateMachineActionLogsInspector";
+import { logError, logStateMachineAction } from "@/utils/logBuffer";
 import { AccordionSection } from "@/components/AccordionSection";
 import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 import { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
@@ -599,7 +602,15 @@ function speak(
           res();
         };
         u.onend = () => done(false);
-        u.onerror = () => done(true);
+        u.onerror = (event) => {
+          logError("State Machine", "Native speech synthesis failed", {
+            videoId,
+            lang,
+            row,
+            error: event.error,
+          });
+          void done(true);
+        };
         const timeoutMs = Math.max(
           3000,
           (text.length / 5) * (1000 / (normalizedRate || 0.5)) + 3000,
@@ -612,6 +623,12 @@ function speak(
         }
         window.speechSynthesis.speak(u);
       } catch (e) {
+        logError("State Machine", "Speech synthesis setup failed", {
+          videoId,
+          lang,
+          row,
+          error: e instanceof Error ? e.message : String(e),
+        });
         console.warn("Speech synthesis error:", e);
         if (await fallbackToAlternative()) return;
         onProgress(null);
@@ -1164,6 +1181,7 @@ function Index() {
   }, []);
 
   const [networkInspectorOpen, setNetworkInspectorOpen] = useState(false);
+  const [actionLogsOpen, setActionLogsOpen] = useState(false);
   const [apkModalOpen, setApkModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const networkRequests = useNetworkRequests();
@@ -2022,6 +2040,10 @@ function Index() {
   const [subtitlesPage, setSubtitlesPage] = useState<number>(1);
 
   const pauseBothVideoAndTts = useCallback(() => {
+    logStateMachineAction("PLAYBACK_PAUSE_REQUESTED", {
+      videoId,
+      reason: busy.current || Boolean(speakingLangRef.current) ? "speech-active" : "user",
+    });
     try {
       multiVideoPlayerRegistry.pauseAllExcept();
       player.current?.pauseVideo?.();
@@ -2034,7 +2056,7 @@ function Index() {
     setSpeakingRow(-1);
     setSpeechProgress(null);
     setIsVideoPlaying(false);
-  }, []);
+  }, [videoId]);
 
   const handleTogglePlay = useCallback(() => {
     const p = player.current;
@@ -2047,28 +2069,49 @@ function Index() {
       if (isCurrentlyPlaying || isSpeakingActive) {
         pauseBothVideoAndTts();
       } else {
+        logStateMachineAction("PLAYBACK_RESUME_REQUESTED", {
+          videoId,
+          fromPlayerState: state,
+        });
         cancelSpeech();
         busy.current = false;
         p.playVideo?.();
         setIsVideoPlaying(true);
       }
     } catch (e) {
+      logError("State Machine", "Playback toggle failed", {
+        error: e instanceof Error ? e.message : String(e),
+        videoId,
+      });
       console.warn("Toggle play error:", e);
     }
-  }, [pauseBothVideoAndTts]);
+  }, [pauseBothVideoAndTts, videoId]);
 
-  const handleSeek = useCallback((seconds: number) => {
-    const p = player.current;
-    if (!p) return;
-    try {
-      p.seekTo?.(seconds, true);
-      setPlaybackCurrentTime(seconds);
-      lastMs.current = seconds * 1000;
-      handledRow.current = -1;
-    } catch (e) {
-      console.warn("Seek error:", e);
-    }
-  }, []);
+  const handleSeek = useCallback(
+    (seconds: number) => {
+      const p = player.current;
+      if (!p) return;
+      try {
+        logStateMachineAction("PLAYBACK_SEEK_REQUESTED", {
+          videoId,
+          fromSeconds: p.getCurrentTime?.(),
+          toSeconds: seconds,
+        });
+        p.seekTo?.(seconds, true);
+        setPlaybackCurrentTime(seconds);
+        lastMs.current = seconds * 1000;
+        handledRow.current = -1;
+      } catch (e) {
+        logError("State Machine", "Playback seek failed", {
+          error: e instanceof Error ? e.message : String(e),
+          videoId,
+          toSeconds: seconds,
+        });
+        console.warn("Seek error:", e);
+      }
+    },
+    [videoId],
+  );
 
   const handleRewind = useCallback(
     (seconds = 5) => {
@@ -2371,6 +2414,10 @@ function Index() {
         setNetworkInspectorOpen(false);
         return true;
       }
+      if (actionLogsOpen) {
+        setActionLogsOpen(false);
+        return true;
+      }
       if (apkModalOpen) {
         setApkModalOpen(false);
         return true;
@@ -2386,6 +2433,10 @@ function Index() {
     const handlePopState = (event: PopStateEvent) => {
       if (networkInspectorOpen) {
         setNetworkInspectorOpen(false);
+        return;
+      }
+      if (actionLogsOpen) {
+        setActionLogsOpen(false);
         return;
       }
       if (apkModalOpen) {
@@ -2425,7 +2476,7 @@ function Index() {
       delete (window as Window & { __handleAndroidBack?: () => boolean }).__handleAndroidBack;
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [networkInspectorOpen, apkModalOpen, shareModalOpen]);
+  }, [networkInspectorOpen, actionLogsOpen, apkModalOpen, shareModalOpen]);
 
   useEffect(() => {
     if (!isAndroid) return;
@@ -3258,6 +3309,10 @@ function Index() {
             }
           },
           onStateChange: (event: { data: number }) => {
+            logStateMachineAction("PLAYER_STATE_CHANGED", {
+              videoId,
+              playerState: event.data,
+            });
             if (event.data === 1) {
               setIsVideoPlaying(true);
             } else if (event.data === 2) {
@@ -3276,6 +3331,12 @@ function Index() {
               setSpeakingRow(-1);
               setSpeechProgress(null);
             }
+          },
+          onError: (event: { data: number }) => {
+            logError("State Machine", "YouTube player reported an error", {
+              videoId,
+              errorCode: event.data,
+            });
           },
         },
       });
@@ -3395,48 +3456,72 @@ function Index() {
         if (rowIdx < 0 || playedTtsRecords.current.has(getPlaybackSectionId(rows[rowIdx]!))) return;
         const langs = getEligibleLangs(rowIdx);
         if (langs.length === 0) return;
+        const sectionId = getPlaybackSectionId(rows[rowIdx]!);
+        logStateMachineAction("TTS_SECTION_STARTED", {
+          videoId,
+          sectionId,
+          rowIndex: rowIdx,
+          languages: langs.map((language) => language.code),
+        });
         // Strictly skip this subtitles record from being TTS-played more than once
-        playedTtsRecords.current.add(getPlaybackSectionId(rows[rowIdx]!));
+        playedTtsRecords.current.add(sectionId);
         setPlayedRecordsCount(playedTtsRecords.current.size);
-        for (const l of langs) {
-          if (!busy.current) break;
-          setSpeakingLang(l.code);
-          setSpeakingRow(rowIdx);
-          if (isAudioTrackMode) {
-            await executeMultiVideoSegmentSync({
-              registry: multiVideoPlayerRegistry,
-              primaryPlayer: p,
-              languageCode: l.code,
-              startMs: rows[rowIdx]?.start ?? 0,
-              endMs: rows[rowIdx]?.end ?? 0,
-              checkCancelled: () => !busy.current,
-              onProgress: (prog) => {
-                setSpeechProgress({
-                  row: rowIdx,
-                  lang: l.code,
-                  start: 0,
-                  end: Math.round(prog.percent ?? 0),
-                });
-              },
-            });
-          } else {
-            await speak(
-              rows[rowIdx]?.texts[l.code] ?? "",
-              l.tts,
-              rates[l.code] ?? 0.5,
-              voiceSelections[l.code] ?? "",
-              rowIdx,
-              setSpeechProgress,
-            );
+        try {
+          for (const l of langs) {
+            if (!busy.current) break;
+            setSpeakingLang(l.code);
+            setSpeakingRow(rowIdx);
+            if (isAudioTrackMode) {
+              await executeMultiVideoSegmentSync({
+                registry: multiVideoPlayerRegistry,
+                primaryPlayer: p,
+                languageCode: l.code,
+                startMs: rows[rowIdx]?.start ?? 0,
+                endMs: rows[rowIdx]?.end ?? 0,
+                checkCancelled: () => !busy.current,
+                onProgress: (prog) => {
+                  setSpeechProgress({
+                    row: rowIdx,
+                    lang: l.code,
+                    start: 0,
+                    end: Math.round(prog.percent ?? 0),
+                  });
+                },
+              });
+            } else {
+              await speak(
+                rows[rowIdx]?.texts[l.code] ?? "",
+                l.tts,
+                rates[l.code] ?? 0.5,
+                voiceSelections[l.code] ?? "",
+                rowIdx,
+                setSpeechProgress,
+              );
+            }
           }
+          if (isAudioTrackMode) {
+            multiVideoPlayerRegistry.pauseAllExcept("primary");
+            multiVideoPlayerRegistry.unmuteOnly("primary");
+          }
+        } catch (error) {
+          logError("State Machine", "TTS section playback failed", {
+            videoId,
+            sectionId,
+            rowIndex: rowIdx,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          throw error;
+        } finally {
+          logStateMachineAction("TTS_SECTION_FINISHED", {
+            videoId,
+            sectionId,
+            rowIndex: rowIdx,
+            cancelled: !busy.current,
+          });
+          setSpeakingLang(null);
+          setSpeakingRow(-1);
+          setSpeechProgress(null);
         }
-        if (isAudioTrackMode) {
-          multiVideoPlayerRegistry.pauseAllExcept("primary");
-          multiVideoPlayerRegistry.unmuteOnly("primary");
-        }
-        setSpeakingLang(null);
-        setSpeakingRow(-1);
-        setSpeechProgress(null);
       };
       const isPlaying = p.getPlayerState() === 1;
       if (pauseMode && st.current.sectionOrder === "tts-first") {
@@ -4079,6 +4164,21 @@ function Index() {
               <span className="rounded-full bg-muted px-1.5 py-0.2 text-[10px] font-mono font-bold">
                 {networkRequests.length}
               </span>
+            </Button>
+          )}
+          {isDeveloperMode && debugMode && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              data-testid="open-state-machine-action-logs-button"
+              onClick={() => setActionLogsOpen(true)}
+              aria-label="Open state machine action logs"
+              className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 text-foreground hover:bg-muted"
+              title="Inspect timestamped playback actions and errors"
+            >
+              <History className="h-3.5 w-3.5 text-sky-500" />
+              <span className="hidden sm:inline">Actions</span>
             </Button>
           )}
           <Button
@@ -7197,6 +7297,12 @@ function Index() {
           onToggleUseFetchServer={handleToggleUseFetchServer}
           fetchServerUrl={fetchServerUrl}
           onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
+        />
+      )}
+      {isDeveloperMode && debugMode && (
+        <StateMachineActionLogsInspector
+          isOpen={actionLogsOpen}
+          onClose={() => setActionLogsOpen(false)}
         />
       )}
       <LanguageSubtitleUrlModal

@@ -1,5 +1,20 @@
 # Done tasks
 
+## Task 242.1: Make AGENTS.md point to Codespaces, Docker, and E2E runbooks
+
+- Added mandatory links to the three requested runbooks and existing detailed Docker/Android E2E guides, plus a rule to record reproducible environment, command, result, resolution, and limits.
+- Updated `AGENTS.md`'s Last raw prompt with the exact user request.
+- Verification passed: `npm run test:agents-last-prompt-rule` and targeted link/instruction checks. `git diff --check` reports the intentionally preserved trailing space in the exact prompt's `1. ` line.
+
+## Task 241: Add timestamped state-machine action log view (Version 2.0.23)
+
+- Added a developer-diagnostics Actions view with timestamped player transitions, playback requests, TTS section start/finish events, and ERROR records. The timeline is bounded by the existing 500-entry logger and keeps noisy playback polling out of the log.
+- Added Copy All Logs, which copies the complete diagnostic report including ERROR records, plus clear, close, Escape, and clipboard-failure states. The upstream Redux action-audit pattern was adapted to the existing shared log buffer rather than introducing a second state-management library.
+- Added dedicated logger/UI coverage and a Playwright check for opening the panel and reading copied report text from the clipboard.
+- Updated the source inventory, corrected the five-target app-version rule, and synchronized app metadata to 2.0.23 / Android versionCode 20023.
+- Verification passed: `npm run test:state-machine-action-logs`, `npx playwright test e2e/web.spec.ts --project=web -g "state-machine action logs"` in `mcr.microsoft.com/playwright:v1.64.1-noble`, `npm run test:v2-version-bump`, `npm run test:pause-both-video-and-tts`, `npm run test:stable-video-player`, `npm run lint`, `npm run build`, focused Prettier checks, and `git diff --check`.
+- The build retains the existing advisory about the main JavaScript chunk exceeding 500 kB. No commit was created because this task did not request one.
+
 ## Task 240.1: Prevent replay of the same video section after TTS
 
 - Fixed repeat-loop protection by tracking spoken subtitle sections with stable start/end timing identities rather than mutable row indexes.

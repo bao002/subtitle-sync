@@ -19,7 +19,7 @@ In complex full-stack applications, processing broad or monolithic tasks directl
 
 ## 2. The Core Principle: Granular Decomposition Maximizes Token Efficiency
 
-Current active subtask: None from Task 240; Tasks 240.1–240.3 are complete and archived in [`docs/done.md`](done.md).
+Current task state is maintained in `current-sub-task.md`; this protocol contains no task history.
 
 > **Golden Rule**: **Always break every user prompt into small, isolated sub-tasks and stage `current-sub-task.md` on every step.**
 
@@ -27,6 +27,8 @@ Current active subtask: None from Task 240; Tasks 240.1–240.3 are complete and
 - **Token Output is Bounded**: Code edits are targeted and verified immediately.
 - **Progress is Checkpointed**: Completed sub-tasks are committed to Git and logged in `docs/done.md`.
 - **Context Stays Crisp**: Each step maintains a single, verifiable goal.
+- **Validation is Discriminating**: Stage one falsifiable behavior hypothesis and the cheapest focused check alongside each active sub-task.
+- **Experiments are Reusable**: Record environment, exact command, observed failure or result, resolution, and limitations in the relevant runbook.
 - **Rules & Configuration Economy**: Keep top-level instruction files like `AGENTS.md` lean (< 20KB) to prevent platform rule truncation and wasted context window tokens. Detailed optimization guidelines live in [`docs/suggestions.md`](suggestions.md).
 
 ---

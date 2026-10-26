@@ -39,6 +39,28 @@ test("developer-only views are hidden unless debug=true is in the URL", async ({
   );
 });
 
+test("state-machine action logs open and copy the diagnostic report", async ({ page, context }) => {
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("./?debug=true");
+
+  const openLogsButton = page.getByTestId("open-state-machine-action-logs-button");
+  await expect(openLogsButton).toBeVisible();
+  await openLogsButton.click();
+
+  const dialog = page.getByRole("dialog", { name: "State Machine Actions" });
+  await expect(dialog).toBeVisible();
+  await expect(
+    dialog.locator('[data-testid="action-log-list"], [data-testid="empty-action-logs"]'),
+  ).toHaveCount(1);
+  await dialog.getByTestId("copy-all-action-logs-button").click();
+  await expect(dialog.getByTestId("copy-all-action-logs-button")).toContainText("Copied");
+
+  const copiedReport = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copiedReport).toContain("# Bug Report & Troubleshooting Prompt for AI Developer");
+  await dialog.getByRole("button", { name: "Close action logs" }).click();
+  await expect(dialog).toHaveCount(0);
+});
+
 test("beginner mode has two flows and presents the daily video, favorites, parser, and table", async ({
   page,
 }) => {
