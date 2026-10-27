@@ -1,6 +1,7 @@
 import React from "react";
 import { Gauge, Languages } from "lucide-react";
 import { getLanguageVoices, getUniqueVoiceKey, SpeechVoiceLike } from "@/utils/speechVoiceUtils";
+import { getLanguageTtsRatio } from "@/lib/playback-preferences";
 
 export interface TtsPreferenceLanguage {
   code: string;
@@ -50,7 +51,7 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
       <div className="space-y-2">
         {languages.map((language) => {
           const languageVoices = getLanguageVoices(voices, language.tts, true);
-          const ratio = ratios[language.code] ?? 1;
+          const ratio = getLanguageTtsRatio(ratios, language.code);
           const rate = rates[language.code] ?? 0.5;
           return (
             <div

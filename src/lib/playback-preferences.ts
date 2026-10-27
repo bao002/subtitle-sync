@@ -120,6 +120,73 @@ export const setTtsRatePreference = (langCode: string, rate: number) => {
 };
 
 /**
+ * Normalizes language codes to lookup the configured TTS ratio.
+ * Resolves aliases (e.g. "iw" <-> "he", "il" <-> "he") and dialect prefixes (e.g. "pt-BR" <-> "pt", "en-US" <-> "en").
+ */
+export function getLanguageTtsRatio(
+  ratios: Record<string, number> | undefined | null,
+  langCode: string,
+): number {
+  if (!ratios || !langCode) return 1;
+  if (typeof ratios[langCode] === "number" && ratios[langCode] > 0) {
+    return Math.max(1, Math.round(ratios[langCode]));
+  }
+  const clean = langCode.trim().toLowerCase();
+  if (typeof ratios[clean] === "number" && ratios[clean] > 0) {
+    return Math.max(1, Math.round(ratios[clean]));
+  }
+  // Hebrew alias normalization
+  if (clean === "iw" || clean === "il") {
+    if (typeof ratios["he"] === "number" && ratios["he"] > 0) {
+      return Math.max(1, Math.round(ratios["he"]));
+    }
+  } else if (clean === "he") {
+    if (typeof ratios["iw"] === "number" && ratios["iw"] > 0) {
+      return Math.max(1, Math.round(ratios["iw"]));
+    }
+  }
+  // Prefix matching: e.g. "pt-BR" -> "pt" or "en-US" -> "en"
+  const base = clean.split("-")[0];
+  if (base && typeof ratios[base] === "number" && ratios[base] > 0) {
+    return Math.max(1, Math.round(ratios[base]));
+  }
+  // Reverse prefix matching: ratios has "pt-BR" and langCode is "pt"
+  for (const [key, val] of Object.entries(ratios)) {
+    if (typeof val === "number" && val > 0 && key.toLowerCase().startsWith(`${base}-`)) {
+      return Math.max(1, Math.round(val));
+    }
+  }
+  return 1;
+}
+
+/**
+ * Checks whether a language code is included in the list of spoken languages,
+ * normalizing Hebrew aliases ("iw", "il", "he") and dialect codes ("pt-BR" <-> "pt").
+ */
+export function isLanguageSpoken(
+  langCode: string,
+  spokenLangs: readonly string[] | undefined | null,
+): boolean {
+  if (!spokenLangs || !langCode) return false;
+  if (spokenLangs.includes(langCode)) return true;
+  const clean = langCode.trim().toLowerCase();
+  if (spokenLangs.some((s) => s.toLowerCase() === clean)) return true;
+  if (clean === "iw" || clean === "il") {
+    if (spokenLangs.some((s) => s.toLowerCase() === "he")) return true;
+  } else if (clean === "he") {
+    if (spokenLangs.some((s) => s.toLowerCase() === "iw" || s.toLowerCase() === "il")) return true;
+  }
+  const base = clean.split("-")[0];
+  if (
+    base &&
+    spokenLangs.some((s) => s.toLowerCase() === base || s.toLowerCase().startsWith(`${base}-`))
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Evaluates whether a subtitle sentence row is eligible for TTS playback based on the ratio
  * and skipping records that have already been played.
  * - rowIdx < 0: false
@@ -131,7 +198,7 @@ export const setTtsRatePreference = (langCode: string, rate: number) => {
 export const isSubtitleInstanceEligibleForTTS = (
   rowIdx: number,
   ratio?: number | null,
-  alreadyPlayedRecords?: Set<number> | ReadonlySet<number>,
+  alreadyPlayedRecords?: Set<number | string> | ReadonlySet<number | string>,
 ): boolean => {
   if (rowIdx < 0) return false;
   if (alreadyPlayedRecords?.has(rowIdx)) return false;

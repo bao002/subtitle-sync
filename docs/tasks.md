@@ -4,9 +4,10 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 242: Consolidate Codespaces, Docker, and E2E guidance**
-  - **242.2 Reusable experiment summaries**: Add `docs/codespace.md`, `docs/docker.md`, and `docs/e2e.md` with proven commands, prior failures and causes, successful resolutions, and runtime limits.
-  - **242.3 Finalize current feature**: Revalidate Task 241's action-log feature and browser test, then archive the task and clear the active mirrors.
+- [ ] **Task 245: Design documentation and unique test IDs for play/pause/listen buttons**
+  - **245.1 Documentation**: Create `docs/design_play_buttons.md` detailing every play/pause/listen button, its behavior, and its unique testId.
+  - **245.2 Unique test IDs**: Ensure all play/pause buttons across UI components have unique, dedicated `data-testid` attributes.
+  - **245.3 Automated test**: Validate with `scripts/verify-design-play-buttons.ts`.
 
 ## Later Tasks
 

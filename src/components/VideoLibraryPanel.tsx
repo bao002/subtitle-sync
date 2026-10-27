@@ -208,7 +208,7 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
                     }}
                     className="h-full w-full object-cover transition-transform group-hover:scale-105 duration-200"
                   />
-                  {isActive && (
+                  {isActive ? (
                     <span
                       data-testid={`library-active-badge-${item.id}`}
                       className="absolute top-2 left-2 flex items-center gap-1 rounded bg-primary px-2 py-0.5 text-[11px] font-semibold text-primary-foreground shadow"
@@ -216,6 +216,17 @@ export const VideoLibraryPanel: React.FC<VideoLibraryPanelProps> = ({
                       <Play className="h-3 w-3 fill-current" />
                       Active
                     </span>
+                  ) : (
+                    <button
+                      type="button"
+                      data-testid={`library-video-card-play-btn-${item.id}`}
+                      aria-label={`Play ${item.title}`}
+                      className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+                        <Play className="h-5 w-5 fill-current ml-0.5" />
+                      </span>
+                    </button>
                   )}
                   <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/75 px-1.5 py-0.5 text-[10px] text-white font-mono">
                     <Clock className="h-2.5 w-2.5" />

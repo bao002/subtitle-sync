@@ -1,8 +1,8 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Task**: 242 - Consolidate Codespaces, Docker, and E2E guidance
-- **Subtask**: 242.2 - Reusable experiment summaries
+- **Task**: 245 - Design documentation and unique test IDs for play/pause/listen buttons
+- **Subtask**: 245.1 - Create `docs/design_play_buttons.md` and verify unique testIds
 - **Status**: [IN PROGRESS]
-- **Hypothesis**: The previous browser test failure was environmental, not app behavior: host Chromium lacked system libraries, while the matching official Playwright container passed the same E2E check.
-- **Focused check**: `npm run test:md` after adding the three docs, plus targeted command/path checks against `docker/manage.sh` and the documented successful Docker E2E invocation.
-- **Next Action**: Add Codespaces, Docker, and general E2E runbooks summarizing observed failures, causes, proven resolutions, and Android tooling limits.
+- **Target**: Create `docs/design_play_buttons.md` explaining what clicking on each play/pause/speak icon does across the application, assign and verify unique `data-testid` attributes on each, and ensure zero duplicate markdown files.
+- **Focused check**: `scripts/verify-design-play-buttons.ts`
+- **Next Action**: Create `docs/design_play_buttons.md`, verify UI component testIds, and create verification test.

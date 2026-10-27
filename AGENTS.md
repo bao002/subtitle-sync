@@ -156,11 +156,11 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. 
-AGENTS.md -
-being aware of docs/codespace.md and docs/docker.md and docs/e2e.md
+1.fix issue: tts-ratio is not enforced  throughout the playing session. although there are multiple tts-play checkings.
 
-2. those docs should summaries previous trials/experiments in order to make those effective for future usage and not to experience same issue over and over.
 
-3. ensure finalize current feature.
+
+2. android notification top menu - it show be able to pause all that is playing  in 1 click - including the tts-play ( it should be like killing a seesion)
+
+3. docs/design_play_buttons.md - it is not clean what clicking on play does. there are couple of such icons. explain each and have uniq testId to any of them.
 ```

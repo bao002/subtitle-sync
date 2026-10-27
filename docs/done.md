@@ -1,5 +1,23 @@
 # Done tasks
 
+## Task 244: One-click pause all in Android notification top menu (video + TTS session termination)
+
+- **Native kill session execution**: Verified and ensured `BackgroundAudioService.kt` `handlePause()` calls `MainActivity.instance?.stopNativeTTS()` and `MainActivity.instance?.dispatchMediaCommand("pause", 0L)` in 1 click, immediately silencing native Android TextToSpeech and notifying the web layer.
+- **Media notification state sync**: Ensured `syncMediaMetadata` sends `isPlaying: true` whenever video is playing, TTS speech is active (`Boolean(speakingLangRef.current)`), or playback coordinator is busy (`busy.current`). This guarantees the notification top menu presents the "Pause" button (action 1) throughout an active speech narration.
+- **Web session termination**: Handled `onPause` in `src/routes/index.tsx` `initBackgroundMediaManager` by invoking `multiVideoPlayerRegistry.pauseAllExcept()`, `player.current?.pauseVideo?.()`, `setIsVideoPlaying(false)`, `cancelSpeech()` (stopping native, Web Speech, and alternative TTS), resetting `busy.current = false`, clearing speaking language/row, and resetting speech progress.
+- **Auto-resumption loop guard**: Added `const wasCancelled = !busy.current; if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;` after `await speakRow(...)` across both `video-first` and `tts-first` playback loops, preventing unintended video play when paused mid-speech.
+- **Dedicated test**: Created `scripts/verify-android-notification-one-click-pause.ts` and registered `"test:android-notification-one-click-pause"` in `package.json`.
+- **Verification passed**: `npm run test:android-notification-one-click-pause`, `compile_applet`, and `lint_applet` passed 100%.
+
+## Task 243: Enforce TTS ratio across playback session with multiple spoken languages (Version 2.0.24)
+
+- **Version 2.0.24 bump**: Synchronized version `2.0.24` and Android `versionCode = 20024` across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`).
+- **Language code normalization**: Implemented `getLanguageTtsRatio` and `isLanguageSpoken` supporting exact matches, case-insensitivity, Hebrew aliases (`iw`/`il` <-> `he`), and dialect code normalization (`pt-BR` <-> `pt`, `en-US` <-> `en`).
+- **Strict per-language ratio enforcement**: Updated `getEligibleLangs` and `speakRow` in `src/routes/index.tsx` to evaluate `isSubtitleInstanceEligibleForTTS` per individual spoken language using `getLanguageTtsRatio`, preventing default ratio fallback from overriding language settings.
+- **Table and component parity**: Updated `src/components/SubtitleRow.tsx`, `src/components/beginner/PerLanguageTtsPreferences.tsx`, and the language table in `src/routes/index.tsx` to use `getLanguageTtsRatio` for UI rendering and badges.
+- **Dedicated test**: Created `scripts/verify-tts-ratio-enforcement.ts` asserting alias/dialect resolution, multi-language speech eligibility calculations, playback loop ratio enforcement, and index/SubtitleRow integration.
+- **Verification passed**: `npm run test:tts-ratio-enforcement`, `npm run test:v2-version-bump`, `npx tsx scripts/verify-tts-subtitles-ratio.ts`, `compile_applet`, and `lint_applet` passed 100%.
+
 ## Task 242.1: Make AGENTS.md point to Codespaces, Docker, and E2E runbooks
 
 - Added mandatory links to the three requested runbooks and existing detailed Docker/Android E2E guides, plus a rule to record reproducible environment, command, result, resolution, and limits.

@@ -2,6 +2,7 @@ import React, { memo } from "react";
 import { Volume2 } from "lucide-react";
 import { type Row, type Json3, fmt, RTL, subtitleTextForColumn } from "@/lib/subtitles";
 import {
+  getLanguageTtsRatio,
   isSubtitleInstanceEligibleForTTS,
   shouldHighlightSentenceForTTS,
 } from "@/lib/playback-preferences";
@@ -59,7 +60,7 @@ export const SubtitleRow = memo(function SubtitleRow({
       {cols.map((l) => {
         const columnText = subtitleTextForColumn(r, l.code);
         const isSpoken = Boolean(spokenLangs?.includes(l.code));
-        const ratio = ttsRatios?.[l.code] ?? 1;
+        const ratio = getLanguageTtsRatio(ttsRatios, l.code);
         const isEligible = isSubtitleInstanceEligibleForTTS(actualIndex, ratio);
         const isPronouncedHighlight = shouldHighlightSentenceForTTS(actualIndex, ratio, isSpoken);
         return (

@@ -207,6 +207,8 @@ import {
   getSubtitleRequestMode,
   getTtsRatiosPreference,
   getTtsRatesPreference,
+  getLanguageTtsRatio,
+  isLanguageSpoken,
   isTtsSpeakableLanguage,
   isSubtitleInstanceEligibleForTTS,
   shouldHighlightSentenceForTTS,
@@ -3427,8 +3429,8 @@ function Index() {
         const matched = orderedLangs.filter(
           (l) =>
             isTtsSpeakableLanguage(l.code, currentBaseLanguage) &&
-            spoken.includes(l.code) &&
-            isSubtitleInstanceEligibleForTTS(rowIdx, currentTtsRatios?.[l.code] ?? 1),
+            isLanguageSpoken(l.code, spoken) &&
+            isSubtitleInstanceEligibleForTTS(rowIdx, getLanguageTtsRatio(currentTtsRatios, l.code)),
         );
         if (matched.length > 0) return matched;
         // When audioTrackMode is enabled with no spoken languages selected,
@@ -3444,7 +3446,10 @@ function Index() {
             orderedLangs.find((l) => l.code !== currentBaseLanguage) || orderedLangs[0];
           if (
             fallbackLang &&
-            isSubtitleInstanceEligibleForTTS(rowIdx, currentTtsRatios?.[fallbackLang.code] ?? 1)
+            isSubtitleInstanceEligibleForTTS(
+              rowIdx,
+              getLanguageTtsRatio(currentTtsRatios, fallbackLang.code),
+            )
           ) {
             return [fallbackLang];
           }
@@ -3469,6 +3474,10 @@ function Index() {
         try {
           for (const l of langs) {
             if (!busy.current) break;
+            const ratio = getLanguageTtsRatio(currentTtsRatios, l.code);
+            if (!isSubtitleInstanceEligibleForTTS(rowIdx, ratio)) {
+              continue;
+            }
             setSpeakingLang(l.code);
             setSpeakingRow(rowIdx);
             if (isAudioTrackMode) {
@@ -3541,7 +3550,7 @@ function Index() {
             const wasCancelled = !busy.current;
             busy.current = false;
             handledRow.current = idx;
-            if (wasCancelled) return;
+            if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;
             const targetSec = (rows[idx]?.start ?? 0) / 1000;
             lastMs.current = targetSec * 1000;
             multiVideoPlayerRegistry.unmuteOnly("primary");
@@ -3566,8 +3575,10 @@ function Index() {
             busy.current = true;
             p.pauseVideo();
             await speakRow(candidateRow);
+            const wasCancelled = !busy.current;
             busy.current = false;
             handledRow.current = candidateRow;
+            if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;
             const nextRowIdx = candidateRow + 1;
             if (nextRowIdx < rows.length && rows[nextRowIdx]) {
               const nextRow = rows[nextRowIdx];
@@ -6811,8 +6822,8 @@ function Index() {
                             </thead>
                             <tbody>
                               {orderedLangs.map((l, index) => {
-                                const isSpoken = spoken.includes(l.code);
-                                const ratio = ttsRatios[l.code] ?? 1;
+                                const isSpoken = isLanguageSpoken(l.code, spoken);
+                                const ratio = getLanguageTtsRatio(ttsRatios, l.code);
                                 const isFavorite = favoriteLanguages.includes(l.code);
                                 const isExpanded = expandedTableUrlLang === l.code;
                                 const cueCount = tracks?.[l.code]?.events?.length;
