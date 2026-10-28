@@ -4,12 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 257: Modern Languages Accordion Design, Small-Screen 2-Column Pinning & Header Design Toggle**
-  - **Subtask 257.1**: Header design toggle (`classic` vs `modern`), localStorage persistence, and status badge for fully fetched vs on-demand translation tracks.
-  - **Subtask 257.2**: Streamlined modern languages accordion: minimal controls, single language inspector, 1-line drag/reorder language flow, no duplicated TTS ratio, hide subtitle URL on Android, move deep persistent settings to Settings accordion.
-  - **Subtask 257.3**: Subtitles table responsive improvements: default maximum 2 parallel columns on small screen, and column pinning for comparison.
-  - **Subtask 257.4**: Version bump to `2.0.28`, dedicated verification suite `scripts/verify-modern-languages-design.ts`, npm script `test:modern-languages-design`, clean compilation (`compile_applet`), zero lint errors (`lint_applet`), and migration to `docs/done.md`.
-
+<!-- No pending active tasks. All tasks for the prompt have been completed and migrated to docs/done.md -->
 
 ## Later Tasks
 

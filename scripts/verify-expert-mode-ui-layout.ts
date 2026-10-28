@@ -9,8 +9,8 @@ const indexPath = path.join(root, "src/routes/index.tsx");
 
 const index = fs.readFileSync(indexPath, "utf8");
 assert(
-  index.includes('data-testid="favorite-visibility-toolbar"'),
-  "favorite visibility toolbar should be rendered beside the video area",
+  !index.includes('data-testid="favorite-visibility-toolbar"'),
+  "favorite visibility toolbar should be removed as requested in Task 260",
 );
 assert(
   index.includes('data-testid="per-language-settings-panel"'),

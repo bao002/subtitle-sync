@@ -212,6 +212,10 @@ import {
   isTtsSpeakableLanguage,
   isSubtitleInstanceEligibleForTTS,
   shouldHighlightSentenceForTTS,
+  getPrimaryTtsLang,
+  setPrimaryTtsLang,
+  isLanguageEligibleForTtsWithRole,
+  shouldHighlightSentenceForTtsWithRole,
   setSectionOrder as saveSectionOrder,
   setSubtitleRequestMode as saveSubtitleRequestMode,
   setTtsRatioPreference as saveTtsRatioPreference,
@@ -1605,6 +1609,11 @@ function Index() {
     const defaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 1]));
     return { ...defaults, ...saved };
   });
+  const [primaryTtsLang, setPrimaryTtsLangState] = useState<string>(() => getPrimaryTtsLang());
+  const handlePrimaryTtsLangChange = useCallback((code: string) => {
+    setPrimaryTtsLangState(code);
+    setPrimaryTtsLang(code);
+  }, []);
 
   useEffect(() => {
     if (!videoId) return;
@@ -1725,6 +1734,7 @@ function Index() {
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const isVideoPlayingRef = useRef(isVideoPlaying);
   isVideoPlayingRef.current = isVideoPlaying;
+  const userExplicitlyPausedRef = useRef(false);
   const [playbackCurrentTime, setPlaybackCurrentTime] = useState(0);
   const [playbackDuration, setPlaybackDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1.0);
@@ -2054,6 +2064,7 @@ function Index() {
     }
     cancelSpeech();
     busy.current = false;
+    userExplicitlyPausedRef.current = true;
     setSpeakingLang(null);
     setSpeakingRow(-1);
     setSpeechProgress(null);
@@ -2077,6 +2088,7 @@ function Index() {
         });
         cancelSpeech();
         busy.current = false;
+        userExplicitlyPausedRef.current = false;
         p.playVideo?.();
         setIsVideoPlaying(true);
       }
@@ -3055,6 +3067,7 @@ function Index() {
     spoken,
     rates,
     ttsRatios,
+    primaryTtsLang,
     voiceSelections,
     pauseMode,
     orderedLangs,
@@ -3068,6 +3081,7 @@ function Index() {
     spoken,
     rates,
     ttsRatios,
+    primaryTtsLang,
     voiceSelections,
     pauseMode,
     orderedLangs,
@@ -3316,16 +3330,19 @@ function Index() {
               playerState: event.data,
             });
             if (event.data === 1) {
+              userExplicitlyPausedRef.current = false;
               setIsVideoPlaying(true);
             } else if (event.data === 2) {
               setIsVideoPlaying(false);
               if (!busy.current) {
+                userExplicitlyPausedRef.current = true;
                 cancelSpeech();
                 setSpeakingLang(null);
                 setSpeakingRow(-1);
                 setSpeechProgress(null);
               }
             } else if (event.data === 0 || event.data === -1) {
+              userExplicitlyPausedRef.current = true;
               setIsVideoPlaying(false);
               cancelSpeech();
               busy.current = false;
@@ -3412,12 +3429,15 @@ function Index() {
         spoken,
         rates,
         ttsRatios: currentTtsRatios,
+        primaryTtsLang: currentPrimaryTtsLang,
         voiceSelections,
         pauseMode,
         orderedLangs,
         audioTrackMode: isAudioTrackMode,
         baseLanguage: currentBaseLanguage,
       } = st.current;
+      const effectivePrimary = currentPrimaryTtsLang || spoken[0] || "";
+      const primaryRatio = getLanguageTtsRatio(currentTtsRatios, effectivePrimary);
       const idx = rows.findIndex((r) => ms >= r.start && ms < r.end);
       setActive(idx);
       const prev = lastRow.current;
@@ -3430,7 +3450,13 @@ function Index() {
           (l) =>
             isTtsSpeakableLanguage(l.code, currentBaseLanguage) &&
             isLanguageSpoken(l.code, spoken) &&
-            isSubtitleInstanceEligibleForTTS(rowIdx, getLanguageTtsRatio(currentTtsRatios, l.code)),
+            isLanguageEligibleForTtsWithRole({
+              rowIdx,
+              langCode: l.code,
+              ratio: getLanguageTtsRatio(currentTtsRatios, l.code),
+              primaryLang: effectivePrimary,
+              primaryRatio,
+            }),
         );
         if (matched.length > 0) return matched;
         // When audioTrackMode is enabled with no spoken languages selected,
@@ -3475,7 +3501,14 @@ function Index() {
           for (const l of langs) {
             if (!busy.current) break;
             const ratio = getLanguageTtsRatio(currentTtsRatios, l.code);
-            if (!isSubtitleInstanceEligibleForTTS(rowIdx, ratio)) {
+            const isEligible = isLanguageEligibleForTtsWithRole({
+              rowIdx,
+              langCode: l.code,
+              ratio,
+              primaryLang: effectivePrimary,
+              primaryRatio,
+            });
+            if (!isEligible) {
               continue;
             }
             setSpeakingLang(l.code);
@@ -3550,7 +3583,7 @@ function Index() {
             const wasCancelled = !busy.current;
             busy.current = false;
             handledRow.current = idx;
-            if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;
+            if (wasCancelled || st.current.isSetupPaused || userExplicitlyPausedRef.current) return;
             const targetSec = (rows[idx]?.start ?? 0) / 1000;
             lastMs.current = targetSec * 1000;
             multiVideoPlayerRegistry.unmuteOnly("primary");
@@ -3578,7 +3611,7 @@ function Index() {
             const wasCancelled = !busy.current;
             busy.current = false;
             handledRow.current = candidateRow;
-            if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;
+            if (wasCancelled || st.current.isSetupPaused || userExplicitlyPausedRef.current) return;
             const nextRowIdx = candidateRow + 1;
             if (nextRowIdx < rows.length && rows[nextRowIdx]) {
               const nextRow = rows[nextRowIdx];
@@ -4463,6 +4496,8 @@ function Index() {
               ratios={ttsRatios}
               rates={rates}
               voiceSelections={voiceSelections}
+              primaryLang={primaryTtsLang}
+              onPrimaryLangChange={handlePrimaryTtsLangChange}
               onRatioChange={(languageCode, ratio) => {
                 setTtsRatios((current) => ({ ...current, [languageCode]: ratio }));
                 saveTtsRatioPreference(languageCode, ratio);
@@ -4515,6 +4550,7 @@ function Index() {
               onSeek={seek}
               spokenLangs={spoken}
               ttsRatios={ttsRatios}
+              primaryTtsLang={primaryTtsLang}
               hasCachedAi={hasCachedAi}
               onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
               parserConfig={simpleParserConfig}
@@ -4638,71 +4674,6 @@ function Index() {
                     </Button>
                   </form>
                 )}
-              </div>
-
-              <div className="px-4 pt-3 md:px-6 md:pt-4">
-                <div className="mx-auto max-w-6xl">
-                  <div
-                    data-testid="favorite-visibility-toolbar"
-                    className="rounded-xl border border-border bg-card/80 p-3 shadow-sm"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                          Favorite subtitle visibility
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Toggle each favorite language to keep it visible in the subtitle table or
-                          read aloud.
-                        </div>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {favoriteLanguages.length === 0 ? (
-                          <span className="text-[11px] text-muted-foreground italic">
-                            No favorites selected yet
-                          </span>
-                        ) : (
-                          favoriteLanguages.map((code) => {
-                            const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
-                              (lang) => lang.code === code,
-                            ) || { code, name: code };
-                            const visible = shown.includes(code);
-                            const spokenNow = spoken.includes(code);
-                            return (
-                              <button
-                                key={code}
-                                type="button"
-                                data-testid={`favorite-visibility-item-${code}`}
-                                onClick={() => {
-                                  setShown((prev) =>
-                                    prev.includes(code)
-                                      ? prev.filter((item) => item !== code)
-                                      : [...prev, code],
-                                  );
-                                  setSpoken((prev) =>
-                                    prev.includes(code)
-                                      ? prev.filter((item) => item !== code)
-                                      : [...prev, code],
-                                  );
-                                }}
-                                className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[11px] font-medium transition ${
-                                  visible || spokenNow
-                                    ? "border-primary/40 bg-primary/10 text-primary"
-                                    : "border-border bg-background text-muted-foreground"
-                                }`}
-                                title={`${langMeta.name}: ${visible ? "visible" : "hidden"}, ${spokenNow ? "spoken" : "silent"}`}
-                              >
-                                <span>{langMeta.name}</span>
-                                <span className="text-[10px]">{visible ? "👁" : "○"}</span>
-                                <span className="text-[10px]">{spokenNow ? "🔊" : "🔈"}</span>
-                              </button>
-                            );
-                          })
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">
@@ -7100,29 +7071,81 @@ function Index() {
                             </div>
                           </div>
                           <div className="mt-2 space-y-1 border-t border-border pt-2">
+                            {spoken.length > 1 && (
+                              <div className="flex items-center justify-between pb-1 text-xs">
+                                <span className="text-[11px] text-muted-foreground">
+                                  Primary leads; secondary languages speak relative to primary
+                                  activations.
+                                </span>
+                                <button
+                                  type="button"
+                                  data-testid="tts-switch-roles-button-advanced"
+                                  onClick={() => {
+                                    const effPrimary = primaryTtsLang || spoken[0] || "";
+                                    const other = spoken.find((c) => c !== effPrimary);
+                                    if (other) handlePrimaryTtsLangChange(other);
+                                  }}
+                                  className="inline-flex items-center gap-1 rounded border border-border bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium text-primary transition-colors"
+                                >
+                                  ⇄ Switch Primary/Secondary
+                                </button>
+                              </div>
+                            )}
                             {orderedLangs
                               .filter((lang) => spoken.includes(lang.code))
                               .map((lang) => {
                                 const languageVoices = getLanguageVoices(voices, lang.tts, true);
                                 const ratio = ttsRatios[lang.code] ?? 1;
+                                const isPrimary = lang.code === (primaryTtsLang || spoken[0] || "");
+                                const primaryLangObj = orderedLangs.find(
+                                  (l) => l.code === (primaryTtsLang || spoken[0] || ""),
+                                );
                                 return (
                                   <div
                                     key={lang.code}
                                     data-testid={`tts-settings-card-${lang.code}`}
                                     className="flex flex-wrap sm:flex-nowrap items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-2 py-1 text-xs"
                                   >
-                                    <span
-                                      className="w-16 shrink-0 truncate font-semibold text-foreground"
-                                      title={lang.name}
-                                    >
-                                      {lang.name}
-                                    </span>
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      <span
+                                        className="w-16 truncate font-semibold text-foreground"
+                                        title={lang.name}
+                                      >
+                                        {lang.name}
+                                      </span>
+                                      {isPrimary ? (
+                                        <span
+                                          data-testid={`tts-role-badge-${lang.code}`}
+                                          className="rounded bg-primary/20 text-primary border border-primary/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
+                                        >
+                                          Primary
+                                        </span>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          data-testid={`tts-switch-primary-${lang.code}`}
+                                          onClick={() => handlePrimaryTtsLangChange(lang.code)}
+                                          className="rounded border border-input bg-background hover:bg-accent px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground font-medium transition-colors"
+                                          title={`Set ${lang.name} as Primary`}
+                                        >
+                                          Make Primary
+                                        </button>
+                                      )}
+                                    </div>
                                     {/* Speech ratio: speak 1 of every N sections */}
                                     <label
                                       className="flex items-center gap-1 shrink-0"
-                                      title="Speak 1 of every N sections (comprehension level)"
+                                      title={
+                                        isPrimary
+                                          ? "Speak 1 of every N sections"
+                                          : `Speak 1 of every N sections relative to ${primaryLangObj?.name || "primary"}`
+                                      }
                                     >
-                                      <span className="text-muted-foreground">Speak</span>
+                                      <span className="text-muted-foreground">
+                                        {isPrimary
+                                          ? "Speak"
+                                          : `Speak (rel. to ${primaryLangObj?.name || "primary"})`}
+                                      </span>
                                       <select
                                         aria-label={`${lang.name} TTS sentence ratio`}
                                         data-testid={`tts-ratio-slider-${lang.code}`}
@@ -7257,29 +7280,40 @@ function Index() {
 
                       {panelId === "subtitles" &&
                         (!hasLegitimateSubtitles ? null : (
-                          <SubtitlesTablePanel
-                            isAndroid={isAndroid}
-                            rows={rows}
-                            displayedRows={displayedRows}
-                            cols={cols}
-                            baseLanguage={baseLanguage}
-                            subtitlesLimit={subtitlesLimit}
-                            setSubtitlesLimit={setSubtitlesLimit}
-                            subtitlesPage={subtitlesPage}
-                            setSubtitlesPage={setSubtitlesPage}
-                            active={active}
-                            allFavoritesAligned={allFavoritesAligned}
-                            targetLanguages={targetLanguages}
-                            speechProgress={speechProgress}
-                            tracks={tracks}
-                            onSeek={seek}
-                            spokenLangs={spoken}
-                            ttsRatios={ttsRatios}
-                            hasCachedAi={hasCachedAi}
-                            onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
-                            parserConfig={simpleParserConfig}
-                            onParserConfigChange={handleSimpleParserConfigChange}
-                          />
+                          <section
+                            className="space-y-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3"
+                            aria-label="Parallel subtitles table"
+                            data-testid="advanced-parallel-subtitles"
+                            data-control-category="daily-usage"
+                          >
+                            <h3 className="text-xs font-semibold text-foreground">
+                              Parallel subtitles
+                            </h3>
+                            <SubtitlesTablePanel
+                              isAndroid={isAndroid}
+                              rows={rows}
+                              displayedRows={displayedRows}
+                              cols={cols}
+                              baseLanguage={baseLanguage}
+                              subtitlesLimit={subtitlesLimit}
+                              setSubtitlesLimit={setSubtitlesLimit}
+                              subtitlesPage={subtitlesPage}
+                              setSubtitlesPage={setSubtitlesPage}
+                              active={active}
+                              allFavoritesAligned={allFavoritesAligned}
+                              targetLanguages={targetLanguages}
+                              speechProgress={speechProgress}
+                              tracks={tracks}
+                              onSeek={seek}
+                              spokenLangs={spoken}
+                              ttsRatios={ttsRatios}
+                              primaryTtsLang={primaryTtsLang}
+                              hasCachedAi={hasCachedAi}
+                              onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
+                              parserConfig={simpleParserConfig}
+                              onParserConfigChange={handleSimpleParserConfigChange}
+                            />
+                          </section>
                         ))}
                     </AccordionSection>
                   );

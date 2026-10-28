@@ -1,5 +1,64 @@
 # Done tasks
 
+## Task 261: Switchable Primary/Secondary TTS Ratio with Relative Activation & Version Bump (2.0.28)
+
+- **Relative Secondary TTS Ratio Logic**:
+  - Implemented mathematical relative ratio evaluation (`isLanguageEligibleForTtsWithRole` and `shouldHighlightSentenceForTtsWithRole`) in `src/lib/playback-preferences.ts`.
+  - When a language is designated secondary relative to a primary language (e.g. Italian primary, Spanish secondary 1:4), Spanish is activated strictly on records where Italian is activated, and fires only 1 in 4 of Italian's activated records.
+- **Switchable Primary/Secondary UI**:
+  - Added primary role badge (`tts-role-badge-${code}`) and "Make Primary" button (`tts-switch-primary-${code}`) in both Beginner mode (`PerLanguageTtsPreferences.tsx`) and Advanced mode (`src/routes/index.tsx`).
+  - Added `⇄ Switch Primary/Secondary` button (`tts-switch-roles-button`) for seamless 1-click role swapping.
+  - Updated ratio labels to show relative context (`Speak (rel. to {primaryLang})`).
+  - Added `data-tts-role` (primary/secondary) and `data-tts-eligible` telemetry to `SubtitleRow.tsx`.
+  - Integrated `primaryTtsLang` into the playback coordinator state machine loop.
+- **Application Version Bump (2.0.28)**:
+  - Synchronized version `2.0.28` across all 5 canonical targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode `20028`), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts` (`v2.0.28`), and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-primary-secondary-tts-ratio.ts` and registered `"test:primary-secondary-tts-ratio"` in `package.json` and `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:primary-secondary-tts-ratio`: PASSED (100%).
+  - `npm run test:v2-version-bump`: PASSED (100%).
+  - `npm run test:agents-all`: PASSED (19/19 checks passed 100%).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+## Task 260: Remove Non-Relevant Favorite Visibility Toolbar View
+
+- **Favorite Visibility Toolbar Removal in `src/routes/index.tsx`**:
+  - Deprecated and removed the redundant favorite visibility toolbar (`#root > div > div.px-4.pt-3.md\:px-6.md\:pt-4 > div > div`, `data-testid="favorite-visibility-toolbar"`) that was inconsistent with the app's ratio-based translation playback purpose.
+  - Updated expert mode layout test `scripts/verify-expert-mode-ui-layout.ts` to assert that this toolbar is not rendered.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-remove-favorite-visibility-toolbar.ts` and registered `"test:remove-favorite-visibility-toolbar"` in `package.json` and `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:remove-favorite-visibility-toolbar`: PASSED (100%).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+## Task 259: Professional Parallel Subtitles Section & Design Parity in Advanced Mode
+
+- **Advanced Mode Parallel Subtitles Section Design Parity in `src/routes/index.tsx`**:
+  - Encapsulated `SubtitlesTablePanel` inside Advanced Mode with a dedicated professional `<section>` element styled with `space-y-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3`, matching Beginner Mode (`data-testid="beginner-parallel-subtitles"`).
+  - Maintained complete structural parity across both modes including the dedicated heading `<h3>Parallel subtitles</h3>` and full-width layout.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-advanced-subtitles-section-design.ts` and registered `"test:advanced-subtitles-section-design"` in `package.json` and `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:advanced-subtitles-section-design`: PASSED (100%).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+## Task 258: Fix bug where playing loop stops after 1 iteration (video stops playing after 1 playing of tts-play)
+
+- **Playback Loop Resumption Fix in `src/routes/index.tsx`**:
+  - Identified root cause where pausing the video before speaking a subtitle cue triggered `onStateChange(2)`, setting `setIsVideoPlaying(false)`. Subsequent completion of speech synthesis checked `!isVideoPlayingRef.current`, causing the coordinator to abort and never call `p.playVideo()` to resume playback.
+  - Introduced `userExplicitlyPausedRef` to clearly distinguish user manual pause requests (`pauseBothVideoAndTts`, unprompted player pauses) from internal coordinator pauses intended for TTS speech synthesis.
+  - Updated loop resumption guards in both `tts-first` and `video-first` flows to check `if (wasCancelled || st.current.isSetupPaused || userExplicitlyPausedRef.current) return;`, ensuring video playback automatically resumes and seamlessly loops through all subsequent subtitle sections.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-playback-loop-continuation.ts` and registered `"test:playback-loop-continuation"` in `package.json` and `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:playback-loop-continuation`: PASSED (100%).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
 ## Task 256: Chapter 2 - Implement Previous Request Based on New Git Head (`df534d5d004abec616638883b91c2dc6eed87f78`)
 
 - **Reconciliation with Git Head Commit `df534d5d004abec616638883b91c2dc6eed87f78`**:

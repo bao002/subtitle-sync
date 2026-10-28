@@ -5,6 +5,8 @@ import {
   getLanguageTtsRatio,
   isSubtitleInstanceEligibleForTTS,
   shouldHighlightSentenceForTTS,
+  isLanguageEligibleForTtsWithRole,
+  shouldHighlightSentenceForTtsWithRole,
 } from "@/lib/playback-preferences";
 import { HighlightedSubtitle, type SpeechProgress } from "@/components/HighlightedSubtitle";
 
@@ -17,7 +19,6 @@ export interface SubtitleColumn {
   isOnDemandTranslation?: boolean;
 }
 
-
 export interface SubtitleRowProps {
   r: Row;
   actualIndex: number;
@@ -29,6 +30,7 @@ export interface SubtitleRowProps {
   onSeek: (r: Row, index: number) => void;
   spokenLangs?: string[];
   ttsRatios?: Record<string, number>;
+  primaryTtsLang?: string;
   onSpeakCue?: (text: string, lang: string) => void;
 }
 
@@ -43,6 +45,7 @@ export const SubtitleRow = memo(function SubtitleRow({
   onSeek,
   spokenLangs,
   ttsRatios,
+  primaryTtsLang,
   onSpeakCue,
 }: SubtitleRowProps) {
   return (
@@ -64,8 +67,23 @@ export const SubtitleRow = memo(function SubtitleRow({
         const columnText = subtitleTextForColumn(r, l.code);
         const isSpoken = Boolean(spokenLangs?.includes(l.code));
         const ratio = getLanguageTtsRatio(ttsRatios, l.code);
-        const isEligible = isSubtitleInstanceEligibleForTTS(actualIndex, ratio);
-        const isPronouncedHighlight = shouldHighlightSentenceForTTS(actualIndex, ratio, isSpoken);
+        const primaryRatio = primaryTtsLang ? getLanguageTtsRatio(ttsRatios, primaryTtsLang) : 1;
+        const isEligible = isLanguageEligibleForTtsWithRole({
+          rowIdx: actualIndex,
+          langCode: l.code,
+          ratio,
+          primaryLang: primaryTtsLang,
+          primaryRatio,
+        });
+        const isPronouncedHighlight = shouldHighlightSentenceForTtsWithRole({
+          rowIdx: actualIndex,
+          langCode: l.code,
+          ratio,
+          primaryLang: primaryTtsLang,
+          primaryRatio,
+          isSpoken,
+        });
+        const isPrimary = primaryTtsLang ? l.code === primaryTtsLang : false;
         return (
           <td
             key={l.code}
@@ -73,6 +91,8 @@ export const SubtitleRow = memo(function SubtitleRow({
             data-language-column={l.code}
             data-testid={`subtitle-cell-${actualIndex}-${l.code}`}
             data-tts-pronounced={isPronouncedHighlight ? "true" : undefined}
+            data-tts-eligible={isEligible ? "true" : "false"}
+            data-tts-role={isPrimary ? "primary" : primaryTtsLang ? "secondary" : undefined}
             className={`px-3 py-2 leading-relaxed transition-colors ${
               isPronouncedHighlight
                 ? "bg-primary/10 border-s-2 border-primary/60 dark:bg-primary/15 dark:border-primary/80"

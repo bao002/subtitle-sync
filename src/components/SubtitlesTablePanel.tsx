@@ -25,6 +25,7 @@ export interface SubtitlesTablePanelProps {
   onSeek: (r: Row, index: number) => void;
   spokenLangs: string[];
   ttsRatios: Record<string, number>;
+  primaryTtsLang?: string;
   onLoadCachedAiSubtitles?: () => void;
   hasCachedAi?: boolean;
   onSpeakCue?: (text: string, lang: string) => void;
@@ -50,6 +51,7 @@ export function SubtitlesTablePanel({
   onSeek,
   spokenLangs,
   ttsRatios,
+  primaryTtsLang,
   onLoadCachedAiSubtitles,
   hasCachedAi,
   onSpeakCue,
@@ -251,6 +253,7 @@ export function SubtitlesTablePanel({
                   onSeek={onSeek}
                   spokenLangs={spokenLangs}
                   ttsRatios={ttsRatios}
+                  primaryTtsLang={primaryTtsLang}
                   onSpeakCue={onSpeakCue}
                 />
               );

@@ -15,6 +15,7 @@ const KEYS = {
   retryPacingMinSec: "yt_retry_pacing_min_sec_v1",
   retryPacingMaxSec: "yt_retry_pacing_max_sec_v1",
   backgroundAudio: "yt_background_audio_enabled_v1",
+  primaryTtsLang: "yt_primary_tts_lang_v1",
 } as const;
 
 const memoryStorage = new Map<string, string>();
@@ -234,6 +235,98 @@ export const shouldHighlightSentenceForTTS = (
   const currentRatio = Math.max(1, Math.round(ratio ?? 1));
   if (currentRatio <= 1) return false; // Strictly highlight only when ratio is not 1:1
   return isSubtitleInstanceEligibleForTTS(rowIdx, currentRatio);
+};
+
+export const getPrimaryTtsLang = (): string => {
+  const s = getStorage();
+  if (!s) return "";
+  try {
+    return s.getItem(KEYS.primaryTtsLang) || "";
+  } catch {
+    return "";
+  }
+};
+
+export const setPrimaryTtsLang = (langCode: string): void => {
+  const s = getStorage();
+  if (!s) return;
+  try {
+    s.setItem(KEYS.primaryTtsLang, langCode);
+  } catch {
+    // ignore
+  }
+};
+
+export interface TtsRoleEvaluationParams {
+  rowIdx: number;
+  langCode: string;
+  ratio?: number | null;
+  primaryLang?: string | null;
+  primaryRatio?: number | null;
+  alreadyPlayedRecords?: Set<number | string> | ReadonlySet<number | string>;
+}
+
+/**
+ * Evaluates whether a subtitle sentence row is eligible for TTS playback based on primary vs secondary roles:
+ * - If langCode === primaryLang (or no primaryLang specified): standard ratio (1 in N sentences: rowIdx % N === 0).
+ * - If langCode !== primaryLang: secondary relative to primary.
+ *   i.e: every subtitles record where primary is activated, secondary is activated only 1:M from primary's records.
+ */
+export const isLanguageEligibleForTtsWithRole = ({
+  rowIdx,
+  langCode,
+  ratio = 1,
+  primaryLang,
+  primaryRatio = 1,
+  alreadyPlayedRecords,
+}: TtsRoleEvaluationParams): boolean => {
+  if (rowIdx < 0) return false;
+  if (alreadyPlayedRecords?.has(rowIdx)) return false;
+
+  const effectiveRatio = Math.max(1, Math.round(ratio ?? 1));
+  const effectivePrimaryRatio = Math.max(1, Math.round(primaryRatio ?? 1));
+
+  // If this language is primary, or no primary is configured:
+  if (!primaryLang || langCode === primaryLang) {
+    return rowIdx % effectiveRatio === 0;
+  }
+
+  // Secondary language relative to primary language:
+  // Must only activate when primary is activated on this row
+  const isPrimaryActiveOnRow = rowIdx % effectivePrimaryRatio === 0;
+  if (!isPrimaryActiveOnRow) return false;
+
+  // Activation ordinal among records where primary is activated
+  const primaryActivationOrdinal = Math.floor(rowIdx / effectivePrimaryRatio);
+  return primaryActivationOrdinal % effectiveRatio === 0;
+};
+
+export const shouldHighlightSentenceForTtsWithRole = ({
+  rowIdx,
+  langCode,
+  ratio = 1,
+  primaryLang,
+  primaryRatio = 1,
+  isSpoken = true,
+}: {
+  rowIdx: number;
+  langCode: string;
+  ratio?: number | null;
+  primaryLang?: string | null;
+  primaryRatio?: number | null;
+  isSpoken?: boolean;
+}): boolean => {
+  if (!isSpoken || rowIdx < 0) return false;
+  const isSecondary = Boolean(primaryLang && langCode !== primaryLang);
+  const effectiveRatio = Math.max(1, Math.round(ratio ?? 1));
+  if (!isSecondary && effectiveRatio <= 1) return false;
+  return isLanguageEligibleForTtsWithRole({
+    rowIdx,
+    langCode,
+    ratio: effectiveRatio,
+    primaryLang,
+    primaryRatio: Math.max(1, Math.round(primaryRatio ?? 1)),
+  });
 };
 
 export const getAutoRetrySubtitles = (): boolean => {

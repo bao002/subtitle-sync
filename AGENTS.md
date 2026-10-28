@@ -136,40 +136,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-deprecate current design of the inside-of-languages-accordion and replace its inner design with a simpler alternative reducing number of controls to the minimum. for example its enough to have only 1  example of  subtitles-table-view-presense|tts-play  and the language can be changed using a dropdown list of languages (instead of listing all the languages).
-on android we dont need to subtitle-url column.tts-ration shown in duplicated places (its enough to show it once on the editable field. etc.
-the order of apearance can also be updated using dragging the langs on 1 line which have direction (as order precedence).
---
-mv any long persistant settings to be under the settings accordion (where the user visits less frequently).
---
-any other ui/ux to opposed scaling the element-records based on number of languages is welcome.
-
-subtitles-table-view: on small screen - by default show maximum 2 lang columns in parallel and allow to pin one in order to compare to another column.
---
-show a badge which indicate the number of languages fully fetched and the number of those still use on-demand tanslations (which should be replaced once the subtitle file(or youtube api request) wholly/fully fetched.
---
-use a new design-toggle on the headers top - to switch between the old/new design options (in order to get rid of old design after explicit approval)
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1)
-CSS 1: {
-
-}
-CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(2)
-CSS 2: {
-
-}
-CSS selector 3: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)
-CSS 3: {
-
-}
-CSS selector 4: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > label:nth-of-type(1)
-CSS 4: {
-
-}
-CSS selector 5: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > label:nth-of-type(1)
-CSS 5: {
-
-}
-[AIS_METADATA_SECTION_END]
+after git pull is over let me know
 ```
