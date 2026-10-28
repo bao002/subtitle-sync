@@ -54,7 +54,10 @@ export const SubtitleRow = memo(function SubtitleRow({
       onClick={() => onSeek(r, actualIndex)}
       className={`cursor-pointer border-t border-border align-top ${isActive ? "bg-accent" : "hover:bg-muted"}`}
     >
-      <td className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground">
+      <td
+        data-testid="cue-row-timestamp"
+        className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground"
+      >
         {fmt(r.start)}–{fmt(r.end)}
       </td>
       {cols.map((l) => {
@@ -86,7 +89,7 @@ export const SubtitleRow = memo(function SubtitleRow({
                     : ""
                 }`}
               >
-                <div className="flex-1">
+                <div className="flex-1" data-testid="sentence-text-wrapper">
                   <HighlightedSubtitle
                     text={columnText}
                     progress={
@@ -97,7 +100,7 @@ export const SubtitleRow = memo(function SubtitleRow({
                     isPronouncedHighlighted={isPronouncedHighlight}
                   />
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 shrink-0" data-testid="sentence-actions-wrapper">
                   {onSpeakCue && columnText && l.code !== baseLanguage && (
                     <button
                       type="button"

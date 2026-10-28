@@ -216,6 +216,10 @@
     "test:beginner-nav-responsive": "tsx scripts/verify-beginner-nav-responsive-styling.ts",
     "test:tts-ratio-enforcement": "tsx scripts/verify-tts-ratio-enforcement.ts",
     "test:android-notification-one-click-pause": "tsx scripts/verify-android-notification-one-click-pause.ts",
+    "test:design-play-buttons": "tsx scripts/verify-design-play-buttons.ts",
+    "test:e2e-selectors": "tsx scripts/verify-e2e-selectors.ts",
+    "test:plan-e2e-test": "tsx scripts/verify-plan-e2e-test.ts",
+    "test:platforms-doc": "tsx scripts/verify-platforms-doc.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

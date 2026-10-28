@@ -25,9 +25,11 @@ This document serves as the master catalog and directory of all repository docum
 | `docs/languages-selection-flow.md`               | Language & TTS Architecture         | Specification for favorite languages in settings, per-video persistence, enabled languages UI, voice selection, 0.3-1.5 rate (0.5 default), and alternative Google Translate TTS. |
 | `docs/versioning.md`                             | Versioning & OTA Updates            | Version incrementing conventions, native shell version bridge, and OTA hot updates.                                                                                               |
 | `docs/suggestions.md`                            | Optimization Suggestions & Analysis | Detailed catalog of AGENTS.md optimization steps, urgency/importance ordering, bullet-proof feasibility analysis, and maintenance guidelines.                                     |
-
-| `docs/files.md` | Documentation & Code Inventory | Master inventory cataloging and explaining every documentation file and source code module (this document). |
-| `docs/roadmap.md` | Project Roadmap | High-level strategic milestones and planned evolution phases. |
+| `docs/design_play_buttons.md`                    | Play & Pause Buttons Specification  | Clarification of all Play, Pause, and Listen buttons/icons, their behaviors, state transitions, and unique `data-testid` attributes.             |
+| `docs/plan_e2e_test.md`                          | E2E Test Plan for TTS Ratio         | End-to-end testing plan and Playwright harness architecture for verifying multi-language TTS ratio enforcement and session invariants.             |
+| `docs/platforms.md`                              | Platform Work Strategy & E2E Runbook | Comprehensive guide to runtime platforms (AI Studio, Codespaces, Local Docker, CI), minimal session setup, persistent vs ephemeral files, and Docker daemon availability. |
+| `docs/files.md`                                  | Documentation & Code Inventory      | Master inventory cataloging and explaining every documentation file and source code module (this document).                                        |
+| `docs/roadmap.md`                                | Project Roadmap                     | High-level strategic milestones and planned evolution phases.                                                                                      |
 
 ### Active Backlog & Changelog Tracking
 

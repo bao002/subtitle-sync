@@ -156,11 +156,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1.fix issue: tts-ratio is not enforced  throughout the playing session. although there are multiple tts-play checkings.
-
-
-
-2. android notification top menu - it show be able to pause all that is playing  in 1 click - including the tts-play ( it should be like killing a seesion)
-
-3. docs/design_play_buttons.md - it is not clean what clicking on play does. there are couple of such icons. explain each and have uniq testId to any of them.
+1. ensure  e2e plan to test - tts-ratio stopped highlighting subtitles-table
+2. ensure docs/platforms.md - to explain about aistudio's work strategy regarding e2e testing - how to run it on next session with minimal effort (efficiency: config once, run with minimal setup on next session, what need to be installed from scratch and what effort it envolved. does this platform support docker)
 ```

@@ -1,5 +1,72 @@
 # Done tasks
 
+## Task 249: Ensure docs/platforms.md explains AI Studio's work strategy regarding E2E testing
+
+- **AI Studio Platform Architecture & Docker Analysis**: Documented that Google AI Studio runs inside a secure, sandboxed Linux container microVM without a running Docker daemon (`dockerd`), without `/var/run/docker.sock`, and without nested virtualization privileges (`which docker` outputs `no docker binary`). Explicitly stated that containerized scripts (such as `./docker/manage.sh` and `docker/compose.yml`) are for external environments (Codespaces, local dev machines, CI) and must not be used inside AI Studio.
+- **"Config Once, Run with Minimal Setup" Strategy**: Documented the persistent vs. ephemeral asset boundaries in AI Studio:
+  - Source code, tests, configs, and approved fixtures are 100% persistent (zero setup).
+  - Node dependencies (`node_modules`) persist across session wakeups.
+  - Browser binaries (`~/.cache/ms-playwright`) are low effort (~15 seconds via `npx playwright install chromium` if container rebuilds).
+- **Two-Step Minimal Effort Execution Protocol**:
+  - **Step 1: Rapid Script-Level Verification**: Sub-second DOM, test-id, and logic validation via `npm run test:e2e-selectors`, `npm run test:plan-e2e-test`, and `npm run test:design-play-buttons` without browser launch overhead.
+  - **Step 2: Headless Playwright Execution**: Targeted single-suite real browser testing against dev server on `http://localhost:3000` via `npx playwright test e2e/web.spec.ts -g "tts-ratio" --project=web --retries=0`.
+- **Cross-Platform Capability Matrix & Troubleshooting**: Formulated clear comparison table across AI Studio, GitHub Codespaces, Local Developer Machine, and GitHub Actions CI, with troubleshooting guidance.
+- **Hygiene & Inventory**: Registered `docs/platforms.md` in `docs/files.md`. Ensured zero duplicate `.md` files in repository.
+- **Dedicated test**: Created `scripts/verify-platforms-doc.ts` and registered `"test:platforms-doc"` in `package.json`.
+- **Verification passed**: `npm run test:platforms-doc`, `npm run test:md`, `npm run test:no-duplicate-md`, `compile_applet`, and `lint_applet` passed 100%.
+
+
+- **Highlighting Cessation Invariant & Scenario**: Enriched `docs/plan_e2e_test.md` with Invariant I6 (Subtitle Table Highlighting Cessation) and Scenario 6 detailing DOM assertions for verifying that sentences skipped by TTS ratio strictly stop receiving pronounced styling.
+- **DOM Selector Assertions**: Added exact Playwright test assertions checking that for skipped rows:
+  - `data-tts-pronounced` is strictly null / absent on the cell `<td>`.
+  - `data-tts-pronounced-highlight="false"` on the sentence container.
+  - Border and ring styling (`border-s-2 border-primary/60`, `ring-primary`) are completely omitted.
+  - TTS ratio badge displays `line-through opacity-35`.
+  - On transition to 1:1 ratio, differential highlighting is cleared across all rows.
+- **Dedicated test**: Updated `scripts/verify-plan-e2e-test.ts` to assert Invariant I6, Scenario 6, and highlighting cessation checks.
+- **Verification passed**: `npm run test:plan-e2e-test`, `npm run test:md`, `npx tsx scripts/verify-no-duplicate-md-files.ts`, `compile_applet`, and `lint_applet` passed 100%.
+
+## Task 247: Plan E2E test for TTS ratio in docs/plan_e2e_test.md
+
+- **E2E Test Plan Specification**: Created `docs/plan_e2e_test.md` establishing the complete end-to-end testing plan for multi-language TTS ratio enforcement according to Task 243.
+- **Invariants & Matrix**: Specified the 5 core invariants (Multi-Language Independence, Alias/Dialect Normalization, UI Cell Badge Parity, Video Transport Coordination, and Reset Cadence Counter), step-by-step Playwright test scenarios, `window.speechSynthesis` interception hook, and fixture isolation rules.
+- **Inventory & Hygiene**: Registered `docs/plan_e2e_test.md` in `docs/files.md`. Confirmed zero duplicate markdown files in repository.
+- **Dedicated test**: Created `scripts/verify-plan-e2e-test.ts` and registered `"test:plan-e2e-test"` in `package.json`.
+- **Verification passed**: `npm run test:plan-e2e-test`, `npm run test:md`, `npx tsx scripts/verify-no-duplicate-md-files.ts`, `compile_applet`, and `lint_applet` passed 100%.
+
+## Task 246: E2E proper testing - meaningful test-ids for parent and child elements
+
+- **Hierarchical test-ids across UI elements**: Audited and added proper and meaningful `data-testid` attributes to parent and child elements across the application to ensure every child element is addressable via clean, unambiguous selectors:
+  - **Subtitles Table (`SubtitlesTablePanel.tsx`)**: Added `data-testid="subtitles-table"`, `data-testid="subtitles-table-head"`, `data-testid="subtitles-table-body"`, `data-testid="table-header-time"`, and `data-testid="table-header-col-${code}"`.
+  - **Subtitle Row (`SubtitleRow.tsx`)**: Added `data-testid="cue-row-timestamp"`, `data-testid="sentence-text-wrapper"`, and `data-testid="sentence-actions-wrapper"`.
+  - **Language Boxes (`LanguageBoxesSelector.tsx`)**: Added `data-testid="language-card-${code}"`, `data-testid="language-box-title"`, `data-testid="language-selected-check"`, and `data-testid="language-code-badge"`.
+  - **Beginner Player (`BeginnerPlayerTab.tsx`)**: Added `data-testid="player-base-lang-badge"`, `data-testid="player-target-lang-badge"`, `data-testid="player-cues-count-badge"`, `data-testid="cue-timestamp"`, `data-testid="cue-base-text"`, and `data-testid="cue-target-text"`.
+- **Dedicated test**: Created `scripts/verify-e2e-selectors.ts` auditing 7 key components and validating hierarchical child addressing; registered `"test:e2e-selectors"` in `package.json`.
+- **Verification passed**: `npm run test:e2e-selectors`, `compile_applet`, and `lint_applet` passed 100%.
+
+## Task 245: Design documentation and unique test IDs for play/pause/listen buttons
+
+- **Play & Pause Buttons Specification**: Created `docs/design_play_buttons.md` clarifying every play/pause/listen icon across the application, detailing their location, component path, exact state transitions on click, and unique `data-testid` attributes.
+- **Dedicated unique test IDs**: Verified and registered unique, unambiguous test IDs across all controls:
+  - `player-control-play-pause`: Main transport bar Play/Pause (`VideoPlaybackControls.tsx`)
+  - `video-overlay-play-pause-btn`: Video viewport center overlay Play/Pause (`src/routes/index.tsx`)
+  - `btn-player-play-pause`: Beginner mode Daily Video toolbar Play/Pause (`BeginnerPlayerTab.tsx`)
+  - `floating-pause-button`: Draggable floating button trigger (`FloatingDraggablePauseButton.tsx`)
+  - `menu-option-setup-pause`: Floating menu "Pause for Setup" option freezing video, speech synthesis, and auto-scrolling
+  - `btn-speak-cell-${actualIndex}-${colCode}`: Pronunciation listen button for each cell in the parallel subtitles table (`SubtitleRow.tsx`)
+  - `btn-player-speak-current`: Beginner toolbar speak active subtitle cue (`BeginnerPlayerTab.tsx`)
+  - `btn-speak-cue-${idx}`: Beginner per-row subtitle pronunciation listen button (`BeginnerPlayerTab.tsx`)
+  - `test-alternative-tts-btn`: Test Alternative TTS audio sample ("Hello world") in Advanced mode preferences (`src/routes/index.tsx`)
+  - `btn-test-alternative-tts`: Test Alternative TTS audio sample ("Hello world") in Beginner mode preferences (`BeginnerPreferencesTab.tsx`)
+  - `library-video-card-play-btn-${videoId}`: Load and play video from Video Library cards (`VideoLibraryPanel.tsx`)
+  - `play-video-button`: Load video by URL/ID in Advanced mode (`src/routes/index.tsx`)
+  - `btn-load-video`: Load video by URL/ID in Beginner mode (`BeginnerVideoTab.tsx`)
+  - `floating-retry-pause-btn` / `floating-retry-resume-btn`: Pause/resume subtitle fetch retries (`FloatingSubtitleRetryIndicator.tsx`)
+  - `tab-retry-toggle-btn`: Network status tab pause/resume subtitle fetch retries (`NotificationsStatusTab.tsx`)
+- **Hygiene & inventory**: Updated `docs/files.md` to register `docs/design_play_buttons.md`. Verified zero duplicate markdown files in repository.
+- **Dedicated test**: Created `scripts/verify-design-play-buttons.ts` and registered `"test:design-play-buttons"` in `package.json`.
+- **Verification passed**: `npm run test:design-play-buttons`, `npm run test:md`, `npx tsx scripts/verify-no-duplicate-md-files.ts`, `compile_applet`, and `lint_applet` passed 100%.
+
 ## Task 244: One-click pause all in Android notification top menu (video + TTS session termination)
 
 - **Native kill session execution**: Verified and ensured `BackgroundAudioService.kt` `handlePause()` calls `MainActivity.instance?.stopNativeTTS()` and `MainActivity.instance?.dispatchMediaCommand("pause", 0L)` in 1 click, immediately silencing native Android TextToSpeech and notifying the web layer.
