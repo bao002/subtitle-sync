@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.27",
+  "version": "2.0.28",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -27,6 +27,10 @@
     "test:share-state-reproduction": "tsx scripts/verify-share-state-reproduction.ts",
     "test:mainactivity-repetition-scope": "tsx scripts/verify-android-mainactivity-repetition-scope.ts",
     "test:subtitles-url-encoding": "tsx scripts/verify-subtitles-url-encoding-in-share-link.ts",
+    "test:primary-secondary-tts-ratio": "tsx scripts/verify-primary-secondary-tts-ratio.ts",
+    "test:remove-favorite-visibility-toolbar": "tsx scripts/verify-remove-favorite-visibility-toolbar.ts",
+    "test:advanced-subtitles-section-design": "tsx scripts/verify-advanced-subtitles-section-design.ts",
+    "test:playback-loop-continuation": "tsx scripts/verify-playback-loop-continuation.ts",
     "test:android-share-subtitles-link": "tsx scripts/verify-android-share-subtitles-link.ts",
     "test:tts-provider-styling-and-parity": "tsx scripts/verify-tts-provider-styling-and-parity.ts",
     "test:raw-union-merge-fix": "tsx scripts/verify-raw-union-merge-fix.ts",

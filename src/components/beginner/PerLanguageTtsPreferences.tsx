@@ -15,6 +15,8 @@ interface PerLanguageTtsPreferencesProps {
   ratios: Record<string, number>;
   rates: Record<string, number>;
   voiceSelections: Record<string, string>;
+  primaryLang?: string;
+  onPrimaryLangChange?: (languageCode: string) => void;
   onRatioChange: (languageCode: string, ratio: number) => void;
   onRateChange: (languageCode: string, rate: number) => void;
   onVoiceChange: (languageCode: string, voiceURI: string) => void;
@@ -28,55 +30,109 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
   ratios,
   rates,
   voiceSelections,
+  primaryLang,
+  onPrimaryLangChange,
   onRatioChange,
   onRateChange,
   onVoiceChange,
-}) => (
-  <section
-    className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3"
-    data-testid="beginner-per-language-tts-settings"
-  >
-    <div className="flex items-center gap-2">
-      <Gauge className="w-4 h-4 text-primary" />
-      <h3 className="text-xs font-semibold text-foreground">Per-language TTS settings</h3>
-    </div>
-    <p className="text-[11px] text-muted-foreground">
-      Choose narration frequency, speed, and an available device voice for each favorite language.
-    </p>
-    {languages.length === 0 ? (
-      <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
-        Add a favorite language below to configure its TTS settings.
+}) => {
+  const effectivePrimary = primaryLang || languages[0]?.code || "";
+  const primaryLangObj = languages.find((l) => l.code === effectivePrimary);
+
+  return (
+    <section
+      className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3"
+      data-testid="beginner-per-language-tts-settings"
+    >
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Gauge className="w-4 h-4 text-primary" />
+          <h3 className="text-xs font-semibold text-foreground">Per-language TTS settings</h3>
+        </div>
+        {languages.length > 1 && onPrimaryLangChange && (
+          <button
+            type="button"
+            data-testid="tts-switch-roles-button"
+            onClick={() => {
+              const other = languages.find((l) => l.code !== effectivePrimary);
+              if (other) onPrimaryLangChange(other.code);
+            }}
+            className="inline-flex items-center gap-1 rounded border border-border bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium text-primary transition-colors"
+            title="Switch primary and secondary roles"
+          >
+            ⇄ Switch Primary/Secondary
+          </button>
+        )}
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Choose narration frequency, speed, and device voice. Secondary languages are activated relative to the primary language.
       </p>
-    ) : (
-      <div className="space-y-2">
-        {languages.map((language) => {
-          const languageVoices = getLanguageVoices(voices, language.tts, true);
-          const ratio = getLanguageTtsRatio(ratios, language.code);
-          const rate = rates[language.code] ?? 0.5;
-          return (
-            <div
-              key={language.code}
-              className="grid grid-cols-1 gap-2 rounded-lg border border-border/60 bg-muted/20 p-2 sm:grid-cols-[minmax(6rem,1fr)_auto_minmax(8rem,1fr)_minmax(10rem,1.5fr)] sm:items-center"
-              data-testid={`beginner-tts-language-${language.code}`}
-            >
-              <span className="flex items-center gap-1.5 truncate text-xs font-semibold text-foreground">
-                <Languages className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                {language.name}
-              </span>
-              <label className="flex items-center gap-1.5 text-xs">
-                <span className="text-muted-foreground">Speak</span>
-                <select
-                  aria-label={`${language.name} TTS sentence ratio`}
-                  data-testid={`beginner-tts-ratio-${language.code}`}
-                  value={ratio}
-                  onChange={(event) =>
-                    onRatioChange(
-                      language.code,
-                      Math.max(1, Math.min(10, Number(event.target.value))),
+      {languages.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+          Add a favorite language below to configure its TTS settings.
+        </p>
+      ) : (
+        <div className="space-y-2">
+          {languages.map((language) => {
+            const languageVoices = getLanguageVoices(voices, language.tts, true);
+            const ratio = getLanguageTtsRatio(ratios, language.code);
+            const rate = rates[language.code] ?? 0.5;
+            const isPrimary = language.code === effectivePrimary;
+            return (
+              <div
+                key={language.code}
+                className="grid grid-cols-1 gap-2 rounded-lg border border-border/60 bg-muted/20 p-2 sm:grid-cols-[minmax(8rem,1fr)_auto_minmax(8rem,1fr)_minmax(10rem,1.5fr)] sm:items-center"
+                data-testid={`beginner-tts-language-${language.code}`}
+              >
+                <div className="flex items-center gap-1.5 truncate">
+                  <Languages className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <span className="truncate text-xs font-semibold text-foreground">
+                    {language.name}
+                  </span>
+                  {isPrimary ? (
+                    <span
+                      data-testid={`tts-role-badge-${language.code}`}
+                      className="rounded bg-primary/20 text-primary border border-primary/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
+                    >
+                      Primary
+                    </span>
+                  ) : (
+                    onPrimaryLangChange && (
+                      <button
+                        type="button"
+                        data-testid={`tts-switch-primary-${language.code}`}
+                        onClick={() => onPrimaryLangChange(language.code)}
+                        className="rounded border border-input bg-background hover:bg-accent px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground font-medium transition-colors"
+                        title={`Set ${language.name} as Primary`}
+                      >
+                        Make Primary
+                      </button>
                     )
-                  }
-                  className="rounded border border-input bg-background px-1.5 py-1 text-xs"
-                >
+                  )}
+                </div>
+                <label className="flex items-center gap-1.5 text-xs">
+                  <span
+                    className="text-muted-foreground truncate"
+                    title={
+                      isPrimary
+                        ? "Speaks 1 in N sentences"
+                        : `Speaks 1 in N sentences relative to ${primaryLangObj?.name || "primary"} activations`
+                    }
+                  >
+                    {isPrimary ? "Speak" : `Speak (rel. to ${primaryLangObj?.name || "primary"})`}
+                  </span>
+                  <select
+                    aria-label={`${language.name} TTS sentence ratio`}
+                    data-testid={`beginner-tts-ratio-${language.code}`}
+                    value={ratio}
+                    onChange={(event) =>
+                      onRatioChange(
+                        language.code,
+                        Math.max(1, Math.min(10, Number(event.target.value))),
+                      )
+                    }
+                    className="rounded border border-input bg-background px-1.5 py-1 text-xs"
+                  >
                   {ratioPresets.map((preset) => (
                     <option key={preset} value={preset}>
                       1:{preset}
@@ -135,4 +191,5 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
       </div>
     )}
   </section>
-);
+  );
+};

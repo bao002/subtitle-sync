@@ -1,8 +1,9 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Task**: Task 257: Modern Languages Accordion Design, Small-Screen 2-Column Pinning & Header Design Toggle
-- **Subtask**: Subtask 257.1: Header Design Toggle & Status Badge for Fetched vs On-Demand Tracks
-- **Status**: [IN_PROGRESS]
-- **Target**: Implement header top design toggle ("Classic" vs "Modern"), track fetch state badge (number of fully fetched tracks vs on-demand translations), stage state persistence.
-- **Focused check**: `npm run test:agents-all`
-- **Next Action**: Create design toggle hook/state, update header in `src/routes/index.tsx`, author badge, and verify.
+- **Status**: [DONE]
+- **Summary**: All 4 prompt chapters completed:
+  1. Fix bug where playing loop stops after 1 iteration (video stops playing after 1 playing of tts-play) - resolved by distinguishing internal coordinator speech pause from user manual pause via `userExplicitlyPausedRef`.
+  2. Advanced mode parallel subtitles container refined to match the sleek professional dedicated section styling of Beginner mode (`border border-emerald-500/25 bg-emerald-500/5 rounded-xl p-3`).
+  3. Non-relevant favorite visibility toolbar view removed cleanly.
+  4. Switchable Primary/Secondary TTS ratio with relative activation implemented (e.g. Italian primary, Spanish secondary 1:4 activates Spanish only on 1 in 4 of Italian's activated records) and app version bumped to `2.0.28`.
+- **Focused check**: `npm run test:agents-all` (19/19 passed 100%)
