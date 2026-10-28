@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.26",
+  "version": "2.0.27",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -80,6 +80,7 @@
     "test:agents-version": "tsx scripts/verify-agents-version-rule.ts",
     "test:agents-size-budget": "tsx scripts/verify-agents-size-budget.ts",
     "test:agents-all": "tsx scripts/verify-agents-all.ts",
+    "test:pending-prs-rule": "tsx scripts/verify-pending-prs-rule.ts",
     "test:html-guard-caching": "tsx scripts/verify-html-response-guard-and-caching.ts",
     "test:strict-json3-validation": "tsx scripts/verify-strict-json3-only-validation.ts",
     "test:favorite-dynamic-fetch": "tsx scripts/verify-favorite-lang-dynamic-fetch.ts",
@@ -119,6 +120,7 @@
     "test:hotfix-rows-init": "tsx scripts/verify-hotfix-rows-initialization.ts",
     "test:fork-readme-links": "tsx scripts/verify-fork-readme-links.ts",
     "test:fork-ci-workflows": "tsx scripts/verify-fork-ci-workflows.ts",
+    "test:extended-flow-options": "tsx scripts/verify-extended-flow-options.ts",
     "test:tts-ratio": "tsx scripts/verify-tts-subtitles-ratio.ts",
     "test:no-repeated-video-section-after-tts": "tsx scripts/verify-no-repeated-video-section-after-tts.ts",
     "test:multi-video-player": "tsx scripts/verify-multi-video-player-state.ts",

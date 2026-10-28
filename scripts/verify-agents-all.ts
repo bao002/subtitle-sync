@@ -26,6 +26,7 @@ const CHECKS: ScriptCheck[] = [
   { id: "16", name: "Tokens Economy Flow Protocol", file: "scripts/verify-tokens-economy.ts" },
   { id: "17", name: "Web Demo Design Preservation Mandate", file: "scripts/verify-web-demo-design-preservation.ts" },
   { id: "18", name: "No More Tasks 'go on' Handling Protocol", file: "scripts/verify-no-more-tasks-go-on-rule.ts" },
+  { id: "19", name: "Pending Pull Requests Check Before Features", file: "scripts/verify-pending-prs-rule.ts" },
 ];
 
 function run() {

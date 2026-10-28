@@ -23,6 +23,55 @@ on:
         options:
           - "app-e2e"
           - "system-smoke"
+      api-level:
+        description: "Android API Level (e.g. 33, 34, 35)"
+        required: false
+        type: choice
+        default: "34"
+        options:
+          - "33"
+          - "34"
+          - "35"
+      target:
+        description: "Android System Image Target"
+        required: false
+        type: choice
+        default: "google_apis"
+        options:
+          - "google_apis"
+          - "default"
+          - "aosp_atd"
+      arch:
+        description: "Target CPU Architecture"
+        required: false
+        type: choice
+        default: "arm64-v8a"
+        options:
+          - "arm64-v8a"
+          - "x86_64"
+      disable-animations:
+        description: "Disable Window Animations"
+        required: false
+        type: boolean
+        default: true
+      record-video:
+        description: "Record Emulator Screencast Video"
+        required: false
+        type: boolean
+        default: true
+      emulator-boot-timeout:
+        description: "Emulator Boot Timeout (seconds)"
+        required: false
+        default: "600"
+      test-filter:
+        description: "E2E Test Scope / Suite"
+        required: false
+        type: choice
+        default: "all"
+        options:
+          - "all"
+          - "captions"
+          - "playback"
 
 concurrency:
   group: emulator-e2e-${{ github.ref }}
@@ -44,6 +93,20 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Log Workflow Execution Parameters
+        run: |
+          {
+            echo "### 🚀 Flow Options & Execution Configuration"
+            echo "- **Trigger Event:** \`${{ github.event_name }}\`"
+            echo "- **Flow Mode:** \`${{ inputs.flow_mode || 'app-e2e' }}\`"
+            echo "- **Target API Level:** \`${{ inputs.api-level || '34' }}\`"
+            echo "- **System Image Target:** \`${{ inputs.target || 'google_apis' }}\`"
+            echo "- **Target Architecture:** \`${{ inputs.arch || 'arm64-v8a' }}\`"
+            echo "- **Screencast Recording:** \`${{ inputs.record-video != false }}\`"
+            echo "- **Boot Timeout:** \`${{ inputs.emulator-boot-timeout || '600' }}s\`"
+            echo "- **Test Scope Filter:** \`${{ inputs.test-filter || 'all' }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -149,14 +212,14 @@ jobs:
         timeout-minutes: 15
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
-          target: google_apis
-          arch: arm64-v8a
+          api-level: ${{ inputs.api-level || 34 }}
+          target: ${{ inputs.target || 'google_apis' }}
+          arch: ${{ inputs.arch || 'arm64-v8a' }}
           force-avd-creation: true
           ram-size: 2048M
-          emulator-boot-timeout: 600
+          emulator-boot-timeout: ${{ inputs.emulator-boot-timeout || 600 }}
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          disable-animations: true
+          disable-animations: ${{ inputs.disable-animations != false }}
           script: |
             adb devices
             adb shell input keyevent KEYCODE_WAKEUP 2>/dev/null || true

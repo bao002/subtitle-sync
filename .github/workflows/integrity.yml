@@ -14,6 +14,22 @@ on:
       - main
       - master
   workflow_dispatch:
+    inputs:
+      scope:
+        description: "Integrity Verification Scope"
+        required: false
+        type: choice
+        default: "all"
+        options:
+          - "all"
+          - "hygiene"
+          - "links"
+          - "contracts"
+      fail-fast:
+        description: "Fail fast on first step error"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: report-integrity-${{ github.ref }}
@@ -28,6 +44,15 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Log Integrity Verification Parameters
+        run: |
+          {
+            echo "### 🛡️ Report Integrity Verification Configuration"
+            echo "- **Trigger Event:** \`${{ github.event_name }}\`"
+            echo "- **Scope:** \`${{ inputs.scope || 'all' }}\`"
+            echo "- **Fail Fast:** \`${{ inputs.fail-fast != false }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

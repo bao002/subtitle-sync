@@ -37,6 +37,7 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Work tracking
 
+- **Check pending pull requests before starting features**: Before starting work on another feature, always check that there are no pending open pull requests by checking `https://github.com/mostuf2556/subtitle-sync/pulls` (e.g. via GitHub API, web, or CLI).
 - **New chat window for each sub-task**: Keep each sub-task scoped, resumable, and independent.
 - **Resume after interruption**: Read this section, `current-sub-task.md`, `docs/todo.md`, and active entries in `docs/tasks.md` to identify the source of truth for where to continue.
 - **Fresh-chat recommendation for uncommitted work**: Inspect `git status --short` and diffs. Reply **“go on”** when changes form one coherent task with passing validation. If uncertain, point user to `current-sub-task.md`.
@@ -142,8 +143,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-based on the .md of regarding runinng android on github actions. 
-is there any other flow option worth trying?
+1. AGENTS.md - always checkout there are no pending pull requests before start working on another feature using by checking out: https://github.com/mostuf2556/subtitle-sync/pulls 
+2.implement the previous request based on the new git head. u can use:
+https://github.com/mostuf2556/subtitle-sync/commit/df534d5d004abec616638883b91c2dc6eed87f78
 ```
 
 
