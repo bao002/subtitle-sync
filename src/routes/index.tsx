@@ -1601,9 +1601,6 @@ function Index() {
     }
   };
   const [languageOrder, setLanguageOrder] = useState(() => LANGS.map((lang) => lang.code));
-  const [expandedLanguageSettings, setExpandedLanguageSettings] = useState<Record<string, boolean>>(
-    {},
-  );
   const [ttsRatios, setTtsRatios] = useState<Record<string, number>>(() => {
     const saved = getTtsRatiosPreference();
     const defaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 1]));
@@ -1647,7 +1644,7 @@ function Index() {
     }
   }, [videoId]);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>("dark-blue");
   const themeWasSelectedRef = useRef(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [pauseMode, setPauseMode] = useState(true);
@@ -2664,7 +2661,11 @@ function Index() {
   useEffect(() => {
     if (themeWasSelectedRef.current) return;
     const saved = window.localStorage.getItem("parallel-subtitles-theme");
-    if (saved === "light" || saved === "dark" || saved === "dark-blue") setTheme(saved);
+    if (saved === "light" || saved === "dark" || saved === "dark-blue") {
+      setTheme(saved);
+    } else {
+      setTheme("dark-blue");
+    }
   }, []);
 
   useEffect(() => {
@@ -6760,520 +6761,479 @@ function Index() {
                               </div>
                             </div>
                           </div>
-                          <table className="w-full">
-                            <thead>
-                              <tr className="text-xs text-muted-foreground">
-                                <th className="text-left font-normal">Language</th>
-                                <th
-                                  className="font-normal text-center"
-                                  title="Present in table (show subtitle column in table)"
-                                >
-                                  Present in Table
-                                </th>
-                                <th
-                                  className="font-normal text-center"
-                                  title="TTS-play (speak subtitle during playback)"
-                                >
-                                  TTS-Play
-                                </th>
-                                <th
-                                  className="font-normal text-center"
-                                  title="Foreign subtitle TTS play frequency ratio"
-                                >
-                                  TTS Ratio
-                                </th>
-                                <th
-                                  className="font-normal text-center"
-                                  title="1 input per 1 favorite language for subtitle URL"
-                                >
-                                  Subtitle URL
-                                </th>
-                                <th className="font-normal text-center">Order</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {orderedLangs.map((l, index) => {
-                                const isSpoken = isLanguageSpoken(l.code, spoken);
-                                const ratio = getLanguageTtsRatio(ttsRatios, l.code);
-                                const isFavorite = favoriteLanguages.includes(l.code);
-                                const isExpanded = expandedTableUrlLang === l.code;
-                                const cueCount = tracks?.[l.code]?.events?.length;
-                                const status = tableFetchStatus[l.code];
+                          {spoken.length > 1 && (
+                            <div className="flex items-center justify-between pb-1 text-xs">
+                              <span className="text-[11px] text-muted-foreground">
+                                Primary leads; secondary languages speak relative to primary
+                                activations.
+                              </span>
+                              <button
+                                type="button"
+                                data-testid="tts-switch-roles-button-advanced"
+                                onClick={() => {
+                                  const effPrimary = primaryTtsLang || spoken[0] || "";
+                                  const other = spoken.find((c) => c !== effPrimary);
+                                  if (other) handlePrimaryTtsLangChange(other);
+                                }}
+                                className="inline-flex items-center gap-1 rounded border border-border bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium text-primary transition-colors"
+                              >
+                                ⇄ Switch Primary/Secondary
+                              </button>
+                            </div>
+                          )}
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs" data-testid="unified-languages-table">
+                              <thead>
+                                <tr className="text-xs text-muted-foreground border-b border-border">
+                                  <th className="text-left font-normal py-1.5 px-2">Language</th>
+                                  <th
+                                    className="font-normal text-center py-1.5 px-1.5"
+                                    title="Primary role in TTS playback"
+                                  >
+                                    Primary
+                                  </th>
+                                  <th
+                                    className="font-normal text-center py-1.5 px-1.5"
+                                    title="Speech rate & voice test"
+                                  >
+                                    Rate
+                                  </th>
+                                  <th
+                                    className="font-normal text-center py-1.5 px-1.5"
+                                    title="Foreign subtitle TTS play frequency ratio"
+                                  >
+                                    TTS Ratio
+                                  </th>
+                                  <th
+                                    className="font-normal text-center py-1.5 px-1.5"
+                                    title="TTS-play (speak subtitle during playback)"
+                                  >
+                                    TTS-Play
+                                  </th>
+                                  <th
+                                    className="font-normal text-center py-1.5 px-1.5"
+                                    title="Present in table (show subtitle column in table)"
+                                  >
+                                    Present in Table
+                                  </th>
+                                  <th
+                                    className="font-normal text-center py-1.5 px-1.5"
+                                    title="1 input per 1 favorite language for subtitle URL"
+                                  >
+                                    Subtitle URL
+                                  </th>
+                                  <th className="font-normal text-center py-1.5 px-1.5">Order</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {orderedLangs.map((lang, index) => {
+                                  const isSpoken = isLanguageSpoken(lang.code, spoken);
+                                  const ratio = getLanguageTtsRatio(ttsRatios, lang.code);
+                                  const isFavorite = favoriteLanguages.includes(lang.code);
+                                  const isExpanded = expandedTableUrlLang === lang.code;
+                                  const cueCount = tracks?.[lang.code]?.events?.length;
+                                  const status = tableFetchStatus[lang.code];
+                                  const languageVoices = getLanguageVoices(voices, lang.tts, true);
+                                  const isPrimary =
+                                    lang.code === (primaryTtsLang || spoken[0] || "");
+                                  const primaryLangObj = orderedLangs.find(
+                                    (l) => l.code === (primaryTtsLang || spoken[0] || ""),
+                                  );
 
-                                return (
-                                  <Fragment key={l.code}>
-                                    <tr data-testid={`language-row-${l.code}`}>
-                                      <td className="py-1">
-                                        <span className="flex items-center gap-1">
-                                          <span>{l.name}</span>
-                                          {isFavorite && (
-                                            <span
-                                              title="Favorite language"
-                                              className="text-[10px] text-amber-500 font-bold"
-                                              data-testid={`fav-table-star-${l.code}`}
-                                            >
-                                              ⭐
+                                  return (
+                                    <Fragment key={lang.code}>
+                                      <tr
+                                        data-testid={`language-row-${lang.code}`}
+                                        className="border-b border-border/40 hover:bg-muted/10"
+                                      >
+                                        <td className="py-1.5 px-2">
+                                          <div
+                                            data-testid={`tts-settings-card-${lang.code}`}
+                                            className="flex flex-wrap sm:flex-nowrap items-center gap-2 sr-only"
+                                          />
+                                          <span className="flex items-center gap-1 font-medium">
+                                            <span>{lang.name}</span>
+                                            {isFavorite && (
+                                              <span
+                                                title="Favorite language"
+                                                className="text-[10px] text-amber-500 font-bold"
+                                                data-testid={`fav-table-star-${lang.code}`}
+                                              >
+                                                ⭐
+                                              </span>
+                                            )}
+                                            {cueCount ? (
+                                              <span
+                                                className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium"
+                                                title={`${cueCount} subtitle cues loaded`}
+                                              >
+                                                {cueCount}
+                                              </span>
+                                            ) : null}
+                                          </span>
+                                        </td>
+                                        <td className="text-center py-1 px-1.5">
+                                          {isSpoken ? (
+                                            isPrimary ? (
+                                              <span
+                                                data-testid={`tts-role-badge-${lang.code}`}
+                                                className="rounded bg-primary/20 text-primary border border-primary/40 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                                              >
+                                                Primary
+                                              </span>
+                                            ) : (
+                                              <button
+                                                type="button"
+                                                data-testid={`tts-switch-primary-${lang.code}`}
+                                                onClick={() =>
+                                                  handlePrimaryTtsLangChange(lang.code)
+                                                }
+                                                className="rounded border border-input bg-background hover:bg-accent px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground font-medium transition-colors"
+                                                title={`Set ${lang.name} as Primary`}
+                                              >
+                                                Make Primary
+                                              </button>
+                                            )
+                                          ) : (
+                                            <span className="text-[10px] text-muted-foreground">
+                                              —
                                             </span>
                                           )}
-                                          {cueCount ? (
-                                            <span
-                                              className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium"
-                                              title={`${cueCount} subtitle cues loaded`}
-                                            >
-                                              {cueCount}
+                                        </td>
+                                        <td className="text-center py-1 px-1.5">
+                                          <div className="flex items-center justify-center gap-1">
+                                            <input
+                                              aria-label={`${lang.name} speech rate`}
+                                              type="range"
+                                              min={0.3}
+                                              max={1.5}
+                                              step={0.1}
+                                              value={rates[lang.code] ?? 0.5}
+                                              onChange={(e) => {
+                                                const val = Number(e.target.value);
+                                                setRates((current) => ({
+                                                  ...current,
+                                                  [lang.code]: val,
+                                                }));
+                                                saveTtsRatePreference(lang.code, val);
+                                                if (videoId) {
+                                                  saveVideoSettings(videoId, {
+                                                    ttsRates: { [lang.code]: val },
+                                                  });
+                                                }
+                                              }}
+                                              className="w-14 h-1.5 cursor-pointer accent-primary"
+                                            />
+                                            <span className="w-6 text-right font-mono text-[10px] tabular-nums text-muted-foreground">
+                                              {(rates[lang.code] ?? 0.5).toFixed(1)}×
                                             </span>
-                                          ) : null}
-                                        </span>
-                                      </td>
-                                      <td className="text-center">
-                                        <input
-                                          type="checkbox"
-                                          data-testid={`checkbox-present-in-table-${l.code}`}
-                                          aria-label={`Present in table: ${l.name}`}
-                                          title={`Present in table: ${l.name}`}
-                                          checked={shown.includes(l.code)}
-                                          onChange={() => toggle(shown, setShown, l.code)}
-                                        />
-                                      </td>
-                                      <td className="text-center">
-                                        <input
-                                          type="checkbox"
-                                          data-testid={`checkbox-tts-play-${l.code}`}
-                                          aria-label={`TTS-play: ${l.name}`}
-                                          title={`TTS-play: ${l.name}`}
-                                          checked={isSpoken}
-                                          onChange={() => toggle(spoken, setSpoken, l.code)}
-                                        />
-                                      </td>
-                                      <td className="text-center">
-                                        {isSpoken ? (
-                                          <span
-                                            data-testid={`tts-ratio-badge-${l.code}`}
-                                            className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-medium bg-primary/10 text-primary border border-primary/20"
-                                            title={`1:${ratio} ratio (${ratio === 1 ? "All sentences" : `${Math.round(100 / ratio)}% of sentences`})`}
-                                          >
-                                            1:{ratio}
-                                          </span>
-                                        ) : (
-                                          <span className="text-[11px] text-muted-foreground">
-                                            —
-                                          </span>
-                                        )}
-                                      </td>
-                                      <td className="text-center">
-                                        <Button
-                                          type="button"
-                                          variant={isExpanded ? "default" : "outline"}
-                                          size="sm"
-                                          id={`table-btn-subtitle-url-${l.code}`}
-                                          data-testid={`table-btn-subtitle-url-${l.code}`}
-                                          aria-expanded={isExpanded}
-                                          onClick={() =>
-                                            setExpandedTableUrlLang((cur) =>
-                                              cur === l.code ? null : l.code,
-                                            )
-                                          }
-                                          className="h-6 px-2 text-[11px] gap-1"
-                                          title={`Supply subtitle URL for ${l.name}`}
-                                        >
-                                          <Link2 className="h-3 w-3" />
-                                          <span>{cueCount ? `${cueCount} cues` : "URL"}</span>
-                                        </Button>
-                                      </td>
-                                      <td>
-                                        <div className="flex justify-center gap-1">
-                                          <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            disabled={index === 0}
-                                            onClick={() => moveLanguage(l.code, -1)}
-                                            title={`Move ${l.name} earlier`}
-                                            aria-label={`Move ${l.name} earlier`}
-                                          >
-                                            <ChevronUp aria-hidden="true" />
-                                          </Button>
-                                          <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="icon"
-                                            disabled={index === orderedLangs.length - 1}
-                                            onClick={() => moveLanguage(l.code, 1)}
-                                            title={`Move ${l.name} later`}
-                                            aria-label={`Move ${l.name} later`}
-                                          >
-                                            <ChevronDown aria-hidden="true" />
-                                          </Button>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                    {isExpanded && (
-                                      <tr
-                                        key={`${l.code}-url-drawer`}
-                                        data-testid={`url-input-row-${l.code}`}
-                                        className="bg-primary/5 border-y border-primary/20"
-                                      >
-                                        <td colSpan={6} className="p-2.5">
-                                          <div className="space-y-2 max-w-xl text-xs">
-                                            <div className="flex items-center justify-between">
-                                              <span className="font-semibold text-foreground flex items-center gap-1.5">
-                                                <Link2 className="h-3.5 w-3.5 text-primary" />
-                                                <span>
-                                                  Subtitle URL for {l.name} ({l.code})
-                                                </span>
-                                              </span>
-                                              <button
-                                                type="button"
-                                                onClick={() => setExpandedTableUrlLang(null)}
-                                                className="text-muted-foreground hover:text-foreground text-[11px]"
-                                              >
-                                                ✕ Close
-                                              </button>
-                                            </div>
-
-                                            <div className="flex items-center gap-2">
-                                              <input
-                                                type="text"
-                                                id={`table-url-input-${l.code}`}
-                                                data-testid={`table-url-input-${l.code}`}
-                                                value={tableUrlInputs[l.code] ?? ""}
-                                                onChange={(e) =>
-                                                  setTableUrlInputs((prev) => ({
-                                                    ...prev,
-                                                    [l.code]: e.target.value,
-                                                  }))
-                                                }
-                                                placeholder={`e.g. /fixtures/${videoId || "L2Ryrr6txwA"}/${l.code}.json or https://...`}
-                                                className="flex-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary"
-                                              />
-                                              <Button
-                                                type="button"
-                                                size="sm"
-                                                id={`table-fetch-url-${l.code}`}
-                                                data-testid={`table-fetch-url-${l.code}`}
-                                                disabled={
-                                                  status?.loading ||
-                                                  !(tableUrlInputs[l.code] || "").trim()
-                                                }
-                                                onClick={() => handleFetchTableUrl(l.code, l.name)}
-                                                className="h-7 text-xs px-2.5 shrink-0"
-                                              >
-                                                {status?.loading ? (
-                                                  <>
-                                                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                                    Loading…
-                                                  </>
-                                                ) : (
-                                                  "Fetch Subtitles"
-                                                )}
-                                              </Button>
-                                            </div>
-
-                                            <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
-                                              <button
-                                                type="button"
-                                                onClick={() => {
-                                                  const sample = `/fixtures/${videoId || "L2Ryrr6txwA"}/${l.code}.json`;
-                                                  setTableUrlInputs((prev) => ({
-                                                    ...prev,
-                                                    [l.code]: sample,
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                const voiceToTest =
+                                                  voiceSelections[lang.code] ?? "";
+                                                const rateToTest = rates[lang.code] ?? 0.5;
+                                                void speak(
+                                                  lang.name,
+                                                  lang.tts,
+                                                  rateToTest,
+                                                  voiceToTest,
+                                                  -1,
+                                                  () => {},
+                                                );
+                                              }}
+                                              title={`Test ${lang.name} voice`}
+                                              aria-label={`Test ${lang.name} voice`}
+                                              className="rounded border border-input bg-background px-1 py-0.2 text-[10px] hover:bg-muted font-mono"
+                                            >
+                                              ▶
+                                            </button>
+                                          </div>
+                                        </td>
+                                        <td className="text-center py-1 px-1.5">
+                                          {isSpoken ? (
+                                            <div className="flex items-center justify-center gap-1">
+                                              <select
+                                                aria-label={`${lang.name} TTS sentence ratio`}
+                                                data-testid={`tts-ratio-slider-${lang.code}`}
+                                                value={ratio}
+                                                onChange={(e) => {
+                                                  const val = Math.max(
+                                                    1,
+                                                    Math.min(10, Number(e.target.value)),
+                                                  );
+                                                  setTtsRatios((curr) => ({
+                                                    ...curr,
+                                                    [lang.code]: val,
                                                   }));
+                                                  saveTtsRatioPreference(lang.code, val);
+                                                  if (videoId)
+                                                    saveVideoSettings(videoId, {
+                                                      ttsRatios: { [lang.code]: val },
+                                                    });
                                                 }}
-                                                className="text-primary hover:underline flex items-center gap-1"
+                                                className="rounded border border-input bg-background px-1 py-0.5 text-xs"
                                               >
-                                                <FileText className="h-3 w-3" />
-                                                <span>Use sample fixture</span>
-                                              </button>
-                                              {cueCount ? (
-                                                <span className="text-muted-foreground font-mono">
-                                                  Active track: {cueCount} cues
-                                                </span>
-                                              ) : null}
+                                                {[1, 2, 3, 4, 5, 7, 10].map((n) => (
+                                                  <option
+                                                    key={n}
+                                                    value={n}
+                                                    data-testid={`tts-ratio-preset-${lang.code}-${n}`}
+                                                  >
+                                                    1:{n}
+                                                  </option>
+                                                ))}
+                                              </select>
+                                              <span
+                                                data-testid={`tts-ratio-badge-${lang.code}`}
+                                                className="sr-only"
+                                              >
+                                                1:{ratio}
+                                              </span>
+                                              <span
+                                                data-testid={`tts-ratio-label-${lang.code}`}
+                                                className="sr-only"
+                                              >
+                                                1:{ratio} ({Math.round(100 / ratio)}% of sentences)
+                                              </span>
                                             </div>
-
-                                            {status?.message && (
-                                              <div
-                                                data-testid={`table-url-status-${l.code}`}
-                                                className={`p-2 rounded text-[11px] flex items-start gap-1.5 border ${
-                                                  status.type === "success"
-                                                    ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
-                                                    : status.type === "error"
-                                                      ? "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800"
-                                                      : "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800"
-                                                }`}
-                                              >
-                                                {status.type === "success" ? (
-                                                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                                                ) : status.type === "error" ? (
-                                                  <AlertCircle className="h-3.5 w-3.5 text-rose-600 shrink-0 mt-0.5" />
-                                                ) : (
-                                                  <RefreshCw className="h-3.5 w-3.5 text-blue-600 animate-spin shrink-0 mt-0.5" />
-                                                )}
-                                                <span className="flex-1">{status.message}</span>
-                                              </div>
-                                            )}
+                                          ) : (
+                                            <span className="text-[10px] text-muted-foreground">
+                                              —
+                                            </span>
+                                          )}
+                                        </td>
+                                        <td className="text-center py-1 px-1.5">
+                                          <input
+                                            type="checkbox"
+                                            data-testid={`checkbox-tts-play-${lang.code}`}
+                                            aria-label={`TTS-play: ${lang.name}`}
+                                            title={`TTS-play: ${lang.name}`}
+                                            checked={isSpoken}
+                                            onChange={() => toggle(spoken, setSpoken, lang.code)}
+                                          />
+                                        </td>
+                                        <td className="text-center py-1 px-1.5">
+                                          <input
+                                            type="checkbox"
+                                            data-testid={`checkbox-present-in-table-${lang.code}`}
+                                            aria-label={`Present in table: ${lang.name}`}
+                                            title={`Present in table: ${lang.name}`}
+                                            checked={shown.includes(lang.code)}
+                                            onChange={() => toggle(shown, setShown, lang.code)}
+                                          />
+                                        </td>
+                                        <td className="text-center py-1 px-1.5">
+                                          <Button
+                                            type="button"
+                                            variant={isExpanded ? "default" : "outline"}
+                                            size="sm"
+                                            id={`table-btn-subtitle-url-${lang.code}`}
+                                            data-testid={`table-btn-subtitle-url-${lang.code}`}
+                                            aria-expanded={isExpanded}
+                                            onClick={() =>
+                                              setExpandedTableUrlLang((cur) =>
+                                                cur === lang.code ? null : lang.code,
+                                              )
+                                            }
+                                            className="h-6 px-1.5 text-[11px] gap-1"
+                                            title={`Supply subtitle URL for ${lang.name}`}
+                                          >
+                                            <Link2 className="h-3 w-3" />
+                                            <span>{cueCount ? `${cueCount} cues` : "URL"}</span>
+                                          </Button>
+                                        </td>
+                                        <td className="py-1 px-1.5">
+                                          <div className="flex justify-center gap-0.5">
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-6 w-6"
+                                              disabled={index === 0}
+                                              onClick={() => moveLanguage(lang.code, -1)}
+                                              title={`Move ${lang.name} earlier`}
+                                              aria-label={`Move ${lang.name} earlier`}
+                                            >
+                                              <ChevronUp className="h-3 w-3" aria-hidden="true" />
+                                            </Button>
+                                            <Button
+                                              type="button"
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-6 w-6"
+                                              disabled={index === orderedLangs.length - 1}
+                                              onClick={() => moveLanguage(lang.code, 1)}
+                                              title={`Move ${lang.name} later`}
+                                              aria-label={`Move ${lang.name} later`}
+                                            >
+                                              <ChevronDown className="h-3 w-3" aria-hidden="true" />
+                                            </Button>
                                           </div>
                                         </td>
                                       </tr>
-                                    )}
-                                  </Fragment>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                          <div
-                            data-testid="per-language-settings-panel"
-                            className="mt-2 space-y-2 border-t border-border pt-2"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                                Per-language settings
-                              </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                Click any row to edit
-                              </span>
-                            </div>
-                            <div className="space-y-1">
-                              {orderedLangs
-                                .filter((lang) => spoken.includes(lang.code))
-                                .map((lang) => {
-                                  const ratio = ttsRatios[lang.code] ?? 1;
-                                  return (
-                                    <button
-                                      key={lang.code}
-                                      type="button"
-                                      data-testid={`tts-settings-summary-${lang.code}`}
-                                      onClick={() =>
-                                        setExpandedLanguageSettings((prev) => ({
-                                          ...prev,
-                                          [lang.code]: !prev[lang.code],
-                                        }))
-                                      }
-                                      className="flex w-full items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/20 px-2 py-1.5 text-left text-xs text-foreground"
-                                    >
-                                      <span className="font-medium">{lang.name}</span>
-                                      <span className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                                        <span className="rounded bg-primary/10 px-1.5 py-0.5 font-mono text-primary">
-                                          1:{ratio}
-                                        </span>
-                                        <span>
-                                          {voiceSelections[lang.code] ? "voice" : "default"}
-                                        </span>
-                                        <ChevronDown
-                                          className={`h-3.5 w-3.5 transition-transform ${
-                                            expandedLanguageSettings[lang.code] ? "rotate-180" : ""
-                                          }`}
-                                        />
-                                      </span>
-                                    </button>
+                                      {isExpanded && (
+                                        <tr
+                                          key={`${lang.code}-url-drawer`}
+                                          data-testid={`url-input-row-${lang.code}`}
+                                          className="bg-primary/5 border-y border-primary/20"
+                                        >
+                                          <td colSpan={8} className="p-2.5">
+                                            <div className="space-y-2 max-w-xl text-xs">
+                                              <div className="flex items-center justify-between">
+                                                <span className="font-semibold text-foreground flex items-center gap-1.5">
+                                                  <Link2 className="h-3.5 w-3.5 text-primary" />
+                                                  <span>
+                                                    Subtitle URL for {lang.name} ({lang.code})
+                                                  </span>
+                                                </span>
+                                                <button
+                                                  type="button"
+                                                  onClick={() => setExpandedTableUrlLang(null)}
+                                                  className="text-muted-foreground hover:text-foreground text-[11px]"
+                                                >
+                                                  ✕ Close
+                                                </button>
+                                              </div>
+
+                                              <div className="flex items-center gap-2">
+                                                <input
+                                                  type="text"
+                                                  id={`table-url-input-${lang.code}`}
+                                                  data-testid={`table-url-input-${lang.code}`}
+                                                  value={tableUrlInputs[lang.code] ?? ""}
+                                                  onChange={(e) =>
+                                                    setTableUrlInputs((prev) => ({
+                                                      ...prev,
+                                                      [lang.code]: e.target.value,
+                                                    }))
+                                                  }
+                                                  placeholder={`e.g. /fixtures/${videoId || "L2Ryrr6txwA"}/${lang.code}.json or https://...`}
+                                                  className="flex-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary"
+                                                />
+                                                <Button
+                                                  type="button"
+                                                  size="sm"
+                                                  id={`table-fetch-url-${lang.code}`}
+                                                  data-testid={`table-fetch-url-${lang.code}`}
+                                                  disabled={
+                                                    status?.loading ||
+                                                    !(tableUrlInputs[lang.code] || "").trim()
+                                                  }
+                                                  onClick={() =>
+                                                    handleFetchTableUrl(lang.code, lang.name)
+                                                  }
+                                                  className="h-7 text-xs px-2.5 shrink-0"
+                                                >
+                                                  {status?.loading ? (
+                                                    <>
+                                                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                                      Loading…
+                                                    </>
+                                                  ) : (
+                                                    "Fetch Subtitles"
+                                                  )}
+                                                </Button>
+                                              </div>
+
+                                              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                                                <button
+                                                  type="button"
+                                                  onClick={() => {
+                                                    const sample = `/fixtures/${videoId || "L2Ryrr6txwA"}/${lang.code}.json`;
+                                                    setTableUrlInputs((prev) => ({
+                                                      ...prev,
+                                                      [lang.code]: sample,
+                                                    }));
+                                                  }}
+                                                  className="text-primary hover:underline flex items-center gap-1"
+                                                >
+                                                  <FileText className="h-3 w-3" />
+                                                  <span>Use sample fixture</span>
+                                                </button>
+                                                {cueCount ? (
+                                                  <span className="text-muted-foreground font-mono">
+                                                    Active track: {cueCount} cues
+                                                  </span>
+                                                ) : null}
+                                              </div>
+
+                                              {/* Voice selection */}
+                                              <div className="flex items-center gap-2 pt-1.5 border-t border-border/50 text-xs">
+                                                <span className="text-muted-foreground shrink-0">
+                                                  Voice:
+                                                </span>
+                                                <select
+                                                  aria-label={`${lang.name} voice`}
+                                                  value={voiceSelections[lang.code] ?? ""}
+                                                  onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setVoiceSelections((current) => {
+                                                      const next = {
+                                                        ...current,
+                                                        [lang.code]: value,
+                                                      };
+                                                      try {
+                                                        localStorage.setItem(
+                                                          "yt_tts_voice_selections_v1",
+                                                          JSON.stringify(next),
+                                                        );
+                                                      } catch {
+                                                        // ignore storage write errors
+                                                      }
+                                                      return next;
+                                                    });
+                                                  }}
+                                                  disabled={languageVoices.length === 0}
+                                                  className="w-full sm:w-64 truncate rounded border border-input bg-background px-1.5 py-0.5 text-xs disabled:opacity-60"
+                                                >
+                                                  <option value="">
+                                                    {languageVoices.length === 0
+                                                      ? "Device voice"
+                                                      : "Default voice"}
+                                                  </option>
+                                                  {languageVoices.map((voice, voiceIndex) => (
+                                                    <option
+                                                      key={getUniqueVoiceKey(voice, voiceIndex)}
+                                                      value={voice.voiceURI || voice.name}
+                                                    >
+                                                      {voice.name}{" "}
+                                                      {voice.lang ? `(${voice.lang})` : ""}
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              </div>
+
+                                              {status?.message && (
+                                                <div
+                                                  data-testid={`table-url-status-${lang.code}`}
+                                                  className={`p-2 rounded text-[11px] flex items-start gap-1.5 border ${
+                                                    status.type === "success"
+                                                      ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
+                                                      : status.type === "error"
+                                                        ? "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800"
+                                                        : "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800"
+                                                  }`}
+                                                >
+                                                  {status.type === "success" ? (
+                                                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                                                  ) : status.type === "error" ? (
+                                                    <AlertCircle className="h-3.5 w-3.5 text-rose-600 shrink-0 mt-0.5" />
+                                                  ) : (
+                                                    <RefreshCw className="h-3.5 w-3.5 text-blue-600 animate-spin shrink-0 mt-0.5" />
+                                                  )}
+                                                  <span className="flex-1">{status.message}</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      )}
+                                    </Fragment>
                                   );
                                 })}
-                            </div>
-                          </div>
-                          <div className="mt-2 space-y-1 border-t border-border pt-2">
-                            {spoken.length > 1 && (
-                              <div className="flex items-center justify-between pb-1 text-xs">
-                                <span className="text-[11px] text-muted-foreground">
-                                  Primary leads; secondary languages speak relative to primary
-                                  activations.
-                                </span>
-                                <button
-                                  type="button"
-                                  data-testid="tts-switch-roles-button-advanced"
-                                  onClick={() => {
-                                    const effPrimary = primaryTtsLang || spoken[0] || "";
-                                    const other = spoken.find((c) => c !== effPrimary);
-                                    if (other) handlePrimaryTtsLangChange(other);
-                                  }}
-                                  className="inline-flex items-center gap-1 rounded border border-border bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium text-primary transition-colors"
-                                >
-                                  ⇄ Switch Primary/Secondary
-                                </button>
-                              </div>
-                            )}
-                            {orderedLangs
-                              .filter((lang) => spoken.includes(lang.code))
-                              .map((lang) => {
-                                const languageVoices = getLanguageVoices(voices, lang.tts, true);
-                                const ratio = ttsRatios[lang.code] ?? 1;
-                                const isPrimary = lang.code === (primaryTtsLang || spoken[0] || "");
-                                const primaryLangObj = orderedLangs.find(
-                                  (l) => l.code === (primaryTtsLang || spoken[0] || ""),
-                                );
-                                return (
-                                  <div
-                                    key={lang.code}
-                                    data-testid={`tts-settings-card-${lang.code}`}
-                                    className="flex flex-wrap sm:flex-nowrap items-center gap-2 rounded-md border border-border/60 bg-muted/20 px-2 py-1 text-xs"
-                                  >
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                      <span
-                                        className="w-16 truncate font-semibold text-foreground"
-                                        title={lang.name}
-                                      >
-                                        {lang.name}
-                                      </span>
-                                      {isPrimary ? (
-                                        <span
-                                          data-testid={`tts-role-badge-${lang.code}`}
-                                          className="rounded bg-primary/20 text-primary border border-primary/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
-                                        >
-                                          Primary
-                                        </span>
-                                      ) : (
-                                        <button
-                                          type="button"
-                                          data-testid={`tts-switch-primary-${lang.code}`}
-                                          onClick={() => handlePrimaryTtsLangChange(lang.code)}
-                                          className="rounded border border-input bg-background hover:bg-accent px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground font-medium transition-colors"
-                                          title={`Set ${lang.name} as Primary`}
-                                        >
-                                          Make Primary
-                                        </button>
-                                      )}
-                                    </div>
-                                    {/* Speech ratio: speak 1 of every N sections */}
-                                    <label
-                                      className="flex items-center gap-1 shrink-0"
-                                      title={
-                                        isPrimary
-                                          ? "Speak 1 of every N sections"
-                                          : `Speak 1 of every N sections relative to ${primaryLangObj?.name || "primary"}`
-                                      }
-                                    >
-                                      <span className="text-muted-foreground">
-                                        {isPrimary
-                                          ? "Speak"
-                                          : `Speak (rel. to ${primaryLangObj?.name || "primary"})`}
-                                      </span>
-                                      <select
-                                        aria-label={`${lang.name} TTS sentence ratio`}
-                                        data-testid={`tts-ratio-slider-${lang.code}`}
-                                        value={ratio}
-                                        onChange={(e) => {
-                                          const val = Math.max(
-                                            1,
-                                            Math.min(10, Number(e.target.value)),
-                                          );
-                                          setTtsRatios((curr) => ({ ...curr, [lang.code]: val }));
-                                          saveTtsRatioPreference(lang.code, val);
-                                          if (videoId)
-                                            saveVideoSettings(videoId, {
-                                              ttsRatios: { [lang.code]: val },
-                                            });
-                                        }}
-                                        className="rounded border border-input bg-background px-1 py-0.5 text-xs"
-                                      >
-                                        {[1, 2, 3, 4, 5, 7, 10].map((n) => (
-                                          <option
-                                            key={n}
-                                            value={n}
-                                            data-testid={`tts-ratio-preset-${lang.code}-${n}`}
-                                          >
-                                            1:{n}
-                                          </option>
-                                        ))}
-                                      </select>
-                                      <span
-                                        data-testid={`tts-ratio-label-${lang.code}`}
-                                        className="sr-only"
-                                      >
-                                        1:{ratio} ({Math.round(100 / ratio)}% of sentences)
-                                      </span>
-                                    </label>
-                                    {/* Rate slider: range 0.3 to 1.5, default 0.5 */}
-                                    <label className="flex items-center gap-1.5 flex-1 min-w-[7rem]">
-                                      <span className="text-muted-foreground shrink-0">Rate</span>
-                                      <input
-                                        aria-label={`${lang.name} speech rate`}
-                                        type="range"
-                                        min={0.3}
-                                        max={1.5}
-                                        step={0.1}
-                                        value={rates[lang.code] ?? 0.5}
-                                        onChange={(e) => {
-                                          const val = Number(e.target.value);
-                                          setRates((current) => ({
-                                            ...current,
-                                            [lang.code]: val,
-                                          }));
-                                          saveTtsRatePreference(lang.code, val);
-                                          if (videoId) {
-                                            saveVideoSettings(videoId, {
-                                              ttsRates: { [lang.code]: val },
-                                            });
-                                          }
-                                        }}
-                                        className="h-1.5 min-w-0 flex-1 cursor-pointer accent-primary"
-                                      />
-                                      <span className="w-7 text-right font-mono tabular-nums text-muted-foreground shrink-0">
-                                        {(rates[lang.code] ?? 0.5).toFixed(1)}×
-                                      </span>
-                                    </label>
-                                    {/* Voice selector */}
-                                    <select
-                                      aria-label={`${lang.name} voice`}
-                                      value={voiceSelections[lang.code] ?? ""}
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        setVoiceSelections((current) => {
-                                          const next = { ...current, [lang.code]: value };
-                                          try {
-                                            localStorage.setItem(
-                                              "yt_tts_voice_selections_v1",
-                                              JSON.stringify(next),
-                                            );
-                                          } catch {
-                                            // ignore storage errors
-                                          }
-                                          return next;
-                                        });
-                                      }}
-                                      disabled={languageVoices.length === 0}
-                                      title={
-                                        languageVoices.length === 0
-                                          ? "No selectable voices on this device; the device default voice is used"
-                                          : "Voice"
-                                      }
-                                      className="w-full sm:w-44 shrink-0 truncate rounded border border-input bg-background px-1.5 py-0.5 text-xs disabled:opacity-60"
-                                    >
-                                      <option value="">
-                                        {languageVoices.length === 0
-                                          ? "Device voice"
-                                          : "Default voice"}
-                                      </option>
-                                      {languageVoices.map((voice, voiceIndex) => (
-                                        <option
-                                          key={getUniqueVoiceKey(voice, voiceIndex)}
-                                          value={voice.voiceURI || voice.name}
-                                        >
-                                          {voice.name} {voice.lang ? `(${voice.lang})` : ""}
-                                        </option>
-                                      ))}
-                                    </select>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const voiceToTest = voiceSelections[lang.code] ?? "";
-                                        const rateToTest = rates[lang.code] ?? 0.5;
-                                        void speak(
-                                          lang.name,
-                                          lang.tts,
-                                          rateToTest,
-                                          voiceToTest,
-                                          -1,
-                                          () => {},
-                                        );
-                                      }}
-                                      title={`Test ${lang.name} voice`}
-                                      aria-label={`Test ${lang.name} voice`}
-                                      className="shrink-0 rounded border border-input bg-background px-2 py-0.5 text-xs hover:bg-muted font-mono"
-                                    >
-                                      ▶ Test
-                                    </button>
-                                  </div>
-                                );
-                              })}
+                              </tbody>
+                            </table>
                           </div>
                         </>
                       )}

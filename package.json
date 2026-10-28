@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.28",
+  "version": "2.0.31",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -228,6 +228,9 @@
     "test:e2e-selectors": "tsx scripts/verify-e2e-selectors.ts",
     "test:plan-e2e-test": "tsx scripts/verify-plan-e2e-test.ts",
     "test:platforms-doc": "tsx scripts/verify-platforms-doc.ts",
+    "test:default-midnight-theme": "tsx scripts/verify-default-midnight-theme.ts",
+    "test:remove-non-relevant-per-language-panel": "tsx scripts/verify-remove-non-relevant-per-language-panel.ts",
+    "test:unified-languages-table": "tsx scripts/verify-unified-languages-table.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

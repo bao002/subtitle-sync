@@ -109,7 +109,7 @@ console.log("✅ PASS: CSS theme tokens mapped correctly in styles.css");
 
 // Test 6: Accordion themes integrity
 console.log("Test 6: Accordion themes integrity in src/config/accordionThemes.ts...");
-assert.strictEqual(PANELS.length, 6, "Must define 6 accordion panels");
+assert.strictEqual(PANELS.length, 7, "Must define 7 accordion panels");
 for (const panel of PANELS) {
   const theme = ACCORDION_THEMES[panel.id];
   assert.ok(theme, `Theme for panel ${panel.id} must be defined`);
