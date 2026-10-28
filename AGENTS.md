@@ -136,5 +136,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-after git pull is over let me know
+1. use only 1 element to show all languages settings :rate, primary , ratio , tts-play|present-in-table, subtitles-url, order
+(we dont need to show the records after the title: "Primary leads; secondary languages speak relative to primary activations.
+")
 ```

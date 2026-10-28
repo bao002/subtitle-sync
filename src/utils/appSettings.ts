@@ -8,7 +8,7 @@ import { STORAGE_KEYS } from "../config/appConfig";
 
 export type SubtitlePosition = "top" | "above" | "under" | "bottom";
 export type TTSSyncMode = "word_boundary" | "time_linear" | "word_step" | "full_sentence";
-export type AppTheme = "minimal-light" | "pure-dark" | "warm-slate";
+export type AppTheme = "minimal-light" | "pure-dark" | "warm-slate" | "midnight";
 
 export interface AppSettings {
   // UI Display: Compact, lightweight view by default (Android UI Guidelines: no scrolling, minimal controls)
@@ -193,7 +193,7 @@ export const ALL_KNOWN_LANGUAGES = SUPPORTED_LANGUAGES_CATALOG;
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   // Default compact density is required by AGENTS.md across both hosts.
   compactView: true,
-  theme: "pure-dark",
+  theme: "midnight",
   showExpandedControls: true,
   showTeacherPanel: true,
   showLinkBar: true,
@@ -486,7 +486,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "2.0.28",
+    version: "2.0.31",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {

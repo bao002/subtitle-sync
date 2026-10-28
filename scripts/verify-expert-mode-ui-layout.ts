@@ -13,12 +13,12 @@ assert(
   "favorite visibility toolbar should be removed as requested in Task 260",
 );
 assert(
-  index.includes('data-testid="per-language-settings-panel"'),
-  "per-language settings container should be exposed for compact editing",
+  !index.includes('data-testid="per-language-settings-panel"'),
+  "per-language settings container should be removed as requested in Task 263",
 );
 assert(
-  index.includes("setExpandedLanguageSettings"),
-  "language setup rows should support expand/collapse editing",
+  !index.includes("setExpandedLanguageSettings"),
+  "unused setExpandedLanguageSettings should be removed",
 );
 assert(
   !index.includes("pendingParserChange") && !index.includes("ParserDiffConfirmationModal"),

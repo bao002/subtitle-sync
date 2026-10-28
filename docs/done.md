@@ -1,5 +1,59 @@
 # Done tasks
 
+## Task 264: Unified Languages Table & Version Bump (2.0.31)
+
+- **Single Unified Element for All Language Settings**:
+  - Replaced the multi-part languages accordion structure in `src/routes/index.tsx` with a single unified table element (`data-testid="unified-languages-table"`).
+  - Consolidated all 8 requested language controls into inline columns: `Language`, `Primary` (active badge or Make Primary button), `Rate` (slider 0.3x–1.5x with speed test button), `TTS Ratio` (dropdown selector), `TTS-Play` (checkbox), `Present in Table` (checkbox), `Subtitle URL` (drawer trigger button with expandable row for URL input, fetch, fixture, and voice select), and `Order` (Move Up/Down buttons).
+  - Preserved the title banner `"Primary leads; secondary languages speak relative to primary activations."` and role switch button (`data-testid="tts-switch-roles-button-advanced"`).
+  - Completely removed the separate records list below the title banner (`orderedLangs.filter(...).map(lang => ...)`).
+- **Application Version Bump (2.0.31)**:
+  - Synchronized version `2.0.31` across all 5 canonical targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode `20031`), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts` (`v2.0.31`), and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-unified-languages-table.ts` and registered `"test:unified-languages-table"` in `package.json` and `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:unified-languages-table`: PASSED (100%).
+  - `npm run test:agents-all`: PASSED (19/19 checks, 100%).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+## Task 263: Remove Non-Relevant Per-Language Settings Panel in Languages Accordion & Version Bump (2.0.30)
+
+- **Removed Non-Relevant Per-Language Settings Panel**:
+  - Deprecated and removed the redundant element matching selector `#root > div > div.grid.items-start.gap-4.p-4.md:p-6.lg:grid-cols-2 > details.overflow-hidden.rounded-lg.border.border-border.bg-card.text-sm.border-l-4.border-l-purple-500 > div > div.mt-2.space-y-2.border-t.border-border.pt-2` (`data-testid="per-language-settings-panel"`).
+  - Eliminated unused `expandedLanguageSettings` state and its setter `setExpandedLanguageSettings` from `src/routes/index.tsx`.
+  - Preserved the primary/secondary TTS role switcher and individual per-language TTS control cards (`data-testid="tts-settings-card-${code}"`).
+  - Updated `scripts/verify-expert-mode-ui-layout.ts` to assert removal of the redundant container.
+- **Application Version Bump (2.0.30)**:
+  - Synchronized version `2.0.30` across all 5 canonical targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode `20030`), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts` (`v2.0.30`), and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-remove-non-relevant-per-language-panel.ts` and registered `"test:remove-non-relevant-per-language-panel"` in `package.json` and `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:remove-non-relevant-per-language-panel`: PASSED (100%).
+  - `npm run test:expert-mode-ui-layout`: PASSED (100%).
+  - `npm run test:v2-version-bump`: PASSED (100%).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+## Task 262: Default to Midnight Theme & Application Version Bump (2.0.29)
+
+- **Default Midnight Theme Configuration**:
+  - Updated React theme state initialization to `"dark-blue"` (Midnight) in `src/routes/index.tsx`.
+  - Configured `localStorage` fallback to `"dark-blue"` when no theme preference is previously recorded.
+  - Added default `class="dark dark-blue"` to `<html lang="en">` in `index.html` to eliminate any initial white-flash or unstyled rendering prior to React mounting.
+  - Added `"midnight"` to `AppTheme` union and set `theme: "midnight"` in `DEFAULT_APP_SETTINGS` in `src/utils/appSettings.ts`.
+  - Updated `scripts/verify-theme-colors-consistency.ts` to assert against the 7 active accordion panels (`PANELS.length === 7`).
+- **Application Version Bump (2.0.29)**:
+  - Synchronized version `2.0.29` across all 5 canonical targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode `20029`), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts` (`v2.0.29`), and `src/utils/appSettings.ts`.
+- **Dedicated Automated Verification Suite**:
+  - Authored `scripts/verify-default-midnight-theme.ts` and registered `"test:default-midnight-theme"` in `package.json` and `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:default-midnight-theme`: PASSED (100%).
+  - `npm run test:theme-colors-consistency`: PASSED (100%).
+  - `npm run test:v2-version-bump`: PASSED (100%).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
 ## Task 261: Switchable Primary/Secondary TTS Ratio with Relative Activation & Version Bump (2.0.28)
 
 - **Relative Secondary TTS Ratio Logic**:

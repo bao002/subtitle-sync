@@ -4,7 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-<!-- No pending active tasks. All tasks for the prompt have been completed and migrated to docs/done.md -->
+*(No active tasks pending. All active tasks migrated to `docs/done.md`.)*
 
 ## Later Tasks
 
