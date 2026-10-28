@@ -274,7 +274,11 @@ import {
   isYouTubeTranslatedSubtitle,
 } from "@/lib/subtitle-fetch-plan";
 import type { VideoMetadata } from "@/types";
-import { recordVideoWatch, updateVideoLibraryTitle } from "@/utils/videoLibraryManager";
+import {
+  recordVideoWatch,
+  updateVideoLibraryTitle,
+  loadVideoLibrary,
+} from "@/utils/videoLibraryManager";
 import {
   fetchVideoMetadata,
   getCachedVideoMetadata,
@@ -928,6 +932,13 @@ function Index() {
 
   const handleSaveCurrentAsFavorites = () => {
     handleUpdateFavoriteLanguages(targetLanguages);
+  };
+
+  const handleToggleFavoriteLanguage = (code: string) => {
+    const nextFavs = favoriteLanguages.includes(code)
+      ? favoriteLanguages.filter((l) => l !== code)
+      : [...favoriteLanguages, code];
+    handleUpdateFavoriteLanguages(nextFavs);
   };
   const [autoSpeakOnFetch, setAutoSpeakOnFetch] = useState<boolean>(() =>
     getAutoSpeakOnFetchSetting(),
@@ -1729,6 +1740,7 @@ function Index() {
     setVideoLibraryTimeoutSetting(enabled);
   };
   const [isSetupPaused, setIsSetupPaused] = useState(false);
+  const [pauseReason, setPauseReason] = useState<string | null>(null);
   const toggleSetupPause = useCallback(() => {
     setIsSetupPaused((prev) => {
       const next = !prev;
@@ -1741,6 +1753,9 @@ function Index() {
         }
         cancelSpeech();
         busy.current = false;
+        setPauseReason("Paused for setup");
+      } else {
+        setPauseReason(null);
       }
       return next;
     });
@@ -1945,6 +1960,40 @@ function Index() {
       .catch(() => {});
   }, [videoId]);
 
+  const currentVideoLibraryItem = useMemo(() => {
+    return loadVideoLibrary().find((v) => v.id === videoId);
+  }, [videoId]);
+
+  const topScreenTitle = useMemo(() => {
+    if (videoMetadata?.title && !videoMetadata.title.startsWith("YouTube Video ·")) {
+      return videoMetadata.title;
+    }
+    if (currentVideoLibraryItem?.title) {
+      return currentVideoLibraryItem.title;
+    }
+    return videoId ? `Video · ${videoId}` : "Parallel Subtitles";
+  }, [videoMetadata?.title, currentVideoLibraryItem?.title, videoId]);
+
+  const topScreenDescription = useMemo(() => {
+    if (videoMetadata?.description && videoMetadata.description.trim().length > 0) {
+      return videoMetadata.description;
+    }
+    if (videoMetadata?.authorName) {
+      return `Channel: ${videoMetadata.authorName}${
+        videoMetadata.durationFormatted ? ` · Duration: ${videoMetadata.durationFormatted}` : ""
+      }`;
+    }
+    if (videoId === DEMO_VIDEO) {
+      return "English & multi-language timedtext subtitles practice with authentic captions.";
+    }
+    return `Interactive parallel subtitle synchronization and multi-language learning for video ${videoId}`;
+  }, [
+    videoMetadata?.description,
+    videoMetadata?.authorName,
+    videoMetadata?.durationFormatted,
+    videoId,
+  ]);
+
   const handleSelectLibraryVideo = (newId: string, customUrl?: string) => {
     if (!newId) return;
     if (newId === videoId) {
@@ -2083,6 +2132,7 @@ function Index() {
     setSpeakingRow(-1);
     setSpeechProgress(null);
     setIsVideoPlaying(false);
+    setPauseReason("Paused by user");
   }, [videoId]);
 
   const handleTogglePlay = useCallback(() => {
@@ -2103,6 +2153,7 @@ function Index() {
         cancelSpeech();
         busy.current = false;
         userExplicitlyPausedRef.current = false;
+        setPauseReason(null);
         p.playVideo?.();
         setIsVideoPlaying(true);
       }
@@ -2212,6 +2263,7 @@ function Index() {
       p.seekTo?.(0, true);
       setIsVideoPlaying(false);
       setPlaybackCurrentTime(0);
+      setPauseReason("Stopped by user");
     } catch {
       // ignore
     }
@@ -2534,7 +2586,6 @@ function Index() {
     });
   }, [videoId, observedUrl, targetLanguages, spoken]);
 
-
   useEffect(() => {
     if (!isAndroid) return;
     setTracks(null);
@@ -2769,6 +2820,7 @@ function Index() {
         try {
           player.current?.playVideo?.();
           setIsVideoPlaying(true);
+          setPauseReason(null);
         } catch (_err) {
           // ignore playback error
         }
@@ -2778,6 +2830,7 @@ function Index() {
           multiVideoPlayerRegistry.pauseAllExcept();
           player.current?.pauseVideo?.();
           setIsVideoPlaying(false);
+          setPauseReason("Paused via system media controls");
         } catch (_err) {
           // ignore pause error
         }
@@ -3379,16 +3432,27 @@ function Index() {
             if (event.data === 1) {
               userExplicitlyPausedRef.current = false;
               setIsVideoPlaying(true);
+              setPauseReason(null);
             } else if (event.data === 2) {
               setIsVideoPlaying(false);
               if (!busy.current) {
                 userExplicitlyPausedRef.current = true;
+                setPauseReason((prev) => prev || "Paused by user");
                 cancelSpeech();
                 setSpeakingLang(null);
                 setSpeakingRow(-1);
                 setSpeechProgress(null);
               }
-            } else if (event.data === 0 || event.data === -1) {
+            } else if (event.data === 0) {
+              userExplicitlyPausedRef.current = true;
+              setIsVideoPlaying(false);
+              setPauseReason("Video playback completed");
+              cancelSpeech();
+              busy.current = false;
+              setSpeakingLang(null);
+              setSpeakingRow(-1);
+              setSpeechProgress(null);
+            } else if (event.data === -1) {
               userExplicitlyPausedRef.current = true;
               setIsVideoPlaying(false);
               cancelSpeech();
@@ -3625,8 +3689,13 @@ function Index() {
           const eligibleLangs = getEligibleLangs(idx);
           if (eligibleLangs.length > 0) {
             busy.current = true;
+            const langLabels = eligibleLangs
+              .map((c) => LANGS.find((l) => l.code === c)?.name || c)
+              .join(", ");
+            setPauseReason(`Waiting for speech synthesis (${langLabels}) before playing`);
             p.pauseVideo();
             await speakRow(idx);
+            setPauseReason(null);
             const wasCancelled = !busy.current;
             busy.current = false;
             handledRow.current = idx;
@@ -3653,8 +3722,13 @@ function Index() {
           const eligibleLangs = getEligibleLangs(candidateRow);
           if (eligibleLangs.length > 0) {
             busy.current = true;
+            const langLabels = eligibleLangs
+              .map((c) => LANGS.find((l) => l.code === c)?.name || c)
+              .join(", ");
+            setPauseReason(`Section complete: speaking translation (${langLabels})`);
             p.pauseVideo();
             await speakRow(candidateRow);
+            setPauseReason(null);
             const wasCancelled = !busy.current;
             busy.current = false;
             handledRow.current = candidateRow;
@@ -3670,6 +3744,7 @@ function Index() {
               p.seekTo(resumeTarget, true);
               p.playVideo();
             } else {
+              setPauseReason("Reached end of subtitle track");
               multiVideoPlayerRegistry.unmuteOnly("primary");
               p.pauseVideo();
             }
@@ -4043,59 +4118,83 @@ function Index() {
         className="flex flex-wrap items-center gap-4 border-b border-border px-6 py-4"
         data-app-hydrated={isHydrated ? "true" : undefined}
       >
-        <div className="mr-auto flex items-baseline gap-3 flex-wrap">
-          <h1 className="font-display text-2xl">Parallel Subtitles</h1>
-          <a
-            href={ALL_RELEASES_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-testid="header-app-version-badge"
-            className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-mono font-medium text-primary hover:bg-primary/20 transition-colors"
-            title={`${APP_VERSION_DESCRIPTION} (Commit #${APP_COMMIT_ID})`}
-          >
-            <span>v{APP_VERSION}</span>
-            <span className="opacity-70 text-[10px]">#{APP_COMMIT_ID}</span>
-            <ExternalLink className="h-2.5 w-2.5 opacity-70" />
-          </a>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() =>
-              handleWorkflowModeChange(workflowMode === "beginner" ? "expert" : "beginner")
-            }
-            className={`h-6 px-2 text-[11px] font-medium rounded-full border flex items-center gap-1 transition-all ${
-              workflowMode === "beginner"
-                ? "bg-emerald-950/40 text-emerald-300 border-emerald-700/60 hover:bg-emerald-900/50"
-                : "bg-indigo-950/40 text-indigo-300 border-indigo-700/60 hover:bg-indigo-900/50"
-            }`}
-            data-testid="header-mode-toggle"
-            title={
-              workflowMode === "beginner"
-                ? "Switch to Advanced Studio (Full Controls)"
-                : "Switch to Guided Beginner Mode"
-            }
-          >
-            {workflowMode === "beginner" ? (
-              <>
-                <SlidersHorizontal className="h-3 w-3 text-emerald-400" />
-                <span>To Advanced Studio</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-3 w-3 text-indigo-400" />
-                <span>To Beginner Mode</span>
-              </>
-            )}
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            video {videoId} · {rows.length} sections ·{" "}
-            {isAndroid
-              ? "live Android captions"
-              : videoId === DEMO_VIDEO
-                ? "[Fixture: L2Ryrr6txwA] (Approved Web Demo Fixture)"
-                : "live captions"}
-          </span>
+        <div className="mr-auto flex flex-col gap-1 max-w-3xl">
+          <div className="flex items-baseline gap-2.5 flex-wrap">
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary/80">
+              Parallel Subtitles
+            </span>
+            <span className="text-muted-foreground/40 text-xs">·</span>
+            <h1
+              className="font-display text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate max-w-xl"
+              data-testid="top-screen-video-title"
+              title={topScreenTitle}
+            >
+              {topScreenTitle}
+            </h1>
+            <a
+              href={ALL_RELEASES_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="header-app-version-badge"
+              className="inline-flex items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-xs font-mono font-medium text-primary hover:bg-primary/20 transition-colors shrink-0"
+              title={`${APP_VERSION_DESCRIPTION} (Commit #${APP_COMMIT_ID})`}
+            >
+              <span>v{APP_VERSION}</span>
+              <span className="opacity-70 text-[10px]">#{APP_COMMIT_ID}</span>
+              <ExternalLink className="h-2.5 w-2.5 opacity-70" />
+            </a>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                handleWorkflowModeChange(workflowMode === "beginner" ? "expert" : "beginner")
+              }
+              className={`h-6 px-2 text-[11px] font-medium rounded-full border flex items-center gap-1 transition-all shrink-0 ${
+                workflowMode === "beginner"
+                  ? "bg-emerald-950/40 text-emerald-300 border-emerald-700/60 hover:bg-emerald-900/50"
+                  : "bg-indigo-950/40 text-indigo-300 border-indigo-700/60 hover:bg-indigo-900/50"
+              }`}
+              data-testid="header-mode-toggle"
+              title={
+                workflowMode === "beginner"
+                  ? "Switch to Advanced Studio (Full Controls)"
+                  : "Switch to Guided Beginner Mode"
+              }
+            >
+              {workflowMode === "beginner" ? (
+                <>
+                  <SlidersHorizontal className="h-3 w-3 text-emerald-400" />
+                  <span>To Advanced Studio</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3 w-3 text-indigo-400" />
+                  <span>To Beginner Mode</span>
+                </>
+              )}
+            </Button>
+          </div>
+          <div className="flex flex-col gap-0.5">
+            <p
+              data-testid="top-screen-video-description"
+              className="text-xs text-muted-foreground line-clamp-2 leading-relaxed"
+              title={topScreenDescription}
+            >
+              {topScreenDescription}
+            </p>
+            <span
+              data-testid="top-screen-video-caption-status"
+              className="text-[11px] text-muted-foreground/80 font-mono"
+            >
+              Video {videoId} · {rows.length} sections ·{" "}
+              {isAndroid
+                ? "live Android captions"
+                : videoId === DEMO_VIDEO
+                  ? "[Fixture: L2Ryrr6txwA] (Approved Web Demo Fixture)"
+                  : "live captions"}
+            </span>
+          </div>
         </div>
 
         {workflowMode === "expert" && (
@@ -4412,60 +4511,75 @@ function Index() {
             </div>
           }
           playbackControlsSlot={
-            <VideoPlaybackControls
-              isPlaying={isVideoPlaying}
-              currentTimeSec={playbackCurrentTime}
-              durationSec={playbackDuration}
-              playbackRate={playbackRate}
-              activeSectionIndex={active}
-              totalSections={rows.length}
-              isPausedForSpeech={Boolean(speakingLang)}
-              speakingLangName={
-                speakingLang
-                  ? (LANGS.find((l) => l.code === speakingLang)?.name ?? speakingLang.toUpperCase())
-                  : undefined
-              }
-              onTogglePlay={handleTogglePlay}
-              onSeek={handleSeek}
-              onRewind={(sec = 5) => handleSeek(Math.max(0, playbackCurrentTime - sec))}
-              onFastForward={(sec = 5) =>
-                handleSeek(Math.min(playbackDuration, playbackCurrentTime + sec))
-              }
-              onPrevSection={() => {
-                const prevIdx = active > 0 ? active - 1 : 0;
-                if (rows[prevIdx]) {
-                  seek(rows[prevIdx], prevIdx);
+            <div className="space-y-1.5">
+              <VideoPlaybackControls
+                isPlaying={isVideoPlaying}
+                currentTimeSec={playbackCurrentTime}
+                durationSec={playbackDuration}
+                playbackRate={playbackRate}
+                activeSectionIndex={active}
+                totalSections={rows.length}
+                isPausedForSpeech={Boolean(speakingLang)}
+                speakingLangName={
+                  speakingLang
+                    ? (LANGS.find((l) => l.code === speakingLang)?.name ??
+                      speakingLang.toUpperCase())
+                    : undefined
                 }
-              }}
-              onNextSection={() => {
-                const nextIdx = active < rows.length - 1 ? active + 1 : rows.length - 1;
-                if (rows[nextIdx]) {
-                  seek(rows[nextIdx], nextIdx);
+                pauseReason={pauseReason}
+                onTogglePlay={handleTogglePlay}
+                onSeek={handleSeek}
+                onRewind={(sec = 5) => handleSeek(Math.max(0, playbackCurrentTime - sec))}
+                onFastForward={(sec = 5) =>
+                  handleSeek(Math.min(playbackDuration, playbackCurrentTime + sec))
                 }
-              }}
-              onReplaySection={() => {
-                if (active >= 0 && rows[active]) {
-                  seek(rows[active], active);
-                }
-              }}
-              onStop={() => {
-                try {
-                  player.current?.pauseVideo();
-                  player.current?.seekTo(0, true);
-                  setIsVideoPlaying(false);
-                } catch {
-                  // ignore
-                }
-              }}
-              onRateChange={(rate) => {
-                try {
-                  player.current?.setPlaybackRate?.(rate);
-                  setPlaybackRate(rate);
-                } catch {
-                  // ignore
-                }
-              }}
-            />
+                onPrevSection={() => {
+                  const prevIdx = active > 0 ? active - 1 : 0;
+                  if (rows[prevIdx]) {
+                    seek(rows[prevIdx], prevIdx);
+                  }
+                }}
+                onNextSection={() => {
+                  const nextIdx = active < rows.length - 1 ? active + 1 : rows.length - 1;
+                  if (rows[nextIdx]) {
+                    seek(rows[nextIdx], nextIdx);
+                  }
+                }}
+                onReplaySection={() => {
+                  if (active >= 0 && rows[active]) {
+                    seek(rows[active], active);
+                  }
+                }}
+                onStop={() => {
+                  try {
+                    player.current?.pauseVideo();
+                    player.current?.seekTo(0, true);
+                    setIsVideoPlaying(false);
+                    setPauseReason("Stopped by user");
+                  } catch {
+                    // ignore
+                  }
+                }}
+                onRateChange={(rate) => {
+                  try {
+                    player.current?.setPlaybackRate?.(rate);
+                    setPlaybackRate(rate);
+                  } catch {
+                    // ignore
+                  }
+                }}
+              />
+              {!isVideoPlaying && pauseReason && (
+                <div
+                  data-testid="video-pause-reason-banner"
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 mt-1"
+                >
+                  <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                  <span className="font-semibold">Pause explanation:</span>
+                  <span className="truncate">{pauseReason}</span>
+                </div>
+              )}
+            </div>
           }
           webDemoUrlsSlot={
             !isAndroid ? (
@@ -5031,6 +5145,7 @@ function Index() {
                                     speakingLang)
                                   : undefined
                               }
+                              pauseReason={pauseReason}
                               onTogglePlay={handleTogglePlay}
                               onSeek={handleSeek}
                               onRewind={handleRewind}
@@ -5041,6 +5156,16 @@ function Index() {
                               onStop={handleStop}
                               onRateChange={handleRateChange}
                             />
+                            {!isVideoPlaying && pauseReason && (
+                              <div
+                                data-testid="video-pause-reason-banner"
+                                className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 mt-2"
+                              >
+                                <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                <span className="font-semibold">Pause explanation:</span>
+                                <span className="truncate">{pauseReason}</span>
+                              </div>
+                            )}
                           </div>
                           {isAndroid && (
                             <p role="status" className="px-3 py-2 text-sm text-muted-foreground">
@@ -5848,7 +5973,7 @@ function Index() {
                             <div className="flex flex-wrap items-center justify-between gap-2">
                               <div>
                                 <span className="font-semibold text-xs text-foreground flex items-center gap-1">
-                                  <span>⭐ Favorite Languages (Settings &amp; localStorage)</span>
+                                  <span>Favorite Languages (Settings &amp; localStorage)</span>
                                 </span>
                                 <p className="text-[11px] text-muted-foreground">
                                   Saved in localStorage. Applied automatically as default target
@@ -5975,14 +6100,17 @@ function Index() {
                                 </h3>
                               </div>
                               <p className="text-xs text-muted-foreground">
-                                Automatically collapses inactive accordions after 10 seconds of no interaction, featuring an hourglass icon and countdown progress bar.
+                                Automatically collapses inactive accordions after 10 seconds of no
+                                interaction, featuring an hourglass icon and countdown progress bar.
                               </p>
                               <label className="flex items-center gap-2 cursor-pointer pt-1">
                                 <input
                                   type="checkbox"
                                   data-testid="setting-video-library-timeout"
                                   checked={videoLibraryTimeoutEnabled}
-                                  onChange={(e) => handleToggleVideoLibraryTimeout(e.target.checked)}
+                                  onChange={(e) =>
+                                    handleToggleVideoLibraryTimeout(e.target.checked)
+                                  }
                                   className="rounded border-border text-primary h-3.5 w-3.5"
                                 />
                                 <span className="text-xs text-foreground font-medium">
@@ -5992,13 +6120,17 @@ function Index() {
                             </div>
 
                             {/* Special Characters Removal Section under Settings */}
-                            <div className="pt-4 border-t border-border/40 space-y-3" data-testid="settings-chars-removal-container">
+                            <div
+                              className="pt-4 border-t border-border/40 space-y-3"
+                              data-testid="settings-chars-removal-container"
+                            >
                               <div>
                                 <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
                                   Special Characters Removal
                                 </h3>
                                 <p className="text-xs text-muted-foreground">
-                                  Stage 3: Remove speaker tags, sound cues, and symbols before sentence parsing and translation.
+                                  Stage 3: Remove speaker tags, sound cues, and symbols before
+                                  sentence parsing and translation.
                                 </p>
                               </div>
                               {specialCharactersRemovalPanel}
@@ -6006,7 +6138,6 @@ function Index() {
                           </div>
                         </div>
                       )}
-
 
                       {panelId === "library" && (
                         <VideoLibraryPanel
@@ -6630,12 +6761,42 @@ function Index() {
                       {panelId === "languages" && (
                         <>
                           <div className="mb-4 space-y-3 border-b border-border pb-4">
+                            {!isAndroid && (
+                              <div
+                                data-testid="demo-languages-disclaimer"
+                                className="rounded-md border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-900 dark:text-amber-200 space-y-1"
+                              >
+                                <div className="flex items-center gap-1.5 font-semibold">
+                                  <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                  <span>Demo Mode Caption Limitation Note</span>
+                                </div>
+                                <p className="text-[11px] leading-relaxed">
+                                  In this web demonstration, authentic subtitle captions are
+                                  strictly limited to the verified fixture files for example video{" "}
+                                  <code className="font-mono font-semibold">L2Ryrr6txwA</code>{" "}
+                                  (available in English, Hebrew, Arabic, Spanish, Italian, Russian,
+                                  and Portuguese). In native Android mode, caption streams for any
+                                  YouTube video are intercepted dynamically during playback.
+                                </p>
+                              </div>
+                            )}
+
                             {/* Enabled Languages Status Card */}
                             <div
                               data-testid="enabled-languages-status-card"
-                              className="rounded-lg border border-border/80 bg-muted/20 p-2.5 text-xs space-y-2"
+                              className="rounded-lg border border-border/80 bg-muted/20 p-2.5 text-xs space-y-2.5"
                             >
-                              <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div>
+                                <p className="text-[11px] text-muted-foreground leading-normal">
+                                  <strong className="text-foreground">
+                                    Favorite Languages (App-wide):
+                                  </strong>{" "}
+                                  Your preferred learning languages saved across all videos. When
+                                  you open any video, these languages are loaded automatically.
+                                </p>
+                              </div>
+
+                              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/40 pt-2">
                                 <div className="font-semibold text-foreground flex items-center gap-1.5">
                                   <span>🎬 Enabled for this Video:</span>
                                   <span className="font-mono text-primary font-bold">
@@ -6657,7 +6818,7 @@ function Index() {
                                     data-testid="reset-video-to-favorites-btn"
                                     onClick={handleResetVideoToFavorites}
                                     className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium"
-                                    title="Reset this video to your global favorite languages"
+                                    title="Reset this video to your favorite learning languages"
                                   >
                                     ↺ Reset to Favorites
                                   </button>
@@ -6666,9 +6827,9 @@ function Index() {
                                     data-testid="save-current-as-favorites-btn"
                                     onClick={handleSaveCurrentAsFavorites}
                                     className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-[11px] font-medium"
-                                    title="Save this video's current languages as your global favorites"
+                                    title="Save this video's current languages as your app-wide favorites"
                                   >
-                                    ★ Save as Favorites
+                                    Save as Favorites
                                   </button>
                                 </div>
                               </div>
@@ -6702,7 +6863,14 @@ function Index() {
                                         }`}
                                       >
                                         <span>{langMeta.name}</span>
-                                        {isFav && <span title="Favorite language">⭐</span>}
+                                        {isFav && (
+                                          <span
+                                            title="Favorite language"
+                                            className="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-400 font-sans tracking-wide"
+                                          >
+                                            (Fav)
+                                          </span>
+                                        )}
                                       </span>
                                     );
                                   })
@@ -6711,7 +6879,7 @@ function Index() {
 
                               <div className="flex flex-wrap gap-1.5 items-center border-t border-border/50 pt-1.5">
                                 <span className="text-muted-foreground text-[11px] mr-1">
-                                  ⭐ Global favorites:
+                                  Favorite Learning Languages:
                                 </span>
                                 {favoriteLanguages.length === 0 ? (
                                   <span className="text-muted-foreground italic text-[11px]">
@@ -6757,6 +6925,36 @@ function Index() {
                                     );
                                   })
                                 )}
+                              </div>
+
+                              <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-2">
+                                <span className="text-[11px] font-medium text-foreground">
+                                  Quick Add to Favorites:
+                                </span>
+                                <select
+                                  data-testid="quick-add-favorite-select"
+                                  className="h-7 rounded border border-border bg-background px-2 text-xs"
+                                  id="quick-add-favorite-select"
+                                  defaultValue=""
+                                  onChange={(e) => {
+                                    const code = e.target.value;
+                                    if (code && !favoriteLanguages.includes(code)) {
+                                      handleToggleFavoriteLanguage(code);
+                                      e.target.value = "";
+                                    }
+                                  }}
+                                >
+                                  <option value="" disabled>
+                                    Select language to add…
+                                  </option>
+                                  {(isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS)
+                                    .filter((l) => !favoriteLanguages.includes(l.code))
+                                    .map((l) => (
+                                      <option key={l.code} value={l.code}>
+                                        {l.name} ({l.code})
+                                      </option>
+                                    ))}
+                                </select>
                               </div>
                             </div>
 
@@ -6905,6 +7103,12 @@ function Index() {
                                   <th className="text-left font-normal py-1.5 px-2">Language</th>
                                   <th
                                     className="font-normal text-center py-1.5 px-1.5"
+                                    title="Favorite learning language (saved app-wide)"
+                                  >
+                                    Favorite
+                                  </th>
+                                  <th
+                                    className="font-normal text-center py-1.5 px-1.5"
                                     title="Speech rate (0.5x - 1.0x)"
                                   >
                                     Rate
@@ -6993,6 +7197,7 @@ function Index() {
                                               )
                                             ) : (
                                               <span>{lang.name}</span>
+                                            )}
                                             {isSharedLanguageForVideo(videoId, lang.code) && (
                                               <span
                                                 data-testid={`shared-lang-badge-${lang.code}`}
@@ -7007,8 +7212,7 @@ function Index() {
                                                 className="text-[10px] text-amber-500 font-bold"
                                                 data-testid={`fav-table-star-${lang.code}`}
                                               >
-                                                ⭐
-
+                                                (Fav)
                                               </span>
                                             )}
                                             {cueCount ? (
@@ -7020,6 +7224,21 @@ function Index() {
                                               </span>
                                             ) : null}
                                           </span>
+                                        </td>
+                                        <td className="text-center py-1 px-1.5">
+                                          <button
+                                            type="button"
+                                            data-testid={`fav-table-toggle-${lang.code}`}
+                                            onClick={() => handleToggleFavoriteLanguage(lang.code)}
+                                            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${isFavorite ? "bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40" : "border border-border text-muted-foreground hover:text-foreground hover:bg-muted"}`}
+                                            title={
+                                              isFavorite
+                                                ? `Remove ${lang.name} from favorites`
+                                                : `Add ${lang.name} to favorites`
+                                            }
+                                          >
+                                            {isFavorite ? "Favorite" : "Add"}
+                                          </button>
                                         </td>
                                         <td className="text-center py-1 px-1.5">
                                           <select
@@ -7176,7 +7395,7 @@ function Index() {
                                           data-testid={`url-input-row-${lang.code}`}
                                           className="bg-primary/5 border-y border-primary/20"
                                         >
-                                          <td colSpan={7} className="p-2.5">
+                                          <td colSpan={8} className="p-2.5">
                                             <div className="space-y-2 max-w-xl text-xs">
                                               <div className="flex items-center justify-between">
                                                 <span className="font-semibold text-foreground flex items-center gap-1.5">
