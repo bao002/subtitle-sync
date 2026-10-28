@@ -136,7 +136,15 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. use only 1 element to show all languages settings :rate, primary , ratio , tts-play|present-in-table, subtitles-url, order
-(we dont need to show the records after the title: "Primary leads; secondary languages speak relative to primary activations.
-")
+1.the rate should be 0.5 to 1.0 (and allow to update it on the main settings)
+2. use dropdown to set rate
+3. to set primary click on the language name (no need to use entire column)
+4. no need the play button which pronounce the language name.
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(3)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
 ```

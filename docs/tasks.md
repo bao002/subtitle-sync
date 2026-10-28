@@ -4,7 +4,12 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*(No active tasks pending. All active tasks migrated to `docs/done.md`.)*
+- [ ] **Task 265: Refined Language Settings (Rate Dropdown 0.5-1.0, Main Settings Rate, Clickable Language Name for Primary, Remove Speech Test Button) & Version Bump (2.0.32)**
+  - Subtask 265.1: Make language name clickable to set Primary in unified table, remove dedicated Primary column, and remove speech test play button.
+  - Subtask 265.2: Replace speech rate slider with 0.5 to 1.0 dropdown in unified table and Beginner mode, and allow updating speech rate in main settings.
+  - Subtask 265.3: Update application version across all 5 targets to `2.0.32` (versionCode `20032`).
+  - Subtask 265.4: Author dedicated verification test `scripts/verify-refined-language-settings.ts`, update `scripts/verify-unified-languages-table.ts`, and register in `package.json` and `docs/files.md`.
+  - Subtask 265.5: Validate with test suite, `compile_applet`, `lint_applet`, and migrate to `docs/done.md`.
 
 ## Later Tasks
 
