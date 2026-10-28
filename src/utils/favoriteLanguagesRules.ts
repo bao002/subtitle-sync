@@ -122,3 +122,52 @@ export function applyVideoSharingFavoriteLanguageRules(
     bottomLanguage: detected,
   };
 }
+
+export const VIDEO_SHARED_LANGS_PREFIX = "yt_video_shared_langs_";
+
+/**
+ * Records a target language as received via shared link for a specific video.
+ */
+export function recordSharedLanguageForVideo(videoId: string, langCode: string): void {
+  if (!videoId || !langCode) return;
+  const cleanId = videoId.trim();
+  const cleanLang = langCode.trim().toLowerCase();
+  const key = `${VIDEO_SHARED_LANGS_PREFIX}${cleanId}`;
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return;
+    let existing: string[] = [];
+    const raw = window.localStorage.getItem(key);
+    if (raw) existing = JSON.parse(raw);
+    if (!existing.includes(cleanLang)) {
+      existing.push(cleanLang);
+      window.localStorage.setItem(key, JSON.stringify(existing));
+    }
+  } catch (e) {
+    console.warn("[favoriteLanguagesRules] Failed to save shared language:", e);
+  }
+}
+
+/**
+ * Returns all languages that were marked as (shared) for a specific video.
+ */
+export function getSharedLanguagesForVideo(videoId: string): string[] {
+  if (!videoId) return [];
+  const key = `${VIDEO_SHARED_LANGS_PREFIX}${videoId.trim()}`;
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return [];
+    const raw = window.localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+
+/**
+ * Checks if a language is tagged as (shared) for the specific video.
+ */
+export function isSharedLanguageForVideo(videoId: string, langCode: string): boolean {
+  if (!videoId || !langCode) return false;
+  return getSharedLanguagesForVideo(videoId).includes(langCode.trim().toLowerCase());
+}
+

@@ -1,7 +1,12 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- **Task**: Task 265: Refined Language Settings (Rate Dropdown 0.5-1.0, Main Settings Rate, Clickable Language Name for Primary, Remove Speech Test Button) & Version Bump (2.0.32)
-- **Active Subtask**: Subtask 265.1: Make language name clickable to set Primary in unified table, remove dedicated Primary column, and remove speech test play button.
+- **Task**: Task 271: Chapter 5 - Accordion Timeout (10s) with Sand-Time Icon & Progress Bar for Video Library
+- **Active Subtask**: Subtask 271.1 & 271.2: Implement 10s auto-collapse countdown, hourglass icon & progress bar on Video Library accordion, configurable in Settings
 - **Status**: [IN PROGRESS]
-- **Target Files**: `src/routes/index.tsx`
-- **Validation**: `compile_applet`, `lint_applet`
+- **Target Files**: `src/components/AccordionSection.tsx`, `src/routes/index.tsx`, `src/utils/appSettings.ts`, `scripts/verify-accordion-timeout-hourglass.ts`
+- **Validation**: `npx tsx scripts/verify-accordion-timeout-hourglass.ts`, `lint_applet`, `compile_applet`
+
+
+
+
+

@@ -39,6 +39,7 @@ import {
   HelpCircle,
   History,
   Volume2,
+  Hourglass,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +101,8 @@ import {
   setStripSpeakerBracketsSetting,
   getRemoveCharsSetting,
   setRemoveCharsSetting,
+  getVideoLibraryTimeoutSetting,
+  setVideoLibraryTimeoutSetting,
   loadAppSettings,
   saveAppSettings,
 } from "@/utils/appSettings";
@@ -107,9 +110,16 @@ import { SpecialCharactersRemovalPanel } from "@/components/SpecialCharactersRem
 import { BeginnerCharsRemovalAccordion } from "@/components/beginner/BeginnerCharsRemovalAccordion";
 import {
   getAppStateFromUrl,
+  syncAppStateToUrl,
   extractVideoIdFromSubtitlesUrl,
   extractLanguageFromSubtitlesUrl,
 } from "@/utils/urlStateManager";
+
+import {
+  recordSharedLanguageForVideo,
+  isSharedLanguageForVideo,
+} from "@/utils/favoriteLanguagesRules";
+
 import { ShareStateModal } from "@/components/ShareStateModal";
 import { VideoMetadataModal } from "@/components/VideoMetadataModal";
 import {
@@ -1711,6 +1721,13 @@ function Index() {
     setOnDemandAheadCountState(count);
     setOnDemandTranslationSentencesAhead(count);
   };
+  const [videoLibraryTimeoutEnabled, setVideoLibraryTimeoutEnabled] = useState(() =>
+    getVideoLibraryTimeoutSetting(),
+  );
+  const handleToggleVideoLibraryTimeout = (enabled: boolean) => {
+    setVideoLibraryTimeoutEnabled(enabled);
+    setVideoLibraryTimeoutSetting(enabled);
+  };
   const [isSetupPaused, setIsSetupPaused] = useState(false);
   const toggleSetupPause = useCallback(() => {
     setIsSetupPaused((prev) => {
@@ -2265,26 +2282,32 @@ function Index() {
     if (appState.subLang) {
       setBaseLanguage(appState.subLang);
     }
+    const sharedTargetCodes: string[] = [];
     if (appState.targetLanguages && appState.targetLanguages.length > 0) {
-      setTargetLanguages((prev) => {
-        const next = [...prev];
-        appState.targetLanguages?.forEach((code) => {
-          if (!next.includes(code)) next.push(code);
-        });
-        return next;
-      });
-      setShown((prev) => {
-        const next = [...prev];
-        appState.targetLanguages?.forEach((code) => {
-          if (!next.includes(code)) next.push(code);
-        });
-        return next;
+      appState.targetLanguages.forEach((c) => {
+        const cl = c.toLowerCase().trim();
+        if (cl && !sharedTargetCodes.includes(cl)) sharedTargetCodes.push(cl);
       });
     } else if (appState.targetLang) {
-      const code = appState.targetLang.toLowerCase().trim();
-      setTargetLanguages((prev) => (prev.includes(code) ? prev : [...prev, code]));
-      setShown((prev) => (prev.includes(code) ? prev : [...prev, code]));
+      const cl = appState.targetLang.toLowerCase().trim();
+      if (cl && !sharedTargetCodes.includes(cl)) sharedTargetCodes.push(cl);
     }
+
+    if (sharedTargetCodes.length > 0) {
+      const activeVid = appState.videoId || videoId;
+      sharedTargetCodes.forEach((code) => {
+        recordSharedLanguageForVideo(activeVid, code);
+      });
+      setFavoriteLanguagesState((prev) => {
+        const next = Array.from(new Set([...prev, ...sharedTargetCodes]));
+        setFavoriteLanguages(next);
+        return next;
+      });
+      setTargetLanguages((prev) => Array.from(new Set([...prev, ...sharedTargetCodes])));
+      setShown((prev) => Array.from(new Set([...prev, ...sharedTargetCodes])));
+      setSpoken((prev) => Array.from(new Set([...prev, ...sharedTargetCodes])));
+    }
+
     if (appState.ttsProvider) {
       const prov = appState.ttsProvider.toLowerCase().trim() as LovableTtsProvider;
       setLovableTtsProvider(prov);
@@ -2480,6 +2503,17 @@ function Index() {
           return prevId;
         });
       }
+
+      const urlTargetLang = currentParams.get("target_lang") || currentParams.get("lang");
+      if (urlTargetLang) {
+        const cleanTarget = urlTargetLang.toLowerCase().trim();
+        setTargetLanguages((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
+        setShown((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
+      }
+      const urlSubUrl = currentParams.get("subtitles_url") || currentParams.get("sub_url");
+      if (urlSubUrl && urlSubUrl.trim()) {
+        setObservedUrl(urlSubUrl.trim());
+      }
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -2488,6 +2522,18 @@ function Index() {
       window.removeEventListener("popstate", handlePopState);
     };
   }, [networkInspectorOpen, actionLogsOpen, apkModalOpen, shareModalOpen]);
+
+  // Two-way synchronization: App State -> Route URL
+  useEffect(() => {
+    if (!videoId) return;
+    syncAppStateToUrl({
+      videoId,
+      subtitlesUrl: observedUrl || undefined,
+      targetLang: targetLanguages[0] || undefined,
+      autoTTS: spoken.length > 0,
+    });
+  }, [videoId, observedUrl, targetLanguages, spoken]);
+
 
   useEffect(() => {
     if (!isAndroid) return;
@@ -4702,6 +4748,7 @@ function Index() {
                           ? () => setSubtitlesPanelWide((wide) => !wide)
                           : undefined
                       }
+                      autoTimeout={panelId === "library" ? videoLibraryTimeoutEnabled : false}
                     >
                       {panelId === "player" && (
                         <div>
@@ -5915,9 +5962,51 @@ function Index() {
                                 </p>
                               </div>
                             </div>
+
+                            {/* Accordion Auto-Collapse Timeout Setting */}
+                            <div
+                              className="pt-3 border-t border-border/40 space-y-2"
+                              data-testid="settings-accordion-timeout-card"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <Hourglass className="size-3.5 text-amber-500 shrink-0" />
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                  Accordion Auto-Collapse Timeout
+                                </h3>
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                Automatically collapses inactive accordions after 10 seconds of no interaction, featuring an hourglass icon and countdown progress bar.
+                              </p>
+                              <label className="flex items-center gap-2 cursor-pointer pt-1">
+                                <input
+                                  type="checkbox"
+                                  data-testid="setting-video-library-timeout"
+                                  checked={videoLibraryTimeoutEnabled}
+                                  onChange={(e) => handleToggleVideoLibraryTimeout(e.target.checked)}
+                                  className="rounded border-border text-primary h-3.5 w-3.5"
+                                />
+                                <span className="text-xs text-foreground font-medium">
+                                  Enable 10s auto-collapse for &quot;Video Library&quot; accordion
+                                </span>
+                              </label>
+                            </div>
+
+                            {/* Special Characters Removal Section under Settings */}
+                            <div className="pt-4 border-t border-border/40 space-y-3" data-testid="settings-chars-removal-container">
+                              <div>
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                  Special Characters Removal
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                  Stage 3: Remove speaker tags, sound cues, and symbols before sentence parsing and translation.
+                                </p>
+                              </div>
+                              {specialCharactersRemovalPanel}
+                            </div>
                           </div>
                         </div>
                       )}
+
 
                       {panelId === "library" && (
                         <VideoLibraryPanel
@@ -6877,7 +6966,9 @@ function Index() {
                                             {isSpoken ? (
                                               isPrimary ? (
                                                 <span className="flex items-center gap-1 font-semibold text-primary">
-                                                  <span data-testid={`tts-switch-primary-${lang.code}`}>
+                                                  <span
+                                                    data-testid={`tts-switch-primary-${lang.code}`}
+                                                  >
                                                     {lang.name}
                                                   </span>
                                                   <span
@@ -6902,6 +6993,13 @@ function Index() {
                                               )
                                             ) : (
                                               <span>{lang.name}</span>
+                                            {isSharedLanguageForVideo(videoId, lang.code) && (
+                                              <span
+                                                data-testid={`shared-lang-badge-${lang.code}`}
+                                                className="rounded bg-blue-500/20 text-blue-400 border border-blue-500/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
+                                              >
+                                                (shared)
+                                              </span>
                                             )}
                                             {isFavorite && (
                                               <span
@@ -6910,6 +7008,7 @@ function Index() {
                                                 data-testid={`fav-table-star-${lang.code}`}
                                               >
                                                 ⭐
+
                                               </span>
                                             )}
                                             {cueCount ? (

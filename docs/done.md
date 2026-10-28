@@ -1,5 +1,65 @@
 # Done tasks
 
+## Task 271: Chapter 5 - Accordion Timeout (10s) with Sand-Time Icon & Progress Bar for Video Library
+- **10s Auto-Collapse Countdown (`src/components/AccordionSection.tsx`)**:
+  - Configured `ACCORDION_AUTO_FOLD_SECONDS = 10` (10,000ms).
+  - Implemented dynamic countdown timer (`timeLeft`), `Hourglass` sand-time icon, and visual progress bar (`data-testid="accordion-timeout-progress-[id]"`).
+  - Inactivity reset on any pointer down, key down, or focus event.
+- **Restricted to Video Library & Configurable in Settings (`src/routes/index.tsx`, `src/utils/appSettings.ts`)**:
+  - By default, auto-timeout is applied exclusively to the "Video Library" accordion (`panelId === "library"`).
+  - Added persistence functions `getVideoLibraryTimeoutSetting` and `setVideoLibraryTimeoutSetting`.
+  - Added user toggle in the Settings accordion (`data-testid="setting-video-library-timeout"`).
+- **Dedicated Automated Test**: Added `scripts/verify-accordion-timeout-hourglass.ts` (`npm run test:accordion-timeout-hourglass`, 100% PASS).
+
+## Task 270: Chapter 4 - Special Characters Removal Under Settings
+- **Embedded Under Settings (`src/routes/index.tsx`)**:
+  - Moved `SpecialCharactersRemovalPanel` controls under the Settings accordion (`panelId === "playback"`), wrapping it in a dedicated `data-testid="settings-chars-removal-container"` section.
+- **Pipeline Integrity**:
+  - Preserved the Stage 3 execution order (Chars Removal before sentence splitting and translation).
+  - Maintained full parity with Beginner mode and backward compatibility.
+- **Dedicated Automated Test**: Added `scripts/verify-chars-removal-under-settings.ts` (`npm run test:chars-removal-under-settings`, 100% PASS).
+
+
+## Task 269: Chapter 3 - Robust Video ID Extraction from Subtitles URLs
+- **Comprehensive Video ID Extraction (`src/utils/urlStateManager.ts`)**:
+  - Enhanced `extractVideoIdFromSubtitlesUrl` to decode URL-encoded components, extract `v` query params from timedtext endpoints, parse fixture paths (`/fixtures/<id>/...` and `fixtures/<id>/...`), and resolve embedded `subtitles_url` parameters.
+- **Universal YouTube Parser Integration (`src/utils/youtube.ts`)**:
+  - Added timedtext and fixture patterns to `parseYouTubeUrl` so pasting any subtitles or fixture link directly resolves the corresponding YouTube video ID.
+- **Dedicated Automated Test**: Added `scripts/verify-video-id-extraction.ts` (`npm run test:video-id-extraction`, 100% PASS).
+
+
+## Task 268: Chapter 2 - Route <-> App State Two-Way Synchronization
+- **App State -> Route Synchronization**:
+  - Implemented reactive synchronization in `src/routes/index.tsx` via `syncAppStateToUrl` from `src/utils/urlStateManager.ts`.
+  - Seamlessly updates browser URL query parameters (`v`, `subtitles_url`, `target_lang`, `tts`) on state change without triggering page reloads.
+- **Route -> App State Synchronization**:
+  - Updated `handlePopState` in `src/routes/index.tsx` and `parseShareableUrlState` to reliably reconstruct active video ID, default subtitles URL, target languages, and TTS state when browser history (back/forward) or URL parameters change.
+- **Dedicated Automated Test**: Added `scripts/verify-route-app-state-sync.ts` (`npm run test:route-app-state-sync`, 100% PASS).
+
+
+## Task 267: Chapter 1 - Minimal URL Sharing, State Reproduction & Shared Language Tagging
+- **Minimal URL Sharing**: Verified and updated `createShareableLink` in `src/utils/urlStateManager.ts` to output minimal links (`?v=...&subtitles_url=...&target_lang=...`) without duplicated or redundant keys.
+- **Shared Target Language Tagging per Video**:
+  - Implemented `recordSharedLanguageForVideo`, `getSharedLanguagesForVideo`, and `isSharedLanguageForVideo` in `src/utils/favoriteLanguagesRules.ts`.
+  - When opening a shared link, incoming `target_lang` / `target_langs` are automatically added to `favoriteLanguages` and tagged as `(shared)` for that specific video.
+  - Rendered `(shared)` badge (`data-testid="shared-lang-badge-[code]"`) beside the language name in `unified-languages-table` and `LanguageBoxesSelector`.
+- **Dedicated Automated Test**: Added `scripts/verify-shared-language-tagging.ts` (`npm run test:shared-language-tagging`, 100% PASS).
+
+
+## Task 266: Review and Summarize Past Ignored PRs/Commits (168864b & 8ca73f5)
+- **Analyzed Commit 1 (`168864b83a31b843911ac00e12bc47e3834645ce`)**: Checked out patch for minimal URL sharing, video ID extraction from subtitles URL, stripping bloated parameters, and state reproduction. Identified reasons for divergence with subsequent refactorings.
+- **Analyzed Commit 2 (`8ca73f52e9c6266ed1131f06d22340994b4fccbb`)**: Inspected version bump to 2.0.0 across all 5 targets and `scripts/verify-v2-version-bump.ts`.
+- **Validation**: Detailed summary and options provided to the user.
+
+## Task 265: Refined Language Settings (Rate Dropdown 0.5-1.0, Main Settings Rate, Clickable Language Name for Primary, Remove Speech Test Button) & Version Bump (2.0.32)
+- **Clickable Language Name for Primary**: Made language name clickable to toggle Primary status in unified table, removing the dedicated Primary column.
+- **Removed Pronounce Test Play Button**: Cleaned up the pronunciation play button beside language names.
+- **Rate Dropdown (0.5 to 1.0)**: Replaced slider with clear dropdown options (0.5x to 1.0x) in unified table, settings, and beginner mode.
+- **Main Settings Rate Control**: Integrated speech rate control directly in main Settings.
+- **Version Bump**: Updated version to 2.0.32 across package.json, build.gradle.kts, appConfig.ts, apkUpdater.ts, and appSettings.ts.
+- **Dedicated Automated Test**: Added `scripts/verify-refined-language-settings.ts` (100% pass).
+
+
 ## Task 264: Unified Languages Table & Version Bump (2.0.31)
 
 - **Single Unified Element for All Language Settings**:

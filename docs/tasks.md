@@ -4,12 +4,26 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 265: Refined Language Settings (Rate Dropdown 0.5-1.0, Main Settings Rate, Clickable Language Name for Primary, Remove Speech Test Button) & Version Bump (2.0.32)**
-  - Subtask 265.1: Make language name clickable to set Primary in unified table, remove dedicated Primary column, and remove speech test play button.
-  - Subtask 265.2: Replace speech rate slider with 0.5 to 1.0 dropdown in unified table and Beginner mode, and allow updating speech rate in main settings.
-  - Subtask 265.3: Update application version across all 5 targets to `2.0.32` (versionCode `20032`).
-  - Subtask 265.4: Author dedicated verification test `scripts/verify-refined-language-settings.ts`, update `scripts/verify-unified-languages-table.ts`, and register in `package.json` and `docs/files.md`.
-  - Subtask 265.5: Validate with test suite, `compile_applet`, `lint_applet`, and migrate to `docs/done.md`.
+- [ ] **Task 272: Chapter 6 - Diagnostics & Explanation for Unexplained Video Pauses**
+  - Subtask 272.1: Investigate and document all sources of automated video pauses (TTS speech synchronization wait, auto-pause loop, rate limiting, buffering, background audio focus).
+  - Subtask 272.2: Add visible on-screen status/toast explanation ("Video paused: waiting for [Language] speech synthesis to finish" etc.) whenever video is automatically paused.
+  - Subtask 272.3: Document findings and add automated verification test `scripts/verify-video-pause-explanations.ts`.
+
+- [ ] **Task 273: Chapter 7 - Language Accordion UX: Remove Star Icon, Clarify Global Favorite, Add Disclaimer, Simple Non-Icon Favorite Toggle**
+  - Subtask 273.1: Remove star icon from language entries.
+  - Subtask 273.2: Clarify global-favorite concept in UI; provide easy non-icon "Add to Favorites" button/checkbox.
+  - Subtask 273.3: Add clear disclaimer note stating the list of available authentic subtitle languages is limited to the demo example (`L2Ryrr6txwA`) in web-demo mode.
+  - Subtask 273.4: Add automated test `scripts/verify-language-accordion-ux.ts`.
+
+- [ ] **Task 274: Chapter 8 - Top Screen Title & Description Based on Video Title & Description**
+  - Subtask 274.1: Bind top screen header title and description dynamically to the active video's metadata (title & description), updating when video changes.
+  - Subtask 274.2: Add automated verification test `scripts/verify-top-screen-video-metadata.ts`.
+
+- [ ] **Task 275: Version Bump to 2.0.33 & Final Verification Audit**
+  - Subtask 275.1: Bump version to 2.0.33 across all 5 targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask 275.2: Run lint, compile, full test suite, and audit.
+
+
 
 ## Later Tasks
 

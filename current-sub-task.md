@@ -1,7 +1,7 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Task**: Task 265: Refined Language Settings (Rate Dropdown 0.5-1.0, Main Settings Rate, Clickable Language Name for Primary, Remove Speech Test Button) & Version Bump (2.0.32)
-- **Active Subtask**: Subtask 265.1: Make language name clickable to set Primary in unified table, remove dedicated Primary column, and remove speech test play button.
+- **Task**: Task 272: Chapter 6 - Diagnostics & Explanation for Unexplained Video Pauses
+- **Active Subtask**: Subtask 272.1 & 272.2: Add auto-pause reason state, clear on resume, and display on-screen explanation badge/banner so the user always knows why the video was paused.
 - **Status**: [IN PROGRESS]
-- **Target Files**: `src/routes/index.tsx`
-- **Validation**: `compile_applet`, `lint_applet`
+- **Target Files**: `src/routes/index.tsx`, `scripts/verify-video-pause-explanations.ts`
+- **Validation**: `npx tsx scripts/verify-video-pause-explanations.ts`, `lint_applet`, `compile_applet`

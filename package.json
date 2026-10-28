@@ -23,7 +23,15 @@
     "test:subtitle-language-columns": "tsx scripts/verify-subtitle-language-columns.ts",
     "test:beginner-vs-advanced-video": "tsx scripts/verify-beginner-vs-advanced-video.ts",
     "test:minimal-share-url": "tsx scripts/verify-minimal-share-url.ts",
+    "test:shared-language-tagging": "tsx scripts/verify-shared-language-tagging.ts",
+    "test:route-app-state-sync": "tsx scripts/verify-route-app-state-sync.ts",
+    "test:video-id-extraction": "tsx scripts/verify-video-id-extraction.ts",
+    "test:chars-removal-under-settings": "tsx scripts/verify-chars-removal-under-settings.ts",
     "test:v2-version-bump": "tsx scripts/verify-v2-version-bump.ts",
+
+
+
+
     "test:share-state-reproduction": "tsx scripts/verify-share-state-reproduction.ts",
     "test:mainactivity-repetition-scope": "tsx scripts/verify-android-mainactivity-repetition-scope.ts",
     "test:subtitles-url-encoding": "tsx scripts/verify-subtitles-url-encoding-in-share-link.ts",
@@ -232,6 +240,7 @@
     "test:remove-non-relevant-per-language-panel": "tsx scripts/verify-remove-non-relevant-per-language-panel.ts",
     "test:unified-languages-table": "tsx scripts/verify-unified-languages-table.ts",
     "test:refined-language-settings": "tsx scripts/verify-refined-language-settings.ts",
+    "test:accordion-timeout-hourglass": "tsx scripts/verify-accordion-timeout-hourglass.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {
