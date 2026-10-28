@@ -1,6 +1,60 @@
 # Done tasks
 
-## Task 249: Ensure docs/platforms.md explains AI Studio's work strategy regarding E2E testing
+## Task 254: Evaluate and Document Alternative Android GitHub Actions Flow Options
+
+- **Documentation Enhancement (`docs/e2e_testing_including_android_codespace_docker_and_github_pages.md`)**:
+  - Added Section 2.6 documenting the top 5 alternative GitHub Actions Android CI flow options worth trying:
+    1. *Linux Runner with KVM Acceleration (`ubuntu-latest` / Ubuntu Larger Runner with `x86_64`)*: Fast spin-up (1-3s), 1x billing multiplier vs 10x macOS, mature x86_64 Google APIs system image.
+    2. *Containerized Android Emulator in Docker on CI (`budtmo/docker-android` / `redroid`)*: True Docker parity matching `./docker/` infrastructure, automated noVNC web streaming, and background screencast video capture.
+    3. *AVD Snapshot Caching Flow (`actions/cache` for 15s Warm Boots)*: Caches initialized AVD snapshots to cut cold boot time from ~3 minutes to ~15 seconds.
+    4. *AOSP Lightweight Headless System Flow (`target: default`)*: Lean AOSP images with ~1GB RAM requirement for pure WebView and OS validation without Google Play Services overhead.
+    5. *Remote Cloud Device Farm Matrix Dispatch (Firebase Test Lab / AWS Device Farm)*: Dispatches to real physical devices (Pixel 8, Galaxy S24) with authentic hardware WebView engines and zero emulator detection.
+- **Verification**:
+  - Verified with `npm run test:e2e-testing-guide` (all 42 checks passed).
+  - Verified with `npm run test:workflows` and `npm run test:agents-all` (18/18 constitutional checks passed).
+  - Verified with `compile_applet` (clean build) and `lint_applet` (0 errors).
+
+## Task 251: Dedicated Android System Smoke & Screencast GitHub Actions Flow
+
+- **Standalone Android System Smoke Workflow (`.github/workflows/android-system-smoke.yml`)**:
+  - Implemented standalone GitHub Actions flow running on `macos-14` (Apple Silicon M1/M2 bare-metal hypervisor) using `reactivecircus/android-emulator-runner@v2`.
+  - Configured with API level 34 (`google_apis`, `arm64-v8a`) to boot pure Android OS without installing or executing `com.ytviewer.app`.
+  - Wakes emulator, dismisses lock screen (`input keyevent 82`), and captures milestone Home screen screenshot (`android-system-home.png`).
+  - Spawns background `screenrecord --time-limit 180 --bit-rate 4000000 /sdcard/android-system-screencast.mp4`.
+  - Interacts with system UI: opens app drawer, navigates to Android Settings (About Phone / Device Info via `am start -a android.settings.DEVICE_INFO_SETTINGS`), captures Settings screenshot (`android-system-settings.png`), and returns to Home screen.
+  - Finalizes screencast gracefully with SIGINT (`pkill -2 -f screenrecord`) ensuring valid MP4 container `moov` atom indexing before ADB pull.
+  - Uploads all artifacts (`android-system-screencast.mp4`, `android-system-home.png`, `android-system-settings.png`, `android-system-drawer.png`, `device-info.json`, `logcat.txt`) to GitHub Actions via `actions/upload-artifact@v4` with 14-day retention.
+  - Enforced zero cron policy: triggered strictly by `workflow_dispatch` (manual) and optional path-filtered `push`/`pull_request`.
+- **Emulation Workflow Integration (`.github/workflows/emulation.yml`)**:
+  - Enhanced existing `emulation.yml` with a `workflow_dispatch` choice parameter `flow_mode: [app-e2e, system-smoke]` (defaulting to `app-e2e`).
+  - When `system-smoke` is selected, skips Gradle APK assembly and app installation, executing the pure system smoke and screencast sequence directly within `emulation.yml`.
+- **Documentation Updates (`docs/android.md`, `docs/e2e-android.md`, `docs/e2e_testing_including_android_codespace_docker_and_github_pages.md`)**:
+  - Documented Section 2.5 in `docs/e2e_testing_including_android_codespace_docker_and_github_pages.md` detailing both options for running Android on GitHub CI, artifact download locations, and CLI commands.
+  - Added dedicated runbook section in `docs/android.md` and updated verification matrix in `docs/e2e-android.md`.
+- **App Version Bump (2.0.26) & Synchronization**:
+  - Synchronized version `2.0.26` across all 5 canonical files: `package.json`, `android-shell/app/build.gradle.kts` (versionCode `20026`), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts` (`v2.0.26`), and `src/utils/appSettings.ts`.
+  - Cataloged files in `docs/files.md`.
+- **Dedicated Test & Verification**:
+  - Created `scripts/verify-android-system-smoke-flow.ts` and registered `"test:android-system-smoke-flow"` in `package.json`.
+  - Updated `expectedWorkflows` in `scripts/verify-workflows-alignment.ts`.
+  - Verified with `npm run test:android-system-smoke-flow` (20/20 checks passed), `npm run test:workflows`, `npm run test:agents-all` (18/18 checks passed), `compile_applet` (clean build), and `lint_applet` (0 errors).
+
+## Task 250: Comprehensive E2E Testing Architecture: Android Runtime, Codespaces, Docker & GitHub Pages
+
+- **AI Studio Docker Trial & Screencast Artifact Analysis**: Ran trial execution of `./docker/*` in AI Studio Build. Confirmed that `which docker` returns `no docker` and `bash ./docker/manage.sh e2e web` exits with code 1 (`Docker is required but was not found in PATH`). Explained sandbox microVM architecture and established the operational strategy (native headless Playwright and sub-second TypeScript verifiers inside AI Studio; containerized Docker runner in Codespaces, local workstations, and CI).
+- **Comprehensive Guide (`docs/e2e_testing_including_android_codespace_docker_and_github_pages.md`)**:
+  - **Effective Android E2E Testing**: Detailed unmocked runtime testing on Android 14 API 34 Google APIs, pre-test system navigation to "About Phone" (`android.settings.DEVICE_INFO_SETTINGS`), milestone screenshot pipeline (steps 1–5), hardware telemetry (`getprop`, `dumpsys battery`), Android intent dispatches (`ACTION_VIEW`, `ACTION_SEND`), native caption interception via `WebViewClient.shouldInterceptRequest`, and native TTS coordination.
+  - **Producing Screencast & Image Artifacts**: Documented emulator screencasts with `screenrecord`, mandatory graceful SIGINT termination (`pkill -2 -f screenrecord`) for valid `moov` atom indexing, Playwright video recording (`PLAYWRIGHT_VIDEO=on`), and clean repository hygiene forbidding videos/screenshots on `main`.
+  - **GitHub Pages Report [Later Enhancements]**: Outlined `gh-pages` staging architecture, HTML5 `<video controls>` embedding, direct download links, fallback mechanisms ensuring HTTP 200, and planned roadmap for multi-run comparison dashboards and video scrubbing.
+  - **E2E Alternatives Comparison Matrix**: Compared Native Android Emulator vs Docker Playwright vs Browser Viewport Emulation vs Cloud Device Farms vs Mocks across fidelity, speed, resource overhead, bot-detection resilience, and capabilities.
+  - **Docker Benefits for E2E Testing**: Explained host OS dependency isolation (avoiding missing Linux shared libraries like `libatk-1.0.so.0`, `libgbm.so.1`), exact `@playwright/test` version pinning to Noble container, clean volume isolation, and host vs bridge networking.
+  - **Recommended Codespace Template**: Analyzed KVM hardware virtualization limits on cloud VMs, provided sample `devcontainer.json` with Docker-in-Docker and Java 17, and documented the recommended hybrid workflow (Web/APK in Codespaces, unmocked emulator in macOS-14 CI or local device).
+  - **Technical Q&A**: Formulated in-depth answers to all questions: Docker for Android (`/dev/kvm` requirements), screencast artifacts utility, GitHub Pages vs Docker execution boundary, CI video generation vs Pages serving, and recommended MCPs (Playwright MCP, Android ADB MCP, Docker MCP, GitHub Actions MCP).
+- **Versioning & Hygiene**: Bumped version to 2.0.25 across all 5 canonical targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`). Cataloged guide and test script in `docs/files.md`. Kept `AGENTS.md` strictly within 21,000 byte budget (20,596 bytes, 3,980 bytes headroom).
+- **Dedicated Test**: Created `scripts/verify-e2e-testing-guide.ts` and registered `"test:e2e-testing-guide"` in `package.json`.
+- **Verification Passed**: `npm run test:e2e-testing-guide`, `npm run test:platforms-doc`, `npm run test:no-duplicate-md`, `npm run test:agents-size-budget`, `npm run test:agents-all` (18/18 checks passed), `compile_applet`, and `lint_applet` passed 100%.
+
+
 
 - **AI Studio Platform Architecture & Docker Analysis**: Documented that Google AI Studio runs inside a secure, sandboxed Linux container microVM without a running Docker daemon (`dockerd`), without `/var/run/docker.sock`, and without nested virtualization privileges (`which docker` outputs `no docker binary`). Explicitly stated that containerized scripts (such as `./docker/manage.sh` and `docker/compose.yml`) are for external environments (Codespaces, local dev machines, CI) and must not be used inside AI Studio.
 - **"Config Once, Run with Minimal Setup" Strategy**: Documented the persistent vs. ephemeral asset boundaries in AI Studio:

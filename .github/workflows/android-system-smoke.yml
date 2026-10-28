@@ -1,0 +1,190 @@
+name: Android System Smoke & Screencast
+
+on:
+  workflow_dispatch:
+    inputs:
+      record_seconds:
+        description: "Duration of screencast in seconds (max 180)"
+        required: false
+        default: "30"
+        type: string
+  push:
+    paths:
+      - '.github/workflows/android-system-smoke.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/android-system-smoke.yml'
+
+concurrency:
+  group: android-system-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  android-system-smoke:
+    name: Pure Android OS Boot & Screencast (No App Execution)
+    runs-on: macos-14
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Android System Smoke on Emulator
+        id: system_smoke
+        timeout-minutes: 15
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: arm64-v8a
+          force-avd-creation: true
+          ram-size: 2048M
+          emulator-boot-timeout: 600
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            echo "=== 1. Device Presence & Initial Setup ==="
+            adb devices
+            adb shell input keyevent KEYCODE_WAKEUP 2>/dev/null || true
+            adb shell wm dismiss-keyguard 2>/dev/null || true
+            adb shell settings put system accelerometer_rotation 0 2>/dev/null || true
+
+            echo "=== 2. Collecting System Telemetry ==="
+            DEVICE_MODEL=$(adb shell getprop ro.product.model 2>/dev/null || echo "Android Device")
+            DEVICE_MANUFACTURER=$(adb shell getprop ro.product.manufacturer 2>/dev/null || echo "Google")
+            DEVICE_BRAND=$(adb shell getprop ro.product.brand 2>/dev/null || echo "google")
+            DEVICE_API=$(adb shell getprop ro.build.version.sdk 2>/dev/null || echo "34")
+            DEVICE_RELEASE=$(adb shell getprop ro.build.version.release 2>/dev/null || echo "14")
+            DEVICE_ABI=$(adb shell getprop ro.product.cpu.abi 2>/dev/null || echo "arm64-v8a")
+            DEVICE_RESOLUTION=$(adb shell wm size 2>/dev/null | grep -oE '[0-9]+x[0-9]+' | head -n 1 || echo "1080x2400")
+            DEVICE_DENSITY=$(adb shell wm density 2>/dev/null | grep -oE '[0-9]+' | head -n 1 || echo "420")
+
+            cat <<EOF > android-system-device-info.json
+            {
+              "type": "pure-android-system-smoke",
+              "serial": "emulator-5554",
+              "manufacturer": "${DEVICE_MANUFACTURER}",
+              "brand": "${DEVICE_BRAND}",
+              "model": "${DEVICE_MODEL}",
+              "androidVersion": "${DEVICE_RELEASE}",
+              "apiLevel": "${DEVICE_API}",
+              "abi": "${DEVICE_ABI}",
+              "resolution": "${DEVICE_RESOLUTION}",
+              "density": "${DEVICE_DENSITY}",
+              "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+              "appExecution": "none (pure OS smoke)"
+            }
+            EOF
+            cat android-system-device-info.json
+
+            echo "=== 3. Capturing Initial Home Screen Screenshot ==="
+            adb shell input keyevent KEYCODE_HOME
+            sleep 2
+            adb shell screencap -p /sdcard/android-system-home.png
+            adb pull /sdcard/android-system-home.png ./android-system-home.png
+
+            echo "=== 4. Starting Android System Screencast Recording ==="
+            adb shell rm -f /sdcard/android-system-screencast.mp4 2>/dev/null || true
+            RECORD_TIME="${{ inputs.record_seconds || '30' }}"
+            adb shell screenrecord --time-limit "$RECORD_TIME" --bit-rate 4000000 /sdcard/android-system-screencast.mp4 >/tmp/screenrecord.log 2>&1 &
+            RECORD_PID=$!
+
+            cleanup_recording() {
+              RESULT=$?
+              trap - EXIT INT TERM
+              set +e
+              echo "Stopping adb screenrecord gracefully with SIGINT (writing moov atom)..."
+              adb shell pkill -2 -f screenrecord
+              wait "$RECORD_PID" 2>/dev/null || true
+              sleep 3
+              adb pull /sdcard/android-system-screencast.mp4 ./android-system-screencast.mp4
+              if [ -f ./android-system-screencast.mp4 ] && [ -s ./android-system-screencast.mp4 ]; then
+                FILE_SIZE=$(wc -c < ./android-system-screencast.mp4 2>/dev/null | tr -d ' ' || echo 0)
+                echo "Successfully pulled android-system-screencast.mp4 (${FILE_SIZE} bytes)"
+              else
+                echo "::warning::adb screenrecord did not produce non-empty MP4. Diagnostic log:"
+                cat /tmp/screenrecord.log 2>/dev/null || true
+              fi
+              adb logcat -d > ./android-system-logcat.txt 2>/dev/null || true
+              exit "$RESULT"
+            }
+            trap cleanup_recording EXIT
+            trap 'exit 130' INT
+            trap 'exit 143' TERM
+
+            echo "=== 5. Interacting with Pure Android System UI ==="
+            echo "Navigating to App Drawer..."
+            adb shell input swipe 540 1800 540 600 300
+            sleep 2
+            adb shell screencap -p /sdcard/android-system-drawer.png
+            adb pull /sdcard/android-system-drawer.png ./android-system-drawer.png || true
+
+            echo "Returning to Home Screen..."
+            adb shell input keyevent KEYCODE_HOME
+            sleep 1
+
+            echo "Launching Android Settings (About Phone)..."
+            adb shell am start -a android.settings.DEVICE_INFO_SETTINGS 2>/dev/null || adb shell am start -a android.settings.SETTINGS
+            sleep 3
+            adb shell screencap -p /sdcard/android-system-settings.png
+            adb pull /sdcard/android-system-settings.png ./android-system-settings.png
+
+            echo "Navigating Back to Home..."
+            adb shell input keyevent KEYCODE_BACK
+            sleep 1
+            adb shell input keyevent KEYCODE_HOME
+            sleep 2
+
+            adb shell screencap -p /sdcard/android-system-screenshot.png
+            adb pull /sdcard/android-system-screenshot.png ./android-system-screenshot.png
+
+      - name: Verify Generated Artifacts
+        if: always()
+        run: |
+          echo "=== Auditing Produced Android System Artifacts ==="
+          ls -la android-system-* 2>/dev/null || echo "No artifacts matching android-system-*"
+          if [ -f "./android-system-screencast.mp4" ] && [ -s "./android-system-screencast.mp4" ]; then
+            echo "✅ Verified Screencast MP4: $(wc -c < ./android-system-screencast.mp4) bytes"
+          fi
+          if [ -f "./android-system-home.png" ] && [ -s "./android-system-home.png" ]; then
+            echo "✅ Verified Home Screenshot: $(wc -c < ./android-system-home.png) bytes"
+          fi
+          if [ -f "./android-system-settings.png" ] && [ -s "./android-system-settings.png" ]; then
+            echo "✅ Verified Settings Screenshot: $(wc -c < ./android-system-settings.png) bytes"
+          fi
+
+      - name: Publish Android System Summary
+        if: always()
+        run: |
+          {
+            echo "## Android System Smoke & Screencast Result"
+            echo ""
+            echo "Tested pure Android OS (API 34 Google APIs) boot and system navigation without running the repository application."
+            echo ""
+            echo "### Generated Artifacts:"
+            echo "- **Screencast Video**: \`android-system-screencast.mp4\`"
+            echo "- **Home Screen Capture**: \`android-system-home.png\`"
+            echo "- **Settings Screen Capture**: \`android-system-settings.png\`"
+            echo "- **System Telemetry**: \`android-system-device-info.json\`"
+            echo "- **System Logcat**: \`android-system-logcat.txt\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Android System Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-system-artifacts
+          path: |
+            android-system-screencast.mp4
+            android-system-home.png
+            android-system-settings.png
+            android-system-drawer.png
+            android-system-screenshot.png
+            android-system-device-info.json
+            android-system-logcat.txt
+          if-no-files-found: warn
+          retention-days: 14

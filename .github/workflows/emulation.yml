@@ -14,6 +14,15 @@ on:
       - main
       - master
   workflow_dispatch:
+    inputs:
+      flow_mode:
+        description: "Android Execution Flow Mode"
+        required: false
+        default: "app-e2e"
+        type: choice
+        options:
+          - "app-e2e"
+          - "system-smoke"
 
 concurrency:
   group: emulator-e2e-${{ github.ref }}
@@ -175,9 +184,6 @@ jobs:
               "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
             }
             EOF
-            adb install -r android-shell/app/build/outputs/apk/debug/app-debug.apk
-            adb shell pm clear com.ytviewer.app
-
             rm -f ./android-emulator-video.mp4
             adb shell rm -f /sdcard/android-emulator-video.mp4 2>/dev/null || true
             echo "Starting authentic Android emulator screenrecord..."
@@ -208,10 +214,26 @@ jobs:
             trap 'exit 130' INT
             trap 'exit 143' TERM
 
-            adb shell am start -a android.intent.action.VIEW -n com.ytviewer.app/.MainActivity -d "https://www.youtube.com/watch?v=vBURridJXZ0"
-            adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png || true
-            bash scripts/android-e2e-assert.sh
-            adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png
+            FLOW_MODE="${{ inputs.flow_mode || 'app-e2e' }}"
+            if [ "$FLOW_MODE" = "system-smoke" ]; then
+              echo "=== Executing Pure Android System Smoke Mode (Skipping App Launch) ==="
+              adb shell input keyevent KEYCODE_HOME
+              sleep 2
+              adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png || true
+              adb shell am start -a android.settings.DEVICE_INFO_SETTINGS 2>/dev/null || true
+              sleep 3
+              adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png
+              adb shell input keyevent KEYCODE_BACK
+              sleep 1
+              adb shell input keyevent KEYCODE_HOME
+            else
+              adb install -r android-shell/app/build/outputs/apk/debug/app-debug.apk
+              adb shell pm clear com.ytviewer.app
+              adb shell am start -a android.intent.action.VIEW -n com.ytviewer.app/.MainActivity -d "https://www.youtube.com/watch?v=vBURridJXZ0"
+              adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png || true
+              bash scripts/android-e2e-assert.sh
+              adb shell screencap -p /sdcard/screen.png; adb pull /sdcard/screen.png ./android-emulator-screenshot.png
+            fi
 
       - name: Verify Authentic Android E2E Artifacts (Screenshots & Telemetry)
         if: always()
