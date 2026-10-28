@@ -136,15 +136,23 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1.the rate should be 0.5 to 1.0 (and allow to update it on the main settings)
-2. use dropdown to set rate
-3. to set primary click on the language name (no need to use entire column)
-4. no need the play button which pronounce the language name.
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(3)
-CSS 1: {
+1. ensure the app implemented minimal URL sharing and state reproduction.
+the shared target_lang is to be added to the favorite languages and be tagged as (shared) for the spacific video.
 
-}
-[AIS_METADATA_SECTION_END]
+2. route <-> app state : ensure url can update site and vise versa
+
+3. extract the video id from the subtitles url
+
+4. Special characters removal - mv under settings
+
+5. accordion timeout - change to 10 seconds and add a sand-time icon and use it as progress bar to indicate time progress till 0. - use the timeout only for the following accordions (allow to change on settings): "video library"
+
+6. sometimes the video is paused without any explanation - what can be the reason?
+
+7. language accordion: its not clear what is global-favorite and its not clear why we need a star icon - remove it. in case the list of languages is limited to the demo example - please disclaim about it. adding a language to the favorite languages list should be easy and not use any icon.
+
+
+8. top screen - the text should be based on the video title& description
 ```
+
+

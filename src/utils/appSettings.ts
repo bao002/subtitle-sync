@@ -1039,3 +1039,23 @@ export function setRemoveCharsSetting(chars: string[]): void {
     // Ignore storage errors
   }
 }
+
+export const VIDEO_LIBRARY_TIMEOUT_KEY = "yt_video_library_timeout_enabled";
+
+export function getVideoLibraryTimeoutSetting(): boolean {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return true;
+    const val = window.localStorage.getItem(VIDEO_LIBRARY_TIMEOUT_KEY);
+    return val !== null ? val === "true" || val === "1" : true;
+  } catch {
+    return true;
+  }
+}
+
+export function setVideoLibraryTimeoutSetting(enabled: boolean): void {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return;
+    window.localStorage.setItem(VIDEO_LIBRARY_TIMEOUT_KEY, enabled ? "true" : "false");
+  } catch {}
+}
+

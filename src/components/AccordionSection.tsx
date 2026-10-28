@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp, Columns2, Pin, PinOff } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { ChevronDown, ChevronUp, Columns2, Pin, PinOff, Hourglass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type PanelId, ACCORDION_THEMES } from "@/config/accordionThemes";
 
-const ACCORDION_AUTO_FOLD_MS = 5_000;
+export const ACCORDION_AUTO_FOLD_SECONDS = 10;
+export const ACCORDION_AUTO_FOLD_MS = ACCORDION_AUTO_FOLD_SECONDS * 1_000;
 
 export interface AccordionSectionProps {
   id: PanelId;
@@ -18,6 +19,7 @@ export interface AccordionSectionProps {
   canMoveDown: boolean;
   wide?: boolean;
   onToggleWide?: () => void;
+  autoTimeout?: boolean;
 }
 
 export function AccordionSection({
@@ -33,6 +35,7 @@ export function AccordionSection({
   canMoveDown,
   wide = false,
   onToggleWide,
+  autoTimeout,
 }: AccordionSectionProps) {
   const theme = ACCORDION_THEMES[id] || {
     borderLeft: "border-l-4 border-l-neutral-500",
@@ -41,7 +44,10 @@ export function AccordionSection({
     dotBg: "bg-neutral-500",
     tagColor: "neutral",
   };
-  // Auto-fold an open, unpinned section after five seconds without interaction.
+
+  // Timeout is only active for video library by default, unless explicitly passed via autoTimeout prop
+  const isTimeoutActive = autoTimeout !== undefined ? autoTimeout : id === "library";
+
   const pinKey = `yt_accordion_pinned_${id}`;
   const [pinned, setPinned] = useState(false);
   useEffect(() => {
@@ -51,13 +57,35 @@ export function AccordionSection({
       // ignore storage errors
     }
   }, [pinKey]);
-  const [activityTick, setActivityTick] = useState(0);
+
+  const [timeLeft, setTimeLeft] = useState<number>(ACCORDION_AUTO_FOLD_SECONDS);
+  const startTimeRef = useRef<number>(Date.now());
+
+  const markActivity = () => {
+    startTimeRef.current = Date.now();
+    setTimeLeft(ACCORDION_AUTO_FOLD_SECONDS);
+  };
+
   useEffect(() => {
-    if (!open || pinned) return;
-    const timer = window.setTimeout(() => onOpenChange(false), ACCORDION_AUTO_FOLD_MS);
-    return () => window.clearTimeout(timer);
-  }, [open, pinned, activityTick, onOpenChange]);
-  const markActivity = () => setActivityTick((t) => t + 1);
+    if (!open || pinned || !isTimeoutActive) return;
+
+    startTimeRef.current = Date.now();
+    setTimeLeft(ACCORDION_AUTO_FOLD_SECONDS);
+
+    const interval = window.setInterval(() => {
+      const elapsed = (Date.now() - startTimeRef.current) / 1000;
+      const remaining = Math.max(0, ACCORDION_AUTO_FOLD_SECONDS - elapsed);
+      setTimeLeft(remaining);
+
+      if (remaining <= 0) {
+        window.clearInterval(interval);
+        onOpenChange(false);
+      }
+    }, 100);
+
+    return () => window.clearInterval(interval);
+  }, [open, pinned, isTimeoutActive, onOpenChange]);
+
   const togglePinned = () => {
     setPinned((p) => {
       try {
@@ -68,6 +96,7 @@ export function AccordionSection({
       return !p;
     });
   };
+
 
   return (
     <details
@@ -99,7 +128,36 @@ export function AccordionSection({
             aria-hidden="true"
           />
         </h2>
+        {isTimeoutActive && open && !pinned && (
+          <div
+            data-testid={`accordion-timeout-container-${id}`}
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-muted/70 border border-border/50 text-[10px] text-muted-foreground font-mono mr-1"
+            title={`Auto-folds in ${Math.ceil(timeLeft)}s without interaction`}
+          >
+            <Hourglass
+              data-testid={`accordion-hourglass-icon-${id}`}
+              className="size-3 text-amber-500 animate-pulse shrink-0"
+              aria-hidden="true"
+            />
+            <div className="w-12 h-1.5 bg-muted-foreground/20 rounded-full overflow-hidden shrink-0">
+              <div
+                data-testid={`accordion-timeout-progress-${id}`}
+                className="h-full bg-amber-500 transition-all duration-100 ease-linear rounded-full"
+                style={{
+                  width: `${Math.max(0, Math.min(100, (timeLeft / ACCORDION_AUTO_FOLD_SECONDS) * 100))}%`,
+                }}
+              />
+            </div>
+            <span
+              data-testid={`accordion-timeout-countdown-${id}`}
+              className="tabular-nums font-bold text-foreground/80"
+            >
+              {Math.ceil(timeLeft)}s
+            </span>
+          </div>
+        )}
         <Button
+
           type="button"
           variant="ghost"
           size="icon"

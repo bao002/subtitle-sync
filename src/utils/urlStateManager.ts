@@ -54,6 +54,18 @@ export interface CreateShareableLinkOptions {
 export function extractVideoIdFromSubtitlesUrl(subtitlesUrl?: string | null): string | null {
   if (!subtitlesUrl || typeof subtitlesUrl !== "string") return null;
   const trimmed = subtitlesUrl.trim();
+  if (!trimmed) return null;
+
+  // Handle URL-encoded strings (e.g. subtitles_url=https%3A%2F%2F...)
+  try {
+    if (trimmed.includes("%2F") || trimmed.includes("%3D") || trimmed.includes("%3F")) {
+      const decoded = decodeURIComponent(trimmed);
+      if (decoded !== trimmed) {
+        const fromDecoded = extractVideoIdFromSubtitlesUrl(decoded);
+        if (fromDecoded) return fromDecoded;
+      }
+    }
+  } catch {}
 
   // 1. Standard YouTube timedtext query param: ?v=... or &v=...
   try {
@@ -62,6 +74,11 @@ export function extractVideoIdFromSubtitlesUrl(subtitlesUrl?: string | null): st
     if (vParam && /^[a-zA-Z0-9_-]{11}$/.test(vParam)) {
       return vParam;
     }
+    const innerSub = parsed.searchParams.get("subtitles_url") || parsed.searchParams.get("sub_url");
+    if (innerSub && innerSub !== trimmed) {
+      const fromInner = extractVideoIdFromSubtitlesUrl(innerSub);
+      if (fromInner) return fromInner;
+    }
   } catch {}
 
   const vMatch = /[?&]v=([a-zA-Z0-9_-]{11})(?:&|$)/.exec(trimmed);
@@ -69,22 +86,24 @@ export function extractVideoIdFromSubtitlesUrl(subtitlesUrl?: string | null): st
     return vMatch[1];
   }
 
-  // 2. Fixture path: /fixtures/<id>/...
-  const fixtureMatch = /\/fixtures\/([a-zA-Z0-9_-]{11})\//.exec(trimmed);
+  // 2. Fixture path: /fixtures/<id>/... or fixtures/<id>/...
+  const fixtureMatch = /(?:^|\/)fixtures\/([a-zA-Z0-9_-]{11})\//.exec(trimmed);
   if (fixtureMatch && fixtureMatch[1]) {
     return fixtureMatch[1];
   }
 
-  // 3. YouTube embed or watch link in URL
-  const ytMatch = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=))([a-zA-Z0-9_-]{11})/.exec(
-    trimmed,
-  );
+  // 3. YouTube embed, watch, shorts, or live link in URL
+  const ytMatch =
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|live\/|watch\?v=))([a-zA-Z0-9_-]{11})/.exec(
+      trimmed,
+    );
   if (ytMatch && ytMatch[1]) {
     return ytMatch[1];
   }
 
   return null;
 }
+
 
 /**
  * Extracts language code from a timedtext URL (e.g. lang=iw, tlang=he) or fixture URL
@@ -417,11 +436,17 @@ export function createShareableLink(options: CreateShareableLinkOptions): string
     params.set("subtitles_url", rawSubUrl);
   }
 
-  // Minimal mode: emits strictly minimal parameters (v + subtitles_url) per requirement 1
+  // Minimal mode: emits strictly minimal parameters (v + subtitles_url + optional target_lang) per requirement 1
   if (options.minimal) {
+    if (options.targetLang) {
+      params.set("target_lang", options.targetLang.toLowerCase().trim());
+    } else if (options.targetLangs && options.targetLangs.length > 0) {
+      params.set("target_lang", options.targetLangs[0].toLowerCase().trim());
+    }
     const query = params.toString();
     return query ? `${origin}?${query}` : origin;
   }
+
 
   // Non-minimal options (legacy detailed link):
   const sourceLang = (options.sourceLangCode || options.subLang || "").toLowerCase().trim();
@@ -483,6 +508,7 @@ export function syncAppStateToUrl(state: {
   url?: string;
   time?: number;
   targetLang?: string;
+  subtitlesUrl?: string;
   autoTTS?: boolean;
   captionsEnabled?: boolean;
   mode?: "compact" | "expanded";
@@ -501,6 +527,10 @@ export function syncAppStateToUrl(state: {
         params.set("v", state.videoId);
       }
 
+      if (state.subtitlesUrl) {
+        params.set("subtitles_url", state.subtitlesUrl);
+      }
+
       if (typeof state.time === "number" && state.time > 0) {
         params.set("t", Math.floor(state.time).toString());
       } else {
@@ -508,8 +538,9 @@ export function syncAppStateToUrl(state: {
       }
 
       if (state.targetLang) {
-        params.set("lang", state.targetLang);
+        params.set("target_lang", state.targetLang);
       }
+
 
       if (state.autoTTS !== undefined) {
         if (state.autoTTS) {
@@ -540,5 +571,6 @@ export function syncAppStateToUrl(state: {
         window.location.pathname + (queryString ? `?${queryString}` : "") + window.location.hash;
       window.history.replaceState(null, "", newUrl);
     } catch {}
-  }, 350);
+  }, 150);
 }
+

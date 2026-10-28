@@ -314,7 +314,10 @@ export function parseYouTubeUrl(input: string): ParsedYouTubeResult | null {
       /youtube(?:-nocookie)?\.com\/embed\/([a-zA-Z0-9_-]{11})/i,
       /youtube\.com\/(?:v|e|watch)\/([a-zA-Z0-9_-]{11})/i,
       /attribution_link.*v%3D([a-zA-Z0-9_-]{11})/i,
+      /(?:^|\/)fixtures\/([a-zA-Z0-9_-]{11})\//i,
+      /[?&]subtitles_url=.*v%3D([a-zA-Z0-9_-]{11})/i,
     ];
+
 
     for (const pattern of patterns) {
       const match = trimmed.match(pattern);

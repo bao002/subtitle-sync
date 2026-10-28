@@ -22,10 +22,11 @@ import {
 import { parseJson3 } from "../lib/native-captions";
 import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
 import { fetchViaServer } from "../lib/subtitle-fetch-plan";
-import serverConfig from "../config/server.json";
 import { Json3 } from "../types";
+import { isSharedLanguageForVideo } from "@/utils/favoriteLanguagesRules";
 
 export interface LanguageBoxesSelectorProps {
+
   catalog: Array<{ code: string; name: string }>;
   selectedLanguages: string[];
   onSelectionChange: (next: string[]) => void;
@@ -425,6 +426,14 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                         </span>
                       )}
                       <span data-testid="language-box-title" className="truncate text-xs sm:text-sm">{lang.name}</span>
+                      {currentVideoId && isSharedLanguageForVideo(currentVideoId, lang.code) && (
+                        <span
+                          data-testid={`shared-badge-${lang.code}`}
+                          className="text-[9px] font-bold text-blue-400 bg-blue-500/20 border border-blue-500/40 rounded px-1 shrink-0 uppercase"
+                        >
+                          (shared)
+                        </span>
+                      )}
                       {favoriteLanguages.includes(lang.code) && (
                         <span
                           className="text-[10px] text-amber-500 shrink-0"
@@ -433,6 +442,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                           ⭐
                         </span>
                       )}
+
                       {cueCount ? (
                         <span
                           className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 shrink-0 font-medium"
