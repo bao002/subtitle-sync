@@ -1,5 +1,42 @@
 # Done tasks
 
+## Task 256: Chapter 2 - Implement Previous Request Based on New Git Head (`df534d5d004abec616638883b91c2dc6eed87f78`)
+
+- **Reconciliation with Git Head Commit `df534d5d004abec616638883b91c2dc6eed87f78`**:
+  - Reconciled extended workflow dispatch flow options inspired by Appium Android and Appium Inspector across GitHub Actions workflows:
+    - `.github/workflows/emulation.yml`: Added parameterized workflow inputs (`api-level`: 33/34/35, `target`: google_apis/default/aosp_atd, `arch`: arm64-v8a/x86_64, `disable-animations`: boolean, `record-video`: boolean, `emulator-boot-timeout`: string/seconds, `test-filter`: all/captions/playback), and logged execution parameters to `$GITHUB_STEP_SUMMARY`.
+    - `.github/workflows/web.yml`: Added parameterized inputs (`project`: web/emulation/app, `test-filter`: grep string, `retention-days`: 7/14/30), bound inputs to Playwright test execution command, and logged parameters to `$GITHUB_STEP_SUMMARY`.
+    - `.github/workflows/integrity.yml`: Added parameterized inputs (`scope`: all/hygiene/links/contracts, `fail-fast`: boolean), and logged configuration to `$GITHUB_STEP_SUMMARY`.
+  - Added dedicated test suite `scripts/verify-extended-flow-options.ts` and registered `"test:extended-flow-options"` in `package.json` and cataloged in `docs/files.md`.
+- **App Version Bump (2.0.27)**:
+  - Synchronized version `2.0.27` across all 5 canonical targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode `20027`), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts` (`v2.0.27`), and `src/utils/appSettings.ts`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:pending-prs-rule`: PASSED (100%).
+  - `npm run test:extended-flow-options`: PASSED (100%).
+  - `npm run test:android-system-smoke-flow`: PASSED (20/20 checks passed).
+  - `npm run test:e2e-testing-guide`: PASSED (42/42 checks passed).
+  - `npm run test:workflows`: PASSED (100%).
+  - `npm run test:v2-version-bump`: PASSED (100%).
+  - `npm run test:agents-all`: PASSED (19/19 checks passed 100%).
+  - `compile_applet`: PASSED (clean build).
+  - `lint_applet`: PASSED (0 errors).
+
+## Task 255: Chapter 1 - Verify No Pending PRs Rule in AGENTS.md
+
+- **Mandatory Pending Pull Requests Check Rule in `AGENTS.md`**:
+  - Added `- **Check pending pull requests before starting features**: Before starting work on another feature, always check that there are no pending open pull requests by checking `https://github.com/mostuf2556/subtitle-sync/pulls` (e.g. via GitHub API, web, or CLI).` under `## Work tracking`.
+  - Updated `## Last raw prompt` in `AGENTS.md` with the exact raw user prompt text.
+  - Verified `AGENTS.md` strictly adheres to the size budget (20,385 bytes, within the safe 21,000 byte limit).
+- **Dedicated Automated Verification Test (`scripts/verify-pending-prs-rule.ts`)**:
+  - Authored `scripts/verify-pending-prs-rule.ts` asserting the rule presence, exact PRs URL, size budget guard, and performing a live HTTP check verifying zero open pull requests pending on `mostuf2556/subtitle-sync`.
+  - Integrated into unified contract runner `scripts/verify-agents-all.ts` as constitutional check 19/19.
+  - Registered `"test:pending-prs-rule"` in `package.json` and documented in `docs/files.md`.
+- **Verification Commands & Outcomes**:
+  - `npm run test:pending-prs-rule`: PASSED (100%).
+  - `npm run test:agents-all`: PASSED (19/19 checks passed 100%).
+  - `compile_applet`: PASSED (clean build).
+  - `lint_applet`: PASSED (0 errors).
+
 ## Task 254: Evaluate and Document Alternative Android GitHub Actions Flow Options
 
 - **Documentation Enhancement (`docs/e2e_testing_including_android_codespace_docker_and_github_pages.md`)**:

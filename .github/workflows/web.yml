@@ -14,6 +14,29 @@ on:
       - main
       - master
   workflow_dispatch:
+    inputs:
+      project:
+        description: "Playwright Project Suite"
+        required: false
+        type: choice
+        default: "web"
+        options:
+          - "web"
+          - "emulation"
+          - "app"
+      test-filter:
+        description: "Test Grep Filter (e.g. 'shared subtitles')"
+        required: false
+        default: ""
+      retention-days:
+        description: "Test Artifact Retention (days)"
+        required: false
+        type: choice
+        default: "14"
+        options:
+          - "7"
+          - "14"
+          - "30"
 
 concurrency:
   group: web-e2e-${{ github.ref }}
@@ -35,6 +58,16 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Log Workflow Execution Parameters
+        run: |
+          {
+            echo "### 🌐 Web E2E Flow Options & Execution Configuration"
+            echo "- **Trigger Event:** \`${{ github.event_name }}\`"
+            echo "- **Playwright Project:** \`${{ inputs.project || 'web' }}\`"
+            echo "- **Test Filter:** \`${{ inputs.test-filter || '(none)' }}\`"
+            echo "- **Artifact Retention:** \`${{ inputs.retention-days || '14' }} days\`"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -100,7 +133,13 @@ jobs:
         timeout-minutes: 4
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.target_url.outputs.base_url }}
-        run: npx playwright test e2e/emulation.spec.ts --timeout=60000
+        run: |
+          PROJECT_ARG="--project=${{ inputs.project || 'web' }}"
+          FILTER_ARG=""
+          if [ -n "${{ inputs.test-filter }}" ]; then
+            FILTER_ARG="--grep \"${{ inputs.test-filter }}\""
+          fi
+          npx playwright test e2e/emulation.spec.ts --timeout=60000 $PROJECT_ARG $FILTER_ARG
 
       - name: Run Cypress Tests against Deployed Website (if spec exists)
         if: steps.target_url.outputs.use_deployed == 'true'
