@@ -1,3 +1,8 @@
 # Active Task Mirror (`docs/todo.md`)
 
-- Task 245.1: Create `docs/design_play_buttons.md` explaining what clicking on each play/pause/speak icon does across the application, assign and verify unique `data-testid` attributes on each, and ensure zero duplicate markdown files.
+- **Task**: None (Active backlog empty)
+- **Subtask**: None
+- **Status**: [COMPLETED]
+- **Target**: All tasks from latest prompt completed and verified.
+- **Focused check**: `npm run test:platforms-doc` && `npm run test:plan-e2e-test`
+- **Next Action**: Awaiting user instructions.

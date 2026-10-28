@@ -393,6 +393,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
             return (
               <div
                 key={lang.code}
+                data-testid={`language-card-${lang.code}`}
                 className={`${
                   isExpanded ? "col-span-2 sm:col-span-3 md:col-span-4" : ""
                 } flex flex-col transition-all`}
@@ -423,7 +424,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                           #{priorityIdx + 1}
                         </span>
                       )}
-                      <span className="truncate text-xs sm:text-sm">{lang.name}</span>
+                      <span data-testid="language-box-title" className="truncate text-xs sm:text-sm">{lang.name}</span>
                       {favoriteLanguages.includes(lang.code) && (
                         <span
                           className="text-[10px] text-amber-500 shrink-0"
@@ -443,11 +444,11 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                       ) : null}
                     </div>
                     {isSelected ? (
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <span data-testid="language-selected-check" className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                         <Check className="h-3 w-3 stroke-[3]" />
                       </span>
                     ) : (
-                      <span className="shrink-0 rounded bg-muted px-1 py-0.5 font-mono text-[10px] uppercase text-muted-foreground">
+                      <span data-testid="language-code-badge" className="shrink-0 rounded bg-muted px-1 py-0.5 font-mono text-[10px] uppercase text-muted-foreground">
                         {lang.code}
                       </span>
                     )}
