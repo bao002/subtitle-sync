@@ -4,7 +4,8 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*(No active tasks currently pending.)*
+*(No active tasks pending. All tasks completed and migrated to `docs/done.md`.)*
+
 
 ## Later Tasks
 

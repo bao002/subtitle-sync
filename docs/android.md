@@ -82,7 +82,11 @@ The emulator suite (`.github/workflows/emulation.yml`) is chained to execute aut
      - Dismisses lockscreen: `adb shell wm dismiss-keyguard`
      - Locks portrait orientation: `adb shell settings put system accelerometer_rotation 0`
      - Clears application state: `adb shell pm clear com.ytviewer.app`
-     - Installs APK: `adb install -r android-shell/app/build/outputs/apk/debug/app-debug.apk`
+### Standalone Pure Android System Smoke Flow Option
+
+For evaluating emulator boot performance, hardware acceleration, and pure system screencasts without application execution:
+- **Dedicated Workflow (`.github/workflows/android-system-smoke.yml`)**: Boots Android 14 API 34 Google APIs on `macos-14`, captures `android-system-home.png`, navigates Android Settings "About Phone" (`android-system-settings.png`), and records `android-system-screencast.mp4`.
+- **Configurable `flow_mode`**: In `.github/workflows/emulation.yml`, manual dispatch supports `flow_mode: system-smoke` to test pure OS boot without compiling or running the application.
 
 ---
 

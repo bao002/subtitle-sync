@@ -18,6 +18,7 @@ console.log("✅ PASS: ci.yml is absent, matching Youtubenet6");
 
 // 2. Assert exact set of workflow files
 const expectedWorkflows = [
+  "android-system-smoke.yml",
   "deploy-demo.yml",
   "emulation.yml",
   "error-reporting.yml",

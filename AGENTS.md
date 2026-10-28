@@ -1,15 +1,4 @@
-<!-- LOVABLE:BEGIN -->
-
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-
-<!-- LOVABLE:END -->
+<!-- LOVABLE: Avoid rewriting published git history (force push/rebase/amend) to protect Lovable sync. Keep working state. -->
 
 ## Subtitles fetching (read first)
 
@@ -17,8 +6,7 @@
 
 ## Codespaces, Docker, and E2E runbooks (read before running)
 
-- Before running or troubleshooting these workflows, read [docs/codespace.md](docs/codespace.md), [docs/docker.md](docs/docker.md), and [docs/e2e.md](docs/e2e.md). Follow [docker/manage.sh](docker/manage.sh) for containerized Playwright runs and the detailed [docs/docker-e2e.md](docs/docker-e2e.md) and [docs/e2e-android.md](docs/e2e-android.md) guides for specific suites.
-- When an experiment fails or succeeds, record its environment, exact command, observed result, resolution, and remaining limitations in the relevant runbook so future attempts do not repeat diagnosed failures.
+- Read [docs/codespace.md](docs/codespace.md), [docs/docker.md](docs/docker.md), and [docs/e2e.md](docs/e2e.md). Follow [docker/manage.sh](docker/manage.sh) for containerized Playwright runs and [docs/docker-e2e.md](docs/docker-e2e.md) and [docs/e2e-android.md](docs/e2e-android.md) guides.
 
 ## Subtitles fixtures restriction & zero hardcoded subtitles policy
 
@@ -147,15 +135,16 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 
 ## Product design standards
 
-- Help users watch YouTube videos while listening to preferred translations. Android can observe authentic native subtitle traffic; web subtitle access remains challenging and is currently most reliable through Android-shared subtitle links. Improving subtitle parsing efficiency is an ongoing challenge.
-- Distinguish occasional new-user preference setup from daily viewing actions; keep the video and subtitles table central to repeat use.
-- Beginner mode is guided setup and should lead to video-plus-table daily use. Advanced mode contains useful feature controls. Experimental and diagnostic views require the explicit URL parameter `debug=true`.
-- Use subtle category backgrounds for review: green for daily-use controls, amber for new-user setup, and blue for experimental/developer-only controls. Color is an accessible supplemental cue, not a placement decision.
-- Follow [`docs/design.md`](docs/design.md) and [`docs/developer.md`](docs/developer.md). Do not relocate controls before the user reviews the category color recommendations.
+- Distinguish new-user setup from daily viewing; keep video and subtitles table central to repeat use.
+- Beginner mode is guided setup; Advanced mode contains feature controls; diagnostics require `debug=true`.
+- Follow [`docs/design.md`](docs/design.md) and [`docs/developer.md`](docs/developer.md).
 
 ## Last raw prompt
 
 ```
-1. ensure  e2e plan to test - tts-ratio stopped highlighting subtitles-table
-2. ensure docs/platforms.md - to explain about aistudio's work strategy regarding e2e testing - how to run it on next session with minimal effort (efficiency: config once, run with minimal setup on next session, what need to be installed from scratch and what effort it envolved. does this platform support docker)
+based on the .md of regarding runinng android on github actions. 
+is there any other flow option worth trying?
 ```
+
+
+
