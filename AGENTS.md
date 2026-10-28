@@ -10,19 +10,19 @@
 
 ## Subtitles fixtures restriction & zero hardcoded subtitles policy
 
-- **Single permitted fixture video and directory**: The ONLY subtitles fixtures this application will ever have is strictly for video `L2Ryrr6txwA` and located strictly at `public/fixtures/L2Ryrr6txwA`. No other video ID, path, or directory may ever contain, bundle, or use static subtitle fixtures.
-- **Mandatory fixture labelling and explicit developer approval**: Never ever show, load, or render any subtitle fixtures without explicitly writing/labeling that it is a fixture (e.g., `[Fixture]` badge or label). Fixtures may only ever be displayed after the developer has approved it explicitly.
-- **Zero hardcoded subtitles policy**: All hardcoded subtitles, static cue arrays, and static translation maps are strictly prohibited in `src/config` (such as `src/config/fixtures.ts`, `src/config/appConfig.ts`) and everywhere else across the application runtime codebase. Video items in `DEFAULT_LIBRARY_ITEMS` and initial application state must have empty cues (`cues: []`), relying on authentic dynamic timedtext fetching or explicitly approved fixtures for `L2Ryrr6txwA`.
+- **Single permitted fixture video and directory**: The ONLY subtitles fixtures this application will ever have is strictly for video `L2Ryrr6txwA` and located strictly at `public/fixtures/L2Ryrr6txwA`. No other video ID, path, or directory may contain, bundle, or use static subtitle fixtures.
+- **Mandatory fixture labelling and explicit developer approval**: Never show, load, or render subtitle fixtures without explicitly labelling it as a fixture (e.g., `[Fixture]` badge or label). Fixtures may only ever be displayed after explicit developer approval.
+- **Zero hardcoded subtitles policy**: All hardcoded subtitles, static cue arrays, and static translation maps are strictly prohibited in `src/config` (such as `src/config/fixtures.ts`, `src/config/appConfig.ts`) and everywhere across the codebase. Video items in `DEFAULT_LIBRARY_ITEMS` and initial application state must have empty cues (`cues: []`), relying on authentic dynamic timedtext fetching or explicitly approved fixtures for `L2Ryrr6txwA`.
 
 ## Application stages pipeline & execution order
 
 The application processes and presents subtitles through a strict sequential pipeline:
 
-1. **Stage 1: Acquisition & Interception**: Intercepts authentic YouTube `api/timedtext` network queries from native WebView player on Android, accepts direct user-entered subtitle URLs, or loads local fixtures strictly for video `L2Ryrr6txwA` from `public/fixtures/L2Ryrr6txwA` if explicitly approved.
+1. **Stage 1: Acquisition & Interception**: Intercepts authentic YouTube `api/timedtext` queries from native WebView player on Android, accepts direct user-entered subtitle URLs, or loads local fixtures strictly for video `L2Ryrr6txwA` from `public/fixtures/L2Ryrr6txwA` if explicitly approved.
 2. **Stage 2: Validation & Schema Conformance**: Enforces HTTP 200, valid non-HTML JSON, YouTube `json3` structure (`events` with `tStartMs`, `dDurationMs`, `segs[].utf8`), and non-empty cues (`cuesCount > 0`). Rejects HTML error pages or malformed payloads.
 3. **Stage 3: Special Characters Removal & Sanitization**:
    - **RESTRICT RULE: Special characters removal MUST happen BEFORE the translation stage.**
-   - Strips speaker tags/brackets (`[Speaker 1]:`, `[Host]:`), sound/music indicators (`[Music]`, `[Applause]`, `(cheers)`), arrow markers (`>`, `>>`), HTML entities, zero-width characters, and normalizes excess whitespace.
+   - Strips speaker tags/brackets (`[Speaker 1]:`), sound indicators (`[Music]`, `[Applause]`), arrows (`>`, `>>`), entities, and normalizes excess whitespace.
 4. **Stage 4: Sentence Boundary Detection & Punctuation Splitting**: Splits continuous stream cues into grammatical sentences using terminal punctuation (`.`, `!`, `?` or configured criteria) with linear time interpolation for start and duration.
 5. **Stage 5: Translation Stage**: Translates clean sentence text into target languages via `tlang` fallback, on-demand AI translation, or secondary track alignment. Operates strictly AFTER Stage 3 (Special Characters Removal).
 6. **Stage 6: Multi-Language Alignment & Grid Formulation**: Synchronizes target language tracks with the base language track into parallel sentence rows. Formats aligned text side-by-side.
@@ -43,7 +43,7 @@ The application processes and presents subtitles through a strict sequential pip
 - **Fresh-chat recommendation for uncommitted work**: Inspect `git status --short` and diffs. Reply **“go on”** when changes form one coherent task with passing validation. If uncertain, point user to `current-sub-task.md`.
 - Inspect diffs before editing, reconcile trackers with worktree, and do not resume tasks already recorded in `docs/done.md`.
 
-- **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**: ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md` (or its subdirectories `docs/designs/`, `docs/specifications/`, and `docs/operations/`). There must be ZERO duplicate `.md` files in the repository. No Markdown file located under `docs/*.md` may have a redundant copy in root (`docs/tokens.md`, `docs/android.md`, `docs/parser.md`, `docs/self-verification.md`, and `docs/roadmap.md` reside exclusively in `docs/`). Only `README.md`, `AGENTS.md`, `current-sub-task.md`, and `temp.md` are permitted in root.
+- **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**: ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md`. There must be ZERO duplicate `.md` files in the repository. Only `README.md`, `AGENTS.md`, `current-sub-task.md`, and `temp.md` are permitted in root.
 - **Mandatory token economy flow on every prompt (`docs/tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `docs/tokens.md` and maintain `current-sub-task.md`.
 - **Task management protocol with `current-sub-task.md` & `temp.md`**: Break every prompt into clear numbered tasks and smaller sub-tasks in `docs/tasks.md` before performing actions. Maintain `current-sub-task.md` (and `docs/todo.md`) by staging the single active sub-task before executing any step. Use `temp.md` as an ephemeral scratchpad for draft diffs, checklists, or intermediate calculations.
 - **Enforce updating .md tracking files first before action**: BEFORE jumping to any code edits, actions, or test implementations on a prompt, the agent MUST update `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
@@ -64,7 +64,7 @@ The application processes and presents subtitles through a strict sequential pip
   5. **Resume held task**: After hotfix is verified, restore suspended task back to active status in `current-sub-task.md` and `docs/todo.md`, and resume work.
 - **Always keep last raw prompt in AGENTS.md**: `AGENTS.md` must continuously record and preserve the exact, unedited raw text of the user's latest prompt in a dedicated `## Last raw prompt` section on EVERY single prompt received.
 - **Later tasks protocol**: Any "later" task MUST be stored at the bottom under `## Later Tasks` in `docs/tasks.md` (and `docs/later.md`). When active tasks are complete, ask user whether to proceed with "later" tasks.
-- **Codespace platform blockers**: If a required task cannot run in Codespaces because a platform toolchain, device, emulator, or permission is unavailable, move only that blocked work to `## Later Tasks` in `docs/tasks.md` and `docs/later.md`, name the required platform/agent and exact validation command, then resume any remaining Codespace-doable task. Do not leave the blocked work as the active subtask.
+- **Codespace platform blockers**: If blocked in Codespaces without toolchain/device, move to `## Later Tasks` in `docs/tasks.md` and `docs/later.md` with exact validation command, then resume remaining tasks.
 - **No more tasks "go on" handling**: In case no more tasks are left (active backlog in `docs/tasks.md` and `current-sub-task.md` is empty), if prompt is "go on", then just summarize that there are no more tasks left. No need to show anything else.
 - **Numbered chapters as serial tasks protocol**: When user prompt consists of numbered chapters (e.g. `1. ...`, `2. ...`), treat each as a separate distinct task in `docs/tasks.md`, divided into sub-tasks worked on strictly serially: execute, test, verify, compile, lint, commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
@@ -101,38 +101,31 @@ The application processes and presents subtitles through a strict sequential pip
 
 ### 1. Subtitles fetch fallback strategy (`lang` replacement vs `tlang` parameterization)
 
-- **Two fetch strategies**:
-  - **`tlang` parameterization (translation mode)**: Preserves original spoken language track in `lang` (e.g., `lang=en`) and specifies desired target language using `tlang` (e.g., `tlang=he`).
-  - **`lang` code replacement (direct track mode)**: Replaces `lang` parameter directly with target language (e.g., `lang=he`) while omitting `tlang`.
-- **User toggle & preferences**: The application MUST allow the user to toggle between these two request modes via device-saved preferences (`SubtitleRequestMode` in `src/lib/playback-preferences.ts`, values `"tlang"` | `"lang"`). The UI must expose this selection.
-- **Graceful fallback sequencing**: User-selected mode executes first; on failure, fallback mode executes automatically (`subtitleRequestModeOrder`). Session signature parameters (`v`, `expire`, `sparams`, `signature`, `key`, `caps`, `asr_langs`) are retained.
+- **Two fetch strategies**: `tlang` parameterization (translation mode, e.g. `lang=en&tlang=he`) vs `lang` code replacement (direct track mode, e.g. `lang=he`).
+- **User toggle & preferences**: The application MUST allow the user to toggle between these two request modes via device-saved preferences (`SubtitleRequestMode` in `src/lib/playback-preferences.ts`, values `"tlang"` | `"lang"`).
+- **Graceful fallback sequencing**: User mode executes first; on failure, fallback mode executes automatically (`subtitleRequestModeOrder`). Session signature parameters are retained.
 
 ### 2. Anti-bot strategy for YouTube API execution
 
-- **Authentic session capture**: Subtitle requests must never originate from raw unauthenticated scrapers. On Android, native shell intercepts real `youtube.com/api/timedtext` requests issued by embedded YouTube player inside WebView, capturing live session headers (`lastObservedHeaders`), cookies (`PREF`, `YSC`, `VISITOR_INFO1_LIVE`), Authorization/SAPISIDHASH tokens, and `Referer: https://www.youtube.com/`.
+- **Authentic session capture**: Subtitle requests must never originate from raw scrapers. On Android, native shell intercepts real `youtube.com/api/timedtext` requests, capturing live headers (`lastObservedHeaders`), cookies, tokens, and `Referer: https://www.youtube.com/`.
 - **WebView User-Agent sanitization**: The WebView User-Agent string MUST be sanitized by stripping `; wv` (`userAgentString = userAgentString.replace("; wv", "")`).
-- **Request pacing & rate control**: Requests must never hammer YouTube's API concurrently across all target languages. Calls must be paced with serialized execution or staggered jitter. If 429 or 403 is encountered, pause and back off.
-- **Native OkHttp repetition**: On Android, repetition requests use native `OkHttpClient` initialized with captured session headers and cookies.
+- **Request pacing & rate control**: Requests must never hammer YouTube concurrently. Calls must be paced with serialized execution or jitter. If 429 or 403 occurs, back off.
+- **Native OkHttp repetition**: On Android, repetition requests use native `OkHttpClient` with captured session headers and cookies.
 
 ### 3. Request validation & "Good" response criteria
 
-A subtitle HTTP response is considered valid and "good" ONLY when it satisfies all of the following criteria:
-
-- **HTTP status**: Status code must be 200 OK. Any 4xx or 5xx status code is strictly rejected as a failure.
-- **Valid JSON parsing**: Response body must be non-empty, start with `{` or `[`, and parse successfully without syntax errors. HTML error responses are rejected immediately.
-- **YouTube `json3` structural schema compliance**:
-  - Must contain a top-level `events` array (or list of cue objects).
-  - The `events` array must be non-empty (`events.length > 0`).
-  - Valid events must contain numeric start and duration timing attributes (`tStartMs` and `dDurationMs` numbers).
-  - Valid events must contain a `segs` array with at least one segment object containing a non-empty string in the `utf8` property (`typeof seg.utf8 === "string" && seg.utf8.trim().length > 0`).
-- **Non-zero cue count**: Parsed result must yield at least one valid subtitle cue (`cuesCount > 0`). Empty subtitle files (`events: []`) are rejected.
+A subtitle HTTP response is considered valid and "good" ONLY when it satisfies all criteria:
+- **HTTP status**: Status code must be 200 OK. 4xx/5xx codes are rejected.
+- **Valid JSON parsing**: Response body must be non-empty, start with `{` or `[`, and parse successfully. HTML error pages are rejected immediately.
+- **YouTube `json3` structural schema compliance**: Must contain non-empty `events` array (`events.length > 0`), valid events with numeric `tStartMs` and `dDurationMs`, and `segs` array with non-empty string in `utf8` property (`typeof seg.utf8 === "string"`).
+- **Non-zero cue count**: Parsed result must yield at least one valid subtitle cue (`cuesCount > 0`).
 
 ### 4. Caching mechanism & invalidation rules
 
-- **Pre-cache validation gate**: Every subtitle response must be verified with `isValidJsonSubtitleResponse()` before being written to memory cache, `localStorage`, or SQLite/file storage.
-- **Never cache invalidated responses**: Responses that return HTTP errors, network timeouts, or non-200 status codes MUST NEVER be cached. HTML error pages, malformed payloads, synthetic placeholders, and empty cue lists (`events: []`) MUST NEVER be cached. Only responses satisfying all "good" response criteria above are eligible for storage.
-- **Read-time eviction**: Purge and evict corrupted, malformed, or zero-cue entries from cache immediately.
-- **Explicit cache management**: The application must provide explicit cache controls ("Clear cache" and "Fetch from scratch") allowing users to clear cached entries and re-fetch authentic subtitle data on demand.
+- **Pre-cache validation gate**: Every subtitle response must be verified with `isValidJsonSubtitleResponse()` before writing to cache.
+- **Never cache invalidated responses**: Responses returning HTTP errors or non-200 status codes MUST NEVER be cached. HTML error pages, malformed payloads, and empty cues (`events: []`) MUST NEVER be cached.
+- **Read-time eviction**: Purge and evict corrupted or zero-cue entries from cache immediately.
+- **Explicit cache management**: Provide explicit cache controls ("Clear cache" and "Fetch from scratch") to re-fetch on demand.
 
 ## Product design standards
 
@@ -143,10 +136,40 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. AGENTS.md - always checkout there are no pending pull requests before start working on another feature using by checking out: https://github.com/mostuf2556/subtitle-sync/pulls 
-2.implement the previous request based on the new git head. u can use:
-https://github.com/mostuf2556/subtitle-sync/commit/df534d5d004abec616638883b91c2dc6eed87f78
+deprecate current design of the inside-of-languages-accordion and replace its inner design with a simpler alternative reducing number of controls to the minimum. for example its enough to have only 1  example of  subtitles-table-view-presense|tts-play  and the language can be changed using a dropdown list of languages (instead of listing all the languages).
+on android we dont need to subtitle-url column.tts-ration shown in duplicated places (its enough to show it once on the editable field. etc.
+the order of apearance can also be updated using dragging the langs on 1 line which have direction (as order precedence).
+--
+mv any long persistant settings to be under the settings accordion (where the user visits less frequently).
+--
+any other ui/ux to opposed scaling the element-records based on number of languages is welcome.
+
+subtitles-table-view: on small screen - by default show maximum 2 lang columns in parallel and allow to pin one in order to compare to another column.
+--
+show a badge which indicate the number of languages fully fetched and the number of those still use on-demand tanslations (which should be replaced once the subtitle file(or youtube api request) wholly/fully fetched.
+--
+use a new design-toggle on the headers top - to switch between the old/new design options (in order to get rid of old design after explicit approval)
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(2)
+CSS 2: {
+
+}
+CSS selector 3: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1)
+CSS 3: {
+
+}
+CSS selector 4: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > div:nth-of-type(1) > label:nth-of-type(1)
+CSS 4: {
+
+}
+CSS selector 5: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(1) > label:nth-of-type(1)
+CSS 5: {
+
+}
+[AIS_METADATA_SECTION_END]
 ```
-
-
-

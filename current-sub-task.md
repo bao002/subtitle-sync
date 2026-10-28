@@ -1,8 +1,8 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Task**: None
-- **Subtask**: All tasks completed
-- **Status**: [COMPLETED]
-- **Target**: All planned prompt tasks (Task 255: Chapter 1 & Task 256: Chapter 2) have been executed, verified, and migrated to `docs/done.md`.
-- **Focused check**: `npm run test:pending-prs-rule && npm run test:extended-flow-options && npm run test:agents-all`
-- **Next Action**: Await next prompt from user.
+- **Task**: Task 257: Modern Languages Accordion Design, Small-Screen 2-Column Pinning & Header Design Toggle
+- **Subtask**: Subtask 257.1: Header Design Toggle & Status Badge for Fetched vs On-Demand Tracks
+- **Status**: [IN_PROGRESS]
+- **Target**: Implement header top design toggle ("Classic" vs "Modern"), track fetch state badge (number of fully fetched tracks vs on-demand translations), stage state persistence.
+- **Focused check**: `npm run test:agents-all`
+- **Next Action**: Create design toggle hook/state, update header in `src/routes/index.tsx`, author badge, and verify.
