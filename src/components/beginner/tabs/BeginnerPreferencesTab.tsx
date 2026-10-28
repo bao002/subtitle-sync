@@ -718,9 +718,24 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 className="flex items-center justify-between rounded border border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs"
               >
                 <span className="text-muted-foreground font-medium">TTS Speed:</span>
-                <span className="text-foreground font-mono text-[11px]">
-                  Uses native speech rate ({ttsSpeed.toFixed(1)}x)
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-foreground font-mono text-[11px]">
+                    Uses native speech rate ({ttsSpeed.toFixed(1)}x)
+                  </span>
+                  <select
+                    data-testid="beginner-main-settings-tts-rate-select"
+                    aria-label="Beginner main TTS speech rate"
+                    value={ttsSpeed.toFixed(1)}
+                    onChange={(e) => onTtsSpeedChange(Number(e.target.value))}
+                    className="rounded border border-input bg-background px-1.5 py-0.5 text-xs font-mono cursor-pointer"
+                  >
+                    {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
+                      <option key={rateVal} value={rateVal.toFixed(1)}>
+                        {rateVal.toFixed(1)}×
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <p className="text-[10px] text-muted-foreground">

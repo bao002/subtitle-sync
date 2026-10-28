@@ -113,7 +113,7 @@ export const setTtsRatePreference = (langCode: string, rate: number) => {
   if (typeof window === "undefined" || !Number.isFinite(rate)) return;
   try {
     const existing = getTtsRatesPreference();
-    existing[langCode] = Math.max(0.3, Math.min(1.5, Math.round(rate * 10) / 10));
+    existing[langCode] = Math.max(0.5, Math.min(1.0, Math.round(rate * 10) / 10));
     window.localStorage.setItem(KEYS.ttsRates, JSON.stringify(existing));
   } catch {
     // ignore storage errors

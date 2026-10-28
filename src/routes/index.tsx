@@ -5686,10 +5686,38 @@ function Index() {
                                     <span className="text-muted-foreground font-medium">
                                       TTS Speed:
                                     </span>
-                                    <span className="text-foreground font-mono text-[11px]">
-                                      Uses native speech rate (
-                                      {(rates[baseLanguage || "en"] ?? 0.5).toFixed(1)}x)
-                                    </span>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-foreground font-mono text-[11px]">
+                                        Uses native speech rate (
+                                        {(rates[baseLanguage || "en"] ?? 0.5).toFixed(1)}x)
+                                      </span>
+                                      <select
+                                        data-testid="main-settings-tts-rate-select"
+                                        aria-label="Main TTS speech rate"
+                                        value={(rates[baseLanguage || "en"] ?? 0.5).toFixed(1)}
+                                        onChange={(e) => {
+                                          const val = Number(e.target.value);
+                                          const targetLang = baseLanguage || "en";
+                                          setRates((current) => ({
+                                            ...current,
+                                            [targetLang]: val,
+                                          }));
+                                          saveTtsRatePreference(targetLang, val);
+                                          if (videoId) {
+                                            saveVideoSettings(videoId, {
+                                              ttsRates: { [targetLang]: val },
+                                            });
+                                          }
+                                        }}
+                                        className="rounded border border-input bg-background px-1.5 py-0.5 text-xs font-mono cursor-pointer"
+                                      >
+                                        {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
+                                          <option key={rateVal} value={rateVal.toFixed(1)}>
+                                            {rateVal.toFixed(1)}×
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
                                   </div>
 
                                   <p className="text-[10px] text-muted-foreground">
@@ -6788,13 +6816,7 @@ function Index() {
                                   <th className="text-left font-normal py-1.5 px-2">Language</th>
                                   <th
                                     className="font-normal text-center py-1.5 px-1.5"
-                                    title="Primary role in TTS playback"
-                                  >
-                                    Primary
-                                  </th>
-                                  <th
-                                    className="font-normal text-center py-1.5 px-1.5"
-                                    title="Speech rate & voice test"
+                                    title="Speech rate (0.5x - 1.0x)"
                                   >
                                     Rate
                                   </th>
@@ -6852,7 +6874,35 @@ function Index() {
                                             className="flex flex-wrap sm:flex-nowrap items-center gap-2 sr-only"
                                           />
                                           <span className="flex items-center gap-1 font-medium">
-                                            <span>{lang.name}</span>
+                                            {isSpoken ? (
+                                              isPrimary ? (
+                                                <span className="flex items-center gap-1 font-semibold text-primary">
+                                                  <span data-testid={`tts-switch-primary-${lang.code}`}>
+                                                    {lang.name}
+                                                  </span>
+                                                  <span
+                                                    data-testid={`tts-role-badge-${lang.code}`}
+                                                    className="rounded bg-primary/20 text-primary border border-primary/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
+                                                  >
+                                                    Primary
+                                                  </span>
+                                                </span>
+                                              ) : (
+                                                <button
+                                                  type="button"
+                                                  data-testid={`tts-switch-primary-${lang.code}`}
+                                                  onClick={() =>
+                                                    handlePrimaryTtsLangChange(lang.code)
+                                                  }
+                                                  className="font-medium text-foreground hover:text-primary hover:underline transition-colors cursor-pointer text-left"
+                                                  title={`Click to set ${lang.name} as Primary`}
+                                                >
+                                                  {lang.name}
+                                                </button>
+                                              )
+                                            ) : (
+                                              <span>{lang.name}</span>
+                                            )}
                                             {isFavorite && (
                                               <span
                                                 title="Favorite language"
@@ -6873,82 +6923,31 @@ function Index() {
                                           </span>
                                         </td>
                                         <td className="text-center py-1 px-1.5">
-                                          {isSpoken ? (
-                                            isPrimary ? (
-                                              <span
-                                                data-testid={`tts-role-badge-${lang.code}`}
-                                                className="rounded bg-primary/20 text-primary border border-primary/40 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
-                                              >
-                                                Primary
-                                              </span>
-                                            ) : (
-                                              <button
-                                                type="button"
-                                                data-testid={`tts-switch-primary-${lang.code}`}
-                                                onClick={() =>
-                                                  handlePrimaryTtsLangChange(lang.code)
-                                                }
-                                                className="rounded border border-input bg-background hover:bg-accent px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground font-medium transition-colors"
-                                                title={`Set ${lang.name} as Primary`}
-                                              >
-                                                Make Primary
-                                              </button>
-                                            )
-                                          ) : (
-                                            <span className="text-[10px] text-muted-foreground">
-                                              —
-                                            </span>
-                                          )}
-                                        </td>
-                                        <td className="text-center py-1 px-1.5">
-                                          <div className="flex items-center justify-center gap-1">
-                                            <input
-                                              aria-label={`${lang.name} speech rate`}
-                                              type="range"
-                                              min={0.3}
-                                              max={1.5}
-                                              step={0.1}
-                                              value={rates[lang.code] ?? 0.5}
-                                              onChange={(e) => {
-                                                const val = Number(e.target.value);
-                                                setRates((current) => ({
-                                                  ...current,
-                                                  [lang.code]: val,
-                                                }));
-                                                saveTtsRatePreference(lang.code, val);
-                                                if (videoId) {
-                                                  saveVideoSettings(videoId, {
-                                                    ttsRates: { [lang.code]: val },
-                                                  });
-                                                }
-                                              }}
-                                              className="w-14 h-1.5 cursor-pointer accent-primary"
-                                            />
-                                            <span className="w-6 text-right font-mono text-[10px] tabular-nums text-muted-foreground">
-                                              {(rates[lang.code] ?? 0.5).toFixed(1)}×
-                                            </span>
-                                            <button
-                                              type="button"
-                                              onClick={() => {
-                                                const voiceToTest =
-                                                  voiceSelections[lang.code] ?? "";
-                                                const rateToTest = rates[lang.code] ?? 0.5;
-                                                void speak(
-                                                  lang.name,
-                                                  lang.tts,
-                                                  rateToTest,
-                                                  voiceToTest,
-                                                  -1,
-                                                  () => {},
-                                                );
-                                              }}
-                                              title={`Test ${lang.name} voice`}
-                                              aria-label={`Test ${lang.name} voice`}
-                                              className="rounded border border-input bg-background px-1 py-0.2 text-[10px] hover:bg-muted font-mono"
-                                            >
-                                              ▶
-                                            </button>
-                                          </div>
+                                          <select
+                                            aria-label={`${lang.name} speech rate`}
+                                            data-testid={`tts-rate-select-${lang.code}`}
+                                            value={(rates[lang.code] ?? 0.5).toFixed(1)}
+                                            onChange={(e) => {
+                                              const val = Number(e.target.value);
+                                              setRates((current) => ({
+                                                ...current,
+                                                [lang.code]: val,
+                                              }));
+                                              saveTtsRatePreference(lang.code, val);
+                                              if (videoId) {
+                                                saveVideoSettings(videoId, {
+                                                  ttsRates: { [lang.code]: val },
+                                                });
+                                              }
+                                            }}
+                                            className="rounded border border-input bg-background px-1.5 py-0.5 text-xs text-foreground cursor-pointer font-mono"
+                                          >
+                                            {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
+                                              <option key={rateVal} value={rateVal.toFixed(1)}>
+                                                {rateVal.toFixed(1)}×
+                                              </option>
+                                            ))}
+                                          </select>
                                         </td>
                                         <td className="text-center py-1 px-1.5">
                                           {isSpoken ? (
@@ -7078,7 +7077,7 @@ function Index() {
                                           data-testid={`url-input-row-${lang.code}`}
                                           className="bg-primary/5 border-y border-primary/20"
                                         >
-                                          <td colSpan={8} className="p-2.5">
+                                          <td colSpan={7} className="p-2.5">
                                             <div className="space-y-2 max-w-xl text-xs">
                                               <div className="flex items-center justify-between">
                                                 <span className="font-semibold text-foreground flex items-center gap-1.5">

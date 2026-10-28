@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.31",
+  "version": "2.0.32",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -231,6 +231,7 @@
     "test:default-midnight-theme": "tsx scripts/verify-default-midnight-theme.ts",
     "test:remove-non-relevant-per-language-panel": "tsx scripts/verify-remove-non-relevant-per-language-panel.ts",
     "test:unified-languages-table": "tsx scripts/verify-unified-languages-table.ts",
+    "test:refined-language-settings": "tsx scripts/verify-refined-language-settings.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

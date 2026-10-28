@@ -86,15 +86,15 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
               >
                 <div className="flex items-center gap-1.5 truncate">
                   <Languages className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <span className="truncate text-xs font-semibold text-foreground">
-                    {language.name}
-                  </span>
                   {isPrimary ? (
-                    <span
-                      data-testid={`tts-role-badge-${language.code}`}
-                      className="rounded bg-primary/20 text-primary border border-primary/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
-                    >
-                      Primary
+                    <span className="truncate text-xs font-semibold text-primary flex items-center gap-1">
+                      <span data-testid={`tts-switch-primary-${language.code}`}>{language.name}</span>
+                      <span
+                        data-testid={`tts-role-badge-${language.code}`}
+                        className="rounded bg-primary/20 text-primary border border-primary/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
+                      >
+                        Primary
+                      </span>
                     </span>
                   ) : (
                     onPrimaryLangChange && (
@@ -102,10 +102,10 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                         type="button"
                         data-testid={`tts-switch-primary-${language.code}`}
                         onClick={() => onPrimaryLangChange(language.code)}
-                        className="rounded border border-input bg-background hover:bg-accent px-1.5 py-0.5 text-[10px] text-muted-foreground hover:text-foreground font-medium transition-colors"
+                        className="truncate text-xs font-semibold text-foreground hover:text-primary hover:underline transition-colors cursor-pointer text-left"
                         title={`Set ${language.name} as Primary`}
                       >
-                        Make Primary
+                        {language.name}
                       </button>
                     )
                   )}
@@ -142,20 +142,19 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
               </label>
               <label className="flex min-w-0 items-center gap-2 text-xs">
                 <span className="shrink-0 text-muted-foreground">Speed</span>
-                <input
+                <select
                   aria-label={`${language.name} speech rate`}
                   data-testid={`beginner-tts-speed-${language.code}`}
-                  type="range"
-                  min={0.3}
-                  max={1.5}
-                  step={0.1}
-                  value={rate}
+                  value={rate.toFixed(1)}
                   onChange={(event) => onRateChange(language.code, Number(event.target.value))}
-                  className="h-1.5 min-w-0 flex-1 cursor-pointer accent-primary"
-                />
-                <span className="w-8 shrink-0 text-right font-mono tabular-nums text-muted-foreground">
-                  {rate.toFixed(1)}×
-                </span>
+                  className="rounded border border-input bg-background px-1.5 py-1 text-xs font-mono"
+                >
+                  {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
+                    <option key={rateVal} value={rateVal.toFixed(1)}>
+                      {rateVal.toFixed(1)}×
+                    </option>
+                  ))}
+                </select>
               </label>
               <label className="flex min-w-0 items-center gap-1.5 text-xs">
                 <span className="shrink-0 text-muted-foreground">Voice</span>
