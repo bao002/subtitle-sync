@@ -18,6 +18,7 @@ import {
   type LanguageDisplayMode,
   getLanguageDisplayModeSetting,
   setLanguageDisplayModeSetting,
+  recordUserInteraction,
 } from "@/utils/appSettings";
 import { parseJson3 } from "../lib/native-captions";
 import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
@@ -107,6 +108,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
   }, [catalog, favoriteLanguages]);
 
   const toggleLanguage = (code: string) => {
+    recordUserInteraction(Date.now());
     let next: string[];
     if (selectedLanguages.includes(code)) {
       next = selectedLanguages.filter((c) => c !== code);
@@ -114,6 +116,13 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
       next = [...selectedLanguages, code];
     }
     onSelectionChange(next);
+    // Explicitly preserve focus on the clicked element without scrolling the page
+    requestAnimationFrame(() => {
+      const btn = document.getElementById(`lang-box-${code}`);
+      if (btn) {
+        btn.focus({ preventScroll: true });
+      }
+    });
   };
 
   const moveFavoriteLanguage = (code: string, direction: -1 | 1) => {
@@ -229,14 +238,34 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           {favoriteLanguages && favoriteLanguages.length > 0 && (
             <Button
               type="button"
+              id="select-more-languages-btn"
+              data-testid="select-more-languages-btn"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowAllLanguages(true);
+                requestAnimationFrame(() => {
+                  const input = document.getElementById("search-language-input");
+                  if (input) input.focus();
+                });
+              }}
+              className="h-7 text-xs gap-1 hover:bg-muted font-medium text-primary cursor-pointer"
+              title="Select more languages from catalog"
+            >
+              <span>+ Select more languages</span>
+            </Button>
+          )}
+          {favoriteLanguages && favoriteLanguages.length > 0 && (
+            <Button
+              type="button"
               data-testid="toggle-show-all-languages"
               variant="ghost"
               size="sm"
               onClick={() => setShowAllLanguages((prev) => !prev)}
-              className="h-7 text-xs gap-1 hover:bg-muted font-medium text-foreground"
+              className="h-7 text-xs gap-1 hover:bg-muted font-medium text-foreground cursor-pointer"
               title={showAllLanguages ? "Show my languages only" : "Show all catalog languages"}
             >
-              {showAllLanguages ? "My List" : `+ All (${catalog.length})`}
+              {showAllLanguages ? "My List" : `All (${catalog.length})`}
             </Button>
           )}
           <Button
@@ -246,7 +275,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleToggleMode}
-            className="h-7 gap-1.5 text-xs hover:bg-muted font-medium text-foreground"
+            className="h-7 gap-1.5 text-xs hover:bg-muted font-medium text-foreground cursor-pointer"
             title={`Switch to ${displayMode === "boxes" ? "list" : "boxes"} view`}
           >
             {displayMode === "boxes" ? (
@@ -264,113 +293,24 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
         </div>
       </div>
 
-      {/* Selected languages fetch priority reordering bar */}
-      {selectedLanguages.length > 0 && (
-        <div
-          data-testid="selected-languages-order-bar"
-          className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-1.5"
-        >
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-semibold text-primary flex items-center gap-1.5">
-              <span>Fetch Priority Order</span>
-              <span className="text-[10px] text-muted-foreground font-normal">
-                (determines sequential fetch order)
-              </span>
-            </span>
-            <span className="text-[10px] text-muted-foreground">
-              {selectedLanguages.length} {selectedLanguages.length === 1 ? "track" : "tracks"}
-            </span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {selectedLanguages.map((code, idx) => {
-              const langMeta = catalog.find((c) => c.code === code) || { code, name: code };
-              const isFirst = idx === 0;
-              const isLast = idx === selectedLanguages.length - 1;
-              const isExpanded = expandedLangUrl === code;
-              const cueCount = loadedTracks?.[code]?.events?.length;
-              return (
-                <div
-                  key={code}
-                  data-testid={`selected-lang-priority-${code}`}
-                  className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs shadow-xs transition-colors ${
-                    isExpanded ? "border-primary bg-primary/10" : "border-border bg-background"
-                  }`}
-                >
-                  <span className="font-mono text-[10px] font-bold text-primary">#{idx + 1}</span>
-                  <span className="font-medium text-foreground">{langMeta.name}</span>
-                  {favoriteLanguages.includes(code) && (
-                    <span
-                      className="sr-only"
-                      title="Saved language"
-                      data-testid={`favorite-badge-${code}`}
-                    >
-                      Saved
-                    </span>
-                  )}
-                  {cueCount ? (
-                    <span
-                      className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium"
-                      title={`${cueCount} subtitle cues loaded`}
-                    >
-                      {cueCount}
-                    </span>
-                  ) : null}
-                  <button
-                    type="button"
-                    data-testid={`priority-chip-url-btn-${code}`}
-                    onClick={() => setExpandedLangUrl((cur) => (cur === code ? null : code))}
-                    className={`p-0.5 rounded hover:text-primary transition-colors ${
-                      isExpanded ? "text-primary font-bold" : "text-muted-foreground"
-                    }`}
-                    title={`Input subtitle URL for ${langMeta.name}`}
-                    aria-label={`Input subtitle URL for ${langMeta.name}`}
-                  >
-                    <Link2 className="h-3 w-3" />
-                  </button>
-                  <div className="flex items-center ml-0.5">
-                    <button
-                      type="button"
-                      disabled={isFirst}
-                      onClick={() => moveFavoriteLanguage(code, -1)}
-                      data-testid={`move-fav-earlier-${code}`}
-                      className="p-0.5 hover:text-primary disabled:opacity-20 text-muted-foreground transition"
-                      title={`Move ${langMeta.name} earlier in fetch priority`}
-                      aria-label={`Move ${langMeta.name} earlier`}
-                    >
-                      <ArrowUp className="h-3 w-3" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isLast}
-                      onClick={() => moveFavoriteLanguage(code, 1)}
-                      data-testid={`move-fav-later-${code}`}
-                      className="p-0.5 hover:text-primary disabled:opacity-20 text-muted-foreground transition"
-                      title={`Move ${langMeta.name} later in fetch priority`}
-                      aria-label={`Move ${langMeta.name} later`}
-                    >
-                      <ArrowDown className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Optional search filter for large catalogs */}
-      {catalog.length > 8 && (
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search language by name or code…"
-            value={searchFilter}
-            onChange={(e) => setSearchFilter(e.target.value)}
-            className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-          />
-        </div>
-      )}
+      {/* Instant search filter to filter languages while adding/selecting */}
+      <div className="relative">
+        <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+        <input
+          type="text"
+          id="search-language-input"
+          data-testid="search-language-input"
+          placeholder="Filter languages by name or code…"
+          value={searchFilter}
+          onChange={(e) => {
+            setSearchFilter(e.target.value);
+            if (e.target.value.trim()) {
+              setShowAllLanguages(true);
+            }
+          }}
+          className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
 
       {/* Boxes view: large touch targets for Android, selected kept on top */}
       {displayMode === "boxes" ? (
@@ -378,6 +318,8 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           id="language-boxes-grid"
           data-testid="language-boxes-grid"
           data-favorites-only={isFavoritesFiltered ? "true" : "false"}
+          onMouseDown={() => recordUserInteraction(Date.now())}
+          onPointerDown={() => recordUserInteraction(Date.now())}
           className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 max-h-80 overflow-y-auto p-1 rounded-md border border-border bg-muted/10"
         >
           {sortedCatalog.map((lang) => {
@@ -407,6 +349,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                     id={`lang-box-${lang.code}`}
                     data-testid={`language-box-${lang.code}`}
                     data-selected={isSelected}
+                    onMouseDown={() => recordUserInteraction(Date.now())}
                     onClick={() => toggleLanguage(lang.code)}
                     className="flex-1 flex items-center justify-between min-w-0 pr-1 text-left cursor-pointer"
                     title={
@@ -469,9 +412,20 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                     id={`expand-subtitles-url-${lang.code}`}
                     data-testid={`expand-subtitles-url-${lang.code}`}
                     aria-expanded={isExpanded}
+                    onMouseDown={(e) => {
+                      e.stopPropagation();
+                      recordUserInteraction(Date.now());
+                    }}
                     onClick={(e) => {
                       e.stopPropagation();
+                      recordUserInteraction(Date.now());
                       setExpandedLangUrl((cur) => (cur === lang.code ? null : lang.code));
+                      requestAnimationFrame(() => {
+                        const btn = document.getElementById(`expand-subtitles-url-${lang.code}`);
+                        if (btn) {
+                          btn.focus({ preventScroll: true });
+                        }
+                      });
                     }}
                     className={`p-1.5 rounded-md hover:bg-background/80 transition-colors ml-1 text-xs shrink-0 cursor-pointer ${
                       isExpanded

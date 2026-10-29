@@ -32,6 +32,7 @@ export interface SubtitleRowProps {
   ttsRatios?: Record<string, number>;
   primaryTtsLang?: string;
   onSpeakCue?: (text: string, lang: string) => void;
+  freezeColumns?: boolean;
 }
 
 export const SubtitleRow = memo(function SubtitleRow({
@@ -47,6 +48,7 @@ export const SubtitleRow = memo(function SubtitleRow({
   ttsRatios,
   primaryTtsLang,
   onSpeakCue,
+  freezeColumns = true,
 }: SubtitleRowProps) {
   return (
     <tr
@@ -59,11 +61,16 @@ export const SubtitleRow = memo(function SubtitleRow({
     >
       <td
         data-testid="cue-row-timestamp"
-        className="whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground"
+        className={`whitespace-nowrap px-3 py-2 tabular-nums text-muted-foreground w-28 min-w-[7rem] max-w-[7rem] ${
+          freezeColumns
+            ? `sticky left-0 z-10 ${isActive ? "bg-accent" : "bg-card/95"} shadow-[1px_0_0_0_rgba(0,0,0,0.06)]`
+            : ""
+        }`}
       >
         {fmt(r.start)}–{fmt(r.end)}
       </td>
-      {cols.map((l) => {
+      {cols.map((l, colIdx) => {
+        const isFirstCol = colIdx === 0;
         const columnText = subtitleTextForColumn(r, l.code);
         const isSpoken = Boolean(spokenLangs?.includes(l.code));
         const ratio = getLanguageTtsRatio(ttsRatios, l.code);
@@ -93,7 +100,11 @@ export const SubtitleRow = memo(function SubtitleRow({
             data-tts-pronounced={isPronouncedHighlight ? "true" : undefined}
             data-tts-eligible={isEligible ? "true" : "false"}
             data-tts-role={isPrimary ? "primary" : primaryTtsLang ? "secondary" : undefined}
-            className={`px-3 py-2 leading-relaxed transition-colors ${
+            className={`px-3 py-2 leading-relaxed transition-colors min-w-[12rem] ${
+              freezeColumns && isFirstCol
+                ? `sticky left-28 z-10 ${isActive ? "bg-accent" : "bg-card/95"} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]`
+                : ""
+            } ${
               isPronouncedHighlight
                 ? "bg-primary/10 border-s-2 border-primary/60 dark:bg-primary/15 dark:border-primary/80"
                 : ""

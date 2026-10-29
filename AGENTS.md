@@ -128,6 +128,11 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 - **Read-time eviction**: Purge and evict corrupted or zero-cue entries from cache immediately.
 - **Explicit cache management**: Provide explicit cache controls ("Clear cache" and "Fetch from scratch") to re-fetch on demand.
 
+## Default Subtitle & Shared-Subtitle Favorites Policy
+
+- **Leftmost column as default language**: The leftmost column in the parallel subtitles table always acts as the default language and is automatically added to the user's favorite languages as the default-subtitle.
+- **Shared-subtitle parameter synchronization**: When the app or web-demo is triggered by a URL containing a `target_lang` query parameter (e.g. `?target_lang=he`), that shared-subtitle language is automatically added to the list of favorite languages and enabled for the current video.
+
 ## Product design standards
 
 - Distinguish new-user setup from daily viewing; keep video and subtitles table central to repeat use.
@@ -137,16 +142,19 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. all those languages on that table are from the list of favorites - so there is no reason to use a column named "favorites" !
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(2)
-CSS 1: {
+the pointed element is not required.
 
-}
-CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(6) > td:nth-of-type(2) > button:nth-of-type(1)
-CSS 2: {
+settings-> languages settings:  allow to filter languages while adding them from a list to the favorite list
+language accordion: clicking on select more languages
+error alert: "failed to fetch subtitles" -> mv to bottom 
+tts-ratio: always the language with the minimal ratio (i.e: 1:1 < 1:5) will act as the primary so no need to select a primary!
+"Fetch Priority Order" -  there is no reason to present that info. the fetch mechanism will use random fetch request as the load-balance mechanism suggest.
 
-}
-[AIS_METADATA_SECTION_END]
+AGENTS.md  - always use the left most column - as the default language and add it to the favorite languages as the default-subtitle. (when the app/web-demo triggered by a link with a target_lang param then a shared-subtitle is to be added to the list of favorite languages
+
+Parallel subtitles -  make the scroll beautul. allow to freeze a column (for disregard horizontal scrolling) - by default freeze the first 2 columns: time-frames & default subtitles
+
+ floating button - use red/green color to signify off/disabled and the opposite
 ```
+
+

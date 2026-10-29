@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.35",
+  "version": "2.0.37",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -13,6 +13,8 @@
     "preview": "vite preview --host 0.0.0.0 --port 3000",
     "lint": "eslint src/lib src/routes",
     "format": "prettier --write .",
+    "test:no-autoscroll-on-mouse-action": "tsx scripts/verify-no-autoscroll-on-mouse-action.ts",
+    "test:remove-redundant-languages-status-card": "tsx scripts/verify-remove-redundant-languages-status-card.ts",
     "test:android-system-smoke-flow": "tsx scripts/verify-android-system-smoke-flow.ts",
     "test:e2e-testing-guide": "tsx scripts/verify-e2e-testing-guide.ts",
     "test:quarantine-and-new-parser": "tsx scripts/verify-quarantine-and-new-parser.ts",

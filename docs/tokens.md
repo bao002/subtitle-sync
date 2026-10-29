@@ -4,6 +4,20 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+### Active Prompt Token Economy Flow (Task 243)
+- **Token Input Minimization**: Loaded only target components (`SubtitlesTablePanel.tsx`, `LanguageBoxesSelector.tsx`, `FloatingDraggablePauseButton.tsx`, `routes/index.tsx`, `playback-preferences.ts`, `styles.css`).
+- **Targeted Execution**: 
+  1. Remove dedicated auto-scroll button from SubtitlesTablePanel.
+  2. Add language filtering in Settings and "Select more languages" in Language Accordion.
+  3. Move "failed to fetch subtitles" error alert to bottom.
+  4. Auto-assign primary TTS role to language with minimal ratio; remove manual primary picker.
+  5. Remove "Fetch Priority Order" display and use randomized load-balanced fetch requests.
+  6. Default leftmost column & URL `target_lang` to favorites.
+  7. Parallel subtitles beautiful scroll and freeze first 2 columns by default.
+  8. Floating button red/green coloring for disabled/enabled states.
+  9. Update app version to 2.0.38 across all 5 files.
+- **Verification**: Dedicated automated test script `scripts/verify-ui-languages-and-subtitles-table.ts`, `compile_applet`, `lint_applet`.
+
 ---
 
 ## 1. The Token Economy Problem: Why Big Tasks Fail

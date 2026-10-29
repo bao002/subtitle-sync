@@ -1,6 +1,61 @@
 # Done tasks
 
-## Task 240: Remove Redundant "Favorite" Column from Unified Languages Table & Version 2.0.35
+## Task 242: Prevent Auto-Scroll and Focus Loss on Mouse Action & Synchronize Version 2.0.37
+
+- **Prevention of Auto-Scroll and Focus Loss on Mouse Action (`src/components/LanguageBoxesSelector.tsx`)**:
+  - Addressed targeted Focus Mode elements:
+    - Selector 1: `div#root > div > div > details:nth-of-type(5) > div > div > div:nth-of-type(2) > div#language-boxes-grid:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1)`
+    - Selector 2: `button#lang-box-ar`
+    - Selector 3: `button#expand-subtitles-url-he`
+  - Integrated `recordUserInteraction(Date.now())` on `onMouseDown`, `onPointerDown`, and click handlers to immediately block the 5-second auto-scroll cooldown window upon user interaction.
+  - Added explicit focus retention via `requestAnimationFrame` with `{ preventScroll: true }` so clicking language buttons and URL expand toggles retains element focus without triggering browser scroll or viewport shift.
+- **Auto-Scroll Behavior Isolation & User Focus Preservation (`src/routes/index.tsx`)**:
+  - Added `"mouseup"` and `"click"` to the global interaction event listeners so every mouse action registers an immediate user interaction timestamp.
+  - Guarded the active subtitle row `useEffect`:
+    - Checks `!isAutoScrollAllowed()` and exits immediately (removed delayed 5s timeout that previously yanked focus).
+    - Checks `document.activeElement`: if user currently has an interactive element focused on the page (e.g. language boxes, inputs, buttons), auto-scroll is skipped to preserve focus.
+    - Isolated scrolling strictly to the `#subtitles-table-panel` container element (`panel.scrollTop`), avoiding window-level `scrollIntoView` that drags the viewport away from open accordions.
+- **Dedicated Auto-Scroll to Position Button (`src/components/SubtitlesTablePanel.tsx` & `src/routes/index.tsx`)**:
+  - Auto-scroll to active playback position is explicitly restricted to only fire when user clicks the dedicated button ("excluding auto-scroll to position only when clicking on the dedicated botton").
+  - Added dedicated button bar with `id="scroll-to-position-btn"` and `data-testid="scroll-to-position-btn"` ("Scroll to Position") directly above the subtitles table.
+  - Implemented `handleScrollToActivePosition` to center the active subtitle cue inside the table panel without scrolling the browser page.
+- **Synchronized Version 2.0.37 Across All 5 Version Targets**:
+  1. `package.json`: `"version": "2.0.37"`, added script `"test:no-autoscroll-on-mouse-action"`.
+  2. `android-shell/app/build.gradle.kts`: `versionCode = 20037`, `versionName = "2.0.37"`.
+  3. `src/config/appConfig.ts`: `APP_VERSION = "2.0.37"`, updated release description.
+  4. `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v2.0.37"`.
+  5. `src/utils/appSettings.ts`: default snapshot `version: "2.0.37"`.
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-no-autoscroll-on-mouse-action.ts` (`npm run test:no-autoscroll-on-mouse-action` - 100% PASS).
+  - `scripts/verify-auto-scroll.ts` (100% PASS).
+  - `scripts/verify-language-boxes-selection.ts` (100% PASS).
+  - `compile_applet` (clean build success).
+  - `lint_applet` (0 errors).
+
+- **Removal of Redundant Status Card (`src/routes/index.tsx`)**:
+  - Addressed targeted Focus Mode element (`div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2)`).
+  - Completely removed `data-testid="enabled-languages-status-card"`, which duplicated information and controls:
+    - Duplicated "🎬 Enabled for this Video: X languages" status indicator.
+    - Duplicate buttons (`reset-video-to-favorites-btn` and `save-current-as-favorites-btn`), which are already provided in the Settings accordion (`settings-reset-video-to-favorites-btn` and `settings-save-current-as-favorites-btn`).
+    - Redundant chips for current selection and "My Languages" buttons.
+    - Redundant "Add Language" select dropdown (`quick-add-favorite-select`).
+  - Preserved `LanguageBoxesSelector` directly inside the Languages accordion as the canonical place where users select which languages to enable for the current video.
+  - Preserved the Settings accordion as the canonical place for managing the app-wide favorite languages list.
+- **Synchronized Version 2.0.36 Across All 5 Version Targets**:
+  1. `package.json`: `"version": "2.0.36"`
+  2. `android-shell/app/build.gradle.kts`: `versionCode = 20036`, `versionName = "2.0.36"`
+  3. `src/config/appConfig.ts`: `APP_VERSION = "2.0.36"`, updated release description.
+  4. `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v2.0.36"`
+  5. `src/utils/appSettings.ts`: default snapshot `version: "2.0.36"`
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-remove-redundant-languages-status-card.ts` (`npm run test:remove-redundant-languages-status-card` - 100% PASS).
+  - `scripts/verify-advanced-mode-favorite-language-boxes.ts` (100% PASS).
+  - `scripts/verify-language-accordion-ux.ts` (100% PASS).
+  - `scripts/verify-unified-languages-table.ts` (100% PASS).
+  - `compile_applet` (clean build success).
+  - `lint_applet` (0 errors).
+
+
 
 - **Removal of "Favorite" Table Column (`src/routes/index.tsx`)**:
   - Addressed targeted Focus Mode elements (`th:nth-of-type(2)` and `td:nth-of-type(2)` in `table[data-testid="unified-languages-table"]`).
