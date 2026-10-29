@@ -162,7 +162,6 @@ export function getSharedLanguagesForVideo(videoId: string): string[] {
   }
 }
 
-
 /**
  * Checks if a language is tagged as (shared) for the specific video.
  */
@@ -170,4 +169,3 @@ export function isSharedLanguageForVideo(videoId: string, langCode: string): boo
   if (!videoId || !langCode) return false;
   return getSharedLanguagesForVideo(videoId).includes(langCode.trim().toLowerCase());
 }
-

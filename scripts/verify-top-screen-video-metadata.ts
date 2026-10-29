@@ -22,7 +22,8 @@ assert.ok(
 
 // 2. Verify dependencies on videoMetadata and active videoId
 assert.ok(
-  routesContent.includes("videoMetadata?.title") && routesContent.includes("videoMetadata?.description"),
+  routesContent.includes("videoMetadata?.title") &&
+    routesContent.includes("videoMetadata?.description"),
   "topScreenTitle and topScreenDescription must read videoMetadata properties",
 );
 

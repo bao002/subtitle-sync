@@ -21,51 +21,63 @@ assert.ok(
 console.log("✅ PASS: data-testid='unified-languages-table' is present");
 
 // Test 2: All required columns in the unified table header
-console.log("\n[Test 2] Verifying all required table columns (language, rate, ratio, tts-play, present-in-table, subtitles-url, order)...");
+console.log(
+  "\n[Test 2] Verifying all required table columns (language, rate, ratio, tts-play, present-in-table, subtitles-url, order)...",
+);
 assert.ok(/<th[^>]*>\s*Language\s*<\/th>/.test(indexContent), "Must contain Language column");
 assert.ok(/<th[^>]*>\s*Rate\s*<\/th>/.test(indexContent), "Must contain Rate column");
 assert.ok(/<th[^>]*>\s*(?:TTS\s+)?Ratio\s*<\/th>/.test(indexContent), "Must contain Ratio column");
 assert.ok(/<th[^>]*>\s*TTS-Play\s*<\/th>/.test(indexContent), "Must contain TTS-Play column");
-assert.ok(/<th[^>]*>\s*Present in Table\s*<\/th>/.test(indexContent), "Must contain Present in Table column");
-assert.ok(/<th[^>]*>\s*Subtitle URL\s*<\/th>/.test(indexContent), "Must contain Subtitle URL column");
+assert.ok(
+  /<th[^>]*>\s*Present in Table\s*<\/th>/.test(indexContent),
+  "Must contain Present in Table column",
+);
+assert.ok(
+  /<th[^>]*>\s*Subtitle URL\s*<\/th>/.test(indexContent),
+  "Must contain Subtitle URL column",
+);
 assert.ok(/<th[^>]*>\s*Order\s*<\/th>/.test(indexContent), "Must contain Order column");
-console.log("✅ PASS: Required columns configured in table header (Primary integrated in Language column)");
+console.log(
+  "✅ PASS: Required columns configured in table header (Primary integrated in Language column)",
+);
 
 // Test 3: Language row controls
 console.log("\n[Test 3] Verifying language row controls integration in the table...");
 assert.ok(
-  indexContent.includes('data-testid={`tts-role-badge-${lang.code}`}'),
+  indexContent.includes("data-testid={`tts-role-badge-${lang.code}`}"),
   "Row must support Primary badge",
 );
 assert.ok(
-  indexContent.includes('data-testid={`tts-switch-primary-${lang.code}`}'),
+  indexContent.includes("data-testid={`tts-switch-primary-${lang.code}`}"),
   "Row must support Make Primary switch button",
 );
 assert.ok(
-  indexContent.includes('aria-label={`${lang.name} speech rate`}'),
+  indexContent.includes("aria-label={`${lang.name} speech rate`}"),
   "Row must support speech rate slider",
 );
 assert.ok(
-  indexContent.includes('data-testid={`tts-ratio-slider-${lang.code}`}'),
+  indexContent.includes("data-testid={`tts-ratio-slider-${lang.code}`}"),
   "Row must support TTS ratio select",
 );
 assert.ok(
-  indexContent.includes('data-testid={`checkbox-tts-play-${lang.code}`}'),
+  indexContent.includes("data-testid={`checkbox-tts-play-${lang.code}`}"),
   "Row must support TTS-play checkbox",
 );
 assert.ok(
-  indexContent.includes('data-testid={`checkbox-present-in-table-${lang.code}`}'),
+  indexContent.includes("data-testid={`checkbox-present-in-table-${lang.code}`}"),
   "Row must support Present in Table checkbox",
 );
 assert.ok(
-  indexContent.includes('data-testid={`table-btn-subtitle-url-${lang.code}`}'),
+  indexContent.includes("data-testid={`table-btn-subtitle-url-${lang.code}`}"),
   "Row must support Subtitle URL button",
 );
 console.log("✅ PASS: All inline row controls present in unified table");
 
 // Test 4: Separate records block after primary title banner is not rendered
 console.log("\n[Test 4] Verifying separate records after primary title banner are eliminated...");
-const titleIndex = indexContent.indexOf("Primary leads; secondary languages speak relative to primary");
+const titleIndex = indexContent.indexOf(
+  "Primary leads; secondary languages speak relative to primary",
+);
 assert.ok(titleIndex !== -1, "Title banner must exist");
 const afterTitle = indexContent.slice(titleIndex);
 assert.ok(

@@ -4,9 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*None. All planned tasks and prompt chapters are complete.*
-
-
+*None. All prompt tasks (Task 240) completed, verified, compiled, and migrated to docs/done.md.*
 
 ## Later Tasks
 

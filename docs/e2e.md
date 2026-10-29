@@ -4,14 +4,14 @@ This page selects the right validation layer and records outcomes that help avoi
 
 ## Test selection
 
-| Scope | Command | What it verifies |
-| --- | --- | --- |
-| Focused action-log behavior | `npm run test:state-machine-action-logs` | Timestamped actions, errors, and copy-all report contents. |
-| Focused browser interaction | `./docker/manage.sh e2e web --grep 'state-machine action logs' --retries=0` | Opens the diagnostics view and checks clipboard copy/read-back in a real browser. |
-| Web browser suite | `./docker/manage.sh e2e web` | Web workflows in the official Playwright browser container. |
-| Browser emulation suite | `./docker/manage.sh e2e emulation` | Mobile viewport/browser behavior; does not exercise Android OS or native shell. |
-| Android runtime | `bash android-shell/gradlew assembleDebug && bash scripts/run-android-e2e.sh && bash scripts/android-e2e-assert.sh` | Native shell/WebView behavior on a configured API 34 emulator or device. |
-| Build and lint | `npm run build && npm run lint` | Production compilation and repository lint gate. |
+| Scope                       | Command                                                                                                             | What it verifies                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Focused action-log behavior | `npm run test:state-machine-action-logs`                                                                            | Timestamped actions, errors, and copy-all report contents.                        |
+| Focused browser interaction | `./docker/manage.sh e2e web --grep 'state-machine action logs' --retries=0`                                         | Opens the diagnostics view and checks clipboard copy/read-back in a real browser. |
+| Web browser suite           | `./docker/manage.sh e2e web`                                                                                        | Web workflows in the official Playwright browser container.                       |
+| Browser emulation suite     | `./docker/manage.sh e2e emulation`                                                                                  | Mobile viewport/browser behavior; does not exercise Android OS or native shell.   |
+| Android runtime             | `bash android-shell/gradlew assembleDebug && bash scripts/run-android-e2e.sh && bash scripts/android-e2e-assert.sh` | Native shell/WebView behavior on a configured API 34 emulator or device.          |
+| Build and lint              | `npm run build && npm run lint`                                                                                     | Production compilation and repository lint gate.                                  |
 
 ## Trial record: 2026-10-26
 

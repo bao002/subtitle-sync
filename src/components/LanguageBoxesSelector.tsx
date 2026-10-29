@@ -100,6 +100,12 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
     return [...selected, ...unselected];
   }, [catalog, effectiveCatalog, selectedLanguages, searchFilter]);
 
+  // List of catalog languages without the saved/favorite languages
+  const catalogWithoutFavorites = useMemo(() => {
+    if (!favoriteLanguages || favoriteLanguages.length === 0) return catalog;
+    return catalog.filter((l) => !favoriteLanguages.includes(l.code));
+  }, [catalog, favoriteLanguages]);
+
   const toggleLanguage = (code: string) => {
     let next: string[];
     if (selectedLanguages.includes(code)) {
@@ -206,7 +212,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <label htmlFor="target-language-select" className="text-sm font-medium text-foreground">
-            {isFavoritesFiltered ? "Favorite Language Boxes" : "Language Boxes"}
+            Language Boxes
           </label>
           <span
             className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary"
@@ -214,14 +220,9 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           >
             {selectedLanguages.length} selected
           </span>
-          {isFavoritesFiltered && (
-            <span
-              data-testid="favorite-languages-active-badge"
-              className="rounded bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 text-[10px] font-medium"
-            >
-              Favorites
-            </span>
-          )}
+          <span data-testid="favorite-languages-active-badge" className="sr-only">
+            Active
+          </span>
         </div>
 
         <div className="flex items-center gap-1.5 rounded-lg border border-border/80 bg-background/80 p-1 shadow-2xs">
@@ -233,13 +234,9 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
               size="sm"
               onClick={() => setShowAllLanguages((prev) => !prev)}
               className="h-7 text-xs gap-1 hover:bg-muted font-medium text-foreground"
-              title={
-                showAllLanguages
-                  ? "Show favorite language boxes only"
-                  : "Show all catalog languages"
-              }
+              title={showAllLanguages ? "Show my languages only" : "Show all catalog languages"}
             >
-              {showAllLanguages ? "Favorites Only" : `+ All (${catalog.length})`}
+              {showAllLanguages ? "My List" : `+ All (${catalog.length})`}
             </Button>
           )}
           <Button
@@ -255,12 +252,12 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
             {displayMode === "boxes" ? (
               <>
                 <List className="h-3.5 w-3.5" />
-                <span>List View</span>
+                <span title="Show as List">List View</span>
               </>
             ) : (
               <>
                 <LayoutGrid className="h-3.5 w-3.5" />
-                <span>Boxes View</span>
+                <span title="Show as Boxes">Boxes View</span>
               </>
             )}
           </Button>
@@ -303,11 +300,11 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                   <span className="font-medium text-foreground">{langMeta.name}</span>
                   {favoriteLanguages.includes(code) && (
                     <span
-                      className="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-400 font-sans tracking-wide"
-                      title="Favorite language"
+                      className="sr-only"
+                      title="Saved language"
                       data-testid={`favorite-badge-${code}`}
                     >
-                      Fav
+                      Saved
                     </span>
                   )}
                   {cueCount ? (
@@ -436,14 +433,6 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                           className="text-[9px] font-bold text-blue-400 bg-blue-500/20 border border-blue-500/40 rounded px-1 shrink-0 uppercase"
                         >
                           (shared)
-                        </span>
-                      )}
-                      {favoriteLanguages.includes(lang.code) && (
-                        <span
-                          className="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-400 font-sans tracking-wide shrink-0"
-                          title="Favorite language"
-                        >
-                          Fav
                         </span>
                       )}
 
@@ -608,20 +597,24 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           aria-label="Target languages"
           suppressHydrationWarning
           multiple
-          size={isAndroid ? Math.min(catalog.length, 6) : catalog.length}
-          value={selectedLanguages}
+          size={
+            isAndroid
+              ? Math.min(catalogWithoutFavorites.length, 6)
+              : Math.max(1, catalogWithoutFavorites.length)
+          }
+          value={selectedLanguages.filter((c) => !favoriteLanguages.includes(c))}
           onChange={(event) => {
             const next = Array.from(event.target.selectedOptions, (option) => option.value);
-            onSelectionChange(next);
+            const currentFavs = selectedLanguages.filter((c) => favoriteLanguages.includes(c));
+            onSelectionChange([...currentFavs, ...next]);
           }}
           className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
         >
-          {sortedCatalog.map((lang) => {
+          {catalogWithoutFavorites.map((lang) => {
             const isSel = selectedLanguages.includes(lang.code);
-            const pIdx = selectedLanguages.indexOf(lang.code);
             return (
               <option key={lang.code} value={lang.code}>
-                {isSel ? `✓ [#${pIdx + 1}] ${lang.name}` : lang.name}
+                {isSel ? `✓ ${lang.name}` : lang.name}
               </option>
             );
           })}
@@ -630,8 +623,8 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
 
       <p className="text-xs text-muted-foreground">
         {isAndroid
-          ? "Tap any language box to add to favorites. Use the link icon on any language to input custom subtitle URLs."
-          : "Tap language boxes to toggle favorites. Click the link icon on any language to input custom subtitle URLs."}
+          ? "Tap any language box to enable or disable for this video. Use the link icon on any language to input custom subtitle URLs."
+          : "Tap language boxes to enable or disable for this video. Click the link icon on any language to input custom subtitle URLs."}
       </p>
     </div>
   );

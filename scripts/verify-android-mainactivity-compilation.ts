@@ -22,8 +22,12 @@ const interceptorMatch = content.match(
 );
 assert(
   interceptorMatch &&
-    (interceptorMatch[0].includes('val json3Body = this@MainActivity.executeTimedTextRepetition(url, lang, "json3")') ||
-      interceptorMatch[0].includes('val json3Body = executeTimedTextRepetition(url, lang, "json3")')),
+    (interceptorMatch[0].includes(
+      'val json3Body = this@MainActivity.executeTimedTextRepetition(url, lang, "json3")',
+    ) ||
+      interceptorMatch[0].includes(
+        'val json3Body = executeTimedTextRepetition(url, lang, "json3")',
+      )),
   "shouldInterceptRequest must call executeTimedTextRepetition on line ~235",
 );
 console.log("✅ PASS: shouldInterceptRequest calls executeTimedTextRepetition.");
@@ -62,8 +66,9 @@ assert(
   "fetchTranslatedCaptionsWithUrl must be declared",
 );
 assert(
-  content.includes("return this@MainActivity.executeTimedTextRepetition(base, targetLang, format)") ||
-    content.includes("return executeTimedTextRepetition(base, targetLang, format)"),
+  content.includes(
+    "return this@MainActivity.executeTimedTextRepetition(base, targetLang, format)",
+  ) || content.includes("return executeTimedTextRepetition(base, targetLang, format)"),
   "AndroidNativeBridge must delegate to executeTimedTextRepetition",
 );
 console.log("✅ PASS: AndroidNativeBridge calls executeTimedTextRepetition cleanly.");

@@ -19,11 +19,11 @@ function assert(condition: boolean, message: string) {
 // 1. Verify docs/e2e_testing_including_android_codespace_docker_and_github_pages.md exists under docs/
 const guidePath = path.resolve(
   process.cwd(),
-  "docs/e2e_testing_including_android_codespace_docker_and_github_pages.md"
+  "docs/e2e_testing_including_android_codespace_docker_and_github_pages.md",
 );
 assert(
   fs.existsSync(guidePath),
-  "docs/e2e_testing_including_android_codespace_docker_and_github_pages.md must exist under docs/"
+  "docs/e2e_testing_including_android_codespace_docker_and_github_pages.md must exist under docs/",
 );
 
 const content = fs.existsSync(guidePath) ? fs.readFileSync(guidePath, "utf-8") : "";
@@ -41,16 +41,13 @@ const requiredSections = [
 ];
 
 for (const section of requiredSections) {
-  assert(
-    content.includes(section),
-    `Guide must contain section heading: "${section}"`
-  );
+  assert(content.includes(section), `Guide must contain section heading: "${section}"`);
 }
 
 // 3. Verify specific required technical concepts
 const requiredKeyPhrases = [
   // Trial details
-  "which docker || echo \"no docker\"",
+  'which docker || echo "no docker"',
   "Docker is required but was not found in PATH",
   // Android E2E
   "API 34",
@@ -91,30 +88,24 @@ const requiredKeyPhrases = [
 ];
 
 for (const phrase of requiredKeyPhrases) {
-  assert(
-    content.includes(phrase),
-    `Guide must include technical phrase: "${phrase}"`
-  );
+  assert(content.includes(phrase), `Guide must include technical phrase: "${phrase}"`);
 }
 
 // 4. Verify no duplicate in root directory
 const rootDuplicatePath = path.resolve(
   process.cwd(),
-  "e2e_testing_including_android_codespace_docker_and_github_pages.md"
+  "e2e_testing_including_android_codespace_docker_and_github_pages.md",
 );
-assert(
-  !fs.existsSync(rootDuplicatePath),
-  "No duplicate file may exist in project root"
-);
+assert(!fs.existsSync(rootDuplicatePath), "No duplicate file may exist in project root");
 
 // 5. Verify registration in docs/files.md
 const filesMdPath = path.resolve(process.cwd(), "docs/files.md");
 const filesMdContent = fs.readFileSync(filesMdPath, "utf-8");
 assert(
   filesMdContent.includes(
-    "docs/e2e_testing_including_android_codespace_docker_and_github_pages.md"
+    "docs/e2e_testing_including_android_codespace_docker_and_github_pages.md",
   ),
-  "docs/files.md must catalog docs/e2e_testing_including_android_codespace_docker_and_github_pages.md"
+  "docs/files.md must catalog docs/e2e_testing_including_android_codespace_docker_and_github_pages.md",
 );
 
 // 6. Verify registration in package.json
@@ -122,7 +113,7 @@ const packageJsonPath = path.resolve(process.cwd(), "package.json");
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
 assert(
   Boolean(packageJson.scripts && packageJson.scripts["test:e2e-testing-guide"]),
-  "package.json must contain script 'test:e2e-testing-guide'"
+  "package.json must contain script 'test:e2e-testing-guide'",
 );
 
 console.log("=========================================================================");

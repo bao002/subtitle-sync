@@ -15,32 +15,48 @@ function run() {
   const agentsContent = fs.readFileSync(agentsPath, "utf-8");
 
   // 1. Verify rule header
-  if (!agentsContent.includes("No more tasks \"go on\" handling")) {
-    console.error("❌ FAIL: AGENTS.md must include '- **No more tasks \"go on\" handling**:' section.");
+  if (!agentsContent.includes('No more tasks "go on" handling')) {
+    console.error(
+      "❌ FAIL: AGENTS.md must include '- **No more tasks \"go on\" handling**:' section.",
+    );
     process.exit(1);
   }
   console.log("✅ PASS: AGENTS.md contains the 'No more tasks \"go on\" handling' rule header.");
 
   // 2. Verify rule core directives
-  if (!agentsContent.includes("no more tasks are left") && !agentsContent.includes("no more tasks left")) {
+  if (
+    !agentsContent.includes("no more tasks are left") &&
+    !agentsContent.includes("no more tasks left")
+  ) {
     console.error("❌ FAIL: AGENTS.md must specify condition 'in case no more tasks are left'.");
     process.exit(1);
   }
   console.log("✅ PASS: AGENTS.md specifies condition for when no more tasks are left.");
 
-  if (!agentsContent.includes("if prompt is \"go on\"") && !agentsContent.includes("if prompt is 'go on'")) {
+  if (
+    !agentsContent.includes('if prompt is "go on"') &&
+    !agentsContent.includes("if prompt is 'go on'")
+  ) {
     console.error("❌ FAIL: AGENTS.md must specify prompt match 'if prompt is \"go on\"'.");
     process.exit(1);
   }
   console.log("✅ PASS: AGENTS.md specifies prompt check for 'go on'.");
 
-  if (!agentsContent.includes("just summarize that there are no more tasks") && !agentsContent.includes("just summaries that there no more tasks")) {
-    console.error("❌ FAIL: AGENTS.md must instruct to just summarize that there are no more tasks.");
+  if (
+    !agentsContent.includes("just summarize that there are no more tasks") &&
+    !agentsContent.includes("just summaries that there no more tasks")
+  ) {
+    console.error(
+      "❌ FAIL: AGENTS.md must instruct to just summarize that there are no more tasks.",
+    );
     process.exit(1);
   }
   console.log("✅ PASS: AGENTS.md instructs to summarize no more tasks.");
 
-  if (!agentsContent.includes("no need to show anything else") && !agentsContent.includes("No need to show anything else")) {
+  if (
+    !agentsContent.includes("no need to show anything else") &&
+    !agentsContent.includes("No need to show anything else")
+  ) {
     console.error("❌ FAIL: AGENTS.md must state 'no need to show anything else'.");
     process.exit(1);
   }
@@ -60,7 +76,9 @@ function run() {
     console.error("❌ FAIL: Functional simulation failed for empty backlog + 'go on'.");
     process.exit(1);
   }
-  console.log("✅ PASS: Functional handler correctly summarizes no more tasks when queue is empty.");
+  console.log(
+    "✅ PASS: Functional handler correctly summarizes no more tasks when queue is empty.",
+  );
 
   const resultWithTasks = handlePrompt("go on", 2);
   if (resultWithTasks !== "Executing task with prompt: go on") {

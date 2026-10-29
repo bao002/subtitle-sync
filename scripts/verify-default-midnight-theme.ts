@@ -56,7 +56,7 @@ assert.ok(
   indexContent.includes('{ id: "dark-blue", label: "Midnight", icon: Sparkles }'),
   'src/routes/index.tsx theme selector must contain id: "dark-blue" with label: "Midnight"',
 );
-console.log('✅ PASS: Midnight theme option correctly configured in segmented control');
+console.log("✅ PASS: Midnight theme option correctly configured in segmented control");
 
 // Test 6: CSS definition of .dark-blue in src/styles.css
 console.log("\n[Test 6] Verifying .dark-blue definitions in src/styles.css...");

@@ -39,7 +39,9 @@ function run() {
     attemptOrderCode.includes("update-fetch-server-url-button"),
     "AttemptOrderSettings must preserve update-fetch-server-url-button test id",
   );
-  console.log("✅ PASS: AttemptOrderSettings defaults explanatory text to collapsed with clean expand triggers.");
+  console.log(
+    "✅ PASS: AttemptOrderSettings defaults explanatory text to collapsed with clean expand triggers.",
+  );
 
   // 3. Verify AiSubtitlePunctuationTab progressive disclosure & button clusters
   const aiTabPath = path.resolve(rootDir, "src/components/AiSubtitlePunctuationTab.tsx");
@@ -54,10 +56,13 @@ function run() {
     "AiSubtitlePunctuationTab must preserve share and return viewer button test IDs",
   );
   assert(
-    aiTabCode.includes("load-cached-ai-subtitles-btn") && aiTabCode.includes("preview-cached-ai-subtitles-btn"),
+    aiTabCode.includes("load-cached-ai-subtitles-btn") &&
+      aiTabCode.includes("preview-cached-ai-subtitles-btn"),
     "AiSubtitlePunctuationTab must preserve cached AI buttons in professional cluster",
   );
-  console.log("✅ PASS: AiSubtitlePunctuationTab features progressive disclosure guide and professional button clusters.");
+  console.log(
+    "✅ PASS: AiSubtitlePunctuationTab features progressive disclosure guide and professional button clusters.",
+  );
 
   // 4. Verify BeginnerPreferencesTab icons & progressive disclosure
   const beginnerPrefsPath = path.resolve(
@@ -75,10 +80,13 @@ function run() {
     "BeginnerPreferencesTab must include showOrderHelp progressive disclosure",
   );
   assert(
-    beginnerPrefsCode.includes("order-video-first") && beginnerPrefsCode.includes("order-tts-first"),
+    beginnerPrefsCode.includes("order-video-first") &&
+      beginnerPrefsCode.includes("order-tts-first"),
     "BeginnerPreferencesTab must preserve order selection button test IDs",
   );
-  console.log("✅ PASS: BeginnerPreferencesTab provides domain icons and expandable order explanation.");
+  console.log(
+    "✅ PASS: BeginnerPreferencesTab provides domain icons and expandable order explanation.",
+  );
 
   // 5. Verify index.tsx header button clusters & preferences progressive disclosure
   const indexPath = path.resolve(rootDir, "src/routes/index.tsx");
@@ -100,7 +108,9 @@ function run() {
       indexCode.includes("debug-mode-toggle"),
     "index.tsx must preserve core toggle IDs",
   );
-  console.log("✅ PASS: index.tsx features professional header button clusters and progressive disclosure triggers.");
+  console.log(
+    "✅ PASS: index.tsx features professional header button clusters and progressive disclosure triggers.",
+  );
 
   // 6. Verify LanguageBoxesSelector button grouping
   const langBoxesPath = path.resolve(rootDir, "src/components/LanguageBoxesSelector.tsx");

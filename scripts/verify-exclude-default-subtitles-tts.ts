@@ -82,7 +82,9 @@ assert(
   "Automatic TTS scheduling must exclude the base subtitle language",
 );
 assert(
-  indexContent.includes("autoSpeakOnFetch && targetLanguage && isTtsSpeakableLanguage(lang, baseLanguage)"),
+  indexContent.includes(
+    "autoSpeakOnFetch && targetLanguage && isTtsSpeakableLanguage(lang, baseLanguage)",
+  ),
   "Fetching the default caption must not auto-enable its language for TTS",
 );
 assert.strictEqual(isTtsSpeakableLanguage("en", "en"), false);
@@ -99,7 +101,10 @@ const beginnerFlowPath = path.resolve(rootDir, "src/components/beginner/Beginner
 assert(fs.existsSync(beginnerFlowPath), "BeginnerFlowContainer.tsx must exist");
 const beginnerFlowContent = fs.readFileSync(beginnerFlowPath, "utf8");
 
-const beginnerPlayerPath = path.resolve(rootDir, "src/components/beginner/tabs/BeginnerPlayerTab.tsx");
+const beginnerPlayerPath = path.resolve(
+  rootDir,
+  "src/components/beginner/tabs/BeginnerPlayerTab.tsx",
+);
 const beginnerPlayerContent = fs.readFileSync(beginnerPlayerPath, "utf8");
 assert(
   beginnerPlayerContent.includes("cues.some((cue) => cue.targetText)") &&

@@ -33,7 +33,7 @@ assert.ok(
   "alternative-tts.ts must define fallbackToWebSpeech for ultimate browser speech synthesis fallback",
 );
 assert.ok(
-  !altTtsContent.includes("engine === \"lovable\" && !engineOverride"),
+  !altTtsContent.includes('engine === "lovable" && !engineOverride'),
   "alternative-tts.ts must not block Google Translate fallback with !engineOverride guard",
 );
 assert.ok(
@@ -64,10 +64,7 @@ console.log("✅ PASS: Advanced mode test button has live loading/playing state 
 
 // Test 3: Beginner Mode UI Test Button
 console.log("\n🐣 Test 3: Beginner Mode Test Button (BeginnerPreferencesTab.tsx)...");
-const beginnerPath = path.join(
-  rootDir,
-  "src/components/beginner/tabs/BeginnerPreferencesTab.tsx",
-);
+const beginnerPath = path.join(rootDir, "src/components/beginner/tabs/BeginnerPreferencesTab.tsx");
 assert.ok(fs.existsSync(beginnerPath), "BeginnerPreferencesTab.tsx must exist");
 const beginnerContent = fs.readFileSync(beginnerPath, "utf-8");
 
@@ -92,12 +89,24 @@ assert.equal(pkg.version, "1.0.69", "package.json version must be 1.0.69");
 assert.equal(APP_VERSION, "1.0.69", "appConfig.ts APP_VERSION must be 1.0.69");
 assert.equal(CURRENT_APK_VERSION, "v1.0.69", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.69");
 
-const gradleContent = fs.readFileSync(path.join(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(gradleContent.includes('versionName = "1.0.69"'), "build.gradle.kts versionName must be 1.0.69");
-assert.ok(gradleContent.includes("versionCode = 10069"), "build.gradle.kts versionCode must be 10069");
+const gradleContent = fs.readFileSync(
+  path.join(rootDir, "android-shell/app/build.gradle.kts"),
+  "utf-8",
+);
+assert.ok(
+  gradleContent.includes('versionName = "1.0.69"'),
+  "build.gradle.kts versionName must be 1.0.69",
+);
+assert.ok(
+  gradleContent.includes("versionCode = 10069"),
+  "build.gradle.kts versionCode must be 10069",
+);
 
 const settingsContent = fs.readFileSync(path.join(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert.ok(settingsContent.includes('version: "1.0.69"'), "appSettings.ts snapshot version must be 1.0.69");
+assert.ok(
+  settingsContent.includes('version: "1.0.69"'),
+  "appSettings.ts snapshot version must be 1.0.69",
+);
 
 console.log(`✅ PASS: All 5 manifests and configs verified at version 1.0.69 (${APP_COMMIT_ID}).`);
 

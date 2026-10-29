@@ -55,7 +55,9 @@ assert(
 
 // 5. Verify loop resumption check does not abort on !isVideoPlayingRef.current
 assert(
-  !indexContent.includes("if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;"),
+  !indexContent.includes(
+    "if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;",
+  ),
   "Legacy loop abort condition (!isVideoPlayingRef.current) is completely eliminated",
 );
 

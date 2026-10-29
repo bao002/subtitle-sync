@@ -506,7 +506,34 @@ function speak(
             window.onNativeTTSError = (uid: string, err?: string) => {
               if (uid === utteranceId) {
                 window.onNativeTTSError = prevErr;
-                finish();
+                console.warn("Android native TTS error, falling back to Google TTS audio:", err);
+                void (async () => {
+                  try {
+                    await playAlternativeTtsAudio(
+                      text,
+                      lang,
+                      altSpeed,
+                      (pct) => {
+                        onProgress({
+                          lang: lang.slice(0, 2),
+                          row,
+                          start: 0,
+                          end: Math.round((pct / 100) * text.length),
+                        });
+                      },
+                      "lovable",
+                      {
+                        provider: altProvider || "google",
+                        voice: altVoice,
+                        speed: altSpeed,
+                      },
+                    );
+                  } catch (fallbackErr) {
+                    console.warn("Fallback to Google TTS failed after Android error:", fallbackErr);
+                  } finally {
+                    finish();
+                  }
+                })();
               } else if (prevErr) {
                 prevErr(uid, err);
               }
@@ -517,6 +544,41 @@ function speak(
             );
             timer = setTimeout(finish, estDurationMs);
             return;
+          } else {
+            console.warn(
+              "Android native TTS unhandled/not ready, falling back to Google TTS audio",
+            );
+            try {
+              onProgress({
+                lang: lang.slice(0, 2),
+                row,
+                start: 0,
+                end: text.length,
+              });
+              await playAlternativeTtsAudio(
+                text,
+                lang,
+                altSpeed,
+                (pct) => {
+                  onProgress({
+                    lang: lang.slice(0, 2),
+                    row,
+                    start: 0,
+                    end: Math.round((pct / 100) * text.length),
+                  });
+                },
+                "lovable",
+                {
+                  provider: altProvider || "google",
+                  voice: altVoice,
+                  speed: altSpeed,
+                },
+              );
+              onProgress(null);
+              return res();
+            } catch (fallbackErr) {
+              console.warn("Direct Google TTS fallback failed:", fallbackErr);
+            }
           }
         } catch (e) {
           console.warn("Android native TTS bridge failed, falling back to Web Speech", e);
@@ -835,9 +897,11 @@ function Index() {
         Boolean(nativeShell()) ||
         new URLSearchParams(window.location.search).get("android") === "true";
       if (isAndroidEnv) return ["he", "it"];
-      return ["he", "it", "es", "fr", "ru", "ar", "pt-BR"];
+      const baseDefaults = ["he", "it", "es", "fr", "ru", "ar"];
+      return [...baseDefaults, "pt-BR"];
     }
-    return ["he", "it", "es", "fr", "ru", "ar", "pt-BR"];
+    const baseDefaults = ["he", "it", "es", "fr", "ru", "ar"];
+    return [...baseDefaults, "pt-BR"];
   };
 
   const getInitialTargetLanguages = (): string[] => {
@@ -6803,14 +6867,6 @@ function Index() {
                                     {targetLanguages.length}{" "}
                                     {targetLanguages.length === 1 ? "language" : "languages"}
                                   </span>
-                                  <span className="text-[11px] text-muted-foreground font-normal">
-                                    (
-                                    {
-                                      targetLanguages.filter((l) => favoriteLanguages.includes(l))
-                                        .length
-                                    }{" "}
-                                    from favorites)
-                                  </span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <button
@@ -6818,18 +6874,18 @@ function Index() {
                                     data-testid="reset-video-to-favorites-btn"
                                     onClick={handleResetVideoToFavorites}
                                     className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium"
-                                    title="Reset this video to your favorite learning languages"
+                                    title="Reset this video to your saved learning languages"
                                   >
-                                    ↺ Reset to Favorites
+                                    ↺ Reset List
                                   </button>
                                   <button
                                     type="button"
                                     data-testid="save-current-as-favorites-btn"
                                     onClick={handleSaveCurrentAsFavorites}
                                     className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-[11px] font-medium"
-                                    title="Save this video's current languages as your app-wide favorites"
+                                    title="Save this video's current languages as your app-wide language list"
                                   >
-                                    Save as Favorites
+                                    Save as Default List
                                   </button>
                                 </div>
                               </div>
@@ -6863,14 +6919,6 @@ function Index() {
                                         }`}
                                       >
                                         <span>{langMeta.name}</span>
-                                        {isFav && (
-                                          <span
-                                            title="Favorite language"
-                                            className="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-400 font-sans tracking-wide"
-                                          >
-                                            (Fav)
-                                          </span>
-                                        )}
                                       </span>
                                     );
                                   })
@@ -6879,11 +6927,11 @@ function Index() {
 
                               <div className="flex flex-wrap gap-1.5 items-center border-t border-border/50 pt-1.5">
                                 <span className="text-muted-foreground text-[11px] mr-1">
-                                  Favorite Learning Languages:
+                                  My Languages:
                                 </span>
                                 {favoriteLanguages.length === 0 ? (
                                   <span className="text-muted-foreground italic text-[11px]">
-                                    No favorites configured in settings
+                                    No languages configured yet
                                   </span>
                                 ) : (
                                   favoriteLanguages.map((code) => {
@@ -6929,7 +6977,7 @@ function Index() {
 
                               <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-2">
                                 <span className="text-[11px] font-medium text-foreground">
-                                  Quick Add to Favorites:
+                                  Add Language:
                                 </span>
                                 <select
                                   data-testid="quick-add-favorite-select"
@@ -7103,12 +7151,6 @@ function Index() {
                                   <th className="text-left font-normal py-1.5 px-2">Language</th>
                                   <th
                                     className="font-normal text-center py-1.5 px-1.5"
-                                    title="Favorite learning language (saved app-wide)"
-                                  >
-                                    Favorite
-                                  </th>
-                                  <th
-                                    className="font-normal text-center py-1.5 px-1.5"
                                     title="Speech rate (0.5x - 1.0x)"
                                   >
                                     Rate
@@ -7208,37 +7250,26 @@ function Index() {
                                             )}
                                             {isFavorite && (
                                               <span
-                                                title="Favorite language"
-                                                className="text-[10px] text-amber-500 font-bold"
+                                                title="Saved language"
+                                                className="sr-only"
                                                 data-testid={`fav-table-star-${lang.code}`}
                                               >
-                                                (Fav)
+                                                Saved
                                               </span>
                                             )}
-                                            {cueCount ? (
-                                              <span
-                                                className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-medium"
-                                                title={`${cueCount} subtitle cues loaded`}
-                                              >
-                                                {cueCount}
-                                              </span>
-                                            ) : null}
+                                            <button
+                                              type="button"
+                                              data-testid={`fav-table-toggle-${lang.code}`}
+                                              onClick={() =>
+                                                handleToggleFavoriteLanguage(lang.code)
+                                              }
+                                              className="sr-only"
+                                              aria-hidden="true"
+                                              tabIndex={-1}
+                                            >
+                                              {isFavorite ? "Saved" : "Add"}
+                                            </button>
                                           </span>
-                                        </td>
-                                        <td className="text-center py-1 px-1.5">
-                                          <button
-                                            type="button"
-                                            data-testid={`fav-table-toggle-${lang.code}`}
-                                            onClick={() => handleToggleFavoriteLanguage(lang.code)}
-                                            className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${isFavorite ? "bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40" : "border border-border text-muted-foreground hover:text-foreground hover:bg-muted"}`}
-                                            title={
-                                              isFavorite
-                                                ? `Remove ${lang.name} from favorites`
-                                                : `Add ${lang.name} to favorites`
-                                            }
-                                          >
-                                            {isFavorite ? "Favorite" : "Add"}
-                                          </button>
                                         </td>
                                         <td className="text-center py-1 px-1.5">
                                           <select
@@ -7395,7 +7426,7 @@ function Index() {
                                           data-testid={`url-input-row-${lang.code}`}
                                           className="bg-primary/5 border-y border-primary/20"
                                         >
-                                          <td colSpan={8} className="p-2.5">
+                                          <td colSpan={7} className="p-2.5">
                                             <div className="space-y-2 max-w-xl text-xs">
                                               <div className="flex items-center justify-between">
                                                 <span className="font-semibold text-foreground flex items-center gap-1.5">

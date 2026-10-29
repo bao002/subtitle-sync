@@ -34,7 +34,10 @@ console.log("✅ PASS: ModeSwitcherHeader applies 'hidden' styling to #mode-swit
 console.log("Test 2: Verifying semantic theme tokens and test IDs in ModeSwitcherHeader...");
 assert.ok(modeSwitcherContent.includes("bg-card/90"), "Must preserve bg-card/90 theme token");
 assert.ok(modeSwitcherContent.includes("border-border"), "Must preserve border-border theme token");
-assert.ok(modeSwitcherContent.includes("text-foreground"), "Must preserve text-foreground theme token");
+assert.ok(
+  modeSwitcherContent.includes("text-foreground"),
+  "Must preserve text-foreground theme token",
+);
 assert.ok(
   modeSwitcherContent.includes('data-testid="mode-switcher-header"'),
   "Must preserve data-testid='mode-switcher-header'",
@@ -67,11 +70,20 @@ assert.equal(APP_VERSION, "1.0.100", "appConfig.ts APP_VERSION must be 1.0.100")
 assert.equal(CURRENT_APK_VERSION, "v1.0.100", "apkUpdater.ts CURRENT_APK_VERSION must be v1.0.100");
 
 const gradleContent = fs.readFileSync(gradlePath, "utf-8");
-assert.ok(gradleContent.includes('versionName = "1.0.100"'), "build.gradle.kts must have versionName 1.0.100");
-assert.ok(gradleContent.includes("versionCode = 10100"), "build.gradle.kts must have versionCode 10100");
+assert.ok(
+  gradleContent.includes('versionName = "1.0.100"'),
+  "build.gradle.kts must have versionName 1.0.100",
+);
+assert.ok(
+  gradleContent.includes("versionCode = 10100"),
+  "build.gradle.kts must have versionCode 10100",
+);
 
 const appSettingsContent = fs.readFileSync(appSettingsPath, "utf-8");
-assert.ok(appSettingsContent.includes('version: "1.0.100"'), "appSettings.ts must have version 1.0.100");
+assert.ok(
+  appSettingsContent.includes('version: "1.0.100"'),
+  "appSettings.ts must have version 1.0.100",
+);
 console.log("✅ PASS: All 5 version targets synchronized at 1.0.100.");
 
 console.log("==================================================================");

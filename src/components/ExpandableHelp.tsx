@@ -126,9 +126,7 @@ export const ExpandableHelp: React.FC<ExpandableHelpProps> = ({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
           {icon}
-          {title && (
-            <span className="text-xs font-semibold text-foreground truncate">{title}</span>
-          )}
+          {title && <span className="text-xs font-semibold text-foreground truncate">{title}</span>}
         </div>
         <button
           type="button"
@@ -139,11 +137,7 @@ export const ExpandableHelp: React.FC<ExpandableHelpProps> = ({
           className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline transition-colors shrink-0 px-1 py-0.5"
         >
           <span>{isExpanded ? "Hide Details" : "Learn More"}</span>
-          {isExpanded ? (
-            <ChevronUp className="h-3 w-3" />
-          ) : (
-            <ChevronDown className="h-3 w-3" />
-          )}
+          {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </button>
       </div>
       {isExpanded && (

@@ -40,7 +40,10 @@ for (let row = 0; row < recordsCount; row++) {
   if (row === 0 || row === 4 || row === 8) {
     assert(spanishEligible, `Row ${row}: Spanish (secondary 1:4) is active on activation ${row}`);
   } else {
-    assert(!spanishEligible, `Row ${row}: Spanish (secondary 1:4) is inactive on activation ${row}`);
+    assert(
+      !spanishEligible,
+      `Row ${row}: Spanish (secondary 1:4) is inactive on activation ${row}`,
+    );
   }
 }
 
@@ -68,14 +71,19 @@ for (let row = 0; row < 12; row++) {
   if (row === 0 || row === 8) {
     // 0 is Italian activation #0 (0 % 4 === 0)
     // 8 is Italian activation #4 (4 % 4 === 0)
-    assert(spanishEligible, `Row ${row}: Spanish (secondary 1:4) is active on Italian activation #${row / 2}`);
+    assert(
+      spanishEligible,
+      `Row ${row}: Spanish (secondary 1:4) is active on Italian activation #${row / 2}`,
+    );
   } else {
     assert(!spanishEligible, `Row ${row}: Spanish is inactive on non-4th Italian activation`);
   }
 }
 
 // 3. Math Verification: Switching Roles (Spanish Primary 1:1, Italian Secondary 1:2 relative to Spanish)
-console.log("Test 3: Switched Roles (Spanish Primary 1:1, Italian Secondary 1:2 relative to Spanish)");
+console.log(
+  "Test 3: Switched Roles (Spanish Primary 1:1, Italian Secondary 1:2 relative to Spanish)",
+);
 for (let row = 0; row < 6; row++) {
   const spanishEligible = isLanguageEligibleForTtsWithRole({
     rowIdx: row,
@@ -127,16 +135,19 @@ assert(
 
 // 5. Source-level UI Verification
 console.log("Test 5: Verifying UI components for primary/secondary switching");
-const perLangFile = path.join(process.cwd(), "src/components/beginner/PerLanguageTtsPreferences.tsx");
+const perLangFile = path.join(
+  process.cwd(),
+  "src/components/beginner/PerLanguageTtsPreferences.tsx",
+);
 assert(fs.existsSync(perLangFile), "PerLanguageTtsPreferences.tsx exists");
 const perLangContent = fs.readFileSync(perLangFile, "utf-8");
 
 assert(
-  perLangContent.includes('data-testid={`tts-role-badge-${language.code}`}'),
+  perLangContent.includes("data-testid={`tts-role-badge-${language.code}`}"),
   "PerLanguageTtsPreferences renders Primary badge for primary language",
 );
 assert(
-  perLangContent.includes('data-testid={`tts-switch-primary-${language.code}`}'),
+  perLangContent.includes("data-testid={`tts-switch-primary-${language.code}`}"),
   "PerLanguageTtsPreferences renders Make Primary button for secondary languages",
 );
 assert(
@@ -149,7 +160,9 @@ assert(fs.existsSync(rowFile), "SubtitleRow.tsx exists");
 const rowContent = fs.readFileSync(rowFile, "utf-8");
 
 assert(
-  rowContent.includes('data-tts-role={isPrimary ? "primary" : primaryTtsLang ? "secondary" : undefined}'),
+  rowContent.includes(
+    'data-tts-role={isPrimary ? "primary" : primaryTtsLang ? "secondary" : undefined}',
+  ),
   "SubtitleRow applies data-tts-role attribute to subtitle cells",
 );
 
@@ -158,11 +171,11 @@ assert(fs.existsSync(indexFile), "src/routes/index.tsx exists");
 const indexContent = fs.readFileSync(indexFile, "utf-8");
 
 assert(
-  indexContent.includes('data-testid={`tts-role-badge-${lang.code}`}'),
+  indexContent.includes("data-testid={`tts-role-badge-${lang.code}`}"),
   "Advanced mode renders Primary role badge",
 );
 assert(
-  indexContent.includes('data-testid={`tts-switch-primary-${lang.code}`}'),
+  indexContent.includes("data-testid={`tts-switch-primary-${lang.code}`}"),
   "Advanced mode renders Make Primary switch button",
 );
 assert(

@@ -48,7 +48,9 @@ assert.ok(
   'Notification must show "Pause" title when active',
 );
 
-console.log("✅ PASS: BackgroundAudioService.kt correctly terminates native TTS on pause in 1 click");
+console.log(
+  "✅ PASS: BackgroundAudioService.kt correctly terminates native TTS on pause in 1 click",
+);
 
 // ----------------------------------------------------
 // Test 2: MainActivity.kt Verification
@@ -115,7 +117,9 @@ assert.ok(
   "backgroundMediaManager must handle stop action and trigger onStop callback",
 );
 
-console.log("✅ PASS: backgroundMediaManager.ts correctly forwards native media commands to callbacks");
+console.log(
+  "✅ PASS: backgroundMediaManager.ts correctly forwards native media commands to callbacks",
+);
 
 // ----------------------------------------------------
 // Test 4: src/routes/index.tsx Integration Verification
@@ -145,7 +149,9 @@ assert.ok(
 assert.ok(
   indexContent.includes("await speakRow(candidateRow);") &&
     indexContent.includes("const wasCancelled = !busy.current;") &&
-    indexContent.includes("if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;"),
+    indexContent.includes(
+      "if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;",
+    ),
   "Video-first mode must abort playback resumption when paused mid-speech or when video is stopped",
 );
 
@@ -153,7 +159,9 @@ assert.ok(
 assert.ok(
   indexContent.includes("await speakRow(idx);") &&
     indexContent.includes("const wasCancelled = !busy.current;") &&
-    indexContent.includes("if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;"),
+    indexContent.includes(
+      "if (wasCancelled || st.current.isSetupPaused || !isVideoPlayingRef.current) return;",
+    ),
   "TTS-first mode must abort playback resumption when paused mid-speech or when video is stopped",
 );
 
@@ -164,7 +172,9 @@ assert.ok(
   "cancelSpeech must cancel alternative TTS and Android native shell TTS",
 );
 
-console.log("✅ PASS: src/routes/index.tsx correctly halts all playing audio, video, and TTS on 1-click pause");
+console.log(
+  "✅ PASS: src/routes/index.tsx correctly halts all playing audio, video, and TTS on 1-click pause",
+);
 
 console.log("====================================================");
 console.log("🎉 ALL Android Notification 1-Click Pause tests PASSED successfully!");

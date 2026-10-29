@@ -115,6 +115,7 @@ The application processes and presents subtitles through a strict sequential pip
 ### 3. Request validation & "Good" response criteria
 
 A subtitle HTTP response is considered valid and "good" ONLY when it satisfies all criteria:
+
 - **HTTP status**: Status code must be 200 OK. 4xx/5xx codes are rejected.
 - **Valid JSON parsing**: Response body must be non-empty, start with `{` or `[`, and parse successfully. HTML error pages are rejected immediately.
 - **YouTube `json3` structural schema compliance**: Must contain non-empty `events` array (`events.length > 0`), valid events with numeric `tStartMs` and `dDurationMs`, and `segs` array with non-empty string in `utf8` property (`typeof seg.utf8 === "string"`).
@@ -136,23 +137,16 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. ensure the app implemented minimal URL sharing and state reproduction.
-the shared target_lang is to be added to the favorite languages and be tagged as (shared) for the spacific video.
+1. all those languages on that table are from the list of favorites - so there is no reason to use a column named "favorites" !
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(2)
+CSS 1: {
 
-2. route <-> app state : ensure url can update site and vise versa
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(5) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(6) > td:nth-of-type(2) > button:nth-of-type(1)
+CSS 2: {
 
-3. extract the video id from the subtitles url
-
-4. Special characters removal - mv under settings
-
-5. accordion timeout - change to 10 seconds and add a sand-time icon and use it as progress bar to indicate time progress till 0. - use the timeout only for the following accordions (allow to change on settings): "video library"
-
-6. sometimes the video is paused without any explanation - what can be the reason?
-
-7. language accordion: its not clear what is global-favorite and its not clear why we need a star icon - remove it. in case the list of languages is limited to the demo example - please disclaim about it. adding a language to the favorite languages list should be easy and not use any icon.
-
-
-8. top screen - the text should be based on the video title& description
+}
+[AIS_METADATA_SECTION_END]
 ```
-
-

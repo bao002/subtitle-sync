@@ -41,10 +41,7 @@ const requiredPhrases = [
 ];
 
 for (const phrase of requiredPhrases) {
-  assert(
-    content.includes(phrase),
-    `docs/platforms.md must include "${phrase}"`,
-  );
+  assert(content.includes(phrase), `docs/platforms.md must include "${phrase}"`);
 }
 
 // 3. Verify docs/files.md registers docs/platforms.md

@@ -104,7 +104,6 @@ export function extractVideoIdFromSubtitlesUrl(subtitlesUrl?: string | null): st
   return null;
 }
 
-
 /**
  * Extracts language code from a timedtext URL (e.g. lang=iw, tlang=he) or fixture URL
  */
@@ -447,7 +446,6 @@ export function createShareableLink(options: CreateShareableLinkOptions): string
     return query ? `${origin}?${query}` : origin;
   }
 
-
   // Non-minimal options (legacy detailed link):
   const sourceLang = (options.sourceLangCode || options.subLang || "").toLowerCase().trim();
   if (sourceLang) {
@@ -541,7 +539,6 @@ export function syncAppStateToUrl(state: {
         params.set("target_lang", state.targetLang);
       }
 
-
       if (state.autoTTS !== undefined) {
         if (state.autoTTS) {
           params.set("tts", "1");
@@ -573,4 +570,3 @@ export function syncAppStateToUrl(state: {
     } catch {}
   }, 150);
 }
-

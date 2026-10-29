@@ -1,3 +1,3 @@
 # Ephemeral Scratchpad (temp.md)
 
-*(Scratchpad empty. All tasks completed.)*
+_(Scratchpad empty. All tasks completed.)_

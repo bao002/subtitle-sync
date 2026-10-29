@@ -1,10 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import assert from "node:assert";
-import {
-  getLovableTtsProvider,
-  setLovableTtsProvider,
-} from "../src/lib/alternative-tts";
+import { getLovableTtsProvider, setLovableTtsProvider } from "../src/lib/alternative-tts";
 import {
   DEFAULT_PARSER_CRITERIA,
   DEFAULT_CRITERIA_SETTINGS,
@@ -81,7 +78,9 @@ assert(
     indexContent.includes("Uses native speech rate"),
   "TTS speed control remains in its original place with native speed notice and no duplicate control",
 );
-console.log("✅ PASS: Audio file playback speed honors TTS rate settings and avoids duplicate controls");
+console.log(
+  "✅ PASS: Audio file playback speed honors TTS rate settings and avoids duplicate controls",
+);
 
 // --- 3. Parser - default to the best settings in order not to cut a sentence in the middle ---
 console.log("\n✂️ Test 3: Parser defaults to best settings to not cut sentences in the middle...");
@@ -104,10 +103,7 @@ assert(
   "beginnerPunctuationChars must not include commas or colons which cut sentences in the middle",
 );
 
-const beginnerFlowPath = path.join(
-  rootDir,
-  "src/components/beginner/BeginnerFlowContainer.tsx",
-);
+const beginnerFlowPath = path.join(rootDir, "src/components/beginner/BeginnerFlowContainer.tsx");
 const beginnerFlowContent = fs.readFileSync(beginnerFlowPath, "utf8");
 assert(
   !beginnerFlowContent.includes('[".", "!", "?", ",", ";", ":"]'),
@@ -121,12 +117,19 @@ const longSentenceTrack: Record<string, Json3> = {
       {
         tStartMs: 0,
         dDurationMs: 4000,
-        segs: [{ utf8: "This is a long continuous sentence that spans multiple cues ", tOffsetMs: 0 }],
+        segs: [
+          { utf8: "This is a long continuous sentence that spans multiple cues ", tOffsetMs: 0 },
+        ],
       },
       {
         tStartMs: 4000,
         dDurationMs: 5000,
-        segs: [{ utf8: "without any period or exclamation until the very end of the paragraph. ", tOffsetMs: 0 }],
+        segs: [
+          {
+            utf8: "without any period or exclamation until the very end of the paragraph. ",
+            tOffsetMs: 0,
+          },
+        ],
       },
       {
         tStartMs: 9000,
@@ -147,7 +150,9 @@ assert.strictEqual(
   9000,
   `First sentence must end at 9000ms where period occurs, got ${parsedSections[0]!.end}`,
 );
-console.log("✅ PASS: Parser default criteria preserves complete sentence boundaries without mid-sentence cuts");
+console.log(
+  "✅ PASS: Parser default criteria preserves complete sentence boundaries without mid-sentence cuts",
+);
 
 // --- 4. GitHub Actions release-apk workflow produces newer APK and upgrades release page ---
 console.log("\n🚀 Test 4: GitHub Actions release-apk workflow configuration...");
@@ -167,13 +172,17 @@ assert(
   releaseWorkflowContent.includes("target_commitish: ${{ github.sha }}"),
   "release-apk.yml must set target_commitish to ${{ github.sha }}",
 );
-console.log("✅ PASS: release-apk.yml configured with sufficient timeout and make_latest release upgrade");
+console.log(
+  "✅ PASS: release-apk.yml configured with sufficient timeout and make_latest release upgrade",
+);
 
 // --- 5. Each GitHub fork generates the same APK version based on package.json ---
 console.log("\n🍴 Test 5: Fork APK version uniformity based on package.json release...");
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf8"));
 assert(
-  releaseWorkflowContent.includes("BASE=$(node -p \"require('./package.json').version || '1.0.0'\")"),
+  releaseWorkflowContent.includes(
+    "BASE=$(node -p \"require('./package.json').version || '1.0.0'\")",
+  ),
   "release-apk.yml must read version directly from package.json",
 );
 assert(
@@ -196,7 +205,9 @@ assert(
   CURRENT_APK_VERSION === `v${packageJson.version}`,
   `CURRENT_APK_VERSION (${CURRENT_APK_VERSION}) must match v${packageJson.version}`,
 );
-console.log(`✅ PASS: All forks will generate uniform release version v${packageJson.version} based on package.json`);
+console.log(
+  `✅ PASS: All forks will generate uniform release version v${packageJson.version} based on package.json`,
+);
 
 console.log("====================================================");
 console.log("🎉 Task 187 Verification Suite PASSED successfully!");

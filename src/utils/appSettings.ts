@@ -486,7 +486,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "2.0.33",
+    version: "2.0.35",
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {
@@ -1058,4 +1058,3 @@ export function setVideoLibraryTimeoutSetting(enabled: boolean): void {
     window.localStorage.setItem(VIDEO_LIBRARY_TIMEOUT_KEY, enabled ? "true" : "false");
   } catch {}
 }
-

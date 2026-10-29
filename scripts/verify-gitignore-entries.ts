@@ -56,7 +56,10 @@ console.log("✅ PASS: .env.example template file is intact");
 // 4. Verify Version 1.0.40+ Parity Across All 5 Targets
 console.log("\n🔢 Section 4: Version 1.0.40+ Parity Verification");
 const [maj, min, patch] = pkg.version.split(".").map(Number);
-assert(maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 40))), "package.json version must be 1.0.40+");
+assert(
+  maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 40))),
+  "package.json version must be 1.0.40+",
+);
 
 const gradleContent = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),

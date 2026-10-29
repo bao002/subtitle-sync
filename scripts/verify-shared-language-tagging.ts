@@ -55,7 +55,11 @@ const videoB = "L2Ryrr6txwA";
 
 recordSharedLanguageForVideo(videoA, "he");
 assert.strictEqual(isSharedLanguageForVideo(videoA, "he"), true, "he must be shared for videoA");
-assert.strictEqual(isSharedLanguageForVideo(videoB, "he"), false, "he must NOT be shared for videoB");
+assert.strictEqual(
+  isSharedLanguageForVideo(videoB, "he"),
+  false,
+  "he must NOT be shared for videoB",
+);
 
 const sharedA = getSharedLanguagesForVideo(videoA);
 assert.deepStrictEqual(sharedA, ["he"]);

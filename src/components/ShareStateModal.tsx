@@ -9,10 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  createShareableLink,
-  DEMO_SITE_BASE_URL,
-} from "@/utils/urlStateManager";
+import { createShareableLink, DEMO_SITE_BASE_URL } from "@/utils/urlStateManager";
 import { LANGS, type Json3 } from "@/lib/subtitles";
 import {
   Share2,
@@ -241,7 +238,9 @@ export function ShareStateModal({
             </DialogTitle>
           </div>
           <DialogDescription className="text-xs text-muted-foreground">
-            Generate and share an encoded subtitles link to open in the demo site, containing video ID, source language, subtitles stream, target languages, TTS provider, and OpenRouter API key.
+            Generate and share an encoded subtitles link to open in the demo site, containing video
+            ID, source language, subtitles stream, target languages, TTS provider, and OpenRouter
+            API key.
           </DialogDescription>
         </DialogHeader>
 
@@ -287,7 +286,8 @@ export function ShareStateModal({
               </span>
             </label>
             <p className="text-[11px] text-muted-foreground pl-5.5">
-              Contains minimal info: default subtitles URL and video ID extracted from it. Reliable, compact, and free of redundant parameters.
+              Contains minimal info: default subtitles URL and video ID extracted from it. Reliable,
+              compact, and free of redundant parameters.
             </p>
           </div>
 
@@ -336,7 +336,8 @@ export function ShareStateModal({
               )}
             </div>
             <p className="text-[11px] text-muted-foreground pl-5.5">
-              The recipient will automatically have these target languages configured and translated.
+              The recipient will automatically have these target languages configured and
+              translated.
             </p>
           </div>
 
@@ -356,30 +357,32 @@ export function ShareStateModal({
               </span>
             </label>
             <p className="text-[11px] text-muted-foreground pl-5.5">
-              Includes the authentic timedtext captions URL for instant stream hydration on the recipient demo site.
+              Includes the authentic timedtext captions URL for instant stream hydration on the
+              recipient demo site.
             </p>
             {includeSubtitles && (
               <div className="pl-5.5 space-y-1 mt-1">
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                   <span>Subtitles stream URL to encode:</span>
-                  {typeof window !== "undefined" && window.AndroidNativeShell?.getLastObservedTimedTextUrl && (
-                    <button
-                      type="button"
-                      data-testid="btn-refresh-android-sub-url"
-                      onClick={() => {
-                        try {
-                          const cap = window.AndroidNativeShell?.getLastObservedTimedTextUrl?.();
-                          if (cap && cap.trim()) {
-                            setSubUrlInput(cap.trim());
-                          }
-                        } catch {}
-                      }}
-                      className="text-primary hover:underline font-medium cursor-pointer"
-                      title="Use the authentic subtitles URL captured by Android Native Shell"
-                    >
-                      Use Captured Android URL
-                    </button>
-                  )}
+                  {typeof window !== "undefined" &&
+                    window.AndroidNativeShell?.getLastObservedTimedTextUrl && (
+                      <button
+                        type="button"
+                        data-testid="btn-refresh-android-sub-url"
+                        onClick={() => {
+                          try {
+                            const cap = window.AndroidNativeShell?.getLastObservedTimedTextUrl?.();
+                            if (cap && cap.trim()) {
+                              setSubUrlInput(cap.trim());
+                            }
+                          } catch {}
+                        }}
+                        className="text-primary hover:underline font-medium cursor-pointer"
+                        title="Use the authentic subtitles URL captured by Android Native Shell"
+                      >
+                        Use Captured Android URL
+                      </button>
+                    )}
                 </div>
                 <input
                   type="text"

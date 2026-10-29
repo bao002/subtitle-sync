@@ -152,9 +152,7 @@ export function splitCuesIntoSentences(
       const charStartFraction = Math.min(1, Math.max(0, lastMatchEnd / cueText.length));
       const charEndFraction = Math.min(1, Math.max(0, delimiterEnd / cueText.length));
       const partStart =
-        lastMatchEnd === 0
-          ? cueStart
-          : Math.round(cueStart + charStartFraction * cueDuration);
+        lastMatchEnd === 0 ? cueStart : Math.round(cueStart + charStartFraction * cueDuration);
       const partEnd = Math.round(cueStart + charEndFraction * cueDuration);
 
       if (partText) {
@@ -167,9 +165,7 @@ export function splitCuesIntoSentences(
     if (leftover) {
       const charStartFraction = Math.min(1, Math.max(0, lastMatchEnd / cueText.length));
       const partStart =
-        lastMatchEnd === 0
-          ? cueStart
-          : Math.round(cueStart + charStartFraction * cueDuration);
+        lastMatchEnd === 0 ? cueStart : Math.round(cueStart + charStartFraction * cueDuration);
       cueSegments.push({ start: partStart, end: cueEnd, text: leftover });
     }
 

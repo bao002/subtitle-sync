@@ -20,7 +20,8 @@ function assert(condition: boolean, message: string) {
 const auditMap = [
   {
     file: "src/components/SubtitlesTablePanel.tsx",
-    description: "Subtitles Table Panel with hierarchical table, thead, tbody, th, and col selectors",
+    description:
+      "Subtitles Table Panel with hierarchical table, thead, tbody, th, and col selectors",
     testIds: [
       'data-testid="subtitles-table-panel"',
       'data-testid="subtitles-table"',
@@ -32,7 +33,8 @@ const auditMap = [
   },
   {
     file: "src/components/SubtitleRow.tsx",
-    description: "Subtitle Row with addressable timestamp, sentence text, actions, speak buttons, and TTS status badges",
+    description:
+      "Subtitle Row with addressable timestamp, sentence text, actions, speak buttons, and TTS status badges",
     testIds: [
       "subtitle-cue-row-",
       'data-testid="cue-row-timestamp"',
@@ -46,7 +48,8 @@ const auditMap = [
   },
   {
     file: "src/components/LanguageBoxesSelector.tsx",
-    description: "Language Boxes with addressable card container, button, title, check icon, code badge, and expand drawer",
+    description:
+      "Language Boxes with addressable card container, button, title, check icon, code badge, and expand drawer",
     testIds: [
       'data-testid="language-boxes-selector-wrapper"',
       'data-testid="language-boxes-grid"',
@@ -92,7 +95,8 @@ const auditMap = [
   },
   {
     file: "src/components/FloatingDraggablePauseButton.tsx",
-    description: "Floating Pause Controller with draggable container, trigger, dropdown, and options",
+    description:
+      "Floating Pause Controller with draggable container, trigger, dropdown, and options",
     testIds: [
       'data-testid="floating-draggable-pause-container"',
       'data-testid="floating-pause-button"',
@@ -123,28 +127,31 @@ for (const entry of auditMap) {
   if (fs.existsSync(filePath)) {
     const content = fs.readFileSync(filePath, "utf-8");
     for (const testId of entry.testIds) {
-      assert(
-        content.includes(testId),
-        `[${entry.file}] includes selector: ${testId}`,
-      );
+      assert(content.includes(testId), `[${entry.file}] includes selector: ${testId}`);
     }
   }
 }
 
 // Verify that child element addressing works via parent-child query patterns
 console.log("\n--> Verifying hierarchical child selector compatibility...");
-const tablePanelContent = fs.readFileSync(path.resolve(process.cwd(), "src/components/SubtitlesTablePanel.tsx"), "utf-8");
-const subtitleRowContent = fs.readFileSync(path.resolve(process.cwd(), "src/components/SubtitleRow.tsx"), "utf-8");
+const tablePanelContent = fs.readFileSync(
+  path.resolve(process.cwd(), "src/components/SubtitlesTablePanel.tsx"),
+  "utf-8",
+);
+const subtitleRowContent = fs.readFileSync(
+  path.resolve(process.cwd(), "src/components/SubtitleRow.tsx"),
+  "utf-8",
+);
 
 assert(
   tablePanelContent.includes('data-testid="subtitles-table"') &&
-  tablePanelContent.includes('data-testid="subtitles-table-body"'),
+    tablePanelContent.includes('data-testid="subtitles-table-body"'),
   "Parent table structure allows [data-testid='subtitles-table'] tbody targeting",
 );
 
 assert(
   subtitleRowContent.includes('data-testid="sentence-text-wrapper"') &&
-  subtitleRowContent.includes('data-testid="sentence-actions-wrapper"'),
+    subtitleRowContent.includes('data-testid="sentence-actions-wrapper"'),
   "SubtitleRow exposes distinct child wrappers for text and actions",
 );
 

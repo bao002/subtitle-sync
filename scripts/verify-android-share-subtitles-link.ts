@@ -47,7 +47,8 @@ assert(
   "Subtitles URL must be properly percent-encoded",
 );
 assert(
-  encodedDemoLink.includes("Target_langs=he%2Car") || encodedDemoLink.includes("Target_langs=he,ar"),
+  encodedDemoLink.includes("Target_langs=he%2Car") ||
+    encodedDemoLink.includes("Target_langs=he,ar"),
   "Link must encode Target_langs",
 );
 assert(encodedDemoLink.includes("tts_provider=lovable"), "Link must encode tts_provider");
@@ -66,7 +67,10 @@ const directDemoLink = createDemoSubtitlesShareLink({
   ttsProvider: "openrouter",
   subUrl: "https://mostuf2556.github.io/subtitle-sync/fixtures/L2Ryrr6txwA/en.json",
 });
-assert(directDemoLink.startsWith(DEMO_SITE_BASE_URL), "createDemoSubtitlesShareLink must use DEMO_SITE_BASE_URL");
+assert(
+  directDemoLink.startsWith(DEMO_SITE_BASE_URL),
+  "createDemoSubtitlesShareLink must use DEMO_SITE_BASE_URL",
+);
 console.log(`✅ PASS: createDemoSubtitlesShareLink verified: ${directDemoLink}`);
 
 // 2. Verify Android Native Shell Bridge methods in MainActivity.kt
@@ -94,7 +98,9 @@ assert(
   mainActivityContent.includes("Intent.createChooser"),
   "MainActivity.kt must invoke Intent.createChooser for sharing",
 );
-console.log("✅ PASS: Android Native Shell shareText & shareSubtitlesUrl verified in MainActivity.kt");
+console.log(
+  "✅ PASS: Android Native Shell shareText & shareSubtitlesUrl verified in MainActivity.kt",
+);
 assert(
   mainActivityContent.includes("candidates.firstOrNull { extractDemoShareUri(it) != null }"),
   "MainActivity.kt must prefer a demo URL found across Android share payload fields",
@@ -182,14 +188,8 @@ assert(
   indexContent.includes("appState.ttsProvider"),
   "index.tsx must hydrate ttsProvider from URL",
 );
-assert(
-  indexContent.includes("appState.subLang"),
-  "index.tsx must hydrate subLang from URL",
-);
-assert(
-  indexContent.includes("appState.subUrl"),
-  "index.tsx must hydrate subUrl from URL",
-);
+assert(indexContent.includes("appState.subLang"), "index.tsx must hydrate subLang from URL");
+assert(indexContent.includes("appState.subUrl"), "index.tsx must hydrate subUrl from URL");
 assert(
   indexContent.includes("<ShareStateModal"),
   "index.tsx must render ShareStateModal component",
@@ -200,7 +200,9 @@ console.log("✅ PASS: Index route mounts ShareStateModal and hydrates all share
 console.log("\n🔢 Section 6: Version Synchronization Across All 5 Targets");
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
 const expectedVersion = pkg.version;
-const versionParts = expectedVersion.split(".").map((part: string) => Number.parseInt(part, 10) || 0);
+const versionParts = expectedVersion
+  .split(".")
+  .map((part: string) => Number.parseInt(part, 10) || 0);
 const expectedVersionCode =
   (versionParts[0] || 1) * 10000 + (versionParts[1] || 0) * 100 + (versionParts[2] || 0);
 
@@ -212,13 +214,20 @@ assert(
   "build.gradle.kts versionName and versionCode must match package.json",
 );
 
-assert.strictEqual(APP_VERSION, expectedVersion, "appConfig.ts APP_VERSION must match package.json");
+assert.strictEqual(
+  APP_VERSION,
+  expectedVersion,
+  "appConfig.ts APP_VERSION must match package.json",
+);
 assert(
   CURRENT_APK_VERSION === `v${expectedVersion}`,
   "apkUpdater.ts CURRENT_APK_VERSION must match package.json",
 );
 
-const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
+const appSettingsContent = fs.readFileSync(
+  path.resolve(rootDir, "src/utils/appSettings.ts"),
+  "utf-8",
+);
 assert(
   appSettingsContent.includes(`version: "${expectedVersion}"`),
   "appSettings.ts snapshot version must match package.json",

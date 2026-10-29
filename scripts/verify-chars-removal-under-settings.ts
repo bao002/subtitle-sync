@@ -39,7 +39,9 @@ assert(
   charsRemovalInSettings < parserIdx,
   "Chars Removal under Settings must still precede Parser in the DOM and pipeline order",
 );
-console.log("✅ PASS: Chars Removal precedes Parser, maintaining Stage 3 -> Stage 4 pipeline integrity");
+console.log(
+  "✅ PASS: Chars Removal precedes Parser, maintaining Stage 3 -> Stage 4 pipeline integrity",
+);
 
 console.log("\n=========================================================================");
 console.log("🎉 ALL TASK 270 CHECKS PASSED 100%!");
