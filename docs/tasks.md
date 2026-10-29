@@ -4,17 +4,11 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 243: UI Improvements - Language Filtering, Error Alert Placement, Auto TTS Primary Ratio, Parallel Subtitles Freeze Columns & Floating Button Colors**
-  - Subtask 243.1: Revert/remove unneeded dedicated auto-scroll button from `SubtitlesTablePanel.tsx` and `routes/index.tsx`.
-  - Subtask 243.2: Add language filter in Settings -> Languages Settings and "Select more languages" action in language accordion (`LanguageBoxesSelector.tsx`, `routes/index.tsx`).
-  - Subtask 243.3: Move "failed to fetch subtitles" error alert to bottom of viewport/section so it doesn't disturb layout.
-  - Subtask 243.4: Auto-assign primary TTS role to spoken language with minimal ratio; remove manual primary language picker UI.
-  - Subtask 243.5: Remove "Fetch Priority Order" presentation from UI; randomize/load-balance subtitle fetch strategy order.
-  - Subtask 243.6: Update AGENTS.md rules and logic for leftmost column as default subtitle & auto-favorite, plus URL `target_lang` auto-favorite.
-  - Subtask 243.7: Implement parallel subtitles beautiful scroll and column freezing (default freezing first 2 columns: time-frames & default subtitles) with toggle.
-  - Subtask 243.8: Update floating button styling to use green for enabled/active and red for off/disabled.
-  - Subtask 243.9: Bump app version to 2.0.38 across all 5 files, write dedicated automated test, compile, lint, commit, and migrate to `docs/done.md`.
-
+- [ ] **Task 244: Present Language Name Instead of Language Code in Targeted Element & Across Components**
+  - Subtask 244.1: Update `BeginnerFavoriteLanguageSelector.tsx` with `getDisplayLanguageName` fallback resolving full language names via `SUPPORTED_LANGUAGES_CATALOG` and `Intl.DisplayNames`.
+  - Subtask 244.2: Update `src/routes/index.tsx` to pass `SUPPORTED_LANGUAGES_CATALOG` to `favoriteLanguageCatalog` across both web and Android hosts, and resolve language names in `speakingLangName` and `getLanguageMeta`.
+  - Subtask 244.3: Bump app version to `2.0.39` across all 5 version files (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Subtask 244.4: Author dedicated test `scripts/verify-beginner-language-name-display.ts`, run `compile_applet`, `lint_applet`, and migrate to `docs/done.md`.
 
 
 ## Later Tasks

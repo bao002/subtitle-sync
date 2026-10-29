@@ -1,5 +1,39 @@
 # Done tasks
 
+## Task 243: UI Improvements - Language Filtering, Error Alert Placement, Auto Minimal Ratio TTS Primary, Parallel Subtitles Freeze Columns & Floating Button Colors
+
+- **Language Filtering while Adding to Favorites (`src/routes/index.tsx`)**:
+  - Added dedicated filter text input (`id="filter-add-favorite-languages-input"`, `data-testid="filter-add-favorite-languages-input"`) in Settings -> Languages Settings.
+  - Dynamically filters the `<option>` items in `#add-favorite-language-select` by name or language code, allowing seamless filtering while adding languages to the favorite list.
+- **Select More Languages in Language Accordion (`src/components/LanguageBoxesSelector.tsx`)**:
+  - Provided dedicated "+ Select more languages" button (`id="select-more-languages-btn"`, `data-testid="select-more-languages-btn"`) that toggles the catalog to show all languages and focuses `#search-language-input` for instant selection.
+- **Relocation of "Failed to fetch subtitles" Error Alert (`src/routes/index.tsx`)**:
+  - Moved `#subtitles-failed-fetch-alert` from the top of the Language accordion down to the very bottom of the accordion section, eliminating layout disturbance during language management.
+- **Minimal Ratio TTS Primary Role Auto-Assignment (`src/lib/playback-preferences.ts` & `src/routes/index.tsx`)**:
+  - The language with the minimal ratio (e.g. 1:1 < 1:5) automatically acts as the primary TTS language via `computePrimaryTtsLang(spoken, ttsRatios)`.
+  - Removed manual primary/secondary switch button (`tts-switch-roles-button-advanced`) and clickable switch actions in language table rows, displaying clean informational badges without requiring manual primary selection.
+- **Fetch Priority Order Presentation Removal & Random Load-Balancing (`src/components/AttemptOrderSettings.tsx` & `src/lib/subtitle-fetch-plan.ts`)**:
+  - Omitted the visual Priority Sequence list from presentation in AttemptOrderSettings ("Fetch Priority Order - there is no reason to present that info").
+  - Set `DEFAULT_FETCH_STRATEGY_CONFIG.mode` default to `"random"`, ensuring subtitle requests automatically use random load-balancing across available strategies.
+- **Leftmost Column Default Subtitle & Target Lang Rule (`src/routes/index.tsx`)**:
+  - Enforced that the leftmost column (`cols[0]`) in the parallel subtitles table acts as the default language and is automatically added to favorite languages.
+  - Enhanced `getInitialTargetLanguages` to detect URL `target_lang` parameters, record shared video tagging, and add the shared language to both `favoriteLanguages` and active `targetLanguages`.
+- **Parallel Subtitles Beautiful Scroll & Column Freezing (`src/components/SubtitlesTablePanel.tsx`, `src/components/SubtitleRow.tsx`, `src/styles.css`)**:
+  - Styled `.custom-beautiful-scrollbar` with thin 8px sleek emerald track and thumb with rounded pills.
+  - Maintained column freezing toggle (`id="toggle-freeze-columns-btn"`, `data-testid="toggle-freeze-columns-btn"`), freezing the first 2 columns (time-frames & default subtitles) by default with sticky positioning and subtle drop shadows.
+- **Floating Button Red/Green State Colors (`src/components/FloatingDraggablePauseButton.tsx`)**:
+  - Updated floating button styling to use distinct red (`bg-rose-600`, `border-rose-500`) for off/disabled/paused states and green (`bg-emerald-600`, `border-emerald-500`) for on/active/enabled states across both the main button and dropdown options.
+- **Version 2.0.38 Synchronization Across All 5 Files**:
+  1. `package.json`: `"version": "2.0.38"`, script `"test:ui-languages-and-subtitles-table"`.
+  2. `android-shell/app/build.gradle.kts`: `versionCode = 20038`, `versionName = "2.0.38"`.
+  3. `src/config/appConfig.ts`: `APP_VERSION = "2.0.38"`.
+  4. `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v2.0.38"`.
+  5. `src/utils/appSettings.ts`: snapshot `version: "2.0.38"`.
+- **Dedicated Automated Verification**:
+  - Authored `scripts/verify-ui-languages-and-subtitles-table.ts` (`npm run test:ui-languages-and-subtitles-table` - 100% PASS).
+  - Clean `lint_applet` (0 errors).
+  - Clean `compile_applet` (successful compilation).
+
 ## Task 242: Prevent Auto-Scroll and Focus Loss on Mouse Action & Synchronize Version 2.0.37
 
 - **Prevention of Auto-Scroll and Focus Loss on Mouse Action (`src/components/LanguageBoxesSelector.tsx`)**:
@@ -54,8 +88,6 @@
   - `scripts/verify-unified-languages-table.ts` (100% PASS).
   - `compile_applet` (clean build success).
   - `lint_applet` (0 errors).
-
-
 
 - **Removal of "Favorite" Table Column (`src/routes/index.tsx`)**:
   - Addressed targeted Focus Mode elements (`th:nth-of-type(2)` and `td:nth-of-type(2)` in `table[data-testid="unified-languages-table"]`).

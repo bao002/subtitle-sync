@@ -4,21 +4,17 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-### Active Prompt Token Economy Flow (Task 243)
-- **Token Input Minimization**: Loaded only target components (`SubtitlesTablePanel.tsx`, `LanguageBoxesSelector.tsx`, `FloatingDraggablePauseButton.tsx`, `routes/index.tsx`, `playback-preferences.ts`, `styles.css`).
-- **Targeted Execution**: 
-  1. Remove dedicated auto-scroll button from SubtitlesTablePanel.
-  2. Add language filtering in Settings and "Select more languages" in Language Accordion.
-  3. Move "failed to fetch subtitles" error alert to bottom.
-  4. Auto-assign primary TTS role to language with minimal ratio; remove manual primary picker.
-  5. Remove "Fetch Priority Order" display and use randomized load-balanced fetch requests.
-  6. Default leftmost column & URL `target_lang` to favorites.
-  7. Parallel subtitles beautiful scroll and freeze first 2 columns by default.
-  8. Floating button red/green coloring for disabled/enabled states.
-  9. Update app version to 2.0.38 across all 5 files.
-- **Verification**: Dedicated automated test script `scripts/verify-ui-languages-and-subtitles-table.ts`, `compile_applet`, `lint_applet`.
+### Active Prompt Token Economy Flow (Active Task 244)
+
+- **Prompt Objective**: Present language code as the language name for selected element `button:nth-of-type(4)` in `BeginnerFavoriteLanguageSelector` and across components, with polished styles.
+- **Decomposition**:
+  1. `BeginnerFavoriteLanguageSelector.tsx`: Implement `getDisplayLanguageName` resolving via catalog, `ALL_KNOWN_LANGUAGES`, and `Intl.DisplayNames`. Polish button styles with clear active/hover/focus indicators and title/aria-label.
+  2. `src/routes/index.tsx`: Pass `SUPPORTED_LANGUAGES_CATALOG` unconditionally to `favoriteLanguageCatalog`, and enhance `getLanguageMeta` and `speakingLangName` fallback.
+  3. Bump app version to `2.0.39` across all 5 files.
+  4. Author dedicated test `scripts/verify-beginner-language-name-display.ts`, run `compile_applet`, `lint_applet`, commit, and migrate to `docs/done.md`.
 
 ---
+
 
 ## 1. The Token Economy Problem: Why Big Tasks Fail
 

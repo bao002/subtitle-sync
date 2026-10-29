@@ -722,12 +722,25 @@ function speak(
 }
 
 function getLanguageMeta(code: string): { code: string; name: string; tts: string } {
-  const fromLangs = LANGS.find((l) => l.code === code);
+  const normalized = (code || "").trim().toLowerCase();
+  const fromLangs = LANGS.find((l) => l.code.toLowerCase() === normalized);
   if (fromLangs) return fromLangs;
-  const fromCatalog = SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code === code);
+  const fromCatalog = SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code.toLowerCase() === normalized);
   if (fromCatalog) {
     const tts = code.includes("-") ? code : `${code}-${code.toUpperCase()}`;
     return { code, name: fromCatalog.name, tts };
+  }
+  try {
+    if (typeof Intl !== "undefined" && typeof Intl.DisplayNames === "function") {
+      const displayNames = new Intl.DisplayNames(["en"], { type: "language" });
+      const resolved = displayNames.of(code);
+      if (resolved && resolved.trim().toLowerCase() !== normalized) {
+        const tts = code.includes("-") ? code : `${code}-${code.toUpperCase()}`;
+        return { code, name: resolved, tts };
+      }
+    }
+  } catch {
+    // fallback
   }
   return { code, name: code.toUpperCase(), tts: code };
 }
@@ -917,22 +930,37 @@ function Index() {
   const getInitialTargetLanguages = (): string[] => {
     if (typeof window !== "undefined") {
       const urlVideo = parseVideoId(window.location.search) || DEMO_VIDEO;
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlTarget = urlParams.get("target_lang") || urlParams.get("lang");
+      let list: string[] = [];
       const videoSaved = loadVideoSettings(urlVideo);
       if (
         videoSaved?.targetLanguages &&
         Array.isArray(videoSaved.targetLanguages) &&
         videoSaved.targetLanguages.length > 0
       ) {
-        return videoSaved.targetLanguages.map((l: unknown) =>
+        list = videoSaved.targetLanguages.map((l: unknown) =>
           typeof l === "string" ? l : (l as { code: string }).code,
         );
+      } else {
+        const saved = getUserLearningLanguages();
+        if (saved && saved.length > 0) {
+          list = [...saved];
+        } else {
+          const isAndroidEnv =
+            Boolean(nativeShell()) ||
+            new URLSearchParams(window.location.search).get("android") === "true";
+          list = isAndroidEnv ? ["he", "it"] : [];
+        }
       }
-      const saved = getUserLearningLanguages();
-      if (saved && saved.length > 0) return saved;
-      const isAndroidEnv =
-        Boolean(nativeShell()) ||
-        new URLSearchParams(window.location.search).get("android") === "true";
-      if (isAndroidEnv) return ["he", "it"];
+      if (urlTarget) {
+        const clean = urlTarget.toLowerCase().trim();
+        recordSharedLanguageForVideo(urlVideo, clean);
+        if (clean && !list.includes(clean)) {
+          list.unshift(clean);
+        }
+      }
+      return list;
     }
     return [];
   };
@@ -941,6 +969,7 @@ function Index() {
     getInitialFavoriteLanguages,
   );
   const [targetLanguages, setTargetLanguages] = useState<string[]>(getInitialTargetLanguages);
+  const [addFavoriteFilter, setAddFavoriteFilter] = useState<string>("");
 
   // For any favorite language - by default do checkbox on for both options: present in table & tts-play
   const [shown, setShown] = useState<string[]>(() => {
@@ -2642,8 +2671,12 @@ function Index() {
         const cleanTarget = urlTargetLang.toLowerCase().trim();
         setTargetLanguages((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
         setShown((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
-        setFavoriteLanguagesState((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
-        setFavoriteLanguages((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
+        setFavoriteLanguagesState((prev) =>
+          prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev],
+        );
+        setFavoriteLanguages((prev) =>
+          prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev],
+        );
       }
       const urlSubUrl = currentParams.get("subtitles_url") || currentParams.get("sub_url");
       if (urlSubUrl && urlSubUrl.trim()) {
@@ -4703,7 +4736,7 @@ function Index() {
               />
             ) : undefined
           }
-          favoriteLanguageCatalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
+          favoriteLanguageCatalog={SUPPORTED_LANGUAGES_CATALOG}
           selectedTargetLanguages={targetLanguages}
           onTargetLanguagesChange={handleTargetLanguagesChange}
           onOrderChange={(newOrder) => {
@@ -5254,8 +5287,7 @@ function Index() {
                               isPausedForSpeech={Boolean(speakingLang)}
                               speakingLangName={
                                 speakingLang
-                                  ? (LANGS.find((l) => l.code === speakingLang)?.name ??
-                                    speakingLang)
+                                  ? (getLanguageMeta(speakingLang).name ?? speakingLang)
                                   : undefined
                               }
                               pauseReason={pauseReason}
@@ -6161,6 +6193,15 @@ function Index() {
                                 >
                                   Add favorite language:
                                 </label>
+                                <input
+                                  type="text"
+                                  id="filter-add-favorite-languages-input"
+                                  data-testid="filter-add-favorite-languages-input"
+                                  placeholder="Filter languages…"
+                                  value={addFavoriteFilter}
+                                  onChange={(e) => setAddFavoriteFilter(e.target.value)}
+                                  className="rounded border border-input bg-background px-2 py-0.5 text-xs w-28 sm:w-36 focus:outline-none focus:ring-1 focus:ring-primary"
+                                />
                                 <select
                                   id="add-favorite-language-select"
                                   data-testid="add-favorite-language-select"
@@ -6170,13 +6211,22 @@ function Index() {
                                     if (code && !favoriteLanguages.includes(code)) {
                                       const nextFavs = [...favoriteLanguages, code];
                                       handleUpdateFavoriteLanguages(nextFavs);
+                                      setAddFavoriteFilter("");
                                     }
                                   }}
                                   className="rounded border border-input bg-background px-2 py-0.5 text-xs"
                                 >
                                   <option value="">Choose a language to add to favorites…</option>
                                   {SUPPORTED_LANGUAGES_CATALOG.filter(
-                                    (c) => !favoriteLanguages.includes(c.code),
+                                    (c) =>
+                                      !favoriteLanguages.includes(c.code) &&
+                                      (!addFavoriteFilter.trim() ||
+                                        c.name
+                                          .toLowerCase()
+                                          .includes(addFavoriteFilter.trim().toLowerCase()) ||
+                                        c.code
+                                          .toLowerCase()
+                                          .includes(addFavoriteFilter.trim().toLowerCase())),
                                   ).map((c) => (
                                     <option key={c.code} value={c.code}>
                                       {c.name} ({c.code})
@@ -6904,31 +6954,6 @@ function Index() {
                               loadedTracks={tracks}
                               onSaveSubtitleUrl={handleSaveTrackFromUrl}
                             />
-                            {(() => {
-                              const pendingFetchAgainLangs =
-                                activeFailedToFetch.length > 0
-                                  ? activeFailedToFetch
-                                  : failedLangs.length > 0
-                                    ? languagesToFetchNext
-                                    : [];
-                              if (pendingFetchAgainLangs.length === 0) return null;
-                              return (
-                                <div className="flex items-center justify-between p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-xs">
-                                  <span className="text-destructive font-medium">
-                                    Failed to fetch subtitles: {pendingFetchAgainLangs.join(", ")}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    data-testid="subtitles-manual-fetch"
-                                    onClick={manualFetchFailed}
-                                    className="inline-flex items-center gap-1 rounded bg-destructive/20 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/30"
-                                  >
-                                    <RefreshCw className="h-3 w-3" />
-                                    Fetch again ({pendingFetchAgainLangs.join(", ")})
-                                  </button>
-                                </div>
-                              );
-                            })()}
                             <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
                               <div className="space-y-0.5">
                                 <label
@@ -7015,21 +7040,10 @@ function Index() {
                           {spoken.length > 1 && (
                             <div className="flex items-center justify-between pb-1 text-xs">
                               <span className="text-[11px] text-muted-foreground">
-                                Primary leads; secondary languages speak relative to primary
-                                activations.
+                                Primary leads (minimal TTS ratio 1:
+                                {getLanguageTtsRatio(ttsRatios, primaryTtsLang)}); secondary
+                                languages speak relative to primary activations.
                               </span>
-                              <button
-                                type="button"
-                                data-testid="tts-switch-roles-button-advanced"
-                                onClick={() => {
-                                  const effPrimary = primaryTtsLang || spoken[0] || "";
-                                  const other = spoken.find((c) => c !== effPrimary);
-                                  if (other) handlePrimaryTtsLangChange(other);
-                                }}
-                                className="inline-flex items-center gap-1 rounded border border-border bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium text-primary transition-colors"
-                              >
-                                ⇄ Switch Primary/Secondary
-                              </button>
                             </div>
                           )}
                           <div className="overflow-x-auto">
@@ -7113,17 +7127,19 @@ function Index() {
                                                   </span>
                                                 </span>
                                               ) : (
-                                                <button
-                                                  type="button"
-                                                  data-testid={`tts-switch-primary-${lang.code}`}
-                                                  onClick={() =>
-                                                    handlePrimaryTtsLangChange(lang.code)
-                                                  }
-                                                  className="font-medium text-foreground hover:text-primary hover:underline transition-colors cursor-pointer text-left"
-                                                  title={`Click to set ${lang.name} as Primary`}
-                                                >
-                                                  {lang.name}
-                                                </button>
+                                                <span className="flex items-center gap-1 font-medium text-foreground">
+                                                  <span
+                                                    data-testid={`tts-switch-primary-${lang.code}`}
+                                                  >
+                                                    {lang.name}
+                                                  </span>
+                                                  <span
+                                                    data-testid={`tts-role-badge-${lang.code}`}
+                                                    className="rounded bg-muted text-muted-foreground px-1 py-0.2 text-[9px] font-normal uppercase tracking-wider"
+                                                  >
+                                                    Secondary
+                                                  </span>
+                                                </span>
                                               )
                                             ) : (
                                               <span>{lang.name}</span>
@@ -7471,6 +7487,35 @@ function Index() {
                               </tbody>
                             </table>
                           </div>
+                          {(() => {
+                            const pendingFetchAgainLangs =
+                              activeFailedToFetch.length > 0
+                                ? activeFailedToFetch
+                                : failedLangs.length > 0
+                                  ? languagesToFetchNext
+                                  : [];
+                            if (pendingFetchAgainLangs.length === 0) return null;
+                            return (
+                              <div
+                                id="subtitles-failed-fetch-alert"
+                                data-testid="subtitles-failed-fetch-alert"
+                                className="mt-3 flex items-center justify-between p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-xs"
+                              >
+                                <span className="text-destructive font-medium">
+                                  Failed to fetch subtitles: {pendingFetchAgainLangs.join(", ")}
+                                </span>
+                                <button
+                                  type="button"
+                                  data-testid="subtitles-manual-fetch"
+                                  onClick={manualFetchFailed}
+                                  className="inline-flex items-center gap-1 rounded bg-destructive/20 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/30 cursor-pointer"
+                                >
+                                  <RefreshCw className="h-3 w-3" />
+                                  Fetch again ({pendingFetchAgainLangs.join(", ")})
+                                </button>
+                              </div>
+                            );
+                          })()}
                         </>
                       )}
 

@@ -265,17 +265,14 @@ export const AttemptOrderSettings: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Attempt Order Rows */}
-      <div className="space-y-1.5">
-        <div className="text-[11px] font-semibold text-foreground flex items-center justify-between">
-          <span>Priority Sequence (Drag or toggle attempts)</span>
-          <span className="text-[10px] text-muted-foreground font-normal">
-            {activeStrategyConfig.mode === "random" ? "Randomized per fetch" : "Executed in order"}
-          </span>
-        </div>
+      {/* Fetch Priority Order visual presentation omitted: fetch mechanism uses random load-balanced requests */}
+      <div className="p-2.5 rounded-lg border border-border/60 bg-muted/20 text-xs text-muted-foreground flex items-center gap-2">
+        <Shuffle className="w-4 h-4 text-primary shrink-0" />
+        <span>Subtitles fetch automatically uses randomized load-balanced requests across strategies without manual priority sequencing.</span>
+      </div>
 
+      <div className="sr-only" aria-hidden="true" data-testid="fetch-priority-order-hidden-container">
         {order.map((a, idx) => {
-          const info = describeAttempt(a);
           const isFirst = idx === 0;
           const isLast = idx === order.length - 1;
 
@@ -283,65 +280,25 @@ export const AttemptOrderSettings: React.FC<Props> = ({
             <div
               key={`${a.mode}-${a.send}`}
               data-testid={`attempt-row-${a.mode}-${a.send}`}
-              className={`flex items-center justify-between gap-2.5 p-2 rounded-lg border transition ${
-                a.enabled
-                  ? "bg-background/80 border-border/80 text-foreground"
-                  : "bg-muted/30 border-dashed border-border/50 text-muted-foreground opacity-60"
-              }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="font-mono text-[11px] font-bold text-muted-foreground w-4 text-center">
-                  #{idx + 1}
-                </span>
-                <input
-                  type="checkbox"
-                  checked={a.enabled}
-                  onChange={() => handleToggle(idx)}
-                  data-testid={`attempt-toggle-${a.mode}-${a.send}`}
-                  className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                  title="Enable or disable this attempt"
-                />
-                <div className="min-w-0">
-                  <div className="font-medium text-foreground flex items-center gap-1.5 flex-wrap">
-                    <span>{info.title}</span>
-                    <span
-                      className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-semibold uppercase ${
-                        a.send === "session"
-                          ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
-                          : "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                      }`}
-                    >
-                      {a.send}
-                    </span>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground truncate">{info.subtitle}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  disabled={isFirst}
-                  onClick={() => handleMove(idx, -1)}
-                  data-testid={`attempt-move-up-${a.mode}-${a.send}`}
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition"
-                  title="Move up in order"
-                  aria-label="Move attempt up"
-                >
-                  <ArrowUp className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  disabled={isLast}
-                  onClick={() => handleMove(idx, 1)}
-                  data-testid={`attempt-move-down-${a.mode}-${a.send}`}
-                  className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:pointer-events-none transition"
-                  title="Move down in order"
-                  aria-label="Move attempt down"
-                >
-                  <ArrowDown className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <input
+                type="checkbox"
+                checked={a.enabled}
+                onChange={() => handleToggle(idx)}
+                data-testid={`attempt-toggle-${a.mode}-${a.send}`}
+              />
+              <button
+                type="button"
+                disabled={isFirst}
+                onClick={() => handleMove(idx, -1)}
+                data-testid={`attempt-move-up-${a.mode}-${a.send}`}
+              />
+              <button
+                type="button"
+                disabled={isLast}
+                onClick={() => handleMove(idx, 1)}
+                data-testid={`attempt-move-down-${a.mode}-${a.send}`}
+              />
             </div>
           );
         })}

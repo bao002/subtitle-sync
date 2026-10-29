@@ -1,7 +1,7 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Task**: Task 243 - UI Improvements: Language Filtering, Bottom Error Alert, Minimal Ratio Primary TTS, Subtitles Freeze Columns & Floating Button Colors
-- **Active Subtask**: Subtask 243.1 - Implement UI refinements across components and state logic
+- **Task**: Task 244 - Present Language Name Instead of Language Code in Targeted Element & Across Components
+- **Active Subtask**: Subtask 244.1 - Enhance language name resolution in BeginnerFavoriteLanguageSelector, index.tsx, and related selectors so language names are always displayed instead of bare codes
 - **Status**: [IN_PROGRESS]
-- **Target Files**: `src/components/SubtitlesTablePanel.tsx`, `src/components/SubtitleRow.tsx`, `src/components/LanguageBoxesSelector.tsx`, `src/components/FloatingDraggablePauseButton.tsx`, `src/routes/index.tsx`, `src/lib/playback-preferences.ts`, `src/styles.css`, `AGENTS.md`
-- **Validation**: Dedicated test `scripts/verify-ui-languages-and-subtitles-table.ts`, `compile_applet`, `lint_applet`
+- **Target Files**: `src/components/beginner/BeginnerFavoriteLanguageSelector.tsx`, `src/routes/index.tsx`, `src/components/beginner/tabs/BeginnerVideoTab.tsx`
+- **Validation**: Dedicated automated test `scripts/verify-beginner-language-name-display.ts`, `compile_applet`, `lint_applet`

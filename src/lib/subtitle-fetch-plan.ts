@@ -22,7 +22,7 @@ export interface SubtitleFetchStrategyConfig {
 }
 
 export const DEFAULT_FETCH_STRATEGY_CONFIG: SubtitleFetchStrategyConfig = {
-  mode: "ordered",
+  mode: "random",
   useServerAlternate: false,
   allowSession: true,
   allowAnon: true,

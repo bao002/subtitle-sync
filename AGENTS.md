@@ -142,19 +142,16 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-the pointed element is not required.
+lang code has to be presented as the language name
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > main:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(1) > button:nth-of-type(4)
+CSS 1: {
 
-settings-> languages settings:  allow to filter languages while adding them from a list to the favorite list
-language accordion: clicking on select more languages
-error alert: "failed to fetch subtitles" -> mv to bottom 
-tts-ratio: always the language with the minimal ratio (i.e: 1:1 < 1:5) will act as the primary so no need to select a primary!
-"Fetch Priority Order" -  there is no reason to present that info. the fetch mechanism will use random fetch request as the load-balance mechanism suggest.
-
-AGENTS.md  - always use the left most column - as the default language and add it to the favorite languages as the default-subtitle. (when the app/web-demo triggered by a link with a target_lang param then a shared-subtitle is to be added to the list of favorite languages
-
-Parallel subtitles -  make the scroll beautul. allow to freeze a column (for disregard horizontal scrolling) - by default freeze the first 2 columns: time-frames & default subtitles
-
- floating button - use red/green color to signify off/disabled and the opposite
+}
+[AIS_METADATA_SECTION_END]
 ```
+
+
 
 
