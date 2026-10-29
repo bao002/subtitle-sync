@@ -133,18 +133,30 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant="outline" data-testid="player-base-lang-badge" className="text-[11px] border-border text-foreground">
+          <Badge
+            variant="outline"
+            data-testid="player-base-lang-badge"
+            className="text-[11px] border-border text-foreground"
+          >
             Base:{" "}
             <strong className="ml-1 text-emerald-600 dark:text-emerald-400">
               {baseLanguage.toUpperCase()}
             </strong>
           </Badge>
           {targetLanguage && (
-            <Badge variant="outline" data-testid="player-target-lang-badge" className="text-[11px] border-border text-foreground">
+            <Badge
+              variant="outline"
+              data-testid="player-target-lang-badge"
+              className="text-[11px] border-border text-foreground"
+            >
               Target: <strong className="ml-1 text-primary">{targetLanguage.toUpperCase()}</strong>
             </Badge>
           )}
-          <Badge variant="outline" data-testid="player-cues-count-badge" className="text-[11px] border-border text-muted-foreground">
+          <Badge
+            variant="outline"
+            data-testid="player-cues-count-badge"
+            className="text-[11px] border-border text-muted-foreground"
+          >
             {cues.length} cues
           </Badge>
         </div>
@@ -225,7 +237,12 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
                       </div>
 
                       {cue.targetText && (
-                        <div data-testid="cue-target-text" className="text-xs text-muted-foreground">{cue.targetText}</div>
+                        <div
+                          data-testid="cue-target-text"
+                          className="text-xs text-muted-foreground"
+                        >
+                          {cue.targetText}
+                        </div>
                       )}
                     </div>
 

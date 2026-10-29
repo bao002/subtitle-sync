@@ -991,45 +991,63 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
             mainHandler.post {
                 try {
-                    val locale = when (lang.lowercase()) {
-                        "en" -> Locale.ENGLISH
-                        "es" -> Locale("es", "ES")
-                        "fr" -> Locale.FRENCH
-                        "de" -> Locale.GERMAN
-                        "it" -> Locale.ITALIAN
-                        "pt" -> Locale("pt", "PT")
-                        "ru" -> Locale("ru", "RU")
-                        "ja" -> Locale.JAPANESE
-                        "ko" -> Locale.KOREAN
-                        "zh", "zh-cn" -> Locale.SIMPLIFIED_CHINESE
-                        "zh-tw" -> Locale.TRADITIONAL_CHINESE
-                        "ar" -> Locale("ar")
-                        "he", "iw" -> Locale("he")
-                        "hi" -> Locale("hi", "IN")
-                        "tr" -> Locale("tr", "TR")
-                        "nl" -> Locale("nl", "NL")
-                        "pl" -> Locale("pl", "PL")
-                        "sv" -> Locale("sv", "SE")
-                        "vi" -> Locale("vi", "VN")
-                        "th" -> Locale("th", "TH")
-                        "el" -> Locale("el", "GR")
-                        "uk" -> Locale("uk", "UA")
-                        else -> Locale(lang)
+                    val cleanLang = lang.trim().replace("_", "-")
+                    val locale = when {
+                        cleanLang.equals("en", ignoreCase = true) -> Locale.ENGLISH
+                        cleanLang.equals("es", ignoreCase = true) -> Locale("es", "ES")
+                        cleanLang.equals("fr", ignoreCase = true) -> Locale.FRENCH
+                        cleanLang.equals("de", ignoreCase = true) -> Locale.GERMAN
+                        cleanLang.equals("it", ignoreCase = true) -> Locale.ITALIAN
+                        cleanLang.equals("pt", ignoreCase = true) || cleanLang.equals("pt-br", ignoreCase = true) -> Locale("pt", "BR")
+                        cleanLang.equals("ru", ignoreCase = true) -> Locale("ru", "RU")
+                        cleanLang.equals("ja", ignoreCase = true) -> Locale.JAPANESE
+                        cleanLang.equals("ko", ignoreCase = true) -> Locale.KOREAN
+                        cleanLang.equals("zh", ignoreCase = true) || cleanLang.equals("zh-cn", ignoreCase = true) -> Locale.SIMPLIFIED_CHINESE
+                        cleanLang.equals("zh-tw", ignoreCase = true) -> Locale.TRADITIONAL_CHINESE
+                        cleanLang.equals("ar", ignoreCase = true) -> Locale("ar")
+                        cleanLang.equals("he", ignoreCase = true) || cleanLang.equals("iw", ignoreCase = true) -> Locale("iw", "IL")
+                        cleanLang.equals("hi", ignoreCase = true) -> Locale("hi", "IN")
+                        cleanLang.equals("tr", ignoreCase = true) -> Locale("tr", "TR")
+                        cleanLang.equals("nl", ignoreCase = true) -> Locale("nl", "NL")
+                        cleanLang.equals("pl", ignoreCase = true) -> Locale("pl", "PL")
+                        cleanLang.equals("sv", ignoreCase = true) -> Locale("sv", "SE")
+                        cleanLang.equals("vi", ignoreCase = true) -> Locale("vi", "VN")
+                        cleanLang.equals("th", ignoreCase = true) -> Locale("th", "TH")
+                        cleanLang.equals("el", ignoreCase = true) -> Locale("el", "GR")
+                        cleanLang.equals("uk", ignoreCase = true) -> Locale("uk", "UA")
+                        cleanLang.contains("-") -> Locale.forLanguageTag(cleanLang)
+                        else -> Locale(cleanLang)
                     }
 
-                    val res = textToSpeech?.setLanguage(locale)
+                    var res = textToSpeech?.setLanguage(locale)
                     if (res == TextToSpeech.LANG_MISSING_DATA || res == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        if (lang.lowercase() == "he" || lang.lowercase() == "iw") {
-                            textToSpeech?.setLanguage(Locale("iw", "IL"))
-                        } else if (lang.lowercase() == "id" || lang.lowercase() == "in") {
-                            textToSpeech?.setLanguage(Locale("in", "ID"))
+                        if (cleanLang.lowercase().startsWith("he") || cleanLang.lowercase().startsWith("iw")) {
+                            res = textToSpeech?.setLanguage(Locale("iw", "IL"))
+                            if (res == TextToSpeech.LANG_MISSING_DATA || res == TextToSpeech.LANG_NOT_SUPPORTED) {
+                                res = textToSpeech?.setLanguage(Locale("he"))
+                            }
+                        } else if (cleanLang.lowercase().startsWith("id") || cleanLang.lowercase().startsWith("in")) {
+                            res = textToSpeech?.setLanguage(Locale("in", "ID"))
+                        } else if (cleanLang.contains("-")) {
+                            val baseCode = cleanLang.split("-")[0]
+                            res = textToSpeech?.setLanguage(Locale(baseCode))
                         }
                     }
+
                     textToSpeech?.setSpeechRate(rate)
                     val params = Bundle()
-                    textToSpeech?.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+                    val speakResult = textToSpeech?.speak(text, TextToSpeech.QUEUE_FLUSH, params, utteranceId)
+                    if (speakResult != TextToSpeech.SUCCESS) {
+                        Log.w(TAG, "textToSpeech.speak failed with code $speakResult, notifying error")
+                        mainHandler.post {
+                            webView.evaluateJavascript("if (window.onNativeTTSError) { window.onNativeTTSError('$utteranceId', 'Speak code: $speakResult'); }", null)
+                        }
+                    }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error speaking text with native TTS: ${e.message}", e)
+                    mainHandler.post {
+                        webView.evaluateJavascript("if (window.onNativeTTSError) { window.onNativeTTSError('$utteranceId', '${e.message}'); }", null)
+                    }
                 }
             }
             return true

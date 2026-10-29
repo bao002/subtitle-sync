@@ -69,7 +69,9 @@ assert(
   appSettingsContent.includes("VITE_OPENROUTER_API_KEY"),
   "appSettings.ts must support VITE_OPENROUTER_API_KEY fallback",
 );
-console.log("✓ appSettings.ts exports and synchronizes getOpenRouterApiKeySetting and setOpenRouterApiKeySetting");
+console.log(
+  "✓ appSettings.ts exports and synchronizes getOpenRouterApiKeySetting and setOpenRouterApiKeySetting",
+);
 
 // 4. Verify Advanced Mode UI in src/routes/index.tsx
 const indexTsxPath = path.resolve(process.cwd(), "src/routes/index.tsx");
@@ -126,16 +128,37 @@ const gradleContent = fs.readFileSync(
   path.resolve(process.cwd(), "android-shell/app/build.gradle.kts"),
   "utf-8",
 );
-assert(/versionCode = 1007[0-9]/.test(gradleContent), "build.gradle.kts versionCode must be >= 10070");
-assert(/versionName = "1\.0\.7[0-9]"/.test(gradleContent), 'build.gradle.kts versionName must be >= "1.0.70"');
+assert(
+  /versionCode = 1007[0-9]/.test(gradleContent),
+  "build.gradle.kts versionCode must be >= 10070",
+);
+assert(
+  /versionName = "1\.0\.7[0-9]"/.test(gradleContent),
+  'build.gradle.kts versionName must be >= "1.0.70"',
+);
 
-const appConfigContent = fs.readFileSync(path.resolve(process.cwd(), "src/config/appConfig.ts"), "utf-8");
-assert(/export const APP_VERSION = "1\.0\.7[0-9]";/.test(appConfigContent), 'appConfig.ts APP_VERSION must be >= "1.0.70"');
+const appConfigContent = fs.readFileSync(
+  path.resolve(process.cwd(), "src/config/appConfig.ts"),
+  "utf-8",
+);
+assert(
+  /export const APP_VERSION = "1\.0\.7[0-9]";/.test(appConfigContent),
+  'appConfig.ts APP_VERSION must be >= "1.0.70"',
+);
 
-const apkUpdaterContent = fs.readFileSync(path.resolve(process.cwd(), "src/utils/apkUpdater.ts"), "utf-8");
-assert(/export const CURRENT_APK_VERSION = "v1\.0\.7[0-9]";/.test(apkUpdaterContent), 'apkUpdater.ts CURRENT_APK_VERSION must be >= "v1.0.70"');
+const apkUpdaterContent = fs.readFileSync(
+  path.resolve(process.cwd(), "src/utils/apkUpdater.ts"),
+  "utf-8",
+);
+assert(
+  /export const CURRENT_APK_VERSION = "v1\.0\.7[0-9]";/.test(apkUpdaterContent),
+  'apkUpdater.ts CURRENT_APK_VERSION must be >= "v1.0.70"',
+);
 
-assert(/version: "1\.0\.7[0-9]"/.test(appSettingsContent), 'appSettings.ts version must be >= "1.0.70"');
+assert(
+  /version: "1\.0\.7[0-9]"/.test(appSettingsContent),
+  'appSettings.ts version must be >= "1.0.70"',
+);
 
 console.log("✓ Version >= 1.0.70 synchronized across all 5 files");
 console.log("=== ALL TASK 177 ASSERTIONS PASSED ===");

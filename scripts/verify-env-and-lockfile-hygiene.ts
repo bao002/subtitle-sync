@@ -57,8 +57,14 @@ const gradleContent = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
   "utf-8",
 );
-assert(/versionCode = 1007[2-9]/.test(gradleContent), "build.gradle.kts versionCode must be >= 10072");
-assert(/versionName = "1\.0\.7[2-9]"/.test(gradleContent), 'build.gradle.kts versionName must be >= "1.0.72"');
+assert(
+  /versionCode = 1007[2-9]/.test(gradleContent),
+  "build.gradle.kts versionCode must be >= 10072",
+);
+assert(
+  /versionName = "1\.0\.7[2-9]"/.test(gradleContent),
+  'build.gradle.kts versionName must be >= "1.0.72"',
+);
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert(
@@ -66,14 +72,23 @@ assert(
   'appConfig.ts APP_VERSION must be >= "1.0.72"',
 );
 
-const apkUpdaterContent = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
+const apkUpdaterContent = fs.readFileSync(
+  path.resolve(rootDir, "src/utils/apkUpdater.ts"),
+  "utf-8",
+);
 assert(
   /export const CURRENT_APK_VERSION = "v1\.0\.7[2-9]";/.test(apkUpdaterContent),
   'apkUpdater.ts CURRENT_APK_VERSION must be >= "v1.0.72"',
 );
 
-const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert(/version: "1\.0\.7[2-9]"/.test(appSettingsContent), 'appSettings.ts version must be >= "1.0.72"');
+const appSettingsContent = fs.readFileSync(
+  path.resolve(rootDir, "src/utils/appSettings.ts"),
+  "utf-8",
+);
+assert(
+  /version: "1\.0\.7[2-9]"/.test(appSettingsContent),
+  'appSettings.ts version must be >= "1.0.72"',
+);
 
 console.log("✓ Version >= 1.0.72 synchronized across all 5 files");
 console.log("=== ALL TASK 179 ASSERTIONS PASSED ===");

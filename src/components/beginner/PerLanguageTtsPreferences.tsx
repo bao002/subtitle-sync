@@ -65,7 +65,8 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
         )}
       </div>
       <p className="text-[11px] text-muted-foreground">
-        Choose narration frequency, speed, and device voice. Secondary languages are activated relative to the primary language.
+        Choose narration frequency, speed, and device voice. Secondary languages are activated
+        relative to the primary language.
       </p>
       {languages.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
@@ -88,7 +89,9 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                   <Languages className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                   {isPrimary ? (
                     <span className="truncate text-xs font-semibold text-primary flex items-center gap-1">
-                      <span data-testid={`tts-switch-primary-${language.code}`}>{language.name}</span>
+                      <span data-testid={`tts-switch-primary-${language.code}`}>
+                        {language.name}
+                      </span>
                       <span
                         data-testid={`tts-role-badge-${language.code}`}
                         className="rounded bg-primary/20 text-primary border border-primary/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
@@ -119,7 +122,7 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                         : `Speaks 1 in N sentences relative to ${primaryLangObj?.name || "primary"} activations`
                     }
                   >
-                    {isPrimary ? "Speak" : `Speak (rel. to ${primaryLangObj?.name || "primary"})`}
+                    Speak
                   </span>
                   <select
                     aria-label={`${language.name} TTS sentence ratio`}
@@ -133,62 +136,62 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                     }
                     className="rounded border border-input bg-background px-1.5 py-1 text-xs"
                   >
-                  {ratioPresets.map((preset) => (
-                    <option key={preset} value={preset}>
-                      1:{preset}
+                    {ratioPresets.map((preset) => (
+                      <option key={preset} value={preset}>
+                        1:{preset}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex min-w-0 items-center gap-2 text-xs">
+                  <span className="shrink-0 text-muted-foreground">Speed</span>
+                  <select
+                    aria-label={`${language.name} speech rate`}
+                    data-testid={`beginner-tts-speed-${language.code}`}
+                    value={rate.toFixed(1)}
+                    onChange={(event) => onRateChange(language.code, Number(event.target.value))}
+                    className="rounded border border-input bg-background px-1.5 py-1 text-xs font-mono"
+                  >
+                    {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
+                      <option key={rateVal} value={rateVal.toFixed(1)}>
+                        {rateVal.toFixed(1)}×
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex min-w-0 items-center gap-1.5 text-xs">
+                  <span className="shrink-0 text-muted-foreground">Voice</span>
+                  <select
+                    aria-label={`${language.name} voice`}
+                    data-testid={`beginner-tts-voice-${language.code}`}
+                    value={voiceSelections[language.code] ?? ""}
+                    onChange={(event) => onVoiceChange(language.code, event.target.value)}
+                    disabled={languageVoices.length === 0}
+                    title={
+                      languageVoices.length === 0
+                        ? "No selectable voices on this device; the device default voice is used"
+                        : "Choose a voice for this language"
+                    }
+                    className="min-w-0 flex-1 truncate rounded border border-input bg-background px-1.5 py-1 text-xs disabled:opacity-60"
+                  >
+                    <option value="">
+                      {languageVoices.length === 0 ? "Device voice" : "Default voice"}
                     </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex min-w-0 items-center gap-2 text-xs">
-                <span className="shrink-0 text-muted-foreground">Speed</span>
-                <select
-                  aria-label={`${language.name} speech rate`}
-                  data-testid={`beginner-tts-speed-${language.code}`}
-                  value={rate.toFixed(1)}
-                  onChange={(event) => onRateChange(language.code, Number(event.target.value))}
-                  className="rounded border border-input bg-background px-1.5 py-1 text-xs font-mono"
-                >
-                  {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
-                    <option key={rateVal} value={rateVal.toFixed(1)}>
-                      {rateVal.toFixed(1)}×
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex min-w-0 items-center gap-1.5 text-xs">
-                <span className="shrink-0 text-muted-foreground">Voice</span>
-                <select
-                  aria-label={`${language.name} voice`}
-                  data-testid={`beginner-tts-voice-${language.code}`}
-                  value={voiceSelections[language.code] ?? ""}
-                  onChange={(event) => onVoiceChange(language.code, event.target.value)}
-                  disabled={languageVoices.length === 0}
-                  title={
-                    languageVoices.length === 0
-                      ? "No selectable voices on this device; the device default voice is used"
-                      : "Choose a voice for this language"
-                  }
-                  className="min-w-0 flex-1 truncate rounded border border-input bg-background px-1.5 py-1 text-xs disabled:opacity-60"
-                >
-                  <option value="">
-                    {languageVoices.length === 0 ? "Device voice" : "Default voice"}
-                  </option>
-                  {languageVoices.map((voice, index) => (
-                    <option
-                      key={getUniqueVoiceKey(voice, index)}
-                      value={voice.voiceURI || voice.name}
-                    >
-                      {voice.name} {voice.lang ? `(${voice.lang})` : ""}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-          );
-        })}
-      </div>
-    )}
-  </section>
+                    {languageVoices.map((voice, index) => (
+                      <option
+                        key={getUniqueVoiceKey(voice, index)}
+                        value={voice.voiceURI || voice.name}
+                      >
+                        {voice.name} {voice.lang ? `(${voice.lang})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 };

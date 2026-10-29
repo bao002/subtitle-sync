@@ -97,7 +97,6 @@ export function AccordionSection({
     });
   };
 
-
   return (
     <details
       data-panel={title.toLowerCase().replace(/\s+/g, "-")}
@@ -157,7 +156,6 @@ export function AccordionSection({
           </div>
         )}
         <Button
-
           type="button"
           variant="ghost"
           size="icon"

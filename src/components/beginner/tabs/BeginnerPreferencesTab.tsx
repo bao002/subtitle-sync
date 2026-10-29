@@ -163,21 +163,43 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       return;
     }
 
+    if (typeof window !== "undefined" && window.AndroidNativeShell?.speak) {
+      setIsAuditioning(true);
+      const utteranceId = `test-voice-${Date.now()}`;
+      const prevDone = window.onNativeTTSDone;
+      window.onNativeTTSDone = (uid: string) => {
+        if (uid === utteranceId) {
+          window.onNativeTTSDone = prevDone;
+          setIsAuditioning(false);
+        } else if (prevDone) prevDone(uid);
+      };
+      const prevErr = window.onNativeTTSError;
+      window.onNativeTTSError = (uid: string, err?: string) => {
+        if (uid === utteranceId) {
+          window.onNativeTTSError = prevErr;
+          playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, "lovable", {
+            provider: lovableTtsProviderState || "google",
+            voice: lovableTtsVoiceState,
+            speed: ttsSpeed,
+          }).finally(() => setIsAuditioning(false));
+        } else if (prevErr) prevErr(uid, err);
+      };
+      const ok = window.AndroidNativeShell.speak(text, baseLanguage, ttsSpeed, utteranceId);
+      if (ok) return;
+    }
+
     if (!("speechSynthesis" in window)) {
-      if (useAltTts) {
-        setIsAuditioning(true);
-        playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, "lovable", {
-          provider: lovableTtsProviderState,
-          voice:
-            lovableTtsProviderState === "google"
-              ? undefined
-              : lovableTtsVoiceState ||
-                (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
-          speed: ttsSpeed,
-        })
-          .catch(() => {})
-          .finally(() => setIsAuditioning(false));
-      }
+      setIsAuditioning(true);
+      playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, "lovable", {
+        provider: lovableTtsProviderState || "google",
+        voice:
+          lovableTtsProviderState === "google"
+            ? undefined
+            : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
+        speed: ttsSpeed,
+      })
+        .catch(() => {})
+        .finally(() => setIsAuditioning(false));
       return;
     }
 

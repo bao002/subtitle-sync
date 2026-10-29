@@ -13,10 +13,7 @@ console.log("====================================================");
 console.log("🧪 Verifying Advanced Subtitles Section Design Parity (Task 259)");
 console.log("====================================================");
 
-const beginnerFile = path.join(
-  process.cwd(),
-  "src/components/beginner/tabs/BeginnerVideoTab.tsx",
-);
+const beginnerFile = path.join(process.cwd(), "src/components/beginner/tabs/BeginnerVideoTab.tsx");
 assert(fs.existsSync(beginnerFile), "BeginnerVideoTab.tsx exists");
 const beginnerContent = fs.readFileSync(beginnerFile, "utf-8");
 

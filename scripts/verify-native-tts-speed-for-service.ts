@@ -57,7 +57,7 @@ const altTtsPath = path.resolve(rootDir, "src/lib/alternative-tts.ts");
 const altTtsContent = fs.readFileSync(altTtsPath, "utf-8");
 
 assert(
-  altTtsContent.includes("typeof rate === \"number\" && rate > 0 ? rate : 1.0"),
+  altTtsContent.includes('typeof rate === "number" && rate > 0 ? rate : 1.0'),
   "playAlternativeTtsAudio must directly honor caller's native rate parameter",
 );
 console.log("✓ playAlternativeTtsAudio prioritizes native rate parameter");
@@ -70,17 +70,38 @@ const gradleContent = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
   "utf-8",
 );
-assert(/versionCode = 1007[1-9]/.test(gradleContent), "build.gradle.kts versionCode must be >= 10071");
-assert(/versionName = "1\.0\.7[1-9]"/.test(gradleContent), 'build.gradle.kts versionName must be >= "1.0.71"');
+assert(
+  /versionCode = 1007[1-9]/.test(gradleContent),
+  "build.gradle.kts versionCode must be >= 10071",
+);
+assert(
+  /versionName = "1\.0\.7[1-9]"/.test(gradleContent),
+  'build.gradle.kts versionName must be >= "1.0.71"',
+);
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
-assert(/export const APP_VERSION = "1\.0\.7[1-9]";/.test(appConfigContent), 'appConfig.ts APP_VERSION must be >= "1.0.71"');
+assert(
+  /export const APP_VERSION = "1\.0\.7[1-9]";/.test(appConfigContent),
+  'appConfig.ts APP_VERSION must be >= "1.0.71"',
+);
 
-const apkUpdaterContent = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
-assert(/export const CURRENT_APK_VERSION = "v1\.0\.7[1-9]";/.test(apkUpdaterContent), 'apkUpdater.ts CURRENT_APK_VERSION must be >= "v1.0.71"');
+const apkUpdaterContent = fs.readFileSync(
+  path.resolve(rootDir, "src/utils/apkUpdater.ts"),
+  "utf-8",
+);
+assert(
+  /export const CURRENT_APK_VERSION = "v1\.0\.7[1-9]";/.test(apkUpdaterContent),
+  'apkUpdater.ts CURRENT_APK_VERSION must be >= "v1.0.71"',
+);
 
-const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert(/version: "1\.0\.7[1-9]"/.test(appSettingsContent), 'appSettings.ts version must be >= "1.0.71"');
+const appSettingsContent = fs.readFileSync(
+  path.resolve(rootDir, "src/utils/appSettings.ts"),
+  "utf-8",
+);
+assert(
+  /version: "1\.0\.7[1-9]"/.test(appSettingsContent),
+  'appSettings.ts version must be >= "1.0.71"',
+);
 
 console.log("✓ Version >= 1.0.71 synchronized across all 5 files");
 console.log("=== ALL TASK 178 ASSERTIONS PASSED ===");

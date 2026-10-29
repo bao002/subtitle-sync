@@ -71,14 +71,19 @@ assert.strictEqual(
 
 // Minimal verification: MUST NOT contain bloated or duplicated keys
 assert(!params.has("sub_url"), "Minimal link must not duplicate 'sub_url'");
-assert(!params.has("source_lang_code"), "Minimal link must not contain redundant 'source_lang_code'");
+assert(
+  !params.has("source_lang_code"),
+  "Minimal link must not contain redundant 'source_lang_code'",
+);
 assert(!params.has("sub_lang"), "Minimal link must not contain redundant 'sub_lang'");
 assert(!params.has("Target_langs"), "Minimal link must not contain redundant 'Target_langs'");
 assert(!params.has("target_langs"), "Minimal link must not contain redundant 'target_langs'");
 assert(!params.has("target_lang"), "Minimal link must not contain redundant 'target_lang'");
 assert(!params.has("tts_provider"), "Minimal link must not contain redundant 'tts_provider'");
 
-console.log("✅ PASS: Generated link satisfies 1.1, 1.2, and 1.3 with minimal info and no duplicates");
+console.log(
+  "✅ PASS: Generated link satisfies 1.1, 1.2, and 1.3 with minimal info and no duplicates",
+);
 
 // 3. Section 3: State Reproduction on Link Open
 console.log("\n📥 Section 3: State Reproduction when Recipient Opens Minimal Link");
@@ -103,7 +108,9 @@ assert.strictEqual(
   "Recipient app state must automatically infer source language 'iw' from subtitles URL",
 );
 
-console.log("✅ PASS: State reproduction successfully recreates videoId, subtitlesUrl, and subLang");
+console.log(
+  "✅ PASS: State reproduction successfully recreates videoId, subtitlesUrl, and subLang",
+);
 
 // 4. Section 4: Fixture URL Video ID and Language Extraction
 console.log("\n📁 Section 4: Fixture URL Video ID and Language Extraction");

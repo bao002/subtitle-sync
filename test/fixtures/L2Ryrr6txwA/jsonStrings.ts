@@ -46,7 +46,6 @@ const parsedIt = parseRawCaptionData(itStr).cues;
 const parsedPtBr = parseRawCaptionData(ptBrStr).cues;
 const parsedRu = parseRawCaptionData(ruStr).cues;
 
-
 export const L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS: Record<string, CaptionCue[]> = {
   ar: parsedAr,
   en: parsedEn,
@@ -70,4 +69,3 @@ export function getRawJson3ForLanguage(langCode: string): string | null {
   if (prefix === "il" || prefix === "iw") return JSON3_RAW_MAP["he"] || null;
   return JSON3_RAW_MAP[prefix] || null;
 }
-

@@ -60,10 +60,7 @@ assert.ok(
   splitWithDot[1]!.start === splitWithDot[0]!.end,
   "Second sentence start must match first sentence end",
 );
-assert.ok(
-  splitWithDot[2]!.end === 7000,
-  "Final sentence must end at cue end 7000ms",
-);
+assert.ok(splitWithDot[2]!.end === 7000, "Final sentence must end at cue end 7000ms");
 console.log("  ✓ Dot '.' splitting within single cue verified with correct interpolated timings");
 
 // Case B: Toggling dot splitting OFF
@@ -88,7 +85,11 @@ const multiCues: Cue[] = [
   { start: 2000, end: 4000, text: "and bought bread. It was warm." },
 ];
 const multiSplit = splitCuesIntoSentences(multiCues, DEFAULT_SIMPLE_PARSER_CONFIG);
-assert.strictEqual(multiSplit.length, 3, `Expected 3 native/parser sections, got ${multiSplit.length}`);
+assert.strictEqual(
+  multiSplit.length,
+  3,
+  `Expected 3 native/parser sections, got ${multiSplit.length}`,
+);
 assert.strictEqual(multiSplit[0]?.text, "I went to the store");
 assert.strictEqual(multiSplit[1]?.text, "and bought bread.");
 assert.strictEqual(multiSplit[2]?.text, "It was warm.");
@@ -111,14 +112,16 @@ assert.deepStrictEqual(
 console.log("  ✓ Disabling intra-cue splitting renders native timed cues as separate rows");
 
 // Case D: Custom delimiters (e.g. semicolon ';')
-const customCues: Cue[] = [
-  { start: 0, end: 3000, text: "First part; second part" },
-];
+const customCues: Cue[] = [{ start: 0, end: 3000, text: "First part; second part" }];
 const customSplit = splitCuesIntoSentences(customCues, {
   ...DEFAULT_SIMPLE_PARSER_CONFIG,
   customDelimiters: ";",
 });
-assert.strictEqual(customSplit.length, 2, `Expected 2 parts with semicolon, got ${customSplit.length}`);
+assert.strictEqual(
+  customSplit.length,
+  2,
+  `Expected 2 parts with semicolon, got ${customSplit.length}`,
+);
 assert.strictEqual(customSplit[0]?.text, "First part;");
 assert.strictEqual(customSplit[1]?.text, "second part");
 console.log("  ✓ Custom delimiters verified");
@@ -140,7 +143,9 @@ assert.strictEqual(
 assert.strictEqual(abbreviationSplit[0]?.text, "Dr. Smith arrived today.");
 assert.strictEqual(abbreviationSplit[1]?.text, "We met him at noon.");
 assert.strictEqual(abbreviationSplit[2]?.text, "Mrs. Johnson stayed late.");
-console.log("  ✓ Abbreviation exceptions keep names like Dr. and Mrs. intact while still splitting real sentence ends");
+console.log(
+  "  ✓ Abbreviation exceptions keep names like Dr. and Mrs. intact while still splitting real sentence ends",
+);
 
 // 3. Verify simpleAlign generates aligned parallel Rows
 console.log("3. Verifying simpleAlign with multi-track alignment...");
@@ -177,28 +182,63 @@ console.log("4. Verifying NewSubtitlesParserBar component and placement in Subti
 const parserBarPath = path.join(rootDir, "src/components/NewSubtitlesParserBar.tsx");
 assert(fs.existsSync(parserBarPath), "src/components/NewSubtitlesParserBar.tsx must exist");
 const parserBarContent = fs.readFileSync(parserBarPath, "utf-8");
-assert(parserBarContent.includes("data-testid=\"new-subtitles-parser-bar\""), "Must have data-testid new-subtitles-parser-bar");
-assert(parserBarContent.includes("data-testid=\"parser-split-dot-toggle\""), "Must have dot toggle");
-assert(parserBarContent.includes("data-testid=\"parser-sentence-count-badge\""), "Must have sentence count badge");
-assert(parserBarContent.includes("data-testid=\"parser-reset-defaults-btn\""), "Must have reset button");
+assert(
+  parserBarContent.includes('data-testid="new-subtitles-parser-bar"'),
+  "Must have data-testid new-subtitles-parser-bar",
+);
+assert(parserBarContent.includes('data-testid="parser-split-dot-toggle"'), "Must have dot toggle");
+assert(
+  parserBarContent.includes('data-testid="parser-sentence-count-badge"'),
+  "Must have sentence count badge",
+);
+assert(
+  parserBarContent.includes('data-testid="parser-reset-defaults-btn"'),
+  "Must have reset button",
+);
 
 const tablePanelPath = path.join(rootDir, "src/components/SubtitlesTablePanel.tsx");
 const tablePanelContent = fs.readFileSync(tablePanelPath, "utf-8");
-assert(tablePanelContent.includes("<NewSubtitlesParserBar"), "SubtitlesTablePanel must render NewSubtitlesParserBar");
+assert(
+  tablePanelContent.includes("<NewSubtitlesParserBar"),
+  "SubtitlesTablePanel must render NewSubtitlesParserBar",
+);
 const parserBarIndex = tablePanelContent.indexOf("<NewSubtitlesParserBar");
 const tableIndex = tablePanelContent.indexOf("<table");
-assert(parserBarIndex < tableIndex, "NewSubtitlesParserBar MUST appear just above the subtitles table");
-console.log("  ✓ NewSubtitlesParserBar is placed just above the subtitles-table in SubtitlesTablePanel");
+assert(
+  parserBarIndex < tableIndex,
+  "NewSubtitlesParserBar MUST appear just above the subtitles table",
+);
+console.log(
+  "  ✓ NewSubtitlesParserBar is placed just above the subtitles-table in SubtitlesTablePanel",
+);
 
 // 5. Verify dynamic update binding in index.tsx
 console.log("5. Verifying dynamic update binding in index.tsx...");
 const indexContent = fs.readFileSync(path.join(rootDir, "src/routes/index.tsx"), "utf-8");
-assert(indexContent.includes("simpleParserConfig"), "index.tsx must manage simpleParserConfig state");
-assert(indexContent.includes("simpleAlign(tracks, baseLanguage, simpleParserConfig)"), "rawRows must use simpleAlign with simpleParserConfig");
-assert(indexContent.includes("parserConfig={simpleParserConfig}"), "SubtitlesTablePanel must receive parserConfig");
-assert(indexContent.includes("onParserConfigChange={handleSimpleParserConfigChange}"), "SubtitlesTablePanel must receive onParserConfigChange");
-assert(indexContent.includes("clearOnDemandTranslations(videoId)"), "Parser changes must invalidate index-aligned on-demand translations");
-assert(indexContent.includes("translationGeneration !== parserTranslationGeneration.current"), "Stale translations must not be applied after parser changes");
+assert(
+  indexContent.includes("simpleParserConfig"),
+  "index.tsx must manage simpleParserConfig state",
+);
+assert(
+  indexContent.includes("simpleAlign(tracks, baseLanguage, simpleParserConfig)"),
+  "rawRows must use simpleAlign with simpleParserConfig",
+);
+assert(
+  indexContent.includes("parserConfig={simpleParserConfig}"),
+  "SubtitlesTablePanel must receive parserConfig",
+);
+assert(
+  indexContent.includes("onParserConfigChange={handleSimpleParserConfigChange}"),
+  "SubtitlesTablePanel must receive onParserConfigChange",
+);
+assert(
+  indexContent.includes("clearOnDemandTranslations(videoId)"),
+  "Parser changes must invalidate index-aligned on-demand translations",
+);
+assert(
+  indexContent.includes("translationGeneration !== parserTranslationGeneration.current"),
+  "Stale translations must not be applied after parser changes",
+);
 console.log("  ✓ Dynamic updating of presented subtitles upon configuration changes verified");
 
 // 6. Verify documentation in later.md
@@ -208,7 +248,9 @@ const laterContent = fs.readFileSync(laterPath, "utf-8");
 assert(
   laterContent
     .toLowerCase()
-    .includes("the user should be able to tell the parser not to split when the dot is next to other words such as") &&
+    .includes(
+      "the user should be able to tell the parser not to split when the dot is next to other words such as",
+    ) &&
     laterContent.includes("dr.") &&
     laterContent.includes("mrs.") &&
     laterContent.includes("per languages customizations"),

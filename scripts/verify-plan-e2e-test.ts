@@ -42,10 +42,7 @@ const requiredPhrases = [
 ];
 
 for (const phrase of requiredPhrases) {
-  assert(
-    planContent.includes(phrase),
-    `docs/plan_e2e_test.md must include "${phrase}"`,
-  );
+  assert(planContent.includes(phrase), `docs/plan_e2e_test.md must include "${phrase}"`);
 }
 
 // 3. Verify docs/files.md registers docs/plan_e2e_test.md

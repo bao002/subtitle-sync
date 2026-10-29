@@ -21,7 +21,11 @@ setLovableTtsProvider("google");
 assert.equal(getLovableTtsProvider(), "google", "Should switch and persist provider 'google'");
 
 setLovableTtsProvider("openrouter");
-assert.equal(getLovableTtsProvider(), "openrouter", "Should switch and persist provider 'openrouter'");
+assert.equal(
+  getLovableTtsProvider(),
+  "openrouter",
+  "Should switch and persist provider 'openrouter'",
+);
 
 setLovableTtsProvider("lovable");
 assert.equal(getLovableTtsProvider(), "lovable", "Should switch and persist provider 'lovable'");
@@ -37,8 +41,12 @@ assert(
   "Advanced mode must include lovable-tts-provider-select",
 );
 assert(
-  !indexContent.includes('data-testid="lovable-tts-provider-select"\n                                        value="lovable"\n                                        disabled') &&
-    !indexContent.includes('data-testid="lovable-tts-provider-select"\n                                        value={lovableTtsProviderState}\n                                        disabled'),
+  !indexContent.includes(
+    'data-testid="lovable-tts-provider-select"\n                                        value="lovable"\n                                        disabled',
+  ) &&
+    !indexContent.includes(
+      'data-testid="lovable-tts-provider-select"\n                                        value={lovableTtsProviderState}\n                                        disabled',
+    ),
   "lovable-tts-provider-select must NOT be disabled",
 );
 assert(
@@ -74,8 +82,12 @@ assert(
   "Beginner mode must include beginner-lovable-tts-provider-select",
 );
 assert(
-  !beginnerContent.includes('data-testid="beginner-lovable-tts-provider-select"\n                    value="lovable"\n                    disabled') &&
-    !beginnerContent.includes('data-testid="beginner-lovable-tts-provider-select"\n                    value={lovableTtsProviderState}\n                    disabled'),
+  !beginnerContent.includes(
+    'data-testid="beginner-lovable-tts-provider-select"\n                    value="lovable"\n                    disabled',
+  ) &&
+    !beginnerContent.includes(
+      'data-testid="beginner-lovable-tts-provider-select"\n                    value={lovableTtsProviderState}\n                    disabled',
+    ),
   "beginner-lovable-tts-provider-select must NOT be disabled",
 );
 assert(
@@ -119,13 +131,19 @@ console.log("\n📦 Test 5: Version Synchronization across all 5 Targets...");
 const pkgJson = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
 const currentVer = pkgJson.version;
 const [major, minor, patch] = currentVer.split(".").map(Number);
-assert(major > 1 || (major === 1 && minor > 0) || (major === 1 && minor === 0 && patch >= 73), `package.json version must be >= 1.0.73, got ${currentVer}`);
+assert(
+  major > 1 || (major === 1 && minor > 0) || (major === 1 && minor === 0 && patch >= 73),
+  `package.json version must be >= 1.0.73, got ${currentVer}`,
+);
 
 const gradleContent = fs.readFileSync(
   path.resolve(rootDir, "android-shell/app/build.gradle.kts"),
   "utf-8",
 );
-assert(gradleContent.includes(`versionName = "${currentVer}"`), `build.gradle.kts versionName must be "${currentVer}"`);
+assert(
+  gradleContent.includes(`versionName = "${currentVer}"`),
+  `build.gradle.kts versionName must be "${currentVer}"`,
+);
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert(
@@ -133,14 +151,23 @@ assert(
   `appConfig.ts APP_VERSION must be "${currentVer}"`,
 );
 
-const apkUpdaterContent = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
+const apkUpdaterContent = fs.readFileSync(
+  path.resolve(rootDir, "src/utils/apkUpdater.ts"),
+  "utf-8",
+);
 assert(
   apkUpdaterContent.includes(`export const CURRENT_APK_VERSION = "v${currentVer}";`),
   `apkUpdater.ts CURRENT_APK_VERSION must be "v${currentVer}"`,
 );
 
-const appSettingsContent = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert(appSettingsContent.includes(`version: "${currentVer}"`), `appSettings.ts version must be "${currentVer}"`);
+const appSettingsContent = fs.readFileSync(
+  path.resolve(rootDir, "src/utils/appSettings.ts"),
+  "utf-8",
+);
+assert(
+  appSettingsContent.includes(`version: "${currentVer}"`),
+  `appSettings.ts version must be "${currentVer}"`,
+);
 
 console.log(`✓ Version ${currentVer} synchronized across all 5 files`);
 console.log("=== ALL TASK 180 ASSERTIONS PASSED ===");

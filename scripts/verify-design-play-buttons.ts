@@ -88,10 +88,7 @@ const filesToCheck = [
   },
   {
     file: "src/components/FloatingDraggablePauseButton.tsx",
-    expected: [
-      'data-testid="floating-pause-button"',
-      'data-testid="menu-option-setup-pause"',
-    ],
+    expected: ['data-testid="floating-pause-button"', 'data-testid="menu-option-setup-pause"'],
   },
   {
     file: "src/components/SubtitleRow.tsx",

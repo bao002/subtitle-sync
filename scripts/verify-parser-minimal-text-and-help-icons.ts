@@ -12,10 +12,7 @@ const beginnerParsingPath = path.join(
   rootDir,
   "src/components/beginner/tabs/BeginnerParsingTab.tsx",
 );
-const specialCharsPath = path.join(
-  rootDir,
-  "src/components/SpecialCharactersRemovalPanel.tsx",
-);
+const specialCharsPath = path.join(rootDir, "src/components/SpecialCharactersRemovalPanel.tsx");
 
 assert.ok(fs.existsSync(indexRoutePath), "src/routes/index.tsx must exist");
 assert.ok(fs.existsSync(beginnerParsingPath), "BeginnerParsingTab.tsx must exist");
@@ -28,29 +25,32 @@ const specialCharsCode = fs.readFileSync(specialCharsPath, "utf-8");
 // Test 1: Advanced Mode Parser minimal text & '?' buttons
 console.log("--> [Test 1] Verifying Advanced Mode Parser minimal text and '?' buttons...");
 assert.ok(
-  indexCode.includes('data-testid={`help-btn-${crit.id}`}') ||
+  indexCode.includes("data-testid={`help-btn-${crit.id}`}") ||
     indexCode.includes("help-btn-${crit.id}"),
   "index.tsx must provide '?' help button for each parser criterion",
 );
 
 assert.ok(
-  indexCode.includes("data-testid=\"help-btn-criteria-overview\""),
+  indexCode.includes('data-testid="help-btn-criteria-overview"'),
   "index.tsx must provide help-btn-criteria-overview '?' button",
 );
 
 assert.ok(
-  indexCode.includes("data-testid=\"help-btn-parser-summary\""),
+  indexCode.includes('data-testid="help-btn-parser-summary"'),
   "index.tsx must provide help-btn-parser-summary '?' button",
 );
 
 assert.ok(
-  indexCode.includes("isHelpOpen && (") && indexCode.includes('data-testid={`help-text-${crit.id}`}'),
+  indexCode.includes("isHelpOpen && (") &&
+    indexCode.includes("data-testid={`help-text-${crit.id}`}"),
   "index.tsx criteria description must only render when help is expanded (isHelpOpen)",
 );
 
 // Ensure unconditional verbose paragraph under Accumulative Division Criteria was removed
 assert.ok(
-  !indexCode.includes('<p className="text-xs text-muted-foreground mb-3">\n                              Select multiple criteria accumulatively to divide subtitles into\n                              separated, translatable sections of related sentences and cohesive\n                              context. Click settings to tune inner parameters for each group.\n                            </p>'),
+  !indexCode.includes(
+    '<p className="text-xs text-muted-foreground mb-3">\n                              Select multiple criteria accumulatively to divide subtitles into\n                              separated, translatable sections of related sentences and cohesive\n                              context. Click settings to tune inner parameters for each group.\n                            </p>',
+  ),
   "Unconditional verbose criteria overview paragraph must be removed in favor of '?' button",
 );
 console.log("✅ PASS: Advanced Mode parser minimal text and '?' buttons verified.");

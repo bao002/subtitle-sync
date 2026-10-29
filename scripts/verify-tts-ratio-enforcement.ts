@@ -74,7 +74,9 @@ console.log("✅ PASS: isLanguageSpoken handles aliases and dialects correctly")
 // ----------------------------------------------------
 // Test 3: Multi-Language TTS Ratio Playback Session Simulation
 // ----------------------------------------------------
-console.log("3. Simulating playback session with multiple spoken languages and individual ratios...");
+console.log(
+  "3. Simulating playback session with multiple spoken languages and individual ratios...",
+);
 
 // Setup 3 languages checked for TTS-play:
 // - English (base / not spoken or base skipped)
@@ -132,7 +134,9 @@ assert.deepEqual(row5Langs, ["es"], "Row 5: only es speaks");
 const row6Langs = simulateEligibleLangsForRow(6).map((l) => l.code);
 assert.deepEqual(row6Langs, ["es", "he", "ru"], "Row 6: all 3 speak again (lcm of 1, 2, 3)");
 
-console.log("✅ PASS: Multi-language ratio enforcement correctly calculates per-row speech candidates");
+console.log(
+  "✅ PASS: Multi-language ratio enforcement correctly calculates per-row speech candidates",
+);
 
 // ----------------------------------------------------
 // Test 4: Codebase Audit for Correct Ratio Enforcement Integration
@@ -153,7 +157,9 @@ assert.ok(
 );
 
 assert.ok(
-  indexContent.includes("isSubtitleInstanceEligibleForTTS(rowIdx, getLanguageTtsRatio(currentTtsRatios, l.code))"),
+  indexContent.includes(
+    "isSubtitleInstanceEligibleForTTS(rowIdx, getLanguageTtsRatio(currentTtsRatios, l.code))",
+  ),
   "src/routes/index.tsx getEligibleLangs must evaluate isSubtitleInstanceEligibleForTTS with getLanguageTtsRatio",
 );
 

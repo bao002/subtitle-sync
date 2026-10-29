@@ -408,10 +408,12 @@ export function AiSubtitlePunctuationTab({
             className="rounded-lg bg-background/90 border border-primary/20 p-3 text-xs text-muted-foreground mt-3 space-y-1.5 animate-in fade-in duration-150"
           >
             <p>
-              Adds missing punctuation (periods, commas, question marks) and capitalization to raw default subtitles.
+              Adds missing punctuation (periods, commas, question marks) and capitalization to raw
+              default subtitles.
             </p>
             <p>
-              Clean punctuation allows our sentence boundary parser and lookahead on-demand translation to produce high-fidelity translations without broken phrases.
+              Clean punctuation allows our sentence boundary parser and lookahead on-demand
+              translation to produce high-fidelity translations without broken phrases.
             </p>
           </div>
         )}

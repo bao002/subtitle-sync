@@ -10,10 +10,10 @@ on:
         type: string
   push:
     paths:
-      - '.github/workflows/android-system-smoke.yml'
+      - ".github/workflows/android-system-smoke.yml"
   pull_request:
     paths:
-      - '.github/workflows/android-system-smoke.yml'
+      - ".github/workflows/android-system-smoke.yml"
 
 concurrency:
   group: android-system-smoke-${{ github.ref }}

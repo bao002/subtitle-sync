@@ -120,7 +120,10 @@ export const SubtitleRow = memo(function SubtitleRow({
                     isPronouncedHighlighted={isPronouncedHighlight}
                   />
                 </div>
-                <div className="flex items-center gap-1 shrink-0" data-testid="sentence-actions-wrapper">
+                <div
+                  className="flex items-center gap-1 shrink-0"
+                  data-testid="sentence-actions-wrapper"
+                >
                   {onSpeakCue && columnText && l.code !== baseLanguage && (
                     <button
                       type="button"

@@ -9,24 +9,84 @@ interface ScriptCheck {
 
 const CHECKS: ScriptCheck[] = [
   { id: "1", name: "Last Raw Prompt Retention", file: "scripts/verify-agents-last-prompt-rule.ts" },
-  { id: "2", name: "Version Number Synchronization", file: "scripts/verify-agents-version-rule.ts" },
-  { id: "3", name: "Subtitles Specifications & Anti-Bot", file: "scripts/verify-agents-subtitles-spec.ts" },
+  {
+    id: "2",
+    name: "Version Number Synchronization",
+    file: "scripts/verify-agents-version-rule.ts",
+  },
+  {
+    id: "3",
+    name: "Subtitles Specifications & Anti-Bot",
+    file: "scripts/verify-agents-subtitles-spec.ts",
+  },
   { id: "4", name: "Git Push & Tracking Update Flow", file: "scripts/verify-agents-push-rule.ts" },
   { id: "5", name: "Size Budget & Headroom Guard", file: "scripts/verify-agents-size-budget.ts" },
-  { id: "6", name: "Android E2E & Screencast Specification", file: "scripts/verify-android-e2e-spec.ts" },
-  { id: "7", name: "Application Stages Pipeline & Order", file: "scripts/verify-application-stages-pipeline.ts" },
-  { id: "8", name: "Chars Removal Accordion Ordering", file: "scripts/verify-chars-removal-accordion-order.ts" },
-  { id: "9", name: "Code Architecture & Modularity Standards", file: "scripts/verify-code-modularity-standards.ts" },
-  { id: "10", name: "Hotfix & Done Workflow Protocol", file: "scripts/verify-hotfix-and-done-workflow.ts" },
-  { id: "11", name: "Docs Location & Zero Duplicates Policy", file: "scripts/verify-no-duplicate-md-files.ts" },
-  { id: "12", name: "Numbered Chapters Serial Task Protocol", file: "scripts/verify-numbered-chapters-protocol.ts" },
-  { id: "13", name: "README GitHub Actions Sync Protection", file: "scripts/verify-readme-git-sync-rule.ts" },
-  { id: "14", name: "Subtitles Fixtures Restriction & Zero Policy", file: "scripts/verify-subtitles-fixtures-restriction.ts" },
-  { id: "15", name: "Task Management & Backlog Protocol", file: "scripts/verify-task-management-workflow.ts" },
+  {
+    id: "6",
+    name: "Android E2E & Screencast Specification",
+    file: "scripts/verify-android-e2e-spec.ts",
+  },
+  {
+    id: "7",
+    name: "Application Stages Pipeline & Order",
+    file: "scripts/verify-application-stages-pipeline.ts",
+  },
+  {
+    id: "8",
+    name: "Chars Removal Accordion Ordering",
+    file: "scripts/verify-chars-removal-accordion-order.ts",
+  },
+  {
+    id: "9",
+    name: "Code Architecture & Modularity Standards",
+    file: "scripts/verify-code-modularity-standards.ts",
+  },
+  {
+    id: "10",
+    name: "Hotfix & Done Workflow Protocol",
+    file: "scripts/verify-hotfix-and-done-workflow.ts",
+  },
+  {
+    id: "11",
+    name: "Docs Location & Zero Duplicates Policy",
+    file: "scripts/verify-no-duplicate-md-files.ts",
+  },
+  {
+    id: "12",
+    name: "Numbered Chapters Serial Task Protocol",
+    file: "scripts/verify-numbered-chapters-protocol.ts",
+  },
+  {
+    id: "13",
+    name: "README GitHub Actions Sync Protection",
+    file: "scripts/verify-readme-git-sync-rule.ts",
+  },
+  {
+    id: "14",
+    name: "Subtitles Fixtures Restriction & Zero Policy",
+    file: "scripts/verify-subtitles-fixtures-restriction.ts",
+  },
+  {
+    id: "15",
+    name: "Task Management & Backlog Protocol",
+    file: "scripts/verify-task-management-workflow.ts",
+  },
   { id: "16", name: "Tokens Economy Flow Protocol", file: "scripts/verify-tokens-economy.ts" },
-  { id: "17", name: "Web Demo Design Preservation Mandate", file: "scripts/verify-web-demo-design-preservation.ts" },
-  { id: "18", name: "No More Tasks 'go on' Handling Protocol", file: "scripts/verify-no-more-tasks-go-on-rule.ts" },
-  { id: "19", name: "Pending Pull Requests Check Before Features", file: "scripts/verify-pending-prs-rule.ts" },
+  {
+    id: "17",
+    name: "Web Demo Design Preservation Mandate",
+    file: "scripts/verify-web-demo-design-preservation.ts",
+  },
+  {
+    id: "18",
+    name: "No More Tasks 'go on' Handling Protocol",
+    file: "scripts/verify-no-more-tasks-go-on-rule.ts",
+  },
+  {
+    id: "19",
+    name: "Pending Pull Requests Check Before Features",
+    file: "scripts/verify-pending-prs-rule.ts",
+  },
 ];
 
 function run() {
@@ -50,9 +110,13 @@ function run() {
 
     if (result.status === 0) {
       passedCount++;
-      console.log(`✅ [PASS] [${check.id.padStart(2, " ")}/${CHECKS.length}] ${check.name} (${duration}ms)`);
+      console.log(
+        `✅ [PASS] [${check.id.padStart(2, " ")}/${CHECKS.length}] ${check.name} (${duration}ms)`,
+      );
     } else {
-      console.error(`❌ [FAIL] [${check.id.padStart(2, " ")}/${CHECKS.length}] ${check.name} (${duration}ms)`);
+      console.error(
+        `❌ [FAIL] [${check.id.padStart(2, " ")}/${CHECKS.length}] ${check.name} (${duration}ms)`,
+      );
       if (result.stderr) {
         console.error(result.stderr.trim());
       } else if (result.stdout) {

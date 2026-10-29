@@ -24,7 +24,9 @@ import {
 } from "../src/utils/appSettings";
 
 function runVerification() {
-  console.log("=== Verifying Chapter 5: 10s Accordion Timeout with Sand-Time / Hourglass & Progress Bar ===");
+  console.log(
+    "=== Verifying Chapter 5: 10s Accordion Timeout with Sand-Time / Hourglass & Progress Bar ===",
+  );
 
   // 1. Verify timeout constants
   assert.strictEqual(
@@ -65,24 +67,27 @@ function runVerification() {
     accordionSource.includes("autoTimeout"),
     "AccordionSection must accept autoTimeout prop to control timeout enablement",
   );
-  console.log("✓ AccordionSection component supports 10s countdown, Hourglass icon, and progress bar");
+  console.log(
+    "✓ AccordionSection component supports 10s countdown, Hourglass icon, and progress bar",
+  );
 
   // 3. Verify appSettings storage functions
   const defaultSetting = getVideoLibraryTimeoutSetting();
   assert.strictEqual(typeof defaultSetting, "boolean", "Default timeout setting must be boolean");
 
   setVideoLibraryTimeoutSetting(false);
-  assert.strictEqual(getVideoLibraryTimeoutSetting(), false, "Setting must persist false in storage");
+  assert.strictEqual(
+    getVideoLibraryTimeoutSetting(),
+    false,
+    "Setting must persist false in storage",
+  );
 
   setVideoLibraryTimeoutSetting(true);
   assert.strictEqual(getVideoLibraryTimeoutSetting(), true, "Setting must persist true in storage");
   console.log("✓ appSettings persistence for video library timeout verified");
 
   // 4. Verify index.tsx wiring
-  const indexSource = fs.readFileSync(
-    path.resolve(process.cwd(), "src/routes/index.tsx"),
-    "utf-8",
-  );
+  const indexSource = fs.readFileSync(path.resolve(process.cwd(), "src/routes/index.tsx"), "utf-8");
 
   assert.ok(
     indexSource.includes("getVideoLibraryTimeoutSetting"),
@@ -97,7 +102,9 @@ function runVerification() {
     "index.tsx Settings panel must render data-testid='setting-video-library-timeout'",
   );
   assert.ok(
-    indexSource.includes('autoTimeout={panelId === "library" ? videoLibraryTimeoutEnabled : false}'),
+    indexSource.includes(
+      'autoTimeout={panelId === "library" ? videoLibraryTimeoutEnabled : false}',
+    ),
     "index.tsx must pass autoTimeout restricted strictly to library accordion based on setting",
   );
   console.log("✓ index.tsx wiring and Settings control verified");

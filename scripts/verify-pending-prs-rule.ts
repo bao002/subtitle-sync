@@ -27,22 +27,30 @@ console.log("✅ PASS: AGENTS.md is strictly within safe budget limit (< 21,000 
 // 1. Check that the pending pull requests rule is present in AGENTS.md
 const prRulePattern = /Check pending pull requests before starting features/i;
 if (!prRulePattern.test(agentsContent)) {
-  console.error("❌ FAIL: AGENTS.md does not contain the 'Check pending pull requests before starting features' rule.");
+  console.error(
+    "❌ FAIL: AGENTS.md does not contain the 'Check pending pull requests before starting features' rule.",
+  );
   process.exit(1);
 }
-console.log("✅ PASS: AGENTS.md contains the 'Check pending pull requests before starting features' rule heading.");
+console.log(
+  "✅ PASS: AGENTS.md contains the 'Check pending pull requests before starting features' rule heading.",
+);
 
 // 2. Check that the URL https://github.com/mostuf2556/subtitle-sync/pulls is explicitly referenced
 const prUrlPattern = /https:\/\/github\.com\/mostuf2556\/subtitle-sync\/pulls/;
 if (!prUrlPattern.test(agentsContent)) {
-  console.error("❌ FAIL: AGENTS.md does not link or specify 'https://github.com/mostuf2556/subtitle-sync/pulls'.");
+  console.error(
+    "❌ FAIL: AGENTS.md does not link or specify 'https://github.com/mostuf2556/subtitle-sync/pulls'.",
+  );
   process.exit(1);
 }
 console.log("✅ PASS: AGENTS.md specifies 'https://github.com/mostuf2556/subtitle-sync/pulls'.");
 
 // 3. Check live repository pull requests status via GitHub API or HTML fallback
 async function verifyLivePendingPrsStatus() {
-  console.log("🔍 Checking remote pull requests status at https://github.com/mostuf2556/subtitle-sync/pulls...");
+  console.log(
+    "🔍 Checking remote pull requests status at https://github.com/mostuf2556/subtitle-sync/pulls...",
+  );
   try {
     const res = await fetch("https://github.com/mostuf2556/subtitle-sync/pulls", {
       headers: {
@@ -57,7 +65,7 @@ async function verifyLivePendingPrsStatus() {
         html.includes("0 Open") ||
         html.includes("There aren’t any open pull requests") ||
         html.includes("is:pr is:open");
-      
+
       console.log(`📡 GitHub HTTP status: ${res.status}`);
       if (hasZeroPrs) {
         console.log("✅ PASS: Verified zero open pull requests pending on remote repository.");
@@ -65,10 +73,15 @@ async function verifyLivePendingPrsStatus() {
         console.log("ℹ️ Pull requests page responded; rule is verified and operational.");
       }
     } else {
-      console.log(`⚠️ Note: GitHub HTTP returned ${res.status} (network/rate limit in sandbox). Offline verification passed.`);
+      console.log(
+        `⚠️ Note: GitHub HTTP returned ${res.status} (network/rate limit in sandbox). Offline verification passed.`,
+      );
     }
   } catch (err) {
-    console.log("⚠️ Note: Remote network check skipped in sandbox environment:", (err as Error).message);
+    console.log(
+      "⚠️ Note: Remote network check skipped in sandbox environment:",
+      (err as Error).message,
+    );
   }
 }
 

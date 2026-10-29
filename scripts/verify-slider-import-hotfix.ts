@@ -33,8 +33,8 @@ const indexContent = fs.readFileSync(indexPath, "utf-8");
 
 assert.ok(
   indexContent.includes('import { Slider } from "@/components/ui/slider"') ||
-  indexContent.includes('import { Slider') ||
-  /import\s*\{[^}]*Slider[^}]*\}\s*from\s*["']@\/components\/ui\/slider["']/.test(indexContent),
+    indexContent.includes("import { Slider") ||
+    /import\s*\{[^}]*Slider[^}]*\}\s*from\s*["']@\/components\/ui\/slider["']/.test(indexContent),
   "src/routes/index.tsx must import Slider from @/components/ui/slider",
 );
 console.log("✅ PASS: src/routes/index.tsx imports Slider component correctly.");
@@ -45,10 +45,7 @@ assert.ok(
   indexContent.includes('data-testid="lovable-tts-speed-slider"'),
   "src/routes/index.tsx must contain data-testid='lovable-tts-speed-slider'",
 );
-assert.ok(
-  indexContent.includes("<Slider"),
-  "src/routes/index.tsx must render <Slider",
-);
+assert.ok(indexContent.includes("<Slider"), "src/routes/index.tsx must render <Slider");
 console.log("✅ PASS: Slider is properly declared and utilized in index.tsx.");
 
 console.log("\n=========================================================================");

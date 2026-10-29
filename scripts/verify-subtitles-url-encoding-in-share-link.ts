@@ -52,7 +52,9 @@ assert.strictEqual(
   sampleRawSubUrl,
   "Extracted subtitles_url parameter must match original unencoded raw timedtext URL",
 );
-console.log("✅ PASS: createShareableLink properly encodes subtitles_url without redundant sub_url duplicate");
+console.log(
+  "✅ PASS: createShareableLink properly encodes subtitles_url without redundant sub_url duplicate",
+);
 
 // 2. Verify parseShareableUrlState parses both subtitles_url and backwards-compatible sub_url
 console.log("\n📥 Section 2: URL State Hydration & Parameter Parsing");
@@ -93,7 +95,7 @@ assert(
   "ShareStateModal.tsx must fall back to AndroidNativeShell.getLastObservedTimedTextUrl()",
 );
 assert(
-  shareModalContent.includes("data-testid=\"btn-refresh-android-sub-url\"") ||
+  shareModalContent.includes('data-testid="btn-refresh-android-sub-url"') ||
     shareModalContent.includes("btn-refresh-android-sub-url"),
   "ShareStateModal.tsx must provide a button to refresh/fetch captured Android URL",
 );
@@ -107,7 +109,9 @@ assert(
   "ShareStateModal.tsx must import useEffect from 'react'",
 );
 
-console.log("✅ PASS: ShareStateModal has subtitles URL input, prefix sanitization, native bridge fallback, and valid React imports");
+console.log(
+  "✅ PASS: ShareStateModal has subtitles URL input, prefix sanitization, native bridge fallback, and valid React imports",
+);
 
 // 4. Verify src/routes/index.tsx Hydration Supports subtitles_url
 console.log("\n🔄 Section 4: Index Route Hydration");
@@ -125,7 +129,9 @@ assert(
   "index.tsx must fall back to native shell when passing observedUrl to ShareStateModal",
 );
 
-console.log("✅ PASS: src/routes/index.tsx correctly hydrides subtitles_url and feeds native bridge fallback");
+console.log(
+  "✅ PASS: src/routes/index.tsx correctly hydrides subtitles_url and feeds native bridge fallback",
+);
 
 // 5. Verify App Version Parity Across All 5 Version Targets
 console.log("\n🏷️ Section 5: Version Parity Verification across all 5 Targets");
@@ -150,10 +156,16 @@ assert(
   gradleContent.includes(`versionCode = ${expectedCode}`),
   `android-shell/app/build.gradle.kts versionCode must be ${expectedCode}`,
 );
-console.log(`✅ Target 2: build.gradle.kts versionName = ${expectedVer}, versionCode = ${expectedCode}`);
+console.log(
+  `✅ Target 2: build.gradle.kts versionName = ${expectedVer}, versionCode = ${expectedCode}`,
+);
 
 // Target 3: src/config/appConfig.ts
-assert.strictEqual(APP_VERSION, expectedVer, `src/config/appConfig.ts APP_VERSION must be ${expectedVer}`);
+assert.strictEqual(
+  APP_VERSION,
+  expectedVer,
+  `src/config/appConfig.ts APP_VERSION must be ${expectedVer}`,
+);
 console.log(`✅ Target 3: src/config/appConfig.ts APP_VERSION = ${APP_VERSION}`);
 
 // Target 4: src/utils/apkUpdater.ts
@@ -176,4 +188,3 @@ console.log(`✅ Target 5: src/utils/appSettings.ts export snapshot version = ${
 console.log("\n=========================================================================");
 console.log(`🎉 ALL TESTS PASSED! Subtitles URL encoding & Version ${expectedVer} verified!`);
 console.log("=========================================================================");
-

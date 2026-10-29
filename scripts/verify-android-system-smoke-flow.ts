@@ -22,17 +22,31 @@ const rootDir = process.cwd();
 const smokeWorkflowPath = path.resolve(rootDir, ".github/workflows/android-system-smoke.yml");
 assert(fs.existsSync(smokeWorkflowPath), ".github/workflows/android-system-smoke.yml must exist");
 
-const smokeContent = fs.existsSync(smokeWorkflowPath) ? fs.readFileSync(smokeWorkflowPath, "utf-8") : "";
+const smokeContent = fs.existsSync(smokeWorkflowPath)
+  ? fs.readFileSync(smokeWorkflowPath, "utf-8")
+  : "";
 
 // 2. Verify runner, emulator, and pure OS configuration
-assert(smokeContent.includes("runs-on: macos-14"), "android-system-smoke.yml must use macos-14 runner");
+assert(
+  smokeContent.includes("runs-on: macos-14"),
+  "android-system-smoke.yml must use macos-14 runner",
+);
 assert(
   smokeContent.includes("reactivecircus/android-emulator-runner@v2"),
   "android-system-smoke.yml must use reactivecircus/android-emulator-runner@v2",
 );
-assert(smokeContent.includes("api-level: 34"), "android-system-smoke.yml must target api-level: 34");
-assert(smokeContent.includes("target: google_apis"), "android-system-smoke.yml must target google_apis");
-assert(smokeContent.includes("arch: arm64-v8a"), "android-system-smoke.yml must use arch: arm64-v8a");
+assert(
+  smokeContent.includes("api-level: 34"),
+  "android-system-smoke.yml must target api-level: 34",
+);
+assert(
+  smokeContent.includes("target: google_apis"),
+  "android-system-smoke.yml must target google_apis",
+);
+assert(
+  smokeContent.includes("arch: arm64-v8a"),
+  "android-system-smoke.yml must use arch: arm64-v8a",
+);
 
 // 3. Verify no app compilation or execution in system smoke flow
 assert(
@@ -46,11 +60,13 @@ assert(
 
 // 4. Verify screencast and screenshot generation
 assert(
-  smokeContent.includes("adb shell screenrecord") && smokeContent.includes("pkill -2 -f screenrecord"),
+  smokeContent.includes("adb shell screenrecord") &&
+    smokeContent.includes("pkill -2 -f screenrecord"),
   "android-system-smoke.yml must record screencast and finalize gracefully with SIGINT",
 );
 assert(
-  smokeContent.includes("android-system-home.png") && smokeContent.includes("android-system-settings.png"),
+  smokeContent.includes("android-system-home.png") &&
+    smokeContent.includes("android-system-settings.png"),
   "android-system-smoke.yml must capture Home and Settings screenshots",
 );
 assert(
@@ -78,7 +94,10 @@ assert(
 );
 
 // 7. Verify documentation references
-const e2eGuidePath = path.resolve(rootDir, "docs/e2e_testing_including_android_codespace_docker_and_github_pages.md");
+const e2eGuidePath = path.resolve(
+  rootDir,
+  "docs/e2e_testing_including_android_codespace_docker_and_github_pages.md",
+);
 const e2eGuideContent = fs.readFileSync(e2eGuidePath, "utf-8");
 assert(
   e2eGuideContent.includes("android-system-smoke.yml"),

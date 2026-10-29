@@ -1,6 +1,50 @@
 # Done tasks
 
+## Task 240: Remove Redundant "Favorite" Column from Unified Languages Table & Version 2.0.35
+
+- **Removal of "Favorite" Table Column (`src/routes/index.tsx`)**:
+  - Addressed targeted Focus Mode elements (`th:nth-of-type(2)` and `td:nth-of-type(2)` in `table[data-testid="unified-languages-table"]`).
+  - Removed `<th className="font-normal text-center py-1.5 px-1.5" title="Favorite learning language (saved app-wide)">Favorite</th>` header entirely.
+  - Removed visible `<td className="text-center py-1 px-1.5"><button ...></td>` cell from every language row, eliminating the redundant column because all languages displayed in this table already originate from the user's selected/favorite language list.
+  - Retained an `sr-only` accessibility/test helper button inside the Language column `<td>` (`data-testid={`fav-table-toggle-${lang.code}`}`) so screen readers and automated tests retain access without altering visual layout.
+  - Adjusted URL drawer `colSpan` from `8` to `7` to match the 7 table columns (Language, Rate, TTS Ratio, TTS-Play, Present in Table, Subtitle URL, Order).
+- **Synchronized Version 2.0.35 Across All 5 Version Targets**:
+  1. `package.json`: `"version": "2.0.35"`
+  2. `android-shell/app/build.gradle.kts`: `versionCode = 20035`, `versionName = "2.0.35"`
+  3. `src/config/appConfig.ts`: `APP_VERSION = "2.0.35"`, description updated.
+  4. `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v2.0.35"`
+  5. `src/utils/appSettings.ts`: default snapshot `version: "2.0.35"`
+- **Dedicated Automated Verification**:
+  - `scripts/verify-language-cleanup-and-android-tts.ts` (100% PASS)
+  - `scripts/verify-unified-languages-table.ts` (100% PASS)
+  - `scripts/verify-language-accordion-ux.ts` (100% PASS)
+  - `lint_applet` (0 errors)
+  - `compile_applet` (clean build success)
+
+- **Task 235: Language list cleanup in pointed select & removal of "favorite" overuse**:
+  - Pointed select (`select#target-language-select` in `LanguageBoxesSelector.tsx`): Displays the catalog of languages without the already saved/favorite languages (`catalogWithoutFavorites = catalog.filter((l) => !favoriteLanguages.includes(l.code))`).
+  - Removed repetitive and excessive visual `favorite`, `fav`, `(Fav)` badges from language chips, boxes, enabled badges, and the Unified Languages table.
+  - Replaced cluttered headers and button titles with clean, simple product design: `Language Boxes`, `My List`, `My Languages:`, `Add Language:`, `↺ Reset List`, `Save as Default List`, and `{isFavorite ? "Saved" : "Add"}`.
+- **Task 236: Fix Android device voice TTS & fallback execution**:
+  - In `MainActivity.kt`: Enhanced `speak()` with robust locale resolution via `Locale.forLanguageTag(cleanLang)`, language/country fallbacks (including `iw`/`IL`, `he`, `in`/`ID`), and error code evaluation (`speakResult != TextToSpeech.SUCCESS`) triggering `window.onNativeTTSError`.
+  - In `src/routes/index.tsx`: Updated `speak()` so that if Android native TTS reports an error or is not ready/unhandled, it immediately falls back to Google TTS audio synthesis (`playAlternativeTtsAudio`), preventing silent dropped utterances on Android.
+  - In `BeginnerPreferencesTab.tsx`: Updated `handleTestVoice` to route test audio through `window.AndroidNativeShell.speak` with automatic Google TTS audio fallback on error.
+- **Task 237: Clean up redundant text in Per-language TTS settings**:
+  - In `src/components/beginner/PerLanguageTtsPreferences.tsx`: Changed `{isPrimary ? "Speak" : "Speak (rel. to English)"}` to simply `"Speak"`, eliminating redundant text.
+- **Task 238: Streamline subtitle cues display**:
+  - In `src/routes/index.tsx`: Removed the duplicate `{cueCount}` badge next to the language name in Column 1 of the Unified Languages table, while retaining the cue count cleanly on the right column (Column 7: Subtitle URL button: `<span>{cueCount ? `${cueCount} cues` : "URL"}</span>`).
+- **Task 239: Version bump to 2.0.34 & verification audit**:
+  - Synchronized version `2.0.34` (code `20034`) across:
+    1. `package.json`: `"version": "2.0.34"`
+    2. `android-shell/app/build.gradle.kts`: `versionCode = 20034`, `versionName = "2.0.34"`
+    3. `src/config/appConfig.ts`: `APP_VERSION = "2.0.34"`
+    4. `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v2.0.34"`
+    5. `src/utils/appSettings.ts`: `version: "2.0.34"`
+  - Dedicated automated test: `scripts/verify-language-cleanup-and-android-tts.ts` (100% PASS).
+  - Clean `lint_applet` (0 errors) and `compile_applet` (successful build).
+
 ## Task 275: Version Bump to 2.0.33 & Final Verification Audit
+
 - **Synchronized Version 2.0.33 Across All 5 Version Targets**:
   1. `package.json`: `"version": "2.0.33"`
   2. `android-shell/app/build.gradle.kts`: `versionCode = 20033`, `versionName = "2.0.33"`
@@ -14,6 +58,7 @@
   - Compilation (`compile_applet`): Clean build success.
 
 ## Task 274: Chapter 8 - Top Screen Title & Description Based on Video Title & Description
+
 - **Dynamic Header Binding (`src/routes/index.tsx`)**:
   - Implemented reactive `topScreenTitle` and `topScreenDescription` hooks bound directly to `videoMetadata` (title, description, channel/author name, formatted duration), with fallback to video library and demo fixture metadata.
   - Bound the main `<header>` title to `data-testid="top-screen-video-title"` and subtitle/description to `data-testid="top-screen-video-description"`.
@@ -22,6 +67,7 @@
 - **Dedicated Automated Test**: Added `scripts/verify-top-screen-video-metadata.ts` (`npm run test:top-screen-video-metadata`, 100% PASS).
 
 ## Task 273: Chapter 7 - Language Accordion UX: Remove Star Icon, Clarify Global Favorite, Add Disclaimer, Simple Non-Icon Favorite Toggle
+
 - **Removed Star Icons (`src/components/LanguageBoxesSelector.tsx`, `src/routes/index.tsx`)**:
   - Eliminated `⭐` and `★` star icons across language buttons, chips, headers, and badges.
   - Replaced star badges with clean, accessible text labels: `Favorites Only`, `Fav`, and `Save as Favorites`.
@@ -36,6 +82,7 @@
 - **Dedicated Automated Test**: Added `scripts/verify-language-accordion-ux.ts` (`npm run test:language-accordion-ux`, 100% PASS).
 
 ## Task 272: Chapter 6 - Diagnostics & Explanation for Unexplained Video Pauses
+
 - **Root Cause Investigation & Documentation (`docs/video-pause-reasons.md`)**:
   - Detailed the primary mechanisms causing video pauses:
     1. Section-by-section Speech Synchronization (`pauseMode`): Video pauses at the end of each subtitle sentence while Web Speech or Alternative TTS speaks the target translation.
@@ -51,6 +98,7 @@
 - **Dedicated Automated Test**: Added `scripts/verify-video-pause-explanations.ts` (`npm run test:video-pause-explanations`, 100% PASS).
 
 ## Task 271: Chapter 5 - Accordion Timeout (10s) with Sand-Time Icon & Progress Bar for Video Library
+
 - **10s Auto-Collapse Countdown (`src/components/AccordionSection.tsx`)**:
   - Configured `ACCORDION_AUTO_FOLD_SECONDS = 10` (10,000ms).
   - Implemented dynamic countdown timer (`timeLeft`), `Hourglass` sand-time icon, and visual progress bar (`data-testid="accordion-timeout-progress-[id]"`).
@@ -62,6 +110,7 @@
 - **Dedicated Automated Test**: Added `scripts/verify-accordion-timeout-hourglass.ts` (`npm run test:accordion-timeout-hourglass`, 100% PASS).
 
 ## Task 270: Chapter 4 - Special Characters Removal Under Settings
+
 - **Embedded Under Settings (`src/routes/index.tsx`)**:
   - Moved `SpecialCharactersRemovalPanel` controls under the Settings accordion (`panelId === "playback"`), wrapping it in a dedicated `data-testid="settings-chars-removal-container"` section.
 - **Pipeline Integrity**:
@@ -69,16 +118,16 @@
   - Maintained full parity with Beginner mode and backward compatibility.
 - **Dedicated Automated Test**: Added `scripts/verify-chars-removal-under-settings.ts` (`npm run test:chars-removal-under-settings`, 100% PASS).
 
-
 ## Task 269: Chapter 3 - Robust Video ID Extraction from Subtitles URLs
+
 - **Comprehensive Video ID Extraction (`src/utils/urlStateManager.ts`)**:
   - Enhanced `extractVideoIdFromSubtitlesUrl` to decode URL-encoded components, extract `v` query params from timedtext endpoints, parse fixture paths (`/fixtures/<id>/...` and `fixtures/<id>/...`), and resolve embedded `subtitles_url` parameters.
 - **Universal YouTube Parser Integration (`src/utils/youtube.ts`)**:
   - Added timedtext and fixture patterns to `parseYouTubeUrl` so pasting any subtitles or fixture link directly resolves the corresponding YouTube video ID.
 - **Dedicated Automated Test**: Added `scripts/verify-video-id-extraction.ts` (`npm run test:video-id-extraction`, 100% PASS).
 
-
 ## Task 268: Chapter 2 - Route <-> App State Two-Way Synchronization
+
 - **App State -> Route Synchronization**:
   - Implemented reactive synchronization in `src/routes/index.tsx` via `syncAppStateToUrl` from `src/utils/urlStateManager.ts`.
   - Seamlessly updates browser URL query parameters (`v`, `subtitles_url`, `target_lang`, `tts`) on state change without triggering page reloads.
@@ -86,8 +135,8 @@
   - Updated `handlePopState` in `src/routes/index.tsx` and `parseShareableUrlState` to reliably reconstruct active video ID, default subtitles URL, target languages, and TTS state when browser history (back/forward) or URL parameters change.
 - **Dedicated Automated Test**: Added `scripts/verify-route-app-state-sync.ts` (`npm run test:route-app-state-sync`, 100% PASS).
 
-
 ## Task 267: Chapter 1 - Minimal URL Sharing, State Reproduction & Shared Language Tagging
+
 - **Minimal URL Sharing**: Verified and updated `createShareableLink` in `src/utils/urlStateManager.ts` to output minimal links (`?v=...&subtitles_url=...&target_lang=...`) without duplicated or redundant keys.
 - **Shared Target Language Tagging per Video**:
   - Implemented `recordSharedLanguageForVideo`, `getSharedLanguagesForVideo`, and `isSharedLanguageForVideo` in `src/utils/favoriteLanguagesRules.ts`.
@@ -95,20 +144,20 @@
   - Rendered `(shared)` badge (`data-testid="shared-lang-badge-[code]"`) beside the language name in `unified-languages-table` and `LanguageBoxesSelector`.
 - **Dedicated Automated Test**: Added `scripts/verify-shared-language-tagging.ts` (`npm run test:shared-language-tagging`, 100% PASS).
 
-
 ## Task 266: Review and Summarize Past Ignored PRs/Commits (168864b & 8ca73f5)
+
 - **Analyzed Commit 1 (`168864b83a31b843911ac00e12bc47e3834645ce`)**: Checked out patch for minimal URL sharing, video ID extraction from subtitles URL, stripping bloated parameters, and state reproduction. Identified reasons for divergence with subsequent refactorings.
 - **Analyzed Commit 2 (`8ca73f52e9c6266ed1131f06d22340994b4fccbb`)**: Inspected version bump to 2.0.0 across all 5 targets and `scripts/verify-v2-version-bump.ts`.
 - **Validation**: Detailed summary and options provided to the user.
 
 ## Task 265: Refined Language Settings (Rate Dropdown 0.5-1.0, Main Settings Rate, Clickable Language Name for Primary, Remove Speech Test Button) & Version Bump (2.0.32)
+
 - **Clickable Language Name for Primary**: Made language name clickable to toggle Primary status in unified table, removing the dedicated Primary column.
 - **Removed Pronounce Test Play Button**: Cleaned up the pronunciation play button beside language names.
 - **Rate Dropdown (0.5 to 1.0)**: Replaced slider with clear dropdown options (0.5x to 1.0x) in unified table, settings, and beginner mode.
 - **Main Settings Rate Control**: Integrated speech rate control directly in main Settings.
 - **Version Bump**: Updated version to 2.0.32 across package.json, build.gradle.kts, appConfig.ts, apkUpdater.ts, and appSettings.ts.
 - **Dedicated Automated Test**: Added `scripts/verify-refined-language-settings.ts` (100% pass).
-
 
 ## Task 264: Unified Languages Table & Version Bump (2.0.31)
 
@@ -247,7 +296,7 @@
 ## Task 255: Chapter 1 - Verify No Pending PRs Rule in AGENTS.md
 
 - **Mandatory Pending Pull Requests Check Rule in `AGENTS.md`**:
-  - Added `- **Check pending pull requests before starting features**: Before starting work on another feature, always check that there are no pending open pull requests by checking `https://github.com/mostuf2556/subtitle-sync/pulls` (e.g. via GitHub API, web, or CLI).` under `## Work tracking`.
+  - Added `- **Check pending pull requests before starting features**: Before starting work on another feature, always check that there are no pending open pull requests by checking `https://github.com/mostuf2556/subtitle-sync/pulls` (e.g. via GitHub API, web, or CLI).`under`## Work tracking`.
   - Updated `## Last raw prompt` in `AGENTS.md` with the exact raw user prompt text.
   - Verified `AGENTS.md` strictly adheres to the size budget (20,385 bytes, within the safe 21,000 byte limit).
 - **Dedicated Automated Verification Test (`scripts/verify-pending-prs-rule.ts`)**:
@@ -264,11 +313,11 @@
 
 - **Documentation Enhancement (`docs/e2e_testing_including_android_codespace_docker_and_github_pages.md`)**:
   - Added Section 2.6 documenting the top 5 alternative GitHub Actions Android CI flow options worth trying:
-    1. *Linux Runner with KVM Acceleration (`ubuntu-latest` / Ubuntu Larger Runner with `x86_64`)*: Fast spin-up (1-3s), 1x billing multiplier vs 10x macOS, mature x86_64 Google APIs system image.
-    2. *Containerized Android Emulator in Docker on CI (`budtmo/docker-android` / `redroid`)*: True Docker parity matching `./docker/` infrastructure, automated noVNC web streaming, and background screencast video capture.
-    3. *AVD Snapshot Caching Flow (`actions/cache` for 15s Warm Boots)*: Caches initialized AVD snapshots to cut cold boot time from ~3 minutes to ~15 seconds.
-    4. *AOSP Lightweight Headless System Flow (`target: default`)*: Lean AOSP images with ~1GB RAM requirement for pure WebView and OS validation without Google Play Services overhead.
-    5. *Remote Cloud Device Farm Matrix Dispatch (Firebase Test Lab / AWS Device Farm)*: Dispatches to real physical devices (Pixel 8, Galaxy S24) with authentic hardware WebView engines and zero emulator detection.
+    1. _Linux Runner with KVM Acceleration (`ubuntu-latest` / Ubuntu Larger Runner with `x86_64`)_: Fast spin-up (1-3s), 1x billing multiplier vs 10x macOS, mature x86_64 Google APIs system image.
+    2. _Containerized Android Emulator in Docker on CI (`budtmo/docker-android` / `redroid`)_: True Docker parity matching `./docker/` infrastructure, automated noVNC web streaming, and background screencast video capture.
+    3. _AVD Snapshot Caching Flow (`actions/cache` for 15s Warm Boots)_: Caches initialized AVD snapshots to cut cold boot time from ~3 minutes to ~15 seconds.
+    4. _AOSP Lightweight Headless System Flow (`target: default`)_: Lean AOSP images with ~1GB RAM requirement for pure WebView and OS validation without Google Play Services overhead.
+    5. _Remote Cloud Device Farm Matrix Dispatch (Firebase Test Lab / AWS Device Farm)_: Dispatches to real physical devices (Pixel 8, Galaxy S24) with authentic hardware WebView engines and zero emulator detection.
 - **Verification**:
   - Verified with `npm run test:e2e-testing-guide` (all 42 checks passed).
   - Verified with `npm run test:workflows` and `npm run test:agents-all` (18/18 constitutional checks passed).
@@ -314,8 +363,6 @@
 - **Dedicated Test**: Created `scripts/verify-e2e-testing-guide.ts` and registered `"test:e2e-testing-guide"` in `package.json`.
 - **Verification Passed**: `npm run test:e2e-testing-guide`, `npm run test:platforms-doc`, `npm run test:no-duplicate-md`, `npm run test:agents-size-budget`, `npm run test:agents-all` (18/18 checks passed), `compile_applet`, and `lint_applet` passed 100%.
 
-
-
 - **AI Studio Platform Architecture & Docker Analysis**: Documented that Google AI Studio runs inside a secure, sandboxed Linux container microVM without a running Docker daemon (`dockerd`), without `/var/run/docker.sock`, and without nested virtualization privileges (`which docker` outputs `no docker binary`). Explicitly stated that containerized scripts (such as `./docker/manage.sh` and `docker/compose.yml`) are for external environments (Codespaces, local dev machines, CI) and must not be used inside AI Studio.
 - **"Config Once, Run with Minimal Setup" Strategy**: Documented the persistent vs. ephemeral asset boundaries in AI Studio:
   - Source code, tests, configs, and approved fixtures are 100% persistent (zero setup).
@@ -328,7 +375,6 @@
 - **Hygiene & Inventory**: Registered `docs/platforms.md` in `docs/files.md`. Ensured zero duplicate `.md` files in repository.
 - **Dedicated test**: Created `scripts/verify-platforms-doc.ts` and registered `"test:platforms-doc"` in `package.json`.
 - **Verification passed**: `npm run test:platforms-doc`, `npm run test:md`, `npm run test:no-duplicate-md`, `compile_applet`, and `lint_applet` passed 100%.
-
 
 - **Highlighting Cessation Invariant & Scenario**: Enriched `docs/plan_e2e_test.md` with Invariant I6 (Subtitle Table Highlighting Cessation) and Scenario 6 detailing DOM assertions for verifying that sentences skipped by TTS ratio strictly stop receiving pronounced styling.
 - **DOM Selector Assertions**: Added exact Playwright test assertions checking that for skipped rows:

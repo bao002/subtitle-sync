@@ -1,9 +1,6 @@
 import React, { useState } from "react";
 import { Scissors, Settings2, RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
-import {
-  SimpleParserConfig,
-  DEFAULT_SIMPLE_PARSER_CONFIG,
-} from "@/utils/newSubtitlesParser";
+import { SimpleParserConfig, DEFAULT_SIMPLE_PARSER_CONFIG } from "@/utils/newSubtitlesParser";
 
 export interface NewSubtitlesParserBarProps {
   config: SimpleParserConfig;

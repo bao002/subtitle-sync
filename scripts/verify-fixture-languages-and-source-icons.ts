@@ -19,7 +19,9 @@ const fixturesDir = path.join(rootDir, "public/fixtures/L2Ryrr6txwA");
 
 // 1. Verify all expected languages exist in public/fixtures/L2Ryrr6txwA/*.json
 const expectedLangs = ["ar", "en", "es", "he", "it", "pt-BR", "ru"];
-console.log(`1. Verifying presence of all ${expectedLangs.length} fixture languages in ${fixturesDir}...`);
+console.log(
+  `1. Verifying presence of all ${expectedLangs.length} fixture languages in ${fixturesDir}...`,
+);
 
 for (const lang of expectedLangs) {
   const filePath = path.join(fixturesDir, `${lang}.json`);
@@ -42,13 +44,20 @@ console.log("  ✓ pt-BR verified in LANGS");
 
 // 3. Verify pt-BR in JSON3_RAW_MAP and L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS
 console.log("3. Verifying pt-BR in JSON3_RAW_MAP and L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS...");
-assert(JSON3_RAW_MAP["pt-BR"] && JSON3_RAW_MAP["pt-BR"].length > 0, "JSON3_RAW_MAP must contain pt-BR");
 assert(
-  L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS["pt-BR"] && L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS["pt-BR"].length > 0,
+  JSON3_RAW_MAP["pt-BR"] && JSON3_RAW_MAP["pt-BR"].length > 0,
+  "JSON3_RAW_MAP must contain pt-BR",
+);
+assert(
+  L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS["pt-BR"] &&
+    L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS["pt-BR"].length > 0,
   "L2RYRR6TXWA_LANGUAGE_JSON3_TRACKS must contain parsed cues for pt-BR",
 );
 const retrievedRaw = getRawJson3ForLanguage("pt-BR");
-assert(retrievedRaw && retrievedRaw.length > 0, "getRawJson3ForLanguage('pt-BR') must return raw json");
+assert(
+  retrievedRaw && retrievedRaw.length > 0,
+  "getRawJson3ForLanguage('pt-BR') must return raw json",
+);
 console.log("  ✓ pt-BR verified in bundled test fixtures");
 
 // 4. Verify catalogs include pt-BR
@@ -64,8 +73,13 @@ assert(
 console.log("  ✓ pt-BR verified in constants and appSettings catalogs");
 
 // 5. Verify column indicator icons in SubtitlesTablePanel.tsx and SubtitleRow.tsx
-console.log("5. Verifying distinct column indicators in SubtitlesTablePanel.tsx & SubtitleRow.tsx...");
-const subtitleRowSrc = fs.readFileSync(path.join(rootDir, "src/components/SubtitleRow.tsx"), "utf-8");
+console.log(
+  "5. Verifying distinct column indicators in SubtitlesTablePanel.tsx & SubtitleRow.tsx...",
+);
+const subtitleRowSrc = fs.readFileSync(
+  path.join(rootDir, "src/components/SubtitleRow.tsx"),
+  "utf-8",
+);
 assert(
   subtitleRowSrc.includes("isYouTubeOrJson?: boolean"),
   "SubtitleColumn must define isYouTubeOrJson",
@@ -75,7 +89,10 @@ assert(
   "SubtitleColumn must define isOnDemandTranslation",
 );
 
-const panelSrc = fs.readFileSync(path.join(rootDir, "src/components/SubtitlesTablePanel.tsx"), "utf-8");
+const panelSrc = fs.readFileSync(
+  path.join(rootDir, "src/components/SubtitlesTablePanel.tsx"),
+  "utf-8",
+);
 assert(
   panelSrc.includes("column-source-youtube-or-json-"),
   "SubtitlesTablePanel must render data-testid column-source-youtube-or-json-",
@@ -92,15 +109,14 @@ assert(
   panelSrc.includes("Sparkles"),
   "SubtitlesTablePanel must render Sparkles icon for on-demand translation",
 );
-console.log("  ✓ SubtitlesTablePanel renders distinct icons for YouTube/JSON artifact vs on-demand translation");
+console.log(
+  "  ✓ SubtitlesTablePanel renders distinct icons for YouTube/JSON artifact vs on-demand translation",
+);
 
 // 6. Verify index.tsx logic for column source differentiation
 console.log("6. Verifying index.tsx column source logic...");
 const indexSrc = fs.readFileSync(path.join(rootDir, "src/routes/index.tsx"), "utf-8");
-assert(
-  indexSrc.includes("determineColumnSource"),
-  "index.tsx must contain determineColumnSource",
-);
+assert(indexSrc.includes("determineColumnSource"), "index.tsx must contain determineColumnSource");
 assert(
   indexSrc.includes("isYouTubeOrJson: Boolean(hasRealTrack)"),
   "index.tsx must set isYouTubeOrJson based on authentic track cues",

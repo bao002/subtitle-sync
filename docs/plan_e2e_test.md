@@ -5,9 +5,11 @@
 This document establishes the comprehensive End-to-End (E2E) testing plan for Text-to-Speech (TTS) ratio enforcement across continuous video playback sessions.
 
 ### Problem Addressed by the Fix
+
 Prior to Task 243, when multiple languages were configured for spoken narration, the playback loop fell back to a single global default ratio rather than honoring each spoken language's individual comprehension ratio (`ttsRatios[langCode]`). Furthermore, language codes with dialect tags (e.g. `pt-BR`) or legacy YouTube aliases (e.g. `iw` for Hebrew) failed to match configured language preferences (e.g. `pt` or `he`).
 
 Task 243 resolved this by introducing:
+
 1. `getLanguageTtsRatio`: Strict per-language ratio lookup with alias (`iw`/`il` <-> `he`) and dialect (`pt-BR` <-> `pt`) resolution.
 2. Individual candidate filtering in `getEligibleLangs` and `speakRow` during the active playback loop.
 3. Visual subtitle cell badge parity (`data-testid="row-${index}-tts-status-${code}"`).
@@ -18,20 +20,21 @@ This E2E plan outlines how Playwright tests simulate, execute, and assert this b
 
 ## 2. Invariants & Verification Criteria
 
-| Invariant | Description | Verification Criterion |
-| :--- | :--- | :--- |
-| **I1: Multi-Language Independence** | Each spoken language follows its own `1:N` ratio independently. | If Hebrew is `1:1` and Italian is `1:2`, Hebrew speaks on rows 0, 1, 2, 3... while Italian speaks on rows 0, 2, 4... |
-| **I2: Alias & Dialect Normalization** | Timedtext tracks with legacy or regional codes must resolve to preference codes. | YouTube `iw` track uses ratio set for `he`; subtitle track `pt-BR` uses ratio set for `pt`. |
-| **I3: UI Cell Badge Parity** | Subtitle table visual indicators reflect exact eligibility before and during playback. | Eligible rows display active `TTS` badge; skipped rows display `line-through opacity-35` badge. |
-| **I4: Video Transport Coordination** | Video only pauses when at least one language is eligible to speak. | If all enabled languages skip a row (ratio condition not met), video continues playing without pausing. |
-| **I5: Reset Cadence Counter** | Clicking `reset-played-subtitles-btn` restarts the modulo count. | Next row played is treated as index 0 for ratio calculations. |
-| **I6: Subtitle Table Highlighting Cessation** | Sentences skipped by TTS ratio must NOT be highlighted in the table. | Skipped row cells omit `data-tts-pronounced`, have `data-tts-pronounced-highlight="false"`, omit border/ring classes, and show line-through on the TTS badge. |
+| Invariant                                     | Description                                                                            | Verification Criterion                                                                                                                                        |
+| :-------------------------------------------- | :------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **I1: Multi-Language Independence**           | Each spoken language follows its own `1:N` ratio independently.                        | If Hebrew is `1:1` and Italian is `1:2`, Hebrew speaks on rows 0, 1, 2, 3... while Italian speaks on rows 0, 2, 4...                                          |
+| **I2: Alias & Dialect Normalization**         | Timedtext tracks with legacy or regional codes must resolve to preference codes.       | YouTube `iw` track uses ratio set for `he`; subtitle track `pt-BR` uses ratio set for `pt`.                                                                   |
+| **I3: UI Cell Badge Parity**                  | Subtitle table visual indicators reflect exact eligibility before and during playback. | Eligible rows display active `TTS` badge; skipped rows display `line-through opacity-35` badge.                                                               |
+| **I4: Video Transport Coordination**          | Video only pauses when at least one language is eligible to speak.                     | If all enabled languages skip a row (ratio condition not met), video continues playing without pausing.                                                       |
+| **I5: Reset Cadence Counter**                 | Clicking `reset-played-subtitles-btn` restarts the modulo count.                       | Next row played is treated as index 0 for ratio calculations.                                                                                                 |
+| **I6: Subtitle Table Highlighting Cessation** | Sentences skipped by TTS ratio must NOT be highlighted in the table.                   | Skipped row cells omit `data-tts-pronounced`, have `data-tts-pronounced-highlight="false"`, omit border/ring classes, and show line-through on the TTS badge. |
 
 ---
 
 ## 3. Playwright E2E Test Architecture & Harness
 
 ### 3.1. Speech Synthesis Interception Hook
+
 Because headless browser environments lack physical audio output, the test harness exposes a mock listener on `window` before navigating:
 
 ```typescript
@@ -44,7 +47,7 @@ interface SpeechInvocation {
 
 await page.addInitScript(() => {
   (window as any).__recordedSpeechEvents = [] as SpeechInvocation[];
-  
+
   if (typeof window.speechSynthesis !== "undefined") {
     const originalSpeak = window.speechSynthesis.speak.bind(window.speechSynthesis);
     window.speechSynthesis.speak = (utterance: SpeechSynthesisUtterance) => {
@@ -63,7 +66,9 @@ await page.addInitScript(() => {
 ```
 
 ### 3.2. Subtitle Fixture Isolation
+
 In accordance with the repository zero-hardcoded-subtitles policy, tests strictly utilize approved fixtures for video `L2Ryrr6txwA` located at `public/fixtures/L2Ryrr6txwA/{lang}.json` with explicit `[Fixture]` badging:
+
 - Hebrew: `/fixtures/L2Ryrr6txwA/he.json`
 - Italian: `/fixtures/L2Ryrr6txwA/it.json`
 - Portuguese (Brazil): `/fixtures/L2Ryrr6txwA/pt-BR.json`
@@ -73,6 +78,7 @@ In accordance with the repository zero-hardcoded-subtitles policy, tests strictl
 ## 4. Test Scenarios Matrix
 
 ### Scenario 1: Setup Multi-Language Ratios in Beginner Preferences
+
 1. **Action**: Navigate to `/?mode=beginner`.
 2. **Action**: On General Preferences tab (`data-testid="beginner-tab-preferences"`), select favorite languages: Hebrew (`he`) and Italian (`it`).
 3. **Action**: In Per-Language TTS Settings (`data-testid="beginner-per-language-tts-settings"`):
@@ -83,6 +89,7 @@ In accordance with the repository zero-hardcoded-subtitles policy, tests strictl
 ---
 
 ### Scenario 2: Active Session Multi-Language Ratio Verification
+
 1. **Action**: Navigate to Daily Video tab (`data-testid="beginner-tab-video"`).
 2. **Action**: Start playback via `[data-testid="btn-player-play-pause"]`.
 3. **Simulation**: Advance video through cues 0, 1, 2, and 3:
@@ -109,6 +116,7 @@ In accordance with the repository zero-hardcoded-subtitles policy, tests strictl
 ---
 
 ### Scenario 3: Dialect & Legacy Code Alias Resolution
+
 1. **Action**: Configure ratio for generic Portuguese: `ratios["pt"] = 3` (`1:3`).
 2. **Action**: Load video with authentic YouTube Brazilian Portuguese caption track (`pt-BR`).
 3. **Assert**: `getLanguageTtsRatio(ratios, "pt-BR")` returns `3`.
@@ -119,6 +127,7 @@ In accordance with the repository zero-hardcoded-subtitles policy, tests strictl
 ---
 
 ### Scenario 4: Dynamic Ratio Change Mid-Session
+
 1. **Action**: Start playing session with Hebrew at `1:3`.
 2. **Observe**: Rows 0 speaks, Rows 1 & 2 are skipped.
 3. **Action**: Mid-playback, change Hebrew ratio to `1:1`.
@@ -127,6 +136,7 @@ In accordance with the repository zero-hardcoded-subtitles policy, tests strictl
 ---
 
 ### Scenario 5: Reset Played Subtitles Counter
+
 1. **Action**: Play 5 rows with ratio `1:3` (Rows 0 & 3 spoken, Rows 1, 2, 4 skipped).
 2. **Action**: Click reset counter button (`data-testid="reset-played-subtitles-btn"`).
 3. **Assert**: Next row processed resets offset to 0 and is immediately eligible for TTS speech.
@@ -134,6 +144,7 @@ In accordance with the repository zero-hardcoded-subtitles policy, tests strictl
 ---
 
 ### Scenario 6: Subtitles Table Highlighting Cessation on Ratio-Skipped Sentences
+
 This scenario verifies that the subtitles table strictly stops applying pronounced styling to sentences that are skipped due to the configured TTS ratio:
 
 1. **Setup**:

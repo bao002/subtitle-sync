@@ -191,9 +191,15 @@ export function SubtitlesTablePanel({
       <table data-testid="subtitles-table" className="w-full border-collapse text-sm">
         <thead data-testid="subtitles-table-head" className="sticky top-0 z-10 bg-secondary">
           <tr>
-            <th data-testid="table-header-time" className="w-24 px-3 py-2 text-left font-medium">Time</th>
+            <th data-testid="table-header-time" className="w-24 px-3 py-2 text-left font-medium">
+              Time
+            </th>
             {cols.map((l) => (
-              <th key={l.code} data-testid={`table-header-col-${l.code}`} className="px-3 py-2 text-left font-medium">
+              <th
+                key={l.code}
+                data-testid={`table-header-col-${l.code}`}
+                className="px-3 py-2 text-left font-medium"
+              >
                 <span className="inline-flex items-center gap-1.5">
                   {subtitleColumnName(l.code, l.name)}
                   {l.isYouTubeOrJson && (

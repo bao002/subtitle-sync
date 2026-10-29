@@ -106,7 +106,10 @@ assert.ok(
   maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 68))),
   "appConfig.ts APP_VERSION must be >= 1.0.68",
 );
-assert.ok(CURRENT_APK_VERSION.startsWith("v"), "apkUpdater.ts CURRENT_APK_VERSION must start with v");
+assert.ok(
+  CURRENT_APK_VERSION.startsWith("v"),
+  "apkUpdater.ts CURRENT_APK_VERSION must start with v",
+);
 
 const gradlePath = path.join(rootDir, "android-shell/app/build.gradle.kts");
 const gradleContent = fs.readFileSync(gradlePath, "utf-8");

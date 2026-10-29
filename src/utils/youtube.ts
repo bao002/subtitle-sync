@@ -318,7 +318,6 @@ export function parseYouTubeUrl(input: string): ParsedYouTubeResult | null {
       /[?&]subtitles_url=.*v%3D([a-zA-Z0-9_-]{11})/i,
     ];
 
-
     for (const pattern of patterns) {
       const match = trimmed.match(pattern);
       if (match && match[1] && YOUTUBE_ID_REGEX.test(match[1])) {

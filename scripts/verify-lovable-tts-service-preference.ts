@@ -45,7 +45,9 @@ assert.deepEqual(
 console.log("✅ PASS: Lovable TTS endpoints and voice options catalog verified.");
 
 // Test 2: URL Builder and Request Body Enforce Provider "lovable", Configured Target Lang, Current Text, Configured Speed
-console.log("\n🌐 Test 2: Request Payload Formats (Text, Configured Target Lang, Speed, Provider 'lovable')...");
+console.log(
+  "\n🌐 Test 2: Request Payload Formats (Text, Configured Target Lang, Speed, Provider 'lovable')...",
+);
 const sampleText = "Bonjour le monde, ceci est un test de sous-titres.";
 const sampleLang = "fr";
 const sampleSpeed = 1.25;
@@ -79,7 +81,9 @@ assert.equal(requestBody.lang, sampleLang);
 assert.equal(requestBody.text, sampleText);
 assert.equal(requestBody.voice, sampleVoice);
 assert.equal(requestBody.speed, sampleSpeed);
-console.log("✅ PASS: Request parameters correctly map current text, target lang, configured speed, and provider 'lovable'.");
+console.log(
+  "✅ PASS: Request parameters correctly map current text, target lang, configured speed, and provider 'lovable'.",
+);
 
 // Test 3: Preference Storage Functions
 console.log("\n⚙️ Test 3: Alternative TTS Service Preference Persistence Functions...");
@@ -101,8 +105,8 @@ const indexContent = fs.readFileSync(indexPath, "utf-8");
 // No playground controls
 assert.ok(
   !indexContent.includes('data-testid="lovable-tts-method-select"') &&
-  !indexContent.includes('name="lovable-method"') &&
-  !indexContent.includes('data-testid="lovable-tts-format-select"'),
+    !indexContent.includes('name="lovable-method"') &&
+    !indexContent.includes('data-testid="lovable-tts-format-select"'),
   "Must NOT present TTS playground controls (method/format selectors)",
 );
 
@@ -123,15 +127,12 @@ console.log("✅ PASS: Advanced mode has no playground and provides clean voice 
 
 // Test 5: UI Elimination of Playground & Inclusion of Voice Dropdown (Beginner Mode)
 console.log("\n🐣 Test 5: Beginner Mode UI Parity (BeginnerPreferencesTab.tsx)...");
-const beginnerPath = path.join(
-  rootDir,
-  "src/components/beginner/tabs/BeginnerPreferencesTab.tsx",
-);
+const beginnerPath = path.join(rootDir, "src/components/beginner/tabs/BeginnerPreferencesTab.tsx");
 const beginnerContent = fs.readFileSync(beginnerPath, "utf-8");
 
 assert.ok(
   !beginnerContent.includes('data-testid="beginner-lovable-tts-method-select"') &&
-  !beginnerContent.includes('name="beginner-lovable-method"'),
+    !beginnerContent.includes('name="beginner-lovable-method"'),
   "Beginner mode must NOT present TTS playground controls",
 );
 assert.ok(
@@ -161,16 +162,33 @@ assert.ok(
   maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 68))),
   "appConfig.ts APP_VERSION must be >= 1.0.68",
 );
-assert.ok(CURRENT_APK_VERSION.startsWith("v"), "apkUpdater.ts CURRENT_APK_VERSION must start with v");
+assert.ok(
+  CURRENT_APK_VERSION.startsWith("v"),
+  "apkUpdater.ts CURRENT_APK_VERSION must start with v",
+);
 
-const gradleContent = fs.readFileSync(path.join(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(/versionName = "1\.0\.\d+"/.test(gradleContent), "build.gradle.kts versionName must be >= 1.0.68");
-assert.ok(/versionCode = 10\d+/.test(gradleContent), "build.gradle.kts versionCode must be >= 10068");
+const gradleContent = fs.readFileSync(
+  path.join(rootDir, "android-shell/app/build.gradle.kts"),
+  "utf-8",
+);
+assert.ok(
+  /versionName = "1\.0\.\d+"/.test(gradleContent),
+  "build.gradle.kts versionName must be >= 1.0.68",
+);
+assert.ok(
+  /versionCode = 10\d+/.test(gradleContent),
+  "build.gradle.kts versionCode must be >= 10068",
+);
 
 const settingsContent = fs.readFileSync(path.join(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert.ok(/version: "1\.0\.\d+"/.test(settingsContent), "appSettings.ts snapshot version must be >= 1.0.68");
+assert.ok(
+  /version: "1\.0\.\d+"/.test(settingsContent),
+  "appSettings.ts snapshot version must be >= 1.0.68",
+);
 
-console.log(`✅ PASS: All 5 manifests and configs verified at version >= 1.0.68 (${APP_COMMIT_ID}).`);
+console.log(
+  `✅ PASS: All 5 manifests and configs verified at version >= 1.0.68 (${APP_COMMIT_ID}).`,
+);
 
 console.log("\n=========================================================================");
 console.log("🎉 ALL TASK 175 LOVABLE TTS SERVICE PREFERENCE TESTS PASSED 100%!");
