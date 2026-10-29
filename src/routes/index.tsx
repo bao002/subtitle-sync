@@ -224,6 +224,7 @@ import {
   shouldHighlightSentenceForTTS,
   getPrimaryTtsLang,
   setPrimaryTtsLang,
+  computePrimaryTtsLang,
   isLanguageEligibleForTtsWithRole,
   shouldHighlightSentenceForTtsWithRole,
   setSectionOrder as saveSectionOrder,
@@ -891,8 +892,17 @@ function Index() {
 
   const getInitialFavoriteLanguages = (): string[] => {
     if (typeof window !== "undefined") {
-      const favs = getFavoriteLanguages();
-      if (favs && favs.length > 0) return favs;
+      let favs = getFavoriteLanguages() || [];
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlTarget = urlParams.get("target_lang") || urlParams.get("lang");
+      if (urlTarget) {
+        const clean = urlTarget.toLowerCase().trim();
+        if (clean && !favs.includes(clean)) {
+          favs = [clean, ...favs];
+          saveFavoriteLanguages(favs);
+        }
+      }
+      if (favs.length > 0) return favs;
       const isAndroidEnv =
         Boolean(nativeShell()) ||
         new URLSearchParams(window.location.search).get("android") === "true";
@@ -1691,11 +1701,18 @@ function Index() {
     const defaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 1]));
     return { ...defaults, ...saved };
   });
-  const [primaryTtsLang, setPrimaryTtsLangState] = useState<string>(() => getPrimaryTtsLang());
+  const primaryTtsLang = useMemo(() => {
+    return computePrimaryTtsLang(spoken, ttsRatios) || getPrimaryTtsLang() || spoken[0] || "";
+  }, [spoken, ttsRatios]);
   const handlePrimaryTtsLangChange = useCallback((code: string) => {
-    setPrimaryTtsLangState(code);
     setPrimaryTtsLang(code);
   }, []);
+
+  useEffect(() => {
+    if (primaryTtsLang) {
+      setPrimaryTtsLang(primaryTtsLang);
+    }
+  }, [primaryTtsLang]);
 
   useEffect(() => {
     if (!videoId) return;
@@ -2625,6 +2642,8 @@ function Index() {
         const cleanTarget = urlTargetLang.toLowerCase().trim();
         setTargetLanguages((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
         setShown((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
+        setFavoriteLanguagesState((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
+        setFavoriteLanguages((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
       }
       const urlSubUrl = currentParams.get("subtitles_url") || currentParams.get("sub_url");
       if (urlSubUrl && urlSubUrl.trim()) {
@@ -3887,6 +3906,8 @@ function Index() {
 
     const events = [
       "mousedown",
+      "mouseup",
+      "click",
       "mousemove",
       "keydown",
       "wheel",
@@ -3906,29 +3927,46 @@ function Index() {
     };
   }, []);
 
+  // Dedicated handler to auto-scroll to position ONLY when clicking the dedicated button
+  const handleScrollToActivePosition = useCallback(() => {
+    recordUserInteraction(Date.now());
+    if (active < 0) return;
+    const panel = document.getElementById("subtitles-table-panel");
+    const rowEl = document.querySelector(`[data-row="${active}"]`) as HTMLElement | null;
+    if (panel && rowEl) {
+      const panelRect = panel.getBoundingClientRect();
+      const rowRect = rowEl.getBoundingClientRect();
+      panel.scrollTop += rowRect.top - panelRect.top - panel.clientHeight / 2 + rowRect.height / 2;
+    } else if (rowEl) {
+      rowEl.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }, [active]);
+
   useEffect(() => {
     if (!autoFocus || isSetupPaused) return;
     if (active < 0) return;
 
-    // Start auto-scroll ONLY after 5 seconds since the last user interaction with the page
+    // Never auto-scroll or steal focus if user recently interacted via mouse, keyboard, or touch
     if (!isAutoScrollAllowed()) {
-      const remainingMs = Math.max(
-        100,
-        AUTO_SCROLL_COOLDOWN_MS - (Date.now() - getLastUserInteractionTimestamp()),
-      );
-      const timer = setTimeout(() => {
-        if (autoFocus && !isSetupPaused && isAutoScrollAllowed()) {
-          document
-            .querySelector(`[data-row="${active}"]`)
-            ?.scrollIntoView({ block: "center", behavior: "smooth" });
-        }
-      }, remainingMs);
-      return () => clearTimeout(timer);
+      return;
     }
 
-    document
-      .querySelector(`[data-row="${active}"]`)
-      ?.scrollIntoView({ block: "center", behavior: "smooth" });
+    // Never auto-scroll or shift focus away if user currently has an element focused on the page (e.g. language buttons, inputs)
+    const activeEl = typeof document !== "undefined" ? document.activeElement : null;
+    const isUserFocusActive =
+      activeEl && activeEl !== document.body && activeEl !== document.documentElement;
+    if (isUserFocusActive) {
+      return;
+    }
+
+    // Scroll container inside subtitles panel ONLY, never scroll whole window or steal document focus
+    const panel = document.getElementById("subtitles-table-panel");
+    const rowEl = document.querySelector(`[data-row="${active}"]`) as HTMLElement | null;
+    if (panel && rowEl) {
+      const panelRect = panel.getBoundingClientRect();
+      const rowRect = rowEl.getBoundingClientRect();
+      panel.scrollTop += rowRect.top - panelRect.top - panel.clientHeight / 2 + rowRect.height / 2;
+    }
   }, [active, autoFocus, isSetupPaused]);
 
   const seek = (r: Row, i: number) => {
@@ -4090,6 +4128,16 @@ function Index() {
     onDemandTranslations,
     youtubeTranslatedLanguages,
   ]);
+
+  // Ensure leftmost column acts as default language and is added to favorite languages
+  useEffect(() => {
+    const leftMost = cols[0]?.code || baseLanguage;
+    if (leftMost && !favoriteLanguages.includes(leftMost)) {
+      const nextFavs = [leftMost, ...favoriteLanguages];
+      setFavoriteLanguagesState(nextFavs);
+      setFavoriteLanguages(nextFavs);
+    }
+  }, [cols, baseLanguage, favoriteLanguages]);
 
   const hasLegitimateSubtitles = useMemo(() => {
     if (!tracks) return false;
@@ -4780,6 +4828,7 @@ function Index() {
               onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
               parserConfig={simpleParserConfig}
               onParserConfigChange={handleSimpleParserConfigChange}
+              onScrollToActivePosition={handleScrollToActivePosition}
               onSpeakCue={(text, lang) => {
                 const rate = rates[lang] ?? 0.8;
                 const voice = voiceSelections[lang] || "";
@@ -6845,167 +6894,6 @@ function Index() {
                               </div>
                             )}
 
-                            {/* Enabled Languages Status Card */}
-                            <div
-                              data-testid="enabled-languages-status-card"
-                              className="rounded-lg border border-border/80 bg-muted/20 p-2.5 text-xs space-y-2.5"
-                            >
-                              <div>
-                                <p className="text-[11px] text-muted-foreground leading-normal">
-                                  <strong className="text-foreground">
-                                    Favorite Languages (App-wide):
-                                  </strong>{" "}
-                                  Your preferred learning languages saved across all videos. When
-                                  you open any video, these languages are loaded automatically.
-                                </p>
-                              </div>
-
-                              <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/40 pt-2">
-                                <div className="font-semibold text-foreground flex items-center gap-1.5">
-                                  <span>🎬 Enabled for this Video:</span>
-                                  <span className="font-mono text-primary font-bold">
-                                    {targetLanguages.length}{" "}
-                                    {targetLanguages.length === 1 ? "language" : "languages"}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    type="button"
-                                    data-testid="reset-video-to-favorites-btn"
-                                    onClick={handleResetVideoToFavorites}
-                                    className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-[11px] font-medium"
-                                    title="Reset this video to your saved learning languages"
-                                  >
-                                    ↺ Reset List
-                                  </button>
-                                  <button
-                                    type="button"
-                                    data-testid="save-current-as-favorites-btn"
-                                    onClick={handleSaveCurrentAsFavorites}
-                                    className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-[11px] font-medium"
-                                    title="Save this video's current languages as your app-wide language list"
-                                  >
-                                    Save as Default List
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div className="flex flex-wrap gap-1.5 items-center">
-                                <span className="text-muted-foreground text-[11px] mr-1">
-                                  Current selection:
-                                </span>
-                                {targetLanguages.length === 0 ? (
-                                  <span className="text-muted-foreground italic text-[11px]">
-                                    None selected
-                                  </span>
-                                ) : (
-                                  targetLanguages.map((code) => {
-                                    const langMeta = (isAndroid
-                                      ? SUPPORTED_LANGUAGES_CATALOG
-                                      : LANGS
-                                    ).find((c) => c.code === code) || {
-                                      code,
-                                      name: code,
-                                    };
-                                    const isFav = favoriteLanguages.includes(code);
-                                    return (
-                                      <span
-                                        key={code}
-                                        data-testid={`enabled-lang-badge-${code}`}
-                                        className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11px] font-medium border ${
-                                          isFav
-                                            ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                                            : "border-border bg-background text-foreground"
-                                        }`}
-                                      >
-                                        <span>{langMeta.name}</span>
-                                      </span>
-                                    );
-                                  })
-                                )}
-                              </div>
-
-                              <div className="flex flex-wrap gap-1.5 items-center border-t border-border/50 pt-1.5">
-                                <span className="text-muted-foreground text-[11px] mr-1">
-                                  My Languages:
-                                </span>
-                                {favoriteLanguages.length === 0 ? (
-                                  <span className="text-muted-foreground italic text-[11px]">
-                                    No languages configured yet
-                                  </span>
-                                ) : (
-                                  favoriteLanguages.map((code) => {
-                                    const langMeta = (isAndroid
-                                      ? SUPPORTED_LANGUAGES_CATALOG
-                                      : LANGS
-                                    ).find((c) => c.code === code) || {
-                                      code,
-                                      name: code,
-                                    };
-                                    const isCurrent = targetLanguages.includes(code);
-                                    return (
-                                      <button
-                                        type="button"
-                                        key={code}
-                                        data-testid={`favorite-lang-badge-${code}`}
-                                        onClick={() => {
-                                          if (targetLanguages.includes(code)) {
-                                            handleTargetLanguagesChange(
-                                              targetLanguages.filter((c) => c !== code),
-                                            );
-                                          } else {
-                                            handleTargetLanguagesChange([...targetLanguages, code]);
-                                          }
-                                        }}
-                                        className={`inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium border cursor-pointer transition ${
-                                          isCurrent
-                                            ? "border-primary/40 bg-primary/10 text-primary"
-                                            : "border-muted bg-muted/40 text-muted-foreground line-through opacity-70"
-                                        }`}
-                                        title={
-                                          isCurrent
-                                            ? "Click to disable for this video"
-                                            : "Click to enable for this video"
-                                        }
-                                      >
-                                        <span>{langMeta.name}</span>
-                                      </button>
-                                    );
-                                  })
-                                )}
-                              </div>
-
-                              <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-2">
-                                <span className="text-[11px] font-medium text-foreground">
-                                  Add Language:
-                                </span>
-                                <select
-                                  data-testid="quick-add-favorite-select"
-                                  className="h-7 rounded border border-border bg-background px-2 text-xs"
-                                  id="quick-add-favorite-select"
-                                  defaultValue=""
-                                  onChange={(e) => {
-                                    const code = e.target.value;
-                                    if (code && !favoriteLanguages.includes(code)) {
-                                      handleToggleFavoriteLanguage(code);
-                                      e.target.value = "";
-                                    }
-                                  }}
-                                >
-                                  <option value="" disabled>
-                                    Select language to add…
-                                  </option>
-                                  {(isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS)
-                                    .filter((l) => !favoriteLanguages.includes(l.code))
-                                    .map((l) => (
-                                      <option key={l.code} value={l.code}>
-                                        {l.name} ({l.code})
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                            </div>
-
                             <LanguageBoxesSelector
                               catalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
                               selectedLanguages={targetLanguages}
@@ -7620,6 +7508,7 @@ function Index() {
                               onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
                               parserConfig={simpleParserConfig}
                               onParserConfigChange={handleSimpleParserConfigChange}
+                              onScrollToActivePosition={handleScrollToActivePosition}
                             />
                           </section>
                         ))}

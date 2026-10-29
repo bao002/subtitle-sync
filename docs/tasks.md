@@ -4,7 +4,18 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*None. All prompt tasks (Task 240) completed, verified, compiled, and migrated to docs/done.md.*
+- [ ] **Task 243: UI Improvements - Language Filtering, Error Alert Placement, Auto TTS Primary Ratio, Parallel Subtitles Freeze Columns & Floating Button Colors**
+  - Subtask 243.1: Revert/remove unneeded dedicated auto-scroll button from `SubtitlesTablePanel.tsx` and `routes/index.tsx`.
+  - Subtask 243.2: Add language filter in Settings -> Languages Settings and "Select more languages" action in language accordion (`LanguageBoxesSelector.tsx`, `routes/index.tsx`).
+  - Subtask 243.3: Move "failed to fetch subtitles" error alert to bottom of viewport/section so it doesn't disturb layout.
+  - Subtask 243.4: Auto-assign primary TTS role to spoken language with minimal ratio; remove manual primary language picker UI.
+  - Subtask 243.5: Remove "Fetch Priority Order" presentation from UI; randomize/load-balance subtitle fetch strategy order.
+  - Subtask 243.6: Update AGENTS.md rules and logic for leftmost column as default subtitle & auto-favorite, plus URL `target_lang` auto-favorite.
+  - Subtask 243.7: Implement parallel subtitles beautiful scroll and column freezing (default freezing first 2 columns: time-frames & default subtitles) with toggle.
+  - Subtask 243.8: Update floating button styling to use green for enabled/active and red for off/disabled.
+  - Subtask 243.9: Bump app version to 2.0.38 across all 5 files, write dedicated automated test, compile, lint, commit, and migrate to `docs/done.md`.
+
+
 
 ## Later Tasks
 

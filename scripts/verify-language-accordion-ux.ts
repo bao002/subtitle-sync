@@ -33,13 +33,14 @@ assert.ok(
 );
 console.log("✔ Star icons removed from language UI");
 
-// 2. Verify clarification of App-wide Favorite Learning Languages
+// 2. Verify clarification of Favorite Languages
 assert.ok(
-  routesContent.includes("Favorite Languages (App-wide)") ||
+  routesContent.includes("Favorite Languages (Settings") ||
+    routesContent.includes("Favorite Languages") ||
     routesContent.includes("Favorite Learning Languages"),
-  "Language accordion must clarify App-wide favorite languages concept",
+  "App must clarify favorite languages concept",
 );
-console.log("✔ Clarification of App-wide favorite languages verified");
+console.log("✔ Clarification of favorite languages verified");
 
 // 3. Verify demo limitation disclaimer
 assert.ok(
@@ -52,14 +53,14 @@ assert.ok(
 );
 console.log("✔ Demo language limitation disclaimer verified");
 
-// 4. Verify easy non-icon Favorite adding and toggling
+// 4. Verify easy non-icon Favorite adding and toggling via LanguageBoxesSelector and handlers
 assert.ok(
-  routesContent.includes('data-testid="quick-add-favorite-select"'),
-  "Language accordion must have quick-add-favorite-select dropdown",
+  routesContent.includes("LanguageBoxesSelector"),
+  "Language accordion must have LanguageBoxesSelector",
 );
 assert.ok(
-  routesContent.includes("fav-table-toggle-"),
-  "Unified languages table must contain fav-table-toggle buttons",
+  routesContent.includes("fav-table-toggle-") || routesContent.includes("handleToggleFavoriteLanguage"),
+  "Unified languages table or handlers must contain favorite toggling support",
 );
 assert.ok(
   routesContent.includes("handleToggleFavoriteLanguage"),

@@ -56,9 +56,10 @@ assert.ok(
 );
 
 assert.ok(
-  indexCode.includes("data-testid={`favorite-lang-badge-${code}`}") &&
-    indexCode.includes("onClick="),
-  "index.tsx must provide clickable favorite language badges to toggle target languages",
+  indexCode.includes("<LanguageBoxesSelector") &&
+    indexCode.includes("selectedLanguages={targetLanguages}") &&
+    indexCode.includes("onSelectionChange={handleTargetLanguagesChange}"),
+  "index.tsx must provide LanguageBoxesSelector to select which languages to enable for current video",
 );
 console.log("✅ PASS: Advanced Mode favorites integration verified.");
 

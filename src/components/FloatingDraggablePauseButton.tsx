@@ -246,10 +246,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
           isDragging ? "cursor-grabbing opacity-90 scale-105" : "cursor-grab"
         } ${
           isSetupPaused
-            ? "border-amber-400 bg-amber-500 text-white shadow-amber-500/30 hover:bg-amber-600 ring-2 ring-amber-400/50"
-            : isAutoScrollEnabled
-              ? "border-primary/70 bg-primary/90 text-primary-foreground hover:bg-primary shadow-primary/20"
-              : "border-border/60 bg-background/90 text-foreground hover:bg-accent hover:text-accent-foreground shadow-black/20"
+            ? "border-rose-500 bg-rose-600 text-white shadow-rose-500/30 hover:bg-rose-700 ring-2 ring-rose-400/50"
+            : "border-emerald-500 bg-emerald-600 text-white shadow-emerald-500/30 hover:bg-emerald-700 ring-2 ring-emerald-400/50"
         }`}
       >
         <span data-testid="floating-dropdown-trigger" className="hidden" aria-hidden="true" />
@@ -259,7 +257,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
           {isSetupPaused ? (
             <>
               <Pause className="h-4 w-4 fill-current shrink-0" />
-              <span data-testid="floating-pause-status">Setup Paused</span>
+              <span data-testid="floating-pause-status">Setup Paused (OFF)</span>
               <SlidersHorizontal className="h-3.5 w-3.5 shrink-0 opacity-80" />
             </>
           ) : isAutoScrollEnabled ? (
@@ -269,8 +267,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
             </>
           ) : (
             <>
-              <Play className="h-3.5 w-3.5 fill-current shrink-0 text-primary" />
-              <span data-testid="floating-pause-status">Controls Menu</span>
+              <Play className="h-3.5 w-3.5 fill-current shrink-0 text-white" />
+              <span data-testid="floating-pause-status">Controls Active (ON)</span>
             </>
           )}
           {isOpen ? (
@@ -282,14 +280,21 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
       </button>
 
       {/* Floating Active Setup Indicator Badge */}
-      {isSetupPaused && !isOpen && (
+      {isSetupPaused && !isOpen ? (
         <div
           data-testid="floating-pause-badge"
-          className="pointer-events-none mt-1 rounded bg-black/80 px-2 py-0.5 text-center text-[10px] font-semibold tracking-wide text-amber-300 shadow-sm"
+          className="pointer-events-none mt-1 rounded bg-rose-950/90 border border-rose-500/40 px-2 py-0.5 text-center text-[10px] font-semibold tracking-wide text-rose-200 shadow-sm"
         >
           Autoscroll &amp; Play OFF
         </div>
-      )}
+      ) : !isOpen ? (
+        <div
+          data-testid="floating-active-badge"
+          className="pointer-events-none mt-1 rounded bg-emerald-950/90 border border-emerald-500/40 px-2 py-0.5 text-center text-[10px] font-semibold tracking-wide text-emerald-200 shadow-sm"
+        >
+          Playback &amp; Controls ON
+        </div>
+      ) : null}
 
       {/* Dropdown Menu Popup */}
       {isOpen && (
@@ -324,8 +329,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
               data-testid="menu-option-setup-pause"
               className={`rounded-lg border p-2.5 transition-colors cursor-pointer ${
                 isSetupPaused
-                  ? "border-amber-400/80 bg-amber-500/10 text-foreground"
-                  : "border-border/70 hover:border-border hover:bg-muted/30"
+                  ? "border-rose-400/80 bg-rose-500/10 text-foreground"
+                  : "border-emerald-500/30 hover:border-emerald-500/60 hover:bg-emerald-500/5"
               }`}
               onClick={handleToggleSetupPauseOption}
             >
@@ -333,7 +338,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                 <div className="flex items-center gap-2">
                   <div
                     className={`flex h-7 w-7 items-center justify-center rounded-md ${
-                      isSetupPaused ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
+                      isSetupPaused ? "bg-rose-600 text-white" : "bg-emerald-600 text-white"
                     }`}
                   >
                     {isSetupPaused ? (
@@ -345,7 +350,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                   <div>
                     <div className="text-xs font-semibold leading-tight">Pause for Setup</div>
                     <div className="text-[10px] text-muted-foreground">
-                      {isSetupPaused ? "Playback & scrolling frozen" : "Normal playback active"}
+                      {isSetupPaused ? "Playback & scrolling frozen (OFF)" : "Normal playback active (ON)"}
                     </div>
                   </div>
                 </div>
@@ -354,8 +359,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                   <span
                     className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
                       isSetupPaused
-                        ? "bg-amber-500/20 text-amber-700 dark:text-amber-300"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-rose-500/20 text-rose-700 dark:text-rose-300"
+                        : "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
                     }`}
                   >
                     {isSetupPaused ? "Paused" : "Off"}
@@ -381,7 +386,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
               {(activeExplanation === "setup-pause" || isSetupPaused) && (
                 <div
                   data-testid="explanation-setup-pause"
-                  className="mt-2 rounded bg-muted/60 p-2 text-[11px] leading-relaxed text-muted-foreground border-l-2 border-amber-400"
+                  className="mt-2 rounded bg-muted/60 p-2 text-[11px] leading-relaxed text-muted-foreground border-l-2 border-rose-500"
                 >
                   <p className="font-medium text-foreground mb-0.5">Pause for Setup Explanation:</p>
                   Freezes video playback, text-to-speech voice synthesis, and automatic scrolling to
@@ -396,8 +401,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
               data-testid="menu-option-auto-scroll"
               className={`rounded-lg border p-2.5 transition-colors cursor-pointer ${
                 isAutoScrollEnabled
-                  ? "border-primary/80 bg-primary/10 text-foreground"
-                  : "border-border/70 hover:border-border hover:bg-muted/30"
+                  ? "border-emerald-500/80 bg-emerald-500/10 text-foreground"
+                  : "border-rose-400/50 bg-rose-500/5 hover:border-rose-400 hover:bg-rose-500/10"
               }`}
               onClick={handleToggleAutoScrollOption}
             >
@@ -406,8 +411,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                   <div
                     className={`flex h-7 w-7 items-center justify-center rounded-md ${
                       isAutoScrollEnabled
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-emerald-600 text-white"
+                        : "bg-rose-600 text-white"
                     }`}
                   >
                     <ScrollText className="h-3.5 w-3.5" />
@@ -415,7 +420,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                   <div>
                     <div className="text-xs font-semibold leading-tight">Auto-Scroll Subtitles</div>
                     <div className="text-[10px] text-muted-foreground">
-                      {isAutoScrollEnabled ? "Auto-centering active row" : "Manual scrolling only"}
+                      {isAutoScrollEnabled ? "Auto-centering active row (ON)" : "Manual scrolling only (OFF)"}
                     </div>
                   </div>
                 </div>
@@ -424,8 +429,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                   <span
                     className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
                       isAutoScrollEnabled
-                        ? "bg-primary/20 text-primary"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                        : "bg-rose-500/20 text-rose-700 dark:text-rose-300"
                     }`}
                   >
                     {isAutoScrollEnabled ? "Enabled" : "Disabled"}
@@ -451,7 +456,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
               {(activeExplanation === "auto-scroll" || isAutoScrollEnabled) && (
                 <div
                   data-testid="explanation-auto-scroll"
-                  className="mt-2 rounded bg-muted/60 p-2 text-[11px] leading-relaxed text-muted-foreground border-l-2 border-primary"
+                  className="mt-2 rounded bg-muted/60 p-2 text-[11px] leading-relaxed text-muted-foreground border-l-2 border-emerald-500"
                 >
                   <p className="font-medium text-foreground mb-0.5">
                     Auto-Scroll Subtitles Explanation:

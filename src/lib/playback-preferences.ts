@@ -62,9 +62,12 @@ function write(key: string, value: string) {
 export const getSubtitleRequestMode = () =>
   read<SubtitleRequestMode>(KEYS.requestMode, ["tlang", "lang"], "tlang");
 export const setSubtitleRequestMode = (m: SubtitleRequestMode) => write(KEYS.requestMode, m);
-/** Primary first, then fallback. */
-export const subtitleRequestModeOrder = (primary: SubtitleRequestMode): SubtitleRequestMode[] =>
-  primary === "tlang" ? ["tlang", "lang"] : ["lang", "tlang"];
+/** Primary first, then fallback, or random load-balanced selection. */
+export const subtitleRequestModeOrder = (primary?: SubtitleRequestMode): SubtitleRequestMode[] => {
+  if (primary === "tlang") return ["tlang", "lang"];
+  if (primary === "lang") return ["lang", "tlang"];
+  return Math.random() < 0.5 ? ["tlang", "lang"] : ["lang", "tlang"];
+};
 
 export const getSectionOrder = () =>
   read<SectionOrder>(KEYS.sectionOrder, ["video-first", "tts-first"], "video-first");
@@ -255,6 +258,29 @@ export const setPrimaryTtsLang = (langCode: string): void => {
   } catch {
     // ignore
   }
+};
+
+/**
+ * Automatically computes the primary TTS language as the spoken language with the minimal ratio (e.g. 1:1 < 1:5).
+ * No manual selection needed.
+ */
+export const computePrimaryTtsLang = (
+  spokenLangs: string[],
+  ttsRatios: Record<string, number>,
+): string => {
+  if (!spokenLangs || spokenLangs.length === 0) return "";
+  let minLang = spokenLangs[0];
+  let minRatio = getLanguageTtsRatio(ttsRatios, minLang);
+
+  for (let i = 1; i < spokenLangs.length; i++) {
+    const lang = spokenLangs[i];
+    const r = getLanguageTtsRatio(ttsRatios, lang);
+    if (r < minRatio) {
+      minRatio = r;
+      minLang = lang;
+    }
+  }
+  return minLang;
 };
 
 export interface TtsRoleEvaluationParams {

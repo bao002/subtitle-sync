@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Languages, Sparkles, FileCode } from "lucide-react";
+import { Check, Languages, Sparkles, FileCode, Columns } from "lucide-react";
 
 import { type Row, type Json3, subtitleColumnName } from "@/lib/subtitles";
 import { SubtitleRow, type SubtitleColumn } from "@/components/SubtitleRow";
@@ -31,6 +31,7 @@ export interface SubtitlesTablePanelProps {
   onSpeakCue?: (text: string, lang: string) => void;
   parserConfig?: SimpleParserConfig;
   onParserConfigChange?: (config: SimpleParserConfig) => void;
+  onScrollToActivePosition?: () => void;
 }
 
 export function SubtitlesTablePanel({
@@ -61,6 +62,7 @@ export function SubtitlesTablePanel({
   const [localParserConfig, setLocalParserConfig] = React.useState<SimpleParserConfig>(
     DEFAULT_SIMPLE_PARSER_CONFIG,
   );
+  const [freezeColumns, setFreezeColumns] = React.useState<boolean>(true);
   const activeParserConfig = externalParserConfig || localParserConfig;
   const handleParserConfigChange = onParserConfigChange || setLocalParserConfig;
 
@@ -69,7 +71,7 @@ export function SubtitlesTablePanel({
       id="subtitles-table-panel"
       data-testid="subtitles-table-panel"
       data-control-category="daily-usage"
-      className="max-h-[calc(100vh-8rem)] overflow-auto rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-1"
+      className="custom-beautiful-scrollbar max-h-[calc(100vh-8rem)] overflow-auto rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-1"
     >
       <NewSubtitlesParserBar
         config={activeParserConfig}
@@ -188,47 +190,90 @@ export function SubtitlesTablePanel({
           </button>
         </div>
       )}
+      {rows.length > 0 && (
+        <div
+          data-testid="subtitles-position-actions-bar"
+          className="flex items-center justify-between border-b border-border bg-muted/25 px-3 py-1.5 text-xs"
+        >
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              id="toggle-freeze-columns-btn"
+              data-testid="toggle-freeze-columns-btn"
+              onClick={() => setFreezeColumns((prev) => !prev)}
+              className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-xs font-medium transition-colors cursor-pointer ${
+                freezeColumns
+                  ? "border-emerald-500/40 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                  : "border-border bg-background text-muted-foreground hover:bg-muted"
+              }`}
+              title={
+                freezeColumns
+                  ? "Click to unfreeze first 2 columns"
+                  : "Click to freeze first 2 columns (Time & Default Subtitles)"
+              }
+            >
+              <Columns className="h-3.5 w-3.5" />
+              <span>{freezeColumns ? "Columns Frozen (1 & 2)" : "Freeze Columns"}</span>
+            </button>
+            <span className="text-[11px] text-muted-foreground">
+              {rows.length} {rows.length === 1 ? "sentence" : "sentences"}
+            </span>
+          </div>
+        </div>
+      )}
       <table data-testid="subtitles-table" className="w-full border-collapse text-sm">
-        <thead data-testid="subtitles-table-head" className="sticky top-0 z-10 bg-secondary">
+        <thead data-testid="subtitles-table-head" className="sticky top-0 z-20 bg-secondary">
           <tr>
-            <th data-testid="table-header-time" className="w-24 px-3 py-2 text-left font-medium">
+            <th
+              data-testid="table-header-time"
+              className={`w-28 min-w-[7rem] max-w-[7rem] px-3 py-2 text-left font-medium ${
+                freezeColumns ? "sticky left-0 z-30 bg-secondary shadow-[1px_0_0_0_rgba(0,0,0,0.1)]" : ""
+              }`}
+            >
               Time
             </th>
-            {cols.map((l) => (
-              <th
-                key={l.code}
-                data-testid={`table-header-col-${l.code}`}
-                className="px-3 py-2 text-left font-medium"
-              >
-                <span className="inline-flex items-center gap-1.5">
-                  {subtitleColumnName(l.code, l.name)}
-                  {l.isYouTubeOrJson && (
-                    <FileCode
-                      className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"
-                      aria-label="YouTube subtitles or JSON artifact"
-                      data-testid={`column-source-youtube-or-json-${l.code}`}
-                      title="Parsed from YouTube subtitles or .json artifact"
-                    />
-                  )}
-                  {l.isOnDemandTranslation && (
-                    <Sparkles
-                      className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400"
-                      aria-label="On-demand translation"
-                      data-testid={`column-source-on-demand-${l.code}`}
-                      title="On-demand translation"
-                    />
-                  )}
-                  {l.isYouTubeTranslated && (
-                    <Languages
-                      className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400"
-                      aria-label="YouTube translation"
-                      data-testid={`youtube-translation-indicator-${l.code}`}
-                      title="Translated by YouTube"
-                    />
-                  )}
-                </span>
-              </th>
-            ))}
+            {cols.map((l, idx) => {
+              const isFirstCol = idx === 0;
+              return (
+                <th
+                  key={l.code}
+                  data-testid={`table-header-col-${l.code}`}
+                  className={`px-3 py-2 text-left font-medium min-w-[12rem] ${
+                    freezeColumns && isFirstCol
+                      ? "sticky left-28 z-30 bg-secondary shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]"
+                      : ""
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1.5">
+                    {subtitleColumnName(l.code, l.name)}
+                    {l.isYouTubeOrJson && (
+                      <FileCode
+                        className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"
+                        aria-label="YouTube subtitles or JSON artifact"
+                        data-testid={`column-source-youtube-or-json-${l.code}`}
+                        title="Parsed from YouTube subtitles or .json artifact"
+                      />
+                    )}
+                    {l.isOnDemandTranslation && (
+                      <Sparkles
+                        className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400"
+                        aria-label="On-demand translation"
+                        data-testid={`column-source-on-demand-${l.code}`}
+                        title="On-demand translation"
+                      />
+                    )}
+                    {l.isYouTubeTranslated && (
+                      <Languages
+                        className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400"
+                        aria-label="YouTube translation"
+                        data-testid={`youtube-translation-indicator-${l.code}`}
+                        title="Translated by YouTube"
+                      />
+                    )}
+                  </span>
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody data-testid="subtitles-table-body">
@@ -261,6 +306,7 @@ export function SubtitlesTablePanel({
                   ttsRatios={ttsRatios}
                   primaryTtsLang={primaryTtsLang}
                   onSpeakCue={onSpeakCue}
+                  freezeColumns={freezeColumns}
                 />
               );
             })
