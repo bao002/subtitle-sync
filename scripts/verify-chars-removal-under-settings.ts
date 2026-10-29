@@ -18,11 +18,11 @@ assert(
   "Settings accordion must contain settings-chars-removal-container",
 );
 
-const playbackIdx = indexContent.indexOf('panelId === "playback"');
+const playbackIdx = indexContent.indexOf('{panelId === "playback" &&');
 const charsRemovalInSettings = indexContent.indexOf(
   'data-testid="settings-chars-removal-container"',
 );
-const libraryIdx = indexContent.indexOf('panelId === "library"');
+const libraryIdx = indexContent.indexOf('{panelId === "library" &&');
 
 assert(playbackIdx !== -1, "playback accordion must exist");
 assert(charsRemovalInSettings !== -1, "settings-chars-removal-container must exist");

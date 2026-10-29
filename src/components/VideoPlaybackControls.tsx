@@ -22,6 +22,7 @@ export interface VideoPlaybackControlsProps {
   totalSections?: number;
   isPausedForSpeech?: boolean;
   speakingLangName?: string;
+  pauseReason?: string | null;
   onTogglePlay: () => void;
   onSeek: (seconds: number) => void;
   onRewind: (seconds?: number) => void;
@@ -70,6 +71,7 @@ export const VideoPlaybackControls: React.FC<VideoPlaybackControlsProps> = ({
   totalSections = 0,
   isPausedForSpeech = false,
   speakingLangName,
+  pauseReason,
   onTogglePlay,
   onSeek,
   onRewind,
@@ -150,6 +152,15 @@ export const VideoPlaybackControls: React.FC<VideoPlaybackControlsProps> = ({
               className="text-muted-foreground font-medium"
             >
               Paused
+            </span>
+          )}
+          {pauseReason && !isPlaying && (
+            <span
+              data-testid="player-control-pause-reason"
+              className="inline-flex items-center gap-1 rounded bg-amber-500/10 px-1.5 py-0.5 text-[10px] text-amber-700 dark:text-amber-300 font-medium max-w-[200px] truncate"
+              title={pauseReason}
+            >
+              {pauseReason}
             </span>
           )}
         </div>

@@ -1,7 +1,7 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Task**: Task 272: Chapter 6 - Diagnostics & Explanation for Unexplained Video Pauses
-- **Active Subtask**: Subtask 272.1 & 272.2: Add auto-pause reason state, clear on resume, and display on-screen explanation badge/banner so the user always knows why the video was paused.
-- **Status**: [IN PROGRESS]
-- **Target Files**: `src/routes/index.tsx`, `scripts/verify-video-pause-explanations.ts`
-- **Validation**: `npx tsx scripts/verify-video-pause-explanations.ts`, `lint_applet`, `compile_applet`
+- **Task**: None (Active backlog empty)
+- **Active Subtask**: All prompt tasks and chapters (1-8) fully completed, verified, compiled, linted, and migrated to `docs/done.md`.
+- **Status**: [COMPLETED]
+- **Target Files**: N/A
+- **Validation**: All tests passing, `compile_applet` passed, `lint_applet` passed.

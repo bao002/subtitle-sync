@@ -26,7 +26,6 @@ import { Json3 } from "../types";
 import { isSharedLanguageForVideo } from "@/utils/favoriteLanguagesRules";
 
 export interface LanguageBoxesSelectorProps {
-
   catalog: Array<{ code: string; name: string }>;
   selectedLanguages: string[];
   onSelectionChange: (next: string[]) => void;
@@ -220,7 +219,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
               data-testid="favorite-languages-active-badge"
               className="rounded bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 text-[10px] font-medium"
             >
-              ⭐ Favorites
+              Favorites
             </span>
           )}
         </div>
@@ -240,7 +239,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                   : "Show all catalog languages"
               }
             >
-              {showAllLanguages ? "⭐ Favorites Only" : `+ All (${catalog.length})`}
+              {showAllLanguages ? "Favorites Only" : `+ All (${catalog.length})`}
             </Button>
           )}
           <Button
@@ -304,11 +303,11 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                   <span className="font-medium text-foreground">{langMeta.name}</span>
                   {favoriteLanguages.includes(code) && (
                     <span
-                      className="text-[10px] text-amber-500 font-bold"
-                      title="In Global Favorites"
+                      className="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-400 font-sans tracking-wide"
+                      title="Favorite language"
                       data-testid={`favorite-badge-${code}`}
                     >
-                      ⭐
+                      Fav
                     </span>
                   )}
                   {cueCount ? (
@@ -425,7 +424,12 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                           #{priorityIdx + 1}
                         </span>
                       )}
-                      <span data-testid="language-box-title" className="truncate text-xs sm:text-sm">{lang.name}</span>
+                      <span
+                        data-testid="language-box-title"
+                        className="truncate text-xs sm:text-sm"
+                      >
+                        {lang.name}
+                      </span>
                       {currentVideoId && isSharedLanguageForVideo(currentVideoId, lang.code) && (
                         <span
                           data-testid={`shared-badge-${lang.code}`}
@@ -436,10 +440,10 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                       )}
                       {favoriteLanguages.includes(lang.code) && (
                         <span
-                          className="text-[10px] text-amber-500 shrink-0"
-                          title="Global Favorite"
+                          className="text-[9px] uppercase font-bold text-amber-600 dark:text-amber-400 font-sans tracking-wide shrink-0"
+                          title="Favorite language"
                         >
-                          ⭐
+                          Fav
                         </span>
                       )}
 
@@ -454,11 +458,17 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                       ) : null}
                     </div>
                     {isSelected ? (
-                      <span data-testid="language-selected-check" className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <span
+                        data-testid="language-selected-check"
+                        className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
+                      >
                         <Check className="h-3 w-3 stroke-[3]" />
                       </span>
                     ) : (
-                      <span data-testid="language-code-badge" className="shrink-0 rounded bg-muted px-1 py-0.5 font-mono text-[10px] uppercase text-muted-foreground">
+                      <span
+                        data-testid="language-code-badge"
+                        className="shrink-0 rounded bg-muted px-1 py-0.5 font-mono text-[10px] uppercase text-muted-foreground"
+                      >
                         {lang.code}
                       </span>
                     )}

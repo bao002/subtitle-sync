@@ -1,5 +1,55 @@
 # Done tasks
 
+## Task 275: Version Bump to 2.0.33 & Final Verification Audit
+- **Synchronized Version 2.0.33 Across All 5 Version Targets**:
+  1. `package.json`: `"version": "2.0.33"`
+  2. `android-shell/app/build.gradle.kts`: `versionCode = 20033`, `versionName = "2.0.33"`
+  3. `src/config/appConfig.ts`: `APP_VERSION = "2.0.33"`, `APP_VERSION_DESCRIPTION` updated with Chapters 1-8 summary.
+  4. `src/utils/apkUpdater.ts`: `CURRENT_APK_VERSION = "v2.0.33"`
+  5. `src/utils/appSettings.ts`: default snapshot `version: "2.0.33"`
+- **Dedicated Automated Test**: Added `scripts/verify-v2-version-bump.ts` (`npm run test:v2-version-bump`, 100% PASS).
+- **Verification & Code Quality**:
+  - Full chapter test suite (Tasks 267 through 275) executed and verified with 100% PASS.
+  - ESLint validation (`lint_applet`): 0 errors, 0 warnings.
+  - Compilation (`compile_applet`): Clean build success.
+
+## Task 274: Chapter 8 - Top Screen Title & Description Based on Video Title & Description
+- **Dynamic Header Binding (`src/routes/index.tsx`)**:
+  - Implemented reactive `topScreenTitle` and `topScreenDescription` hooks bound directly to `videoMetadata` (title, description, channel/author name, formatted duration), with fallback to video library and demo fixture metadata.
+  - Bound the main `<header>` title to `data-testid="top-screen-video-title"` and subtitle/description to `data-testid="top-screen-video-description"`.
+  - Displays dynamic video title and multi-line descriptive metadata at the very top of the screen on all views (both Beginner mode and Advanced studio).
+  - Maintained brand tag `Parallel Subtitles`, app version badge, mode switcher, and live caption status indicator (`data-testid="top-screen-video-caption-status"`).
+- **Dedicated Automated Test**: Added `scripts/verify-top-screen-video-metadata.ts` (`npm run test:top-screen-video-metadata`, 100% PASS).
+
+## Task 273: Chapter 7 - Language Accordion UX: Remove Star Icon, Clarify Global Favorite, Add Disclaimer, Simple Non-Icon Favorite Toggle
+- **Removed Star Icons (`src/components/LanguageBoxesSelector.tsx`, `src/routes/index.tsx`)**:
+  - Eliminated `⭐` and `★` star icons across language buttons, chips, headers, and badges.
+  - Replaced star badges with clean, accessible text labels: `Favorites Only`, `Fav`, and `Save as Favorites`.
+- **Clarified Favorite Learning Languages (App-wide)**:
+  - Replaced confusing "global-favorite" terminology with explicit text explaining that App-wide Favorite Languages apply across all videos as preferred default target languages.
+- **Web Demo Disclaimer Callout (`src/routes/index.tsx`)**:
+  - Added `data-testid="demo-languages-disclaimer"` prominently at the top of the Language Accordion.
+  - Explains that in the web demo, authentic subtitle tracks are restricted to fixture captions for video `L2Ryrr6txwA`, whereas Android dynamically captures all YouTube caption tracks.
+- **Simple Non-Icon Favorite Toggles**:
+  - Added dedicated "Favorite" column to `unified-languages-table` with `data-testid="fav-table-toggle-[code]"` ("Favorite" / "Add" buttons).
+  - Added `data-testid="quick-add-favorite-select"` dropdown selector for one-click adding without icons.
+- **Dedicated Automated Test**: Added `scripts/verify-language-accordion-ux.ts` (`npm run test:language-accordion-ux`, 100% PASS).
+
+## Task 272: Chapter 6 - Diagnostics & Explanation for Unexplained Video Pauses
+- **Root Cause Investigation & Documentation (`docs/video-pause-reasons.md`)**:
+  - Detailed the primary mechanisms causing video pauses:
+    1. Section-by-section Speech Synchronization (`pauseMode`): Video pauses at the end of each subtitle sentence while Web Speech or Alternative TTS speaks the target translation.
+    2. Advance TTS Synthesis (`ttsFirstMode`): Video pauses at the beginning of each subtitle row to speak the translation first.
+    3. Multi-language/slow speech synthesis delays: Cumulative delay when multiple target languages are spoken sequentially.
+    4. Reached end of subtitle track in sync mode: Video stops at the end of transcript rows.
+    5. Background audio focus / MediaSession interruptions: Intercepted OS/browser media pause events.
+    6. Setup pause toggle (`isSetupPaused`): Floating draggable pause button.
+- **On-Screen Pause Explanations (`src/routes/index.tsx`, `src/components/VideoPlaybackControls.tsx`)**:
+  - Added `pauseReason` reactive state tracking across all pause events (user pause, setup pause, speech synthesis wait, end of track, media controls).
+  - Integrated `pauseReason` into `VideoPlaybackControlsProps` with `data-testid="player-control-pause-reason"` badge.
+  - Rendered real-time on-screen explanation banner `data-testid="video-pause-reason-banner"` directly under the playback controls so the user is never left wondering why the video is paused.
+- **Dedicated Automated Test**: Added `scripts/verify-video-pause-explanations.ts` (`npm run test:video-pause-explanations`, 100% PASS).
+
 ## Task 271: Chapter 5 - Accordion Timeout (10s) with Sand-Time Icon & Progress Bar for Video Library
 - **10s Auto-Collapse Countdown (`src/components/AccordionSection.tsx`)**:
   - Configured `ACCORDION_AUTO_FOLD_SECONDS = 10` (10,000ms).

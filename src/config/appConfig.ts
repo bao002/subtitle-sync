@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.32";
+export const APP_VERSION = "2.0.33";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "b840e11";
 export const APP_VERSION_DESCRIPTION =
-  "Refine language settings: rate dropdown 0.5-1.0, main settings rate, clickable language name for primary (Version 2.0.32)";
+  "Chapters 1-8: Minimal URL sharing, route-state sync, video ID extraction, chars removal settings, library timeout hourglass, pause diagnostics, language UX, top screen video metadata (Version 2.0.33)";
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
 
