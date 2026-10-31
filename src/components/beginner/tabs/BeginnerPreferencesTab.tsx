@@ -19,6 +19,9 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
+  CheckCircle2,
+  AlertCircle,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -55,9 +58,12 @@ import {
   LOVABLE_TTS_OPENAPI_URL,
   LOVABLE_VOICES,
   OPENROUTER_VOICES,
+  validateRemoteTtsService,
+  getLastValidationResult,
   type AlternativeTtsMode,
   type AlternativeTtsEngine,
   type LovableTtsProvider,
+  type RemoteTtsValidationResult,
 } from "@/lib/alternative-tts";
 
 import { GlobalFavoriteLanguagesPanel } from "@/components/GlobalFavoriteLanguagesPanel";
@@ -130,7 +136,40 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   const [showOpenRouterKey, setShowOpenRouterKey] = useState<boolean>(false);
   const [openRouterKeySaved, setOpenRouterKeySaved] = useState<boolean>(false);
   const [isTestingAlternativeTts, setIsTestingAlternativeTts] = useState<boolean>(false);
+  const [isValidatingRemoteTts, setIsValidatingRemoteTts] = useState<boolean>(false);
+  const [remoteValidationResult, setRemoteValidationResult] = useState<RemoteTtsValidationResult | null>(() => {
+    try {
+      return getLastValidationResult(getAlternativeTtsEngine());
+    } catch {
+      return null;
+    }
+  });
   const [showOrderHelp, setShowOrderHelp] = useState<boolean>(false);
+
+  const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
+    const targetEngine = serviceToValidate || alternativeTtsEngineState;
+    setIsValidatingRemoteTts(true);
+    try {
+      const res = await validateRemoteTtsService(targetEngine, {
+        lang: baseLanguage || "en",
+        provider: lovableTtsProviderState,
+      });
+      setRemoteValidationResult(res);
+    } catch (err: any) {
+      setRemoteValidationResult({
+        ok: false,
+        service: targetEngine,
+        serviceName: targetEngine === "lovable" ? "Lovable TTS3" : "Google TTS Directly",
+        endpoint: "",
+        latencyMs: 0,
+        audioVerified: false,
+        error: err?.message || "Validation failed",
+        timestamp: Date.now(),
+      });
+    } finally {
+      setIsValidatingRemoteTts(false);
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -667,50 +706,140 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
               </p>
             </div>
 
-            <div>
-              <button
-                type="button"
-                data-testid="btn-test-alternative-tts"
-                disabled={isTestingAlternativeTts}
-                onClick={async () => {
-                  setIsTestingAlternativeTts(true);
-                  try {
-                    await playAlternativeTtsAudio(
-                      "Hello world",
-                      baseLanguage || "en",
-                      ttsSpeed,
-                      undefined,
-                      "lovable",
-                      {
-                        provider: lovableTtsProviderState,
-                        voice:
-                          lovableTtsProviderState === "google"
-                            ? undefined
-                            : lovableTtsVoiceState ||
-                              (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
-                        speed: ttsSpeed,
-                      },
-                    );
-                  } catch (err) {
-                    console.warn("Test Alternative TTS error:", err);
-                  } finally {
-                    setIsTestingAlternativeTts(false);
-                  }
-                }}
-                className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
-              >
-                {isTestingAlternativeTts ? (
-                  <>
-                    <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                    <span>Playing test audio…</span>
-                  </>
-                ) : (
-                  <>
-                    <Play className="h-3 w-3 text-primary" />
-                    <span>▶ Test Alternative TTS ("Hello world")</span>
-                  </>
-                )}
-              </button>
+            <div className="space-y-2 pt-1 border-t border-border/40">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  data-testid="btn-validate-remote-tts"
+                  disabled={isValidatingRemoteTts}
+                  onClick={() => handleValidateRemoteService()}
+                  className="px-2.5 py-1 rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-xs font-mono inline-flex items-center gap-1.5 text-primary disabled:opacity-60 cursor-pointer font-medium"
+                >
+                  {isValidatingRemoteTts ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      <span>Validating Service…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Activity className="h-3 w-3" />
+                      <span>
+                        Validate {alternativeTtsEngineState === "lovable" ? "TTS3 Service" : "Google TTS Directly"}
+                      </span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="btn-validate-google-tts-directly"
+                  disabled={isValidatingRemoteTts}
+                  onClick={() => handleValidateRemoteService("google_translate")}
+                  className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                  title="Validate Google Translate TTS endpoint directly"
+                >
+                  Validate Google Direct
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="btn-validate-tts3-service"
+                  disabled={isValidatingRemoteTts}
+                  onClick={() => handleValidateRemoteService("lovable")}
+                  className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                  title="Validate Lovable TTS3 public endpoint"
+                >
+                  Validate TTS3 Service
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="btn-test-alternative-tts"
+                  disabled={isTestingAlternativeTts}
+                  onClick={async () => {
+                    setIsTestingAlternativeTts(true);
+                    try {
+                      await playAlternativeTtsAudio(
+                        "Hello world",
+                        baseLanguage || "en",
+                        ttsSpeed,
+                        undefined,
+                        alternativeTtsEngineState,
+                        {
+                          provider: lovableTtsProviderState,
+                          voice:
+                            lovableTtsProviderState === "google"
+                              ? undefined
+                              : lovableTtsVoiceState ||
+                                (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
+                          speed: ttsSpeed,
+                        },
+                      );
+                    } catch (err) {
+                      console.warn("Test Alternative TTS error:", err);
+                    } finally {
+                      setIsTestingAlternativeTts(false);
+                    }
+                  }}
+                  className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
+                >
+                  {isTestingAlternativeTts ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                      <span>Playing test audio…</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="h-3 w-3 text-primary" />
+                      <span>▶ Test Audio ({alternativeTtsEngineState === "lovable" ? "TTS3" : "Google Direct"})</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Validation Status Feedback */}
+              {remoteValidationResult && (
+                <div
+                  data-testid="remote-tts-validation-details"
+                  className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border text-xs ${
+                    remoteValidationResult.ok
+                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                      : "bg-destructive/10 border-destructive/30 text-destructive"
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span
+                      data-testid="remote-tts-validation-badge"
+                      className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium font-mono ${
+                        remoteValidationResult.ok
+                          ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                          : "bg-destructive/20 text-destructive"
+                      }`}
+                    >
+                      {remoteValidationResult.ok ? (
+                        <>
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>Available ({remoteValidationResult.latencyMs}ms)</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="h-3 w-3" />
+                          <span>Unavailable ({remoteValidationResult.latencyMs}ms)</span>
+                        </>
+                      )}
+                    </span>
+                    <span className="font-semibold">{remoteValidationResult.serviceName}:</span>
+                    <span className="text-[11px] opacity-90">
+                      {remoteValidationResult.ok
+                        ? remoteValidationResult.details || "Audio stream verified"
+                        : remoteValidationResult.error || "Service check failed"}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono opacity-70">
+                    Checked {new Date(remoteValidationResult.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

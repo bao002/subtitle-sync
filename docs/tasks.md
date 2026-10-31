@@ -4,7 +4,12 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*(No active tasks currently pending; all prompt tasks completed and verified in docs/done.md)*
+- [ ] **Task 266: Add validation to remote TTS services (google-tts-directly and tts3 service)**
+  - **Subtask 266.1**: Update tracking files (`AGENTS.md`, `prompt_history.md`, version bump to 2.0.59, `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`).
+  - **Subtask 266.2**: Implement `validateRemoteTtsService` in `src/lib/alternative-tts.ts` (latency check, audio stream verification, status code/headers, and error diagnostics for both Google Direct and Lovable TTS3).
+  - **Subtask 266.3**: Implement remote TTS service validation UI and status feedback badges in both Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with absolute parity.
+  - **Subtask 266.4**: Write dedicated automated test `scripts/verify-remote-tts-validation.ts` validating programmatic validation API, UI badges/buttons, and error handling.
+  - **Subtask 266.5**: Verification with automated tests, `compile_applet`, `lint_applet`, git commit, and migration to `docs/done.md`.
 
 ## Later Tasks
 

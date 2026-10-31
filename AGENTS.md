@@ -147,19 +147,15 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 
 - Distinguish new-user setup from daily viewing; keep video and subtitles table central to repeat use.
 - Beginner mode is guided setup; Advanced mode contains feature controls; diagnostics require `debug=true`.
-- Follow [`docs/design.md`](docs/design.md) and [`docs/developer.md`](docs/developer.md).
+## Supabase quarantine & prompt history policy
+
+- **Quarantine Supabase / database files**: No prompt instructions have been issued regarding database support for this project. All Supabase-related files, database configs, and docs must be strictly quarantined under `quarentined/`. Keep the project lean and client-side without DB dependencies.
+- **Historic prompts tracking in `prompt_history.md`**: Always record and preserve all historic prompts in `prompt_history.md`.
 
 ## Last raw prompt
 
 ```
-1. by default split by punctuations (in case of ".",
-,","?", "!" (but wrap together text within start/closing couples of punctuation chars  such as: "\"\" or "("  )
-2. should the video be played before or after the tts-play? add another option which is to play the video in between tts-play groups (1 group to play before , one group to play after the video-play)
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(5) > div:nth-of-type(1)
-CSS 1: {
-
-}
-[AIS_METADATA_SECTION_END]
+add validation to tts-remove-service: google-tts-directly or tts3 service
 ```
+
+

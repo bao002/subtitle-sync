@@ -3,7 +3,9 @@ import { Gauge, Languages } from "lucide-react";
 import { getLanguageVoices, getUniqueVoiceKey, SpeechVoiceLike } from "@/utils/speechVoiceUtils";
 import { getLanguageTtsRatio } from "@/lib/playback-preferences";
 import { LanguageTtsOrderSelect } from "@/components/LanguageTtsOrderSelect";
+import { VideoLanguageSequenceControl } from "@/components/VideoLanguageSequenceControl";
 import type { SectionOrder } from "@/lib/playback-preferences";
+
 
 export interface TtsPreferenceLanguage {
   code: string;
@@ -78,6 +80,13 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
         Choose narration frequency, speed, and device voice. Secondary languages are activated
         relative to the primary language.
       </p>
+      <VideoLanguageSequenceControl
+        spokenLanguages={languages}
+        sectionOrder={defaultOrder}
+        languageOrders={languageOrders}
+        onSectionOrderChange={(order) => onDefaultOrderChange?.(order)}
+        onLanguageOrderChange={onOrderChange}
+      />
       <div className="flex items-center justify-between gap-2 p-2 rounded-lg border border-border bg-muted/20">
         <div className="space-y-0.5">
           <label
@@ -102,6 +111,7 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
           <option value="video-middle">Video in between TTS groups</option>
         </select>
       </div>
+
       {languages.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
           Add a favorite language below to configure its TTS settings.

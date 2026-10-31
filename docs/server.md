@@ -1,7 +1,8 @@
 # Server (Android-only proxy)
 
-Base: `https://fuufqctnluwhlsfvybum.supabase.co/functions/v1/api` (Lovable Cloud function `supabase/functions/api`).
+Base: `https://fuufqctnluwhlsfvybum.supabase.co/functions/v1/api` (Quarantined under `quarentined/supabase/functions/api`; database features quarantined per zero-DB policy).
 Defaults: `src/config/server.json` → `server_address`, `is_enabled` (default `false`). Device settings override.
+
 
 | Endpoint                                                                  | Status       |
 | ------------------------------------------------------------------------- | ------------ |

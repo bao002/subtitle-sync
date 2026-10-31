@@ -507,7 +507,8 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "2.0.57",
+    version: "2.0.59",
+
     settings: currentSettings,
     videoSettings: allVideoSettings,
     status: {

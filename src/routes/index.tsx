@@ -132,6 +132,8 @@ import {
 import { LanguageBoxesSelector } from "@/components/LanguageBoxesSelector";
 import { GlobalFavoriteLanguagesPanel } from "@/components/GlobalFavoriteLanguagesPanel";
 import { LanguageSubtitleUrlModal } from "@/components/LanguageSubtitleUrlModal";
+import { VideoLanguageSequenceControl } from "@/components/VideoLanguageSequenceControl";
+
 import {
   addUniqueSubtitleColumn,
   findFetchedSubtitleLanguage,
@@ -696,6 +698,13 @@ function speak(
             (
               window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }
             )._activeUtterance = null;
+            if (isError && "speechSynthesis" in window) {
+              try {
+                window.speechSynthesis.cancel();
+              } catch {
+                // ignore cancel error
+              }
+            }
           }
           if (isError && (await fallbackToAlternative())) {
             return;
@@ -703,6 +712,7 @@ function speak(
           onProgress(null);
           res();
         };
+
         u.onend = () => done(false);
         u.onerror = (event) => {
           logError("State Machine", "Native speech synthesis failed", {
@@ -3990,9 +4000,6 @@ function Index() {
           rowIndex: rowIdx,
           languages: langs.map((language) => language.code),
         });
-        // Strictly skip this subtitles record from being TTS-played more than once
-        playedTtsRecords.current.add(sectionId);
-        setPlayedRecordsCount(playedTtsRecords.current.size);
         try {
           for (const l of langs) {
             if (!busy.current) break;
@@ -4005,36 +4012,46 @@ function Index() {
               primaryRatio,
             });
             if (!isEligible) {
+              logStateMachineAction("TTS_RATIO_SKIPPED", {
+                videoId,
+                rowIndex: rowIdx,
+                langCode: l.code,
+                ratio,
+              });
               continue;
             }
             setSpeakingLang(l.code);
             setSpeakingRow(rowIdx);
-            if (isAudioTrackMode) {
-              await executeMultiVideoSegmentSync({
-                registry: multiVideoPlayerRegistry,
-                primaryPlayer: p,
-                languageCode: l.code,
-                startMs: rows[rowIdx]?.start ?? 0,
-                endMs: rows[rowIdx]?.end ?? 0,
-                checkCancelled: () => !busy.current,
-                onProgress: (prog) => {
-                  setSpeechProgress({
-                    row: rowIdx,
-                    lang: l.code,
-                    start: 0,
-                    end: Math.round(prog.percent ?? 0),
-                  });
-                },
-              });
-            } else {
-              await speak(
-                rows[rowIdx]?.texts[l.code] ?? "",
-                l.tts,
-                rates[l.code] ?? 0.5,
-                voiceSelections[l.code] ?? "",
-                rowIdx,
-                setSpeechProgress,
-              );
+            try {
+              if (isAudioTrackMode) {
+                await executeMultiVideoSegmentSync({
+                  registry: multiVideoPlayerRegistry,
+                  primaryPlayer: p,
+                  languageCode: l.code,
+                  startMs: rows[rowIdx]?.start ?? 0,
+                  endMs: rows[rowIdx]?.end ?? 0,
+                  checkCancelled: () => !busy.current,
+                  onProgress: (prog) => {
+                    setSpeechProgress({
+                      row: rowIdx,
+                      lang: l.code,
+                      start: 0,
+                      end: Math.round(prog.percent ?? 0),
+                    });
+                  },
+                });
+              } else {
+                await speak(
+                  rows[rowIdx]?.texts[l.code] ?? "",
+                  l.tts,
+                  rates[l.code] ?? 0.5,
+                  voiceSelections[l.code] ?? "",
+                  rowIdx,
+                  setSpeechProgress,
+                );
+              }
+            } catch (err) {
+              console.warn(`[TTS] Speak error for ${l.code} at row ${rowIdx}:`, err);
             }
             spokenLanguages.add(l.code);
           }
@@ -4053,7 +4070,6 @@ function Index() {
             rowIndex: rowIdx,
             error: error instanceof Error ? error.message : String(error),
           });
-          throw error;
         } finally {
           logStateMachineAction("TTS_SECTION_FINISHED", {
             videoId,
@@ -4068,11 +4084,10 @@ function Index() {
       };
       const isPlaying = p.getPlayerState() === 1;
       if (pauseMode) {
-        // Languages configured for speech-first pause on section entry; others wait until its end.
+        // 1. Before Video (tts-first): check if active row has speech-first languages to speak on arrival
         const sectionId = idx >= 0 ? getPlaybackSectionId(rows[idx]!) : "";
         if (
           idx >= 0 &&
-          isPlaying &&
           !playedTtsRecords.current.has(sectionId) &&
           !handledTtsFirstSections.current.has(sectionId)
         ) {
@@ -4084,8 +4099,16 @@ function Index() {
               .map((c) => LANGS.find((l) => l.code === c)?.name || c)
               .join(", ");
             setPauseReason(`Waiting for speech synthesis (${langLabels}) before playing`);
-            p.pauseVideo();
-            await speakRow(idx, "tts-first");
+            try {
+              p.pauseVideo();
+            } catch {
+              // ignore
+            }
+            try {
+              await speakRow(idx, "tts-first");
+            } catch (err) {
+              console.warn("[TTS] Error during tts-first speech:", err);
+            }
             setPauseReason(null);
             const wasCancelled = !busy.current;
             busy.current = false;
@@ -4093,32 +4116,43 @@ function Index() {
             const targetSec = (rows[idx]?.start ?? 0) / 1000;
             lastMs.current = targetSec * 1000;
             multiVideoPlayerRegistry.unmuteOnly("primary");
-            p.seekTo(targetSec, true);
-            p.playVideo();
+            try {
+              p.seekTo(targetSec, true);
+              p.playVideo();
+            } catch {
+              // ignore
+            }
           }
         }
-        return;
-      }
-      // Video first: crossed the end of a section while playing → pause and speak it.
-      if (pauseMode && isPlaying) {
+
+        // 2. After Video (video-first): crossed the end of a section while playing → pause and speak it
         const candidateRow =
           prev >= 0 && (idx !== prev || ms >= (rows[prev]?.end ?? Infinity) - 80) ? prev : -1;
-        const sectionId = candidateRow >= 0 ? getPlaybackSectionId(rows[candidateRow]!) : "";
+        const candidateSectionId =
+          candidateRow >= 0 ? getPlaybackSectionId(rows[candidateRow]!) : "";
         if (
           candidateRow >= 0 &&
-          !playedTtsRecords.current.has(sectionId) &&
-          !handledVideoFirstSections.current.has(sectionId)
+          !playedTtsRecords.current.has(candidateSectionId) &&
+          !handledVideoFirstSections.current.has(candidateSectionId)
         ) {
           const eligibleLangs = getEligibleLangs(candidateRow, "video-first");
           if (eligibleLangs.length > 0) {
-            handledVideoFirstSections.current.add(sectionId);
+            handledVideoFirstSections.current.add(candidateSectionId);
             busy.current = true;
             const langLabels = eligibleLangs
               .map((c) => LANGS.find((l) => l.code === c)?.name || c)
               .join(", ");
             setPauseReason(`Section complete: speaking translation (${langLabels})`);
-            p.pauseVideo();
-            await speakRow(candidateRow, "video-first");
+            try {
+              p.pauseVideo();
+            } catch {
+              // ignore
+            }
+            try {
+              await speakRow(candidateRow, "video-first");
+            } catch (err) {
+              console.warn("[TTS] Error during video-first speech:", err);
+            }
             setPauseReason(null);
             const wasCancelled = !busy.current;
             busy.current = false;
@@ -4131,12 +4165,20 @@ function Index() {
               lastRow.current = nextRowIdx;
               setActive(nextRowIdx);
               multiVideoPlayerRegistry.unmuteOnly("primary");
-              p.seekTo(resumeTarget, true);
-              p.playVideo();
+              try {
+                p.seekTo(resumeTarget, true);
+                p.playVideo();
+              } catch {
+                // ignore
+              }
             } else {
               setPauseReason("Reached end of subtitle track");
               multiVideoPlayerRegistry.unmuteOnly("primary");
-              p.pauseVideo();
+              try {
+                p.pauseVideo();
+              } catch {
+                // ignore
+              }
             }
           }
         }
@@ -4549,7 +4591,7 @@ function Index() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-background text-foreground">
       <header
         className="sticky top-0 z-40 flex flex-wrap items-center gap-3 sm:gap-4 border-b border-border/70 bg-background/85 backdrop-blur-md px-4 py-3 sm:px-6 shadow-2xs transition-colors"
         data-app-hydrated={isHydrated ? "true" : undefined}
@@ -7268,6 +7310,16 @@ function Index() {
                               onFavoriteLanguagesChange={handleUpdateFavoriteLanguages}
                               onApplyFavoritesToVideo={handleResetVideoToFavorites}
                               onSaveCurrentSelectionAsFavorites={handleSaveCurrentAsFavorites}
+                            />
+                            <VideoLanguageSequenceControl
+                              spokenLanguages={spoken.map((c) => ({
+                                code: c,
+                                name: LANGS.find((l) => l.code === c)?.name || c,
+                              }))}
+                              sectionOrder={sectionOrder}
+                              languageOrders={ttsLanguageOrders}
+                              onSectionOrderChange={handleSectionOrderChange}
+                              onLanguageOrderChange={handleTtsLanguageOrderChange}
                             />
                             <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
                               <div className="space-y-0.5">

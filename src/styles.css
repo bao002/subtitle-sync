@@ -175,13 +175,40 @@
 @layer base {
   * {
     border-color: var(--color-border);
+    box-sizing: border-box;
   }
 
+  html,
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* Responsive media rules for small mobile viewports */
+  @media (max-width: 640px) {
+    body {
+      font-size: 14px;
+    }
+
+    button, input, select, textarea {
+      max-width: 100%;
+    }
   }
 }
+
 
 /* Beautiful sleek custom scrollbar for parallel subtitles table */
 .custom-beautiful-scrollbar {

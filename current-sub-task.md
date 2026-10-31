@@ -1,8 +1,8 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: [COMPLETED]
-- **Active Task**: All prompt tasks completed and verified
-- **Active Subtask**: None pending. All active tasks migrated to `docs/done.md`.
-- **Target Files**: All relevant target files updated.
-- **Focused Check**: Dedicated automated tests (`scripts/verify-punctuation-paired-splitting.ts`, `scripts/verify-tts-language-playback-order.ts`, `scripts/verify-agents-version-rule.ts`), `compile_applet`, and `lint_applet` all passed 100%.
-- **Next**: Await next prompt or user instruction.
+- **Status**: [IN_PROGRESS]
+- **Active Task**: Task 266: Add validation to remote TTS services (google-tts-directly and tts3 service)
+- **Active Subtask**: Subtask 266.3: Implement validation UI and status badges in Beginner Mode and Advanced Mode (100% parity)
+- **Target Files**: `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`, `src/routes/index.tsx`
+- **Focused Check**: Validate Service button, status badge (testing, available, error), and test playback for both Google Direct and Lovable TTS3 in both modes
+- **Next**: Subtask 266.4: Dedicated automated verification script

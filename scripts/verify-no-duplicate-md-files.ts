@@ -112,7 +112,13 @@ for (const req of requiredDocsFiles) {
 
 // 4. Verify Root Markdown Files Contain Only Allowed Entry Points
 console.log("\n--> [Step 4] Auditing root directory markdown files...");
-const allowedRootMdFiles = new Set(["README.md", "AGENTS.md", "current-sub-task.md", "temp.md"]);
+const allowedRootMdFiles = new Set([
+  "README.md",
+  "AGENTS.md",
+  "current-sub-task.md",
+  "temp.md",
+  "prompt_history.md",
+]);
 const rootMdFiles = fs.readdirSync(rootDir).filter((f) => f.endsWith(".md"));
 
 for (const rootFile of rootMdFiles) {

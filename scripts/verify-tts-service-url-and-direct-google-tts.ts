@@ -74,8 +74,9 @@ assert.ok(
 );
 const parsedGoogleUrl = new URL(googleUrl);
 assert.equal(parsedGoogleUrl.searchParams.get("ie"), "UTF-8");
-assert.equal(parsedGoogleUrl.searchParams.get("client"), "gtx");
+assert.equal(parsedGoogleUrl.searchParams.get("client"), "tw-ob");
 assert.equal(parsedGoogleUrl.searchParams.get("tl"), "en");
+
 assert.equal(parsedGoogleUrl.searchParams.get("q"), sampleText);
 console.log("✅ PASS: Direct Google TTS URL generation verified.");
 
@@ -141,9 +142,10 @@ if (fs.existsSync(beginnerTtsControlPath)) {
 console.log("✅ PASS: UI controls parity across modes verified.");
 
 // Section 6: Version Synchronization at 2.0.55 Across All 5 Files
-console.log("\n📦 Section 6: Version 2.0.55 Synchronization Across All 5 Files...");
-const expectedVersion = "2.0.55";
-const expectedVersionCode = 20055;
+console.log(`\n📦 Section 6: Version ${APP_VERSION} Synchronization Across All 5 Files...`);
+const expectedVersion = APP_VERSION;
+const expectedVersionCode = 20058;
+
 
 // File 1: package.json
 const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf-8"));

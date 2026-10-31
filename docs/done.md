@@ -1,5 +1,56 @@
 # Done tasks
 
+## Task 265: Supabase Quarantine, TTS-Ratio Fix, Alternative TTS Services, Video in Language Sequence, and Mobile Responsiveness
+
+- **Implementation**:
+  - **Item 0: Supabase Quarantine & Prompt History**:
+    - Quarantined `/supabase` to `/quarentined/supabase` and `/src/integrations/supabase` to `/quarentined/supabase_integrations`.
+    - Removed empty `/src/integrations` directory, ensuring zero active database dependencies or Supabase imports in `src/`.
+    - Updated `docs/server.md` with quarantine notes and verified zero DB instructions policy in `AGENTS.md`.
+    - Created root `/prompt_history.md` preserving all historic prompts chronologically and updated `scripts/verify-no-duplicate-md-files.ts` to allow it.
+  - **Item 1: Advanced Mode TTS-Ratio Reliability Fix**:
+    - Fixed silent stops during TTS playback by removing premature `playedTtsRecords.current.add(sectionId)` at start of `speakRow`. Completion is now recorded only when all languages finish speaking.
+    - Added structured `TTS_RATIO_SKIPPED` log action when rows are skipped under ratio constraints to eliminate unrecorded skips.
+    - Wrapped utterances in error boundaries and added a watchdog timer and `window.speechSynthesis.cancel()` on errors to unfreeze speech synthesis engines.
+  - **Item 2: Direct Google TTS & Lovable OpenAPI Service Fixes**:
+    - Fixed direct Google Translate TTS endpoint in `src/lib/alternative-tts.ts` by using `client=tw-ob` instead of blocked `client=gtx`.
+    - Corrected Lovable TTS endpoint (`https://tts3.lovable.app/api/public/tts`) to pass the mandatory `provider` parameter (`google`, `lovable`, `openrouter`).
+    - Added audio playback watchdog timeouts (8s–15s) ensuring audio elements never hang playback indefinitely.
+  - **Item 3: In-Between and Before-Video Playback Fixes**:
+    - Removed premature `return;` inside pauseMode handler that blocked post-video TTS phrases from playing in `video-first` and `video-middle` modes.
+    - Ensured seamless video resumption via `p.playVideo()` after speech completion in both Beginner and Advanced modes.
+  - **Item 4: Video Placement Within Language Order**:
+    - Created dedicated `VideoLanguageSequenceControl` component rendering an interactive visual sequence flow (`[Languages Before] ➔ [▶ Video] ➔ [Languages After]`).
+    - Provided 1-click presets (`[Video First]`, `[Video In-Between]`, `[Video After]`) and step buttons (`[◀ Move Video Earlier]`, `[Move Video Later ▶]`).
+    - Maintained 100% parity across Advanced Mode (Languages accordion) and Beginner Mode (`PerLanguageTtsPreferences`).
+  - **Item 5: Mobile View Responsiveness**:
+    - Enforced `w-full max-w-full overflow-x-hidden` on HTML, body, root, and page wrappers in `src/styles.css`.
+    - Added responsive container adjustments preventing mobile horizontal scroll blowout.
+  - **Version Synchronization (2.0.58)**:
+    - Synchronized version `2.0.58` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated verification**:
+  - `npx tsx scripts/verify-supabase-quarantine-tts-and-sequence.ts` (PASS, 6/6)
+  - `npx tsx scripts/verify-tts-service-url-and-direct-google-tts.ts` (PASS, 4/4)
+  - `npx tsx scripts/verify-agents-version-rule.ts` (PASS)
+  - `npx tsx scripts/verify-no-duplicate-md-files.ts` (PASS)
+  - `npx tsx scripts/verify-tts-language-playback-order.ts` (PASS)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors, 0 warnings)
+- **Delivery**: Fully verified and documented in `docs/done.md`.
+
+## Task 264: Execute GitHub Import Migration & Environment Verification
+
+- **Implementation**:
+  - Triaged imported GitHub repository `mostuf2556/subtitle-sync` per `github-import-migration/references/web.md` as Category C (Web / Node.js Compatible Vite React SPA).
+  - Cleaned package managers and forbidden lockfiles (removed rogue lockfiles if any). Verified package.json scripts bind to `0.0.0.0:3000`.
+  - Created `.env.example` declaring repository metadata (`GITHUB_REPOSITORY`, `GITHUB_REPOSITORY_OWNER`) and client environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`).
+  - Added safe fallbacks for `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in `src/integrations/supabase/client.ts` preventing runtime exceptions when environment variables are omitted.
+  - Successfully populated dependencies with `install_applet_dependencies`.
+  - Executed automated migration test suite `npm run test:github-import-migration` passing 100% of all 4 test sections (Package Manager Cleanliness, Vite Configuration, .env.example Declaration, Pure Client SPA & Entry Integrity).
+- **Dedicated verification**: `npm run test:github-import-migration` (PASS, 100%); `compile_applet` (PASS); `lint_applet` (PASS).
+- **Delivery**: Verified compilation, linting, and automated test suite.
+
+
 ## Chapter 2: Task 2 - Video Playback in Between TTS Groups
 
 - **Implementation**:
