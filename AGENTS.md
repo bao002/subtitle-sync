@@ -156,9 +156,23 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 
 ```
 1. go on
-2. currently quarentine beginner mode 
-3. ensure toggle on top menu to switch to debug mode where experimental views are also presented (such as playground)
-4. language selection view:
-- add column "is-primary" - the only way to define the tts-ration absolute parent
-- add column "json3" which should be updated based upon user's manual toggling of that language on the video player (another indication of direct fetching).
+2. divide accordion elements to stages-of-appearance to decide when to present each accordion type:
+
+2.1 
+stage 1 - 
+when? upon sharing a video with the app 
+what to present? only the video accordion up untill the subtitles are detected.
+
+in case no subtitles are detected - instruct the user using a floating red-text to turn on the captions (or other instruction). 
+
+like the case of the video-playground screen - the user should be able to turn on and to switch subtitles using the video element
+
+for every new subtitles which detected there should be presented a botton on the bottom of the accordion element "NEXT (<the-number-of-detected-subtitles>)
+
+stage-2 -"learning goals" 
+the user should approve the list of favorite languages he wants to learn, and which language from the detected languages from state1 to set as the default langauge (the lang to translate from) 
+
+stage -3 - show the subtitles-table-view accordion.
+
+stage -4 - all other accordion elements will be presented if the user clicks on the settings icon. the user may click that button again to hide these elements.
 ```

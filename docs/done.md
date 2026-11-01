@@ -1,5 +1,36 @@
 # Done tasks
 
+## Task 270: Progressive Accordion Stages of Appearance (Stages 1 to 4)
+
+- **Implementation**:
+  - Implemented progressive presentation pipeline for accordion elements in `src/routes/index.tsx`:
+    - **Stage 1**: Upon sharing/loading a video with the app, only the video accordion (`player`) is presented until subtitles are detected.
+    - If no subtitles are detected (`detectedSubtitleCount === 0`), a floating red-text warning (`floating-no-captions-alert`) informs the user to turn on captions or switch subtitles using the video element, along with in-panel guidance.
+    - As subtitles are detected, a dynamic button at the bottom of the video accordion appears: `NEXT (<count>)` (`stage-1-next-button`), advancing to Stage 2.
+    - **Stage 2 ("Learning Goals")**: Presents the user with learning goals approval to select/approve favorite languages to learn (`targetLanguages`), and select which detected language to set as the default/translate-from language (`baseLanguage`). Actions include `Back to Video` and `NEXT (View Subtitles Table)`.
+    - **Stage 3**: Presents the Subtitles Table view accordion (`subtitles`) alongside the video.
+    - **Stage 4**: All other settings and utility accordion elements (`playback`, `charsRemoval`, `parser`, `library`) are revealed when the user clicks the Stage 4 settings toggle button (`toggle-stage4-settings-btn` / `header-stage4-settings-button`), and can be hidden again on toggle.
+    - Added Stage Navigation Stepper (`accordion-stages-stepper`) for quick visual indication and stage navigation.
+  - Synchronized application version to `2.0.61` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated verification**:
+  - `npx tsx scripts/verify-accordion-stages-of-appearance.ts` (PASS, 5/5 assertions)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors, 0 warnings)
+- **Delivery**: Verified, documented in `docs/files.md`, and migrated to `docs/done.md`.
+
+## Task 269: Language Selection View 'is-primary' and 'json3' Columns
+
+- **Implementation**:
+  - Established explicit `is-primary` radio column selection in the Unified Language Table (`src/routes/index.tsx`) as the single absolute parent definition for TTS ratio calculations.
+  - Added dedicated column `th-is-primary` with `name="is-primary-tts-parent"` radio buttons (`radio-is-primary-${lang.code}`).
+  - Added dedicated column `th-json3` displaying direct JSON3 timedtext fetching status (`json3-badge-${lang.code}`) and direct interactive toggle button (`btn-toggle-player-json3-${lang.code}`).
+  - Directly updated JSON3 presence indicator when captions are intercepted or toggled on the video player.
+- **Dedicated verification**:
+  - `npx tsx scripts/verify-language-selection-primary-and-json3-columns.ts` (PASS, 3/3)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS)
+- **Delivery**: Verified and migrated to `docs/done.md`.
+
 ## Task 268: Top Menu Debug Mode Toggle & Experimental Views Presentation
 
 - **Implementation**:

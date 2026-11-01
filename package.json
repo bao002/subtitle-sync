@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.60",
+  "version": "2.0.61",
 
   "private": true,
   "sideEffects": false,
@@ -13,6 +13,8 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview --host 0.0.0.0 --port 3000",
     "lint": "eslint src/lib src/routes",
+    "test:accordion-stages-of-appearance": "tsx scripts/verify-accordion-stages-of-appearance.ts",
+    "test:language-selection-primary-and-json3-columns": "tsx scripts/verify-language-selection-primary-and-json3-columns.ts",
     "test:supabase-quarantine-tts-and-sequence": "tsx scripts/verify-supabase-quarantine-tts-and-sequence.ts",
     "test:tts-service-url-and-direct-google-tts": "tsx scripts/verify-tts-service-url-and-direct-google-tts.ts",
 
