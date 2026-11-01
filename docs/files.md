@@ -436,5 +436,9 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/generate-test-coverage.ts`                            | Automated Test Coverage Engine & Reporting Script (Task 271)                     | Analyzes test execution across all 7 application pipeline stages, subtitle engine, and Android shell; generates standalone dashboard and injects Test Coverage into GitHub Pages reports. |
 | `scripts/verify-memory-defaults-and-clean-views.ts`           | Memory Defaults, Clean Views & UI Toggles Verification Suite (Task 272)          | Asserts docs/memory.md boolean schema, debug mode default off, version details parent toggle, quick-loader button, raw video caption status element removal, and version 2.0.63 synchronization. |
 | `scripts/verify-settings-nested-accordions-and-clean-views.ts` | Settings Nested Accordions, Video Fold & Clean Views Suite (Task 273)            | Asserts redundant body quick loader removal by default, video player accordion folded by default (localstorage: off), nested accordions under Settings with Stage 3 -> Stage 4 ordering, and version 2.0.64 synchronization. |
+| `scripts/verify-no-favorite-languages-duplication.ts`          | Eliminate Duplicate Favorite Languages Lists Verification Suite (Task 264)       | Asserts isolation of Stage 2 Learning Goals card exclusively to Stage 2, clean presentation of LanguageBoxesSelector & GlobalFavoriteLanguagesPanel without duplicates in standard view, and version 2.0.65 synchronization. |
+| `scripts/verify-default-language-restricted-to-fetched.ts`     | Default Language Restricted to Fetched Subtitles Verification Suite (Task 265)    | Asserts restriction of default language choices exclusively to languages with successfully fetched subtitles in tracks, baseLanguage fallback logic, and version 2.0.66 synchronization. |
+
+
 
 

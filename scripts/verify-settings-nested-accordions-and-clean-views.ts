@@ -83,24 +83,27 @@ assert.ok(
 );
 console.log("✅ PASS: Chars Removal and Parser nested under Settings with strict pipeline ordering");
 
-// 4. Verify Subtask 273.4: Version 2.0.64 synchronization across all 5 files
-console.log("\n🔖 Section 4: Version 2.0.64 Synchronization across all 5 files");
+// 4. Verify Subtask 273.4: Version synchronization across all 5 files
+console.log("\n🔖 Section 4: Version Synchronization across all 5 files");
 const pkgJson = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
-assert.strictEqual(pkgJson.version, "2.0.64", "package.json version must be 2.0.64");
+const currentVersion = pkgJson.version;
+const [major, minor, patch] = currentVersion.split(".").map(Number);
+const versionCode = major * 10000 + minor * 100 + patch;
+assert.ok(versionCode >= 20064, "package.json version must be >= 2.0.64");
 
 const buildGradle = fs.readFileSync(path.resolve(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert.ok(buildGradle.includes('versionName = "2.0.64"'), "build.gradle.kts must contain versionName = \"2.0.64\"");
-assert.ok(buildGradle.includes('versionCode = 20064'), "build.gradle.kts must contain versionCode = 20064");
+assert.ok(buildGradle.includes(`versionName = "${currentVersion}"`), "build.gradle.kts must contain versionName");
+assert.ok(buildGradle.includes(`versionCode = ${versionCode}`), "build.gradle.kts must contain versionCode");
 
 const appConfig = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
-assert.ok(appConfig.includes('APP_VERSION = "2.0.64"'), "src/config/appConfig.ts must contain APP_VERSION = \"2.0.64\"");
+assert.ok(appConfig.includes(`APP_VERSION = "${currentVersion}"`), "src/config/appConfig.ts must contain APP_VERSION");
 
 const apkUpdater = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
-assert.ok(apkUpdater.includes('CURRENT_APK_VERSION = "v2.0.64"'), "src/utils/apkUpdater.ts must contain CURRENT_APK_VERSION = \"v2.0.64\"");
+assert.ok(apkUpdater.includes(`CURRENT_APK_VERSION = "v${currentVersion}"`), "src/utils/apkUpdater.ts must contain CURRENT_APK_VERSION");
 
 const appSettings = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
-assert.ok(appSettings.includes('version: "2.0.64"'), "src/utils/appSettings.ts must contain version: \"2.0.64\"");
-console.log("✅ PASS: All 5 files properly synchronized to version 2.0.64 (versionCode = 20064)");
+assert.ok(appSettings.includes(`version: "${currentVersion}"`), "src/utils/appSettings.ts must contain version");
+console.log(`✅ PASS: All 5 files properly synchronized to version ${currentVersion} (versionCode = ${versionCode})`);
 
 console.log("\n=========================================================================");
 console.log("🎉 ALL TASK 273 VERIFICATION CHECKS PASSED 100%!");

@@ -149,3 +149,52 @@ CSS 2: {
 ```
 go on
 ```
+
+---
+
+### Prompt 12: Go On
+```
+go on
+```
+
+---
+
+### Prompt 13: Remove Annoying Duplications of Favorite Languages in Languages Accordion
+```
+dont u notice annoying duplications where u show the same list of favotite languages over and over and over ?
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 14: Default Language Restricted to Successfully Fetched Subtitles
+```
+the default language can only be one of those languages their subtitles have been successfully fetched already.
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)
+CSS 1: {
+
+}
+---
+
+### Prompt 15: Extend List of Favorite Languages in Stage 2 Learning Goals Card
+```
+there should be a way to extend the list of favorite languages - here and only here is the right place
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+
+
