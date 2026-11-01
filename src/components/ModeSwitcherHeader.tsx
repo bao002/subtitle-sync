@@ -57,13 +57,17 @@ export const ModeSwitcherHeader: React.FC<ModeSwitcherHeaderProps> = ({
           onClick={() => onModeChange("beginner")}
           className={`h-7 px-2.5 text-xs font-medium rounded-md transition-all ${
             isBeginner
-              ? "bg-emerald-600 text-white hover:bg-emerald-500 shadow-sm"
+              ? "bg-amber-600 text-white hover:bg-amber-500 shadow-sm"
               : "text-muted-foreground hover:text-foreground hover:bg-muted"
           }`}
           data-testid="btn-mode-beginner"
+          title="Beginner Mode is currently quarantined"
         >
           <Sparkles className="w-3 h-3 mr-1" />
-          Beginner
+          <span>Beginner</span>
+          <span className="ml-1 text-[9px] opacity-80 font-mono uppercase bg-black/20 px-1 rounded">
+            Quarantined
+          </span>
         </Button>
         <Button
           type="button"

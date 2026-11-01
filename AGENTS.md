@@ -155,7 +155,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-add validation to tts-remove-service: google-tts-directly or tts3 service
+1. go on
+2. currently quarentine beginner mode 
+3. ensure toggle on top menu to switch to debug mode where experimental views are also presented (such as playground)
+4. language selection view:
+- add column "is-primary" - the only way to define the tts-ration absolute parent
+- add column "json3" which should be updated based upon user's manual toggling of that language on the video player (another indication of direct fetching).
 ```
-
-

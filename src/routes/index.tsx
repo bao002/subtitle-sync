@@ -40,6 +40,7 @@ import {
   History,
   Volume2,
   Hourglass,
+  Bug,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -176,6 +177,9 @@ import {
   LOVABLE_TTS_OPENAPI_URL,
   LOVABLE_VOICES,
   OPENROUTER_VOICES,
+  validateRemoteTtsService,
+  getLastValidationResult,
+  type RemoteTtsValidationResult,
   type AlternativeTtsMode,
   type AlternativeTtsEngine,
   type LovableTtsProvider,
@@ -317,7 +321,7 @@ import {
   hasCachedAiSubtitles,
 } from "@/utils/subtitleCache";
 import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
-import { isDeveloperModeEnabled } from "@/utils/developerMode";
+import { isDeveloperModeEnabled, setDeveloperModeEnabled } from "@/utils/developerMode";
 import {
   STORAGE_KEYS,
   APP_VERSION,
@@ -785,8 +789,10 @@ const addYouTubeTranslatedLanguage = (
 };
 
 function Index() {
-  const isDeveloperMode =
-    typeof window !== "undefined" && isDeveloperModeEnabled(window.location.search);
+  const [debugMode, setDebugModeState] = useState<boolean>(() => {
+    return isDeveloperModeEnabled(typeof window !== "undefined" ? window.location.search : "");
+  });
+  const isDeveloperMode = debugMode;
   const [isAndroid, setIsAndroid] = useState(() => {
     if (typeof window === "undefined") return false;
     return (
@@ -805,14 +811,15 @@ function Index() {
       if (isDeveloperModeEnabled(window.location.search)) return "expert";
       try {
         const saved = localStorage.getItem("app_workflow_mode");
-        if (saved === "expert" || saved === "beginner") {
-          return saved as "beginner" | "expert";
+        if (saved === "expert") {
+          return "expert";
         }
       } catch {
         // ignore
       }
     }
-    return "beginner";
+    // Beginner mode is quarantined: default to Advanced Studio (expert)
+    return "expert";
   });
 
   const [expandedPrefsHelp, setExpandedPrefsHelp] = useState<Record<string, boolean>>({});
@@ -1135,6 +1142,40 @@ function Index() {
     typeof window !== "undefined" ? getLovableTtsSpeed() : 1.0,
   );
   const [isTestingAlternativeTts, setIsTestingAlternativeTts] = useState<boolean>(false);
+  const [isValidatingRemoteTts, setIsValidatingRemoteTts] = useState<boolean>(false);
+  const [remoteValidationResult, setRemoteValidationResult] =
+    useState<RemoteTtsValidationResult | null>(() => {
+      try {
+        return getLastValidationResult(getAlternativeTtsEngine());
+      } catch {
+        return null;
+      }
+    });
+
+  const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
+    const targetEngine = serviceToValidate || alternativeTtsEngineState;
+    setIsValidatingRemoteTts(true);
+    try {
+      const res = await validateRemoteTtsService(targetEngine, {
+        lang: baseLanguage || "en",
+        provider: lovableTtsProviderState,
+      });
+      setRemoteValidationResult(res);
+    } catch (err: unknown) {
+      setRemoteValidationResult({
+        ok: false,
+        service: targetEngine,
+        serviceName: targetEngine === "lovable" ? "Lovable TTS3" : "Google TTS Directly",
+        endpoint: "",
+        latencyMs: 0,
+        audioVerified: false,
+        error: (err as Error)?.message || "Validation failed",
+        timestamp: Date.now(),
+      });
+    } finally {
+      setIsValidatingRemoteTts(false);
+    }
+  };
   const [openRouterKeyInput, setOpenRouterKeyInput] = useState<string>(() =>
     typeof window !== "undefined" ? getOpenRouterApiKeySetting() : "",
   );
@@ -1823,12 +1864,25 @@ function Index() {
   const [ttsLanguageOrders, setTtsLanguageOrders] = useState(() =>
     getTtsLanguageOrdersPreference(),
   );
-  const primaryTtsLang = useMemo(() => {
-    return computePrimaryTtsLang(spoken, ttsRatios) || getPrimaryTtsLang() || spoken[0] || "";
-  }, [spoken, ttsRatios]);
+  const [primaryTtsLangState, setPrimaryTtsLangState] = useState<string>(() => {
+    return getPrimaryTtsLang() || "";
+  });
   const handlePrimaryTtsLangChange = useCallback((code: string) => {
+    setPrimaryTtsLangState(code);
     setPrimaryTtsLang(code);
+    setSpoken((prev) => (prev.includes(code) ? prev : [...prev, code]));
   }, []);
+  const primaryTtsLang = useMemo(() => {
+    // The explicit is-primary column selection is the only way to define the tts-ratio absolute parent
+    if (primaryTtsLangState) {
+      return primaryTtsLangState;
+    }
+    const saved = getPrimaryTtsLang();
+    if (saved) {
+      return saved;
+    }
+    return spoken[0] || "en";
+  }, [primaryTtsLangState, spoken]);
   const handleTtsLanguageOrderChange = useCallback((languageCode: string, order: SectionOrder) => {
     setTtsLanguageOrders((current) => ({ ...current, [languageCode]: order }));
     setTtsLanguageOrderPreference(languageCode, order);
@@ -1837,6 +1891,56 @@ function Index() {
     setSectionOrderState(newOrder);
     saveSectionOrder(newOrder);
   }, []);
+
+  const [playerToggledLanguages, setPlayerToggledLanguages] = useState<string[]>([]);
+  const [activePlayerCaptionLang, setActivePlayerCaptionLang] = useState<string>("");
+  const activePlayerCaptionLangRef = useRef<string>("");
+
+  const handlePlayerCaptionToggled = useCallback((langCode: string) => {
+    if (!langCode) return;
+    activePlayerCaptionLangRef.current = langCode;
+    setActivePlayerCaptionLang(langCode);
+    setPlayerToggledLanguages((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
+  }, []);
+
+  const handleTogglePlayerCaptionTrack = useCallback(
+    (langCode: string) => {
+      try {
+        const isCurrentlyActive =
+          activePlayerCaptionLang === langCode || playerToggledLanguages.includes(langCode);
+        if (isCurrentlyActive) {
+          player.current?.setOption?.("captions", "track", {});
+          activePlayerCaptionLangRef.current = "";
+          setActivePlayerCaptionLang("");
+          setPlayerToggledLanguages((prev) => prev.filter((c) => c !== langCode));
+        } else {
+          player.current?.setOption?.("captions", "track", { languageCode: langCode });
+          activePlayerCaptionLangRef.current = langCode;
+          setActivePlayerCaptionLang(langCode);
+          setPlayerToggledLanguages((prev) =>
+            prev.includes(langCode) ? prev : [...prev, langCode],
+          );
+        }
+      } catch (err: unknown) {
+        logError("Player", "Failed to toggle player caption track", {
+          langCode,
+          error: String(err),
+        });
+      }
+    },
+    [activePlayerCaptionLang, playerToggledLanguages],
+  );
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as unknown as Record<string, unknown>).__handlePlayerCaptionToggled =
+        handlePlayerCaptionToggled;
+      (window as unknown as Record<string, unknown>).__handleTogglePlayerCaptionTrack =
+        handleTogglePlayerCaptionTrack;
+      (window as unknown as Record<string, unknown>).__setPrimaryTtsLang =
+        handlePrimaryTtsLangChange;
+    }
+  }, [handlePlayerCaptionToggled, handleTogglePlayerCaptionTrack, handlePrimaryTtsLangChange]);
 
   useEffect(() => {
     if (primaryTtsLang) {
@@ -1906,16 +2010,25 @@ function Index() {
     setAutoFocusState(enabled);
     setAutoScrollSetting(enabled);
   };
-  const [debugMode, setDebugModeState] = useState(() =>
-    typeof window !== "undefined" ? getDebugModeSetting() : true,
-  );
   const onDebugModeChange = (enabled: boolean) => {
     setDebugModeState(enabled);
+    setDeveloperModeEnabled(enabled);
     setDebugModeSetting(enabled);
     if (!enabled) {
       setNetworkInspectorOpen(false);
     }
   };
+  const handleToggleDebugMode = useCallback(() => {
+    setDebugModeState((prev) => {
+      const next = !prev;
+      setDeveloperModeEnabled(next);
+      setDebugModeSetting(next);
+      if (!next) {
+        setNetworkInspectorOpen(false);
+      }
+      return next;
+    });
+  }, []);
   const [onDemandTranslations, setOnDemandTranslations] = useState<
     Record<string, Record<number, string>>
   >({});
@@ -3838,6 +3951,19 @@ function Index() {
               setSpeechProgress(null);
             }
           },
+          onApiChange: () => {
+            try {
+              const track = player.current?.getOption?.("captions", "track");
+              if (track?.languageCode) {
+                handlePlayerCaptionToggled(track.languageCode);
+              } else if (track && Object.keys(track).length === 0) {
+                activePlayerCaptionLangRef.current = "";
+                setActivePlayerCaptionLang("");
+              }
+            } catch {
+              // ignore
+            }
+          },
           onError: (event: { data: number }) => {
             logError("State Machine", "YouTube player reported an error", {
               videoId,
@@ -3881,6 +4007,17 @@ function Index() {
         const dur = p.getDuration?.() ?? 0;
         if (dur > 0) {
           setPlaybackDuration((prev) => (prev !== dur ? dur : prev));
+        }
+      } catch {
+        // ignore
+      }
+      try {
+        const curTrack = p.getOption?.("captions", "track");
+        if (
+          curTrack?.languageCode &&
+          curTrack.languageCode !== activePlayerCaptionLangRef.current
+        ) {
+          handlePlayerCaptionToggled(curTrack.languageCode);
         }
       } catch {
         // ignore
@@ -4625,6 +4762,29 @@ function Index() {
               type="button"
               size="sm"
               variant="outline"
+              id="header-debug-mode-toggle"
+              data-testid="header-debug-mode-toggle"
+              onClick={handleToggleDebugMode}
+              className={`h-6 px-2 text-[11px] font-medium rounded-full border flex items-center gap-1 transition-all shrink-0 ${
+                debugMode
+                  ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50 shadow-xs ring-1 ring-amber-500/30"
+                  : "bg-muted/40 text-muted-foreground border-border/80 hover:text-foreground hover:bg-muted"
+              }`}
+              title={
+                debugMode
+                  ? "Debug Mode is ON: experimental views (Playground, AI Punctuation, Action logs, Network inspector) are presented. Click to turn OFF."
+                  : "Turn ON Debug Mode to present experimental views (such as Playground, AI Punctuation, Action logs, Network inspector)"
+              }
+            >
+              <Bug
+                className={`h-3 w-3 ${debugMode ? "text-amber-500 dark:text-amber-400" : "text-muted-foreground"}`}
+              />
+              <span>Debug {debugMode ? "ON" : "OFF"}</span>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
               onClick={() =>
                 handleWorkflowModeChange(workflowMode === "beginner" ? "expert" : "beginner")
               }
@@ -4883,343 +5043,373 @@ function Index() {
       <ModeSwitcherHeader currentMode={workflowMode} onModeChange={handleWorkflowModeChange} />
 
       {workflowMode === "beginner" ? (
-        <BeginnerFlowContainer
-          url={videoInput || (videoId ? `https://www.youtube.com/watch?v=${videoId}` : "")}
-          videoId={videoId}
-          isAndroid={isAndroid}
-          onUrlChange={(newUrl) => setVideoInput(newUrl)}
-          onSubmitUrl={(submittedUrl) => {
-            const parsed = parseVideoId(submittedUrl);
-            const newId = parsed || submittedUrl.trim();
-            handleSelectLibraryVideo(newId, submittedUrl);
-          }}
-          observedUrl={observedUrl}
-          rawTracks={tracks || {}}
-          onLoadSampleSubtitles={() => {
-            const validEntries = Object.entries(JSON3_RAW_MAP)
-              .map(([code, raw]) => {
-                const j = parseJson3(raw);
-                return j ? ([code, j] as const) : null;
-              })
-              .filter((entry): entry is [string, Json3] => entry !== null);
-            setTracks(Object.fromEntries(validEntries));
-            setObservedUrl("https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3");
-          }}
-          showVideoSubtitles={showVideoSubtitles}
-          onToggleVideoSubtitles={handleToggleVideoSubtitles}
-          playerSlot={
-            <div
-              className="relative h-full w-full group"
-              onMouseEnter={() => setIsPlayerHovered(true)}
-              onMouseLeave={() => setIsPlayerHovered(false)}
+        <div className="space-y-4">
+          <div
+            data-testid="beginner-mode-quarantined-banner"
+            className="mx-3 mt-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-800 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2 shadow-xs"
+          >
+            <div className="flex items-center gap-2">
+              <span className="font-bold uppercase tracking-wider text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/40">
+                Notice: Quarantined
+              </span>
+              <span>
+                Beginner mode is currently quarantined per directive. Operating primarily in
+                Advanced Studio.
+              </span>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              data-testid="btn-quarantine-to-expert"
+              onClick={() => handleWorkflowModeChange("expert")}
+              className="h-6 px-2 text-[11px] font-medium border-amber-500/40 hover:bg-amber-500/20"
             >
-              <div ref={handlePlayerRef} className="h-full w-full" />
+              To Advanced Studio
+            </Button>
+          </div>
+          <BeginnerFlowContainer
+            url={videoInput || (videoId ? `https://www.youtube.com/watch?v=${videoId}` : "")}
+            videoId={videoId}
+            isAndroid={isAndroid}
+            onUrlChange={(newUrl) => setVideoInput(newUrl)}
+            onSubmitUrl={(submittedUrl) => {
+              const parsed = parseVideoId(submittedUrl);
+              const newId = parsed || submittedUrl.trim();
+              handleSelectLibraryVideo(newId, submittedUrl);
+            }}
+            observedUrl={observedUrl}
+            rawTracks={tracks || {}}
+            onLoadSampleSubtitles={() => {
+              const validEntries = Object.entries(JSON3_RAW_MAP)
+                .map(([code, raw]) => {
+                  const j = parseJson3(raw);
+                  return j ? ([code, j] as const) : null;
+                })
+                .filter((entry): entry is [string, Json3] => entry !== null);
+              setTracks(Object.fromEntries(validEntries));
+              setObservedUrl(
+                "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3",
+              );
+            }}
+            showVideoSubtitles={showVideoSubtitles}
+            onToggleVideoSubtitles={handleToggleVideoSubtitles}
+            playerSlot={
               <div
-                data-testid="video-overlay-play-pause-container"
-                className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
-                  !isVideoPlaying || isPlayerHovered || Boolean(speakingLang)
-                    ? "opacity-100"
-                    : "opacity-0"
-                }`}
+                className="relative h-full w-full group"
+                onMouseEnter={() => setIsPlayerHovered(true)}
+                onMouseLeave={() => setIsPlayerHovered(false)}
               >
-                <button
-                  type="button"
-                  data-testid="video-overlay-play-pause-btn"
-                  aria-label={
-                    isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"
-                  }
-                  title={isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleTogglePlay();
-                  }}
-                  className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
-                >
-                  {isVideoPlaying || Boolean(speakingLang) ? (
-                    <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
-                  ) : (
-                    <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
-                  )}
-                </button>
-              </div>
-              {showVideoSubtitles && (
+                <div ref={handlePlayerRef} className="h-full w-full" />
                 <div
-                  className="pointer-events-none absolute inset-x-3 top-3 text-center"
-                  aria-live="polite"
-                  data-testid="beginner-active-video-subtitle"
+                  data-testid="video-overlay-play-pause-container"
+                  className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
+                    !isVideoPlaying || isPlayerHovered || Boolean(speakingLang)
+                      ? "opacity-100"
+                      : "opacity-0"
+                  }`}
                 >
-                  <span
-                    className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
-                    style={{ fontSize: `calc(0.75rem * ${videoSubtitleRatio})` }}
+                  <button
+                    type="button"
+                    data-testid="video-overlay-play-pause-btn"
+                    aria-label={
+                      isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"
+                    }
+                    title={
+                      isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleTogglePlay();
+                    }}
+                    className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
                   >
-                    {(() => {
-                      const languageCode =
-                        speakingLang && speakingRow >= 0 ? speakingLang : baseLanguage;
-                      const normalizedCode = languageCode === "iw" ? "he" : languageCode;
-                      return (
-                        LANGS.find((language) => language.code === normalizedCode)?.name ??
-                        normalizedCode.toUpperCase()
-                      );
-                    })()}
-                  </span>
-                  <p
-                    className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
-                    style={{ fontSize: `calc(1rem * ${videoSubtitleRatio})` }}
-                    dir={speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"}
-                  >
-                    {speakingLang && speakingRow >= 0 ? (
-                      <HighlightedSubtitle
-                        text={rows[speakingRow]?.texts?.[speakingLang] ?? ""}
-                        progress={
-                          speechProgress?.row === speakingRow &&
-                          speechProgress.lang === speakingLang
-                            ? speechProgress
-                            : null
-                        }
-                      />
-                    ) : active >= 0 && rows[active] ? (
-                      (rows[active]?.texts?.[baseLanguage] ??
-                      Object.values(rows[active]?.texts || {})[0] ??
-                      "")
+                    {isVideoPlaying || Boolean(speakingLang) ? (
+                      <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
                     ) : (
-                      <span className="text-xs opacity-75">Subtitles active</span>
+                      <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
                     )}
-                  </p>
+                  </button>
                 </div>
-              )}
-            </div>
-          }
-          playbackControlsSlot={
-            <div className="space-y-1.5">
-              <VideoPlaybackControls
-                isPlaying={isVideoPlaying}
-                currentTimeSec={playbackCurrentTime}
-                durationSec={playbackDuration}
-                playbackRate={playbackRate}
-                activeSectionIndex={active}
-                totalSections={rows.length}
-                isPausedForSpeech={Boolean(speakingLang)}
-                speakingLangName={
-                  speakingLang
-                    ? (LANGS.find((l) => l.code === speakingLang)?.name ??
-                      speakingLang.toUpperCase())
-                    : undefined
-                }
-                pauseReason={pauseReason}
-                onTogglePlay={handleTogglePlay}
-                onSeek={handleSeek}
-                onRewind={(sec = 5) => handleSeek(Math.max(0, playbackCurrentTime - sec))}
-                onFastForward={(sec = 5) =>
-                  handleSeek(Math.min(playbackDuration, playbackCurrentTime + sec))
-                }
-                onPrevSection={() => {
-                  const prevIdx = active > 0 ? active - 1 : 0;
-                  if (rows[prevIdx]) {
-                    seek(rows[prevIdx], prevIdx);
-                  }
-                }}
-                onNextSection={() => {
-                  const nextIdx = active < rows.length - 1 ? active + 1 : rows.length - 1;
-                  if (rows[nextIdx]) {
-                    seek(rows[nextIdx], nextIdx);
-                  }
-                }}
-                onReplaySection={() => {
-                  if (active >= 0 && rows[active]) {
-                    seek(rows[active], active);
-                  }
-                }}
-                onStop={() => {
-                  try {
-                    player.current?.pauseVideo();
-                    player.current?.seekTo(0, true);
-                    setIsVideoPlaying(false);
-                    setPauseReason("Stopped by user");
-                  } catch {
-                    // ignore
-                  }
-                }}
-                onRateChange={(rate) => {
-                  try {
-                    player.current?.setPlaybackRate?.(rate);
-                    setPlaybackRate(rate);
-                  } catch {
-                    // ignore
-                  }
-                }}
-              />
-              {!isVideoPlaying && pauseReason && (
-                <div
-                  data-testid="video-pause-reason-banner"
-                  className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 mt-1"
-                >
-                  <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                  <span className="font-semibold">Pause explanation:</span>
-                  <span className="truncate">{pauseReason}</span>
-                </div>
-              )}
-            </div>
-          }
-          webDemoUrlsSlot={
-            !isAndroid ? (
-              <WebDemoUrlsInput
-                currentVideoId={videoId}
-                observedUrl={observedUrl}
-                onLoadVideoAndSubtitles={handleWebDemoLoadVideoAndSubtitles}
-                className="max-w-2xl mx-auto"
-              />
-            ) : undefined
-          }
-          favoriteLanguageCatalog={SUPPORTED_LANGUAGES_CATALOG}
-          favoriteLanguages={favoriteLanguages}
-          baseLanguage={baseLanguage}
-          selectedTargetLanguages={targetLanguages}
-          onTargetLanguagesChange={handleTargetLanguagesChange}
-          onTtsSpeedChange={(newSpeed) => {
-            setRates((prev) => {
-              const updated = { ...prev };
-              Object.keys(updated).forEach((k) => {
-                updated[k] = newSpeed;
-              });
-              return updated;
-            });
-          }}
-          onTtsVoiceChange={(voiceURI) => {
-            if (baseLanguage) {
-              setVoiceSelections((prev) => ({ ...prev, [baseLanguage]: voiceURI }));
+                {showVideoSubtitles && (
+                  <div
+                    className="pointer-events-none absolute inset-x-3 top-3 text-center"
+                    aria-live="polite"
+                    data-testid="beginner-active-video-subtitle"
+                  >
+                    <span
+                      className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
+                      style={{ fontSize: `calc(0.75rem * ${videoSubtitleRatio})` }}
+                    >
+                      {(() => {
+                        const languageCode =
+                          speakingLang && speakingRow >= 0 ? speakingLang : baseLanguage;
+                        const normalizedCode = languageCode === "iw" ? "he" : languageCode;
+                        return (
+                          LANGS.find((language) => language.code === normalizedCode)?.name ??
+                          normalizedCode.toUpperCase()
+                        );
+                      })()}
+                    </span>
+                    <p
+                      className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
+                      style={{ fontSize: `calc(1rem * ${videoSubtitleRatio})` }}
+                      dir={speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"}
+                    >
+                      {speakingLang && speakingRow >= 0 ? (
+                        <HighlightedSubtitle
+                          text={rows[speakingRow]?.texts?.[speakingLang] ?? ""}
+                          progress={
+                            speechProgress?.row === speakingRow &&
+                            speechProgress.lang === speakingLang
+                              ? speechProgress
+                              : null
+                          }
+                        />
+                      ) : active >= 0 && rows[active] ? (
+                        (rows[active]?.texts?.[baseLanguage] ??
+                        Object.values(rows[active]?.texts || {})[0] ??
+                        "")
+                      ) : (
+                        <span className="text-xs opacity-75">Subtitles active</span>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
             }
-          }}
-          onSubtitlesRatioChange={(ratio) => {
-            setVideoSubtitleRatio(ratio);
-          }}
-          onFavoriteLanguagesChange={(newFavs) => {
-            handleUpdateFavoriteLanguages(newFavs);
-          }}
-          onApplyFavoritesToVideo={handleResetVideoToFavorites}
-          onSaveCurrentSelectionAsFavorites={handleSaveCurrentAsFavorites}
-          onBaseLangChange={(lang) => {
-            setBaseLanguage(lang);
-            if (!spoken.includes(lang)) {
-              setSpoken((prev) => [...prev, lang]);
-            }
-          }}
-          ttsServiceControlsSlot={
-            <BeginnerTtsServiceControl
-              service={
-                useAlternativeTtsState &&
-                alternativeTtsModeState === "always" &&
-                (lovableTtsProviderState === "google" ||
-                  alternativeTtsEngineState === "google_translate")
-                  ? "google"
-                  : "native"
-              }
-              onServiceChange={(service: BeginnerTtsService) => {
-                if (service === "google") {
-                  setLovableTtsProviderState("google");
-                  setLovableTtsProvider("google");
-                  setAlternativeTtsEngineState("google_translate");
-                  setAlternativeTtsEngine("google_translate");
-                  setAlternativeTtsModeState("always");
-                  setAlternativeTtsMode("always");
-                  setUseAlternativeTtsState(true);
-                  setUseAlternativeTts(true);
-                  return;
-                }
-                setUseAlternativeTtsState(false);
-                setUseAlternativeTts(false);
-              }}
-            />
-          }
-          perLanguageTtsSettingsSlot={
-            <PerLanguageTtsPreferences
-              languages={orderedLangs.filter(
-                (lang) => favoriteLanguages.includes(lang.code) || spoken.includes(lang.code),
-              )}
-              voices={voices}
-              ratios={ttsRatios}
-              rates={rates}
-              languageOrders={ttsLanguageOrders}
-              defaultOrder={sectionOrder}
-              voiceSelections={voiceSelections}
-              primaryLang={primaryTtsLang}
-              onPrimaryLangChange={handlePrimaryTtsLangChange}
-              onRatioChange={(languageCode, ratio) => {
-                setTtsRatios((current) => ({ ...current, [languageCode]: ratio }));
-                saveTtsRatioPreference(languageCode, ratio);
-                if (videoId) {
-                  saveVideoSettings(videoId, { ttsRatios: { [languageCode]: ratio } });
-                }
-              }}
-              onRateChange={(languageCode, rate) => {
-                setRates((current) => ({ ...current, [languageCode]: rate }));
-                saveTtsRatePreference(languageCode, rate);
-                if (videoId) {
-                  saveVideoSettings(videoId, { ttsRates: { [languageCode]: rate } });
-                }
-              }}
-              onVoiceChange={(languageCode, voiceURI) => {
-                setVoiceSelections((current) => {
-                  const next = { ...current, [languageCode]: voiceURI };
-                  try {
-                    localStorage.setItem("yt_tts_voice_selections_v1", JSON.stringify(next));
-                  } catch {
-                    // ignore storage errors
+            playbackControlsSlot={
+              <div className="space-y-1.5">
+                <VideoPlaybackControls
+                  isPlaying={isVideoPlaying}
+                  currentTimeSec={playbackCurrentTime}
+                  durationSec={playbackDuration}
+                  playbackRate={playbackRate}
+                  activeSectionIndex={active}
+                  totalSections={rows.length}
+                  isPausedForSpeech={Boolean(speakingLang)}
+                  speakingLangName={
+                    speakingLang
+                      ? (LANGS.find((l) => l.code === speakingLang)?.name ??
+                        speakingLang.toUpperCase())
+                      : undefined
                   }
-                  return next;
+                  pauseReason={pauseReason}
+                  onTogglePlay={handleTogglePlay}
+                  onSeek={handleSeek}
+                  onRewind={(sec = 5) => handleSeek(Math.max(0, playbackCurrentTime - sec))}
+                  onFastForward={(sec = 5) =>
+                    handleSeek(Math.min(playbackDuration, playbackCurrentTime + sec))
+                  }
+                  onPrevSection={() => {
+                    const prevIdx = active > 0 ? active - 1 : 0;
+                    if (rows[prevIdx]) {
+                      seek(rows[prevIdx], prevIdx);
+                    }
+                  }}
+                  onNextSection={() => {
+                    const nextIdx = active < rows.length - 1 ? active + 1 : rows.length - 1;
+                    if (rows[nextIdx]) {
+                      seek(rows[nextIdx], nextIdx);
+                    }
+                  }}
+                  onReplaySection={() => {
+                    if (active >= 0 && rows[active]) {
+                      seek(rows[active], active);
+                    }
+                  }}
+                  onStop={() => {
+                    try {
+                      player.current?.pauseVideo();
+                      player.current?.seekTo(0, true);
+                      setIsVideoPlaying(false);
+                      setPauseReason("Stopped by user");
+                    } catch {
+                      // ignore
+                    }
+                  }}
+                  onRateChange={(rate) => {
+                    try {
+                      player.current?.setPlaybackRate?.(rate);
+                      setPlaybackRate(rate);
+                    } catch {
+                      // ignore
+                    }
+                  }}
+                />
+                {!isVideoPlaying && pauseReason && (
+                  <div
+                    data-testid="video-pause-reason-banner"
+                    className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 mt-1"
+                  >
+                    <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span className="font-semibold">Pause explanation:</span>
+                    <span className="truncate">{pauseReason}</span>
+                  </div>
+                )}
+              </div>
+            }
+            webDemoUrlsSlot={
+              !isAndroid ? (
+                <WebDemoUrlsInput
+                  currentVideoId={videoId}
+                  observedUrl={observedUrl}
+                  onLoadVideoAndSubtitles={handleWebDemoLoadVideoAndSubtitles}
+                  className="max-w-2xl mx-auto"
+                />
+              ) : undefined
+            }
+            favoriteLanguageCatalog={SUPPORTED_LANGUAGES_CATALOG}
+            favoriteLanguages={favoriteLanguages}
+            baseLanguage={baseLanguage}
+            selectedTargetLanguages={targetLanguages}
+            onTargetLanguagesChange={handleTargetLanguagesChange}
+            onTtsSpeedChange={(newSpeed) => {
+              setRates((prev) => {
+                const updated = { ...prev };
+                Object.keys(updated).forEach((k) => {
+                  updated[k] = newSpeed;
                 });
-              }}
-              onOrderChange={handleTtsLanguageOrderChange}
-              onDefaultOrderChange={handleSectionOrderChange}
-            />
-          }
-          onSwitchToAdvanced={() => handleWorkflowModeChange("expert")}
-          charsRemovalSlot={
-            <BeginnerCharsRemovalAccordion>
-              {specialCharactersRemovalPanel}
-            </BeginnerCharsRemovalAccordion>
-          }
-          criticalCaptionsAlertSlot={
-            <CriticalCaptionsAlert
-              videoId={videoId}
-              hasSubtitles={hasAnySubtitles}
-              isVideoPlaying={isVideoPlaying}
-              onRecheck={handleRecheckCaptions}
-              onOpenManualUrlModal={() => setIsSubtitlesUrlModalOpen(true)}
-            />
-          }
-          subtitlesTableSlot={
-            <SubtitlesTablePanel
-              isAndroid={isAndroid}
-              rows={rows}
-              displayedRows={displayedRows}
-              cols={cols}
-              baseLanguage={baseLanguage}
-              subtitlesLimit={subtitlesLimit}
-              setSubtitlesLimit={setSubtitlesLimit}
-              subtitlesPage={subtitlesPage}
-              setSubtitlesPage={setSubtitlesPage}
-              active={active}
-              allFavoritesAligned={allFavoritesAligned}
-              targetLanguages={targetLanguages}
-              speechProgress={speechProgress}
-              tracks={tracks}
-              onSeek={seek}
-              spokenLangs={spoken}
-              ttsRatios={ttsRatios}
-              primaryTtsLang={primaryTtsLang}
-              hasCachedAi={hasCachedAi}
-              onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
-              parserConfig={simpleParserConfig}
-              onParserConfigChange={handleSimpleParserConfigChange}
-              onScrollToActivePosition={handleScrollToActivePosition}
-              onSpeakCue={(text, lang) => {
-                const rate = rates[lang] ?? 0.8;
-                const voice = voiceSelections[lang] || "";
-                void speak(text, lang, rate, voice, -1, () => {});
-              }}
-            />
-          }
-        />
+                return updated;
+              });
+            }}
+            onTtsVoiceChange={(voiceURI) => {
+              if (baseLanguage) {
+                setVoiceSelections((prev) => ({ ...prev, [baseLanguage]: voiceURI }));
+              }
+            }}
+            onSubtitlesRatioChange={(ratio) => {
+              setVideoSubtitleRatio(ratio);
+            }}
+            onFavoriteLanguagesChange={(newFavs) => {
+              handleUpdateFavoriteLanguages(newFavs);
+            }}
+            onApplyFavoritesToVideo={handleResetVideoToFavorites}
+            onSaveCurrentSelectionAsFavorites={handleSaveCurrentAsFavorites}
+            onBaseLangChange={(lang) => {
+              setBaseLanguage(lang);
+              if (!spoken.includes(lang)) {
+                setSpoken((prev) => [...prev, lang]);
+              }
+            }}
+            ttsServiceControlsSlot={
+              <BeginnerTtsServiceControl
+                service={
+                  useAlternativeTtsState &&
+                  alternativeTtsModeState === "always" &&
+                  (lovableTtsProviderState === "google" ||
+                    alternativeTtsEngineState === "google_translate")
+                    ? "google"
+                    : "native"
+                }
+                onServiceChange={(service: BeginnerTtsService) => {
+                  if (service === "google") {
+                    setLovableTtsProviderState("google");
+                    setLovableTtsProvider("google");
+                    setAlternativeTtsEngineState("google_translate");
+                    setAlternativeTtsEngine("google_translate");
+                    setAlternativeTtsModeState("always");
+                    setAlternativeTtsMode("always");
+                    setUseAlternativeTtsState(true);
+                    setUseAlternativeTts(true);
+                    return;
+                  }
+                  setUseAlternativeTtsState(false);
+                  setUseAlternativeTts(false);
+                }}
+              />
+            }
+            perLanguageTtsSettingsSlot={
+              <PerLanguageTtsPreferences
+                languages={orderedLangs.filter(
+                  (lang) => favoriteLanguages.includes(lang.code) || spoken.includes(lang.code),
+                )}
+                voices={voices}
+                ratios={ttsRatios}
+                rates={rates}
+                languageOrders={ttsLanguageOrders}
+                defaultOrder={sectionOrder}
+                voiceSelections={voiceSelections}
+                primaryLang={primaryTtsLang}
+                onPrimaryLangChange={handlePrimaryTtsLangChange}
+                onRatioChange={(languageCode, ratio) => {
+                  setTtsRatios((current) => ({ ...current, [languageCode]: ratio }));
+                  saveTtsRatioPreference(languageCode, ratio);
+                  if (videoId) {
+                    saveVideoSettings(videoId, { ttsRatios: { [languageCode]: ratio } });
+                  }
+                }}
+                onRateChange={(languageCode, rate) => {
+                  setRates((current) => ({ ...current, [languageCode]: rate }));
+                  saveTtsRatePreference(languageCode, rate);
+                  if (videoId) {
+                    saveVideoSettings(videoId, { ttsRates: { [languageCode]: rate } });
+                  }
+                }}
+                onVoiceChange={(languageCode, voiceURI) => {
+                  setVoiceSelections((current) => {
+                    const next = { ...current, [languageCode]: voiceURI };
+                    try {
+                      localStorage.setItem("yt_tts_voice_selections_v1", JSON.stringify(next));
+                    } catch {
+                      // ignore storage errors
+                    }
+                    return next;
+                  });
+                }}
+                onOrderChange={handleTtsLanguageOrderChange}
+                onDefaultOrderChange={handleSectionOrderChange}
+              />
+            }
+            onSwitchToAdvanced={() => handleWorkflowModeChange("expert")}
+            charsRemovalSlot={
+              <BeginnerCharsRemovalAccordion>
+                {specialCharactersRemovalPanel}
+              </BeginnerCharsRemovalAccordion>
+            }
+            criticalCaptionsAlertSlot={
+              <CriticalCaptionsAlert
+                videoId={videoId}
+                hasSubtitles={hasAnySubtitles}
+                isVideoPlaying={isVideoPlaying}
+                onRecheck={handleRecheckCaptions}
+                onOpenManualUrlModal={() => setIsSubtitlesUrlModalOpen(true)}
+              />
+            }
+            subtitlesTableSlot={
+              <SubtitlesTablePanel
+                isAndroid={isAndroid}
+                rows={rows}
+                displayedRows={displayedRows}
+                cols={cols}
+                baseLanguage={baseLanguage}
+                subtitlesLimit={subtitlesLimit}
+                setSubtitlesLimit={setSubtitlesLimit}
+                subtitlesPage={subtitlesPage}
+                setSubtitlesPage={setSubtitlesPage}
+                active={active}
+                allFavoritesAligned={allFavoritesAligned}
+                targetLanguages={targetLanguages}
+                speechProgress={speechProgress}
+                tracks={tracks}
+                onSeek={seek}
+                spokenLangs={spoken}
+                ttsRatios={ttsRatios}
+                primaryTtsLang={primaryTtsLang}
+                hasCachedAi={hasCachedAi}
+                onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
+                parserConfig={simpleParserConfig}
+                onParserConfigChange={handleSimpleParserConfigChange}
+                onScrollToActivePosition={handleScrollToActivePosition}
+                onSpeakCue={(text, lang) => {
+                  const rate = rates[lang] ?? 0.8;
+                  const voice = voiceSelections[lang] || "";
+                  void speak(text, lang, rate, voice, -1, () => {});
+                }}
+              />
+            }
+          />
+        </div>
       ) : (
         <>
           {activeTopTab === "playground" ? (
@@ -6407,53 +6597,165 @@ function Index() {
                                   </p>
                                 </div>
 
-                                <div>
-                                  <button
-                                    type="button"
-                                    data-testid="test-alternative-tts-btn"
-                                    disabled={isTestingAlternativeTts}
-                                    onClick={async () => {
-                                      setIsTestingAlternativeTts(true);
-                                      const testRate = rates[baseLanguage || "en"] ?? 0.5;
-                                      try {
-                                        await playAlternativeTtsAudio(
-                                          "Hello world",
-                                          baseLanguage || "en",
-                                          testRate,
-                                          undefined,
-                                          "lovable",
-                                          {
-                                            provider: lovableTtsProviderState,
-                                            voice:
-                                              lovableTtsProviderState === "google"
-                                                ? undefined
-                                                : lovableTtsVoiceState ||
-                                                  (lovableTtsProviderState === "openrouter"
-                                                    ? "alloy"
-                                                    : "Kore"),
-                                            speed: testRate,
-                                          },
-                                        );
-                                      } catch (err) {
-                                        console.warn("Test Alternative TTS error:", err);
-                                      } finally {
-                                        setIsTestingAlternativeTts(false);
+                                <div className="space-y-2 pt-1 border-t border-border/40">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <button
+                                      type="button"
+                                      data-testid="btn-validate-remote-tts"
+                                      disabled={isValidatingRemoteTts}
+                                      onClick={() => handleValidateRemoteService()}
+                                      className="px-2.5 py-1 rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-xs font-mono inline-flex items-center gap-1.5 text-primary disabled:opacity-60 cursor-pointer font-medium"
+                                    >
+                                      {isValidatingRemoteTts ? (
+                                        <>
+                                          <Loader2 className="h-3 w-3 animate-spin" />
+                                          <span>Validating Service…</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Activity className="h-3 w-3" />
+                                          <span>
+                                            Validate{" "}
+                                            {alternativeTtsEngineState === "lovable"
+                                              ? "TTS3 Service"
+                                              : "Google TTS Directly"}
+                                          </span>
+                                        </>
+                                      )}
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      data-testid="btn-validate-google-tts-directly"
+                                      disabled={isValidatingRemoteTts}
+                                      onClick={() =>
+                                        handleValidateRemoteService("google_translate")
                                       }
-                                    }}
-                                    className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
-                                  >
-                                    {isTestingAlternativeTts ? (
-                                      <>
-                                        <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                                        <span>Playing test audio…</span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <Play className="h-3 w-3 text-primary" />
-                                        <span>▶ Test Alternative TTS ("Hello world")</span>
-                                      </>
-                                    )}
-                                  </button>
+                                      className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                                      title="Validate Google Translate TTS endpoint directly"
+                                    >
+                                      Validate Google Direct
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      data-testid="btn-validate-tts3-service"
+                                      disabled={isValidatingRemoteTts}
+                                      onClick={() => handleValidateRemoteService("lovable")}
+                                      className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                                      title="Validate Lovable TTS3 public endpoint"
+                                    >
+                                      Validate TTS3 Service
+                                    </button>
+
+                                    <button
+                                      type="button"
+                                      data-testid="test-alternative-tts-btn"
+                                      disabled={isTestingAlternativeTts}
+                                      onClick={async () => {
+                                        setIsTestingAlternativeTts(true);
+                                        const testRate = rates[baseLanguage || "en"] ?? 0.5;
+                                        try {
+                                          await playAlternativeTtsAudio(
+                                            "Hello world",
+                                            baseLanguage || "en",
+                                            testRate,
+                                            undefined,
+                                            alternativeTtsEngineState,
+                                            {
+                                              provider: lovableTtsProviderState,
+                                              voice:
+                                                lovableTtsProviderState === "google"
+                                                  ? undefined
+                                                  : lovableTtsVoiceState ||
+                                                    (lovableTtsProviderState === "openrouter"
+                                                      ? "alloy"
+                                                      : "Kore"),
+                                              speed: testRate,
+                                            },
+                                          );
+                                        } catch (err) {
+                                          console.warn("Test Alternative TTS error:", err);
+                                        } finally {
+                                          setIsTestingAlternativeTts(false);
+                                        }
+                                      }}
+                                      className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
+                                    >
+                                      {isTestingAlternativeTts ? (
+                                        <>
+                                          <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                                          <span>Playing test audio…</span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Play className="h-3 w-3 text-primary" />
+                                          <span>
+                                            ▶ Test Audio (
+                                            {alternativeTtsEngineState === "lovable"
+                                              ? "TTS3"
+                                              : "Google Direct"}
+                                            )
+                                          </span>
+                                        </>
+                                      )}
+                                    </button>
+                                  </div>
+
+                                  {/* Validation Status Feedback */}
+                                  {remoteValidationResult && (
+                                    <div
+                                      data-testid="remote-tts-validation-details"
+                                      className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border text-xs ${
+                                        remoteValidationResult.ok
+                                          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                                          : "bg-destructive/10 border-destructive/30 text-destructive"
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span
+                                          data-testid="remote-tts-validation-badge"
+                                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium font-mono ${
+                                            remoteValidationResult.ok
+                                              ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                                              : "bg-destructive/20 text-destructive"
+                                          }`}
+                                        >
+                                          {remoteValidationResult.ok ? (
+                                            <>
+                                              <CheckCircle2 className="h-3 w-3" />
+                                              <span>
+                                                Available ({remoteValidationResult.latencyMs}ms)
+                                              </span>
+                                            </>
+                                          ) : (
+                                            <>
+                                              <AlertCircle className="h-3 w-3" />
+                                              <span>
+                                                Unavailable ({remoteValidationResult.latencyMs}ms)
+                                              </span>
+                                            </>
+                                          )}
+                                        </span>
+                                        <span className="font-semibold">
+                                          {remoteValidationResult.serviceName}:
+                                        </span>
+                                        <span className="text-[11px] opacity-90">
+                                          {remoteValidationResult.ok
+                                            ? remoteValidationResult.details ||
+                                              "Audio stream verified"
+                                            : remoteValidationResult.error ||
+                                              "Service check failed"}
+                                        </span>
+                                      </div>
+                                      <span className="text-[10px] font-mono opacity-70">
+                                        Checked{" "}
+                                        {new Date(
+                                          remoteValidationResult.timestamp,
+                                        ).toLocaleTimeString()}
+                                      </span>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -7436,9 +7738,8 @@ function Index() {
                           {spoken.length > 1 && (
                             <div className="flex items-center justify-between pb-1 text-xs">
                               <span className="text-[11px] text-muted-foreground">
-                                Primary leads (minimal TTS ratio 1:
-                                {getLanguageTtsRatio(ttsRatios, primaryTtsLang)}); secondary
-                                languages speak relative to primary activations.
+                                Primary leads; secondary languages speak relative to primary (absolute parent defined by Is-Primary column, ratio 1:
+                                {getLanguageTtsRatio(ttsRatios, primaryTtsLang)}).
                               </span>
                             </div>
                           )}
@@ -7447,6 +7748,13 @@ function Index() {
                               <thead>
                                 <tr className="text-xs text-muted-foreground border-b border-border">
                                   <th className="text-left font-normal py-1.5 px-2">Language</th>
+                                  <th
+                                    className="font-normal text-center py-1.5 px-1.5"
+                                    data-testid="th-is-primary"
+                                    title="The only way to define the TTS-ratio absolute parent"
+                                  >
+                                    Is Primary
+                                  </th>
                                   <th
                                     className="font-normal text-center py-1.5 px-1.5"
                                     title="Speech rate (0.5x - 1.0x)"
@@ -7479,6 +7787,13 @@ function Index() {
                                   </th>
                                   <th
                                     className="font-normal text-center py-1.5 px-1.5"
+                                    data-testid="th-json3"
+                                    title="Direct JSON3 subtitle status and manual video player caption toggle indication"
+                                  >
+                                    JSON3
+                                  </th>
+                                  <th
+                                    className="font-normal text-center py-1.5 px-1.5"
                                     title="1 input per 1 favorite language for subtitle URL"
                                   >
                                     Subtitle URL
@@ -7495,8 +7810,10 @@ function Index() {
                                   const cueCount = tracks?.[lang.code]?.events?.length;
                                   const status = tableFetchStatus[lang.code];
                                   const languageVoices = getLanguageVoices(voices, lang.tts, true);
-                                  const isPrimary =
-                                    lang.code === (primaryTtsLang || spoken[0] || "");
+                                  const isPrimary = lang.code === primaryTtsLang;
+                                  const isPlayerToggled =
+                                    activePlayerCaptionLang === lang.code ||
+                                    playerToggledLanguages.includes(lang.code);
                                   const primaryLangObj = orderedLangs.find(
                                     (l) => l.code === (primaryTtsLang || spoken[0] || ""),
                                   );
@@ -7578,6 +7895,26 @@ function Index() {
                                               {isFavorite ? "Saved" : "Add"}
                                             </button>
                                           </span>
+                                        </td>
+                                        <td
+                                          className="text-center py-1 px-1.5"
+                                          data-testid={`col-is-primary-${lang.code}`}
+                                        >
+                                          <div className="flex items-center justify-center">
+                                            <input
+                                              type="radio"
+                                              name="is-primary-tts-parent"
+                                              id={`radio-is-primary-${lang.code}`}
+                                              data-testid={`radio-is-primary-${lang.code}`}
+                                              aria-label={`Is primary parent: ${lang.name}`}
+                                              title={`Set ${lang.name} as TTS-ratio absolute parent`}
+                                              checked={isPrimary}
+                                              onChange={() =>
+                                                handlePrimaryTtsLangChange(lang.code)
+                                              }
+                                              className="h-4 w-4 text-primary focus:ring-primary cursor-pointer accent-primary"
+                                            />
+                                          </div>
                                         </td>
                                         <td className="text-center py-1 px-1.5">
                                           <select
@@ -7689,6 +8026,52 @@ function Index() {
                                             order={ttsLanguageOrders[lang.code] ?? sectionOrder}
                                             onChange={handleTtsLanguageOrderChange}
                                           />
+                                        </td>
+                                        <td
+                                          className="text-center py-1 px-1.5"
+                                          data-testid={`col-json3-${lang.code}`}
+                                        >
+                                          <div className="flex flex-col items-center justify-center gap-1">
+                                            {cueCount && cueCount > 0 ? (
+                                              <span
+                                                data-testid={`json3-badge-${lang.code}`}
+                                                className="inline-flex items-center rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-1 py-0.2 text-[9px] font-semibold"
+                                                title={`Direct JSON3 fetched: ${cueCount} cues`}
+                                              >
+                                                JSON3 ({cueCount})
+                                              </span>
+                                            ) : (
+                                              <span
+                                                data-testid={`json3-badge-${lang.code}`}
+                                                className="text-[10px] text-muted-foreground"
+                                                title="No direct JSON3 loaded yet"
+                                              >
+                                                —
+                                              </span>
+                                            )}
+                                            <Button
+                                              type="button"
+                                              variant={isPlayerToggled ? "default" : "outline"}
+                                              size="sm"
+                                              id={`btn-toggle-player-json3-${lang.code}`}
+                                              data-testid={`btn-toggle-player-json3-${lang.code}`}
+                                              onClick={() =>
+                                                handleTogglePlayerCaptionTrack(lang.code)
+                                              }
+                                              className={`h-5 px-1.5 text-[9px] gap-0.5 ${
+                                                isPlayerToggled
+                                                  ? "bg-primary text-primary-foreground font-semibold"
+                                                  : "text-muted-foreground"
+                                              }`}
+                                              title={`Toggle ${lang.name} captions on video player (indicates direct fetching)`}
+                                            >
+                                              <span
+                                                data-testid={`player-caption-status-${lang.code}`}
+                                              >
+                                                {isPlayerToggled ? "Player: ON" : "Player: OFF"}
+                                              </span>
+                                            </Button>
+                                          </div>
                                         </td>
                                         <td className="text-center py-1 px-1.5">
                                           <Button

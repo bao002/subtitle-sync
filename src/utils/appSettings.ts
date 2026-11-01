@@ -265,8 +265,8 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   onDemandCount: 4,
   maxRetries: 2,
 
-  // Beginner Mode Defaults
-  workflowMode: "beginner",
+  // Default Mode: Advanced Studio (Beginner mode quarantined)
+  workflowMode: "expert",
   beginnerActiveTab: "preferences",
   beginnerTtsSpeed: 1.0,
   beginnerTtsVoice: "",
@@ -507,7 +507,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "2.0.59",
+    version: "2.0.60",
 
     settings: currentSettings,
     videoSettings: allVideoSettings,

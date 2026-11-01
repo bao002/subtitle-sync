@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.59";
+export const APP_VERSION = "2.0.60";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
-  "b845e21";
+  "c914f32";
 export const APP_VERSION_DESCRIPTION =
-  "Validation for remote TTS services (Direct Google TTS and Lovable TTS3), connectivity status testing, and Advanced/Beginner mode parity (Version 2.0.59)";
+  "Quarantine beginner mode, debug mode top menu toggle with experimental views, language selection is-primary and json3 columns (Version 2.0.60)";
 
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
