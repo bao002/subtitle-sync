@@ -184,9 +184,13 @@ import {
   hasCustomOpenRouterApiKey,
   playAlternativeTtsAudio,
   cancelAlternativeTtsAudio,
+  LOVABLE_TTS_DOCS_URL,
   LOVABLE_TTS_OPENAPI_URL,
+  LOVABLE_TTS_PROVIDERS,
   LOVABLE_VOICES,
   OPENROUTER_VOICES,
+  getVoicesForProvider,
+  getDefaultVoiceForProvider,
   validateRemoteTtsService,
   getLastValidationResult,
   type RemoteTtsValidationResult,
@@ -194,6 +198,7 @@ import {
   type AlternativeTtsEngine,
   type LovableTtsProvider,
 } from "@/lib/alternative-tts";
+import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
 import {
   computeVideoInstances,
   multiVideoPlayerRegistry,
@@ -5819,8 +5824,8 @@ function Index() {
                   if (service === "google") {
                     setLovableTtsProviderState("google");
                     setLovableTtsProvider("google");
-                    setAlternativeTtsEngineState("google_translate");
-                    setAlternativeTtsEngine("google_translate");
+                    setAlternativeTtsEngineState("lovable");
+                    setAlternativeTtsEngine("lovable");
                     setAlternativeTtsModeState("always");
                     setAlternativeTtsMode("always");
                     setUseAlternativeTtsState(true);
@@ -6520,6 +6525,33 @@ function Index() {
                                 onStop={handleStop}
                                 onRateChange={handleRateChange}
                               />
+                              <div className="pt-2">
+                                <BeginnerTtsServiceControl
+                                  service={
+                                    useAlternativeTtsState &&
+                                    alternativeTtsModeState === "always" &&
+                                    (lovableTtsProviderState === "google" ||
+                                      alternativeTtsEngineState === "google_translate")
+                                      ? "google"
+                                      : "native"
+                                  }
+                                  onServiceChange={(service: BeginnerTtsService) => {
+                                    if (service === "google") {
+                                      setLovableTtsProviderState("google");
+                                      setLovableTtsProvider("google");
+                                      setAlternativeTtsEngineState("lovable");
+                                      setAlternativeTtsEngine("lovable");
+                                      setAlternativeTtsModeState("always");
+                                      setAlternativeTtsMode("always");
+                                      setUseAlternativeTtsState(true);
+                                      setUseAlternativeTts(true);
+                                      return;
+                                    }
+                                    setUseAlternativeTtsState(false);
+                                    setUseAlternativeTts(false);
+                                  }}
+                                />
+                              </div>
                               {!isVideoPlaying && pauseReason && (
                                 <div
                                   data-testid="video-pause-reason-banner"
@@ -7117,13 +7149,22 @@ function Index() {
                                           </option>
                                         </select>
                                         <a
+                                          href={LOVABLE_TTS_DOCS_URL}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          data-testid="lovable-tts-docs-link"
+                                          className="text-primary hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1"
+                                        >
+                                          API Docs ↗
+                                        </a>
+                                        <a
                                           href={LOVABLE_TTS_OPENAPI_URL}
                                           target="_blank"
                                           rel="noreferrer"
                                           data-testid="lovable-tts-openapi-link"
-                                          className="text-primary hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1"
+                                          className="text-muted-foreground hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1"
                                         >
-                                          OpenAPI 3.1.0 Spec ↗
+                                          OpenAPI ↗
                                         </a>
                                       </div>
 
@@ -7140,29 +7181,24 @@ function Index() {
                                                 const p = e.target.value as LovableTtsProvider;
                                                 setLovableTtsProviderState(p);
                                                 setLovableTtsProvider(p);
+                                                const availableVoices = getVoicesForProvider(p);
                                                 if (
-                                                  p === "openrouter" &&
-                                                  !(
-                                                    OPENROUTER_VOICES as readonly string[]
-                                                  ).includes(lovableTtsVoiceState)
+                                                  availableVoices.length > 0 &&
+                                                  !availableVoices.includes(lovableTtsVoiceState)
                                                 ) {
-                                                  setLovableTtsVoiceState("alloy");
-                                                  setLovableTtsVoice("alloy");
-                                                } else if (
-                                                  p === "lovable" &&
-                                                  !(LOVABLE_VOICES as readonly string[]).includes(
-                                                    lovableTtsVoiceState,
-                                                  )
-                                                ) {
-                                                  setLovableTtsVoiceState("Kore");
-                                                  setLovableTtsVoice("Kore");
+                                                  const defaultVoice =
+                                                    getDefaultVoiceForProvider(p);
+                                                  setLovableTtsVoiceState(defaultVoice);
+                                                  setLovableTtsVoice(defaultVoice);
                                                 }
                                               }}
                                               className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-mono font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
                                             >
-                                              <option value="lovable">lovable</option>
-                                              <option value="google">google</option>
-                                              <option value="openrouter">openrouter</option>
+                                              {LOVABLE_TTS_PROVIDERS.map((provider) => (
+                                                <option key={provider} value={provider}>
+                                                  {provider}
+                                                </option>
+                                              ))}
                                             </select>
                                           </div>
 
@@ -7170,7 +7206,8 @@ function Index() {
                                             <span className="text-muted-foreground font-medium">
                                               Voice:
                                             </span>
-                                            {lovableTtsProviderState === "google" ? (
+                                            {getVoicesForProvider(lovableTtsProviderState)
+                                              .length === 0 ? (
                                               <span className="text-xs text-muted-foreground italic px-2 py-0.5">
                                                 Default (Single voice)
                                               </span>
@@ -7179,9 +7216,9 @@ function Index() {
                                                 data-testid="lovable-tts-voice-select"
                                                 value={
                                                   lovableTtsVoiceState ||
-                                                  (lovableTtsProviderState === "openrouter"
-                                                    ? "alloy"
-                                                    : "Kore")
+                                                  getDefaultVoiceForProvider(
+                                                    lovableTtsProviderState,
+                                                  )
                                                 }
                                                 onChange={(e) => {
                                                   const v = e.target.value;
@@ -7190,17 +7227,19 @@ function Index() {
                                                 }}
                                                 className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
                                               >
-                                                {lovableTtsProviderState === "openrouter"
-                                                  ? OPENROUTER_VOICES.map((v) => (
-                                                      <option key={v} value={v}>
-                                                        {v} {v === "alloy" ? "(Default)" : ""}
-                                                      </option>
-                                                    ))
-                                                  : LOVABLE_VOICES.map((v) => (
-                                                      <option key={v} value={v}>
-                                                        {v} {v === "Kore" ? "(Default)" : ""}
-                                                      </option>
-                                                    ))}
+                                                {getVoicesForProvider(lovableTtsProviderState).map(
+                                                  (v) => (
+                                                    <option key={v} value={v}>
+                                                      {v}{" "}
+                                                      {v ===
+                                                      getDefaultVoiceForProvider(
+                                                        lovableTtsProviderState,
+                                                      )
+                                                        ? "(Default)"
+                                                        : ""}
+                                                    </option>
+                                                  ),
+                                                )}
                                               </select>
                                             )}
                                           </div>
@@ -7530,6 +7569,8 @@ function Index() {
                                             </span>
                                           </div>
                                         )}
+
+                                        <ExternalTtsDebuggerPanel className="mt-3" />
                                       </div>
                                     </div>
                                   )}

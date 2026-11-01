@@ -1,16 +1,20 @@
 /**
  * Alternative Text-to-Speech (TTS) Service
  * Supports:
- * 1. Lovable Speak API (OpenAPI 3.1.0: https://tts3.lovable.app/api/public/openapi.json)
+ * 1. Lovable Speak API (OpenAPI 3.1.0: https://tts3.lovable.app/api/public/openapi.json, Docs: https://tts3.lovable.app/docs)
  *    Endpoint: https://tts3.lovable.app/api/public/tts
  *    CORS enabled (access-control-allow-origin: *)
- *    Provides multi-provider synthesis: "google", "lovable", "openrouter"
+ *    Provides multi-provider synthesis: "auto", "google", "lovable", "openrouter", "gemini", "openai", "elevenlabs", "deepgram"
  * 2. Google Translate TTS (Legacy fallback)
  *    Endpoint: https://translate.google.com/translate_tts?ie=UTF-8&client=gtx&tl={lang}&q={text}
  */
 
+import { useSyncExternalStore } from "react";
+import { trackNetworkRequest } from "@/utils/networkTracker";
+
 export const LOVABLE_TTS_BASE_URL = "https://tts3.lovable.app";
 export const LOVABLE_TTS_ENDPOINT = "https://tts3.lovable.app/api/public/tts";
+export const LOVABLE_TTS_DOCS_URL = "https://tts3.lovable.app/docs";
 export const LOVABLE_TTS_OPENAPI_URL = "https://tts3.lovable.app/api/public/openapi.json";
 export const GOOGLE_TRANSLATE_TTS_ENDPOINT = "https://translate.google.com/translate_tts";
 
@@ -25,23 +29,233 @@ const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_METHOD = "yt_alternative_tts_lovable_m
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_FORMAT = "yt_alternative_tts_lovable_format_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_TARGET_LANG = "yt_alternative_tts_lovable_target_lang_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY = "yt_alternative_tts_lovable_api_key_v1";
+export const STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN = "yt_speak_api_token_v1";
+export const STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY = "yt_provider_api_key_v1";
 const STORAGE_KEY_REMOTE_TTS_VALIDATION_RESULT = "yt_remote_tts_val_res_v1";
 
 export type AlternativeTtsMode = "fallback_only" | "always";
 export type AlternativeTtsEngine = "lovable" | "google_translate";
-export type LovableTtsProvider = "google" | "lovable" | "openrouter";
+export type LovableTtsProvider =
+  "auto" | "google" | "lovable" | "openrouter" | "gemini" | "openai" | "elevenlabs" | "deepgram";
 export type LovableTtsMethod = "get" | "post";
 export type LovableTtsFormat = "binary" | "json";
 
+/**
+ * Checks if a token is a remote Speak API Personal Access / Bearer Token.
+ * Tokens starting with 'spk_' (Personal API token) or 'tts_' (Temporary access token)
+ * must be transmitted via the 'Authorization: Bearer <token>' HTTP header to https://tts3.lovable.app.
+ * They MUST NEVER be passed as an upstream provider 'api_key' in the request body.
+ */
+export function isSpeakApiPersonalToken(token?: string | null): boolean {
+  if (!token) return false;
+  const t = token.trim();
+  return t.startsWith("spk_") || t.startsWith("tts_");
+}
+
+/**
+ * Checks if a key is an upstream provider API key (e.g. Lovable AI 'sk_', OpenRouter 'sk-or-', Gemini 'AIza').
+ */
+export function isUpstreamProviderApiKey(token?: string | null): boolean {
+  if (!token) return false;
+  const t = token.trim();
+  return Boolean(t && !isSpeakApiPersonalToken(t));
+}
+
 export const LOVABLE_TTS_PROVIDERS: readonly LovableTtsProvider[] = [
+  "auto",
   "google",
   "lovable",
   "openrouter",
+  "gemini",
+  "openai",
+  "elevenlabs",
+  "deepgram",
 ];
 
 export const LOVABLE_VOICES = ["Kore", "Puck", "Charon", "Fenrir", "Aoede"] as const;
 
+export const GEMINI_VOICES = ["Kore", "Puck", "Charon", "Fenrir", "Aoede"] as const;
+
+export const OPENAI_VOICES = [
+  "coral",
+  "alloy",
+  "echo",
+  "fable",
+  "onyx",
+  "nova",
+  "shimmer",
+] as const;
+
 export const OPENROUTER_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
+
+export const ELEVENLABS_VOICES = [
+  "JBFqnCBsd6RMkjVDRZzb", // George (default)
+  "21m00Tcm4TlvDq8ikWAM", // Rachel
+  "AZnzlk1XvdvUeBnXmlld", // Domi
+  "EXAVITQu4vr4xnSDxMaL", // Bella
+  "ErXwobaYiN019PkySvjV", // Antoni
+  "MF3mGyEYCl7XYWbV9V6O", // Elli
+  "TxGEqnHWrfWFTfGW9XjX", // Josh
+  "VR6AewLTigWG4xSOukaG", // Arnold
+  "pNInz6obpgDQGcFmaJgB", // Adam
+  "yoZ06aMxZJJ28mfd3POQ", // Sam
+] as const;
+
+export const DEEPGRAM_VOICES = [
+  "aura-asteria-en",
+  "aura-luna-en",
+  "aura-stella-en",
+  "aura-athena-en",
+  "aura-hera-en",
+  "aura-orion-en",
+  "aura-arcas-en",
+  "aura-perseus-en",
+  "aura-angus-en",
+  "aura-orpheus-en",
+  "aura-helios-en",
+  "aura-zeus-en",
+] as const;
+
+/**
+ * Returns available prebuilt voice names / IDs for the selected provider.
+ */
+export function getVoicesForProvider(provider: LovableTtsProvider): readonly string[] {
+  switch (provider) {
+    case "lovable":
+      return LOVABLE_VOICES;
+    case "gemini":
+      return GEMINI_VOICES;
+    case "openai":
+      return OPENAI_VOICES;
+    case "openrouter":
+      return OPENROUTER_VOICES;
+    case "elevenlabs":
+      return ELEVENLABS_VOICES;
+    case "deepgram":
+      return DEEPGRAM_VOICES;
+    case "google":
+    case "auto":
+    default:
+      return [];
+  }
+}
+
+/**
+ * Returns the default voice name / ID for the selected provider.
+ */
+export function getDefaultVoiceForProvider(provider: LovableTtsProvider): string {
+  switch (provider) {
+    case "lovable":
+    case "gemini":
+      return "Kore";
+    case "openai":
+      return "coral";
+    case "openrouter":
+      return "alloy";
+    case "elevenlabs":
+      return "JBFqnCBsd6RMkjVDRZzb";
+    case "deepgram":
+      return "aura-asteria-en";
+    default:
+      return "";
+  }
+}
+
+export interface ExternalTtsAuditRecord {
+  id: string;
+  timestamp: number;
+  method: "GET" | "POST";
+  url: string;
+  endpoint: string;
+  requestHeaders: Record<string, string>;
+  requestBody?: unknown;
+  queryParams?: Record<string, string>;
+  provider?: string;
+  voice?: string;
+  lang: string;
+  text: string;
+  targetLang?: string;
+  speed?: number;
+  status: number;
+  statusText: string;
+  latencyMs: number;
+  responseHeaders: Record<string, string>;
+  responseBody?: unknown;
+  responseType: "json" | "binary" | "error" | "media";
+  audioMime?: string;
+  audioSizeBytes?: number;
+  audioUrl?: string;
+  error?: string;
+  diagnosticAdvice?: string;
+  source: "test_button" | "validate_service" | "playback" | "api_call";
+}
+
+const MAX_AUDIT_RECORDS = 30;
+let externalTtsAuditRecords: ExternalTtsAuditRecord[] = [];
+const auditListeners = new Set<() => void>();
+
+function notifyAuditListeners() {
+  for (const listener of auditListeners) {
+    try {
+      listener();
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export function subscribeExternalTtsAuditRecords(listener: () => void): () => void {
+  auditListeners.add(listener);
+  return () => {
+    auditListeners.delete(listener);
+  };
+}
+
+export function getExternalTtsAuditRecords(): ExternalTtsAuditRecord[] {
+  return externalTtsAuditRecords;
+}
+
+export function getLatestExternalTtsAuditRecord(): ExternalTtsAuditRecord | null {
+  return externalTtsAuditRecords[0] || null;
+}
+
+export function addExternalTtsAuditRecord(record: ExternalTtsAuditRecord): void {
+  externalTtsAuditRecords = [record, ...externalTtsAuditRecords.slice(0, MAX_AUDIT_RECORDS - 1)];
+  notifyAuditListeners();
+}
+
+export function clearExternalTtsAuditRecords(): void {
+  externalTtsAuditRecords = [];
+  notifyAuditListeners();
+}
+
+export function useExternalTtsAuditRecords(): ExternalTtsAuditRecord[] {
+  return useSyncExternalStore(
+    subscribeExternalTtsAuditRecords,
+    getExternalTtsAuditRecords,
+    getExternalTtsAuditRecords,
+  );
+}
+
+export function useLatestExternalTtsAuditRecord(): ExternalTtsAuditRecord | null {
+  return useSyncExternalStore(
+    subscribeExternalTtsAuditRecords,
+    getLatestExternalTtsAuditRecord,
+    getLatestExternalTtsAuditRecord,
+  );
+}
+
+export function extractResponseHeaders(res: Response): Record<string, string> {
+  const headers: Record<string, string> = {};
+  try {
+    res.headers.forEach((value, key) => {
+      headers[key] = value;
+    });
+  } catch {
+    // fallback
+  }
+  return headers;
+}
 
 export interface LovableTtsOptions {
   provider?: LovableTtsProvider;
@@ -51,6 +265,7 @@ export interface LovableTtsOptions {
   format?: LovableTtsFormat;
   target_lang?: string;
   apiKey?: string;
+  speakApiToken?: string;
   method?: LovableTtsMethod;
 }
 
@@ -92,6 +307,176 @@ export function normalizeLanguageCode(lang: string): string {
 }
 
 /**
+ * Retrieves the configured Speak API Personal Token (spk_... or tts_...).
+ */
+export function getSpeakApiToken(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const directToken = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN);
+    if (directToken && directToken.trim()) {
+      return directToken.trim();
+    }
+    const legacyKey = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY);
+    if (legacyKey && isSpeakApiPersonalToken(legacyKey)) {
+      return legacyKey.trim();
+    }
+    return "";
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Persists the Speak API Personal Token to localStorage.
+ */
+export function setSpeakApiToken(token: string): void {
+  if (typeof window === "undefined") return;
+  const clean = token.trim();
+  try {
+    if (clean) {
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN, clean);
+    } else {
+      localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN);
+    }
+  } catch (err) {
+    console.warn("Failed to persist Speak API token:", err);
+  }
+}
+
+/**
+ * Checks if the user has explicitly configured a custom Speak API personal token.
+ */
+export function hasCustomSpeakApiToken(): boolean {
+  return Boolean(getSpeakApiToken());
+}
+
+/**
+ * Retrieves the upstream Provider API key (sk_..., sk-or-..., AIza...).
+ */
+export function getProviderApiKey(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    const directKey = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY);
+    if (directKey && directKey.trim()) {
+      return directKey.trim();
+    }
+    const legacyKey =
+      localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY) ||
+      localStorage.getItem("yt_openrouter_api_key_v1") ||
+      localStorage.getItem("yt_openrouter_api_key");
+    if (legacyKey && isUpstreamProviderApiKey(legacyKey)) {
+      return legacyKey.trim();
+    }
+    return getServerOpenRouterApiKey();
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Persists the upstream Provider API key to localStorage.
+ */
+export function setProviderApiKey(apiKey: string): void {
+  if (typeof window === "undefined") return;
+  const clean = apiKey.trim();
+  try {
+    if (clean) {
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY, clean);
+      localStorage.setItem("yt_openrouter_api_key_v1", clean);
+      localStorage.setItem("yt_openrouter_api_key", clean);
+    } else {
+      localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY);
+      localStorage.removeItem("yt_openrouter_api_key_v1");
+      localStorage.removeItem("yt_openrouter_api_key");
+    }
+  } catch (err) {
+    console.warn("Failed to persist Provider API key:", err);
+  }
+}
+
+/**
+ * Checks if the user has explicitly configured a custom upstream provider API key.
+ */
+export function hasCustomProviderApiKey(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const directKey = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY);
+    if (directKey && directKey.trim()) return true;
+    const legacyKey =
+      localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY) ||
+      localStorage.getItem("yt_openrouter_api_key_v1") ||
+      localStorage.getItem("yt_openrouter_api_key");
+    return Boolean(legacyKey && isUpstreamProviderApiKey(legacyKey));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Resolves effective credentials into Speak API Personal Token (spk_...) and Upstream Provider Key.
+ * If a token is provided in apiKey but starts with 'spk_', it is automatically promoted to speakApiToken
+ * and prevented from being passed as an upstream provider key.
+ */
+export function resolveTtsCredentials(options?: LovableTtsOptions): {
+  speakApiToken: string;
+  providerApiKey: string;
+} {
+  let speakApiToken = (options?.speakApiToken || "").trim();
+  let providerApiKey = (options?.apiKey || "").trim();
+
+  // If apiKey looks like an spk_ token, promote it to speakApiToken and never leak as provider key
+  if (providerApiKey && isSpeakApiPersonalToken(providerApiKey)) {
+    if (!speakApiToken) {
+      speakApiToken = providerApiKey;
+    }
+    providerApiKey = "";
+  }
+
+  if (!speakApiToken) {
+    speakApiToken = getSpeakApiToken();
+  }
+
+  if (!providerApiKey) {
+    providerApiKey = getProviderApiKey();
+    if (isSpeakApiPersonalToken(providerApiKey)) {
+      if (!speakApiToken) speakApiToken = providerApiKey;
+      providerApiKey = "";
+    }
+  }
+
+  return { speakApiToken, providerApiKey };
+}
+
+/**
+ * Generates clear diagnostic advice explaining TTS error responses and how to resolve them.
+ */
+export function generateTtsDiagnosticAdvice(
+  statusCode: number,
+  errorText: string,
+  provider: string,
+  hasSpeakToken: boolean,
+  hasProviderKey: boolean,
+): string | undefined {
+  const norm = errorText.toLowerCase();
+  if (norm.includes("invalid api key format") && norm.includes("sk_")) {
+    return "An 'spk_' personal token was mistakenly sent as an upstream provider key. 'spk_' tokens authenticate the Speak API service and must be sent in the 'Authorization: Bearer' header, not in body.api_key.";
+  }
+  if (norm.includes("lovable ai requires an api key")) {
+    return "Your Speak API Personal Token (spk_...) authenticated successfully! However, Lovable AI voice synthesis requires an upstream key saved in your account on tts3.lovable.app or an 'sk_' provider key. Tip: Switch to Google TTS which is free and works immediately with your token!";
+  }
+  if (norm.includes("auto and google do not accept api_key")) {
+    return "Google and Auto providers are public and reject the 'api_key' payload field. Speak API personal tokens (spk_...) should be sent in the 'Authorization: Bearer' header.";
+  }
+  if (norm.includes("invalid personal api token")) {
+    return "The personal API token was rejected by tts3.lovable.app. Ensure the token is copied completely, starts with 'spk_', and is not expired.";
+  }
+  if (statusCode === 401) {
+    return "Authentication failed (HTTP 401). If using Speak API, verify your token starts with 'spk_' and is valid on https://tts3.lovable.app. If using a custom provider, check the provider key.";
+  }
+  return undefined;
+}
+
+/**
  * Builds the Lovable Speak API URL according to the OpenAPI specification.
  * Endpoint: https://tts3.lovable.app/api/public/tts
  * Query parameters:
@@ -101,7 +486,8 @@ export function normalizeLanguageCode(lang: string): string {
  * - voice (optional, string)
  * - format (optional, "binary" | "json", defaults to "binary")
  * - target_lang (optional, string)
- * - api_key (optional, string)
+ * - api_key (optional, string, only for keyed providers like openrouter/lovable)
+ * - token (optional, string, Speak API personal token for authenticated GET requests)
  */
 export function buildLovableTtsUrl(
   text: string,
@@ -146,14 +532,16 @@ export function buildLovableTtsUrl(
     url.searchParams.set("target_lang", targetLang.trim());
   }
 
-  const apiKey =
-    options?.apiKey ??
-    getLovableTtsApiKey() ??
-    (provider === "openrouter" && typeof window !== "undefined"
-      ? localStorage.getItem("yt_openrouter_api_key_v1") || ""
-      : "");
-  if (apiKey && apiKey.trim()) {
-    url.searchParams.set("api_key", apiKey.trim());
+  const { speakApiToken, providerApiKey } = resolveTtsCredentials(options);
+
+  // Keyed providers only accept api_key query param (never Google or Auto)
+  if (providerApiKey && provider !== "google" && provider !== "auto") {
+    url.searchParams.set("api_key", providerApiKey);
+  }
+
+  // If speakApiToken is present, provide token query param for direct GET requests
+  if (speakApiToken) {
+    url.searchParams.set("token", speakApiToken);
   }
 
   const format = options?.format || getLovableTtsFormat();
@@ -177,12 +565,7 @@ export function buildLovableTtsRequestBody(
   const speed = options?.speed ?? getLovableTtsSpeed();
   const rawOptions = options?.options ?? getLovableTtsOptions();
   const targetLang = options?.target_lang ?? getLovableTtsTargetLang();
-  const apiKey =
-    options?.apiKey ??
-    getLovableTtsApiKey() ??
-    (provider === "openrouter" && typeof window !== "undefined"
-      ? localStorage.getItem("yt_openrouter_api_key_v1") || ""
-      : "");
+  const { providerApiKey } = resolveTtsCredentials(options);
   const format = options?.format || getLovableTtsFormat();
 
   const body: LovableTtsRequestBody = {
@@ -214,8 +597,9 @@ export function buildLovableTtsRequestBody(
   if (targetLang && targetLang.trim()) {
     body.target_lang = targetLang.trim();
   }
-  if (apiKey && apiKey.trim()) {
-    body.api_key = apiKey.trim();
+  // CRITICAL: Only set body.api_key for keyed providers and NEVER with spk_ tokens
+  if (providerApiKey && provider !== "google" && provider !== "auto") {
+    body.api_key = providerApiKey;
   }
   return body;
 }
@@ -224,37 +608,194 @@ export function buildLovableTtsRequestBody(
  * Synthesizes speech using the Lovable Speak API POST endpoint (application/json).
  * Supports both binary audio streams (creates blob URL) and JSON base64 payloads.
  */
+/**
+ * Synthesizes speech using the Lovable Speak API POST endpoint (application/json).
+ * Supports both binary audio streams (creates blob URL) and JSON base64 payloads.
+ */
 export async function synthesizeLovableTtsPost(
   text: string,
   lang: string,
   options?: LovableTtsOptions,
+  source: ExternalTtsAuditRecord["source"] = "playback",
 ): Promise<{ url: string; revokeOnDone?: boolean } | null> {
   if (!text) return null;
+  const startTime = Date.now();
   const body = buildLovableTtsRequestBody(text, lang, options);
+  const { speakApiToken, providerApiKey } = resolveTtsCredentials(options);
+  const provider = body.provider || "google";
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (speakApiToken) {
+    headers["Authorization"] = `Bearer ${speakApiToken}`;
+  }
+  if (providerApiKey && provider !== "google" && provider !== "auto") {
+    headers["X-Provider-API-Key"] = providerApiKey;
+  }
+
+  const auditId = `tts-post-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const tracker = trackNetworkRequest(LOVABLE_TTS_ENDPOINT, "POST", "fetch");
+
   try {
     const res = await fetch(LOVABLE_TTS_ENDPOINT, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify(body),
     });
+
+    const latencyMs = Date.now() - startTime;
+    const resHeaders = extractResponseHeaders(res);
+    const contentType = res.headers.get("content-type") || "";
+
     if (!res.ok) {
-      console.warn("[LovableTTS] POST synthesis failed with status:", res.status);
+      let errorBody = "";
+      try {
+        errorBody = await res.text();
+      } catch {
+        // ignore
+      }
+      const diagnosticAdvice = generateTtsDiagnosticAdvice(
+        res.status,
+        errorBody,
+        provider,
+        Boolean(speakApiToken),
+        Boolean(providerApiKey),
+      );
+      const record: ExternalTtsAuditRecord = {
+        id: auditId,
+        timestamp: Date.now(),
+        method: "POST",
+        url: LOVABLE_TTS_ENDPOINT,
+        endpoint: LOVABLE_TTS_ENDPOINT,
+        requestHeaders: headers,
+        requestBody: body,
+        provider,
+        voice: body.voice,
+        lang: body.lang,
+        text: body.text,
+        targetLang: body.target_lang,
+        speed: body.speed,
+        status: res.status,
+        statusText:
+          res.statusText ||
+          (res.status === 400
+            ? "Bad Request"
+            : res.status === 401
+              ? "Unauthorized"
+              : res.status === 502
+                ? "Bad Gateway"
+                : res.status === 503
+                  ? "Service Unavailable"
+                  : "Error"),
+        latencyMs,
+        responseHeaders: resHeaders,
+        responseBody: errorBody,
+        responseType: "error",
+        error: `HTTP ${res.status}: ${errorBody || res.statusText || "POST synthesis failed"}`,
+        diagnosticAdvice,
+        source,
+      };
+      addExternalTtsAuditRecord(record);
+      tracker.fail(record.error || "POST synthesis failed", res.status, errorBody);
+      console.warn("[LovableTTS] POST synthesis failed with status:", res.status, errorBody);
       return null;
     }
+
     const format = body.format || "binary";
     if (format === "json") {
       const data = (await res.json()) as LovableTtsJsonResponse;
+      const mime = data?.mime || "audio/mpeg";
+      const audioBytes = data?.audio ? Math.round((data.audio.length * 3) / 4) : 0;
+      const record: ExternalTtsAuditRecord = {
+        id: auditId,
+        timestamp: Date.now(),
+        method: "POST",
+        url: LOVABLE_TTS_ENDPOINT,
+        endpoint: LOVABLE_TTS_ENDPOINT,
+        requestHeaders: headers,
+        requestBody: body,
+        provider: body.provider || "google",
+        voice: body.voice,
+        lang: body.lang,
+        text: body.text,
+        targetLang: body.target_lang,
+        speed: body.speed,
+        status: res.status,
+        statusText: res.statusText || "OK",
+        latencyMs,
+        responseHeaders: resHeaders,
+        responseBody: data,
+        responseType: "json",
+        audioMime: mime,
+        audioSizeBytes: audioBytes,
+        source,
+      };
+      addExternalTtsAuditRecord(record);
+      tracker.complete(res.status, data);
+
       if (!data?.audio) return null;
-      const mime = data.mime || "audio/mpeg";
       return { url: `data:${mime};base64,${data.audio}`, revokeOnDone: false };
     } else {
       const blob = await res.blob();
       const objectUrl = URL.createObjectURL(blob);
+      const record: ExternalTtsAuditRecord = {
+        id: auditId,
+        timestamp: Date.now(),
+        method: "POST",
+        url: LOVABLE_TTS_ENDPOINT,
+        endpoint: LOVABLE_TTS_ENDPOINT,
+        requestHeaders: headers,
+        requestBody: body,
+        provider: body.provider || "google",
+        voice: body.voice,
+        lang: body.lang,
+        text: body.text,
+        targetLang: body.target_lang,
+        speed: body.speed,
+        status: res.status,
+        statusText: res.statusText || "OK",
+        latencyMs,
+        responseHeaders: resHeaders,
+        responseBody: `[Binary audio blob, ${blob.size} bytes, type: ${blob.type || contentType}]`,
+        responseType: "binary",
+        audioMime: blob.type || contentType || "audio/mpeg",
+        audioSizeBytes: blob.size,
+        audioUrl: objectUrl,
+        source,
+      };
+      addExternalTtsAuditRecord(record);
+      tracker.complete(res.status, `Binary audio stream (${blob.size} bytes)`);
       return { url: objectUrl, revokeOnDone: true };
     }
   } catch (err) {
+    const errorMsg = (err as Error)?.message || String(err);
+    const latencyMs = Date.now() - startTime;
+    const record: ExternalTtsAuditRecord = {
+      id: auditId,
+      timestamp: Date.now(),
+      method: "POST",
+      url: LOVABLE_TTS_ENDPOINT,
+      endpoint: LOVABLE_TTS_ENDPOINT,
+      requestHeaders: headers,
+      requestBody: body,
+      provider: body.provider || "google",
+      voice: body.voice,
+      lang: body.lang,
+      text: body.text,
+      targetLang: body.target_lang,
+      speed: body.speed,
+      status: 0,
+      statusText: "Network Error",
+      latencyMs,
+      responseHeaders: {},
+      responseBody: null,
+      responseType: "error",
+      error: errorMsg,
+      source,
+    };
+    addExternalTtsAuditRecord(record);
+    tracker.fail(errorMsg, 0);
     console.warn("[LovableTTS] Network error during POST speech synthesis:", err);
     return null;
   }
@@ -267,18 +808,265 @@ export async function fetchLovableTtsJson(
   text: string,
   lang: string,
   options?: LovableTtsOptions,
+  source: ExternalTtsAuditRecord["source"] = "api_call",
 ): Promise<LovableTtsJsonResponse | null> {
   const url = buildLovableTtsUrl(text, lang, { ...options, format: "json" });
   if (!url) return null;
+  const startTime = Date.now();
+  const auditId = `tts-get-json-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const tracker = trackNetworkRequest(url, "GET", "fetch");
+  const { speakApiToken, providerApiKey } = resolveTtsCredentials(options);
+  const provider = options?.provider || getLovableTtsProvider();
+  const headers: Record<string, string> = {};
+  if (speakApiToken) {
+    headers["Authorization"] = `Bearer ${speakApiToken}`;
+  }
+  if (providerApiKey && provider !== "google" && provider !== "auto") {
+    headers["X-Provider-API-Key"] = providerApiKey;
+  }
+  const parsedUrl = new URL(url);
+  const queryParams = Object.fromEntries(parsedUrl.searchParams.entries());
+
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { headers });
+    const latencyMs = Date.now() - startTime;
+    const resHeaders = extractResponseHeaders(res);
+
     if (!res.ok) {
+      let errorBody = "";
+      try {
+        errorBody = await res.text();
+      } catch {
+        // ignore
+      }
+      const diagnosticAdvice = generateTtsDiagnosticAdvice(
+        res.status,
+        errorBody,
+        provider,
+        Boolean(speakApiToken),
+        Boolean(providerApiKey),
+      );
+      const record: ExternalTtsAuditRecord = {
+        id: auditId,
+        timestamp: Date.now(),
+        method: "GET",
+        url,
+        endpoint: LOVABLE_TTS_ENDPOINT,
+        requestHeaders: headers,
+        queryParams,
+        provider,
+        voice: options?.voice,
+        lang,
+        text,
+        status: res.status,
+        statusText: res.statusText || (res.status === 401 ? "Unauthorized" : "Error"),
+        latencyMs,
+        responseHeaders: resHeaders,
+        responseBody: errorBody,
+        responseType: "error",
+        error: `HTTP ${res.status}: ${errorBody || res.statusText || "Request failed"}`,
+        diagnosticAdvice,
+        source,
+      };
+      addExternalTtsAuditRecord(record);
+      tracker.fail(record.error || "GET json failed", res.status, errorBody);
       console.warn("[LovableTTS] Request returned non-200 status:", res.status);
       return null;
     }
-    return (await res.json()) as LovableTtsJsonResponse;
+    const data = (await res.json()) as LovableTtsJsonResponse;
+    const audioBytes = data?.audio ? Math.round((data.audio.length * 3) / 4) : 0;
+    const record: ExternalTtsAuditRecord = {
+      id: auditId,
+      timestamp: Date.now(),
+      method: "GET",
+      url,
+      endpoint: LOVABLE_TTS_ENDPOINT,
+      requestHeaders: headers,
+      queryParams,
+      provider,
+      voice: options?.voice,
+      lang,
+      text,
+      status: res.status,
+      statusText: "OK",
+      latencyMs,
+      responseHeaders: resHeaders,
+      responseBody: data,
+      responseType: "json",
+      audioMime: data?.mime || "audio/mpeg",
+      audioSizeBytes: audioBytes,
+      source,
+    };
+    addExternalTtsAuditRecord(record);
+    tracker.complete(res.status, data);
+    return data;
   } catch (err) {
+    const errorMsg = (err as Error)?.message || String(err);
+    const latencyMs = Date.now() - startTime;
+    const record: ExternalTtsAuditRecord = {
+      id: auditId,
+      timestamp: Date.now(),
+      method: "GET",
+      url,
+      endpoint: LOVABLE_TTS_ENDPOINT,
+      requestHeaders: headers,
+      queryParams,
+      provider,
+      voice: options?.voice,
+      lang,
+      text,
+      status: 0,
+      statusText: "Network Error",
+      latencyMs,
+      responseHeaders: {},
+      responseBody: null,
+      responseType: "error",
+      error: errorMsg,
+      source,
+    };
+    addExternalTtsAuditRecord(record);
+    tracker.fail(errorMsg, 0);
     console.warn("[LovableTTS] Network error fetching speech JSON:", err);
+    return null;
+  }
+}
+
+/**
+ * Fetches binary audio stream via GET and returns a Blob URL with full request/response auditing.
+ */
+export async function fetchLovableTtsBinaryBlob(
+  text: string,
+  lang: string,
+  options?: LovableTtsOptions,
+  source: ExternalTtsAuditRecord["source"] = "playback",
+): Promise<{ url: string; revokeOnDone: boolean } | null> {
+  const url = buildLovableTtsUrl(text, lang, { ...options, format: "binary" });
+  if (!url) return null;
+  const startTime = Date.now();
+  const auditId = `tts-get-bin-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  const tracker = trackNetworkRequest(url, "GET", "fetch");
+  const { speakApiToken, providerApiKey } = resolveTtsCredentials(options);
+  const provider = options?.provider || getLovableTtsProvider();
+  const headers: Record<string, string> = {
+    Accept: "audio/mpeg, audio/wav, audio/*",
+  };
+  if (speakApiToken) {
+    headers["Authorization"] = `Bearer ${speakApiToken}`;
+  }
+  if (providerApiKey && provider !== "google" && provider !== "auto") {
+    headers["X-Provider-API-Key"] = providerApiKey;
+  }
+  const parsedUrl = new URL(url);
+  const queryParams = Object.fromEntries(parsedUrl.searchParams.entries());
+
+  try {
+    const res = await fetch(url, { headers });
+    const latencyMs = Date.now() - startTime;
+    const resHeaders = extractResponseHeaders(res);
+    const contentType = res.headers.get("content-type") || "audio/mpeg";
+
+    if (!res.ok) {
+      let errorBody = "";
+      try {
+        errorBody = await res.text();
+      } catch {
+        // ignore
+      }
+      const diagnosticAdvice = generateTtsDiagnosticAdvice(
+        res.status,
+        errorBody,
+        provider,
+        Boolean(speakApiToken),
+        Boolean(providerApiKey),
+      );
+      const record: ExternalTtsAuditRecord = {
+        id: auditId,
+        timestamp: Date.now(),
+        method: "GET",
+        url,
+        endpoint: LOVABLE_TTS_ENDPOINT,
+        requestHeaders: headers,
+        queryParams,
+        provider,
+        voice: options?.voice,
+        lang,
+        text,
+        status: res.status,
+        statusText: res.statusText || (res.status === 401 ? "Unauthorized" : "Error"),
+        latencyMs,
+        responseHeaders: resHeaders,
+        responseBody: errorBody,
+        responseType: "error",
+        error: `HTTP ${res.status}: ${errorBody || res.statusText || "Binary synthesis failed"}`,
+        diagnosticAdvice,
+        source,
+      };
+      addExternalTtsAuditRecord(record);
+      tracker.fail(record.error || "GET binary audio failed", res.status, errorBody);
+      console.warn("[LovableTTS] GET binary synthesis failed with status:", res.status);
+      return null;
+    }
+      addExternalTtsAuditRecord(record);
+      tracker.fail(record.error || "GET binary audio failed", res.status, errorBody);
+      console.warn("[LovableTTS] GET binary synthesis failed with status:", res.status);
+      return null;
+    }
+
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const record: ExternalTtsAuditRecord = {
+      id: auditId,
+      timestamp: Date.now(),
+      method: "GET",
+      url,
+      endpoint: LOVABLE_TTS_ENDPOINT,
+      requestHeaders: headers,
+      queryParams,
+      provider: options?.provider || getLovableTtsProvider(),
+      voice: options?.voice,
+      lang,
+      text,
+      status: res.status,
+      statusText: "OK",
+      latencyMs,
+      responseHeaders: resHeaders,
+      responseBody: `[Binary audio stream, ${blob.size} bytes, type: ${blob.type || contentType}]`,
+      responseType: "binary",
+      audioMime: blob.type || contentType,
+      audioSizeBytes: blob.size,
+      audioUrl: objectUrl,
+      source,
+    };
+    addExternalTtsAuditRecord(record);
+    tracker.complete(res.status, `Binary audio stream (${blob.size} bytes)`);
+    return { url: objectUrl, revokeOnDone: true };
+  } catch (err) {
+    const errorMsg = (err as Error)?.message || String(err);
+    const latencyMs = Date.now() - startTime;
+    const record: ExternalTtsAuditRecord = {
+      id: auditId,
+      timestamp: Date.now(),
+      method: "GET",
+      url,
+      endpoint: LOVABLE_TTS_ENDPOINT,
+      requestHeaders: headers,
+      queryParams,
+      provider: options?.provider || getLovableTtsProvider(),
+      voice: options?.voice,
+      lang,
+      text,
+      status: 0,
+      statusText: "Network Error",
+      latencyMs,
+      responseHeaders: {},
+      responseBody: null,
+      responseType: "error",
+      error: errorMsg,
+      source,
+    };
+    addExternalTtsAuditRecord(record);
+    tracker.fail(errorMsg, 0);
+    console.warn("[LovableTTS] Network error during GET speech synthesis:", err);
     return null;
   }
 }
@@ -291,26 +1079,25 @@ export async function synthesizeLovableTtsAudio(
   text: string,
   lang: string,
   options?: LovableTtsOptions,
+  source: ExternalTtsAuditRecord["source"] = "playback",
 ): Promise<{ url: string; revokeOnDone?: boolean } | null> {
   const method = options?.method || getLovableTtsMethod();
   const format = options?.format || getLovableTtsFormat();
 
   if (method === "post") {
-    return synthesizeLovableTtsPost(text, lang, { ...options, format });
+    return synthesizeLovableTtsPost(text, lang, { ...options, format }, source);
   }
 
   // GET method
   if (format === "json") {
-    const jsonRes = await fetchLovableTtsJson(text, lang, options);
+    const jsonRes = await fetchLovableTtsJson(text, lang, options, source);
     if (!jsonRes?.audio) return null;
     const mime = jsonRes.mime || "audio/mpeg";
     return { url: `data:${mime};base64,${jsonRes.audio}`, revokeOnDone: false };
   }
 
   // GET binary
-  const getUrl = buildLovableTtsUrl(text, lang, options);
-  if (!getUrl) return null;
-  return { url: getUrl, revokeOnDone: false };
+  return fetchLovableTtsBinaryBlob(text, lang, options, source);
 }
 
 /**
@@ -612,6 +1399,7 @@ export async function validateRemoteTtsService(
   const serviceName = "Lovable TTS3 Service (tts3.lovable.app)";
   const provider = options?.provider || getLovableTtsProvider();
   const endpoint = LOVABLE_TTS_ENDPOINT;
+  const { speakApiToken, providerApiKey } = resolveTtsCredentials();
 
   try {
     const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
@@ -619,11 +1407,18 @@ export async function validateRemoteTtsService(
 
     try {
       const body = buildLovableTtsRequestBody(testText, testLang, { provider, format: "json" });
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (speakApiToken) {
+        headers["Authorization"] = `Bearer ${speakApiToken}`;
+      }
+      if (providerApiKey && provider !== "google" && provider !== "auto") {
+        headers["X-Provider-API-Key"] = providerApiKey;
+      }
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(body),
         signal: controller?.signal,
       });
@@ -649,6 +1444,38 @@ export async function validateRemoteTtsService(
         } else {
           audioVerified = true;
         }
+
+        const resHeaders = extractResponseHeaders(res);
+        let responseBodyData: unknown = null;
+        if (contentType.includes("json")) {
+          try {
+            responseBodyData = await res.clone().json();
+          } catch {
+            // ignore
+          }
+        }
+        const valRecord: ExternalTtsAuditRecord = {
+          id: `val-tts3-${Date.now()}`,
+          timestamp: Date.now(),
+          method: "POST",
+          url: endpoint,
+          endpoint,
+          requestHeaders: { "Content-Type": "application/json" },
+          requestBody: body,
+          provider: body.provider || "google",
+          voice: body.voice,
+          lang: body.lang,
+          text: body.text,
+          status: res.status,
+          statusText: res.statusText || (res.ok ? "OK" : "Error"),
+          latencyMs,
+          responseHeaders: resHeaders,
+          responseBody: responseBodyData,
+          responseType: res.ok ? "json" : "error",
+          error: res.ok ? undefined : `HTTP ${res.status}: ${res.statusText}`,
+          source: "validate_service",
+        };
+        addExternalTtsAuditRecord(valRecord);
 
         const result: RemoteTtsValidationResult = {
           ok: true,
@@ -1170,7 +1997,12 @@ export async function playAlternativeTtsAudio(
         speed: requestedSpeed,
         ...optionsOverride,
       };
-      const synthesized = await synthesizeLovableTtsAudio(text, lang, mergedOptions);
+      const synthesized = await synthesizeLovableTtsAudio(
+        text,
+        lang,
+        mergedOptions,
+        optionsOverride ? "test_button" : "playback",
+      );
       if (synthesized?.url) {
         audioUrl = synthesized.url;
         shouldRevoke = Boolean(synthesized.revokeOnDone);
@@ -1183,6 +2015,26 @@ export async function playAlternativeTtsAudio(
   // Direct Google TTS service fallback or direct engine selection:
   if (!audioUrl) {
     audioUrl = buildGoogleTranslateTtsUrl(text, lang);
+    const auditId = `tts-google-direct-${Date.now()}`;
+    addExternalTtsAuditRecord({
+      id: auditId,
+      timestamp: Date.now(),
+      method: "GET",
+      url: audioUrl,
+      endpoint: GOOGLE_TRANSLATE_TTS_ENDPOINT,
+      requestHeaders: {},
+      queryParams: { tl: normalizeLanguageCode(lang), q: text },
+      lang,
+      text,
+      status: 200,
+      statusText: "Direct Audio Stream",
+      latencyMs: 0,
+      responseHeaders: {},
+      responseBody: `[Direct Google Translate Audio Stream: ${audioUrl}]`,
+      responseType: "media",
+      audioUrl,
+      source: optionsOverride ? "test_button" : "playback",
+    });
   }
   if (!audioUrl) return;
 

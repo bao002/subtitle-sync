@@ -4,7 +4,11 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*(No active tasks pending. All prompt tasks completed and verified in docs/done.md.)*
+- [ ] **Task 270: Remote Speak API Token Authentication (`spk_...`) & Upstream Provider Key Separation**
+  - **Sub-task 270.1**: Token classification in `src/lib/alternative-tts.ts`: distinguish Speak API Personal Bearer Tokens (`spk_...`, `tts_...`) from provider keys (`sk_...`, `sk-or-...`). Automatically attach `Authorization: Bearer <token>` header for Speak API tokens without leaking them into body `api_key` or `X-Provider-API-Key`.
+  - **Sub-task 270.2**: Update `ExternalTtsDebuggerPanel.tsx` with cURL export, token classification view, and actionable diagnostics for upstream key errors. Update token input guidance in Beginner and Advanced modes.
+  - **Sub-task 270.3**: Synchronize version to `2.0.71` (`versionCode = 20071`) across the 5 files, create dedicated automated test `scripts/verify-spk-token-auth-and-tts3.ts`, verify lint and build.
+
 
 
 

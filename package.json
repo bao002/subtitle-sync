@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.69",
+  "version": "2.0.70",
 
   "private": true,
   "sideEffects": false,
@@ -15,6 +15,7 @@
     "lint": "eslint src/lib src/routes",
     "coverage": "npm run test:coverage",
     "test:coverage": "tsx scripts/generate-test-coverage.ts",
+    "test:tts3-docs-parity": "tsx scripts/verify-tts3-docs-and-google-tts-parity.ts",
     "test:single-icon-floating-button": "tsx scripts/verify-single-icon-floating-button.ts",
     "test:settings-nested-accordions-and-clean-views": "tsx scripts/verify-settings-nested-accordions-and-clean-views.ts",
     "test:no-favorite-languages-duplication": "tsx scripts/verify-no-favorite-languages-duplication.ts",

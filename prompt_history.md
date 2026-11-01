@@ -210,15 +210,45 @@ CSS 1: {
 
 ---
 
-### Prompt 17: Unified Single Input Field to Filter Languages (No 2 Separated Items)
-```
-the list of languages should have an input fied in order to filter (dont use 2 saperated items to narrow the list!)
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div#stage-2-extend-favorites-container:nth-of-type(3)
-CSS 1: {
+---
 
-}
-[AIS_METADATA_SECTION_END]
+### Prompt 18: TTS3 Docs Compliance, Direct Google TTS Parity, and Full Request/Response External TTS Debugger
 ```
+0. fix it:
+this project failed to work with docs: https://tts3.lovable.app/docs
+
+1 direct using of google tts services implemented on https://github.com/bao002/subtitle-sync/tree/main but doesnt correctly implemented in this project
+
+2. using the external tts service - show full request and response in order to help debugging.
+```
+
+---
+
+### Prompt 19: Remote Speak API Token Authentication (spk_) & Upstream Provider Key Separation
+```
+i have generated a token on the remote tts service: spk_452003d7-32c5-4bb7-ac67-f3062c7b5965.o6ANX5Jt699eIiuAdbweAcSYj37juM7stQDlVJKlxz8
+
+request:
+curl --url 'https://tts3.lovable.app/api/public/tts' \
+  -H 'accept: */*' \
+  -H 'accept-language: he-IL,he;q=0.9' \
+  -H 'content-type: application/json' \
+  -H 'origin: https://ais-dev-g2m5sblwvppcvkwplxs4u3-450223931914.europe-west2.run.app' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://ais-dev-g2m5sblwvppcvkwplxs4u3-450223931914.europe-west2.run.app/' \
+  -H 'sec-ch-ua: "Not:A-Brand";v="8", "Chromium";v="156", "Brave";v="156"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "Windows"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: cross-site' \
+  -H 'sec-gpc: 1' \
+  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36' \
+  --data-raw '{"text":"Test","lang":"en","format":"json","provider":"lovable","voice":"Kore","api_key":"spk_452003d7-32c5-4bb7-ac67-f3062c7b5965.o6ANX5Jt699eIiuAdbweAcSYj37juM7stQDlVJKlxz8"}'
+response:
+{
+    "error": "lovable request failed (HTTP 401). Lovable AI rejected the API key. Check that the key is current and correctly saved. Provider detail: Invalid API key format. Key must start with 'sk_' prefix."
+}
+```
+
 

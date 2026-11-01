@@ -440,7 +440,5 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-default-language-restricted-to-fetched.ts`     | Default Language Restricted to Fetched Subtitles Verification Suite (Task 265)    | Asserts restriction of default language choices exclusively to languages with successfully fetched subtitles in tracks, baseLanguage fallback logic, and version 2.0.66 synchronization. |
 | `scripts/verify-stage-2-extend-favorite-languages.ts`          | Stage 2 Extend Favorite Languages In-Place Control Verification Suite (Task 266)  | Asserts in-place favorite languages extension control in #stage-2-learning-goals-card, multi-catalog select dropdown, automatic targetLanguages approval, in-place chip removal, and version 2.0.67 synchronization. |
 | `scripts/verify-single-icon-floating-button.ts`                | Single-Icon Floating Button Verification Suite (Task 267)                         | Asserts exactly 1 visible floating button with 1 dynamic icon (Pause, ScrollText, Play), elimination of secondary stacked badge element, preserved drag & popup menu functionality, and version 2.0.68 synchronization across all 5 targets. |
-
-
-
-
+| `src/components/ExternalTtsDebuggerPanel.tsx`                  | External TTS Request/Response Debugger Panel (Task 269)                           | Full HTTP request (method, url, query, headers, payload) and response (status, duration, headers, audio bytes/payload/error) inspector with copy buttons, collapsible UI, audio player, and real-time subscription. |
+| `scripts/verify-tts3-docs-and-google-tts-parity.ts`            | TTS3 Docs Compliance, Google TTS Parity & External Debugger Suite (Task 269)     | Validates OpenAPI 3.1.0 / tts3.lovable.app docs compliance (8 providers, full voice catalogs), direct Google TTS routing parity, External TTS debugger inspection, and version 2.0.70 synchronization across all 5 files. |

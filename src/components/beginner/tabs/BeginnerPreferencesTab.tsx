@@ -53,11 +53,17 @@ import {
   setLovableTtsSpeed,
   getLovableTtsApiKey,
   setLovableTtsApiKey,
+  getSpeakApiToken,
+  isSpeakApiPersonalToken,
   getServerOpenRouterApiKey,
   hasCustomOpenRouterApiKey,
+  LOVABLE_TTS_DOCS_URL,
   LOVABLE_TTS_OPENAPI_URL,
+  LOVABLE_TTS_PROVIDERS,
   LOVABLE_VOICES,
   OPENROUTER_VOICES,
+  getVoicesForProvider,
+  getDefaultVoiceForProvider,
   validateRemoteTtsService,
   getLastValidationResult,
   type AlternativeTtsMode,
@@ -65,6 +71,7 @@ import {
   type LovableTtsProvider,
   type RemoteTtsValidationResult,
 } from "@/lib/alternative-tts";
+import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
 
 import { GlobalFavoriteLanguagesPanel } from "@/components/GlobalFavoriteLanguagesPanel";
 
@@ -502,11 +509,20 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 <option value="google_translate">Google TTS (Direct translate_tts)</option>
               </select>
               <a
+                href={LOVABLE_TTS_DOCS_URL}
+                target="_blank"
+                rel="noreferrer"
+                data-testid="beginner-lovable-tts-docs-link"
+                className="text-primary hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1 font-semibold"
+              >
+                API Docs (https://tts3.lovable.app/docs) ↗
+              </a>
+              <a
                 href={LOVABLE_TTS_OPENAPI_URL}
                 target="_blank"
                 rel="noreferrer"
                 data-testid="beginner-lovable-tts-openapi-link"
-                className="text-primary hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1"
+                className="text-muted-foreground hover:text-foreground hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1"
               >
                 OpenAPI 3.1.0 Spec ↗
               </a>
@@ -523,61 +539,55 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                       const p = e.target.value as LovableTtsProvider;
                       setLovableTtsProviderState(p);
                       setLovableTtsProvider(p);
-                      if (
-                        p === "openrouter" &&
-                        !(OPENROUTER_VOICES as readonly string[]).includes(lovableTtsVoiceState)
-                      ) {
-                        setLovableTtsVoiceState("alloy");
-                        setLovableTtsVoice("alloy");
-                      } else if (
-                        p === "lovable" &&
-                        !(LOVABLE_VOICES as readonly string[]).includes(lovableTtsVoiceState)
-                      ) {
-                        setLovableTtsVoiceState("Kore");
-                        setLovableTtsVoice("Kore");
+                      const defaultVoice = getDefaultVoiceForProvider(p);
+                      if (defaultVoice) {
+                        setLovableTtsVoiceState(defaultVoice);
+                        setLovableTtsVoice(defaultVoice);
                       }
                     }}
                     className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-mono font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
                   >
-                    <option value="lovable">lovable</option>
-                    <option value="google">google</option>
-                    <option value="openrouter">openrouter</option>
+                    {LOVABLE_TTS_PROVIDERS.map((p) => (
+                      <option key={p} value={p}>
+                        {p} {p === "google" ? "(Google TTS directly - default)" : ""}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   <span className="text-muted-foreground font-medium">Voice:</span>
-                  {lovableTtsProviderState === "google" ? (
-                    <span className="text-xs text-muted-foreground italic px-2 py-0.5">
-                      Default (Single voice)
-                    </span>
-                  ) : (
-                    <select
-                      data-testid="beginner-lovable-tts-voice-select"
-                      value={
-                        lovableTtsVoiceState ||
-                        (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")
-                      }
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setLovableTtsVoiceState(v);
-                        setLovableTtsVoice(v);
-                      }}
-                      className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
-                    >
-                      {lovableTtsProviderState === "openrouter"
-                        ? OPENROUTER_VOICES.map((v) => (
-                            <option key={v} value={v}>
-                              {v} {v === "alloy" ? "(Default)" : ""}
-                            </option>
-                          ))
-                        : LOVABLE_VOICES.map((v) => (
-                            <option key={v} value={v}>
-                              {v} {v === "Kore" ? "(Default)" : ""}
-                            </option>
-                          ))}
-                    </select>
-                  )}
+                  {(() => {
+                    const availableVoices = getVoicesForProvider(lovableTtsProviderState);
+                    if (availableVoices.length === 0) {
+                      return (
+                        <span className="text-xs text-muted-foreground italic px-2 py-0.5">
+                          {lovableTtsProviderState === "google"
+                            ? "Google TTS (Default voice, no key required)"
+                            : "Default / auto-selected by provider"}
+                        </span>
+                      );
+                    }
+                    const defaultV = getDefaultVoiceForProvider(lovableTtsProviderState);
+                    return (
+                      <select
+                        data-testid="beginner-lovable-tts-voice-select"
+                        value={lovableTtsVoiceState || defaultV}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setLovableTtsVoiceState(v);
+                          setLovableTtsVoice(v);
+                        }}
+                        className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
+                      >
+                        {availableVoices.map((v) => (
+                          <option key={v} value={v}>
+                            {v} {v === defaultV ? "(Default)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -840,6 +850,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                   </span>
                 </div>
               )}
+
+              {/* External TTS Request & Response Debugger Panel */}
+              <ExternalTtsDebuggerPanel className="mt-3" />
             </div>
           </div>
         )}

@@ -1,5 +1,37 @@
 # Done tasks
 
+## Task 269: TTS3 Docs Compliance, Direct Google TTS Routing Parity, and Full Request/Response External TTS Debugger
+
+- **Implementation**:
+  - **Chapter 0 (Full Compliance with https://tts3.lovable.app/docs & OpenAPI 3.1.0)**:
+    - Added `LOVABLE_TTS_DOCS_URL = "https://tts3.lovable.app/docs"` in `src/lib/alternative-tts.ts`.
+    - Expanded `LovableTtsProvider` & `LOVABLE_TTS_PROVIDERS` to cover all 8 documented providers: `["auto", "google", "lovable", "openrouter", "gemini", "openai", "elevenlabs", "deepgram"]`.
+    - Added voice catalogs and utility helpers `getVoicesForProvider` & `getDefaultVoiceForProvider` for all providers (Gemini, OpenAI, ElevenLabs, Deepgram, Lovable, OpenRouter).
+    - Added `X-Provider-API-Key` request header support for GET and POST endpoints per OpenAPI specification.
+    - Updated UI links in Beginner Mode (`BeginnerPreferencesTab.tsx`) and Advanced Mode (`src/routes/index.tsx`) to link directly to `https://tts3.lovable.app/docs`.
+  - **Chapter 1 (Direct using of Google TTS services parity with bao002/subtitle-sync)**:
+    - Fixed Google TTS selection in `src/routes/index.tsx` so selecting `Google TTS (primary)` routes to working Speak API with `provider: "google"` and `engine: "lovable"` (rather than blocked direct scraping to translate.google.com/translate_tts).
+    - Normalized `alternativeTtsEngineState === "google_translate"` to route through `synthesizeLovableTtsAudio(..., "google")` so even legacy preferences execute cleanly.
+    - Added `BeginnerTtsServiceControl` below `VideoPlaybackControls` in Advanced Mode to enforce 100% cross-mode parity with Beginner Mode per AGENTS.md absolute parity rule.
+  - **Chapter 2 (External TTS Service Request & Response Debugger Panel)**:
+    - Created reactive external TTS audit record store (`ExternalTtsAuditRecord`, `addExternalTtsAuditRecord`, `getExternalTtsAuditRecords`, `clearExternalTtsAuditRecords`, `useExternalTtsAuditRecords`).
+    - Captured full request (HTTP method, target URL, query params, request headers, JSON body) and full response (status code, status text, latency ms, response headers, response payload/mime/audio bytes, and error message) in all synthesis and validation functions.
+    - Implemented dedicated `<ExternalTtsDebuggerPanel />` in `src/components/ExternalTtsDebuggerPanel.tsx` with collapsible UI, history selector, copy request/response buttons, audio preview player, and clear action.
+    - Embedded `<ExternalTtsDebuggerPanel />` in both Beginner Mode (`BeginnerPreferencesTab.tsx`) and Advanced Mode (`src/routes/index.tsx`).
+  - **Chapter 3 (Version 2.0.70 Synchronization & Automated Tests)**:
+    - Synchronized application version to `2.0.70` (`versionCode = 20070`) across all 5 required targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Created dedicated verification suite `scripts/verify-tts3-docs-and-google-tts-parity.ts` and registered `"test:tts3-docs-parity"` in `package.json`.
+    - Cataloged new files in `docs/files.md`.
+- **Dedicated verification**:
+  - `npm run test:tts3-docs-parity` (PASS, 100% assertions)
+  - `npm run test:stage-2-extend-favorite-languages` (PASS, 100% assertions)
+  - `npm run test:single-icon-floating-button` (PASS, 100% assertions)
+  - `npx tsx scripts/verify-agents-version-rule.ts` (PASS)
+  - `npx tsx scripts/verify-apk-version-and-releases.ts` (PASS)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors)
+- **Delivery**: Fully verified and migrated to `docs/done.md`.
+
 ## Task 268: Unified Single Filter Input Field for Stage 2 Languages List (No 2 Separated Items)
 
 - **Implementation**:
