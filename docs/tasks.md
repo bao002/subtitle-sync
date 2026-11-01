@@ -4,12 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 269: Chapter 4 - Language selection view: add 'is-primary' and 'json3' columns**
-  - **Subtask 269.1**: In `src/lib/playback-preferences.ts` and `src/routes/index.tsx`, establish that the `is-primary` selection is the ONLY way to define the TTS-ratio absolute parent (decoupling automatic recomputation from ratio edits).
-  - **Subtask 269.2**: Add dedicated column "is-primary" to the languages selection table with radio selectors allowing user to explicitly pick the absolute parent language.
-  - **Subtask 269.3**: Add dedicated column "json3" to the languages selection table displaying direct JSON3 status and updating based upon user's manual toggling of that language on the video player (with player caption event synchronization and direct toggle capability).
-  - **Subtask 269.4**: Create dedicated automated verification test `scripts/verify-language-selection-primary-and-json3-columns.ts`.
-  - **Subtask 269.5**: Verify, compile, commit, and migrate Task 269 to `docs/done.md`.
+*(No active tasks currently pending)*
 
 ## Later Tasks
 
