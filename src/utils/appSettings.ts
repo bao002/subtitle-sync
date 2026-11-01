@@ -507,7 +507,7 @@ export function exportFullAppState(extraStatus?: Record<string, any>): string {
 
   const snapshot: AppStateSnapshot = {
     exportedAt: new Date().toISOString(),
-    version: "2.0.62",
+    version: "2.0.63",
 
     settings: currentSettings,
     videoSettings: allVideoSettings,
@@ -646,17 +646,17 @@ export const DEBUG_MODE_STORAGE_KEY = "yt_debug_mode";
 
 /**
  * Get whether debug mode is enabled.
- * Defaults to TRUE (on) by default.
+ * Defaults to FALSE (off) per memory.md (present-on-start:off, local storage:off).
  */
 export function getDebugModeSetting(): boolean {
   if (typeof window === "undefined" || !window.localStorage) {
-    return true;
+    return false;
   }
   try {
     const val = window.localStorage.getItem(DEBUG_MODE_STORAGE_KEY);
-    return val === null ? true : val === "true";
+    return val === null ? false : val === "true";
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -671,6 +671,60 @@ export function setDebugModeSetting(enabled: boolean): void {
     window.localStorage.setItem(DEBUG_MODE_STORAGE_KEY, enabled ? "true" : "false");
   } catch {
     // Ignore storage errors in restricted contexts
+  }
+}
+
+export const QUICK_LOADER_STORAGE_KEY = "yt_show_quick_loader";
+
+/**
+ * Get whether the quick subtitles and video loader is visible.
+ * Defaults to FALSE (hidden by default, present-on-start:off, local storage:off).
+ */
+export function getQuickLoaderSetting(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return false;
+  }
+  try {
+    const val = window.localStorage.getItem(QUICK_LOADER_STORAGE_KEY);
+    return val === null ? false : val === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setQuickLoaderSetting(enabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(QUICK_LOADER_STORAGE_KEY, enabled ? "true" : "false");
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export const VERSION_DETAILS_STORAGE_KEY = "yt_show_version_details";
+
+/**
+ * Get whether the version details element is visible.
+ * Defaults to FALSE (hidden by default, present-on-start:off, local storage:off).
+ */
+export function getVersionDetailsSetting(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return false;
+  }
+  try {
+    const val = window.localStorage.getItem(VERSION_DETAILS_STORAGE_KEY);
+    return val === null ? false : val === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function setVersionDetailsSetting(enabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(VERSION_DETAILS_STORAGE_KEY, enabled ? "true" : "false");
+  } catch {
+    // Ignore storage errors
   }
 }
 

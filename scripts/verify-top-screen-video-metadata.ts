@@ -27,7 +27,7 @@ assert.ok(
   "topScreenTitle and topScreenDescription must read videoMetadata properties",
 );
 
-// 3. Verify top screen header renders dynamic title & description elements
+// 3. Verify top screen header renders dynamic title & description elements and raw-video-data is removed
 assert.ok(
   routesContent.includes('data-testid="top-screen-video-title"'),
   "Header must render data-testid='top-screen-video-title'",
@@ -36,9 +36,10 @@ assert.ok(
   routesContent.includes('data-testid="top-screen-video-description"'),
   "Header must render data-testid='top-screen-video-description'",
 );
-assert.ok(
+assert.strictEqual(
   routesContent.includes('data-testid="top-screen-video-caption-status"'),
-  "Header must render data-testid='top-screen-video-caption-status'",
+  false,
+  "Header must not render raw-video-data (top-screen-video-caption-status removed per user prompt)",
 );
 
 // 4. Verify brand title and mode toggle are preserved

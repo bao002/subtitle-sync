@@ -1,8 +1,8 @@
 {
-  "totalSuites": 258,
-  "totalAssertions": 4973,
+  "totalSuites": 259,
+  "totalAssertions": 5003,
   "totalSourceFiles": 133,
-  "totalSourceLines": 42705,
+  "totalSourceLines": 42881,
   "coveredSourceFiles": 133,
   "statementCoveragePct": 96.8,
   "branchCoveragePct": 93.5,
@@ -25,7 +25,7 @@
     "Android Native Shell & Bridge": 51,
     "Pipeline Stage 5: Translation & Multi-Language": 27,
     "Pipeline Stage 3: Special Characters Removal": 5,
-    "System Architecture & Hygiene": 29,
+    "System Architecture & Hygiene": 30,
     "Pipeline Stage 7: Audio Playback & TTS Synthesis": 32,
     "Pipeline Stage 6: Multi-Language Alignment Grid": 5
   },
@@ -1655,6 +1655,17 @@
       ],
       "assertionsCount": 3,
       "scriptCommand": "npm run test:md"
+    },
+    {
+      "filename": "verify-memory-defaults-and-clean-views.ts",
+      "name": "Memory defaults and clean views",
+      "category": "System Architecture & Hygiene",
+      "targetFiles": [
+        "src/routes/index.tsx",
+        "src/components/WebDemoUrlsInput.tsx"
+      ],
+      "assertionsCount": 30,
+      "scriptCommand": "npm run test:memory-defaults-and-clean-views"
     },
     {
       "filename": "verify-minimal-share-url.ts",

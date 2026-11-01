@@ -45,6 +45,8 @@ import {
   ArrowRight,
   ArrowLeft,
   AlertTriangle,
+  Zap,
+  Split,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,6 +91,10 @@ import {
   AUTO_SCROLL_COOLDOWN_MS,
   getDebugModeSetting,
   setDebugModeSetting,
+  getQuickLoaderSetting,
+  setQuickLoaderSetting,
+  getVersionDetailsSetting,
+  setVersionDetailsSetting,
   loadVideoSettings,
   saveVideoSettings,
   getAutoSpeakOnFetchSetting,
@@ -827,6 +833,27 @@ function Index() {
   });
 
   const [expandedPrefsHelp, setExpandedPrefsHelp] = useState<Record<string, boolean>>({});
+
+  const [showQuickLoader, setShowQuickLoader] = useState<boolean>(() => getQuickLoaderSetting());
+  const [showVersionDetails, setShowVersionDetails] = useState<boolean>(() =>
+    getVersionDetailsSetting(),
+  );
+
+  const handleToggleQuickLoader = useCallback(() => {
+    setShowQuickLoader((prev) => {
+      const next = !prev;
+      setQuickLoaderSetting(next);
+      return next;
+    });
+  }, []);
+
+  const handleToggleVersionDetails = useCallback(() => {
+    setShowVersionDetails((prev) => {
+      const next = !prev;
+      setVersionDetailsSetting(next);
+      return next;
+    });
+  }, []);
 
   const handleWorkflowModeChange = (mode: "beginner" | "expert", remember = true) => {
     setWorkflowMode(mode);
@@ -2222,7 +2249,7 @@ function Index() {
   const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => PANELS.map((panel) => panel.id));
   const [subtitlesPanelWide, setSubtitlesPanelWide] = useState(true);
   const [openPanels, setOpenPanels] = useState<Record<PanelId, boolean>>({
-    player: true,
+    player: false,
     playback: false,
     charsRemoval: false,
     parser: false,
@@ -4758,6 +4785,403 @@ function Index() {
     />
   );
 
+  const parserPanelContent = (
+    <div className="space-y-4">
+      {/* Interactive Timing & Punctuation Splitting Lab */}
+      <ParserTimingLab
+        tracks={tracks}
+        baseLanguage={baseLanguage}
+        selectedCriteria={selectedCriteria}
+        criteriaSettings={criteriaSettings}
+        onApplyCriteria={handleApplyPreset}
+        onUpdateGroupSettings={handleUpdateGroupSettings}
+      />
+
+      {/* Presets Header */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-foreground uppercase tracking-wider">
+            Alignment Presets
+          </span>
+          <span className="text-xs text-muted-foreground">Quick combinations</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {PARSER_PRESETS.map((preset) => {
+            const isPresetActive =
+              preset.criteria.length === selectedCriteria.length &&
+              preset.criteria.every((c) => selectedCriteria.includes(c));
+            return (
+              <Button
+                key={preset.id}
+                type="button"
+                size="sm"
+                variant={isPresetActive ? "default" : "outline"}
+                className="h-7 text-xs px-2.5"
+                onClick={() => handleApplyPreset(preset.criteria, preset.id)}
+                title={preset.desc}
+              >
+                {preset.name}
+              </Button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Accumulative Criteria Section */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
+              Accumulative Division Criteria (Multi-Select)
+            </label>
+            <button
+              type="button"
+              data-testid="help-btn-criteria-overview"
+              onClick={() =>
+                setExpandedHelp((prev) => ({
+                  ...prev,
+                  overview: !prev.overview,
+                }))
+              }
+              className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+              title="More info"
+              aria-label="More info about division criteria"
+            >
+              ?
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-primary">
+              {selectedCriteria.length} criteria active
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground"
+              onClick={handleResetGroupSettings}
+              title="Reset all criteria inner settings to default"
+            >
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Reset settings
+            </Button>
+          </div>
+        </div>
+        {expandedHelp.overview && (
+          <p
+            data-testid="help-text-criteria-overview"
+            className="text-xs text-muted-foreground mb-3 bg-muted/20 p-2 rounded border border-border/40"
+          >
+            Select multiple criteria accumulatively to divide subtitles into
+            separated, translatable sections of related sentences and cohesive
+            context.
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {PARSER_CRITERIA.map((crit) => {
+            const isChecked = selectedCriteria.includes(crit.id);
+            const isExpanded = expandedSettingsGroup === crit.id;
+            const isHelpOpen = Boolean(expandedHelp[crit.id]);
+            return (
+              <div
+                key={crit.id}
+                className={`rounded-lg border transition-all ${
+                  isChecked
+                    ? "border-primary/60 bg-primary/5 text-foreground shadow-xs"
+                    : "border-border/70 hover:border-border hover:bg-muted/40 text-muted-foreground"
+                }`}
+              >
+                <div
+                  onClick={() => handleToggleCriterion(crit.id)}
+                  className="p-2.5 cursor-pointer flex items-start gap-2.5"
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => handleToggleCriterion(crit.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`${crit.name} criterion`}
+                    data-testid={`toggle-parser-criterion-${crit.id}`}
+                    className="mt-0.5 rounded border-muted-foreground/40 text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span
+                          className={`text-xs font-semibold ${isChecked ? "text-foreground" : "text-foreground/80"}`}
+                        >
+                          {crit.name}
+                        </span>
+                        <Badge
+                          variant={isChecked ? "default" : "outline"}
+                          className="text-[10px] h-4 px-1.5 py-0 font-normal"
+                        >
+                          {crit.badge}
+                        </Badge>
+                        <button
+                          type="button"
+                          data-testid={`help-btn-${crit.id}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedHelp((prev) => ({
+                              ...prev,
+                              [crit.id]: !prev[crit.id],
+                            }));
+                          }}
+                          className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+                          title="More info"
+                          aria-label={`More info about ${crit.name}`}
+                        >
+                          ?
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedSettingsGroup(isExpanded ? null : crit.id);
+                        }}
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] transition-colors ${
+                          isExpanded
+                            ? "bg-primary text-primary-foreground font-medium"
+                            : "bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground"
+                        }`}
+                        title="Toggle inner settings for this criteria group"
+                      >
+                        <SlidersHorizontal className="h-3 w-3" />
+                        <span>Settings</span>
+                        {isExpanded ? (
+                          <ChevronUp className="h-3 w-3" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3" />
+                        )}
+                      </button>
+                    </div>
+                    {isHelpOpen && (
+                      <p
+                        data-testid={`help-text-${crit.id}`}
+                        className="text-[11px] leading-tight text-muted-foreground mt-1 bg-muted/30 p-1.5 rounded border border-border/40"
+                      >
+                        {crit.desc}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Inner Settings Panel for this Group */}
+                {isExpanded && (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="px-2.5 pb-2.5 pt-1 border-t border-border/40 space-y-2 bg-background/50 rounded-b-lg"
+                  >
+                    {crit.id === "sentence" && (
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-medium text-foreground block">
+                          Sentence End Punctuation Characters
+                        </label>
+                        <p className="text-[10px] text-muted-foreground">
+                          Split continuous stream at these punctuation marks.
+                        </p>
+                        <input
+                          type="text"
+                          value={criteriaSettings.sentence.punctuation}
+                          onChange={(e) =>
+                            handleUpdateSentencePunctuation(e.target.value)
+                          }
+                          className="w-full text-xs font-mono bg-background border border-border rounded px-2 py-1"
+                          placeholder=".,!?;:。？！"
+                        />
+                      </div>
+                    )}
+
+                    {crit.id === "pause" && (
+                      <div className="space-y-2">
+                        <div>
+                          <div className="flex justify-between text-[11px] mb-1">
+                            <span className="text-muted-foreground">
+                              Pause threshold:
+                            </span>
+                            <span className="font-semibold text-primary">
+                              {criteriaSettings.pause.thresholdMs} ms
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={100}
+                            max={2000}
+                            step={50}
+                            value={criteriaSettings.pause.thresholdMs}
+                            onChange={(e) =>
+                              handleUpdatePauseThreshold(
+                                parseInt(e.target.value),
+                              )
+                            }
+                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {crit.id === "duration" && (
+                      <div className="space-y-2">
+                        <div>
+                          <div className="flex justify-between text-[11px] mb-1">
+                            <span className="text-muted-foreground">
+                              Max section duration:
+                            </span>
+                            <span className="font-semibold text-primary">
+                              {(
+                                criteriaSettings.duration.maxDurationMs / 1000
+                              ).toFixed(1)}{" "}
+                              s
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={2000}
+                            max={15000}
+                            step={500}
+                            value={criteriaSettings.duration.maxDurationMs}
+                            onChange={(e) =>
+                              handleUpdateMaxDuration(parseInt(e.target.value))
+                            }
+                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {crit.id === "length" && (
+                      <div className="space-y-2">
+                        <div>
+                          <div className="flex justify-between text-[11px] mb-1">
+                            <span className="text-muted-foreground">
+                              Max characters per section:
+                            </span>
+                            <span className="font-semibold text-primary">
+                              {criteriaSettings.length.maxChars} chars
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={30}
+                            max={200}
+                            step={5}
+                            value={criteriaSettings.length.maxChars}
+                            onChange={(e) =>
+                              handleUpdateMaxLength(parseInt(e.target.value))
+                            }
+                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {crit.id === "window" && (
+                      <div className="space-y-2">
+                        <div>
+                          <div className="flex justify-between text-[11px] mb-1">
+                            <span className="text-muted-foreground">
+                              Minimum section length:
+                            </span>
+                            <span className="font-semibold text-primary">
+                              {(
+                                criteriaSettings.window.minSectionMs / 1000
+                              ).toFixed(1)}{" "}
+                              s
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={800}
+                            max={4000}
+                            step={200}
+                            value={criteriaSettings.window.minSectionMs}
+                            onChange={(e) =>
+                              handleUpdateGroupSettings("window", {
+                                minSectionMs: parseInt(e.target.value),
+                              })
+                            }
+                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                          />
+                        </div>
+                        <div>
+                          <div className="flex justify-between text-[11px] mb-1">
+                            <span className="text-muted-foreground">
+                              Maximum section length:
+                            </span>
+                            <span className="font-semibold text-primary">
+                              {(
+                                criteriaSettings.window.maxSectionMs / 1000
+                              ).toFixed(0)}{" "}
+                              s
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={6000}
+                            max={24000}
+                            step={1000}
+                            value={criteriaSettings.window.maxSectionMs}
+                            onChange={(e) =>
+                              handleUpdateGroupSettings("window", {
+                                maxSectionMs: parseInt(e.target.value),
+                              })
+                            }
+                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Status & Summary */}
+      <div className="pt-2 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
+        <div>
+          Sections:{" "}
+          <span className="font-semibold text-foreground">
+            {rows.length} translatable sections
+          </span>{" "}
+          · Timing base:{" "}
+          <span className="font-semibold text-foreground">
+            {baseLanguage
+              ? getLanguageMeta(baseLanguage).name
+              : "None (waiting for captions)"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
+          <button
+            type="button"
+            data-testid="help-btn-parser-summary"
+            onClick={() =>
+              setExpandedHelp((prev) => ({
+                ...prev,
+                summary: !prev.summary,
+              }))
+            }
+            className="w-4 h-4 rounded-full border border-muted-foreground/30 text-muted-foreground hover:text-foreground inline-flex items-center justify-center text-[10px] font-bold"
+            title="More info"
+            aria-label="More info about parser status"
+          >
+            ?
+          </button>
+          {expandedHelp.summary && (
+            <span data-testid="help-text-parser-summary">
+              Cuts accumulate at sentence marks, breath pauses & alignment consensus
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-background text-foreground">
       <header
@@ -4789,6 +5213,29 @@ function Index() {
               <span className="opacity-70 text-[10px]">#{APP_COMMIT_ID}</span>
               <ExternalLink className="h-2.5 w-2.5 opacity-70" />
             </a>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              id="version-button"
+              data-testid="version-button"
+              onClick={handleToggleVersionDetails}
+              className={`h-6 px-2 text-[11px] font-mono font-medium rounded-full border flex items-center gap-1 transition-all shrink-0 ${
+                showVersionDetails
+                  ? "bg-primary/20 text-primary border-primary/50 shadow-xs ring-1 ring-primary/30"
+                  : "bg-muted/40 text-muted-foreground border-border/80 hover:text-foreground hover:bg-muted"
+              }`}
+              title={
+                showVersionDetails
+                  ? `Hide version details (${APP_VERSION_DESCRIPTION})`
+                  : `Show version details (${APP_VERSION_DESCRIPTION})`
+              }
+              aria-expanded={showVersionDetails}
+              aria-controls="apk-releases-footer"
+            >
+              <Smartphone className="h-3 w-3" />
+              <span>Version</span>
+            </Button>
             <Button
               type="button"
               size="sm"
@@ -4852,17 +5299,6 @@ function Index() {
             >
               {topScreenDescription}
             </p>
-            <span
-              data-testid="top-screen-video-caption-status"
-              className="text-[11px] text-muted-foreground/80 font-mono"
-            >
-              Video {videoId} · {rows.length} sections ·{" "}
-              {isAndroid
-                ? "live Android captions"
-                : videoId === DEMO_VIDEO
-                  ? "[Fixture: L2Ryrr6txwA] (Approved Web Demo Fixture)"
-                  : "live captions"}
-            </span>
           </div>
         </div>
 
@@ -5011,6 +5447,8 @@ function Index() {
         <div className="flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-2xs">
           {isDeveloperMode && debugMode && !isAndroid && (
             <Button
+              id="open-network-inspector-button"
+              data-testid="open-network-inspector-button"
               type="button"
               size="sm"
               variant="ghost"
@@ -5040,6 +5478,23 @@ function Index() {
               <span className="hidden sm:inline">Actions</span>
             </Button>
           )}
+          <Button
+            id="quick-loader-button"
+            data-testid="quick-loader-button header-quick-loader-button"
+            type="button"
+            size="sm"
+            variant={showQuickLoader ? "default" : "ghost"}
+            onClick={handleToggleQuickLoader}
+            className={`h-7 px-2 sm:px-2.5 text-xs gap-1.5 border font-medium ${
+              showQuickLoader
+                ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/50"
+                : "border-sky-500/30 text-sky-700 dark:text-sky-300 hover:bg-sky-500/10"
+            }`}
+            title="Toggle Quick Subtitles and Video Loader"
+          >
+            <Zap className="h-3.5 w-3.5 text-amber-500" />
+            <span className="hidden sm:inline">quick-loader</span>
+          </Button>
           <Button
             id="open-apk-release-button"
             data-testid="open-apk-release-button"
@@ -5295,12 +5750,16 @@ function Index() {
             }
             webDemoUrlsSlot={
               !isAndroid ? (
-                <WebDemoUrlsInput
-                  currentVideoId={videoId}
-                  observedUrl={observedUrl}
-                  onLoadVideoAndSubtitles={handleWebDemoLoadVideoAndSubtitles}
-                  className="max-w-2xl mx-auto"
-                />
+                <div className="space-y-2">
+                  <WebDemoUrlsInput
+                    currentVideoId={videoId}
+                    observedUrl={observedUrl}
+                    onLoadVideoAndSubtitles={handleWebDemoLoadVideoAndSubtitles}
+                    className={
+                      showQuickLoader ? "max-w-2xl mx-auto block" : "max-w-2xl mx-auto hidden"
+                    }
+                  />
+                </div>
               ) : undefined
             }
             favoriteLanguageCatalog={SUPPORTED_LANGUAGES_CATALOG}
@@ -5501,7 +5960,9 @@ function Index() {
                     currentVideoId={videoId}
                     observedUrl={observedUrl}
                     onLoadVideoAndSubtitles={handleWebDemoLoadVideoAndSubtitles}
-                    className="max-w-2xl mx-auto"
+                    className={
+                      showQuickLoader ? "max-w-2xl mx-auto block" : "max-w-2xl mx-auto hidden"
+                    }
                   />
                 ) : (
                   <form
@@ -6121,7 +6582,21 @@ function Index() {
                         )}
 
                         {panelId === "playback" && (
-                          <div className="space-y-3">
+                          <div className="space-y-4">
+                            {/* Sub-Accordion 1: General Playback & Audio Settings */}
+                            <details
+                              className="group rounded-xl border border-border bg-card/60 overflow-hidden shadow-xs"
+                              open
+                              data-testid="settings-playback-accordion"
+                            >
+                              <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-foreground hover:bg-muted/40 transition">
+                                <div className="flex items-center gap-2">
+                                  <Volume2 className="h-4 w-4 text-emerald-500" />
+                                  <span>General Playback &amp; Audio Settings</span>
+                                </div>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+                              </summary>
+                              <div className="p-3 pt-0 border-t border-border/40 space-y-3">
                             {speakingLang ? (
                               <p>
                                 {audioTrackMode ? "Repeating" : "Speaking"}{" "}
@@ -7192,26 +7667,81 @@ function Index() {
                                   </span>
                                 </label>
                               </div>
-
-                              {/* Special Characters Removal Section under Settings */}
-                              <div
-                                className="pt-4 border-t border-border/40 space-y-3"
-                                data-testid="settings-chars-removal-container"
-                              >
-                                <div>
-                                  <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                                    Special Characters Removal
-                                  </h3>
-                                  <p className="text-xs text-muted-foreground">
-                                    Stage 3: Remove speaker tags, sound cues, and symbols before
-                                    sentence parsing and translation.
-                                  </p>
-                                </div>
-                                {specialCharactersRemovalPanel}
-                              </div>
                             </div>
-                          </div>
-                        )}
+                          </details>
+
+                          {/* Sub-Accordion 2: Special Characters Removal (Stage 3) */}
+                          <details
+                            className="group rounded-xl border border-indigo-500/30 bg-card/60 overflow-hidden shadow-xs"
+                            open
+                            data-testid="settings-chars-removal-accordion"
+                          >
+                            <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition">
+                              <div className="flex items-center gap-2">
+                                <Sparkles className="h-4 w-4 text-indigo-500" />
+                                <span>Special Characters Removal</span>
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30"
+                                >
+                                  Stage 3
+                                </Badge>
+                              </div>
+                              <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+                            </summary>
+                            <div
+                              className="p-3 pt-0 border-t border-border/40 space-y-3"
+                              data-testid="settings-chars-removal-container"
+                            >
+                              <div className="pt-2">
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                  Special Characters Removal
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                  Stage 3: Remove speaker tags, sound cues, and symbols before
+                                  sentence parsing and translation.
+                                </p>
+                              </div>
+                              {specialCharactersRemovalPanel}
+                            </div>
+                          </details>
+
+                          {/* Sub-Accordion 3: Parser (Sentence Splitting) (Stage 4) */}
+                          <details
+                            className="group rounded-xl border border-amber-500/30 bg-card/60 overflow-hidden shadow-xs"
+                            open
+                            data-testid="settings-parser-accordion"
+                          >
+                            <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-amber-700 dark:text-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-950/30 transition">
+                              <div className="flex items-center gap-2">
+                                <Split className="h-4 w-4 text-amber-500" />
+                                <span>Parser (Sentence Splitting)</span>
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                                >
+                                  Stage 4
+                                </Badge>
+                              </div>
+                              <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+                            </summary>
+                            <div
+                              className="p-3 pt-0 border-t border-border/40 space-y-4"
+                              data-testid="settings-parser-container"
+                            >
+                              <div className="pt-2">
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                  Parser &amp; Sentence Splitting
+                                </h3>
+                                <p className="text-xs text-muted-foreground">
+                                  Stage 4: Split continuous subtitle stream cues into grammatical sentences using punctuation and timing criteria.
+                                </p>
+                              </div>
+                              {parserPanelContent}
+                            </div>
+                          </details>
+                        </div>
+                      )}
 
                         {panelId === "library" && (
                           <VideoLibraryPanel
@@ -8802,10 +9332,16 @@ function Index() {
                   })}
               </div>
 
-              <ApkReleasesFooter
-                apkReleaseLinks={apkReleaseLinks}
-                onOpenApkModal={() => setApkModalOpen(true)}
-              />
+              <div
+                id="version-details-container"
+                data-testid="version-details-container"
+                className={showVersionDetails ? "block" : "hidden"}
+              >
+                <ApkReleasesFooter
+                  apkReleaseLinks={apkReleaseLinks}
+                  onOpenApkModal={() => setApkModalOpen(true)}
+                />
+              </div>
             </>
           )}
         </>
