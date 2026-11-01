@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
- 
+
 - **Status**: [IDLE] - No active subtasks pending
 - **Active Task**: None
 - **Active Subtask**: None
