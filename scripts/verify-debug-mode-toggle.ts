@@ -36,14 +36,14 @@ const mockStorage: Record<string, string> = {};
   },
 };
 
-// Default state must be true (ON by default)
+// Default state must be false (OFF by default per memory.md: present-on-start:off, local storage:off)
 delete mockStorage[DEBUG_MODE_STORAGE_KEY];
 assert.strictEqual(
   getDebugModeSetting(),
-  true,
-  "Debug mode must strictly default to true (ON) when no storage key exists",
+  false,
+  "Debug mode must strictly default to false (OFF) when no storage key exists",
 );
-console.log("✅ PASS: getDebugModeSetting() defaults to true (ON)");
+console.log("✅ PASS: getDebugModeSetting() defaults to false (OFF)");
 
 // Toggle OFF
 setDebugModeSetting(false);

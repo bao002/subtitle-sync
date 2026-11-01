@@ -411,8 +411,9 @@ export function WebDemoUrlsInput({
 
   return (
     <div
+      id="quick-subtitles-and-video-loader"
       className={`max-w-2xl mx-auto space-y-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-2 ${className}`}
-      data-testid="web-demo-urls-input-container"
+      data-testid="quick-subtitles-and-video-loader"
       data-control-category="daily-usage"
     >
       {/* 1. Original Clean Single-Row Input Form (Preserves Old Design 100%) */}

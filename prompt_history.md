@@ -98,3 +98,50 @@ stage -4 - all other accordion elements will be presented if the user clicks on 
 create test coverage - this should be seen on github-pages report page
 ```
 
+---
+
+### Prompt 9: Quick Loader Button, Memory Defaults (Debug Button & Version Details), and Remove Raw Video Data
+```
+1. 1st pointed element: id: quick-subtitles-and-video loader -> use a "quick-loader" button to show it. hide it by default
+
+2. memory.md - defaults: boolean localstorage:boolean 
+- by default - set debug button -present-on-start:off , local storage:off
+
+3. version details element - clean view by using a version button - toggle it to show the relevant parent element (present-on-start:off , local storage:off)
+
+4. 2nd pointed element: raw-vide-data -  rm it
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > span:nth-of-type(1)
+CSS 2: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 10: Redundant Item Removal, Video Folded by Default, and Move Chars Removal & Parser under Settings
+```
+1. redundunt item - rm it.
+2. memory.md - fold video item by default , localstorage:off
+3. settings - the settings itself should contain few accordion elements such as  the ,parser, spacifal charecter removal  (so move them under settings)
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > details:nth-of-type(1) > div:nth-of-type(1)
+CSS 2: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+
+

@@ -1,5 +1,38 @@
 # Done tasks
 
+## Task 272: UI Cleaning, Memory Defaults (Debug Button & Version Details), Quick-Loader Button, and Raw Video Data Removal
+
+- **Implementation**:
+  - **Sub-task 1 (Quick Subtitles and Video Loader)**:
+    - Added `id="quick-subtitles-and-video-loader"` and `data-testid="quick-subtitles-and-video-loader"` to the container in `src/components/WebDemoUrlsInput.tsx`.
+    - Added "quick-loader" button (`id="quick-loader-button"`, `data-testid="quick-loader-button"`) right above the loader in `src/routes/index.tsx` (and `header-quick-loader-button` in header action toolbar).
+    - Hidden by default (`showQuickLoader` starts as `false`, present-on-start: off, local storage: off).
+    - Preserved full functional parity across both Beginner and Advanced Studio modes.
+  - **Sub-task 2 (Memory Defaults & docs/memory.md)**:
+    - Created `docs/memory.md` defining the boolean memory defaults contract (`defaults: boolean localstorage: boolean`).
+    - Configured debug button / mode: `present-on-start: off` (false), `local storage: off` (default false when empty).
+    - Updated `getDebugModeSetting()` in `src/utils/appSettings.ts` to default to `false` when unset in localStorage.
+  - **Sub-task 3 (Version Details Element & Toggle Button)**:
+    - Added "Version" button (`id="version-button"`, `data-testid="version-button"`) in header next to version badge.
+    - Wrapped relevant parent element (`#apk-releases-footer` / `#version-details-container`) to be hidden by default (`present-on-start: off`, `local storage: off`).
+    - Toggling the version button reveals the parent element with APK releases and version telemetry on demand.
+  - **Sub-task 4 (Raw Video Data Element Removal)**:
+    - Removed raw video data element (`<span data-testid="top-screen-video-caption-status">`) from header in `src/routes/index.tsx` per prompt command ("raw-vide-data - rm it").
+    - Cleaned up top-screen video title and description layout.
+  - **Sub-task 5 (Version Update & Automated Tests)**:
+    - Bumped application version to `2.0.63` (`versionCode = 20063`) across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Created dedicated automated test script `scripts/verify-memory-defaults-and-clean-views.ts` and added npm script `"test:memory-defaults-and-clean-views"`.
+    - Updated `scripts/verify-debug-mode-toggle.ts` and `scripts/verify-top-screen-video-metadata.ts`.
+    - Updated `docs/files.md` inventory.
+- **Dedicated verification**:
+  - `npm run test:memory-defaults-and-clean-views` (PASS, all assertions verified)
+  - `npm run test:top-screen-video-metadata` (PASS)
+  - `npm run test:debug-mode-toggle` (PASS)
+  - `npm run test:android-build-version-details` (PASS)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors)
+- **Delivery**: Verified, documented in `docs/memory.md` and `docs/files.md`, migrated to `docs/done.md`.
+
 ## Task 271: Test Coverage Generation & GitHub Pages Report Integration
 
 - **Implementation**:
