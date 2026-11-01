@@ -1,8 +1,8 @@
 {
-  "totalSuites": 259,
-  "totalAssertions": 5003,
+  "totalSuites": 260,
+  "totalAssertions": 5020,
   "totalSourceFiles": 133,
-  "totalSourceLines": 42881,
+  "totalSourceLines": 43298,
   "coveredSourceFiles": 133,
   "statementCoveragePct": 96.8,
   "branchCoveragePct": 93.5,
@@ -24,7 +24,7 @@
     "Pipeline Stage 2: Validation & Schema Conformance": 35,
     "Android Native Shell & Bridge": 51,
     "Pipeline Stage 5: Translation & Multi-Language": 27,
-    "Pipeline Stage 3: Special Characters Removal": 5,
+    "Pipeline Stage 3: Special Characters Removal": 6,
     "System Architecture & Hygiene": 30,
     "Pipeline Stage 7: Audio Playback & TTS Synthesis": 32,
     "Pipeline Stage 6: Multi-Language Alignment Grid": 5
@@ -65,7 +65,7 @@
         "src/config/appConfig.ts",
         "src/routes/index.tsx"
       ],
-      "assertionsCount": 31,
+      "assertionsCount": 30,
       "scriptCommand": "npm run test:accordion-stages-of-appearance"
     },
     {
@@ -2310,6 +2310,19 @@
       ],
       "assertionsCount": 18,
       "scriptCommand": "npm run test:self-verification"
+    },
+    {
+      "filename": "verify-settings-nested-accordions-and-clean-views.ts",
+      "name": "Settings nested accordions and clean views",
+      "category": "Pipeline Stage 3: Special Characters Removal",
+      "targetFiles": [
+        "src/utils/apkUpdater.ts",
+        "src/utils/appSettings.ts",
+        "src/config/appConfig.ts",
+        "src/routes/index.tsx"
+      ],
+      "assertionsCount": 18,
+      "scriptCommand": "npm run test:settings-nested-accordions-and-clean-views"
     },
     {
       "filename": "verify-sharable-state-link.ts",

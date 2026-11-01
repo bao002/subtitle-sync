@@ -1,5 +1,38 @@
 # Done tasks
 
+## Task 273: Redundant Element Removal, Video Item Fold by Default, and Move Chars Removal & Parser under Settings
+
+- **Implementation**:
+  - **Sub-task 1 (Redundant Item Removal)**:
+    - Removed redundant quick loader DOM block (`div#root > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)`) from rendering when `showQuickLoader` is false (`{showQuickLoader && (...) }`).
+    - Eliminates empty container padding and DOM bloat while preserving full toggling capability via the header action bar's `quick-loader` button (`#quick-loader-button`).
+    - Synchronized behavior in Beginner mode (`webDemoUrlsSlot` rendered strictly when `showQuickLoader && !isAndroid`).
+  - **Sub-task 2 (Video Item Fold by Default & docs/memory.md)**:
+    - Maintained video player accordion folded by default (`openPanels.player: false`) on application startup.
+    - Preserved `localstorage: off` policy where accordion folded/unfolded state remains strictly in-memory without polluting persistent browser storage.
+    - Documented and validated boolean schema contract in `docs/memory.md`.
+  - **Sub-task 3 (Move Chars Removal & Parser under Settings Accordion)**:
+    - Re-architected Settings accordion (`panelId === "playback"`) to contain dedicated nested accordions (`<details>`):
+      - Sub-Accordion 1: Special Characters Removal (`settings-chars-removal-accordion`, Stage 3)
+      - Sub-Accordion 2: Parser & Sentence Splitting (`settings-parser-accordion`, Stage 4)
+      - Sub-Accordion 3: General Playback & Audio Settings (`settings-playback-accordion`)
+    - Enforced strict Stage 3 -> Stage 4 pipeline execution order where Special Characters Removal precedes Parser in the DOM.
+    - Updated top-level accordion filter to prevent duplicate rendering of `charsRemoval` and `parser` outside Settings.
+  - **Sub-task 4 (Version 2.0.64 Synchronization & Automated Tests)**:
+    - Synchronized application version to `2.0.64` (`versionCode = 20064`) across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Created dedicated verification suite `scripts/verify-settings-nested-accordions-and-clean-views.ts` and added npm script `"test:settings-nested-accordions-and-clean-views"`.
+    - Updated `scripts/verify-accordion-stages-of-appearance.ts` and `docs/files.md`.
+- **Dedicated verification**:
+  - `npm run test:settings-nested-accordions-and-clean-views` (PASS, 100% assertions)
+  - `npm run test:memory-defaults-and-clean-views` (PASS)
+  - `npx tsx scripts/verify-chars-removal-under-settings.ts` (PASS)
+  - `npx tsx scripts/verify-chars-removal-accordion-order.ts` (PASS)
+  - `npm run test:accordion-stages-of-appearance` (PASS)
+  - `npm run test:coverage` (PASS, 260 test suites, 100% passing)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors)
+- **Delivery**: Fully verified and migrated to `docs/done.md`.
+
 ## Task 272: UI Cleaning, Memory Defaults (Debug Button & Version Details), Quick-Loader Button, and Raw Video Data Removal
 
 - **Implementation**:

@@ -4,11 +4,8 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 273: Redundant Element Removal, Video Item Fold by Default, and Move Chars Removal & Parser under Settings**
-  - [ ] **Sub-task 273.1**: Remove redundant quick-loader button element (CSS selector 1: `div#root > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)`), keeping toolbar toggle.
-  - [ ] **Sub-task 273.2**: Fold video accordion item by default (`openPanels.player = false`, `localstorage: off`) and update `docs/memory.md`.
-  - [ ] **Sub-task 273.3**: Organize Settings accordion (`playback`) to contain nested accordion elements for Special Characters Removal, Parser, and General Playback Settings.
-  - [ ] **Sub-task 273.4**: Bump version to 2.0.64, add dedicated verification test, compile, lint, and done.md migration.
+_(Active backlog is currently empty. All active prompt tasks have been completed and verified in docs/done.md.)_
+
 
 
 ## Later Tasks

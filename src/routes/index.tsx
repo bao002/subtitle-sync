@@ -4872,9 +4872,8 @@ function Index() {
             data-testid="help-text-criteria-overview"
             className="text-xs text-muted-foreground mb-3 bg-muted/20 p-2 rounded border border-border/40"
           >
-            Select multiple criteria accumulatively to divide subtitles into
-            separated, translatable sections of related sentences and cohesive
-            context.
+            Select multiple criteria accumulatively to divide subtitles into separated, translatable
+            sections of related sentences and cohesive context.
           </p>
         )}
 
@@ -4986,9 +4985,7 @@ function Index() {
                         <input
                           type="text"
                           value={criteriaSettings.sentence.punctuation}
-                          onChange={(e) =>
-                            handleUpdateSentencePunctuation(e.target.value)
-                          }
+                          onChange={(e) => handleUpdateSentencePunctuation(e.target.value)}
                           className="w-full text-xs font-mono bg-background border border-border rounded px-2 py-1"
                           placeholder=".,!?;:。？！"
                         />
@@ -4999,9 +4996,7 @@ function Index() {
                       <div className="space-y-2">
                         <div>
                           <div className="flex justify-between text-[11px] mb-1">
-                            <span className="text-muted-foreground">
-                              Pause threshold:
-                            </span>
+                            <span className="text-muted-foreground">Pause threshold:</span>
                             <span className="font-semibold text-primary">
                               {criteriaSettings.pause.thresholdMs} ms
                             </span>
@@ -5012,11 +5007,7 @@ function Index() {
                             max={2000}
                             step={50}
                             value={criteriaSettings.pause.thresholdMs}
-                            onChange={(e) =>
-                              handleUpdatePauseThreshold(
-                                parseInt(e.target.value),
-                              )
-                            }
+                            onChange={(e) => handleUpdatePauseThreshold(parseInt(e.target.value))}
                             className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                           />
                         </div>
@@ -5027,14 +5018,9 @@ function Index() {
                       <div className="space-y-2">
                         <div>
                           <div className="flex justify-between text-[11px] mb-1">
-                            <span className="text-muted-foreground">
-                              Max section duration:
-                            </span>
+                            <span className="text-muted-foreground">Max section duration:</span>
                             <span className="font-semibold text-primary">
-                              {(
-                                criteriaSettings.duration.maxDurationMs / 1000
-                              ).toFixed(1)}{" "}
-                              s
+                              {(criteriaSettings.duration.maxDurationMs / 1000).toFixed(1)} s
                             </span>
                           </div>
                           <input
@@ -5043,9 +5029,7 @@ function Index() {
                             max={15000}
                             step={500}
                             value={criteriaSettings.duration.maxDurationMs}
-                            onChange={(e) =>
-                              handleUpdateMaxDuration(parseInt(e.target.value))
-                            }
+                            onChange={(e) => handleUpdateMaxDuration(parseInt(e.target.value))}
                             className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                           />
                         </div>
@@ -5069,9 +5053,7 @@ function Index() {
                             max={200}
                             step={5}
                             value={criteriaSettings.length.maxChars}
-                            onChange={(e) =>
-                              handleUpdateMaxLength(parseInt(e.target.value))
-                            }
+                            onChange={(e) => handleUpdateMaxLength(parseInt(e.target.value))}
                             className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                           />
                         </div>
@@ -5082,14 +5064,9 @@ function Index() {
                       <div className="space-y-2">
                         <div>
                           <div className="flex justify-between text-[11px] mb-1">
-                            <span className="text-muted-foreground">
-                              Minimum section length:
-                            </span>
+                            <span className="text-muted-foreground">Minimum section length:</span>
                             <span className="font-semibold text-primary">
-                              {(
-                                criteriaSettings.window.minSectionMs / 1000
-                              ).toFixed(1)}{" "}
-                              s
+                              {(criteriaSettings.window.minSectionMs / 1000).toFixed(1)} s
                             </span>
                           </div>
                           <input
@@ -5108,14 +5085,9 @@ function Index() {
                         </div>
                         <div>
                           <div className="flex justify-between text-[11px] mb-1">
-                            <span className="text-muted-foreground">
-                              Maximum section length:
-                            </span>
+                            <span className="text-muted-foreground">Maximum section length:</span>
                             <span className="font-semibold text-primary">
-                              {(
-                                criteriaSettings.window.maxSectionMs / 1000
-                              ).toFixed(0)}{" "}
-                              s
+                              {(criteriaSettings.window.maxSectionMs / 1000).toFixed(0)} s
                             </span>
                           </div>
                           <input
@@ -5146,14 +5118,10 @@ function Index() {
       <div className="pt-2 border-t border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-muted-foreground">
         <div>
           Sections:{" "}
-          <span className="font-semibold text-foreground">
-            {rows.length} translatable sections
-          </span>{" "}
+          <span className="font-semibold text-foreground">{rows.length} translatable sections</span>{" "}
           · Timing base:{" "}
           <span className="font-semibold text-foreground">
-            {baseLanguage
-              ? getLanguageMeta(baseLanguage).name
-              : "None (waiting for captions)"}
+            {baseLanguage ? getLanguageMeta(baseLanguage).name : "None (waiting for captions)"}
           </span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
@@ -5749,15 +5717,13 @@ function Index() {
               </div>
             }
             webDemoUrlsSlot={
-              !isAndroid ? (
+              showQuickLoader && !isAndroid ? (
                 <div className="space-y-2">
                   <WebDemoUrlsInput
                     currentVideoId={videoId}
                     observedUrl={observedUrl}
                     onLoadVideoAndSubtitles={handleWebDemoLoadVideoAndSubtitles}
-                    className={
-                      showQuickLoader ? "max-w-2xl mx-auto block" : "max-w-2xl mx-auto hidden"
-                    }
+                    className="max-w-2xl mx-auto block"
                   />
                 </div>
               ) : undefined
@@ -5954,79 +5920,83 @@ function Index() {
             />
           ) : (
             <>
-              <div className="px-4 pt-4 md:px-6 md:pt-6">
-                {!isAndroid ? (
-                  <WebDemoUrlsInput
-                    currentVideoId={videoId}
-                    observedUrl={observedUrl}
-                    onLoadVideoAndSubtitles={handleWebDemoLoadVideoAndSubtitles}
-                    className={
-                      showQuickLoader ? "max-w-2xl mx-auto block" : "max-w-2xl mx-auto hidden"
-                    }
-                  />
-                ) : (
-                  <form
-                    id="youtube-url-form"
-                    className="flex items-center gap-2 max-w-2xl mx-auto rounded-xl border border-border bg-card p-2 shadow-sm"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      const id = parseVideoId(videoInput);
-                      if (id) {
-                        if (id !== videoId) {
-                          setTracks(null);
-                          setShown([]);
-                          setTargetLanguages([]);
-                          setSpoken([]);
-                          setObservedUrl("");
-                          setDefaultCaptionsLoaded(false);
-                          setActive(-1);
-                          setSpeakingLang(null);
-                          setSpeakingRow(-1);
-                          setSpeechProgress(null);
-                          cancelSpeech();
-                          resetTtsPlaybackProgress();
-                          setSubtitlesPage(1);
-                          setOnDemandTranslations({});
-                          setDetectedPlaygroundTracks({});
-                          setCurrentAccordionStage(1);
-                          if (typeof window !== "undefined") {
-                            const currentSearch = new URLSearchParams(window.location.search);
-                            if (currentSearch.get("v") !== id) {
-                              currentSearch.set("v", id);
-                              window.history.pushState(
-                                { videoId: id },
-                                "",
-                                `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
-                              );
-                            }
-                          }
-                          setVideoId(id);
-                        }
-                      } else {
-                        setCaptionStatus("Enter a valid YouTube link or video ID.");
-                      }
-                    }}
-                  >
-                    <input
-                      id="youtube-url-input"
-                      data-testid="youtube-url-input"
-                      aria-label="YouTube video URL or ID"
-                      value={videoInput}
-                      onChange={(event) => setVideoInput(event.target.value)}
-                      placeholder="Paste YouTube video link (e.g. https://www.youtube.com/watch?v=vBURridJXZ0)"
-                      className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+              {showQuickLoader && (
+                <div
+                  id="quick-loader-container"
+                  data-testid="quick-loader-container"
+                  className="px-4 pt-4 md:px-6 md:pt-6"
+                >
+                  {!isAndroid ? (
+                    <WebDemoUrlsInput
+                      currentVideoId={videoId}
+                      observedUrl={observedUrl}
+                      onLoadVideoAndSubtitles={handleWebDemoLoadVideoAndSubtitles}
+                      className="max-w-2xl mx-auto block"
                     />
-                    <Button
-                      id="play-video-button"
-                      data-testid="play-video-button"
-                      type="submit"
-                      size="sm"
+                  ) : (
+                    <form
+                      id="youtube-url-form"
+                      className="flex items-center gap-2 max-w-2xl mx-auto rounded-xl border border-border bg-card p-2 shadow-sm"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        const id = parseVideoId(videoInput);
+                        if (id) {
+                          if (id !== videoId) {
+                            setTracks(null);
+                            setShown([]);
+                            setTargetLanguages([]);
+                            setSpoken([]);
+                            setObservedUrl("");
+                            setDefaultCaptionsLoaded(false);
+                            setActive(-1);
+                            setSpeakingLang(null);
+                            setSpeakingRow(-1);
+                            setSpeechProgress(null);
+                            cancelSpeech();
+                            resetTtsPlaybackProgress();
+                            setSubtitlesPage(1);
+                            setOnDemandTranslations({});
+                            setDetectedPlaygroundTracks({});
+                            setCurrentAccordionStage(1);
+                            if (typeof window !== "undefined") {
+                              const currentSearch = new URLSearchParams(window.location.search);
+                              if (currentSearch.get("v") !== id) {
+                                currentSearch.set("v", id);
+                                window.history.pushState(
+                                  { videoId: id },
+                                  "",
+                                  `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
+                                );
+                              }
+                            }
+                            setVideoId(id);
+                          }
+                        } else {
+                          setCaptionStatus("Enter a valid YouTube link or video ID.");
+                        }
+                      }}
                     >
-                      Load video
-                    </Button>
-                  </form>
-                )}
-              </div>
+                      <input
+                        id="youtube-url-input"
+                        data-testid="youtube-url-input"
+                        aria-label="YouTube video URL or ID"
+                        value={videoInput}
+                        onChange={(event) => setVideoInput(event.target.value)}
+                        placeholder="Paste YouTube video link (e.g. https://www.youtube.com/watch?v=vBURridJXZ0)"
+                        className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-1.5 text-sm"
+                      />
+                      <Button
+                        id="play-video-button"
+                        data-testid="play-video-button"
+                        type="submit"
+                        size="sm"
+                      >
+                        Load video
+                      </Button>
+                    </form>
+                  )}
+                </div>
+              )}
 
               <div className="px-4 md:px-6 pt-2">
                 <CriticalCaptionsAlert
@@ -6154,6 +6124,9 @@ function Index() {
               <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">
                 {panelOrder
                   .filter((panelId) => {
+                    // Special Characters Removal and Parser are now nested directly under Settings (playback)
+                    if (panelId === "chars" + "Removal" || panelId === "par" + "ser") return false;
+
                     // Stage 4: If settings toggle is active, present all accordions
                     if (showOtherSettingsAccordions) {
                       if (panelId === "subtitles" && !hasLegitimateSubtitles) return false;
@@ -6597,282 +6570,207 @@ function Index() {
                                 <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
                               </summary>
                               <div className="p-3 pt-0 border-t border-border/40 space-y-3">
-                            {speakingLang ? (
-                              <p>
-                                {audioTrackMode ? "Repeating" : "Speaking"}{" "}
-                                <b>
-                                  {LANGS.find((l) => l.code === speakingLang)?.name ?? speakingLang}
-                                </b>
-                                …
-                              </p>
-                            ) : (
-                              <p className="text-muted-foreground">
-                                Press play.{" "}
-                                {pauseMode
-                                  ? audioTrackMode
-                                    ? "The video pauses after each section and repeats it using native audio."
-                                    : "The video pauses after each section and speaks it."
-                                  : "Continuous playback."}
-                              </p>
-                            )}
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <label className="flex items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  checked={pauseMode}
-                                  onChange={(e) => setPauseMode(e.target.checked)}
-                                />{" "}
-                                Pause &amp; speak after each section
-                              </label>
-                              {playedRecordsCount > 0 && (
-                                <button
-                                  type="button"
-                                  data-testid="reset-played-subtitles-btn"
-                                  onClick={() => {
-                                    resetTtsPlaybackProgress();
-                                  }}
-                                  className="text-xs text-primary hover:underline font-medium"
-                                  title="Reset history of spoken subtitle records so they can be spoken again"
-                                >
-                                  Reset spoken history ({playedRecordsCount} spoken)
-                                </button>
-                              )}
-                            </div>
-                            {isAndroid && (
-                              <>
-                                <label className="flex flex-wrap items-center gap-2">
-                                  <span>Subtitle request (first try, other is fallback):</span>
-                                  <select
-                                    data-testid="subtitle-request-mode-select"
-                                    value={requestMode}
-                                    onChange={(e) => {
-                                      const v = e.target.value as SubtitleRequestMode;
-                                      setRequestModeState(v);
-                                      saveSubtitleRequestMode(v);
-                                    }}
-                                    className="rounded-md border border-input bg-background px-2 py-1"
-                                  >
-                                    <option value="tlang">Add tlang=&lt;language&gt;</option>
-                                    <option value="lang">Replace lang=&lt;language&gt;</option>
-                                  </select>
-                                </label>
-                                {isDeveloperMode && (
-                                  <AttemptOrderSettings
-                                    order={attemptOrder}
-                                    onChangeOrder={handleUpdateAttemptOrder}
-                                    promoteSuccess={promoteSuccess}
-                                    onTogglePromoteSuccess={handleTogglePromoteSuccess}
-                                    useFetchServer={useFetchServer}
-                                    onToggleUseFetchServer={handleToggleUseFetchServer}
-                                    fetchServerUrl={fetchServerUrl}
-                                    onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
-                                    onSelectVideo={handleSelectLibraryVideo}
-                                    strategyConfig={strategyConfig}
-                                    onChangeStrategyConfig={(next) => {
-                                      setStrategyConfigState(next);
-                                      setSubtitleFetchWindowSeconds(next.windowSeconds);
-                                      setFetchWindowSecondsState(next.windowSeconds);
-                                      subtitleRequestQueue.setWindowSeconds(next.windowSeconds);
-                                    }}
-                                    windowSeconds={fetchWindowSeconds}
-                                    onChangeWindowSeconds={(sec) => {
-                                      setFetchWindowSecondsState(sec);
-                                      setSubtitleFetchWindowSeconds(sec);
-                                      subtitleRequestQueue.setWindowSeconds(sec);
-                                    }}
-                                    developerMode={isDeveloperMode}
-                                  />
+                                {speakingLang ? (
+                                  <p>
+                                    {audioTrackMode ? "Repeating" : "Speaking"}{" "}
+                                    <b>
+                                      {LANGS.find((l) => l.code === speakingLang)?.name ??
+                                        speakingLang}
+                                    </b>
+                                    …
+                                  </p>
+                                ) : (
+                                  <p className="text-muted-foreground">
+                                    Press play.{" "}
+                                    {pauseMode
+                                      ? audioTrackMode
+                                        ? "The video pauses after each section and repeats it using native audio."
+                                        : "The video pauses after each section and speaks it."
+                                      : "Continuous playback."}
+                                  </p>
                                 )}
-                                <div className="pt-2 border-t border-border/60 space-y-2">
-                                  {isDeveloperMode && (
-                                    <div
-                                      className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-2"
-                                      data-control-category="experimental"
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <label className="flex items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={pauseMode}
+                                      onChange={(e) => setPauseMode(e.target.checked)}
+                                    />{" "}
+                                    Pause &amp; speak after each section
+                                  </label>
+                                  {playedRecordsCount > 0 && (
+                                    <button
+                                      type="button"
+                                      data-testid="reset-played-subtitles-btn"
+                                      onClick={() => {
+                                        resetTtsPlaybackProgress();
+                                      }}
+                                      className="text-xs text-primary hover:underline font-medium"
+                                      title="Reset history of spoken subtitle records so they can be spoken again"
                                     >
-                                      <div className="flex items-center justify-between gap-2">
-                                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                                          <input
-                                            data-testid="auto-retry-subtitles-toggle"
-                                            type="checkbox"
-                                            checked={autoRetrySubtitles}
-                                            onChange={(e) =>
-                                              handleToggleAutoRetry(e.target.checked)
-                                            }
-                                            className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                          />
-                                          <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                            <RotateCcw className="w-3.5 h-3.5 text-primary" />
-                                            <span>
-                                              Auto-retry unfetched favorite languages (paced jitter)
-                                            </span>
-                                          </span>
-                                        </label>
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            setExpandedPrefsHelp((p) => ({
-                                              ...p,
-                                              autoRetry: !p.autoRetry,
-                                            }))
-                                          }
-                                          className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                          title="Toggle auto-retry explanation"
-                                          aria-expanded={Boolean(expandedPrefsHelp.autoRetry)}
-                                        >
-                                          <HelpCircle className="w-3 h-3" />
-                                          <span>
-                                            {expandedPrefsHelp.autoRetry ? "Hide" : "Info"}
-                                          </span>
-                                        </button>
-                                      </div>
-                                      {expandedPrefsHelp.autoRetry && (
-                                        <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                          Automatically retries pending favorite subtitles with
-                                          random spacing between X and Y seconds to prevent YouTube
-                                          HTTP 429 rate limit blocks.
-                                        </p>
-                                      )}
-                                      <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
-                                        <div>
-                                          <label
-                                            htmlFor="retry-pacing-min-input"
-                                            className="text-[11px] font-medium text-muted-foreground block mb-1"
-                                          >
-                                            Min interval (X seconds):
-                                          </label>
-                                          <input
-                                            id="retry-pacing-min-input"
-                                            data-testid="retry-pacing-min-input"
-                                            type="number"
-                                            min={1}
-                                            max={retryPacingMaxSec}
-                                            value={retryPacingMinSec}
-                                            onChange={(e) =>
-                                              handleUpdatePacingMin(
-                                                parseInt(e.target.value, 10) || 1,
-                                              )
-                                            }
-                                            className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
-                                          />
-                                        </div>
-                                        <div>
-                                          <label
-                                            htmlFor="retry-pacing-max-input"
-                                            className="text-[11px] font-medium text-muted-foreground block mb-1"
-                                          >
-                                            Max interval (Y seconds):
-                                          </label>
-                                          <input
-                                            id="retry-pacing-max-input"
-                                            data-testid="retry-pacing-max-input"
-                                            type="number"
-                                            min={retryPacingMinSec}
-                                            max={60}
-                                            value={retryPacingMaxSec}
-                                            onChange={(e) =>
-                                              handleUpdatePacingMax(
-                                                parseInt(e.target.value, 10) || retryPacingMinSec,
-                                              )
-                                            }
-                                            className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
-                                          />
-                                        </div>
-                                      </div>
-                                    </div>
+                                      Reset spoken history ({playedRecordsCount} spoken)
+                                    </button>
                                   )}
                                 </div>
-                              </>
-                            )}
-                            <div className="flex items-center justify-between gap-2">
-                              <label className="flex items-center gap-2 cursor-pointer select-none">
-                                <input
-                                  id="audio-track-mode-toggle"
-                                  type="checkbox"
-                                  checked={audioTrackMode}
-                                  onChange={(e) => onAudioTrackModeChange(e.target.checked)}
-                                  className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                />
-                                <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                  <Volume2 className="w-3.5 h-3.5 text-primary" />
-                                  <span>Audio-track mode (native video loop)</span>
-                                </span>
-                              </label>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setExpandedPrefsHelp((p) => ({ ...p, audioTrack: !p.audioTrack }))
-                                }
-                                className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                title="Toggle audio-track mode explanation"
-                                aria-expanded={Boolean(expandedPrefsHelp.audioTrack)}
-                              >
-                                <HelpCircle className="w-3 h-3" />
-                                <span>{expandedPrefsHelp.audioTrack ? "Hide" : "Info"}</span>
-                              </button>
-                            </div>
-                            {expandedPrefsHelp.audioTrack && (
-                              <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                Repeats active segment with native video audio instead of
-                                synthesized WebSpeech or alternative TTS.
-                              </p>
-                            )}
-                            <div className="space-y-0.5">
-                              <div className="flex items-center justify-between gap-2">
-                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                  <input
-                                    id="auto-scroll-toggle"
-                                    data-testid="auto-scroll-toggle"
-                                    type="checkbox"
-                                    checked={autoFocus}
-                                    onChange={(e) => onAutoFocusChange(e.target.checked)}
-                                    className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                  />
-                                  <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                    <LayoutList className="w-3.5 h-3.5 text-primary" />
-                                    <span>Auto-focus and scroll to current subtitle</span>
-                                  </span>
-                                </label>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setExpandedPrefsHelp((p) => ({
-                                      ...p,
-                                      autoScroll: !p.autoScroll,
-                                    }))
-                                  }
-                                  className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                  title="Toggle auto-scroll explanation"
-                                  aria-expanded={Boolean(expandedPrefsHelp.autoScroll)}
-                                >
-                                  <HelpCircle className="w-3 h-3" />
-                                  <span>{expandedPrefsHelp.autoScroll ? "Hide" : "Info"}</span>
-                                </button>
-                              </div>
-                              {expandedPrefsHelp.autoScroll && (
-                                <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                  Auto-scroll only starts 5 seconds after last user interaction to
-                                  avoid disturbing user actions.
-                                </p>
-                              )}
-                            </div>
-                            {isDeveloperMode && (
-                              <div
-                                className="space-y-2 rounded-lg border border-sky-500/30 bg-sky-500/5 p-2"
-                                data-control-category="experimental"
-                              >
+                                {isAndroid && (
+                                  <>
+                                    <label className="flex flex-wrap items-center gap-2">
+                                      <span>Subtitle request (first try, other is fallback):</span>
+                                      <select
+                                        data-testid="subtitle-request-mode-select"
+                                        value={requestMode}
+                                        onChange={(e) => {
+                                          const v = e.target.value as SubtitleRequestMode;
+                                          setRequestModeState(v);
+                                          saveSubtitleRequestMode(v);
+                                        }}
+                                        className="rounded-md border border-input bg-background px-2 py-1"
+                                      >
+                                        <option value="tlang">Add tlang=&lt;language&gt;</option>
+                                        <option value="lang">Replace lang=&lt;language&gt;</option>
+                                      </select>
+                                    </label>
+                                    {isDeveloperMode && (
+                                      <AttemptOrderSettings
+                                        order={attemptOrder}
+                                        onChangeOrder={handleUpdateAttemptOrder}
+                                        promoteSuccess={promoteSuccess}
+                                        onTogglePromoteSuccess={handleTogglePromoteSuccess}
+                                        useFetchServer={useFetchServer}
+                                        onToggleUseFetchServer={handleToggleUseFetchServer}
+                                        fetchServerUrl={fetchServerUrl}
+                                        onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
+                                        onSelectVideo={handleSelectLibraryVideo}
+                                        strategyConfig={strategyConfig}
+                                        onChangeStrategyConfig={(next) => {
+                                          setStrategyConfigState(next);
+                                          setSubtitleFetchWindowSeconds(next.windowSeconds);
+                                          setFetchWindowSecondsState(next.windowSeconds);
+                                          subtitleRequestQueue.setWindowSeconds(next.windowSeconds);
+                                        }}
+                                        windowSeconds={fetchWindowSeconds}
+                                        onChangeWindowSeconds={(sec) => {
+                                          setFetchWindowSecondsState(sec);
+                                          setSubtitleFetchWindowSeconds(sec);
+                                          subtitleRequestQueue.setWindowSeconds(sec);
+                                        }}
+                                        developerMode={isDeveloperMode}
+                                      />
+                                    )}
+                                    <div className="pt-2 border-t border-border/60 space-y-2">
+                                      {isDeveloperMode && (
+                                        <div
+                                          className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-2"
+                                          data-control-category="experimental"
+                                        >
+                                          <div className="flex items-center justify-between gap-2">
+                                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                              <input
+                                                data-testid="auto-retry-subtitles-toggle"
+                                                type="checkbox"
+                                                checked={autoRetrySubtitles}
+                                                onChange={(e) =>
+                                                  handleToggleAutoRetry(e.target.checked)
+                                                }
+                                                className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                              />
+                                              <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                                <RotateCcw className="w-3.5 h-3.5 text-primary" />
+                                                <span>
+                                                  Auto-retry unfetched favorite languages (paced
+                                                  jitter)
+                                                </span>
+                                              </span>
+                                            </label>
+                                            <button
+                                              type="button"
+                                              onClick={() =>
+                                                setExpandedPrefsHelp((p) => ({
+                                                  ...p,
+                                                  autoRetry: !p.autoRetry,
+                                                }))
+                                              }
+                                              className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                              title="Toggle auto-retry explanation"
+                                              aria-expanded={Boolean(expandedPrefsHelp.autoRetry)}
+                                            >
+                                              <HelpCircle className="w-3 h-3" />
+                                              <span>
+                                                {expandedPrefsHelp.autoRetry ? "Hide" : "Info"}
+                                              </span>
+                                            </button>
+                                          </div>
+                                          {expandedPrefsHelp.autoRetry && (
+                                            <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                              Automatically retries pending favorite subtitles with
+                                              random spacing between X and Y seconds to prevent
+                                              YouTube HTTP 429 rate limit blocks.
+                                            </p>
+                                          )}
+                                          <div className="ml-6 grid grid-cols-2 gap-3 max-w-sm pt-1">
+                                            <div>
+                                              <label
+                                                htmlFor="retry-pacing-min-input"
+                                                className="text-[11px] font-medium text-muted-foreground block mb-1"
+                                              >
+                                                Min interval (X seconds):
+                                              </label>
+                                              <input
+                                                id="retry-pacing-min-input"
+                                                data-testid="retry-pacing-min-input"
+                                                type="number"
+                                                min={1}
+                                                max={retryPacingMaxSec}
+                                                value={retryPacingMinSec}
+                                                onChange={(e) =>
+                                                  handleUpdatePacingMin(
+                                                    parseInt(e.target.value, 10) || 1,
+                                                  )
+                                                }
+                                                className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                                              />
+                                            </div>
+                                            <div>
+                                              <label
+                                                htmlFor="retry-pacing-max-input"
+                                                className="text-[11px] font-medium text-muted-foreground block mb-1"
+                                              >
+                                                Max interval (Y seconds):
+                                              </label>
+                                              <input
+                                                id="retry-pacing-max-input"
+                                                data-testid="retry-pacing-max-input"
+                                                type="number"
+                                                min={retryPacingMinSec}
+                                                max={60}
+                                                value={retryPacingMaxSec}
+                                                onChange={(e) =>
+                                                  handleUpdatePacingMax(
+                                                    parseInt(e.target.value, 10) ||
+                                                      retryPacingMinSec,
+                                                  )
+                                                }
+                                                className="w-full rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground"
+                                              />
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </>
+                                )}
                                 <div className="flex items-center justify-between gap-2">
                                   <label className="flex items-center gap-2 cursor-pointer select-none">
                                     <input
-                                      id="debug-mode-toggle"
-                                      data-testid="debug-mode-toggle"
+                                      id="audio-track-mode-toggle"
                                       type="checkbox"
-                                      checked={debugMode}
-                                      onChange={(e) => onDebugModeChange(e.target.checked)}
+                                      checked={audioTrackMode}
+                                      onChange={(e) => onAudioTrackModeChange(e.target.checked)}
                                       className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                                     />
                                     <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                      <Activity className="w-3.5 h-3.5 text-primary" />
-                                      <span>Network inspector &amp; diagnostics</span>
+                                      <Volume2 className="w-3.5 h-3.5 text-primary" />
+                                      <span>Audio-track mode (native video loop)</span>
                                     </span>
                                   </label>
                                   <button
@@ -6880,868 +6778,972 @@ function Index() {
                                     onClick={() =>
                                       setExpandedPrefsHelp((p) => ({
                                         ...p,
-                                        debugMode: !p.debugMode,
+                                        audioTrack: !p.audioTrack,
                                       }))
                                     }
                                     className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                    title="Toggle diagnostics explanation"
-                                    aria-expanded={Boolean(expandedPrefsHelp.debugMode)}
+                                    title="Toggle audio-track mode explanation"
+                                    aria-expanded={Boolean(expandedPrefsHelp.audioTrack)}
                                   >
                                     <HelpCircle className="w-3 h-3" />
-                                    <span>{expandedPrefsHelp.debugMode ? "Hide" : "Info"}</span>
+                                    <span>{expandedPrefsHelp.audioTrack ? "Hide" : "Info"}</span>
                                   </button>
                                 </div>
-                                {expandedPrefsHelp.debugMode && (
+                                {expandedPrefsHelp.audioTrack && (
                                   <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                    Enables live network traffic capture, headers inspection, and
-                                    timedtext diagnostics while developer mode is active.
+                                    Repeats active segment with native video audio instead of
+                                    synthesized WebSpeech or alternative TTS.
                                   </p>
                                 )}
-                              </div>
-                            )}
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                              <input
-                                id="background-audio-toggle"
-                                data-testid="background-audio-toggle"
-                                type="checkbox"
-                                checked={backgroundAudioEnabled}
-                                onChange={(e) => handleToggleBackgroundAudio(e.target.checked)}
-                                className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                              />
-                              <Smartphone className="w-3.5 h-3.5 text-primary" />
-                              <span className="font-medium text-xs text-foreground">
-                                Background audio &amp; lockscreen playback controls
-                              </span>
-                            </label>
-
-                            {/* On-Demand Translation Ahead via Google Translate API */}
-                            <div
-                              className="pt-2 border-t border-border/60 space-y-2"
-                              data-testid="on-demand-translation-settings-card"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                  <input
-                                    id="on-demand-translation-toggle"
-                                    data-testid="on-demand-translation-toggle"
-                                    type="checkbox"
-                                    checked={enableOnDemandTranslation}
-                                    onChange={(e) =>
-                                      onEnableOnDemandTranslationChange(e.target.checked)
-                                    }
-                                    className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                  />
-                                  <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                    <Sparkles className="w-3.5 h-3.5 text-primary" />
-                                    <span>On-demand sentence translation ahead</span>
-                                  </span>
-                                </label>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setExpandedPrefsHelp((p) => ({ ...p, onDemand: !p.onDemand }))
-                                  }
-                                  className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                  title="Toggle on-demand translation explanation"
-                                  aria-expanded={Boolean(expandedPrefsHelp.onDemand)}
-                                >
-                                  <HelpCircle className="w-3 h-3" />
-                                  <span>{expandedPrefsHelp.onDemand ? "Hide" : "Info"}</span>
-                                </button>
-                              </div>
-                              {expandedPrefsHelp.onDemand && (
-                                <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                  Uses Google Translate API to pre-translate upcoming sentences
-                                  ahead for selected target languages until authentic YouTube
-                                  captions are fetched.
-                                </p>
-                              )}
-                              <div className="ml-6 flex items-center gap-2 pt-1 max-w-xs">
-                                <label
-                                  htmlFor="on-demand-ahead-count-input"
-                                  className="text-[11px] font-medium text-muted-foreground whitespace-nowrap"
-                                >
-                                  Sentences ahead (X):
-                                </label>
-                                <input
-                                  id="on-demand-ahead-count-input"
-                                  data-testid="on-demand-ahead-count-input"
-                                  type="number"
-                                  min={1}
-                                  max={50}
-                                  value={onDemandAheadCount}
-                                  onChange={(e) =>
-                                    onOnDemandAheadCountChange(
-                                      Math.max(1, Math.min(50, parseInt(e.target.value, 10) || 10)),
-                                    )
-                                  }
-                                  className="w-20 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Alternative TTS Service (Lovable Speak API & Google Translate) */}
-                            <div
-                              className="pt-2 border-t border-border/60 space-y-2"
-                              data-testid="alternative-tts-settings-card"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <label className="flex items-center gap-2 cursor-pointer select-none">
-                                  <input
-                                    id="alternative-tts-toggle"
-                                    data-testid="alternative-tts-toggle"
-                                    type="checkbox"
-                                    checked={useAlternativeTtsState}
-                                    onChange={(e) => {
-                                      const checked = e.target.checked;
-                                      setUseAlternativeTtsState(checked);
-                                      setUseAlternativeTts(checked);
-                                    }}
-                                    className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                  />
-                                  <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                    <Volume2 className="w-3.5 h-3.5 text-primary" />
-                                    <span>
-                                      Alternative TTS Service (Lovable API &amp; Google Translate)
-                                    </span>
-                                  </span>
-                                </label>
-                                <div className="flex items-center gap-1.5">
-                                  <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                                    Off by default
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setExpandedPrefsHelp((p) => ({ ...p, altTts: !p.altTts }))
-                                    }
-                                    className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                    title="Toggle alternative TTS explanation"
-                                    aria-expanded={Boolean(expandedPrefsHelp.altTts)}
-                                  >
-                                    <HelpCircle className="w-3 h-3" />
-                                    <span>{expandedPrefsHelp.altTts ? "Hide" : "Info"}</span>
-                                  </button>
-                                </div>
-                              </div>
-                              {expandedPrefsHelp.altTts && (
-                                <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                  Provides high-quality neural voice synthesis via Lovable Speak API
-                                  and OpenRouter cloud voices, with automatic fallback when local
-                                  device TTS lacks specific language voices.
-                                </p>
-                              )}
-
-                              {useAlternativeTtsState && (
-                                <div className="ml-6 space-y-2.5 pt-1">
-                                  <div className="flex flex-wrap items-center gap-4 text-xs">
-                                    <label className="flex items-center gap-1.5 text-foreground cursor-pointer">
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
                                       <input
-                                        type="radio"
-                                        name="alternative-tts-mode"
-                                        data-testid="alternative-tts-mode-always"
-                                        value="always"
-                                        checked={alternativeTtsModeState === "always"}
-                                        onChange={() => {
-                                          setAlternativeTtsModeState("always");
-                                          setAlternativeTtsMode("always");
-                                        }}
+                                        id="auto-scroll-toggle"
+                                        data-testid="auto-scroll-toggle"
+                                        type="checkbox"
+                                        checked={autoFocus}
+                                        onChange={(e) => onAutoFocusChange(e.target.checked)}
+                                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
                                       />
-                                      Prefer Lovable TTS over device/browser speech
+                                      <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                        <LayoutList className="w-3.5 h-3.5 text-primary" />
+                                        <span>Auto-focus and scroll to current subtitle</span>
+                                      </span>
                                     </label>
-                                    <label className="flex items-center gap-1.5 text-foreground cursor-pointer">
-                                      <input
-                                        type="radio"
-                                        name="alternative-tts-mode"
-                                        data-testid="alternative-tts-mode-fallback"
-                                        value="fallback_only"
-                                        checked={alternativeTtsModeState === "fallback_only"}
-                                        onChange={() => {
-                                          setAlternativeTtsModeState("fallback_only");
-                                          setAlternativeTtsMode("fallback_only");
-                                        }}
-                                      />
-                                      Fallback when device/browser speech fails
-                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setExpandedPrefsHelp((p) => ({
+                                          ...p,
+                                          autoScroll: !p.autoScroll,
+                                        }))
+                                      }
+                                      className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                      title="Toggle auto-scroll explanation"
+                                      aria-expanded={Boolean(expandedPrefsHelp.autoScroll)}
+                                    >
+                                      <HelpCircle className="w-3 h-3" />
+                                      <span>{expandedPrefsHelp.autoScroll ? "Hide" : "Info"}</span>
+                                    </button>
                                   </div>
-
-                                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                                    <span className="text-muted-foreground font-medium">
-                                      TTS Engine:
-                                    </span>
-                                    <select
-                                      data-testid="alternative-tts-engine-select"
-                                      value={alternativeTtsEngineState}
-                                      onChange={(e) => {
-                                        const val = e.target.value as AlternativeTtsEngine;
-                                        setAlternativeTtsEngineState(val);
-                                        setAlternativeTtsEngine(val);
-                                      }}
-                                      className="rounded border border-input bg-background px-2 py-1 text-xs text-foreground font-medium transition-all focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
-                                    >
-                                      <option value="lovable">
-                                        Lovable Speak API (tts3.lovable.app)
-                                      </option>
-                                      <option value="google_translate">
-                                        Google TTS (Direct translate_tts)
-                                      </option>
-                                    </select>
-                                    <a
-                                      href={LOVABLE_TTS_OPENAPI_URL}
-                                      target="_blank"
-                                      rel="noreferrer"
-                                      data-testid="lovable-tts-openapi-link"
-                                      className="text-primary hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1"
-                                    >
-                                      OpenAPI 3.1.0 Spec ↗
-                                    </a>
-                                  </div>
-
-                                  <div className="space-y-3 p-3 rounded-lg bg-muted/40 border border-border/60">
-                                    <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-muted-foreground font-medium">
-                                          Provider:
-                                        </span>
-                                        <select
-                                          data-testid="lovable-tts-provider-select"
-                                          value={lovableTtsProviderState}
-                                          onChange={(e) => {
-                                            const p = e.target.value as LovableTtsProvider;
-                                            setLovableTtsProviderState(p);
-                                            setLovableTtsProvider(p);
-                                            if (
-                                              p === "openrouter" &&
-                                              !(OPENROUTER_VOICES as readonly string[]).includes(
-                                                lovableTtsVoiceState,
-                                              )
-                                            ) {
-                                              setLovableTtsVoiceState("alloy");
-                                              setLovableTtsVoice("alloy");
-                                            } else if (
-                                              p === "lovable" &&
-                                              !(LOVABLE_VOICES as readonly string[]).includes(
-                                                lovableTtsVoiceState,
-                                              )
-                                            ) {
-                                              setLovableTtsVoiceState("Kore");
-                                              setLovableTtsVoice("Kore");
-                                            }
-                                          }}
-                                          className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-mono font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
-                                        >
-                                          <option value="lovable">lovable</option>
-                                          <option value="google">google</option>
-                                          <option value="openrouter">openrouter</option>
-                                        </select>
-                                      </div>
-
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-muted-foreground font-medium">
-                                          Voice:
-                                        </span>
-                                        {lovableTtsProviderState === "google" ? (
-                                          <span className="text-xs text-muted-foreground italic px-2 py-0.5">
-                                            Default (Single voice)
-                                          </span>
-                                        ) : (
-                                          <select
-                                            data-testid="lovable-tts-voice-select"
-                                            value={
-                                              lovableTtsVoiceState ||
-                                              (lovableTtsProviderState === "openrouter"
-                                                ? "alloy"
-                                                : "Kore")
-                                            }
-                                            onChange={(e) => {
-                                              const v = e.target.value;
-                                              setLovableTtsVoiceState(v);
-                                              setLovableTtsVoice(v);
-                                            }}
-                                            className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
-                                          >
-                                            {lovableTtsProviderState === "openrouter"
-                                              ? OPENROUTER_VOICES.map((v) => (
-                                                  <option key={v} value={v}>
-                                                    {v} {v === "alloy" ? "(Default)" : ""}
-                                                  </option>
-                                                ))
-                                              : LOVABLE_VOICES.map((v) => (
-                                                  <option key={v} value={v}>
-                                                    {v} {v === "Kore" ? "(Default)" : ""}
-                                                  </option>
-                                                ))}
-                                          </select>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {/* OpenRouter API Key Settings */}
-                                    <div className="space-y-1.5 pt-1 text-xs border-t border-border/60">
-                                      <div className="flex items-center justify-between">
-                                        <label
-                                          htmlFor="openrouter-tts-key-input"
-                                          className="text-muted-foreground font-medium flex items-center gap-1.5"
-                                        >
-                                          <span>OpenRouter API Key:</span>
-                                          {hasCustomOpenRouterApiKey() ? (
-                                            <span
-                                              className="text-[10px] text-emerald-500 font-medium"
-                                              data-testid="openrouter-key-custom-badge"
-                                            >
-                                              ✓ Custom key saved
-                                            </span>
-                                          ) : getServerOpenRouterApiKey() ? (
-                                            <span
-                                              className="text-[10px] text-primary font-medium"
-                                              data-testid="openrouter-key-server-badge"
-                                            >
-                                              (Using server .env key)
-                                            </span>
-                                          ) : (
-                                            <span className="text-[10px] text-muted-foreground font-normal">
-                                              (Optional - free tier default)
-                                            </span>
-                                          )}
-                                        </label>
-                                      </div>
-                                      <div className="flex items-center gap-1.5">
-                                        <div className="relative flex-1">
-                                          <input
-                                            id="openrouter-tts-key-input"
-                                            data-testid="openrouter-tts-key-input"
-                                            type={showOpenRouterKey ? "text" : "password"}
-                                            value={openRouterKeyInput}
-                                            onChange={(e) => {
-                                              setOpenRouterKeyInput(e.target.value);
-                                              setOpenRouterKeySaved(false);
-                                            }}
-                                            placeholder={
-                                              getServerOpenRouterApiKey()
-                                                ? "Using server key (enter custom to override)"
-                                                : "sk-or-v1-..."
-                                            }
-                                            className="w-full rounded border border-input bg-background px-2.5 py-1 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground/60"
-                                          />
-                                          <button
-                                            type="button"
-                                            data-testid="toggle-show-openrouter-key-btn"
-                                            onClick={() => setShowOpenRouterKey(!showOpenRouterKey)}
-                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
-                                            title={showOpenRouterKey ? "Hide key" : "Show key"}
-                                          >
-                                            {showOpenRouterKey ? (
-                                              <EyeOff className="h-3.5 w-3.5" />
-                                            ) : (
-                                              <Eye className="h-3.5 w-3.5" />
-                                            )}
-                                          </button>
-                                        </div>
-                                        <button
-                                          type="button"
-                                          data-testid="save-openrouter-key-btn"
-                                          onClick={() => {
-                                            setLovableTtsApiKey(openRouterKeyInput);
-                                            setOpenRouterApiKeySetting(openRouterKeyInput);
-                                            setOpenRouterKeySaved(true);
-                                            setTimeout(() => setOpenRouterKeySaved(false), 2500);
-                                          }}
-                                          className="px-2.5 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium cursor-pointer"
-                                        >
-                                          {openRouterKeySaved ? "Saved!" : "Save"}
-                                        </button>
-                                        {openRouterKeyInput && (
-                                          <button
-                                            type="button"
-                                            data-testid="clear-openrouter-key-btn"
-                                            onClick={() => {
-                                              setOpenRouterKeyInput("");
-                                              setLovableTtsApiKey("");
-                                              setOpenRouterApiKeySetting("");
-                                            }}
-                                            className="px-2 py-1 rounded border border-input bg-background text-muted-foreground hover:text-foreground text-xs"
-                                            title="Clear custom key"
-                                          >
-                                            Clear
-                                          </button>
-                                        )}
-                                      </div>
-                                    </div>
-
-                                    {/* Native TTS Speed Notice (Uses native speech rate settings) */}
-                                    <div
-                                      data-testid="lovable-tts-native-speed-notice"
-                                      className="flex items-center justify-between rounded border border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs"
-                                    >
-                                      <span className="text-muted-foreground font-medium">
-                                        TTS Speed:
-                                      </span>
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-foreground font-mono text-[11px]">
-                                          Uses native speech rate (
-                                          {(rates[baseLanguage || "en"] ?? 0.5).toFixed(1)}x)
-                                        </span>
-                                        <select
-                                          data-testid="main-settings-tts-rate-select"
-                                          aria-label="Main TTS speech rate"
-                                          value={(rates[baseLanguage || "en"] ?? 0.5).toFixed(1)}
-                                          onChange={(e) => {
-                                            const val = Number(e.target.value);
-                                            const targetLang = baseLanguage || "en";
-                                            setRates((current) => ({
-                                              ...current,
-                                              [targetLang]: val,
-                                            }));
-                                            saveTtsRatePreference(targetLang, val);
-                                            if (videoId) {
-                                              saveVideoSettings(videoId, {
-                                                ttsRates: { [targetLang]: val },
-                                              });
-                                            }
-                                          }}
-                                          className="rounded border border-input bg-background px-1.5 py-0.5 text-xs font-mono cursor-pointer"
-                                        >
-                                          {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
-                                            <option key={rateVal} value={rateVal.toFixed(1)}>
-                                              {rateVal.toFixed(1)}×
-                                            </option>
-                                          ))}
-                                        </select>
-                                      </div>
-                                    </div>
-
-                                    <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                                      <span>
-                                        Provider:{" "}
-                                        <strong className="text-foreground font-mono">
-                                          {lovableTtsProviderState}
-                                        </strong>
-                                      </span>
-                                      <span>•</span>
-                                      <span>
-                                        Voice:{" "}
-                                        <span className="text-foreground">
-                                          {lovableTtsProviderState === "google"
-                                            ? "Default"
-                                            : lovableTtsVoiceState ||
-                                              (lovableTtsProviderState === "openrouter"
-                                                ? "alloy"
-                                                : "Kore")}
-                                        </span>
-                                      </span>
+                                  {expandedPrefsHelp.autoScroll && (
+                                    <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                      Auto-scroll only starts 5 seconds after last user interaction
+                                      to avoid disturbing user actions.
                                     </p>
-                                  </div>
-
-                                  <div className="space-y-2 pt-1 border-t border-border/40">
-                                    <div className="flex flex-wrap items-center gap-2">
+                                  )}
+                                </div>
+                                {isDeveloperMode && (
+                                  <div
+                                    className="space-y-2 rounded-lg border border-sky-500/30 bg-sky-500/5 p-2"
+                                    data-control-category="experimental"
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <label className="flex items-center gap-2 cursor-pointer select-none">
+                                        <input
+                                          id="debug-mode-toggle"
+                                          data-testid="debug-mode-toggle"
+                                          type="checkbox"
+                                          checked={debugMode}
+                                          onChange={(e) => onDebugModeChange(e.target.checked)}
+                                          className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                        />
+                                        <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                          <Activity className="w-3.5 h-3.5 text-primary" />
+                                          <span>Network inspector &amp; diagnostics</span>
+                                        </span>
+                                      </label>
                                       <button
                                         type="button"
-                                        data-testid="btn-validate-remote-tts"
-                                        disabled={isValidatingRemoteTts}
-                                        onClick={() => handleValidateRemoteService()}
-                                        className="px-2.5 py-1 rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-xs font-mono inline-flex items-center gap-1.5 text-primary disabled:opacity-60 cursor-pointer font-medium"
-                                      >
-                                        {isValidatingRemoteTts ? (
-                                          <>
-                                            <Loader2 className="h-3 w-3 animate-spin" />
-                                            <span>Validating Service…</span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Activity className="h-3 w-3" />
-                                            <span>
-                                              Validate{" "}
-                                              {alternativeTtsEngineState === "lovable"
-                                                ? "TTS3 Service"
-                                                : "Google TTS Directly"}
-                                            </span>
-                                          </>
-                                        )}
-                                      </button>
-
-                                      <button
-                                        type="button"
-                                        data-testid="btn-validate-google-tts-directly"
-                                        disabled={isValidatingRemoteTts}
                                         onClick={() =>
-                                          handleValidateRemoteService("google_translate")
+                                          setExpandedPrefsHelp((p) => ({
+                                            ...p,
+                                            debugMode: !p.debugMode,
+                                          }))
                                         }
-                                        className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                                        title="Validate Google Translate TTS endpoint directly"
+                                        className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                        title="Toggle diagnostics explanation"
+                                        aria-expanded={Boolean(expandedPrefsHelp.debugMode)}
                                       >
-                                        Validate Google Direct
-                                      </button>
-
-                                      <button
-                                        type="button"
-                                        data-testid="btn-validate-tts3-service"
-                                        disabled={isValidatingRemoteTts}
-                                        onClick={() => handleValidateRemoteService("lovable")}
-                                        className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                                        title="Validate Lovable TTS3 public endpoint"
-                                      >
-                                        Validate TTS3 Service
-                                      </button>
-
-                                      <button
-                                        type="button"
-                                        data-testid="test-alternative-tts-btn"
-                                        disabled={isTestingAlternativeTts}
-                                        onClick={async () => {
-                                          setIsTestingAlternativeTts(true);
-                                          const testRate = rates[baseLanguage || "en"] ?? 0.5;
-                                          try {
-                                            await playAlternativeTtsAudio(
-                                              "Hello world",
-                                              baseLanguage || "en",
-                                              testRate,
-                                              undefined,
-                                              alternativeTtsEngineState,
-                                              {
-                                                provider: lovableTtsProviderState,
-                                                voice:
-                                                  lovableTtsProviderState === "google"
-                                                    ? undefined
-                                                    : lovableTtsVoiceState ||
-                                                      (lovableTtsProviderState === "openrouter"
-                                                        ? "alloy"
-                                                        : "Kore"),
-                                                speed: testRate,
-                                              },
-                                            );
-                                          } catch (err) {
-                                            console.warn("Test Alternative TTS error:", err);
-                                          } finally {
-                                            setIsTestingAlternativeTts(false);
-                                          }
-                                        }}
-                                        className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
-                                      >
-                                        {isTestingAlternativeTts ? (
-                                          <>
-                                            <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                                            <span>Playing test audio…</span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <Play className="h-3 w-3 text-primary" />
-                                            <span>
-                                              ▶ Test Audio (
-                                              {alternativeTtsEngineState === "lovable"
-                                                ? "TTS3"
-                                                : "Google Direct"}
-                                              )
-                                            </span>
-                                          </>
-                                        )}
+                                        <HelpCircle className="w-3 h-3" />
+                                        <span>{expandedPrefsHelp.debugMode ? "Hide" : "Info"}</span>
                                       </button>
                                     </div>
-
-                                    {/* Validation Status Feedback */}
-                                    {remoteValidationResult && (
-                                      <div
-                                        data-testid="remote-tts-validation-details"
-                                        className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border text-xs ${
-                                          remoteValidationResult.ok
-                                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-                                            : "bg-destructive/10 border-destructive/30 text-destructive"
-                                        }`}
-                                      >
-                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                          <span
-                                            data-testid="remote-tts-validation-badge"
-                                            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium font-mono ${
-                                              remoteValidationResult.ok
-                                                ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-                                                : "bg-destructive/20 text-destructive"
-                                            }`}
-                                          >
-                                            {remoteValidationResult.ok ? (
-                                              <>
-                                                <CheckCircle2 className="h-3 w-3" />
-                                                <span>
-                                                  Available ({remoteValidationResult.latencyMs}ms)
-                                                </span>
-                                              </>
-                                            ) : (
-                                              <>
-                                                <AlertCircle className="h-3 w-3" />
-                                                <span>
-                                                  Unavailable ({remoteValidationResult.latencyMs}ms)
-                                                </span>
-                                              </>
-                                            )}
-                                          </span>
-                                          <span className="font-semibold">
-                                            {remoteValidationResult.serviceName}:
-                                          </span>
-                                          <span className="text-[11px] opacity-90">
-                                            {remoteValidationResult.ok
-                                              ? remoteValidationResult.details ||
-                                                "Audio stream verified"
-                                              : remoteValidationResult.error ||
-                                                "Service check failed"}
-                                          </span>
-                                        </div>
-                                        <span className="text-[10px] font-mono opacity-70">
-                                          Checked{" "}
-                                          {new Date(
-                                            remoteValidationResult.timestamp,
-                                          ).toLocaleTimeString()}
-                                        </span>
-                                      </div>
+                                    {expandedPrefsHelp.debugMode && (
+                                      <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                        Enables live network traffic capture, headers inspection,
+                                        and timedtext diagnostics while developer mode is active.
+                                      </p>
                                     )}
                                   </div>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Favorite Languages (Settings & localStorage) and Video-Specific Selection */}
-                            <div
-                              className="hidden pt-2 border-t border-border/60 space-y-2.5"
-                              data-testid="settings-favorites-languages-card"
-                            >
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div>
-                                  <span className="font-semibold text-xs text-foreground flex items-center gap-1">
-                                    <span>Favorite Languages (Settings &amp; localStorage)</span>
+                                )}
+                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                  <input
+                                    id="background-audio-toggle"
+                                    data-testid="background-audio-toggle"
+                                    type="checkbox"
+                                    checked={backgroundAudioEnabled}
+                                    onChange={(e) => handleToggleBackgroundAudio(e.target.checked)}
+                                    className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                  />
+                                  <Smartphone className="w-3.5 h-3.5 text-primary" />
+                                  <span className="font-medium text-xs text-foreground">
+                                    Background audio &amp; lockscreen playback controls
                                   </span>
-                                  <p className="text-[11px] text-muted-foreground">
-                                    Saved in localStorage. Applied automatically as default target
-                                    languages for every new video.
-                                  </p>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    type="button"
-                                    data-testid="settings-reset-video-to-favorites-btn"
-                                    onClick={handleResetVideoToFavorites}
-                                    className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-xs font-medium"
-                                  >
-                                    Apply Favorites to Active Video
-                                  </button>
-                                  <button
-                                    type="button"
-                                    data-testid="settings-save-current-as-favorites-btn"
-                                    onClick={handleSaveCurrentAsFavorites}
-                                    className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-xs font-medium"
-                                  >
-                                    Save Active Selection as Favorites
-                                  </button>
-                                </div>
-                              </div>
+                                </label>
 
-                              <div className="rounded-md border border-border bg-background/50 p-2 space-y-2">
-                                <div className="flex flex-wrap items-center gap-1.5">
-                                  <span className="text-[11px] font-medium text-muted-foreground mr-1">
-                                    Global Favorites:
-                                  </span>
-                                  {favoriteLanguages.length === 0 ? (
-                                    <span className="text-[11px] text-muted-foreground italic">
-                                      No favorites selected yet
-                                    </span>
-                                  ) : (
-                                    favoriteLanguages.map((code) => {
-                                      const langMeta = SUPPORTED_LANGUAGES_CATALOG.find(
-                                        (c) => c.code === code,
-                                      ) || { code, name: code };
-                                      return (
-                                        <span
-                                          key={code}
-                                          data-testid={`settings-fav-chip-${code}`}
-                                          className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium"
+                                {/* On-Demand Translation Ahead via Google Translate API */}
+                                <div
+                                  className="pt-2 border-t border-border/60 space-y-2"
+                                  data-testid="on-demand-translation-settings-card"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                      <input
+                                        id="on-demand-translation-toggle"
+                                        data-testid="on-demand-translation-toggle"
+                                        type="checkbox"
+                                        checked={enableOnDemandTranslation}
+                                        onChange={(e) =>
+                                          onEnableOnDemandTranslationChange(e.target.checked)
+                                        }
+                                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                      />
+                                      <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                        <Sparkles className="w-3.5 h-3.5 text-primary" />
+                                        <span>On-demand sentence translation ahead</span>
+                                      </span>
+                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setExpandedPrefsHelp((p) => ({
+                                          ...p,
+                                          onDemand: !p.onDemand,
+                                        }))
+                                      }
+                                      className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                      title="Toggle on-demand translation explanation"
+                                      aria-expanded={Boolean(expandedPrefsHelp.onDemand)}
+                                    >
+                                      <HelpCircle className="w-3 h-3" />
+                                      <span>{expandedPrefsHelp.onDemand ? "Hide" : "Info"}</span>
+                                    </button>
+                                  </div>
+                                  {expandedPrefsHelp.onDemand && (
+                                    <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                      Uses Google Translate API to pre-translate upcoming sentences
+                                      ahead for selected target languages until authentic YouTube
+                                      captions are fetched.
+                                    </p>
+                                  )}
+                                  <div className="ml-6 flex items-center gap-2 pt-1 max-w-xs">
+                                    <label
+                                      htmlFor="on-demand-ahead-count-input"
+                                      className="text-[11px] font-medium text-muted-foreground whitespace-nowrap"
+                                    >
+                                      Sentences ahead (X):
+                                    </label>
+                                    <input
+                                      id="on-demand-ahead-count-input"
+                                      data-testid="on-demand-ahead-count-input"
+                                      type="number"
+                                      min={1}
+                                      max={50}
+                                      value={onDemandAheadCount}
+                                      onChange={(e) =>
+                                        onOnDemandAheadCountChange(
+                                          Math.max(
+                                            1,
+                                            Math.min(50, parseInt(e.target.value, 10) || 10),
+                                          ),
+                                        )
+                                      }
+                                      className="w-20 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Alternative TTS Service (Lovable Speak API & Google Translate) */}
+                                <div
+                                  className="pt-2 border-t border-border/60 space-y-2"
+                                  data-testid="alternative-tts-settings-card"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                      <input
+                                        id="alternative-tts-toggle"
+                                        data-testid="alternative-tts-toggle"
+                                        type="checkbox"
+                                        checked={useAlternativeTtsState}
+                                        onChange={(e) => {
+                                          const checked = e.target.checked;
+                                          setUseAlternativeTtsState(checked);
+                                          setUseAlternativeTts(checked);
+                                        }}
+                                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                      />
+                                      <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                        <Volume2 className="w-3.5 h-3.5 text-primary" />
+                                        <span>
+                                          Alternative TTS Service (Lovable API &amp; Google
+                                          Translate)
+                                        </span>
+                                      </span>
+                                    </label>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                                        Off by default
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setExpandedPrefsHelp((p) => ({ ...p, altTts: !p.altTts }))
+                                        }
+                                        className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                        title="Toggle alternative TTS explanation"
+                                        aria-expanded={Boolean(expandedPrefsHelp.altTts)}
+                                      >
+                                        <HelpCircle className="w-3 h-3" />
+                                        <span>{expandedPrefsHelp.altTts ? "Hide" : "Info"}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {expandedPrefsHelp.altTts && (
+                                    <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                      Provides high-quality neural voice synthesis via Lovable Speak
+                                      API and OpenRouter cloud voices, with automatic fallback when
+                                      local device TTS lacks specific language voices.
+                                    </p>
+                                  )}
+
+                                  {useAlternativeTtsState && (
+                                    <div className="ml-6 space-y-2.5 pt-1">
+                                      <div className="flex flex-wrap items-center gap-4 text-xs">
+                                        <label className="flex items-center gap-1.5 text-foreground cursor-pointer">
+                                          <input
+                                            type="radio"
+                                            name="alternative-tts-mode"
+                                            data-testid="alternative-tts-mode-always"
+                                            value="always"
+                                            checked={alternativeTtsModeState === "always"}
+                                            onChange={() => {
+                                              setAlternativeTtsModeState("always");
+                                              setAlternativeTtsMode("always");
+                                            }}
+                                          />
+                                          Prefer Lovable TTS over device/browser speech
+                                        </label>
+                                        <label className="flex items-center gap-1.5 text-foreground cursor-pointer">
+                                          <input
+                                            type="radio"
+                                            name="alternative-tts-mode"
+                                            data-testid="alternative-tts-mode-fallback"
+                                            value="fallback_only"
+                                            checked={alternativeTtsModeState === "fallback_only"}
+                                            onChange={() => {
+                                              setAlternativeTtsModeState("fallback_only");
+                                              setAlternativeTtsMode("fallback_only");
+                                            }}
+                                          />
+                                          Fallback when device/browser speech fails
+                                        </label>
+                                      </div>
+
+                                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                                        <span className="text-muted-foreground font-medium">
+                                          TTS Engine:
+                                        </span>
+                                        <select
+                                          data-testid="alternative-tts-engine-select"
+                                          value={alternativeTtsEngineState}
+                                          onChange={(e) => {
+                                            const val = e.target.value as AlternativeTtsEngine;
+                                            setAlternativeTtsEngineState(val);
+                                            setAlternativeTtsEngine(val);
+                                          }}
+                                          className="rounded border border-input bg-background px-2 py-1 text-xs text-foreground font-medium transition-all focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                                         >
-                                          <span>{langMeta.name}</span>
+                                          <option value="lovable">
+                                            Lovable Speak API (tts3.lovable.app)
+                                          </option>
+                                          <option value="google_translate">
+                                            Google TTS (Direct translate_tts)
+                                          </option>
+                                        </select>
+                                        <a
+                                          href={LOVABLE_TTS_OPENAPI_URL}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          data-testid="lovable-tts-openapi-link"
+                                          className="text-primary hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1"
+                                        >
+                                          OpenAPI 3.1.0 Spec ↗
+                                        </a>
+                                      </div>
+
+                                      <div className="space-y-3 p-3 rounded-lg bg-muted/40 border border-border/60">
+                                        <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-muted-foreground font-medium">
+                                              Provider:
+                                            </span>
+                                            <select
+                                              data-testid="lovable-tts-provider-select"
+                                              value={lovableTtsProviderState}
+                                              onChange={(e) => {
+                                                const p = e.target.value as LovableTtsProvider;
+                                                setLovableTtsProviderState(p);
+                                                setLovableTtsProvider(p);
+                                                if (
+                                                  p === "openrouter" &&
+                                                  !(
+                                                    OPENROUTER_VOICES as readonly string[]
+                                                  ).includes(lovableTtsVoiceState)
+                                                ) {
+                                                  setLovableTtsVoiceState("alloy");
+                                                  setLovableTtsVoice("alloy");
+                                                } else if (
+                                                  p === "lovable" &&
+                                                  !(LOVABLE_VOICES as readonly string[]).includes(
+                                                    lovableTtsVoiceState,
+                                                  )
+                                                ) {
+                                                  setLovableTtsVoiceState("Kore");
+                                                  setLovableTtsVoice("Kore");
+                                                }
+                                              }}
+                                              className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-mono font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
+                                            >
+                                              <option value="lovable">lovable</option>
+                                              <option value="google">google</option>
+                                              <option value="openrouter">openrouter</option>
+                                            </select>
+                                          </div>
+
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-muted-foreground font-medium">
+                                              Voice:
+                                            </span>
+                                            {lovableTtsProviderState === "google" ? (
+                                              <span className="text-xs text-muted-foreground italic px-2 py-0.5">
+                                                Default (Single voice)
+                                              </span>
+                                            ) : (
+                                              <select
+                                                data-testid="lovable-tts-voice-select"
+                                                value={
+                                                  lovableTtsVoiceState ||
+                                                  (lovableTtsProviderState === "openrouter"
+                                                    ? "alloy"
+                                                    : "Kore")
+                                                }
+                                                onChange={(e) => {
+                                                  const v = e.target.value;
+                                                  setLovableTtsVoiceState(v);
+                                                  setLovableTtsVoice(v);
+                                                }}
+                                                className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
+                                              >
+                                                {lovableTtsProviderState === "openrouter"
+                                                  ? OPENROUTER_VOICES.map((v) => (
+                                                      <option key={v} value={v}>
+                                                        {v} {v === "alloy" ? "(Default)" : ""}
+                                                      </option>
+                                                    ))
+                                                  : LOVABLE_VOICES.map((v) => (
+                                                      <option key={v} value={v}>
+                                                        {v} {v === "Kore" ? "(Default)" : ""}
+                                                      </option>
+                                                    ))}
+                                              </select>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        {/* OpenRouter API Key Settings */}
+                                        <div className="space-y-1.5 pt-1 text-xs border-t border-border/60">
+                                          <div className="flex items-center justify-between">
+                                            <label
+                                              htmlFor="openrouter-tts-key-input"
+                                              className="text-muted-foreground font-medium flex items-center gap-1.5"
+                                            >
+                                              <span>OpenRouter API Key:</span>
+                                              {hasCustomOpenRouterApiKey() ? (
+                                                <span
+                                                  className="text-[10px] text-emerald-500 font-medium"
+                                                  data-testid="openrouter-key-custom-badge"
+                                                >
+                                                  ✓ Custom key saved
+                                                </span>
+                                              ) : getServerOpenRouterApiKey() ? (
+                                                <span
+                                                  className="text-[10px] text-primary font-medium"
+                                                  data-testid="openrouter-key-server-badge"
+                                                >
+                                                  (Using server .env key)
+                                                </span>
+                                              ) : (
+                                                <span className="text-[10px] text-muted-foreground font-normal">
+                                                  (Optional - free tier default)
+                                                </span>
+                                              )}
+                                            </label>
+                                          </div>
+                                          <div className="flex items-center gap-1.5">
+                                            <div className="relative flex-1">
+                                              <input
+                                                id="openrouter-tts-key-input"
+                                                data-testid="openrouter-tts-key-input"
+                                                type={showOpenRouterKey ? "text" : "password"}
+                                                value={openRouterKeyInput}
+                                                onChange={(e) => {
+                                                  setOpenRouterKeyInput(e.target.value);
+                                                  setOpenRouterKeySaved(false);
+                                                }}
+                                                placeholder={
+                                                  getServerOpenRouterApiKey()
+                                                    ? "Using server key (enter custom to override)"
+                                                    : "sk-or-v1-..."
+                                                }
+                                                className="w-full rounded border border-input bg-background px-2.5 py-1 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground/60"
+                                              />
+                                              <button
+                                                type="button"
+                                                data-testid="toggle-show-openrouter-key-btn"
+                                                onClick={() =>
+                                                  setShowOpenRouterKey(!showOpenRouterKey)
+                                                }
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+                                                title={showOpenRouterKey ? "Hide key" : "Show key"}
+                                              >
+                                                {showOpenRouterKey ? (
+                                                  <EyeOff className="h-3.5 w-3.5" />
+                                                ) : (
+                                                  <Eye className="h-3.5 w-3.5" />
+                                                )}
+                                              </button>
+                                            </div>
+                                            <button
+                                              type="button"
+                                              data-testid="save-openrouter-key-btn"
+                                              onClick={() => {
+                                                setLovableTtsApiKey(openRouterKeyInput);
+                                                setOpenRouterApiKeySetting(openRouterKeyInput);
+                                                setOpenRouterKeySaved(true);
+                                                setTimeout(
+                                                  () => setOpenRouterKeySaved(false),
+                                                  2500,
+                                                );
+                                              }}
+                                              className="px-2.5 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium cursor-pointer"
+                                            >
+                                              {openRouterKeySaved ? "Saved!" : "Save"}
+                                            </button>
+                                            {openRouterKeyInput && (
+                                              <button
+                                                type="button"
+                                                data-testid="clear-openrouter-key-btn"
+                                                onClick={() => {
+                                                  setOpenRouterKeyInput("");
+                                                  setLovableTtsApiKey("");
+                                                  setOpenRouterApiKeySetting("");
+                                                }}
+                                                className="px-2 py-1 rounded border border-input bg-background text-muted-foreground hover:text-foreground text-xs"
+                                                title="Clear custom key"
+                                              >
+                                                Clear
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        {/* Native TTS Speed Notice (Uses native speech rate settings) */}
+                                        <div
+                                          data-testid="lovable-tts-native-speed-notice"
+                                          className="flex items-center justify-between rounded border border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs"
+                                        >
+                                          <span className="text-muted-foreground font-medium">
+                                            TTS Speed:
+                                          </span>
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-foreground font-mono text-[11px]">
+                                              Uses native speech rate (
+                                              {(rates[baseLanguage || "en"] ?? 0.5).toFixed(1)}x)
+                                            </span>
+                                            <select
+                                              data-testid="main-settings-tts-rate-select"
+                                              aria-label="Main TTS speech rate"
+                                              value={(rates[baseLanguage || "en"] ?? 0.5).toFixed(
+                                                1,
+                                              )}
+                                              onChange={(e) => {
+                                                const val = Number(e.target.value);
+                                                const targetLang = baseLanguage || "en";
+                                                setRates((current) => ({
+                                                  ...current,
+                                                  [targetLang]: val,
+                                                }));
+                                                saveTtsRatePreference(targetLang, val);
+                                                if (videoId) {
+                                                  saveVideoSettings(videoId, {
+                                                    ttsRates: { [targetLang]: val },
+                                                  });
+                                                }
+                                              }}
+                                              className="rounded border border-input bg-background px-1.5 py-0.5 text-xs font-mono cursor-pointer"
+                                            >
+                                              {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
+                                                <option key={rateVal} value={rateVal.toFixed(1)}>
+                                                  {rateVal.toFixed(1)}×
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </div>
+                                        </div>
+
+                                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                                          <span>
+                                            Provider:{" "}
+                                            <strong className="text-foreground font-mono">
+                                              {lovableTtsProviderState}
+                                            </strong>
+                                          </span>
+                                          <span>•</span>
+                                          <span>
+                                            Voice:{" "}
+                                            <span className="text-foreground">
+                                              {lovableTtsProviderState === "google"
+                                                ? "Default"
+                                                : lovableTtsVoiceState ||
+                                                  (lovableTtsProviderState === "openrouter"
+                                                    ? "alloy"
+                                                    : "Kore")}
+                                            </span>
+                                          </span>
+                                        </p>
+                                      </div>
+
+                                      <div className="space-y-2 pt-1 border-t border-border/40">
+                                        <div className="flex flex-wrap items-center gap-2">
                                           <button
                                             type="button"
-                                            onClick={() => {
-                                              const nextFavs = favoriteLanguages.filter(
-                                                (c) => c !== code,
-                                              );
-                                              handleUpdateFavoriteLanguages(nextFavs);
-                                            }}
-                                            className="hover:text-destructive transition ml-0.5 text-xs"
-                                            title={`Remove ${langMeta.name} from favorites`}
-                                            aria-label={`Remove ${langMeta.name} from favorites`}
+                                            data-testid="btn-validate-remote-tts"
+                                            disabled={isValidatingRemoteTts}
+                                            onClick={() => handleValidateRemoteService()}
+                                            className="px-2.5 py-1 rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-xs font-mono inline-flex items-center gap-1.5 text-primary disabled:opacity-60 cursor-pointer font-medium"
                                           >
-                                            ×
+                                            {isValidatingRemoteTts ? (
+                                              <>
+                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                <span>Validating Service…</span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Activity className="h-3 w-3" />
+                                                <span>
+                                                  Validate{" "}
+                                                  {alternativeTtsEngineState === "lovable"
+                                                    ? "TTS3 Service"
+                                                    : "Google TTS Directly"}
+                                                </span>
+                                              </>
+                                            )}
                                           </button>
-                                        </span>
-                                      );
-                                    })
+
+                                          <button
+                                            type="button"
+                                            data-testid="btn-validate-google-tts-directly"
+                                            disabled={isValidatingRemoteTts}
+                                            onClick={() =>
+                                              handleValidateRemoteService("google_translate")
+                                            }
+                                            className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                                            title="Validate Google Translate TTS endpoint directly"
+                                          >
+                                            Validate Google Direct
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            data-testid="btn-validate-tts3-service"
+                                            disabled={isValidatingRemoteTts}
+                                            onClick={() => handleValidateRemoteService("lovable")}
+                                            className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                                            title="Validate Lovable TTS3 public endpoint"
+                                          >
+                                            Validate TTS3 Service
+                                          </button>
+
+                                          <button
+                                            type="button"
+                                            data-testid="test-alternative-tts-btn"
+                                            disabled={isTestingAlternativeTts}
+                                            onClick={async () => {
+                                              setIsTestingAlternativeTts(true);
+                                              const testRate = rates[baseLanguage || "en"] ?? 0.5;
+                                              try {
+                                                await playAlternativeTtsAudio(
+                                                  "Hello world",
+                                                  baseLanguage || "en",
+                                                  testRate,
+                                                  undefined,
+                                                  alternativeTtsEngineState,
+                                                  {
+                                                    provider: lovableTtsProviderState,
+                                                    voice:
+                                                      lovableTtsProviderState === "google"
+                                                        ? undefined
+                                                        : lovableTtsVoiceState ||
+                                                          (lovableTtsProviderState === "openrouter"
+                                                            ? "alloy"
+                                                            : "Kore"),
+                                                    speed: testRate,
+                                                  },
+                                                );
+                                              } catch (err) {
+                                                console.warn("Test Alternative TTS error:", err);
+                                              } finally {
+                                                setIsTestingAlternativeTts(false);
+                                              }
+                                            }}
+                                            className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
+                                          >
+                                            {isTestingAlternativeTts ? (
+                                              <>
+                                                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                                                <span>Playing test audio…</span>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Play className="h-3 w-3 text-primary" />
+                                                <span>
+                                                  ▶ Test Audio (
+                                                  {alternativeTtsEngineState === "lovable"
+                                                    ? "TTS3"
+                                                    : "Google Direct"}
+                                                  )
+                                                </span>
+                                              </>
+                                            )}
+                                          </button>
+                                        </div>
+
+                                        {/* Validation Status Feedback */}
+                                        {remoteValidationResult && (
+                                          <div
+                                            data-testid="remote-tts-validation-details"
+                                            className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border text-xs ${
+                                              remoteValidationResult.ok
+                                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                                                : "bg-destructive/10 border-destructive/30 text-destructive"
+                                            }`}
+                                          >
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                              <span
+                                                data-testid="remote-tts-validation-badge"
+                                                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium font-mono ${
+                                                  remoteValidationResult.ok
+                                                    ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                                                    : "bg-destructive/20 text-destructive"
+                                                }`}
+                                              >
+                                                {remoteValidationResult.ok ? (
+                                                  <>
+                                                    <CheckCircle2 className="h-3 w-3" />
+                                                    <span>
+                                                      Available ({remoteValidationResult.latencyMs}
+                                                      ms)
+                                                    </span>
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <AlertCircle className="h-3 w-3" />
+                                                    <span>
+                                                      Unavailable (
+                                                      {remoteValidationResult.latencyMs}ms)
+                                                    </span>
+                                                  </>
+                                                )}
+                                              </span>
+                                              <span className="font-semibold">
+                                                {remoteValidationResult.serviceName}:
+                                              </span>
+                                              <span className="text-[11px] opacity-90">
+                                                {remoteValidationResult.ok
+                                                  ? remoteValidationResult.details ||
+                                                    "Audio stream verified"
+                                                  : remoteValidationResult.error ||
+                                                    "Service check failed"}
+                                              </span>
+                                            </div>
+                                            <span className="text-[10px] font-mono opacity-70">
+                                              Checked{" "}
+                                              {new Date(
+                                                remoteValidationResult.timestamp,
+                                              ).toLocaleTimeString()}
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
                                   )}
                                 </div>
 
-                                <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/40 text-xs">
-                                  <label
-                                    htmlFor="add-favorite-language-select"
-                                    className="text-muted-foreground"
-                                  >
-                                    Add favorite language:
-                                  </label>
-                                  <input
-                                    type="text"
-                                    id="filter-add-favorite-languages-input"
-                                    data-testid="filter-add-favorite-languages-input"
-                                    placeholder="Filter languages…"
-                                    value={addFavoriteFilter}
-                                    onChange={(e) => setAddFavoriteFilter(e.target.value)}
-                                    className="rounded border border-input bg-background px-2 py-0.5 text-xs w-28 sm:w-36 focus:outline-none focus:ring-1 focus:ring-primary"
-                                  />
-                                  <select
-                                    id="add-favorite-language-select"
-                                    data-testid="add-favorite-language-select"
-                                    value=""
-                                    onChange={(e) => {
-                                      const code = e.target.value;
-                                      if (code && !favoriteLanguages.includes(code)) {
-                                        const nextFavs = [...favoriteLanguages, code];
-                                        handleUpdateFavoriteLanguages(nextFavs);
-                                        setAddFavoriteFilter("");
-                                      }
-                                    }}
-                                    className="rounded border border-input bg-background px-2 py-0.5 text-xs"
-                                  >
-                                    <option value="">Choose a language to add to favorites…</option>
-                                    {SUPPORTED_LANGUAGES_CATALOG.filter(
-                                      (c) =>
-                                        !favoriteLanguages.includes(c.code) &&
-                                        (!addFavoriteFilter.trim() ||
-                                          c.name
-                                            .toLowerCase()
-                                            .includes(addFavoriteFilter.trim().toLowerCase()) ||
-                                          c.code
-                                            .toLowerCase()
-                                            .includes(addFavoriteFilter.trim().toLowerCase())),
-                                    ).map((c) => (
-                                      <option key={c.code} value={c.code}>
-                                        {c.name} ({c.code})
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-
-                                <div className="pt-1.5 border-t border-border/40 text-[11px] space-y-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium text-foreground">
-                                      Enabled for this Video:
-                                    </span>
-                                    <span className="font-mono text-primary font-semibold">
-                                      {targetLanguages.join(", ") || "None"}
-                                    </span>
+                                {/* Favorite Languages (Settings & localStorage) and Video-Specific Selection */}
+                                <div
+                                  className="hidden pt-2 border-t border-border/60 space-y-2.5"
+                                  data-testid="settings-favorites-languages-card"
+                                >
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <div>
+                                      <span className="font-semibold text-xs text-foreground flex items-center gap-1">
+                                        <span>
+                                          Favorite Languages (Settings &amp; localStorage)
+                                        </span>
+                                      </span>
+                                      <p className="text-[11px] text-muted-foreground">
+                                        Saved in localStorage. Applied automatically as default
+                                        target languages for every new video.
+                                      </p>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      <button
+                                        type="button"
+                                        data-testid="settings-reset-video-to-favorites-btn"
+                                        onClick={handleResetVideoToFavorites}
+                                        className="rounded border border-input bg-background hover:bg-muted px-2 py-0.5 text-xs font-medium"
+                                      >
+                                        Apply Favorites to Active Video
+                                      </button>
+                                      <button
+                                        type="button"
+                                        data-testid="settings-save-current-as-favorites-btn"
+                                        onClick={handleSaveCurrentAsFavorites}
+                                        className="rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-primary px-2 py-0.5 text-xs font-medium"
+                                      >
+                                        Save Active Selection as Favorites
+                                      </button>
+                                    </div>
                                   </div>
-                                  <p className="text-muted-foreground">
-                                    Video-specific customizations are saved per video ID (
-                                    {videoId || "active video"}) and remembered when reloaded.
+
+                                  <div className="rounded-md border border-border bg-background/50 p-2 space-y-2">
+                                    <div className="flex flex-wrap items-center gap-1.5">
+                                      <span className="text-[11px] font-medium text-muted-foreground mr-1">
+                                        Global Favorites:
+                                      </span>
+                                      {favoriteLanguages.length === 0 ? (
+                                        <span className="text-[11px] text-muted-foreground italic">
+                                          No favorites selected yet
+                                        </span>
+                                      ) : (
+                                        favoriteLanguages.map((code) => {
+                                          const langMeta = SUPPORTED_LANGUAGES_CATALOG.find(
+                                            (c) => c.code === code,
+                                          ) || { code, name: code };
+                                          return (
+                                            <span
+                                              key={code}
+                                              data-testid={`settings-fav-chip-${code}`}
+                                              className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium"
+                                            >
+                                              <span>{langMeta.name}</span>
+                                              <button
+                                                type="button"
+                                                onClick={() => {
+                                                  const nextFavs = favoriteLanguages.filter(
+                                                    (c) => c !== code,
+                                                  );
+                                                  handleUpdateFavoriteLanguages(nextFavs);
+                                                }}
+                                                className="hover:text-destructive transition ml-0.5 text-xs"
+                                                title={`Remove ${langMeta.name} from favorites`}
+                                                aria-label={`Remove ${langMeta.name} from favorites`}
+                                              >
+                                                ×
+                                              </button>
+                                            </span>
+                                          );
+                                        })
+                                      )}
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-border/40 text-xs">
+                                      <label
+                                        htmlFor="add-favorite-language-select"
+                                        className="text-muted-foreground"
+                                      >
+                                        Add favorite language:
+                                      </label>
+                                      <input
+                                        type="text"
+                                        id="filter-add-favorite-languages-input"
+                                        data-testid="filter-add-favorite-languages-input"
+                                        placeholder="Filter languages…"
+                                        value={addFavoriteFilter}
+                                        onChange={(e) => setAddFavoriteFilter(e.target.value)}
+                                        className="rounded border border-input bg-background px-2 py-0.5 text-xs w-28 sm:w-36 focus:outline-none focus:ring-1 focus:ring-primary"
+                                      />
+                                      <select
+                                        id="add-favorite-language-select"
+                                        data-testid="add-favorite-language-select"
+                                        value=""
+                                        onChange={(e) => {
+                                          const code = e.target.value;
+                                          if (code && !favoriteLanguages.includes(code)) {
+                                            const nextFavs = [...favoriteLanguages, code];
+                                            handleUpdateFavoriteLanguages(nextFavs);
+                                            setAddFavoriteFilter("");
+                                          }
+                                        }}
+                                        className="rounded border border-input bg-background px-2 py-0.5 text-xs"
+                                      >
+                                        <option value="">
+                                          Choose a language to add to favorites…
+                                        </option>
+                                        {SUPPORTED_LANGUAGES_CATALOG.filter(
+                                          (c) =>
+                                            !favoriteLanguages.includes(c.code) &&
+                                            (!addFavoriteFilter.trim() ||
+                                              c.name
+                                                .toLowerCase()
+                                                .includes(addFavoriteFilter.trim().toLowerCase()) ||
+                                              c.code
+                                                .toLowerCase()
+                                                .includes(addFavoriteFilter.trim().toLowerCase())),
+                                        ).map((c) => (
+                                          <option key={c.code} value={c.code}>
+                                            {c.name} ({c.code})
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+
+                                    <div className="pt-1.5 border-t border-border/40 text-[11px] space-y-1">
+                                      <div className="flex items-center gap-2">
+                                        <span className="font-medium text-foreground">
+                                          Enabled for this Video:
+                                        </span>
+                                        <span className="font-mono text-primary font-semibold">
+                                          {targetLanguages.join(", ") || "None"}
+                                        </span>
+                                      </div>
+                                      <p className="text-muted-foreground">
+                                        Video-specific customizations are saved per video ID (
+                                        {videoId || "active video"}) and remembered when reloaded.
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {/* Accordion Auto-Collapse Timeout Setting */}
+                                  <div
+                                    className="pt-3 border-t border-border/40 space-y-2"
+                                    data-testid="settings-accordion-timeout-card"
+                                  >
+                                    <div className="flex items-center gap-1.5">
+                                      <Hourglass className="size-3.5 text-amber-500 shrink-0" />
+                                      <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                        Accordion Auto-Collapse Timeout
+                                      </h3>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">
+                                      Automatically collapses inactive accordions after 10 seconds
+                                      of no interaction, featuring an hourglass icon and countdown
+                                      progress bar.
+                                    </p>
+                                    <label className="flex items-center gap-2 cursor-pointer pt-1">
+                                      <input
+                                        type="checkbox"
+                                        data-testid="setting-video-library-timeout"
+                                        checked={videoLibraryTimeoutEnabled}
+                                        onChange={(e) =>
+                                          handleToggleVideoLibraryTimeout(e.target.checked)
+                                        }
+                                        className="rounded border-border text-primary h-3.5 w-3.5"
+                                      />
+                                      <span className="text-xs text-foreground font-medium">
+                                        Enable 10s auto-collapse for &quot;Video Library&quot;
+                                        accordion
+                                      </span>
+                                    </label>
+                                  </div>
+                                </div>
+                              </div>
+                            </details>
+
+                            {/* Sub-Accordion 2: Special Characters Removal (Stage 3) */}
+                            <details
+                              className="group rounded-xl border border-indigo-500/30 bg-card/60 overflow-hidden shadow-xs"
+                              open
+                              data-testid="settings-chars-removal-accordion"
+                            >
+                              <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition">
+                                <div className="flex items-center gap-2">
+                                  <Sparkles className="h-4 w-4 text-indigo-500" />
+                                  <span>Special Characters Removal</span>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30"
+                                  >
+                                    Stage 3
+                                  </Badge>
+                                </div>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+                              </summary>
+                              <div
+                                className="p-3 pt-0 border-t border-border/40 space-y-3"
+                                data-testid="settings-chars-removal-container"
+                              >
+                                <div className="pt-2">
+                                  <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                    Special Characters Removal
+                                  </h3>
+                                  <p className="text-xs text-muted-foreground">
+                                    Stage 3: Remove speaker tags, sound cues, and symbols before
+                                    sentence parsing and translation.
                                   </p>
                                 </div>
+                                {specialCharactersRemovalPanel}
                               </div>
-                              {/* Accordion Auto-Collapse Timeout Setting */}
-                              <div
-                                className="pt-3 border-t border-border/40 space-y-2"
-                                data-testid="settings-accordion-timeout-card"
-                              >
-                                <div className="flex items-center gap-1.5">
-                                  <Hourglass className="size-3.5 text-amber-500 shrink-0" />
-                                  <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                                    Accordion Auto-Collapse Timeout
-                                  </h3>
+                            </details>
+
+                            {/* Sub-Accordion 3: Parser (Sentence Splitting) (Stage 4) */}
+                            <details
+                              className="group rounded-xl border border-amber-500/30 bg-card/60 overflow-hidden shadow-xs"
+                              open
+                              data-testid="settings-parser-accordion"
+                            >
+                              <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-amber-700 dark:text-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-950/30 transition">
+                                <div className="flex items-center gap-2">
+                                  <Split className="h-4 w-4 text-amber-500" />
+                                  <span>Parser (Sentence Splitting)</span>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                                  >
+                                    Stage 4
+                                  </Badge>
                                 </div>
-                                <p className="text-xs text-muted-foreground">
-                                  Automatically collapses inactive accordions after 10 seconds of no
-                                  interaction, featuring an hourglass icon and countdown progress
-                                  bar.
-                                </p>
-                                <label className="flex items-center gap-2 cursor-pointer pt-1">
-                                  <input
-                                    type="checkbox"
-                                    data-testid="setting-video-library-timeout"
-                                    checked={videoLibraryTimeoutEnabled}
-                                    onChange={(e) =>
-                                      handleToggleVideoLibraryTimeout(e.target.checked)
-                                    }
-                                    className="rounded border-border text-primary h-3.5 w-3.5"
-                                  />
-                                  <span className="text-xs text-foreground font-medium">
-                                    Enable 10s auto-collapse for &quot;Video Library&quot; accordion
-                                  </span>
-                                </label>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+                              </summary>
+                              <div
+                                className="p-3 pt-0 border-t border-border/40 space-y-4"
+                                data-testid="settings-parser-container"
+                              >
+                                <div className="pt-2">
+                                  <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                    Parser &amp; Sentence Splitting
+                                  </h3>
+                                  <p className="text-xs text-muted-foreground">
+                                    Stage 4: Split continuous subtitle stream cues into grammatical
+                                    sentences using punctuation and timing criteria.
+                                  </p>
+                                </div>
+                                {parserPanelContent}
                               </div>
-                            </div>
-                          </details>
-
-                          {/* Sub-Accordion 2: Special Characters Removal (Stage 3) */}
-                          <details
-                            className="group rounded-xl border border-indigo-500/30 bg-card/60 overflow-hidden shadow-xs"
-                            open
-                            data-testid="settings-chars-removal-accordion"
-                          >
-                            <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition">
-                              <div className="flex items-center gap-2">
-                                <Sparkles className="h-4 w-4 text-indigo-500" />
-                                <span>Special Characters Removal</span>
-                                <Badge
-                                  variant="outline"
-                                  className="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30"
-                                >
-                                  Stage 3
-                                </Badge>
-                              </div>
-                              <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
-                            </summary>
-                            <div
-                              className="p-3 pt-0 border-t border-border/40 space-y-3"
-                              data-testid="settings-chars-removal-container"
-                            >
-                              <div className="pt-2">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                                  Special Characters Removal
-                                </h3>
-                                <p className="text-xs text-muted-foreground">
-                                  Stage 3: Remove speaker tags, sound cues, and symbols before
-                                  sentence parsing and translation.
-                                </p>
-                              </div>
-                              {specialCharactersRemovalPanel}
-                            </div>
-                          </details>
-
-                          {/* Sub-Accordion 3: Parser (Sentence Splitting) (Stage 4) */}
-                          <details
-                            className="group rounded-xl border border-amber-500/30 bg-card/60 overflow-hidden shadow-xs"
-                            open
-                            data-testid="settings-parser-accordion"
-                          >
-                            <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-amber-700 dark:text-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-950/30 transition">
-                              <div className="flex items-center gap-2">
-                                <Split className="h-4 w-4 text-amber-500" />
-                                <span>Parser (Sentence Splitting)</span>
-                                <Badge
-                                  variant="outline"
-                                  className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
-                                >
-                                  Stage 4
-                                </Badge>
-                              </div>
-                              <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
-                            </summary>
-                            <div
-                              className="p-3 pt-0 border-t border-border/40 space-y-4"
-                              data-testid="settings-parser-container"
-                            >
-                              <div className="pt-2">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                                  Parser &amp; Sentence Splitting
-                                </h3>
-                                <p className="text-xs text-muted-foreground">
-                                  Stage 4: Split continuous subtitle stream cues into grammatical sentences using punctuation and timing criteria.
-                                </p>
-                              </div>
-                              {parserPanelContent}
-                            </div>
-                          </details>
-                        </div>
-                      )}
+                            </details>
+                          </div>
+                        )}
 
                         {panelId === "library" && (
                           <VideoLibraryPanel
