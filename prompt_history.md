@@ -53,3 +53,14 @@ This app was imported from GitHub repository mostuf2556/subtitle-sync.
 add validation to tts-remove-service: google-tts-directly or tts3 service
 ```
 
+---
+
+### Prompt 6: Quarantine Beginner Mode, Debug Mode Menu Toggle, and Language Selection Columns (is-primary and json3)
+```
+1. go on
+2. currently quarentine beginner mode 
+3. ensure toggle on top menu to switch to debug mode where experimental views are also presented (such as playground)
+4. language selection view:
+- add column "is-primary" - the only way to define the tts-ration absolute parent
+- add column "json3" which should be updated based upon user's manual toggling of that language on the video player (another indication of direct fetching).
+```

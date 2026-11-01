@@ -341,12 +341,7 @@ export function buildAlternativeTtsUrl(
 }
 
 export type RemoteTtsServiceType =
-  | "google_translate"
-  | "google-tts-directly"
-  | "google"
-  | "lovable"
-  | "tts3"
-  | "tts3-service";
+  "google_translate" | "google-tts-directly" | "google" | "lovable" | "tts3" | "tts3-service";
 
 export interface RemoteTtsValidationResult {
   ok: boolean;
@@ -369,7 +364,9 @@ export interface RemoteTtsValidationOptions {
   timeoutMs?: number;
 }
 
-const lastValidationResults: Partial<Record<"google_translate" | "lovable", RemoteTtsValidationResult>> = {};
+const lastValidationResults: Partial<
+  Record<"google_translate" | "lovable", RemoteTtsValidationResult>
+> = {};
 
 export function getLastValidationResult(
   service: "google_translate" | "lovable" | AlternativeTtsEngine | RemoteTtsServiceType,
@@ -430,7 +427,9 @@ export async function validateRemoteTtsService(
     serviceInput === "google_translate" ||
     serviceInput === "google-tts-directly" ||
     serviceInput === "google";
-  const normalizedService: "google_translate" | "lovable" = isGoogle ? "google_translate" : "lovable";
+  const normalizedService: "google_translate" | "lovable" = isGoogle
+    ? "google_translate"
+    : "lovable";
   const timeoutMs = options?.timeoutMs ?? 7000;
   const testText = options?.text || "Test";
   const testLang = options?.lang || "en";
@@ -498,7 +497,9 @@ export async function validateRemoteTtsService(
             clearTimeout(timer);
             const latency = Date.now() - startTime;
             const errCode = audio.error?.code;
-            const errMsg = audio.error?.message || (errCode ? `Audio media error code ${errCode}` : "Failed to load audio stream");
+            const errMsg =
+              audio.error?.message ||
+              (errCode ? `Audio media error code ${errCode}` : "Failed to load audio stream");
             cleanup();
             resolve({
               ok: false,
@@ -522,7 +523,7 @@ export async function validateRemoteTtsService(
 
         setLastValidationResult("google_translate", audioTestResult);
         return audioTestResult;
-      } catch (err: any) {
+      } catch (err: unknown) {
         const result: RemoteTtsValidationResult = {
           ok: false,
           service: "google_translate",
@@ -530,7 +531,7 @@ export async function validateRemoteTtsService(
           endpoint: url,
           latencyMs: Date.now() - startTime,
           audioVerified: false,
-          error: err?.message || String(err),
+          error: (err as Error)?.message || String(err),
           timestamp: Date.now(),
         };
         setLastValidationResult("google_translate", result);
@@ -553,7 +554,10 @@ export async function validateRemoteTtsService(
         if (timeoutId) clearTimeout(timeoutId);
         const latency = Date.now() - startTime;
         const contentType = res.headers.get("content-type") || "";
-        const isAudio = contentType.includes("audio") || contentType.includes("mpeg") || contentType.includes("octet-stream");
+        const isAudio =
+          contentType.includes("audio") ||
+          contentType.includes("mpeg") ||
+          contentType.includes("octet-stream");
 
         const result: RemoteTtsValidationResult = {
           ok: res.ok,
@@ -570,9 +574,9 @@ export async function validateRemoteTtsService(
         };
         setLastValidationResult("google_translate", result);
         return result;
-      } catch (fetchErr: any) {
+      } catch (fetchErr: unknown) {
         if (timeoutId) clearTimeout(timeoutId);
-        const isAbort = fetchErr?.name === "AbortError";
+        const isAbort = (fetchErr as Error)?.name === "AbortError";
         const result: RemoteTtsValidationResult = {
           ok: false,
           service: "google_translate",
@@ -580,13 +584,15 @@ export async function validateRemoteTtsService(
           endpoint: url,
           latencyMs: Date.now() - startTime,
           audioVerified: false,
-          error: isAbort ? `Request timed out after ${timeoutMs}ms` : fetchErr?.message || "Network request failed",
+          error: isAbort
+            ? `Request timed out after ${timeoutMs}ms`
+            : (fetchErr as Error)?.message || "Network request failed",
           timestamp: Date.now(),
         };
         setLastValidationResult("google_translate", result);
         return result;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const result: RemoteTtsValidationResult = {
         ok: false,
         service: "google_translate",
@@ -594,7 +600,7 @@ export async function validateRemoteTtsService(
         endpoint: url,
         latencyMs: Date.now() - startTime,
         audioVerified: false,
-        error: err?.message || String(err),
+        error: (err as Error)?.message || String(err),
         timestamp: Date.now(),
       };
       setLastValidationResult("google_translate", result);
@@ -676,15 +682,17 @@ export async function validateRemoteTtsService(
         statusCode: res.status,
         latencyMs: latency,
         audioVerified: false,
-        error: `HTTP ${res.status}: ${res.statusText || "Service error"}` + (openApiReachable ? " (OpenAPI spec is reachable)" : ""),
+        error:
+          `HTTP ${res.status}: ${res.statusText || "Service error"}` +
+          (openApiReachable ? " (OpenAPI spec is reachable)" : ""),
         details: `TTS3 endpoint returned status ${res.status}`,
         timestamp: Date.now(),
       };
       setLastValidationResult("lovable", result);
       return result;
-    } catch (fetchErr: any) {
+    } catch (fetchErr: unknown) {
       if (timeoutId) clearTimeout(timeoutId);
-      const isAbort = fetchErr?.name === "AbortError";
+      const isAbort = (fetchErr as Error)?.name === "AbortError";
       const latency = Date.now() - startTime;
 
       let openApiReachable = false;
@@ -702,14 +710,18 @@ export async function validateRemoteTtsService(
         endpoint,
         latencyMs: latency,
         audioVerified: false,
-        error: isAbort ? `Request timed out after ${timeoutMs}ms` : fetchErr?.message || "Network request failed",
-        details: openApiReachable ? "OpenAPI spec is online, but TTS endpoint call failed" : "Service could not be reached",
+        error: isAbort
+          ? `Request timed out after ${timeoutMs}ms`
+          : (fetchErr as Error)?.message || "Network request failed",
+        details: openApiReachable
+          ? "OpenAPI spec is online, but TTS endpoint call failed"
+          : "Service could not be reached",
         timestamp: Date.now(),
       };
       setLastValidationResult("lovable", result);
       return result;
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     const result: RemoteTtsValidationResult = {
       ok: false,
       service: "lovable",
@@ -717,7 +729,7 @@ export async function validateRemoteTtsService(
       endpoint,
       latencyMs: Date.now() - startTime,
       audioVerified: false,
-      error: err?.message || String(err),
+      error: (err as Error)?.message || String(err),
       timestamp: Date.now(),
     };
     setLastValidationResult("lovable", result);

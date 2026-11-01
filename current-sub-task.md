@@ -1,8 +1,8 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 266: Add validation to remote TTS services (google-tts-directly and tts3 service)
-- **Active Subtask**: Subtask 266.3: Implement validation UI and status badges in Beginner Mode and Advanced Mode (100% parity)
-- **Target Files**: `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`, `src/routes/index.tsx`
-- **Focused Check**: Validate Service button, status badge (testing, available, error), and test playback for both Google Direct and Lovable TTS3 in both modes
-- **Next**: Subtask 266.4: Dedicated automated verification script
+- **Active Task**: Task 269: Chapter 4 - Language selection view: add 'is-primary' and 'json3' columns
+- **Active Subtask**: Subtask 269.1: Implement 'is-primary' (only way to define TTS-ratio absolute parent) and 'json3' (direct status & manual video player toggle indication) in language selection view
+- **Target Files**: `src/lib/playback-preferences.ts`, `src/routes/index.tsx`
+- **Focused Check**: Dedicated verification script `scripts/verify-language-selection-primary-and-json3-columns.ts`
+- **Next**: Subtask 269.2: Verify, compile, lint, commit, and migrate to `docs/done.md`

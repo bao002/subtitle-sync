@@ -4,12 +4,12 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 266: Add validation to remote TTS services (google-tts-directly and tts3 service)**
-  - **Subtask 266.1**: Update tracking files (`AGENTS.md`, `prompt_history.md`, version bump to 2.0.59, `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, `docs/todo.md`).
-  - **Subtask 266.2**: Implement `validateRemoteTtsService` in `src/lib/alternative-tts.ts` (latency check, audio stream verification, status code/headers, and error diagnostics for both Google Direct and Lovable TTS3).
-  - **Subtask 266.3**: Implement remote TTS service validation UI and status feedback badges in both Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with absolute parity.
-  - **Subtask 266.4**: Write dedicated automated test `scripts/verify-remote-tts-validation.ts` validating programmatic validation API, UI badges/buttons, and error handling.
-  - **Subtask 266.5**: Verification with automated tests, `compile_applet`, `lint_applet`, git commit, and migration to `docs/done.md`.
+- [ ] **Task 269: Chapter 4 - Language selection view: add 'is-primary' and 'json3' columns**
+  - **Subtask 269.1**: In `src/lib/playback-preferences.ts` and `src/routes/index.tsx`, establish that the `is-primary` selection is the ONLY way to define the TTS-ratio absolute parent (decoupling automatic recomputation from ratio edits).
+  - **Subtask 269.2**: Add dedicated column "is-primary" to the languages selection table with radio selectors allowing user to explicitly pick the absolute parent language.
+  - **Subtask 269.3**: Add dedicated column "json3" to the languages selection table displaying direct JSON3 status and updating based upon user's manual toggling of that language on the video player (with player caption event synchronization and direct toggle capability).
+  - **Subtask 269.4**: Create dedicated automated verification test `scripts/verify-language-selection-primary-and-json3-columns.ts`.
+  - **Subtask 269.5**: Verify, compile, commit, and migrate Task 269 to `docs/done.md`.
 
 ## Later Tasks
 

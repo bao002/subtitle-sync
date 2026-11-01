@@ -1,5 +1,53 @@
 # Done tasks
 
+## Task 268: Top Menu Debug Mode Toggle & Experimental Views Presentation
+
+- **Implementation**:
+  - Enhanced `src/utils/developerMode.ts` with local storage persistence (`yt_debug_mode_enabled`), `setDeveloperModeEnabled`, and `toggleDeveloperMode`.
+  - Added dedicated interactive toggle button on top menu in `src/routes/index.tsx` (`id="header-debug-mode-toggle"` / `data-testid="header-debug-mode-toggle"`).
+  - Wired `isDeveloperMode` directly to stateful `debugMode`, enabling immediate reactivity across all experimental views upon toggling.
+  - Ensured that when Debug Mode is toggled ON:
+    - Playground tab (`tab-playground`) is presented in top navigation
+    - AI Punctuation tab (`tab-ai-punctuation`) is presented in top navigation
+    - Developer Mode indicator (`developer-mode-indicator`) is presented
+    - Network Inspector button and State Machine Action Logs button are presented in the action toolbar.
+- **Dedicated verification**:
+  - `npx tsx scripts/verify-top-menu-debug-toggle.ts` (PASS, 3/3)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors, 0 warnings)
+- **Delivery**: Verified, committed, and logged in `docs/done.md`.
+
+## Task 267: Quarantine Beginner Mode
+
+- **Implementation**:
+  - Quarantined beginner mode components to `quarentined/beginner/` (`BeginnerFlowContainer`, `BeginnerTabNav`, `BeginnerCharsRemovalAccordion`, `BeginnerTtsServiceControl`, `PerLanguageTtsPreferences`, `tabs/*`) and documented in `quarentined/beginner/README.md`.
+  - Quarantined beginner mode design specifications to `quarentined/docs/beginner-mode-tab-flow.md`.
+  - Set default application mode to `"expert"` (Advanced Studio) in `src/utils/appSettings.ts`.
+  - In `src/routes/index.tsx`, defaulted `workflowMode` initialization to `"expert"`, and added a dedicated quarantined banner (`beginner-mode-quarantined-banner` with button to switch back to Advanced Studio) if visited.
+  - Updated `src/components/ModeSwitcherHeader.tsx` to badge Beginner Mode with a prominent `[Quarantined]` badge.
+- **Dedicated verification**:
+  - `npx tsx scripts/verify-quarantine-beginner-mode.ts` (PASS, 4/4)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors, 0 warnings)
+- **Delivery**: Verified, committed, and logged in `docs/done.md`.
+
+## Task 266: Validation for Remote TTS Services (Google Translate TTS Directly & Lovable TTS3 Service)
+
+- **Implementation**:
+  - Implemented `validateRemoteTtsService` in `src/lib/alternative-tts.ts` with real latency measurement, audio element stream test capability, timeout protection, and status diagnostics for both Direct Google Translate (`client=tw-ob`) and Lovable TTS3 (`https://tts3.lovable.app/api/public/tts`).
+  - Added cached validation retrieval (`getLastValidationResult`) and persistence (`setLastValidationResult`).
+  - Implemented 100% UI parity between Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`) with:
+    - `btn-validate-remote-tts` (validates active alternative engine)
+    - `btn-validate-google-tts-directly` (tests Google Translate direct endpoint)
+    - `btn-validate-tts3-service` (tests Lovable TTS3 service endpoint)
+    - `remote-tts-validation-badge` & `remote-tts-validation-details` displaying status, measured latency, endpoint, error reason if any, and check timestamp.
+- **Dedicated verification**:
+  - `npx tsx scripts/verify-remote-tts-validation.ts` (PASS, 4/4)
+  - `npx tsx scripts/verify-agents-version-rule.ts` (PASS)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors, 0 warnings)
+- **Delivery**: Verified, committed, and logged in `docs/done.md`.
+
 ## Task 265: Supabase Quarantine, TTS-Ratio Fix, Alternative TTS Services, Video in Language Sequence, and Mobile Responsiveness
 
 - **Implementation**:
