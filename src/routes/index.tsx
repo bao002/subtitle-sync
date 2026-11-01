@@ -1065,6 +1065,7 @@ function Index() {
     getInitialFavoriteLanguages,
   );
   const [addFavoriteFilter, setAddFavoriteFilter] = useState("");
+  const [stage2AddFavoriteFilter, setStage2AddFavoriteFilter] = useState("");
   const [targetLanguages, setTargetLanguages] = useState<string[]>(getInitialTargetLanguages);
 
   // For any favorite language - by default do checkbox on for both options: present in table & tts-play
@@ -8514,39 +8515,198 @@ function Index() {
                                       : ["en", "es", "he", "ar", "fr", "de", "it", "ru", "pt"]
                                     ).map((code) => {
                                       const isSelected = targetLanguages.includes(code);
-                                      const meta = LANGS.find((l) => l.code === code);
+                                      const meta =
+                                        LANGS.find((l) => l.code === code) ||
+                                        SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code === code);
                                       return (
-                                        <button
+                                        <div
                                           key={code}
-                                          type="button"
-                                          data-testid={`stage-2-learning-lang-${code}`}
-                                          onClick={() => {
-                                            if (isSelected) {
-                                              handleTargetLanguagesChange(
-                                                targetLanguages.filter((c) => c !== code),
-                                              );
-                                            } else {
-                                              handleTargetLanguagesChange([
-                                                ...targetLanguages,
-                                                code,
-                                              ]);
-                                            }
-                                          }}
-                                          className={`px-2.5 py-1 rounded-md text-xs font-medium border transition-colors flex items-center gap-1 cursor-pointer ${
+                                          className={`inline-flex items-center gap-1 rounded-md text-xs font-medium border transition-colors px-2 py-0.5 ${
                                             isSelected
                                               ? "border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-semibold"
                                               : "border-border bg-background text-muted-foreground hover:text-foreground"
                                           }`}
                                         >
-                                          {isSelected ? (
-                                            <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-                                          ) : (
-                                            <span className="w-3 text-center">+</span>
+                                          <button
+                                            type="button"
+                                            data-testid={`stage-2-learning-lang-${code}`}
+                                            onClick={() => {
+                                              if (isSelected) {
+                                                handleTargetLanguagesChange(
+                                                  targetLanguages.filter((c) => c !== code),
+                                                );
+                                              } else {
+                                                handleTargetLanguagesChange([
+                                                  ...targetLanguages,
+                                                  code,
+                                                ]);
+                                              }
+                                            }}
+                                            className="inline-flex items-center gap-1 cursor-pointer"
+                                            title={
+                                              isSelected
+                                                ? `Unselect ${meta?.name || code}`
+                                                : `Select ${meta?.name || code}`
+                                            }
+                                          >
+                                            {isSelected ? (
+                                              <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                            ) : (
+                                              <span className="w-3 text-center text-muted-foreground">
+                                                +
+                                              </span>
+                                            )}
+                                            <span>{meta?.name || code}</span>
+                                          </button>
+                                          {favoriteLanguages.includes(code) && (
+                                            <button
+                                              type="button"
+                                              data-testid={`stage-2-remove-fav-${code}`}
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                const nextFavs = favoriteLanguages.filter(
+                                                  (c) => c !== code,
+                                                );
+                                                handleUpdateFavoriteLanguages(nextFavs);
+                                                handleTargetLanguagesChange(
+                                                  targetLanguages.filter((c) => c !== code),
+                                                );
+                                              }}
+                                              className="hover:text-destructive hover:bg-destructive/10 rounded-full h-3.5 w-3.5 inline-flex items-center justify-center text-[11px] leading-none text-muted-foreground/70 hover:text-destructive transition ml-0.5"
+                                              title={`Remove ${meta?.name || code} from favorites`}
+                                              aria-label={`Remove ${meta?.name || code} from favorites`}
+                                            >
+                                              ×
+                                            </button>
                                           )}
-                                          <span>{meta?.name || code}</span>
-                                        </button>
+                                        </div>
                                       );
                                     })}
+                                  </div>
+
+                                  {/* Extend Favorite Languages Control - Stage 2 in-place */}
+                                  <div
+                                    id="stage-2-extend-favorites-container"
+                                    data-testid="stage-2-extend-favorites-container"
+                                    className="pt-2.5 border-t border-border/50 mt-2 space-y-1.5"
+                                  >
+                                    <div className="flex flex-wrap items-center justify-between text-xs gap-1">
+                                      <span className="font-semibold text-foreground flex items-center gap-1.5">
+                                        <span>Extend Favorite Languages:</span>
+                                        <span className="text-[10px] text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.2 rounded font-medium">
+                                          In-place
+                                        </span>
+                                      </span>
+                                      <span className="text-[10px] text-muted-foreground">
+                                        Adds to favorites and approves for video
+                                      </span>
+                                    </div>
+                                    <div className="space-y-1.5 pt-0.5">
+                                      <div className="relative flex items-center gap-1.5">
+                                        <input
+                                          type="text"
+                                          id="stage-2-filter-languages-input"
+                                          data-testid="stage-2-filter-languages-input"
+                                          list="stage-2-languages-datalist"
+                                          placeholder="Type to filter & add language to favorites…"
+                                          value={stage2AddFavoriteFilter}
+                                          onChange={(e) => {
+                                            const val = e.target.value;
+                                            setStage2AddFavoriteFilter(val);
+                                            const trimmed = val.trim();
+                                            if (trimmed) {
+                                              const matched = SUPPORTED_LANGUAGES_CATALOG.find(
+                                                (c) =>
+                                                  !favoriteLanguages.includes(c.code) &&
+                                                  (c.code.toLowerCase() === trimmed.toLowerCase() ||
+                                                    c.name.toLowerCase() ===
+                                                      trimmed.toLowerCase() ||
+                                                    `${c.name} (${c.code})`.toLowerCase() ===
+                                                      trimmed.toLowerCase()),
+                                              );
+                                              if (matched) {
+                                                const nextFavs = [
+                                                  ...favoriteLanguages,
+                                                  matched.code,
+                                                ];
+                                                handleUpdateFavoriteLanguages(nextFavs);
+                                                if (!targetLanguages.includes(matched.code)) {
+                                                  handleTargetLanguagesChange([
+                                                    ...targetLanguages,
+                                                    matched.code,
+                                                  ]);
+                                                }
+                                                setStage2AddFavoriteFilter("");
+                                              }
+                                            }
+                                          }}
+                                          className="rounded border border-input bg-background px-2.5 py-1 text-xs w-full sm:w-72 focus:outline-none focus:ring-1 focus:ring-primary"
+                                        />
+                                        <datalist id="stage-2-languages-datalist">
+                                          {SUPPORTED_LANGUAGES_CATALOG.filter(
+                                            (c) => !favoriteLanguages.includes(c.code),
+                                          ).map((c) => (
+                                            <option key={c.code} value={`${c.name} (${c.code})`}>
+                                              {c.code}
+                                            </option>
+                                          ))}
+                                        </datalist>
+                                        {stage2AddFavoriteFilter && (
+                                          <button
+                                            type="button"
+                                            onClick={() => setStage2AddFavoriteFilter("")}
+                                            className="text-[11px] text-muted-foreground hover:text-foreground px-2 py-0.5 rounded border border-border shrink-0 cursor-pointer"
+                                            title="Clear filter"
+                                          >
+                                            Clear
+                                          </button>
+                                        )}
+                                      </div>
+                                      {stage2AddFavoriteFilter.trim() && (
+                                        <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto pt-0.5">
+                                          {SUPPORTED_LANGUAGES_CATALOG.filter(
+                                            (c) =>
+                                              !favoriteLanguages.includes(c.code) &&
+                                              (c.name
+                                                .toLowerCase()
+                                                .includes(
+                                                  stage2AddFavoriteFilter.trim().toLowerCase(),
+                                                ) ||
+                                                c.code
+                                                  .toLowerCase()
+                                                  .includes(
+                                                    stage2AddFavoriteFilter.trim().toLowerCase(),
+                                                  )),
+                                          )
+                                            .slice(0, 16)
+                                            .map((c) => (
+                                              <button
+                                                key={c.code}
+                                                type="button"
+                                                data-testid={`stage-2-add-lang-item-${c.code}`}
+                                                onClick={() => {
+                                                  const nextFavs = [...favoriteLanguages, c.code];
+                                                  handleUpdateFavoriteLanguages(nextFavs);
+                                                  if (!targetLanguages.includes(c.code)) {
+                                                    handleTargetLanguagesChange([
+                                                      ...targetLanguages,
+                                                      c.code,
+                                                    ]);
+                                                  }
+                                                  setStage2AddFavoriteFilter("");
+                                                }}
+                                                className="inline-flex items-center gap-1 rounded bg-secondary/80 hover:bg-primary/20 text-foreground px-2 py-0.5 text-[11px] border border-border cursor-pointer transition-colors"
+                                              >
+                                                <span className="font-bold text-primary">+</span>
+                                                <span>{c.name}</span>
+                                                <span className="text-[10px] text-muted-foreground font-mono">
+                                                  ({c.code})
+                                                </span>
+                                              </button>
+                                            ))}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </div>

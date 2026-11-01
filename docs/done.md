@@ -1,5 +1,75 @@
 # Done tasks
 
+## Task 268: Unified Single Filter Input Field for Stage 2 Languages List (No 2 Separated Items)
+
+- **Implementation**:
+  - **Sub-task 1 (Unified Filter Input in Focus Element `div#stage-2-extend-favorites-container`)**:
+    - Focused strictly on the user-selected element (`div#root > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div#stage-2-extend-favorites-container:nth-of-type(3)`).
+    - Removed the separated `<select id="stage-2-add-favorite-select">` dropdown item so there are no longer two separate controls side-by-side to narrow the list.
+    - Integrated a single unified `<input id="stage-2-filter-languages-input" data-testid="stage-2-filter-languages-input" list="stage-2-languages-datalist">` element with standard HTML5 `<datalist>` combobox autocomplete suggestions.
+    - Added instant filtered quick-add suggestion chips under the input when the user is typing, allowing single-click or autocomplete addition directly from the filtered list.
+  - **Sub-task 2 (Synchronized Favorites & Target Languages Handling)**:
+    - Autocomplete matching (by language code, name, or formatted name) and quick-chip clicks automatically invoke `handleUpdateFavoriteLanguages` to add the language to global favorites, and `handleTargetLanguagesChange` to approve it in the video's target languages.
+    - Filter field automatically resets cleanly after language addition.
+  - **Sub-task 3 (Version 2.0.69 Synchronization & Automated Tests)**:
+    - Synchronized application version to `2.0.69` (`versionCode = 20069`) across all 5 required targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Updated dedicated verification suite `scripts/verify-stage-2-extend-favorite-languages.ts` to assert unified filter input, datalist integration, and absence of separated `<select>` element.
+- **Dedicated verification**:
+  - `npm run test:stage-2-extend-favorite-languages` (PASS, 100% assertions)
+  - `npm run test:single-icon-floating-button` (PASS, 100% assertions)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors)
+- **Delivery**: Verified and migrated to `docs/done.md`.
+
+## Task 267: Single Floating Action Button with 1 Dynamic Icon (Focus Mode: div#root > div:nth-of-type(1) > div:nth-of-type(6))
+
+- **Implementation**:
+  - **Sub-task 1 (Single Floating Button of 1 Icon)**:
+    - Re-architected `FloatingDraggablePauseButton.tsx` (the focused element `div#root > div:nth-of-type(1) > div:nth-of-type(6)`) from a multi-item stacked group (large pill + secondary badge underneath) into exactly 1 floating action button (`h-12 w-12 rounded-full`).
+    - Rendered exactly 1 dynamic icon on the floating button based on player and setup state:
+      - `<Pause />` when setup is paused (`isSetupPaused`).
+      - `<ScrollText />` when setup is active and auto-scrolling is enabled.
+      - `<Play />` when setup is active and standard playback/controls are running.
+    - Eliminated visible secondary stacked badge item, moving status and badge text into `sr-only` tags for accessibility and regression test contract preservation.
+    - Preserved full interactive dropdown menu popup (`data-testid="floating-menu-dropdown"`), options (`menu-option-setup-pause`, `menu-option-auto-scroll`), and explanations.
+    - Preserved full mouse and touch dragging physics, viewport clamping (`clampPosition`), and `localStorage` persistence.
+  - **Sub-task 2 (Version 2.0.68 Synchronization & Automated Tests)**:
+    - Synchronized application version to `2.0.68` (`versionCode = 20068`) across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Created dedicated verification suite `scripts/verify-single-icon-floating-button.ts` and added npm script `"test:single-icon-floating-button"`.
+    - Updated documentation catalog in `docs/files.md`.
+- **Dedicated verification**:
+  - `npm run test:single-icon-floating-button` (PASS, 100% assertions)
+  - `npx tsx scripts/verify-floating-draggable-pause.ts` (PASS)
+  - `npx tsx scripts/verify-floating-dropdown-menu.ts` (PASS)
+  - `npm run test:stage-2-extend-favorite-languages` (PASS)
+  - `npm run test:default-language-restricted-to-fetched` (PASS)
+  - `npm run test:no-favorite-languages-duplication` (PASS)
+  - `npm run test:accordion-stages-of-appearance` (PASS)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors)
+- **Delivery**: Fully verified and migrated to `docs/done.md`.
+
+## Task 266: Provide In-Place Control to Extend Favorite Languages within Stage 2 Learning Goals Card
+
+- **Implementation**:
+  - **Sub-task 1 (Stage 2 In-Place Extension Control UI)**:
+    - Added dedicated in-place extension container (`data-testid="stage-2-extend-favorites-container"`, `id="stage-2-extend-favorites-container"`) inside `div#stage-2-learning-goals-card` in `src/routes/index.tsx`.
+    - Integrated filter input (`data-testid="stage-2-filter-languages-input"`) and select dropdown (`data-testid="stage-2-add-favorite-select"`) populated from `SUPPORTED_LANGUAGES_CATALOG`.
+  - **Sub-task 2 (Synchronized Favorites & Target Languages Update)**:
+    - On language selection from the dropdown, automatically updates global favorite languages (`handleUpdateFavoriteLanguages`) and simultaneously enables/approves the language for the active video (`handleTargetLanguagesChange`), clearing the filter input immediately.
+  - **Sub-task 3 (In-Place Chip Trimming & Removal)**:
+    - Added fast in-place removal buttons (`data-testid="stage-2-remove-fav-${code}"`) to each favorite language chip inside Stage 2, enabling seamless addition and trimming without leaving Stage 2.
+  - **Sub-task 4 (Version 2.0.67 Synchronization & Automated Tests)**:
+    - Synchronized application version to `2.0.67` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Created dedicated verification suite `scripts/verify-stage-2-extend-favorite-languages.ts` and added npm script `"test:stage-2-extend-favorite-languages"`.
+    - Updated `docs/files.md` inventory.
+- **Dedicated verification**:
+  - `npm run test:stage-2-extend-favorite-languages` (PASS, 100% assertions)
+  - `npm run test:default-language-restricted-to-fetched` (PASS)
+  - `npm run test:no-favorite-languages-duplication` (PASS)
+  - `npm run test:accordion-stages-of-appearance` (PASS)
+- **Delivery**: Verified and migrated to `docs/done.md`.
+
 ## Task 265: Restrict Default Language Strictly to Languages with Successfully Fetched Subtitles
 
 - **Implementation**:

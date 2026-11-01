@@ -4,15 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 266: Provide in-place control to extend the list of favorite languages within Stage 2 Learning Goals card**
-  - **Goal**: In `src/routes/index.tsx`, inside `div#stage-2-learning-goals-card`, implement an inline, accessible control to extend the user's favorite languages list ("here and only here is the right place").
-  - **Capabilities**:
-    - Select from available catalog languages (`SUPPORTED_LANGUAGES_CATALOG` / `LANGS`) or type language codes.
-    - Adding a language updates `favoriteLanguages` (`handleUpdateFavoriteLanguages`) and automatically enables/approves it in `targetLanguages` (`handleTargetLanguagesChange`).
-    - Immediately reflects in the approved languages chips inside the card.
-  - ** Parity & Focus**: Focus Mode strictly on `div#stage-2-learning-goals-card:nth-of-type(1)`.
-  - **Version bump**: Sync version to `2.0.67` across app files.
-  - **Verification**: Dedicated automated test `scripts/verify-stage-2-extend-favorite-languages.ts` verifying extension capability, state persistence, and Stage 2 presence.
+*(No active tasks pending. All prompt tasks completed and verified in docs/done.md.)*
 
 
 

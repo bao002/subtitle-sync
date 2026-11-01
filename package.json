@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.66",
+  "version": "2.0.69",
 
   "private": true,
   "sideEffects": false,
@@ -15,9 +15,11 @@
     "lint": "eslint src/lib src/routes",
     "coverage": "npm run test:coverage",
     "test:coverage": "tsx scripts/generate-test-coverage.ts",
+    "test:single-icon-floating-button": "tsx scripts/verify-single-icon-floating-button.ts",
     "test:settings-nested-accordions-and-clean-views": "tsx scripts/verify-settings-nested-accordions-and-clean-views.ts",
     "test:no-favorite-languages-duplication": "tsx scripts/verify-no-favorite-languages-duplication.ts",
     "test:default-language-restricted-to-fetched": "tsx scripts/verify-default-language-restricted-to-fetched.ts",
+    "test:stage-2-extend-favorite-languages": "tsx scripts/verify-stage-2-extend-favorite-languages.ts",
     "test:memory-defaults-and-clean-views": "tsx scripts/verify-memory-defaults-and-clean-views.ts",
     "test:test-coverage-report": "tsx scripts/verify-test-coverage-report.ts",
     "test:accordion-stages-of-appearance": "tsx scripts/verify-accordion-stages-of-appearance.ts",
