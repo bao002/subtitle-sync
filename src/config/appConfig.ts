@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.61";
+export const APP_VERSION = "2.0.62";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "e482b19";
 export const APP_VERSION_DESCRIPTION =
-  "Progressive accordion stages of appearance, floating captions alert, learning goals approval, and settings toggle (Version 2.0.61)";
+  "Automated test coverage generation and GitHub Pages report integration across all 7 pipeline stages (Version 2.0.62)";
 
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";

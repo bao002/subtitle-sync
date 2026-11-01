@@ -70,6 +70,7 @@ jobs:
             git checkout gh-pages -- screenshots 2>/dev/null || true
             git checkout gh-pages -- android 2>/dev/null || true
             git checkout gh-pages -- web 2>/dev/null || true
+            git checkout gh-pages -- coverage 2>/dev/null || true
 
             [ -f mochawesome.html ] && cp mochawesome.html dist/mochawesome.html && echo "Preserved mochawesome.html"
             [ -d playwright ] && cp -r playwright dist/ && echo "Preserved playwright report"
@@ -77,8 +78,14 @@ jobs:
             [ -d screenshots ] && cp -r screenshots dist/ && echo "Preserved screenshots directory"
             [ -d android ] && cp -r android dist/ && echo "Preserved android directory"
             [ -d web ] && cp -r web dist/ && echo "Preserved web directory"
+            [ -d coverage ] && cp -r coverage dist/ && echo "Preserved coverage directory"
           fi
           # Also stage any locally generated test reports
+          if [ -d "public/coverage" ]; then
+            mkdir -p dist/coverage
+            cp -r public/coverage/* dist/coverage/ 2>/dev/null || true
+            echo "Staged public/coverage to dist/coverage/"
+          fi
           if [ -d "cypress/reports" ]; then
             cp -r cypress/reports/* dist/ 2>/dev/null || true
             echo "Staged local cypress/reports to dist/"

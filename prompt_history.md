@@ -91,3 +91,10 @@ stage -3 - show the subtitles-table-view accordion.
 stage -4 - all other accordion elements will be presented if the user clicks on the settings icon. the user may click that button again to hide these elements.
 ```
 
+---
+
+### Prompt 8: Test Coverage on GitHub Pages Report Page
+```
+create test coverage - this should be seen on github-pages report page
+```
+

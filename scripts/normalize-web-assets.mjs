@@ -49,6 +49,18 @@ if (fs.existsSync(publicReportPath)) {
   fs.copyFileSync(publicReportPath, path.join(androidDir, "index.html"));
 }
 
+// 1.1 Stage public/coverage directory into dist/coverage and dist/android/coverage
+const publicCoverageDir = path.resolve("public/coverage");
+if (fs.existsSync(publicCoverageDir)) {
+  const distCoverageDir = path.join(outputDir, "coverage");
+  const androidCoverageDir = path.join(androidDir, "coverage");
+  fs.mkdirSync(distCoverageDir, { recursive: true });
+  fs.mkdirSync(androidCoverageDir, { recursive: true });
+  fs.cpSync(publicCoverageDir, distCoverageDir, { recursive: true });
+  fs.cpSync(publicCoverageDir, androidCoverageDir, { recursive: true });
+  console.log(`Staged coverage report directory to ${path.relative(process.cwd(), distCoverageDir)}`);
+}
+
 // 2. Guarantee authentic fallback logcat exists in dist/screenshots/ and dist/android/screenshots/
 const distLogcat = path.join(screenshotsDir, "android-emulator-logcat.txt");
 if (!fs.existsSync(distLogcat) || fs.statSync(distLogcat).size === 0) {

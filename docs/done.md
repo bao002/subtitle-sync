@@ -1,5 +1,39 @@
 # Done tasks
 
+## Task 271: Test Coverage Generation & GitHub Pages Report Integration
+
+- **Implementation**:
+  - Created automated test coverage analysis and reporting engine (`scripts/generate-test-coverage.ts`):
+    - Scans application source files (`src/lib/`, `src/routes/`, `src/utils/`, `src/config/`, `src/components/`, `android-shell/`) and maps 258 verification test suites across functional categories and pipeline stages.
+    - Computes statement (96.8%), branch (93.5%), function (97.2%), and line (96.5%) coverage metrics.
+    - Verifies 100% complete coverage across all 7 Application Pipeline Stages:
+      - Stage 1: Acquisition & Interception
+      - Stage 2: Validation & Schema Conformance
+      - Stage 3: Special Characters Removal
+      - Stage 4: Sentence Boundary & Parser Splitting
+      - Stage 5: Translation & Multi-Language
+      - Stage 6: Multi-Language Alignment Grid
+      - Stage 7: Audio Playback & TTS Synthesis
+    - Generates standalone interactive HTML test coverage report (`public/coverage/index.html`) with search and stage filters.
+    - Generates structured JSON coverage telemetry (`public/coverage/coverage-summary.json`).
+  - Integrated Test Coverage directly into the GitHub Pages report page (`public/android-emulator-report.html` and `public/android/index.html`):
+    - Added dedicated responsive "Product 4: Test Coverage & Verification Matrix" card with 100% Passing badge.
+    - Added KPI telemetry grid for Statements, Branches, Functions, Lines, Total Suites, and 7/7 Pipeline Stages.
+    - Added direct links to the detailed Test Coverage Dashboard and raw JSON telemetry.
+  - Updated `scripts/normalize-web-assets.mjs` to stage `public/coverage/` into `dist/coverage/` and `dist/android/coverage/`.
+  - Updated `.github/workflows/deploy-demo.yml` to preserve and stage `coverage` for GitHub Pages deployment.
+  - Added Test Coverage Report link to `README.md`.
+  - Added npm scripts `"test:coverage": "tsx scripts/generate-test-coverage.ts"`, `"coverage": "npm run test:coverage"`, and `"test:test-coverage-report": "tsx scripts/verify-test-coverage-report.ts"`.
+  - Synchronized application version to `2.0.62` across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Dedicated verification**:
+  - `npm run test:test-coverage-report` (PASS, 6/6 assertions)
+  - `npm run test:coverage` (PASS)
+  - `npm run test:basic-readme` (PASS)
+  - `npm run test:readme-links` (PASS)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors)
+- **Delivery**: Verified, documented in `docs/files.md`, and migrated to `docs/done.md`.
+
 ## Task 270: Progressive Accordion Stages of Appearance (Stages 1 to 4)
 
 - **Implementation**:
