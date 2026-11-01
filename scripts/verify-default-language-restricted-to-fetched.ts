@@ -151,37 +151,38 @@ assert.equal(
 );
 console.log("✅ PASS: Functional simulation passed all 4 cases perfectly.");
 
-// [Check 5] Version synchronization across all 5 files (2.0.66)
+// [Check 5] Version synchronization across all 5 files (>= 2.0.66)
 console.log("--> [Check 5] Verifying version synchronization across all 5 files...");
-const expectedVersion = "2.0.66";
-const expectedCode = "20066";
-
-assert.equal(
-  packageJson.version,
-  expectedVersion,
-  `package.json version must be ${expectedVersion}`,
+const currentVersion = packageJson.version;
+const parts = currentVersion.split(".").map(Number);
+assert.ok(parts[0] >= 2, "Major version must be >= 2");
+assert.ok(
+  parts[0] > 2 || parts[1] > 0 || parts[2] >= 66,
+  "Version must be at least 2.0.66",
 );
+const expectedCode = `${parts[0]}${String(parts[1]).padStart(2, "0")}${String(parts[2]).padStart(2, "0")}`;
+
 assert.ok(
   gradleKts.includes(`versionCode = ${expectedCode}`),
   `build.gradle.kts versionCode must be ${expectedCode}`,
 );
 assert.ok(
-  gradleKts.includes(`versionName = "${expectedVersion}"`),
-  `build.gradle.kts versionName must be "${expectedVersion}"`,
+  gradleKts.includes(`versionName = "${currentVersion}"`),
+  `build.gradle.kts versionName must be "${currentVersion}"`,
 );
 assert.ok(
-  appConfig.includes(`APP_VERSION = "${expectedVersion}"`),
-  `appConfig.ts APP_VERSION must be "${expectedVersion}"`,
+  appConfig.includes(`APP_VERSION = "${currentVersion}"`),
+  `appConfig.ts APP_VERSION must be "${currentVersion}"`,
 );
 assert.ok(
-  apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVersion}"`),
-  `apkUpdater.ts CURRENT_APK_VERSION must be "v${expectedVersion}"`,
+  apkUpdater.includes(`CURRENT_APK_VERSION = "v${currentVersion}"`),
+  `apkUpdater.ts CURRENT_APK_VERSION must be "v${currentVersion}"`,
 );
 assert.ok(
-  appSettings.includes(`version: "${expectedVersion}"`),
-  `appSettings.ts version must be "${expectedVersion}"`,
+  appSettings.includes(`version: "${currentVersion}"`),
+  `appSettings.ts snapshot version must be "${currentVersion}"`,
 );
-console.log(`✅ PASS: All 5 files consistently synchronized to version ${expectedVersion}.`);
+console.log(`✅ PASS: All 5 files consistently synchronized to version ${currentVersion}.`);
 
 console.log("=========================================================================");
 console.log("🎉 ALL DEFAULT LANGUAGE RESTRICTION CHECKS PASSED (100%)!");

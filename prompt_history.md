@@ -193,8 +193,32 @@ CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4
 CSS 1: {
 
 }
+---
+
+### Prompt 16: Go On & Single Floating Button of 1 Icon
+```
+1. go on
+2. no need of 2 items. its enough to use 1 floating button of 1 icon
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6)
+CSS 1: {
+
+}
 [AIS_METADATA_SECTION_END]
 ```
 
+---
 
+### Prompt 17: Unified Single Input Field to Filter Languages (No 2 Separated Items)
+```
+the list of languages should have an input fied in order to filter (dont use 2 saperated items to narrow the list!)
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div#stage-2-extend-favorites-container:nth-of-type(3)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
 

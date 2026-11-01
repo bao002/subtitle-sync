@@ -228,7 +228,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Floating Trigger Button */}
+      {/* Floating Trigger Button: 1 floating button of 1 icon */}
       <button
         type="button"
         data-testid="floating-pause-button"
@@ -241,60 +241,41 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
             ? "Setup Paused: Click to resume normal playback and auto-scroll"
             : "Pause for Setup: Freeze video, speech, and auto-scrolling to configure app"
         }
+        title={
+          isSetupPaused
+            ? "Setup Paused (OFF) - Click for controls"
+            : "Controls Active (ON) - Click for controls"
+        }
         onClick={handleTriggerClick}
-        className={`flex items-center gap-2 rounded-full border px-3.5 py-2.5 shadow-2xl backdrop-blur-md transition-all duration-150 ${
-          isDragging ? "cursor-grabbing opacity-90 scale-105" : "cursor-grab"
+        className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-2xl backdrop-blur-md transition-all duration-150 active:scale-95 ${
+          isDragging ? "cursor-grabbing opacity-90 scale-105" : "cursor-grab hover:scale-105"
         } ${
           isSetupPaused
-            ? "border-rose-500 bg-rose-600 text-white shadow-rose-500/30 hover:bg-rose-700 ring-2 ring-rose-400/50"
-            : "border-emerald-500 bg-emerald-600 text-white shadow-emerald-500/30 hover:bg-emerald-700 ring-2 ring-emerald-400/50"
+            ? "border-rose-500 bg-rose-600 text-white shadow-rose-500/40 hover:bg-rose-700 ring-2 ring-rose-400/50"
+            : "border-emerald-500 bg-emerald-600 text-white shadow-emerald-500/40 hover:bg-emerald-700 ring-2 ring-emerald-400/50"
         }`}
       >
         <span data-testid="floating-dropdown-trigger" className="hidden" aria-hidden="true" />
-        <GripVertical className="h-4 w-4 shrink-0 opacity-60" />
+        <span data-testid="floating-pause-status" className="sr-only">
+          {isSetupPaused
+            ? "Setup Paused (OFF)"
+            : isAutoScrollEnabled
+              ? "Auto-Scroll ON"
+              : "Controls Active (ON)"}
+        </span>
+        <span data-testid="floating-pause-badge" className="sr-only">
+          {isSetupPaused ? "Autoscroll & Play OFF" : "Playback & Controls ON"}
+        </span>
 
-        <div className="flex items-center gap-1.5 font-semibold text-xs whitespace-nowrap">
-          {isSetupPaused ? (
-            <>
-              <Pause className="h-4 w-4 fill-current shrink-0" />
-              <span data-testid="floating-pause-status">Setup Paused (OFF)</span>
-              <SlidersHorizontal className="h-3.5 w-3.5 shrink-0 opacity-80" />
-            </>
-          ) : isAutoScrollEnabled ? (
-            <>
-              <ScrollText className="h-4 w-4 shrink-0" />
-              <span data-testid="floating-pause-status">Auto-Scroll ON</span>
-            </>
-          ) : (
-            <>
-              <Play className="h-3.5 w-3.5 fill-current shrink-0 text-white" />
-              <span data-testid="floating-pause-status">Controls Active (ON)</span>
-            </>
-          )}
-          {isOpen ? (
-            <ChevronUp className="h-3.5 w-3.5 shrink-0 opacity-80 ml-0.5" />
-          ) : (
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 opacity-80 ml-0.5" />
-          )}
-        </div>
+        {/* Exactly 1 icon */}
+        {isSetupPaused ? (
+          <Pause className="h-5 w-5 fill-current shrink-0" />
+        ) : isAutoScrollEnabled ? (
+          <ScrollText className="h-5 w-5 shrink-0" />
+        ) : (
+          <Play className="h-5 w-5 fill-current shrink-0 ml-0.5" />
+        )}
       </button>
-
-      {/* Floating Active Setup Indicator Badge */}
-      {isSetupPaused && !isOpen ? (
-        <div
-          data-testid="floating-pause-badge"
-          className="pointer-events-none mt-1 rounded bg-rose-950/90 border border-rose-500/40 px-2 py-0.5 text-center text-[10px] font-semibold tracking-wide text-rose-200 shadow-sm"
-        >
-          Autoscroll &amp; Play OFF
-        </div>
-      ) : !isOpen ? (
-        <div
-          data-testid="floating-active-badge"
-          className="pointer-events-none mt-1 rounded bg-emerald-950/90 border border-emerald-500/40 px-2 py-0.5 text-center text-[10px] font-semibold tracking-wide text-emerald-200 shadow-sm"
-        >
-          Playback &amp; Controls ON
-        </div>
-      ) : null}
 
       {/* Dropdown Menu Popup */}
       {isOpen && (
