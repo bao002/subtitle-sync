@@ -105,24 +105,26 @@ async function main() {
   );
   console.log("✓ Stage visibility filtering logic verified");
 
-  // 5. Version 2.0.61 synchronization across all 5 files
-  console.log("Verifying version 2.0.61 synchronization across all 5 files...");
+  // 5. Version synchronization across all 5 files
+  console.log("Verifying version synchronization across all 5 files...");
   const pkgJson = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
-  assert.equal(pkgJson.version, "2.0.61", "package.json version must be 2.0.61");
+  const expectedVer = pkgJson.version;
+  const parts = expectedVer.split(".").map((p: string) => parseInt(p, 10) || 0);
+  const expectedCode = (parts[0] * 10000) + (parts[1] * 100) + parts[2];
 
   const buildGradle = fs.readFileSync(path.join(root, "android-shell/app/build.gradle.kts"), "utf8");
-  assert.ok(buildGradle.includes('versionName = "2.0.61"'), "build.gradle.kts must contain versionName = \"2.0.61\"");
-  assert.ok(buildGradle.includes('versionCode = 20061'), "build.gradle.kts must contain versionCode = 20061");
+  assert.ok(buildGradle.includes(`versionName = "${expectedVer}"`), `build.gradle.kts must contain versionName = "${expectedVer}"`);
+  assert.ok(buildGradle.includes(`versionCode = ${expectedCode}`), `build.gradle.kts must contain versionCode = ${expectedCode}`);
 
   const appConfig = fs.readFileSync(path.join(root, "src/config/appConfig.ts"), "utf8");
-  assert.ok(appConfig.includes('APP_VERSION = "2.0.61"'), "src/config/appConfig.ts must contain APP_VERSION = \"2.0.61\"");
+  assert.ok(appConfig.includes(`APP_VERSION = "${expectedVer}"`), `src/config/appConfig.ts must contain APP_VERSION = "${expectedVer}"`);
 
   const apkUpdater = fs.readFileSync(path.join(root, "src/utils/apkUpdater.ts"), "utf8");
-  assert.ok(apkUpdater.includes('CURRENT_APK_VERSION = "v2.0.61"'), "src/utils/apkUpdater.ts must contain CURRENT_APK_VERSION = \"v2.0.61\"");
+  assert.ok(apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVer}"`), `src/utils/apkUpdater.ts must contain CURRENT_APK_VERSION = "v${expectedVer}"`);
 
   const appSettings = fs.readFileSync(path.join(root, "src/utils/appSettings.ts"), "utf8");
-  assert.ok(appSettings.includes('version: "2.0.61"'), "src/utils/appSettings.ts must contain version: \"2.0.61\"");
-  console.log("✓ All 5 files properly synchronized to version 2.0.61");
+  assert.ok(appSettings.includes(`version: "${expectedVer}"`), `src/utils/appSettings.ts must contain version: "${expectedVer}"`);
+  console.log(`✓ All 5 files properly synchronized to version ${expectedVer}`);
 
   console.log("All Progressive Accordion Stages of Appearance verifications passed successfully!");
 }
