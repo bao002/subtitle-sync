@@ -73,6 +73,7 @@ jobs:
             git checkout gh-pages -- android 2>/dev/null || true
             git checkout gh-pages -- web 2>/dev/null || true
             git checkout gh-pages -- coverage 2>/dev/null || true
+            git checkout gh-pages -- storybook 2>/dev/null || true
 
             [ -f mochawesome.html ] && cp mochawesome.html dist/mochawesome.html && echo "Preserved mochawesome.html"
             [ -d playwright ] && cp -r playwright dist/ && echo "Preserved playwright report"
@@ -81,12 +82,16 @@ jobs:
             [ -d android ] && cp -r android dist/ && echo "Preserved android directory"
             [ -d web ] && cp -r web dist/ && echo "Preserved web directory"
             [ -d coverage ] && cp -r coverage dist/ && echo "Preserved coverage directory"
+            [ -d storybook ] && cp -r storybook dist/ && echo "Preserved storybook directory"
           fi
           # Also stage any locally generated test reports and Storybook
           if [ -d "public/storybook" ]; then
             mkdir -p dist/storybook
             cp -r public/storybook/* dist/storybook/ 2>/dev/null || true
             echo "Staged Storybook to dist/storybook/"
+          fi
+          if [ -f "dist/storybook/index.html" ]; then
+            echo "✅ Verified Storybook index.html is present in dist/storybook/"
           fi
           if [ -d "public/coverage" ]; then
             mkdir -p dist/coverage

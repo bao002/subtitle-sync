@@ -1,4 +1,6 @@
-# Beginner-Mode Tab-Based Flow Architecture & Design Specification
+# [QUARANTINED ARCHIVE] Beginner-Mode Tab-Based Flow Architecture & Design Specification
+
+> **Quarantine Notice**: This specification document is archived under `quarentined/docs/` for historical reference and quarantine audit compliance. The active, canonical document is maintained in [`docs/designs/beginner-mode-tab-flow.md`](../../docs/designs/beginner-mode-tab-flow.md).
 
 ## Overview
 

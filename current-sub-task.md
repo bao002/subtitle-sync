@@ -1,6 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: [IN_PROGRESS]
-- **Active Task**: Task 271: Chapter 1 - Storybook Environment & GitHub Pages Hosting (`/storybook`)
-- **Sub-task**: Sub-task 271.1: Set up Storybook workshop and build pipeline: provide clean isolated component workbench with story registry, interactive controls, and build integration into `public/storybook` and `dist/storybook`.
-- **Validation**: `npm run build:storybook`, dedicated automated test `scripts/verify-storybook-setup.ts`, `compile_applet`, `lint_applet`.
+- **Status**: [COMPLETED]
+- **Active Task**: None (Task 274 completed and migrated to docs/done.md)
+- **Sub-task**: None pending.
+- **Validation**: Dedicated test `npm run test:storybook-deploy-readme` PASSED, all 19/19 AGENTS.md constitutional contract checks PASSED, `compile_applet` PASSED, `lint_applet` PASSED.
