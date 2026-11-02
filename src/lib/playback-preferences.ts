@@ -181,6 +181,7 @@ export const setTtsRatioPreference = (langCode: string, ratio: number) => {
     // ignore storage errors
   }
 };
+export const saveTtsRatioPreference = setTtsRatioPreference;
 
 export const getTtsRatesPreference = (): Record<string, number> => {
   if (typeof window === "undefined") return {};

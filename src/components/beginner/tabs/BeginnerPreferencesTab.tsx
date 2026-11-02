@@ -868,9 +868,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         )}
       </div>
 
-      {perLanguageTtsSettingsSlot}
-
-      {/* 3. Global Favorite Languages Panel (Shared Parity) */}
+      {/* 3. Global Favorite Languages Panel (Learning Goals: Favorite & Target Languages) */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
         <GlobalFavoriteLanguagesPanel
           catalog={catalog || ALL_KNOWN_LANGUAGES}
@@ -882,6 +880,17 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           onSaveCurrentSelectionAsFavorites={onSaveCurrentSelectionAsFavorites || (() => {})}
         />
       </div>
+
+      {/* 4. Learning Goals: Per-Language Narration Ratios Settings (at the end of learning goals stage) */}
+      {perLanguageTtsSettingsSlot && (
+        <div
+          id="beginner-learning-goals-ratios-container"
+          data-testid="beginner-learning-goals-ratios-container"
+          className="space-y-2"
+        >
+          {perLanguageTtsSettingsSlot}
+        </div>
+      )}
 
       {/* Navigation Footer */}
       {onContinueToNextTab && (

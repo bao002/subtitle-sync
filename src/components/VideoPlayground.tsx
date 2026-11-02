@@ -336,16 +336,13 @@ export function VideoPlayground({
           {/* Switchable List of Default Languages fetched from YouTube API around Playground Video */}
           <SwitchableDefaultSubtitlesBar
             videoId={videoId}
-            defaultLanguages={
-              defaultLanguages && defaultLanguages.length > 0
-                ? defaultLanguages
-                : Array.from(
-                    new Set([
-                      ...existingTrackLanguages,
-                      ...Object.keys(detectedTracks),
-                    ]),
-                  )
-            }
+            defaultLanguages={Array.from(
+              new Set([
+                ...(defaultLanguages || []),
+                ...existingTrackLanguages,
+                ...Object.keys(detectedTracks),
+              ]),
+            )}
             activeLanguage={activeLanguage || previewTrackLang || existingTrackLanguages[0] || ""}
             onSelectLanguage={(langCode) => {
               setPreviewTrackLang(langCode);
