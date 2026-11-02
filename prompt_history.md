@@ -280,3 +280,25 @@ CSS 1: {
 }
 [AIS_METADATA_SECTION_END]
 ```
+
+---
+
+### Prompt 22: Continue Execution (go on)
+```
+1. go on
+```
+
+---
+
+### Prompt 23: Application Components in Storybook
+```
+ensure storybook contains the component of the application
+```
+
+---
+
+### Prompt 24: GitHub Actions Storybook Deployment and README Link
+```
+github actions should deploy the storybook and README should contain its link
+```
+

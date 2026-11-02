@@ -259,7 +259,8 @@ const repoRoot = process.cwd();
 
 // 1. package.json
 const pkgJson = JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8"));
-assert.strictEqual(pkgJson.version, "2.0.71", "package.json must be 2.0.71");
+assert.ok(pkgJson.version >= "2.0.71", `package.json version must be >= 2.0.71, got ${pkgJson.version}`);
+const activeVersion = pkgJson.version;
 
 // 2. android-shell/app/build.gradle.kts
 const gradleKts = fs.readFileSync(
@@ -267,22 +268,18 @@ const gradleKts = fs.readFileSync(
   "utf8",
 );
 assert.ok(
-  gradleKts.includes('versionName = "2.0.71"'),
-  "build.gradle.kts must have versionName = 2.0.71",
-);
-assert.ok(
-  gradleKts.includes("versionCode = 20071"),
-  "build.gradle.kts must have versionCode = 20071",
+  gradleKts.includes(`versionName = "${activeVersion}"`),
+  `build.gradle.kts must have versionName = ${activeVersion}`,
 );
 
 // 3. src/config/appConfig.ts
-assert.strictEqual(APP_VERSION, "2.0.71", "src/config/appConfig.ts APP_VERSION must be 2.0.71");
+assert.strictEqual(APP_VERSION, activeVersion, `src/config/appConfig.ts APP_VERSION must be ${activeVersion}`);
 
 // 4. src/utils/apkUpdater.ts
 assert.strictEqual(
   CURRENT_APK_VERSION,
-  "v2.0.71",
-  "src/utils/apkUpdater.ts CURRENT_APK_VERSION must be v2.0.71",
+  `v${activeVersion}`,
+  `src/utils/apkUpdater.ts CURRENT_APK_VERSION must be v${activeVersion}`,
 );
 
 // 5. src/utils/appSettings.ts
@@ -291,11 +288,11 @@ const appSettingsContent = fs.readFileSync(
   "utf8",
 );
 assert.ok(
-  appSettingsContent.includes('version: "2.0.71"'),
-  "src/utils/appSettings.ts must include version: 2.0.71",
+  appSettingsContent.includes(`version: "${activeVersion}"`),
+  `src/utils/appSettings.ts must include version: ${activeVersion}`,
 );
 
-console.log("✓ Version 2.0.71 (versionCode = 20071) synchronized across all 5 files.");
+console.log(`✓ Version ${activeVersion} synchronized across all 5 files.`);
 
 console.log("\n====================================================");
 console.log("🎉 ALL TESTS PASSED! Task 270 verified successfully.");

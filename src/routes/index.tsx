@@ -5568,6 +5568,15 @@ function Index() {
             <Share2 className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Share</span>
           </Button>
+          <a
+            href="/storybook"
+            data-testid="header-storybook-button"
+            className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-pink-500/30 hover:bg-pink-500/10 text-pink-700 dark:text-pink-300 font-medium inline-flex items-center rounded-md transition-colors"
+            title="Open Storybook component isolation workbench"
+          >
+            <BookOpen className="h-3.5 w-3.5 text-pink-500" />
+            <span className="hidden sm:inline">Storybook</span>
+          </a>
         </div>
       </header>
 
@@ -7110,102 +7119,102 @@ function Index() {
                                     </p>
                                   )}
 
-                                   {useAlternativeTtsState && (
-                                     <div className="ml-6 pt-1">
-                                       <TtsServiceSettingsPanel
-                                         mode={alternativeTtsModeState}
-                                         onModeChange={(m) => {
-                                           setAlternativeTtsModeState(m);
-                                           setAlternativeTtsMode(m);
-                                         }}
-                                         engine={alternativeTtsEngineState}
-                                         onEngineChange={(e) => {
-                                           setAlternativeTtsEngineState(e);
-                                           setAlternativeTtsEngine(e);
-                                         }}
-                                         provider={lovableTtsProviderState}
-                                         onProviderChange={(p) => {
-                                           setLovableTtsProviderState(p);
-                                           setLovableTtsProvider(p);
-                                           const availableVoices = getVoicesForProvider(p);
-                                           if (
-                                             availableVoices.length > 0 &&
-                                             !availableVoices.includes(lovableTtsVoiceState)
-                                           ) {
-                                             const defaultVoice = getDefaultVoiceForProvider(p);
-                                             setLovableTtsVoiceState(defaultVoice);
-                                             setLovableTtsVoice(defaultVoice);
-                                           }
-                                         }}
-                                         voice={lovableTtsVoiceState}
-                                         onVoiceChange={(v) => {
-                                           setLovableTtsVoiceState(v);
-                                           setLovableTtsVoice(v);
-                                         }}
-                                         speechRate={rates[baseLanguage || "en"] ?? 0.5}
-                                         onSpeechRateChange={(val) => {
-                                           const targetLang = baseLanguage || "en";
-                                           setRates((current) => ({
-                                             ...current,
-                                             [targetLang]: val,
-                                           }));
-                                           saveTtsRatePreference(targetLang, val);
-                                           if (videoId) {
-                                             saveVideoSettings(videoId, {
-                                               ttsRates: { [targetLang]: val },
-                                             });
-                                           }
-                                         }}
-                                         baseLanguage={baseLanguage || "en"}
-                                         currentKeyInput={openRouterKeyInput}
-                                         hasCustomKey={hasCustomOpenRouterApiKey()}
-                                         hasCustomSpeakToken={Boolean(getSpeakApiToken())}
-                                         hasServerKey={Boolean(getServerOpenRouterApiKey())}
-                                         onSaveKey={(k) => {
-                                           setOpenRouterKeyInput(k);
-                                           setLovableTtsApiKey(k);
-                                           setOpenRouterApiKeySetting(k);
-                                         }}
-                                         onClearKey={() => {
-                                           setOpenRouterKeyInput("");
-                                           setLovableTtsApiKey("");
-                                           setOpenRouterApiKeySetting("");
-                                         }}
-                                         onValidateService={() => handleValidateRemoteService()}
-                                         onTestAudio={async () => {
-                                           setIsTestingAlternativeTts(true);
-                                           const testRate = rates[baseLanguage || "en"] ?? 0.5;
-                                           try {
-                                             await playAlternativeTtsAudio(
-                                               "Hello world",
-                                               baseLanguage || "en",
-                                               testRate,
-                                               undefined,
-                                               alternativeTtsEngineState,
-                                               {
-                                                 provider: lovableTtsProviderState,
-                                                 voice:
-                                                   lovableTtsProviderState === "google"
-                                                     ? undefined
-                                                     : lovableTtsVoiceState ||
-                                                       (lovableTtsProviderState === "openrouter"
-                                                         ? "alloy"
-                                                         : "Kore"),
-                                                 speed: testRate,
-                                               },
-                                             );
-                                           } catch (err) {
-                                             console.warn("Test Alternative TTS error:", err);
-                                           } finally {
-                                             setIsTestingAlternativeTts(false);
-                                           }
-                                         }}
-                                         isValidating={isValidatingRemoteTts}
-                                         isTestingAudio={isTestingAlternativeTts}
-                                         validationResult={remoteValidationResult}
-                                         showDebugger={true}
-                                       />
-                                     </div>
+                                  {useAlternativeTtsState && (
+                                    <div className="ml-6 pt-1">
+                                      <TtsServiceSettingsPanel
+                                        mode={alternativeTtsModeState}
+                                        onModeChange={(m) => {
+                                          setAlternativeTtsModeState(m);
+                                          setAlternativeTtsMode(m);
+                                        }}
+                                        engine={alternativeTtsEngineState}
+                                        onEngineChange={(e) => {
+                                          setAlternativeTtsEngineState(e);
+                                          setAlternativeTtsEngine(e);
+                                        }}
+                                        provider={lovableTtsProviderState}
+                                        onProviderChange={(p) => {
+                                          setLovableTtsProviderState(p);
+                                          setLovableTtsProvider(p);
+                                          const availableVoices = getVoicesForProvider(p);
+                                          if (
+                                            availableVoices.length > 0 &&
+                                            !availableVoices.includes(lovableTtsVoiceState)
+                                          ) {
+                                            const defaultVoice = getDefaultVoiceForProvider(p);
+                                            setLovableTtsVoiceState(defaultVoice);
+                                            setLovableTtsVoice(defaultVoice);
+                                          }
+                                        }}
+                                        voice={lovableTtsVoiceState}
+                                        onVoiceChange={(v) => {
+                                          setLovableTtsVoiceState(v);
+                                          setLovableTtsVoice(v);
+                                        }}
+                                        speechRate={rates[baseLanguage || "en"] ?? 0.5}
+                                        onSpeechRateChange={(val) => {
+                                          const targetLang = baseLanguage || "en";
+                                          setRates((current) => ({
+                                            ...current,
+                                            [targetLang]: val,
+                                          }));
+                                          saveTtsRatePreference(targetLang, val);
+                                          if (videoId) {
+                                            saveVideoSettings(videoId, {
+                                              ttsRates: { [targetLang]: val },
+                                            });
+                                          }
+                                        }}
+                                        baseLanguage={baseLanguage || "en"}
+                                        currentKeyInput={openRouterKeyInput}
+                                        hasCustomKey={hasCustomOpenRouterApiKey()}
+                                        hasCustomSpeakToken={Boolean(getSpeakApiToken())}
+                                        hasServerKey={Boolean(getServerOpenRouterApiKey())}
+                                        onSaveKey={(k) => {
+                                          setOpenRouterKeyInput(k);
+                                          setLovableTtsApiKey(k);
+                                          setOpenRouterApiKeySetting(k);
+                                        }}
+                                        onClearKey={() => {
+                                          setOpenRouterKeyInput("");
+                                          setLovableTtsApiKey("");
+                                          setOpenRouterApiKeySetting("");
+                                        }}
+                                        onValidateService={() => handleValidateRemoteService()}
+                                        onTestAudio={async () => {
+                                          setIsTestingAlternativeTts(true);
+                                          const testRate = rates[baseLanguage || "en"] ?? 0.5;
+                                          try {
+                                            await playAlternativeTtsAudio(
+                                              "Hello world",
+                                              baseLanguage || "en",
+                                              testRate,
+                                              undefined,
+                                              alternativeTtsEngineState,
+                                              {
+                                                provider: lovableTtsProviderState,
+                                                voice:
+                                                  lovableTtsProviderState === "google"
+                                                    ? undefined
+                                                    : lovableTtsVoiceState ||
+                                                      (lovableTtsProviderState === "openrouter"
+                                                        ? "alloy"
+                                                        : "Kore"),
+                                                speed: testRate,
+                                              },
+                                            );
+                                          } catch (err) {
+                                            console.warn("Test Alternative TTS error:", err);
+                                          } finally {
+                                            setIsTestingAlternativeTts(false);
+                                          }
+                                        }}
+                                        isValidating={isValidatingRemoteTts}
+                                        isTestingAudio={isTestingAlternativeTts}
+                                        validationResult={remoteValidationResult}
+                                        showDebugger={true}
+                                      />
+                                    </div>
                                   )}
                                 </div>
 
