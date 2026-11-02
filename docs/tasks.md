@@ -4,10 +4,16 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 270: Remote Speak API Token Authentication (`spk_...`) & Upstream Provider Key Separation**
-  - **Sub-task 270.1**: Token classification in `src/lib/alternative-tts.ts`: distinguish Speak API Personal Bearer Tokens (`spk_...`, `tts_...`) from provider keys (`sk_...`, `sk-or-...`). Automatically attach `Authorization: Bearer <token>` header for Speak API tokens without leaking them into body `api_key` or `X-Provider-API-Key`.
-  - **Sub-task 270.2**: Update `ExternalTtsDebuggerPanel.tsx` with cURL export, token classification view, and actionable diagnostics for upstream key errors. Update token input guidance in Beginner and Advanced modes.
-  - **Sub-task 270.3**: Synchronize version to `2.0.71` (`versionCode = 20071`) across the 5 files, create dedicated automated test `scripts/verify-spk-token-auth-and-tts3.ts`, verify lint and build.
+- [ ] **Task 271: Chapter 1 - Storybook Environment & GitHub Pages Hosting (`/storybook`)**
+  - **Sub-task 271.1**: Set up Storybook workshop and build pipeline: provide clean isolated component workbench with story registry, interactive controls, and build integration into `public/storybook` and `dist/storybook`.
+  - **Sub-task 271.2**: Integrate Storybook into GitHub Pages deployment workflow (`.github/workflows/deploy-demo.yml` & `package.json` build scripts) and link Storybook from header/docs.
+  - **Sub-task 271.3**: Verification of Storybook build and dedicated test `scripts/verify-storybook-setup.ts`.
+
+- [ ] **Task 272: Chapter 2 & 3 - First Storybook Mission: Reactive TTS Service Component & Focus Mode Cleanup**
+  - **Sub-task 272.1**: Decompose TTS service settings into standalone, modular `src/components/TtsServiceSettingsPanel.tsx`, eliminating irrelevant menus on Direct Google TTS, eliminating duplicate validate buttons, and making controls strictly reactive to provider selection.
+  - **Sub-task 272.2**: Implement Storybook story `src/components/TtsServiceSettingsPanel.stories.tsx` showcasing all reactive states (Google Direct, Lovable Auto, OpenRouter with API key, OpenAI, etc.).
+  - **Sub-task 272.3**: Replace monolithic settings block in `src/routes/index.tsx` (the focused CSS selector element) with `<TtsServiceSettingsPanel />`, ensuring full parity with Beginner mode.
+  - **Sub-task 272.4**: Synchronize version to `2.0.72` (`versionCode = 20072`) across the 5 files, create dedicated automated test `scripts/verify-reactive-tts-service-and-storybook.ts`, run lint and build.
 
 
 

@@ -1006,11 +1006,6 @@ export async function fetchLovableTtsBinaryBlob(
       console.warn("[LovableTTS] GET binary synthesis failed with status:", res.status);
       return null;
     }
-      addExternalTtsAuditRecord(record);
-      tracker.fail(record.error || "GET binary audio failed", res.status, errorBody);
-      console.warn("[LovableTTS] GET binary synthesis failed with status:", res.status);
-      return null;
-    }
 
     const blob = await res.blob();
     const objectUrl = URL.createObjectURL(blob);
@@ -1460,7 +1455,7 @@ export async function validateRemoteTtsService(
           method: "POST",
           url: endpoint,
           endpoint,
-          requestHeaders: { "Content-Type": "application/json" },
+          requestHeaders: headers,
           requestBody: body,
           provider: body.provider || "google",
           voice: body.voice,
@@ -1468,11 +1463,10 @@ export async function validateRemoteTtsService(
           text: body.text,
           status: res.status,
           statusText: res.statusText || (res.ok ? "OK" : "Error"),
-          latencyMs,
+          latencyMs: latency,
           responseHeaders: resHeaders,
           responseBody: responseBodyData,
-          responseType: res.ok ? "json" : "error",
-          error: res.ok ? undefined : `HTTP ${res.status}: ${res.statusText}`,
+          responseType: "json",
           source: "validate_service",
         };
         addExternalTtsAuditRecord(valRecord);
@@ -1493,6 +1487,44 @@ export async function validateRemoteTtsService(
         return result;
       }
 
+      let errorBody = "";
+      try {
+        errorBody = await res.text();
+      } catch {
+        // ignore
+      }
+      const resHeaders = extractResponseHeaders(res);
+      const diagnosticAdvice = generateTtsDiagnosticAdvice(
+        res.status,
+        errorBody,
+        provider,
+        Boolean(speakApiToken),
+        Boolean(providerApiKey),
+      );
+      const errRecord: ExternalTtsAuditRecord = {
+        id: `val-tts3-${Date.now()}`,
+        timestamp: Date.now(),
+        method: "POST",
+        url: endpoint,
+        endpoint,
+        requestHeaders: headers,
+        requestBody: body,
+        provider: body.provider || "google",
+        voice: body.voice,
+        lang: body.lang,
+        text: body.text,
+        status: res.status,
+        statusText: res.statusText || (res.status === 401 ? "Unauthorized" : "Error"),
+        latencyMs: latency,
+        responseHeaders: resHeaders,
+        responseBody: errorBody,
+        responseType: "error",
+        error: `HTTP ${res.status}: ${errorBody || res.statusText || "Validation failed"}`,
+        diagnosticAdvice,
+        source: "validate_service",
+      };
+      addExternalTtsAuditRecord(errRecord);
+
       let openApiReachable = false;
       try {
         const specRes = await fetch(LOVABLE_TTS_OPENAPI_URL, { method: "GET" });
@@ -1510,9 +1542,9 @@ export async function validateRemoteTtsService(
         latencyMs: latency,
         audioVerified: false,
         error:
-          `HTTP ${res.status}: ${res.statusText || "Service error"}` +
+          `HTTP ${res.status}: ${errorBody || res.statusText || "Service error"}` +
           (openApiReachable ? " (OpenAPI spec is reachable)" : ""),
-        details: `TTS3 endpoint returned status ${res.status}`,
+        details: diagnosticAdvice || `TTS3 endpoint returned status ${res.status}`,
         timestamp: Date.now(),
       };
       setLastValidationResult("lovable", result);
@@ -1902,18 +1934,22 @@ export function hasCustomOpenRouterApiKey(): boolean {
 }
 
 /**
- * Retrieves the effective Lovable/OpenRouter API key (custom user key, or server .env key fallback).
+ * Retrieves the effective Speak API token or provider API key (custom user key, or server .env key fallback).
  */
 export function getLovableTtsApiKey(): string {
   if (typeof window === "undefined") return "";
   try {
-    const userKey =
+    const speakToken = getSpeakApiToken();
+    if (speakToken) return speakToken;
+    const providerKey = getProviderApiKey();
+    if (providerKey) return providerKey;
+    const legacyKey =
       localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY) ||
       localStorage.getItem("yt_openrouter_api_key_v1") ||
       localStorage.getItem("yt_openrouter_api_key") ||
       "";
-    if (userKey && userKey.trim()) {
-      return userKey.trim();
+    if (legacyKey && legacyKey.trim()) {
+      return legacyKey.trim();
     }
     return getServerOpenRouterApiKey();
   } catch {
@@ -1922,17 +1958,30 @@ export function getLovableTtsApiKey(): string {
 }
 
 /**
- * Persists the Lovable/OpenRouter API key to localStorage.
+ * Persists the Speak API token or upstream Provider API key to appropriate localStorage slots.
+ * Tokens starting with 'spk_' or 'tts_' are safely routed to Speak API Bearer token storage.
  */
 export function setLovableTtsApiKey(apiKey: string): void {
   if (typeof window === "undefined") return;
   const clean = apiKey.trim();
   try {
     if (clean) {
-      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY, clean);
-      localStorage.setItem("yt_openrouter_api_key_v1", clean);
-      localStorage.setItem("yt_openrouter_api_key", clean);
+      if (isSpeakApiPersonalToken(clean)) {
+        setSpeakApiToken(clean);
+        // Clean out provider key slots so spk_ token is never mistakenly sent as provider key
+        localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY);
+        localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY);
+        localStorage.removeItem("yt_openrouter_api_key_v1");
+        localStorage.removeItem("yt_openrouter_api_key");
+      } else {
+        setProviderApiKey(clean);
+        localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY, clean);
+        localStorage.setItem("yt_openrouter_api_key_v1", clean);
+        localStorage.setItem("yt_openrouter_api_key", clean);
+      }
     } else {
+      setSpeakApiToken("");
+      setProviderApiKey("");
       localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY);
       localStorage.removeItem("yt_openrouter_api_key_v1");
       localStorage.removeItem("yt_openrouter_api_key");

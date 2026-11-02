@@ -12,6 +12,7 @@ import React, {
 import {
   Activity,
   AlertCircle,
+  BookOpen,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -180,6 +181,8 @@ import {
   setLovableTtsSpeed,
   getLovableTtsApiKey,
   setLovableTtsApiKey,
+  getSpeakApiToken,
+  isSpeakApiPersonalToken,
   getServerOpenRouterApiKey,
   hasCustomOpenRouterApiKey,
   playAlternativeTtsAudio,
@@ -199,6 +202,7 @@ import {
   type LovableTtsProvider,
 } from "@/lib/alternative-tts";
 import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
+import { TtsServiceSettingsPanel } from "@/components/TtsServiceSettingsPanel";
 import {
   computeVideoInstances,
   multiVideoPlayerRegistry,
@@ -5413,6 +5417,18 @@ function Index() {
               </button>
             )}
             {isDeveloperMode && (
+              <a
+                id="tab-storybook"
+                data-testid="tab-storybook"
+                href="./storybook"
+                className="inline-flex items-center gap-1.5 rounded-md border border-pink-500/30 px-3 py-1.5 text-xs font-semibold transition-all bg-pink-500/10 text-pink-700 hover:bg-pink-500/20 dark:text-pink-300"
+                title="Open Storybook component isolation workbench"
+              >
+                <BookOpen className="h-3.5 w-3.5 text-pink-500" />
+                <span>Storybook</span>
+              </a>
+            )}
+            {isDeveloperMode && (
               <span
                 data-testid="developer-mode-indicator"
                 data-control-category="experimental"
@@ -7094,485 +7110,102 @@ function Index() {
                                     </p>
                                   )}
 
-                                  {useAlternativeTtsState && (
-                                    <div className="ml-6 space-y-2.5 pt-1">
-                                      <div className="flex flex-wrap items-center gap-4 text-xs">
-                                        <label className="flex items-center gap-1.5 text-foreground cursor-pointer">
-                                          <input
-                                            type="radio"
-                                            name="alternative-tts-mode"
-                                            data-testid="alternative-tts-mode-always"
-                                            value="always"
-                                            checked={alternativeTtsModeState === "always"}
-                                            onChange={() => {
-                                              setAlternativeTtsModeState("always");
-                                              setAlternativeTtsMode("always");
-                                            }}
-                                          />
-                                          Prefer Lovable TTS over device/browser speech
-                                        </label>
-                                        <label className="flex items-center gap-1.5 text-foreground cursor-pointer">
-                                          <input
-                                            type="radio"
-                                            name="alternative-tts-mode"
-                                            data-testid="alternative-tts-mode-fallback"
-                                            value="fallback_only"
-                                            checked={alternativeTtsModeState === "fallback_only"}
-                                            onChange={() => {
-                                              setAlternativeTtsModeState("fallback_only");
-                                              setAlternativeTtsMode("fallback_only");
-                                            }}
-                                          />
-                                          Fallback when device/browser speech fails
-                                        </label>
-                                      </div>
-
-                                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                                        <span className="text-muted-foreground font-medium">
-                                          TTS Engine:
-                                        </span>
-                                        <select
-                                          data-testid="alternative-tts-engine-select"
-                                          value={alternativeTtsEngineState}
-                                          onChange={(e) => {
-                                            const val = e.target.value as AlternativeTtsEngine;
-                                            setAlternativeTtsEngineState(val);
-                                            setAlternativeTtsEngine(val);
-                                          }}
-                                          className="rounded border border-input bg-background px-2 py-1 text-xs text-foreground font-medium transition-all focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
-                                        >
-                                          <option value="lovable">
-                                            Lovable Speak API (tts3.lovable.app)
-                                          </option>
-                                          <option value="google_translate">
-                                            Google TTS (Direct translate_tts)
-                                          </option>
-                                        </select>
-                                        <a
-                                          href={LOVABLE_TTS_DOCS_URL}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          data-testid="lovable-tts-docs-link"
-                                          className="text-primary hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1"
-                                        >
-                                          API Docs ↗
-                                        </a>
-                                        <a
-                                          href={LOVABLE_TTS_OPENAPI_URL}
-                                          target="_blank"
-                                          rel="noreferrer"
-                                          data-testid="lovable-tts-openapi-link"
-                                          className="text-muted-foreground hover:underline font-mono text-[11px] inline-flex items-center gap-0.5 ml-1"
-                                        >
-                                          OpenAPI ↗
-                                        </a>
-                                      </div>
-
-                                      <div className="space-y-3 p-3 rounded-lg bg-muted/40 border border-border/60">
-                                        <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-muted-foreground font-medium">
-                                              Provider:
-                                            </span>
-                                            <select
-                                              data-testid="lovable-tts-provider-select"
-                                              value={lovableTtsProviderState}
-                                              onChange={(e) => {
-                                                const p = e.target.value as LovableTtsProvider;
-                                                setLovableTtsProviderState(p);
-                                                setLovableTtsProvider(p);
-                                                const availableVoices = getVoicesForProvider(p);
-                                                if (
-                                                  availableVoices.length > 0 &&
-                                                  !availableVoices.includes(lovableTtsVoiceState)
-                                                ) {
-                                                  const defaultVoice =
-                                                    getDefaultVoiceForProvider(p);
-                                                  setLovableTtsVoiceState(defaultVoice);
-                                                  setLovableTtsVoice(defaultVoice);
-                                                }
-                                              }}
-                                              className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-mono font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
-                                            >
-                                              {LOVABLE_TTS_PROVIDERS.map((provider) => (
-                                                <option key={provider} value={provider}>
-                                                  {provider}
-                                                </option>
-                                              ))}
-                                            </select>
-                                          </div>
-
-                                          <div className="flex items-center gap-1.5">
-                                            <span className="text-muted-foreground font-medium">
-                                              Voice:
-                                            </span>
-                                            {getVoicesForProvider(lovableTtsProviderState)
-                                              .length === 0 ? (
-                                              <span className="text-xs text-muted-foreground italic px-2 py-0.5">
-                                                Default (Single voice)
-                                              </span>
-                                            ) : (
-                                              <select
-                                                data-testid="lovable-tts-voice-select"
-                                                value={
-                                                  lovableTtsVoiceState ||
-                                                  getDefaultVoiceForProvider(
-                                                    lovableTtsProviderState,
-                                                  )
-                                                }
-                                                onChange={(e) => {
-                                                  const v = e.target.value;
-                                                  setLovableTtsVoiceState(v);
-                                                  setLovableTtsVoice(v);
-                                                }}
-                                                className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary hover:border-primary/50 cursor-pointer"
-                                              >
-                                                {getVoicesForProvider(lovableTtsProviderState).map(
-                                                  (v) => (
-                                                    <option key={v} value={v}>
-                                                      {v}{" "}
-                                                      {v ===
-                                                      getDefaultVoiceForProvider(
-                                                        lovableTtsProviderState,
-                                                      )
-                                                        ? "(Default)"
-                                                        : ""}
-                                                    </option>
-                                                  ),
-                                                )}
-                                              </select>
-                                            )}
-                                          </div>
-                                        </div>
-
-                                        {/* OpenRouter API Key Settings */}
-                                        <div className="space-y-1.5 pt-1 text-xs border-t border-border/60">
-                                          <div className="flex items-center justify-between">
-                                            <label
-                                              htmlFor="openrouter-tts-key-input"
-                                              className="text-muted-foreground font-medium flex items-center gap-1.5"
-                                            >
-                                              <span>OpenRouter API Key:</span>
-                                              {hasCustomOpenRouterApiKey() ? (
-                                                <span
-                                                  className="text-[10px] text-emerald-500 font-medium"
-                                                  data-testid="openrouter-key-custom-badge"
-                                                >
-                                                  ✓ Custom key saved
-                                                </span>
-                                              ) : getServerOpenRouterApiKey() ? (
-                                                <span
-                                                  className="text-[10px] text-primary font-medium"
-                                                  data-testid="openrouter-key-server-badge"
-                                                >
-                                                  (Using server .env key)
-                                                </span>
-                                              ) : (
-                                                <span className="text-[10px] text-muted-foreground font-normal">
-                                                  (Optional - free tier default)
-                                                </span>
-                                              )}
-                                            </label>
-                                          </div>
-                                          <div className="flex items-center gap-1.5">
-                                            <div className="relative flex-1">
-                                              <input
-                                                id="openrouter-tts-key-input"
-                                                data-testid="openrouter-tts-key-input"
-                                                type={showOpenRouterKey ? "text" : "password"}
-                                                value={openRouterKeyInput}
-                                                onChange={(e) => {
-                                                  setOpenRouterKeyInput(e.target.value);
-                                                  setOpenRouterKeySaved(false);
-                                                }}
-                                                placeholder={
-                                                  getServerOpenRouterApiKey()
-                                                    ? "Using server key (enter custom to override)"
-                                                    : "sk-or-v1-..."
-                                                }
-                                                className="w-full rounded border border-input bg-background px-2.5 py-1 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground/60"
-                                              />
-                                              <button
-                                                type="button"
-                                                data-testid="toggle-show-openrouter-key-btn"
-                                                onClick={() =>
-                                                  setShowOpenRouterKey(!showOpenRouterKey)
-                                                }
-                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
-                                                title={showOpenRouterKey ? "Hide key" : "Show key"}
-                                              >
-                                                {showOpenRouterKey ? (
-                                                  <EyeOff className="h-3.5 w-3.5" />
-                                                ) : (
-                                                  <Eye className="h-3.5 w-3.5" />
-                                                )}
-                                              </button>
-                                            </div>
-                                            <button
-                                              type="button"
-                                              data-testid="save-openrouter-key-btn"
-                                              onClick={() => {
-                                                setLovableTtsApiKey(openRouterKeyInput);
-                                                setOpenRouterApiKeySetting(openRouterKeyInput);
-                                                setOpenRouterKeySaved(true);
-                                                setTimeout(
-                                                  () => setOpenRouterKeySaved(false),
-                                                  2500,
-                                                );
-                                              }}
-                                              className="px-2.5 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium cursor-pointer"
-                                            >
-                                              {openRouterKeySaved ? "Saved!" : "Save"}
-                                            </button>
-                                            {openRouterKeyInput && (
-                                              <button
-                                                type="button"
-                                                data-testid="clear-openrouter-key-btn"
-                                                onClick={() => {
-                                                  setOpenRouterKeyInput("");
-                                                  setLovableTtsApiKey("");
-                                                  setOpenRouterApiKeySetting("");
-                                                }}
-                                                className="px-2 py-1 rounded border border-input bg-background text-muted-foreground hover:text-foreground text-xs"
-                                                title="Clear custom key"
-                                              >
-                                                Clear
-                                              </button>
-                                            )}
-                                          </div>
-                                        </div>
-
-                                        {/* Native TTS Speed Notice (Uses native speech rate settings) */}
-                                        <div
-                                          data-testid="lovable-tts-native-speed-notice"
-                                          className="flex items-center justify-between rounded border border-border/50 bg-muted/30 px-2.5 py-1.5 text-xs"
-                                        >
-                                          <span className="text-muted-foreground font-medium">
-                                            TTS Speed:
-                                          </span>
-                                          <div className="flex items-center gap-1.5">
-                                            <span className="text-foreground font-mono text-[11px]">
-                                              Uses native speech rate (
-                                              {(rates[baseLanguage || "en"] ?? 0.5).toFixed(1)}x)
-                                            </span>
-                                            <select
-                                              data-testid="main-settings-tts-rate-select"
-                                              aria-label="Main TTS speech rate"
-                                              value={(rates[baseLanguage || "en"] ?? 0.5).toFixed(
-                                                1,
-                                              )}
-                                              onChange={(e) => {
-                                                const val = Number(e.target.value);
-                                                const targetLang = baseLanguage || "en";
-                                                setRates((current) => ({
-                                                  ...current,
-                                                  [targetLang]: val,
-                                                }));
-                                                saveTtsRatePreference(targetLang, val);
-                                                if (videoId) {
-                                                  saveVideoSettings(videoId, {
-                                                    ttsRates: { [targetLang]: val },
-                                                  });
-                                                }
-                                              }}
-                                              className="rounded border border-input bg-background px-1.5 py-0.5 text-xs font-mono cursor-pointer"
-                                            >
-                                              {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
-                                                <option key={rateVal} value={rateVal.toFixed(1)}>
-                                                  {rateVal.toFixed(1)}×
-                                                </option>
-                                              ))}
-                                            </select>
-                                          </div>
-                                        </div>
-
-                                        <p className="text-[10px] text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                                          <span>
-                                            Provider:{" "}
-                                            <strong className="text-foreground font-mono">
-                                              {lovableTtsProviderState}
-                                            </strong>
-                                          </span>
-                                          <span>•</span>
-                                          <span>
-                                            Voice:{" "}
-                                            <span className="text-foreground">
-                                              {lovableTtsProviderState === "google"
-                                                ? "Default"
-                                                : lovableTtsVoiceState ||
-                                                  (lovableTtsProviderState === "openrouter"
-                                                    ? "alloy"
-                                                    : "Kore")}
-                                            </span>
-                                          </span>
-                                        </p>
-                                      </div>
-
-                                      <div className="space-y-2 pt-1 border-t border-border/40">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                          <button
-                                            type="button"
-                                            data-testid="btn-validate-remote-tts"
-                                            disabled={isValidatingRemoteTts}
-                                            onClick={() => handleValidateRemoteService()}
-                                            className="px-2.5 py-1 rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-xs font-mono inline-flex items-center gap-1.5 text-primary disabled:opacity-60 cursor-pointer font-medium"
-                                          >
-                                            {isValidatingRemoteTts ? (
-                                              <>
-                                                <Loader2 className="h-3 w-3 animate-spin" />
-                                                <span>Validating Service…</span>
-                                              </>
-                                            ) : (
-                                              <>
-                                                <Activity className="h-3 w-3" />
-                                                <span>
-                                                  Validate{" "}
-                                                  {alternativeTtsEngineState === "lovable"
-                                                    ? "TTS3 Service"
-                                                    : "Google TTS Directly"}
-                                                </span>
-                                              </>
-                                            )}
-                                          </button>
-
-                                          <button
-                                            type="button"
-                                            data-testid="btn-validate-google-tts-directly"
-                                            disabled={isValidatingRemoteTts}
-                                            onClick={() =>
-                                              handleValidateRemoteService("google_translate")
-                                            }
-                                            className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                                            title="Validate Google Translate TTS endpoint directly"
-                                          >
-                                            Validate Google Direct
-                                          </button>
-
-                                          <button
-                                            type="button"
-                                            data-testid="btn-validate-tts3-service"
-                                            disabled={isValidatingRemoteTts}
-                                            onClick={() => handleValidateRemoteService("lovable")}
-                                            className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                                            title="Validate Lovable TTS3 public endpoint"
-                                          >
-                                            Validate TTS3 Service
-                                          </button>
-
-                                          <button
-                                            type="button"
-                                            data-testid="test-alternative-tts-btn"
-                                            disabled={isTestingAlternativeTts}
-                                            onClick={async () => {
-                                              setIsTestingAlternativeTts(true);
-                                              const testRate = rates[baseLanguage || "en"] ?? 0.5;
-                                              try {
-                                                await playAlternativeTtsAudio(
-                                                  "Hello world",
-                                                  baseLanguage || "en",
-                                                  testRate,
-                                                  undefined,
-                                                  alternativeTtsEngineState,
-                                                  {
-                                                    provider: lovableTtsProviderState,
-                                                    voice:
-                                                      lovableTtsProviderState === "google"
-                                                        ? undefined
-                                                        : lovableTtsVoiceState ||
-                                                          (lovableTtsProviderState === "openrouter"
-                                                            ? "alloy"
-                                                            : "Kore"),
-                                                    speed: testRate,
-                                                  },
-                                                );
-                                              } catch (err) {
-                                                console.warn("Test Alternative TTS error:", err);
-                                              } finally {
-                                                setIsTestingAlternativeTts(false);
-                                              }
-                                            }}
-                                            className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
-                                          >
-                                            {isTestingAlternativeTts ? (
-                                              <>
-                                                <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                                                <span>Playing test audio…</span>
-                                              </>
-                                            ) : (
-                                              <>
-                                                <Play className="h-3 w-3 text-primary" />
-                                                <span>
-                                                  ▶ Test Audio (
-                                                  {alternativeTtsEngineState === "lovable"
-                                                    ? "TTS3"
-                                                    : "Google Direct"}
-                                                  )
-                                                </span>
-                                              </>
-                                            )}
-                                          </button>
-                                        </div>
-
-                                        {/* Validation Status Feedback */}
-                                        {remoteValidationResult && (
-                                          <div
-                                            data-testid="remote-tts-validation-details"
-                                            className={`flex flex-wrap items-center justify-between gap-2 p-2 rounded border text-xs ${
-                                              remoteValidationResult.ok
-                                                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
-                                                : "bg-destructive/10 border-destructive/30 text-destructive"
-                                            }`}
-                                          >
-                                            <div className="flex items-center gap-1.5 flex-wrap">
-                                              <span
-                                                data-testid="remote-tts-validation-badge"
-                                                className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium font-mono ${
-                                                  remoteValidationResult.ok
-                                                    ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-                                                    : "bg-destructive/20 text-destructive"
-                                                }`}
-                                              >
-                                                {remoteValidationResult.ok ? (
-                                                  <>
-                                                    <CheckCircle2 className="h-3 w-3" />
-                                                    <span>
-                                                      Available ({remoteValidationResult.latencyMs}
-                                                      ms)
-                                                    </span>
-                                                  </>
-                                                ) : (
-                                                  <>
-                                                    <AlertCircle className="h-3 w-3" />
-                                                    <span>
-                                                      Unavailable (
-                                                      {remoteValidationResult.latencyMs}ms)
-                                                    </span>
-                                                  </>
-                                                )}
-                                              </span>
-                                              <span className="font-semibold">
-                                                {remoteValidationResult.serviceName}:
-                                              </span>
-                                              <span className="text-[11px] opacity-90">
-                                                {remoteValidationResult.ok
-                                                  ? remoteValidationResult.details ||
-                                                    "Audio stream verified"
-                                                  : remoteValidationResult.error ||
-                                                    "Service check failed"}
-                                              </span>
-                                            </div>
-                                            <span className="text-[10px] font-mono opacity-70">
-                                              Checked{" "}
-                                              {new Date(
-                                                remoteValidationResult.timestamp,
-                                              ).toLocaleTimeString()}
-                                            </span>
-                                          </div>
-                                        )}
-
-                                        <ExternalTtsDebuggerPanel className="mt-3" />
-                                      </div>
-                                    </div>
+                                   {useAlternativeTtsState && (
+                                     <div className="ml-6 pt-1">
+                                       <TtsServiceSettingsPanel
+                                         mode={alternativeTtsModeState}
+                                         onModeChange={(m) => {
+                                           setAlternativeTtsModeState(m);
+                                           setAlternativeTtsMode(m);
+                                         }}
+                                         engine={alternativeTtsEngineState}
+                                         onEngineChange={(e) => {
+                                           setAlternativeTtsEngineState(e);
+                                           setAlternativeTtsEngine(e);
+                                         }}
+                                         provider={lovableTtsProviderState}
+                                         onProviderChange={(p) => {
+                                           setLovableTtsProviderState(p);
+                                           setLovableTtsProvider(p);
+                                           const availableVoices = getVoicesForProvider(p);
+                                           if (
+                                             availableVoices.length > 0 &&
+                                             !availableVoices.includes(lovableTtsVoiceState)
+                                           ) {
+                                             const defaultVoice = getDefaultVoiceForProvider(p);
+                                             setLovableTtsVoiceState(defaultVoice);
+                                             setLovableTtsVoice(defaultVoice);
+                                           }
+                                         }}
+                                         voice={lovableTtsVoiceState}
+                                         onVoiceChange={(v) => {
+                                           setLovableTtsVoiceState(v);
+                                           setLovableTtsVoice(v);
+                                         }}
+                                         speechRate={rates[baseLanguage || "en"] ?? 0.5}
+                                         onSpeechRateChange={(val) => {
+                                           const targetLang = baseLanguage || "en";
+                                           setRates((current) => ({
+                                             ...current,
+                                             [targetLang]: val,
+                                           }));
+                                           saveTtsRatePreference(targetLang, val);
+                                           if (videoId) {
+                                             saveVideoSettings(videoId, {
+                                               ttsRates: { [targetLang]: val },
+                                             });
+                                           }
+                                         }}
+                                         baseLanguage={baseLanguage || "en"}
+                                         currentKeyInput={openRouterKeyInput}
+                                         hasCustomKey={hasCustomOpenRouterApiKey()}
+                                         hasCustomSpeakToken={Boolean(getSpeakApiToken())}
+                                         hasServerKey={Boolean(getServerOpenRouterApiKey())}
+                                         onSaveKey={(k) => {
+                                           setOpenRouterKeyInput(k);
+                                           setLovableTtsApiKey(k);
+                                           setOpenRouterApiKeySetting(k);
+                                         }}
+                                         onClearKey={() => {
+                                           setOpenRouterKeyInput("");
+                                           setLovableTtsApiKey("");
+                                           setOpenRouterApiKeySetting("");
+                                         }}
+                                         onValidateService={() => handleValidateRemoteService()}
+                                         onTestAudio={async () => {
+                                           setIsTestingAlternativeTts(true);
+                                           const testRate = rates[baseLanguage || "en"] ?? 0.5;
+                                           try {
+                                             await playAlternativeTtsAudio(
+                                               "Hello world",
+                                               baseLanguage || "en",
+                                               testRate,
+                                               undefined,
+                                               alternativeTtsEngineState,
+                                               {
+                                                 provider: lovableTtsProviderState,
+                                                 voice:
+                                                   lovableTtsProviderState === "google"
+                                                     ? undefined
+                                                     : lovableTtsVoiceState ||
+                                                       (lovableTtsProviderState === "openrouter"
+                                                         ? "alloy"
+                                                         : "Kore"),
+                                                 speed: testRate,
+                                               },
+                                             );
+                                           } catch (err) {
+                                             console.warn("Test Alternative TTS error:", err);
+                                           } finally {
+                                             setIsTestingAlternativeTts(false);
+                                           }
+                                         }}
+                                         isValidating={isValidatingRemoteTts}
+                                         isTestingAudio={isTestingAlternativeTts}
+                                         validationResult={remoteValidationResult}
+                                         showDebugger={true}
+                                       />
+                                     </div>
                                   )}
                                 </div>
 

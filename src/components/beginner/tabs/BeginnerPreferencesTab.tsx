@@ -596,15 +596,22 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 <div className="flex items-center justify-between">
                   <label
                     htmlFor="beginner-openrouter-tts-key-input"
-                    className="text-muted-foreground font-medium flex items-center gap-1.5"
+                    className="text-muted-foreground font-medium flex items-center gap-1.5 flex-wrap"
                   >
-                    <span>OpenRouter API Key:</span>
-                    {hasCustomOpenRouterApiKey() ? (
+                    <span>Speak API Token / Provider Key:</span>
+                    {getSpeakApiToken() ? (
+                      <span
+                        data-testid="beginner-custom-speak-token-badge"
+                        className="text-[10px] text-emerald-600 dark:text-emerald-400 font-normal bg-emerald-500/10 px-1 rounded border border-emerald-500/30"
+                      >
+                        ✓ Speak API token (spk_...) saved
+                      </span>
+                    ) : hasCustomOpenRouterApiKey() ? (
                       <span
                         data-testid="beginner-custom-openrouter-key-badge"
                         className="text-[10px] text-emerald-600 dark:text-emerald-400 font-normal bg-emerald-500/10 px-1 rounded border border-emerald-500/30"
                       >
-                        Custom key saved
+                        ✓ Provider key saved
                       </span>
                     ) : getServerOpenRouterApiKey() ? (
                       <span
@@ -633,8 +640,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                       }}
                       placeholder={
                         getServerOpenRouterApiKey()
-                          ? "Using server key (enter custom to override)"
-                          : "sk-or-v1-..."
+                          ? "Using server key (or enter spk_... / sk-or-...)"
+                          : "spk_... (Speak API token) or sk-or-... / sk_..."
                       }
                       className="w-full rounded border border-input bg-background px-2.5 py-1 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground/60"
                     />
@@ -681,6 +688,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                     </button>
                   )}
                 </div>
+                <p className="text-[10.5px] text-muted-foreground leading-normal">
+                  Enter your Speak API Personal Token (<code className="font-mono text-primary">spk_...</code>) from tts3.lovable.app or an upstream provider key (<code className="font-mono text-primary">sk_...</code>, <code className="font-mono text-primary">sk-or-...</code>).
+                </p>
               </div>
 
               {/* Native TTS Speed Notice (Uses native speech rate settings) */}
