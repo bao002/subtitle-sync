@@ -4,7 +4,7 @@ import assert from "node:assert";
 import { ACCORDION_THEMES, PANELS } from "../src/config/accordionThemes";
 
 console.log("====================================================");
-console.log("🧪 Starting Constant Accordion Bar Colors Verification Test");
+console.log("🧪 Starting Constant Accordion Bar & Background Colors Verification Test");
 console.log("====================================================");
 
 const rootDir = process.cwd();
@@ -16,11 +16,11 @@ assert(fs.existsSync(indexTsxPath), "src/routes/index.tsx must exist");
 
 const indexContent = fs.readFileSync(indexTsxPath, "utf8");
 
-// 1. Verify every panel in PANELS has a distinct constant color theme
+// 1. Verify every panel in PANELS has a distinct constant color theme & background
 const panelIds = PANELS.map((p) => p.id);
 console.log(`Checking ${panelIds.length} accordion panel types:`, panelIds.join(", "));
 
-const expectedTypes = ["player", "playback", "parser", "languages", "subtitles", "library"];
+const expectedTypes = ["player", "playback", "charsRemoval", "parser", "languages", "subtitles", "library"];
 
 for (const type of expectedTypes) {
   assert(panelIds.includes(type as any), `PANELS must include panel type: "${type}"`);
@@ -36,12 +36,16 @@ for (const type of expectedTypes) {
   );
   assert(theme.badgeBg.length > 0, `Theme for "${type}" must have badgeBg styling`);
   assert(theme.tagColor.length > 0, `Theme for "${type}" must have constant tagColor defined`);
+  assert(
+    theme.panelBg && theme.panelBg.length > 0,
+    `Theme for "${type}" must have a distinct panelBg background styling defined`,
+  );
   console.log(
-    `✅ PASS: Constant color for panel "${type}": tag="${theme.tagColor}", border="${theme.borderLeft}"`,
+    `✅ PASS: Distinct color for panel "${type}": tag="${theme.tagColor}", bg="${theme.panelBg}"`,
   );
 }
 
-// Ensure constant colors are distinct per type
+// Ensure constant colors and background colors are distinct per type
 const tagColors = expectedTypes.map(
   (t) => ACCORDION_THEMES[t as keyof typeof ACCORDION_THEMES].tagColor,
 );
@@ -49,9 +53,19 @@ const uniqueTagColors = new Set(tagColors);
 assert.strictEqual(
   uniqueTagColors.size,
   expectedTypes.length,
-  "Each accordion panel type must have a distinct constant color",
+  "Each accordion panel type must have a distinct constant tag color",
 );
-console.log("✅ PASS: All accordion types use distinct, dedicated constant colors");
+
+const panelBgs = expectedTypes.map(
+  (t) => ACCORDION_THEMES[t as keyof typeof ACCORDION_THEMES].panelBg,
+);
+const uniquePanelBgs = new Set(panelBgs);
+assert.strictEqual(
+  uniquePanelBgs.size,
+  expectedTypes.length,
+  "Each accordion panel type must have a distinct background color (different color for each accordion background)",
+);
+console.log("✅ PASS: All accordion types use distinct, dedicated background colors");
 
 // 2. Verify AccordionSection sets data attributes and theme classes
 const accordionComponentPath = path.join(rootDir, "src/components/AccordionSection.tsx");
@@ -75,6 +89,11 @@ assert(
   accordionContent.includes("data-testid={`accordion-color-badge-${id}`}"),
   "AccordionSection must expose accordion-color-badge testid",
 );
+assert(
+  accordionContent.includes("theme.panelBg"),
+  "AccordionSection must bind theme.panelBg to the accordion container",
+);
+
 // Assert that textual color names (e.g. "{theme.tagColor}") are NOT rendered in header
 assert(
   !indexContent.includes(">{theme.tagColor}<"),

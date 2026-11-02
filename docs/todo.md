@@ -1,6 +1,6 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
-- **Status**: [COMPLETED]
-- **Active Task**: None (Task 279 completed and migrated to docs/done.md)
-- **Sub-task**: None pending.
-- **Validation**: Dedicated test `npm run test:experimental-subtitle-fetching` PASSED (100% verified), all 19/19 AGENTS.md constitutional contract checks PASSED (`npm run test:agents-all`), `compile_applet` PASSED, `lint_applet` PASSED.
+- **Status**: [IN_PROGRESS]
+- **Active Task**: Hotfix: Fix ReferenceError initialState is not defined in src/routes/index.tsx
+- **Sub-task**: Subtask Hotfix.1 - Replace `initialState.videoId` with `videoId || DEFAULT_VIDEO_ID` in `src/routes/index.tsx`.
+- **Validation**: Dedicated test `scripts/verify-initialstate-referenceerror-fix.ts`, `compile_applet`, `lint_applet`.

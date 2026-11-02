@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.79";
+export const APP_VERSION = "2.0.81";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "e482b19";
 export const APP_VERSION_DESCRIPTION =
-  "Experimental subtitle fetch controls in debug mode (with/without tlang/lang & server) (Version 2.0.79)";
+  "Hotfix: Fix ReferenceError initialState is not defined in defaultSubtitleLanguages initializer (Version 2.0.81)";
 
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";

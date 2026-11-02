@@ -4,7 +4,10 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-<!-- No active prompt tasks pending. All tasks and hotfixes for the current prompt have been accomplished, verified, and migrated to docs/done.md. -->
+- [ ] **Hotfix: Fix ReferenceError initialState is not defined in src/routes/index.tsx**
+  - Subtask Hotfix.1: Fix line 918 in `src/routes/index.tsx` by using `videoId || DEFAULT_VIDEO_ID` instead of undefined `initialState.videoId`.
+  - Subtask Hotfix.2: Create dedicated test `scripts/verify-initialstate-referenceerror-fix.ts` to ensure no undefined variables in index.tsx state initializers and verify.
+  - Subtask Hotfix.3: Bump version to 2.0.81 across all 5 files, compile (`compile_applet`), lint (`lint_applet`), commit, push, and migrate hotfix to `docs/done.md`.
 
 ## Later Tasks
 

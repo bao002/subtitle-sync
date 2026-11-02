@@ -584,6 +584,126 @@ export function getAllCachedTargetLanguages(videoId: string): string[] {
   return Array.from(set);
 }
 
+const defaultSubtitlesMemoryMap = new Map<string, Set<string>>();
+
+function getStorage(): Storage | null {
+  if (typeof window !== "undefined" && window.localStorage) {
+    return window.localStorage;
+  }
+  if (typeof globalThis !== "undefined" && (globalThis as any).localStorage) {
+    return (globalThis as any).localStorage;
+  }
+  return null;
+}
+
+export const DEFAULT_SUBTITLES_KEY_PREFIX = "yt_default_subtitles_";
+
+/**
+ * Gets the persistent list of default subtitle languages that have been fetched
+ * from YouTube's API for a given video ID.
+ * Accumulates all fetched default subtitles and preserves them across subtitle switches and video reloads.
+ */
+export function getDefaultSubtitleLanguages(videoId: string): string[] {
+  if (!videoId) return [];
+  const set = new Set<string>();
+
+  // 1. Check for fixture video default languages (strictly for approved fixture video L2Ryrr6txwA)
+  const fixtureLangs = getAllCachedLanguageCodesForVideo(videoId);
+  if (Array.isArray(fixtureLangs) && fixtureLangs.length > 0) {
+    fixtureLangs.forEach((code) => set.add(code.toLowerCase()));
+  }
+
+  // 2. Read from in-memory cache
+  const inMem = defaultSubtitlesMemoryMap.get(videoId);
+  if (inMem) {
+    inMem.forEach((l) => set.add(l.toLowerCase()));
+  }
+
+  // 3. Read from localStorage
+  const storage = getStorage();
+  if (storage) {
+    try {
+      const stored = storage.getItem(`${DEFAULT_SUBTITLES_KEY_PREFIX}${videoId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((code) => {
+            if (typeof code === "string" && code.trim()) {
+              set.add(code.trim().toLowerCase());
+            }
+          });
+        }
+      }
+    } catch {
+      // ignore JSON parse error
+    }
+  }
+
+  // 4. Include any cached raw JSON3 subtitle languages that exist for this video
+  const cachedLangs = getAllCachedTargetLanguages(videoId);
+  cachedLangs.forEach((lang) => {
+    if (getCachedRawJson3(videoId, lang)) {
+      set.add(lang.toLowerCase());
+    }
+  });
+
+  return Array.from(set);
+}
+
+/**
+ * Adds a language to the stored list of default subtitle languages for a video ID.
+ * Preserves all previously stored default languages (never resets them when user chooses another subtitle).
+ */
+export function addDefaultSubtitleLanguage(videoId: string, lang: string): string[] {
+  if (!videoId || !lang) return [];
+  const cleanLang = lang.trim().toLowerCase().split("-")[0];
+  if (!cleanLang) return [];
+
+  const current = new Set(getDefaultSubtitleLanguages(videoId));
+  current.add(cleanLang);
+  const updated = Array.from(current);
+
+  // Update in-memory cache
+  defaultSubtitlesMemoryMap.set(videoId, current);
+
+  const storage = getStorage();
+  if (storage) {
+    try {
+      storage.setItem(`${DEFAULT_SUBTITLES_KEY_PREFIX}${videoId}`, JSON.stringify(updated));
+    } catch {
+      // ignore storage error
+    }
+  }
+
+  return updated;
+}
+
+/**
+ * Saves a list of default subtitle languages for a video ID without resetting existing valid ones.
+ */
+export function saveDefaultSubtitleLanguages(videoId: string, langs: string[]): void {
+  if (!videoId) return;
+  const existing = new Set(getDefaultSubtitleLanguages(videoId));
+  langs.forEach((l) => {
+    if (typeof l === "string" && l.trim()) {
+      existing.add(l.trim().toLowerCase().split("-")[0]);
+    }
+  });
+  defaultSubtitlesMemoryMap.set(videoId, existing);
+  const storage = getStorage();
+  if (storage) {
+    try {
+      storage.setItem(
+        `${DEFAULT_SUBTITLES_KEY_PREFIX}${videoId}`,
+        JSON.stringify(Array.from(existing)),
+      );
+    } catch {
+      // ignore
+    }
+  }
+}
+
+
 /**
  * Selectively purges cached subtitles specifically for a single video ID
  * from both memory cache and localStorage.

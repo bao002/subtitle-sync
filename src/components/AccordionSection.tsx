@@ -43,6 +43,7 @@ export function AccordionSection({
     badgeBg: "bg-neutral-500/20 text-neutral-600 dark:text-neutral-300 border-neutral-500/30",
     dotBg: "bg-neutral-500",
     tagColor: "neutral",
+    panelBg: "bg-card border-border",
   };
 
   // Timeout is only active for video library by default, unless explicitly passed via autoTimeout prop
@@ -103,13 +104,14 @@ export function AccordionSection({
       data-panel-id={id}
       data-accordion-type={id}
       data-accordion-color={theme.tagColor}
+      data-accordion-bg={theme.panelBg}
       data-video-id={videoId}
       open={open}
       onPointerDown={markActivity}
       onKeyDown={markActivity}
       onFocus={markActivity}
       onToggle={(event) => onOpenChange(event.currentTarget.open)}
-      className={`overflow-hidden rounded-lg border border-border bg-card text-sm ${theme.borderLeft} ${wide ? "lg:col-span-2" : ""}`}
+      className={`overflow-hidden rounded-lg border text-sm ${theme.panelBg || "bg-card border-border"} ${theme.borderLeft} ${wide ? "lg:col-span-2" : ""}`}
     >
       <summary
         data-testid={`accordion-bar-${id}`}

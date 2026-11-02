@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.79",
+  "version": "2.0.81",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -17,6 +17,7 @@
     "lint": "eslint src/lib src/routes",
     "coverage": "npm run test:coverage",
     "test:coverage": "tsx scripts/generate-test-coverage.ts",
+    "test:initialstate-fix": "tsx scripts/verify-initialstate-referenceerror-fix.ts",
     "test:experimental-subtitle-fetching": "tsx scripts/verify-experimental-subtitle-fetching.ts",
     "test:steps-doc": "tsx scripts/verify-steps-doc.ts",
     "test:next-version-from-scratch": "tsx scripts/verify-next-version-from-scratch.ts",
@@ -28,6 +29,7 @@
     "test:tts3-docs-parity": "tsx scripts/verify-tts3-docs-and-google-tts-parity.ts",
     "test:single-icon-floating-button": "tsx scripts/verify-single-icon-floating-button.ts",
     "test:settings-nested-accordions-and-clean-views": "tsx scripts/verify-settings-nested-accordions-and-clean-views.ts",
+    "test:switchable-default-subtitles": "tsx scripts/verify-switchable-default-subtitles.ts",
     "test:no-favorite-languages-duplication": "tsx scripts/verify-no-favorite-languages-duplication.ts",
     "test:default-language-restricted-to-fetched": "tsx scripts/verify-default-language-restricted-to-fetched.ts",
     "test:stage-2-extend-favorite-languages": "tsx scripts/verify-stage-2-extend-favorite-languages.ts",

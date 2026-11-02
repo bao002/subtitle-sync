@@ -338,7 +338,11 @@ import {
   clearVideoSubtitleCache,
   getCachedAiSubtitles,
   hasCachedAiSubtitles,
+  getDefaultSubtitleLanguages,
+  addDefaultSubtitleLanguage,
+  saveDefaultSubtitleLanguages,
 } from "@/utils/subtitleCache";
+import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSubtitlesBar";
 import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
 import { isDeveloperModeEnabled, setDeveloperModeEnabled } from "@/utils/developerMode";
 import {
@@ -910,6 +914,9 @@ function Index() {
   const [detectedPlaygroundTracks, setDetectedPlaygroundTracks] = useState<
     Record<string, DetectedSubtitleTrack>
   >({});
+  const [defaultSubtitleLanguages, setDefaultSubtitleLanguages] = useState<string[]>(() =>
+    getDefaultSubtitleLanguages(videoId || DEFAULT_VIDEO_ID),
+  );
 
   const [videoInput, setVideoInput] = useState("");
   const [captionStatus, setCaptionStatus] = useState("");
@@ -1250,6 +1257,8 @@ function Index() {
     (lang: string, json: Json3, rawData: string, setAsTarget = true) => {
       if (videoId) {
         saveCachedRawJson3(videoId, lang, rawData);
+        addDefaultSubtitleLanguage(videoId, lang);
+        setDefaultSubtitleLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
       }
       startSubtitlesTransition(() => {
         setTracks((prev) => ({ ...prev, [lang]: json }));
@@ -1302,6 +1311,15 @@ function Index() {
       setExplicitBaseLanguage(lang);
     }
   }, []);
+
+  const handleSelectDefaultSubtitle = useCallback(
+    (langCode: string) => {
+      setBaseLanguage(langCode);
+      setPrimaryTtsLangState(langCode);
+      setShown((prev) => (prev.includes(langCode) ? prev : [langCode, ...prev]));
+    },
+    [setBaseLanguage],
+  );
 
   const baseLanguage = useMemo(() => {
     // The default language can only be one of those languages their subtitles have been successfully fetched already
@@ -2516,10 +2534,13 @@ function Index() {
         originalUrl: `https://www.youtube.com/watch?v=${videoId}`,
       });
 
-      // Cache hydration: Load any previously cached raw JSON3 subtitle tracks for targetLanguages
+      // Cache hydration: Load any previously cached raw JSON3 subtitle tracks for targetLanguages & defaultSubtitleLanguages
       const activeLangs = targetLanguagesRef.current;
+      const defaultLangs = getDefaultSubtitleLanguages(videoId);
+      setDefaultSubtitleLanguages(defaultLangs);
+      const allLangsToHydrate = Array.from(new Set([...activeLangs, ...defaultLangs]));
       const hydratedTracks: Record<string, Json3> = {};
-      activeLangs.forEach((lang) => {
+      allLangsToHydrate.forEach((lang) => {
         const cachedRaw = getCachedRawJson3(videoId, lang);
         if (cachedRaw) {
           const parsed = parseJson3(cachedRaw);
@@ -2538,6 +2559,26 @@ function Index() {
             setTracks((prev) => ({ ...(prev || {}), ...hydratedTracks }));
           }
           setShown((prev) => Array.from(new Set([...prev, ...Object.keys(hydratedTracks)])));
+        });
+        setDetectedPlaygroundTracks((prev) => {
+          const next = isVideoChanged ? {} : { ...prev };
+          Object.entries(hydratedTracks).forEach(([code, json]) => {
+            if (!next[code] && json?.events) {
+              const langMeta = LANGS.find((l) => l.code === code);
+              const cuesCount =
+                json.events?.filter((ev) => ev.segs?.some((s) => s.utf8?.trim()))?.length || 0;
+              next[code] = {
+                lang: code,
+                langName: langMeta?.name || code,
+                json,
+                rawData: JSON.stringify(json),
+                url: "",
+                timestamp: Date.now(),
+                cuesCount,
+              };
+            }
+          });
+          return next;
         });
       }
     }
@@ -3119,10 +3160,18 @@ function Index() {
       if (!targetLanguage) {
         setObservedUrl(payload.url);
         setDefaultCaptionsLoaded(true);
+        if (lang && videoId) {
+          addDefaultSubtitleLanguage(videoId, lang);
+          setDefaultSubtitleLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
+        }
       }
       if (lang) {
         if (videoId) {
           saveCachedRawJson3(videoId, lang, payload.rawData);
+          if (!targetLanguage) {
+            addDefaultSubtitleLanguage(videoId, lang);
+            setDefaultSubtitleLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
+          }
         }
         setTracks((prev) => ({ ...prev, [lang]: json }));
         setShown((prev) => (prev.includes(lang) ? prev : [lang, ...prev]));
@@ -5720,7 +5769,15 @@ function Index() {
               </div>
             }
             playbackControlsSlot={
-              <div className="space-y-1.5">
+              <div className="space-y-2">
+                <SwitchableDefaultSubtitlesBar
+                  videoId={videoId}
+                  defaultLanguages={defaultSubtitleLanguages}
+                  activeLanguage={baseLanguage}
+                  onSelectLanguage={handleSelectDefaultSubtitle}
+                  tracks={tracks}
+                  detectedTracks={detectedPlaygroundTracks}
+                />
                 <VideoPlaybackControls
                   isPlaying={isVideoPlaying}
                   currentTimeSec={playbackCurrentTime}
@@ -5975,6 +6032,9 @@ function Index() {
               detectedTracks={detectedPlaygroundTracks}
               onImportTrack={handleImportTrackFromPlayground}
               existingTrackLanguages={Object.keys(tracks || {})}
+              defaultLanguages={defaultSubtitleLanguages}
+              activeLanguage={baseLanguage}
+              onSelectDefaultLanguage={handleSelectDefaultSubtitle}
               onSwitchToViewerTab={() => setActiveTopTab("viewer")}
               onSwitchToViewerAtTime={handleSwitchToViewerAtTime}
               isAndroid={isAndroid}
@@ -6434,6 +6494,17 @@ function Index() {
                                 );
                               }}
                             />
+                            {/* Switchable List of Default Languages fetched from YouTube API around Video Component */}
+                            <div className="p-2 border-t border-border/60 bg-muted/20">
+                              <SwitchableDefaultSubtitlesBar
+                                videoId={videoId}
+                                defaultLanguages={defaultSubtitleLanguages}
+                                activeLanguage={baseLanguage}
+                                onSelectLanguage={handleSelectDefaultSubtitle}
+                                tracks={tracks}
+                                detectedTracks={detectedPlaygroundTracks}
+                              />
+                            </div>
                             <div
                               data-testid="video-display-controls"
                               className="flex justify-end border-t border-border bg-card/80 px-3 py-2"

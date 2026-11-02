@@ -350,5 +350,19 @@ did u wrote all to the .md file ?
 does it fully used the old implementation including the random strategy being used and report statistics while using it to choose the best strategy next ?
 ```
 
+---
 
+### Prompt 32: Persist Stored Default Subtitles, Switchable Default Languages Around Video Component (and Playground), & Different Accordion Background Colors
+```
+1. fix: the list of default subtitles should be stored correctly - currently when user choose another subtitles from the video's menu the list is reseted. keep the switchable list of default languages (those subtitles which fetched from youtube's api) around the video component (also on the playground). 
+2. use different color for each accordion background
+```
 
+---
+
+### Prompt 33: Hotfix ReferenceError: initialState is not defined
+```
+Fix the errors in the app
+[APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load initialState is not defined
+ReferenceError: initialState is not defined at src/routes/index.tsx
+```

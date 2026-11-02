@@ -155,11 +155,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-does it fully used the old implementation including the random strategy being used and report statistics while using it to choose the best strategy next ?
+Fix the errors in the app
+[APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load initialState is not defined
+ReferenceError: initialState is not defined at src/routes/index.tsx
 ```
-
-
-
-
-
-

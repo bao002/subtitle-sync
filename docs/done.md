@@ -1,5 +1,63 @@
 # Done tasks
 
+## Task 281: Distinct Color for Each Accordion Background
+
+- **Prompt**:
+  ```
+  2. use different color for each accordion background
+  ```
+- **Implementation**:
+  - **Sub-task 281.1 (Distinct Accordion Panel Background Themes)**:
+    - Updated `src/config/accordionThemes.ts` to assign a dedicated, unique `panelBg` styling class for each of the 7 accordion panels:
+      - `player`: `bg-blue-50/20 dark:bg-blue-950/25 border-blue-200/50 dark:border-blue-900/40`
+      - `playback`: `bg-emerald-50/20 dark:bg-emerald-950/25 border-emerald-200/50 dark:border-emerald-900/40`
+      - `charsRemoval`: `bg-indigo-50/20 dark:bg-indigo-950/25 border-indigo-200/50 dark:border-indigo-900/40`
+      - `parser`: `bg-amber-50/20 dark:bg-amber-950/25 border-amber-200/50 dark:border-amber-900/40`
+      - `languages`: `bg-purple-50/20 dark:bg-purple-950/25 border-purple-200/50 dark:border-purple-900/40`
+      - `subtitles`: `bg-teal-50/20 dark:bg-teal-950/25 border-teal-200/50 dark:border-teal-900/40`
+      - `library`: `bg-rose-50/20 dark:bg-rose-950/25 border-rose-200/50 dark:border-rose-900/40`
+  - **Sub-task 281.2 (Apply Distinct Background to Accordion Containers)**:
+    - Updated `src/components/AccordionSection.tsx` to bind `theme.panelBg` directly to the `<details>` root container and added `data-accordion-bg={theme.panelBg}` for testing.
+  - **Sub-task 281.3 (Automated Verification Test)**:
+    - Updated `scripts/verify-accordion-colors.ts` to assert that all 7 panels define non-empty, distinct `panelBg` styles (7 unique background colors across all 7 panels).
+    - Verified that `theme.panelBg` is bound to the accordion container and verified via `npm run test:accordion-colors`.
+  - **Sub-task 281.4 (Version Bump & Suite Verification)**:
+    - Synchronized application version `2.0.80` across all 5 standard targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode 20080), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Validation**:
+  - `npm run test:accordion-colors` PASSED (100% verified all 7 distinct background colors).
+  - `npm run test:switchable-default-subtitles` PASSED.
+  - `npm run test:agents-all` PASSED (19/19 checks).
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+
+## Task 280: Fix Default Subtitles Storage, Prevent Menu Switch Reset, and Render Switchable Default Subtitles Around Video Component (and Playground)
+
+- **Prompt**:
+  ```
+  1. fix: the list of default subtitles should be stored correctly - currently when user choose another subtitles from the video's menu the list is reseted. keep the switchable list of default languages (those subtitles which fetched from youtube's api) around the video component (also on the playground). 
+  ```
+- **Implementation**:
+  - **Sub-task 280.1 (Persistent Default Subtitle Languages Storage)**:
+    - Added `getDefaultSubtitleLanguages(videoId)`, `addDefaultSubtitleLanguage(videoId, lang)`, and `saveDefaultSubtitleLanguages(videoId, langs)` to `src/utils/subtitleCache.ts`.
+    - Implemented multi-tier storage with in-memory cache and persistent localStorage under `yt_default_subtitles_${videoId}`.
+    - Guaranteed that selecting another subtitle from the video's menu accumulates the new track without resetting or losing previously fetched default subtitles.
+  - **Sub-task 280.2 (Switchable Default Subtitles Component)**:
+    - Created `src/components/SwitchableDefaultSubtitlesBar.tsx` (`data-testid="switchable-default-subtitles-bar"`).
+    - Displays each fetched default subtitle with `default-subtitle-lang-btn-${langCode}`, language name, code, cue count, and active pulse badge indicator.
+    - Enables 1-click switching of the active default language (`baseLanguage` & primary TTS) without resetting the list.
+    - Integrated around the video component in Advanced mode (right below video instance swiper), Beginner mode (in `playbackControlsSlot`), and in `VideoPlayground.tsx` around the playground video player.
+  - **Sub-task 280.3 (Hydration & Interception Preservation)**:
+    - Updated cache hydration in `src/routes/index.tsx` to restore all stored default subtitle tracks alongside target languages so they are never lost on reload or video switch.
+    - Updated `registerLiveCaptionInterceptor` and `handleImportTrackFromPlayground` to register newly arrived default subtitle tracks with `addDefaultSubtitleLanguage` and keep state synchronized.
+  - **Sub-task 280.4 (Dedicated Automated Verification Test)**:
+    - Created `scripts/verify-switchable-default-subtitles.ts` and registered `test:switchable-default-subtitles` in `package.json`.
+    - Verified persistent accumulation, non-reset on switch, component contracts, and placements around the video in both modes and playground.
+- **Validation**:
+  - `npm run test:switchable-default-subtitles` PASSED (100% verified).
+  - `npm run test:agents-all` PASSED (19/19 checks).
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+
 ## Task 279: Experimental Subtitle Fetching Controls in Debug Mode
 
 - **Prompt**:

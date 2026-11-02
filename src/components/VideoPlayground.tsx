@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { LANGS, type Json3 } from "@/lib/subtitles";
 import { parseVideoId } from "@/lib/native-captions";
 import { removeAngleBrackets } from "@/utils/captionParser";
+import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSubtitlesBar";
 
 export interface DetectedSubtitleTrack {
   lang: string;
@@ -43,6 +44,9 @@ export interface VideoPlaygroundProps {
   onSwitchToViewerAtTime?: (timeSec: number) => void;
   isAndroid?: boolean;
   observedUrl?: string;
+  defaultLanguages?: string[];
+  activeLanguage?: string;
+  onSelectDefaultLanguage?: (lang: string) => void;
 }
 
 export const PLAYGROUND_PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
@@ -57,6 +61,9 @@ export function VideoPlayground({
   onSwitchToViewerAtTime,
   isAndroid = false,
   observedUrl = "",
+  defaultLanguages,
+  activeLanguage = "",
+  onSelectDefaultLanguage,
 }: VideoPlaygroundProps) {
   const [videoInput, setVideoInput] = useState(videoId);
   const [playerIframeKey, setPlayerIframeKey] = useState(0);
@@ -325,6 +332,34 @@ export function VideoPlayground({
               className="h-full w-full border-0"
             />
           </div>
+
+          {/* Switchable List of Default Languages fetched from YouTube API around Playground Video */}
+          <SwitchableDefaultSubtitlesBar
+            videoId={videoId}
+            defaultLanguages={
+              defaultLanguages && defaultLanguages.length > 0
+                ? defaultLanguages
+                : Array.from(
+                    new Set([
+                      ...existingTrackLanguages,
+                      ...Object.keys(detectedTracks),
+                    ]),
+                  )
+            }
+            activeLanguage={activeLanguage || previewTrackLang || existingTrackLanguages[0] || ""}
+            onSelectLanguage={(langCode) => {
+              setPreviewTrackLang(langCode);
+              if (onSelectDefaultLanguage) {
+                onSelectDefaultLanguage(langCode);
+              }
+              const track = detectedTracks[langCode];
+              if (track && !existingTrackLanguages.includes(langCode)) {
+                onImportTrack(langCode, track.json, track.rawData, true);
+              }
+            }}
+            detectedTracks={detectedTracks}
+            isPlayground
+          />
 
           {/* Player Toolbar: Playback Speed Selector & Status */}
           <div className="rounded-xl border border-border bg-card p-3 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">
