@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.83";
+export const APP_VERSION = "2.0.84";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "e482b19";
 export const APP_VERSION_DESCRIPTION =
-  "Language ratios settings as part of learning goals at end of stage (Version 2.0.83)";
+  "Named language ratio compositions and quick switching dropdown next to video (Version 2.0.84)";
 
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";

@@ -21,8 +21,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { LANGS, type Json3 } from "@/lib/subtitles";
 import { parseVideoId } from "@/lib/native-captions";
-import { removeAngleBrackets } from "@/utils/captionParser";
 import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSubtitlesBar";
+import { LanguageRatioCompositionSelector } from "@/components/LanguageRatioCompositionSelector";
+import {
+  getActiveRatioCompositionId,
+  type LanguageRatioComposition,
+} from "@/utils/ratioCompositionsManager";
 
 export interface DetectedSubtitleTrack {
   lang: string;
@@ -68,6 +72,9 @@ export function VideoPlayground({
   const [videoInput, setVideoInput] = useState(videoId);
   const [playerIframeKey, setPlayerIframeKey] = useState(0);
   const [previewTrackLang, setPreviewTrackLang] = useState<string | null>(null);
+  const [playgroundRatioCompId, setPlaygroundRatioCompId] = useState<string>(() =>
+    getActiveRatioCompositionId(),
+  );
   const [justImportedLang, setJustImportedLang] = useState<string | null>(null);
   const [copiedTrackLang, setCopiedTrackLang] = useState<string | null>(null);
   const [currentPlaybackRate, setCurrentPlaybackRate] = useState<number>(1);
@@ -333,30 +340,39 @@ export function VideoPlayground({
             />
           </div>
 
-          {/* Switchable List of Default Languages fetched from YouTube API around Playground Video */}
-          <SwitchableDefaultSubtitlesBar
-            videoId={videoId}
-            defaultLanguages={Array.from(
-              new Set([
-                ...(defaultLanguages || []),
-                ...existingTrackLanguages,
-                ...Object.keys(detectedTracks),
-              ]),
-            )}
-            activeLanguage={activeLanguage || previewTrackLang || existingTrackLanguages[0] || ""}
-            onSelectLanguage={(langCode) => {
-              setPreviewTrackLang(langCode);
-              if (onSelectDefaultLanguage) {
-                onSelectDefaultLanguage(langCode);
-              }
-              const track = detectedTracks[langCode];
-              if (track && !existingTrackLanguages.includes(langCode)) {
-                onImportTrack(langCode, track.json, track.rawData, true);
-              }
-            }}
-            detectedTracks={detectedTracks}
-            isPlayground
-          />
+          {/* Switchable List of Default Languages & Ratio Compositions around Playground Video */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <SwitchableDefaultSubtitlesBar
+              videoId={videoId}
+              defaultLanguages={Array.from(
+                new Set([
+                  ...(defaultLanguages || []),
+                  ...existingTrackLanguages,
+                  ...Object.keys(detectedTracks),
+                ]),
+              )}
+              activeLanguage={activeLanguage || previewTrackLang || existingTrackLanguages[0] || ""}
+              onSelectLanguage={(langCode) => {
+                setPreviewTrackLang(langCode);
+                if (onSelectDefaultLanguage) {
+                  onSelectDefaultLanguage(langCode);
+                }
+                const track = detectedTracks[langCode];
+                if (track && !existingTrackLanguages.includes(langCode)) {
+                  onImportTrack(langCode, track.json, track.rawData, true);
+                }
+              }}
+              detectedTracks={detectedTracks}
+              isPlayground
+              className="flex-1 min-w-[240px]"
+            />
+            <LanguageRatioCompositionSelector
+              activeCompositionId={playgroundRatioCompId}
+              onSelectComposition={(comp) => {
+                setPlaygroundRatioCompId(comp.id);
+              }}
+            />
+          </div>
 
           {/* Player Toolbar: Playback Speed Selector & Status */}
           <div className="rounded-xl border border-border bg-card p-3 shadow-sm flex flex-wrap items-center justify-between gap-3 text-xs">

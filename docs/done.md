@@ -1,5 +1,57 @@
 # Done tasks
 
+### Hotfix: Fix Dev Server Pre-warming Crash & Prettier Linter Issue
+
+- **Issue**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.0.83 dev > vite --host 0.0.0.0 --port 3000 --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1507 ms ➜  Local:   http://localhost:3000/
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Implementation**:
+  - In `package.json`, cleaned `"dev": "vite"` removing duplicate `--host 0.0.0.0 --port 3000` CLI flags that caused conflict with the AI Studio runner's own arguments.
+  - In `src/routes/index.tsx`, resolved Prettier formatting error on line 2007 in `notifySubtitleFetch`.
+  - Created dedicated automated test `scripts/verify-dev-server-prewarming-hotfix.ts` validating clean `package.json` dev script, `vite.config.ts` port and host configurations, clean Prettier formatting, and verified HTTP 200 connectivity on port 3000.
+  - Restarted dev server with clean status and verified HTTP 200 response.
+- **Validation**:
+  - `npm run test:dev-server-prewarming-hotfix` PASSED (100% verified).
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+
+## Task 284 (Chapter 2): Setup & Store Named Language Ratio Compositions with Easy Dropdown Next/Around Video
+
+- **Prompt**:
+  ```
+  2. the user can setup and store different compositions of languages ration and give it a name and later is able to switch between those options using an easy dropdown list which is located next/around the video
+  ```
+- **Implementation**:
+  - **Sub-task 284.1 (Ratio Compositions Manager & Store Logic)**:
+    - Authored `src/utils/ratioCompositionsManager.ts` providing full management of language ratio compositions:
+      - Built-in compositions: Equal Practice (1:1), Alternating Target (1:2), Target Immersion (1:3), Light Review (1:5).
+      - `getStoredRatioCompositions()`, `saveRatioComposition(name, ratios)`, `deleteRatioComposition(id)`, `getActiveRatioCompositionId()`, `setActiveRatioCompositionId(id)`, `resolveCompositionRatios()`.
+      - Persistent storage in `localStorage` under `yt_language_ratio_compositions_v1` and active ID in `yt_active_ratio_composition_id_v1`.
+    - Added UI in Stage 2 Learning Goals in `src/routes/index.tsx` allowing users to name, save, and store the current ratio composition, and manage existing custom presets.
+  - **Sub-task 284.2 (LanguageRatioCompositionSelector Dropdown Around Video)**:
+    - Created `src/components/LanguageRatioCompositionSelector.tsx` rendering an easy dropdown list next/around the video with built-in presets and user-created custom compositions.
+    - Integrated selector next to `SwitchableDefaultSubtitlesBar` around the video across Advanced Mode (`src/routes/index.tsx`), Beginner Mode (`src/routes/index.tsx`), and Video Playground (`src/components/VideoPlayground.tsx`).
+    - Handled 1-click switching: dynamically applies ratios, persists active preset, and notifies user.
+  - **Sub-task 284.3 (Dedicated Automated Test Suite)**:
+    - Authored `scripts/verify-named-ratio-compositions-dropdown.ts` verifying manager logic, preset storage, resolution, dropdown component, and placement around video across all modes and playground.
+    - Registered `test:named-ratio-compositions-dropdown` script in `package.json`.
+  - **Sub-task 284.4 (Version Bump & Suite Verification)**:
+    - Synchronized application version `2.0.84` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode 20084, versionName 2.0.84), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Validation**:
+  - `npm run test:named-ratio-compositions-dropdown` PASSED (100% verified).
+  - `npm run test:dev-server-prewarming-hotfix` PASSED (100% verified).
+  - `npm run test:apk-version` PASSED (v2.0.84 verified).
+  - `npm run test:agents-all` PASSED (19/19 checks).
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+
+
+
 ## Task 283 (Chapter 1): Language Ratios Settings as Part of Learning Goals at the End of That Stage
 
 - **Prompt**:

@@ -1,11 +1,11 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.83",
+  "version": "2.0.84",
   "private": true,
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 3000",
+    "dev": "vite",
     "start": "vite preview --host 0.0.0.0 --port 3000",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o public/storybook",
@@ -17,6 +17,8 @@
     "lint": "eslint src/lib src/routes",
     "coverage": "npm run test:coverage",
     "test:coverage": "tsx scripts/generate-test-coverage.ts",
+    "test:dev-server-prewarming-hotfix": "tsx scripts/verify-dev-server-prewarming-hotfix.ts",
+    "test:named-ratio-compositions-dropdown": "tsx scripts/verify-named-ratio-compositions-dropdown.ts",
     "test:learning-goals-language-ratios": "tsx scripts/verify-learning-goals-language-ratios.ts",
     "test:caption-interception-accumulation": "tsx scripts/verify-caption-interception-accumulation.ts",
     "test:initialstate-fix": "tsx scripts/verify-initialstate-referenceerror-fix.ts",
