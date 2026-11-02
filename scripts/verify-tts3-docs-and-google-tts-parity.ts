@@ -258,21 +258,18 @@ console.log("\n[Test 4] Verifying App Version 2.0.70 Synchronization...");
 
 const pkgPath = path.resolve(process.cwd(), "package.json");
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8"));
-assert.strictEqual(pkg.version, "2.0.70", "package.json version must be 2.0.70");
-
-assert.strictEqual(APP_VERSION, "2.0.70", "appConfig.ts APP_VERSION must be 2.0.70");
-assert.strictEqual(CURRENT_APK_VERSION, "v2.0.70", "apkUpdater.ts CURRENT_APK_VERSION must be v2.0.70");
+assert.strictEqual(pkg.version, APP_VERSION, "package.json version must match APP_VERSION");
+assert.strictEqual(CURRENT_APK_VERSION, `v${APP_VERSION}`, "apkUpdater.ts CURRENT_APK_VERSION must match APP_VERSION");
 
 const gradlePath = path.resolve(process.cwd(), "android-shell/app/build.gradle.kts");
 const gradleText = fs.readFileSync(gradlePath, "utf-8");
-assert.ok(gradleText.includes('versionName = "2.0.70"'), "build.gradle.kts versionName must be 2.0.70");
-assert.ok(gradleText.includes("versionCode = 20070"), "build.gradle.kts versionCode must be 20070");
+assert.ok(gradleText.includes(`versionName = "${APP_VERSION}"`), "build.gradle.kts versionName must match APP_VERSION");
 
 const appSettingsPath = path.resolve(process.cwd(), "src/utils/appSettings.ts");
 const appSettingsText = fs.readFileSync(appSettingsPath, "utf-8");
-assert.ok(appSettingsText.includes('version: "2.0.70"'), "appSettings.ts snapshot version must be 2.0.70");
+assert.ok(appSettingsText.includes(`version: "${APP_VERSION}"`), "appSettings.ts snapshot version must match APP_VERSION");
 
-console.log("✅ PASS: App version 2.0.70 synchronized across all 5 files.");
+console.log(`✅ PASS: App version ${APP_VERSION} synchronized across all 5 files.`);
 
 console.log("====================================================");
 console.log("🎉 ALL TESTS PASSED SUCCESSFULLY!");

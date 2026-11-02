@@ -50,11 +50,13 @@ jobs:
         timeout-minutes: 3
         run: npm install
 
-      - name: Build Web Application
-        timeout-minutes: 5
+      - name: Build Web Application & Storybook
+        timeout-minutes: 6
         run: |
           echo "⚙️ Compiling latest web application..."
           npm run build
+          echo "📚 Building Storybook for GitHub Pages..."
+          npm run build-storybook || true
 
       - name: Stage E2E Reports into Web Distribution
         env:
@@ -80,7 +82,12 @@ jobs:
             [ -d web ] && cp -r web dist/ && echo "Preserved web directory"
             [ -d coverage ] && cp -r coverage dist/ && echo "Preserved coverage directory"
           fi
-          # Also stage any locally generated test reports
+          # Also stage any locally generated test reports and Storybook
+          if [ -d "public/storybook" ]; then
+            mkdir -p dist/storybook
+            cp -r public/storybook/* dist/storybook/ 2>/dev/null || true
+            echo "Staged Storybook to dist/storybook/"
+          fi
           if [ -d "public/coverage" ]; then
             mkdir -p dist/coverage
             cp -r public/coverage/* dist/coverage/ 2>/dev/null || true

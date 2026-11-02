@@ -1,5 +1,27 @@
 # Done tasks
 
+## Task 270: Remote Speak API Token Authentication (`spk_...`) & Upstream Provider Key Separation
+
+- **Implementation**:
+  - **Sub-task 270.1 (Speak API Token Classification & Bearer Header Transmission)**:
+    - Added `isSpeakApiPersonalToken` and `isUpstreamProviderApiKey` functions in `src/lib/alternative-tts.ts` to strictly classify Speak API Personal Tokens (`spk_...`, `tts_...`) vs Upstream Provider Keys (`sk_...`, `sk-or-...`).
+    - Implemented `resolveTtsCredentials` to automatically promote any `spk_...` string passed in `apiKey` to `speakApiToken` and prevent it from being assigned to `providerApiKey`.
+    - Added `Authorization: Bearer <speakApiToken>` header attachment across GET (`fetchLovableTtsJson`, `fetchLovableTtsBinaryBlob`) and POST (`synthesizeLovableTtsPost`) synthesis and validation methods.
+    - Guaranteed in `buildLovableTtsRequestBody` that `body.api_key` is never assigned an `spk_...` token (which previously caused `401 Invalid API key format. Key must start with 'sk_' prefix`), and is never sent for public providers (`google` / `auto`).
+    - Added `generateTtsDiagnosticAdvice` to explain HTTP 401 errors, highlighting when an `spk_` token was mistakenly treated as an upstream key and recommending free Google TTS or proper key formats.
+  - **Sub-task 270.2 (External TTS Debugger cURL Export & UI Parity Guidance)**:
+    - Updated `ExternalTtsDebuggerPanel.tsx` with cURL export button (`buildCurlCommand`), token classification badges (displaying `Speak API Personal Token` vs `Provider Key`), and actionable diagnostic advice banner for failed calls.
+    - Updated token input labels, placeholders, and guidance in both Beginner Mode (`BeginnerPreferencesTab.tsx`) and Advanced Mode (`src/routes/index.tsx`) with 100% parity: displays `✓ Speak API token (spk_...) saved`, instructions for `spk_...` tokens from tts3.lovable.app, and clean routing in `setLovableTtsApiKey`.
+  - **Sub-task 270.3 (Version 2.0.71 Synchronization & Dedicated Verification Tests)**:
+    - Synchronized application version to `2.0.71` (`versionCode = 20071`) across all 5 required targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Created dedicated verification test `scripts/verify-spk-token-auth-and-tts3.ts` covering token classification, credential resolution, request body safety, URL parameters, diagnostic advice generation, debugger audit records, and version synchronization.
+- **Dedicated verification**:
+  - `npx tsx scripts/verify-spk-token-auth-and-tts3.ts` (PASS, 100% assertions)
+  - `npx tsx scripts/verify-tts3-docs-and-google-tts-parity.ts` (PASS, 100% assertions)
+  - `npm run lint` (`lint_applet`: PASS, 0 errors)
+  - `npm run build` (`compile_applet`: PASS)
+- **Delivery**: Fully verified and migrated to `docs/done.md`.
+
 ## Task 269: TTS3 Docs Compliance, Direct Google TTS Routing Parity, and Full Request/Response External TTS Debugger
 
 - **Implementation**:

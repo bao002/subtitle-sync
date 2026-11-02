@@ -252,3 +252,31 @@ response:
 ```
 
 
+
+
+---
+
+### Prompt 20: Continue Execution (go on)
+```
+go on
+```
+
+
+---
+
+### Prompt 21: Utilize Storybook, Clean Reactive TTS Service Controls & GitHub Pages Storybook Hosting
+```
+1. utilize storybook: currently the new components appears in the application once they are created. it is better to develop it first in clean environment. therefor make use of storybook - should github-pages show the storybook as well.
+2. for example: when developing a tts-service and user select direct google tts service - the component shows menus which are not relevant. and there are duplications in the buttons which are appeared non-stop under the selector control.
+
+such cases could be spotted and pointed out regardless the context of the app.
+
+3. first storybook mission:  tts service - plan which control to show and when. (reactive)
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > div:nth-of-type(2) > div:nth-of-type(4)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```

@@ -1,13 +1,15 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.70",
-
+  "version": "2.0.71",
   "private": true,
   "sideEffects": false,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 3000",
     "start": "vite preview --host 0.0.0.0 --port 3000",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build -o public/storybook",
+    "build:storybook": "storybook build -o public/storybook",
     "build": "vite build && node scripts/normalize-web-assets.mjs dist && node scripts/sync-android-assets.mjs",
     "build:android-assets": "npm run build && node scripts/sync-android-assets.mjs",
     "build:dev": "vite build --mode development",
@@ -27,7 +29,6 @@
     "test:language-selection-primary-and-json3-columns": "tsx scripts/verify-language-selection-primary-and-json3-columns.ts",
     "test:supabase-quarantine-tts-and-sequence": "tsx scripts/verify-supabase-quarantine-tts-and-sequence.ts",
     "test:tts-service-url-and-direct-google-tts": "tsx scripts/verify-tts-service-url-and-direct-google-tts.ts",
-
     "test:video-play-fix": "tsx scripts/verify-video-play-fix.ts",
     "test:android-page-error-fix": "tsx scripts/verify-android-page-error-fix.ts",
     "test:compact-preview-space-saving": "tsx scripts/verify-compact-preview-space-saving.ts",
@@ -339,6 +340,7 @@
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@playwright/test": "1.64.1",
+    "@storybook/react-vite": "^10.6.5",
     "@types/node": "^22.16.5",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
@@ -353,6 +355,7 @@
     "globals": "^15.15.0",
     "postgres": "^3.4.9",
     "prettier": "^3.7.3",
+    "storybook": "^10.6.5",
     "tsx": "^4.23.15",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",

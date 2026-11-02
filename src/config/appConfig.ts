@@ -4,13 +4,13 @@ import { LibraryVideoItem } from "../types";
  * Global Application Configuration & Default Settings
  */
 
-export const APP_VERSION = "2.0.70";
+export const APP_VERSION = "2.0.71";
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "e482b19";
 export const APP_VERSION_DESCRIPTION =
-  "TTS3 Lovable docs compliance, direct Google TTS routing parity, and external TTS debugger (Version 2.0.70)";
+  "Remote Speak API token authentication (spk_...), upstream provider key separation, and actionable diagnostics (Version 2.0.71)";
 
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";
