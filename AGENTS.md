@@ -155,7 +155,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-Fix the errors in the app
-[APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load initialState is not defined
-ReferenceError: initialState is not defined at src/routes/index.tsx
+1. language ratios settings are part of learning goals and should come in the end of that stage
+
+2. the user can setup and store different compositions of languages ration and give it a name and later is able to switch between those options using an easy dropdown list which is located next/around the video
 ```
+
+
+

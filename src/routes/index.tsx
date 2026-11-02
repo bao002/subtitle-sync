@@ -48,6 +48,8 @@ import {
   AlertTriangle,
   Zap,
   Split,
+  BookmarkCheck,
+  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -343,6 +345,16 @@ import {
   saveDefaultSubtitleLanguages,
 } from "@/utils/subtitleCache";
 import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSubtitlesBar";
+import { LanguageRatioCompositionSelector } from "@/components/LanguageRatioCompositionSelector";
+import {
+  type LanguageRatioComposition,
+  getStoredRatioCompositions,
+  saveRatioComposition,
+  deleteRatioComposition,
+  getActiveRatioCompositionId,
+  setActiveRatioCompositionId,
+  resolveCompositionRatios,
+} from "@/utils/ratioCompositionsManager";
 import { recordWinnerPromotion } from "@/utils/winnerPromotionTracker";
 import { isDeveloperModeEnabled, setDeveloperModeEnabled } from "@/utils/developerMode";
 import {
@@ -1317,6 +1329,12 @@ function Index() {
       setBaseLanguage(langCode);
       setPrimaryTtsLangState(langCode);
       setShown((prev) => (prev.includes(langCode) ? prev : [langCode, ...prev]));
+      try {
+        const primaryPlayer = multiVideoPlayerRegistry.get("primary");
+        primaryPlayer?.setOption?.("captions", "track", { languageCode: langCode });
+      } catch {
+        // ignore
+      }
     },
     [setBaseLanguage],
   );
@@ -1962,6 +1980,62 @@ function Index() {
     setPrimaryTtsLang(code);
     setSpoken((prev) => (prev.includes(code) ? prev : [...prev, code]));
   }, []);
+
+  const [activeRatioCompositionId, setActiveRatioCompositionIdState] = useState<string>(() =>
+    getActiveRatioCompositionId(),
+  );
+  const [newCompositionName, setNewCompositionName] = useState<string>("");
+  const [storedCompositions, setStoredCompositions] = useState<LanguageRatioComposition[]>(() =>
+    getStoredRatioCompositions(),
+  );
+
+  const handleSelectRatioComposition = useCallback(
+    (comp: LanguageRatioComposition) => {
+      setActiveRatioCompositionIdState(comp.id);
+      setActiveRatioCompositionId(comp.id);
+      const targetLangs = Array.from(
+        new Set([baseLanguage, primaryTtsLangState, ...targetLanguages].filter(Boolean)),
+      );
+      const nextRatios = resolveCompositionRatios(comp, targetLangs, primaryTtsLangState);
+      setTtsRatios((prev) => ({ ...prev, ...nextRatios }));
+      for (const [lang, ratio] of Object.entries(nextRatios)) {
+        saveTtsRatioPreference(lang, ratio);
+      }
+      if (videoId) {
+        saveVideoSettings(videoId, { ttsRatios: nextRatios });
+      }
+      notifySubtitleFetch(
+        "info",
+        `Applied "${comp.name}" ratio composition`,
+        comp.id,
+      );
+    },
+    [baseLanguage, primaryTtsLangState, targetLanguages, videoId],
+  );
+
+  const handleSaveComposition = useCallback(() => {
+    if (!newCompositionName.trim()) return;
+    try {
+      const saved = saveRatioComposition(newCompositionName, ttsRatios);
+      setStoredCompositions(getStoredRatioCompositions());
+      setActiveRatioCompositionIdState(saved.id);
+      setNewCompositionName("");
+      notifySubtitleFetch("completed", `Saved composition "${saved.name}"!`, saved.id);
+    } catch (err: unknown) {
+      console.warn("Save ratio composition error:", err);
+    }
+  }, [newCompositionName, ttsRatios]);
+
+  const handleDeleteRatioComposition = useCallback(
+    (id: string) => {
+      deleteRatioComposition(id);
+      setStoredCompositions(getStoredRatioCompositions());
+      if (activeRatioCompositionId === id) {
+        setActiveRatioCompositionIdState("builtin_equal_1_1");
+      }
+    },
+    [activeRatioCompositionId],
+  );
   const primaryTtsLang = useMemo(() => {
     // The explicit is-primary column selection is the only way to define the tts-ratio absolute parent
     if (primaryTtsLangState) {
@@ -1986,12 +2060,35 @@ function Index() {
   const [activePlayerCaptionLang, setActivePlayerCaptionLang] = useState<string>("");
   const activePlayerCaptionLangRef = useRef<string>("");
 
-  const handlePlayerCaptionToggled = useCallback((langCode: string) => {
-    if (!langCode) return;
-    activePlayerCaptionLangRef.current = langCode;
-    setActivePlayerCaptionLang(langCode);
-    setPlayerToggledLanguages((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
-  }, []);
+  const handlePlayerCaptionToggled = useCallback(
+    (langCode: string) => {
+      if (!langCode) return;
+      activePlayerCaptionLangRef.current = langCode;
+      setActivePlayerCaptionLang(langCode);
+      setPlayerToggledLanguages((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
+      if (videoId) {
+        addDefaultSubtitleLanguage(videoId, langCode);
+        setDefaultSubtitleLanguages((prev) =>
+          prev.includes(langCode) ? prev : [...prev, langCode],
+        );
+        if (!tracksRef.current?.[langCode] && videoId === JSON3_DEMO_VIDEO_ID) {
+          void fetch(`/fixtures/${videoId}/${langCode}.json`)
+            .then((res) => (res.ok ? res.text() : null))
+            .then((raw) => {
+              if (raw && isValidJsonSubtitleResponse(raw)) {
+                const parsed = parseJson3(raw);
+                if (parsed) {
+                  setTracks((prev) => ({ ...prev, [langCode]: parsed }));
+                  setShown((prev) => (prev.includes(langCode) ? prev : [langCode, ...prev]));
+                }
+              }
+            })
+            .catch(() => {});
+        }
+      }
+    },
+    [videoId],
+  );
 
   const handleTogglePlayerCaptionTrack = useCallback(
     (langCode: string) => {
@@ -2010,6 +2107,12 @@ function Index() {
           setPlayerToggledLanguages((prev) =>
             prev.includes(langCode) ? prev : [...prev, langCode],
           );
+          if (videoId && langCode) {
+            addDefaultSubtitleLanguage(videoId, langCode);
+            setDefaultSubtitleLanguages((prev) =>
+              prev.includes(langCode) ? prev : [...prev, langCode],
+            );
+          }
         }
       } catch (err: unknown) {
         logError("Player", "Failed to toggle player caption track", {
@@ -2018,7 +2121,7 @@ function Index() {
         });
       }
     },
-    [activePlayerCaptionLang, playerToggledLanguages],
+    [activePlayerCaptionLang, playerToggledLanguages, videoId],
   );
 
   useEffect(() => {
@@ -3160,18 +3263,12 @@ function Index() {
       if (!targetLanguage) {
         setObservedUrl(payload.url);
         setDefaultCaptionsLoaded(true);
-        if (lang && videoId) {
-          addDefaultSubtitleLanguage(videoId, lang);
-          setDefaultSubtitleLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
-        }
       }
       if (lang) {
         if (videoId) {
           saveCachedRawJson3(videoId, lang, payload.rawData);
-          if (!targetLanguage) {
-            addDefaultSubtitleLanguage(videoId, lang);
-            setDefaultSubtitleLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
-          }
+          addDefaultSubtitleLanguage(videoId, lang);
+          setDefaultSubtitleLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]));
         }
         setTracks((prev) => ({ ...prev, [lang]: json }));
         setShown((prev) => (prev.includes(lang) ? prev : [lang, ...prev]));
@@ -5770,14 +5867,22 @@ function Index() {
             }
             playbackControlsSlot={
               <div className="space-y-2">
-                <SwitchableDefaultSubtitlesBar
-                  videoId={videoId}
-                  defaultLanguages={defaultSubtitleLanguages}
-                  activeLanguage={baseLanguage}
-                  onSelectLanguage={handleSelectDefaultSubtitle}
-                  tracks={tracks}
-                  detectedTracks={detectedPlaygroundTracks}
-                />
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <SwitchableDefaultSubtitlesBar
+                    videoId={videoId}
+                    defaultLanguages={defaultSubtitleLanguages}
+                    activeLanguage={baseLanguage}
+                    onSelectLanguage={handleSelectDefaultSubtitle}
+                    tracks={tracks}
+                    detectedTracks={detectedPlaygroundTracks}
+                    className="flex-1 min-w-[260px]"
+                  />
+                  <LanguageRatioCompositionSelector
+                    activeCompositionId={activeRatioCompositionId}
+                    onSelectComposition={handleSelectRatioComposition}
+                    compositions={storedCompositions}
+                  />
+                </div>
                 <VideoPlaybackControls
                   isPlaying={isVideoPlaying}
                   currentTimeSec={playbackCurrentTime}
@@ -6494,8 +6599,8 @@ function Index() {
                                 );
                               }}
                             />
-                            {/* Switchable List of Default Languages fetched from YouTube API around Video Component */}
-                            <div className="p-2 border-t border-border/60 bg-muted/20">
+                            {/* Switchable List of Default Languages & Ratio Compositions Dropdown around Video Component */}
+                            <div className="p-2 border-t border-border/60 bg-muted/20 flex flex-wrap items-center justify-between gap-2">
                               <SwitchableDefaultSubtitlesBar
                                 videoId={videoId}
                                 defaultLanguages={defaultSubtitleLanguages}
@@ -6503,6 +6608,12 @@ function Index() {
                                 onSelectLanguage={handleSelectDefaultSubtitle}
                                 tracks={tracks}
                                 detectedTracks={detectedPlaygroundTracks}
+                                className="flex-1 min-w-[260px]"
+                              />
+                              <LanguageRatioCompositionSelector
+                                activeCompositionId={activeRatioCompositionId}
+                                onSelectComposition={handleSelectRatioComposition}
+                                compositions={storedCompositions}
                               />
                             </div>
                             <div
@@ -8479,6 +8590,141 @@ function Index() {
                                         </div>
                                       )}
                                     </div>
+                                  </div>
+                                </div>
+
+                                {/* 3. Language Ratios (Learning Goals Frequency) - Located at end of Stage 2 Learning Goals */}
+                                <div
+                                  id="stage-2-language-ratios-container"
+                                  data-testid="stage-2-language-ratios-container"
+                                  className="space-y-2.5 bg-card/60 p-3 rounded-lg border border-border"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <Sliders className="h-3.5 w-3.5 text-primary" />
+                                      <label className="font-semibold text-foreground">
+                                        3. Learning Goals: Language Narration Ratios:
+                                      </label>
+                                    </div>
+                                    <span className="text-[11px] text-muted-foreground font-mono">
+                                      Primary 1 : Secondary N
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground">
+                                    Configure narration frequency as part of your learning goals.
+                                    Each secondary language speaks relative to the primary language
+                                    (e.g. 1:1 to speak every sentence, 1:2 to speak every 2
+                                    sentences).
+                                  </p>
+
+                                  <div className="space-y-2 pt-1">
+                                    {Array.from(
+                                      new Set(
+                                        [baseLanguage, primaryTtsLang, ...targetLanguages].filter(
+                                          (code): code is string => Boolean(code),
+                                        ),
+                                      ),
+                                    ).map((langCode) => {
+                                      const isPrimary =
+                                        langCode === primaryTtsLang ||
+                                        (langCode === baseLanguage && !primaryTtsLang);
+                                      const meta =
+                                        LANGS.find((l) => l.code === langCode) ||
+                                        SUPPORTED_LANGUAGES_CATALOG.find(
+                                          (l) => l.code === langCode,
+                                        );
+                                      const currentRatio = getLanguageTtsRatio(ttsRatios, langCode);
+
+                                      return (
+                                        <div
+                                          key={langCode}
+                                          data-testid={`stage-2-ratio-row-${langCode}`}
+                                          className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-md bg-background/80 border border-border/70"
+                                        >
+                                          <div className="flex items-center gap-2 min-w-0">
+                                            <span className="font-medium text-xs text-foreground">
+                                              {meta?.name || langCode.toUpperCase()}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground font-mono">
+                                              ({langCode})
+                                            </span>
+                                            {isPrimary ? (
+                                              <span
+                                                data-testid={`stage-2-primary-badge-${langCode}`}
+                                                className="bg-primary/20 text-primary border border-primary/40 px-1.5 py-0.2 rounded text-[9px] font-bold uppercase"
+                                              >
+                                                Primary (1x)
+                                              </span>
+                                            ) : (
+                                              <span className="bg-muted text-muted-foreground px-1.5 py-0.2 rounded text-[9px] font-normal uppercase">
+                                                Secondary
+                                              </span>
+                                            )}
+                                          </div>
+
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-[11px] text-muted-foreground">
+                                              Ratio:
+                                            </span>
+                                            <div className="flex items-center gap-1">
+                                              {[1, 2, 3, 5, 10].map((ratioVal) => (
+                                                <button
+                                                  key={ratioVal}
+                                                  type="button"
+                                                  data-testid={`stage-2-ratio-btn-${langCode}-${ratioVal}`}
+                                                  onClick={() => {
+                                                    const next = {
+                                                      ...ttsRatios,
+                                                      [langCode]: ratioVal,
+                                                    };
+                                                    setTtsRatios(next);
+                                                    saveTtsRatioPreference(langCode, ratioVal);
+                                                    if (videoId) {
+                                                      saveVideoSettings(videoId, {
+                                                        ttsRatios: { [langCode]: ratioVal },
+                                                      });
+                                                    }
+                                                  }}
+                                                  className={`px-2 py-0.5 rounded text-xs font-mono font-medium border transition-colors cursor-pointer ${
+                                                    currentRatio === ratioVal
+                                                      ? "bg-primary text-primary-foreground border-primary font-bold shadow-sm"
+                                                      : "bg-background text-muted-foreground hover:text-foreground border-border hover:border-primary/40"
+                                                  }`}
+                                                >
+                                                  1:{ratioVal}
+                                                </button>
+                                              ))}
+                                              <input
+                                                type="number"
+                                                min={1}
+                                                max={20}
+                                                value={currentRatio}
+                                                data-testid={`stage-2-ratio-input-${langCode}`}
+                                                aria-label={`${meta?.name || langCode} ratio`}
+                                                onChange={(e) => {
+                                                  const val = Math.max(
+                                                    1,
+                                                    parseInt(e.target.value, 10) || 1,
+                                                  );
+                                                  const next = {
+                                                    ...ttsRatios,
+                                                    [langCode]: val,
+                                                  };
+                                                  setTtsRatios(next);
+                                                  saveTtsRatioPreference(langCode, val);
+                                                  if (videoId) {
+                                                    saveVideoSettings(videoId, {
+                                                      ttsRatios: { [langCode]: val },
+                                                    });
+                                                  }
+                                                }}
+                                                className="w-12 h-6 text-xs text-center rounded border border-input bg-background font-mono"
+                                              />
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
                                   </div>
                                 </div>
                               </div>

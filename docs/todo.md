@@ -1,6 +1,6 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Hotfix: Fix ReferenceError initialState is not defined in src/routes/index.tsx
-- **Sub-task**: Subtask Hotfix.1 - Replace `initialState.videoId` with `videoId || DEFAULT_VIDEO_ID` in `src/routes/index.tsx`.
-- **Validation**: Dedicated test `scripts/verify-initialstate-referenceerror-fix.ts`, `compile_applet`, `lint_applet`.
+- **Active Task**: Task 284 (Chapter 2): Setup & Store Named Language Ratio Compositions with Easy Dropdown Next/Around Video
+- **Sub-task**: Subtask 284.1 - Implement named ratio compositions utility and setup/store UI in the Learning Goals stage so users can setup, store, and name custom ratio compositions.
+- **Validation**: `src/utils/ratioCompositionsManager.ts`, `scripts/verify-named-ratio-compositions-dropdown.ts`.

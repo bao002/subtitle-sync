@@ -1,5 +1,81 @@
 # Done tasks
 
+## Task 283 (Chapter 1): Language Ratios Settings as Part of Learning Goals at the End of That Stage
+
+- **Prompt**:
+  ```
+  1. language ratios settings are part of learning goals and should come in the end of that stage
+  ```
+- **Implementation**:
+  - **Sub-task 283.1 (Learning Goals Language Ratios Integration)**:
+    - In `src/routes/index.tsx`, added section 3: "Learning Goals: Language Narration Ratios" (`stage-2-language-ratios-container`) to the end of Stage 2 (Learning Goals & Default Language), positioned strictly after 1. Default Source Language and 2. Approved Learning Languages, and before the Stage 2 action buttons.
+    - Rendered ratio controls for each approved learning language and primary language with preset buttons (`1:1`, `1:2`, `1:3`, `1:5`, `1:10`) and custom numeric input.
+    - In `BeginnerPreferencesTab.tsx`, repositioned `perLanguageTtsSettingsSlot` wrapped in `beginner-learning-goals-ratios-container` to strictly follow `GlobalFavoriteLanguagesPanel` at the end of the Learning Goals stage, enforcing 100% parity across Advanced and Beginner modes.
+    - Added alias `saveTtsRatioPreference = setTtsRatioPreference` in `src/lib/playback-preferences.ts`.
+  - **Sub-task 283.2 (Dedicated Automated Verification Test)**:
+    - Authored `scripts/verify-learning-goals-language-ratios.ts` testing the exact structural position of language ratios at the end of Stage 2 in `index.tsx`, Beginner Mode parity in `BeginnerPreferencesTab.tsx`, and functional ratio persistence.
+    - Registered `test:learning-goals-language-ratios` in `package.json`.
+  - **Sub-task 283.3 (Version Bump & Suite Verification)**:
+    - Synchronized application version `2.0.83` across `package.json`, `android-shell/app/build.gradle.kts` (versionCode 20083, versionName 2.0.83), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Validation**:
+  - `npm run test:learning-goals-language-ratios` PASSED (100% verified).
+  - `npm run test:apk-version` PASSED (v2.0.83 verified).
+  - `npm run test:agents-all` PASSED (19/19 checks).
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+
+
+## Task 282: Seamless Multi-Language Caption Changes Interception & Switchable Default Subtitles Accumulation (X -> Y -> Z)
+
+- **Prompt**:
+  ```
+  to be clear - i repeat the last sowftware requirement for making sure the app is updated:
+  assume the default subtitles is X, the user may update the video to show captions of language Y and later chooses Z. then all those subtitles changes should have triggered youtube api requests and all those request should be intercepted. more-over - all those subtitles should be added to the list of default languages and be apeared on a switchable list around the video.
+  ```
+- **Implementation**:
+  - **Sub-task 282.1 (Interception & Dynamic Accumulation Pipeline)**:
+    - In `registerLiveCaptionInterceptor` in `src/routes/index.tsx`, ensured that ANY intercepted YouTube API subtitle track (whether `lang` or `tlang`) accumulates into `defaultSubtitleLanguages` via `addDefaultSubtitleLanguage(videoId, lang)` and `setDefaultSubtitleLanguages((prev) => (prev.includes(lang) ? prev : [...prev, lang]))`.
+    - In `handlePlayerCaptionToggled` and `handleTogglePlayerCaptionTrack`, ensured that whenever the user changes or selects captions in the YouTube player, the new language code is accumulated into `addDefaultSubtitleLanguage(videoId, langCode)` and `defaultSubtitleLanguages` state, and loads the corresponding subtitle track into `tracks`.
+    - In `handleSelectDefaultSubtitle`, wired 1-click default subtitle selection from `SwitchableDefaultSubtitlesBar` to update `baseLanguage`, `primaryTtsLangState`, `shown` table languages, and dynamically switch the YouTube player's caption track (`player.setOption("captions", "track", { languageCode: langCode })`).
+  - **Sub-task 282.2 (Switchable Default Subtitles Presentation Around Video)**:
+    - Verified `SwitchableDefaultSubtitlesBar` renders the accumulated list of default subtitles `[X, Y, Z]` around the video component in Advanced Mode, Beginner Mode, and Video Playground.
+    - Enhanced `VideoPlayground.tsx` so all accumulated default languages and detected tracks are unified into the switchable bar.
+  - **Sub-task 282.3 (Dedicated Automated Test Suite)**:
+    - Authored `scripts/verify-caption-interception-accumulation.ts` simulating the full sequence: initial subtitle X ('en') -> user updates captions to Y ('es') -> user later chooses Z ('he'), asserting authentic timedtext interception, payload parsing, persistent storage, and switchable bar rendering.
+    - Registered `test:caption-interception-accumulation` script in `package.json`.
+  - **Sub-task 282.4 (Version Bump & Suite Verification)**:
+    - Synchronized application version `2.0.82` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode 20082, versionName 2.0.82), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+- **Validation**:
+  - `npm run test:caption-interception-accumulation` PASSED (100% verified X -> Y -> Z sequence).
+  - `npm run test:switchable-default-subtitles` PASSED.
+  - `npm run test:apk-version` PASSED (v2.0.82 verified).
+  - `npm run test:agents-all` PASSED (19/19 checks).
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+
+
+### Hotfix: Fix ReferenceError initialState is not defined in src/routes/index.tsx
+
+- **Issue**:
+  ```
+  Fix the errors in the app
+  [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load initialState is not defined
+  ReferenceError: initialState is not defined at src/routes/index.tsx
+  ```
+- **Root Cause**:
+  - In `src/routes/index.tsx`, `defaultSubtitleLanguages` state initialization referenced `initialState.videoId`, but `initialState` variable was not defined in the scope of `IndexRoute`.
+- **Implementation**:
+  - Replaced `initialState.videoId` with `videoId || DEFAULT_VIDEO_ID` in `src/routes/index.tsx` line 918.
+  - Updated `src/utils/appSettings.ts` to use `APP_VERSION` from `../config/appConfig`.
+  - Bumped version to `2.0.81` across all 5 version targets (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`).
+  - Added automated test `scripts/verify-initialstate-referenceerror-fix.ts` verifying that `src/routes/index.tsx` contains no undefined `initialState` references and that `defaultSubtitleLanguages` initializes correctly.
+- **Validation**:
+  - `npx tsx scripts/verify-initialstate-referenceerror-fix.ts` PASSED.
+  - `npx tsx scripts/verify-apk-version-and-releases.ts` PASSED (version v2.0.81 verified).
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+
+
 ## Task 281: Distinct Color for Each Accordion Background
 
 - **Prompt**:

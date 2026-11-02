@@ -366,3 +366,30 @@ Fix the errors in the app
 [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load initialState is not defined
 ReferenceError: initialState is not defined at src/routes/index.tsx
 ```
+
+---
+
+### Prompt 34: Go on (Resume and verify app)
+```
+go on
+```
+
+---
+
+### Prompt 35: Intercept YouTube API Caption Changes (X -> Y -> Z) & Accumulate in Switchable Default Languages Around Video
+```
+to be clear - i repeat the last sowftware requirement for making sure the app is updated:
+assume the default subtitles is X, the user may update the video to show captions of language Y and later chooses Z. then all those subtitles changes should have triggered youtube api requests and all those request should be intercepted. more-over - all those subtitles should be added to the list of default languages and be apeared on a switchable list around the video.
+```
+
+---
+
+### Prompt 36: Language Ratios at End of Learning Goals & Named Stored Compositions Dropdown Around Video
+```
+1. language ratios settings are part of learning goals and should come in the end of that stage
+
+2. the user can setup and store different compositions of languages ration and give it a name and later is able to switch between those options using an easy dropdown list which is located next/around the video
+```
+
+
+
