@@ -4,11 +4,11 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 284 (Chapter 2): Setup & Store Named Language Ratio Compositions with Easy Dropdown Next/Around Video**
-  - Subtask 284.1: Implement named ratio compositions store and creation UI in the Learning Goals stage (setup, name, store custom ratio presets).
-  - Subtask 284.2: Build and place an easy dropdown list component (`LanguageRatioCompositionSelector`) located next/around the video (in Advanced Mode, Beginner Mode, and Playground) allowing 1-click switching of ratio compositions.
-  - Subtask 284.3: Create dedicated automated test `scripts/verify-named-ratio-compositions-dropdown.ts`.
-  - Subtask 284.4: Bump version to 2.0.84 across all 5 files, compile (`compile_applet`), lint (`lint_applet`), commit, push, and migrate Task 284 to `docs/done.md`.
+- [ ] **Task 286: Single Source of Truth Versioning Architecture & Automated GitHub Actions Sync**
+  - Subtask 286.1: Establish `package.json` as the authoritative single source of truth; refactor `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts` to derive/import `APP_VERSION` directly from the single source of truth instead of maintaining duplicate hardcoded strings.
+  - Subtask 286.2: Build automated version synchronization script `scripts/sync-version.ts` and GitHub Action workflow `.github/workflows/version-sync.yml` to automatically synchronize `android-shell/app/build.gradle.kts` from `package.json`.
+  - Subtask 286.3: Update `AGENTS.md` versioning rule and `scripts/verify-agents-version-rule.ts` to formalize and validate the single source of truth policy.
+  - Subtask 286.4: Create dedicated automated test `scripts/verify-single-source-version-architecture.ts`, compile (`compile_applet`), lint (`lint_applet`), run full test suite (`npm run test:agents-all`), commit, and migrate to `docs/done.md`.
 
 ## Later Tasks
 

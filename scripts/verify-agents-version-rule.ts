@@ -81,15 +81,19 @@ console.log(
 // 5. Verify src/utils/appSettings.ts default snapshot version
 assert(fs.existsSync(appSettingsPath), "src/utils/appSettings.ts must exist");
 const appSettingsContent = fs.readFileSync(appSettingsPath, "utf8");
-const appSettingsVersionMatch = appSettingsContent.match(/version:\s*"([^"]+)"/);
-assert(appSettingsVersionMatch, "appSettings.ts AppStateSnapshot must contain version");
-const appSettingsVersion = appSettingsVersionMatch[1];
+const appSettingsLiteralMatch = appSettingsContent.match(/version:\s*"([^"]+)"/);
+const usesDynamicAppVersion = appSettingsContent.includes("version: APP_VERSION");
+assert(
+  appSettingsLiteralMatch || usesDynamicAppVersion,
+  "appSettings.ts AppStateSnapshot must contain version string or reference APP_VERSION single source of truth",
+);
+const appSettingsVersion = appSettingsLiteralMatch ? appSettingsLiteralMatch[1] : packageJson.version;
 assert(
   appSettingsVersion !== "1.0" && appSettingsVersion !== "1.0.0",
   `appSettings.ts version must not stay 1.0, got: "${appSettingsVersion}"`,
 );
 console.log(
-  `✅ PASS: src/utils/appSettings.ts has updated snapshot version: "${appSettingsVersion}"`,
+  `✅ PASS: src/utils/appSettings.ts has updated snapshot version: "${appSettingsVersion}" (${usesDynamicAppVersion ? "dynamic APP_VERSION reference" : "literal"})`,
 );
 
 // 6. Verify cross-file version synchronization

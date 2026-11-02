@@ -27,6 +27,7 @@ import {
   Play,
   RefreshCw,
   RotateCcw,
+  Sliders,
   SlidersHorizontal,
   Smartphone,
   Sparkles,
@@ -2004,11 +2005,7 @@ function Index() {
       if (videoId) {
         saveVideoSettings(videoId, { ttsRatios: nextRatios });
       }
-      notifySubtitleFetch(
-        "info",
-        `Applied "${comp.name}" ratio composition`,
-        comp.id,
-      );
+      notifySubtitleFetch("info", `Applied "${comp.name}" ratio composition`, comp.id);
     },
     [baseLanguage, primaryTtsLangState, targetLanguages, videoId],
   );
