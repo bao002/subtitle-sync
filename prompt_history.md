@@ -402,6 +402,50 @@ error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.0.83 dev
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 38: Hotfix ReferenceError: Sliders is not defined
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Sliders is not defined
+error 1: [APP_PAGE_ERROR] This page didn't load: Sliders is not defined
+error 2: ReferenceError: Sliders is not defined
+    at https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/src/routes/index.tsx:9379:52
+    at Array.map (<anonymous>)
+    at Index (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/src/routes/index.tsx:6030:9)
+    at Object.react_stack_bottom_frame (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:14140:12)
+    at renderWithHooks (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:4398:19)
+    at updateFunctionComponent (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:5773:16)
+    at beginWork (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:6389:20)
+    at runWithFiberInDEV (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:943:66)
+    at performUnitOfWork (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:9146:92)
+    at workLoopSync (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:9042:37)
+error 3: %o
+
+%s
+
+%s ReferenceError: Sliders is not defined
+    at https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/src/routes/index.tsx:9379:52
+    at Array.map (<anonymous>)
+    at Index (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/src/routes/index.tsx:6030:9)
+    at Object.react_stack_bottom_frame (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:14140:12)
+    at renderWithHooks (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:4398:19)
+    at updateFunctionComponent (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:5773:16)
+    at beginWork (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=58ceee0f:6389:20)
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 39: Single Place of Truth Versioning & Automated GitHub Actions Sync
+```
+1. currently the agent  update version for every change. this ofcourse not effective to update many files with the same version. try to find a way to effectivly update a version while relying on a single place of truth. consider moving automated operations to github action and being rely on single config file.
+```
+
+
+
 
 
 

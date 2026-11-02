@@ -27,6 +27,7 @@ import {
   Play,
   RefreshCw,
   RotateCcw,
+  Sliders,
   SlidersHorizontal,
   Smartphone,
   Sparkles,

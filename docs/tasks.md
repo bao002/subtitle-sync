@@ -4,7 +4,11 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-(No active tasks pending. All tasks from Prompt 36 and Prompt 37 hotfix are completed and migrated to docs/done.md)
+- [ ] **Task 286: Single Source of Truth Versioning Architecture & Automated GitHub Actions Sync**
+  - Subtask 286.1: Establish `package.json` as the authoritative single source of truth; refactor `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts` to derive/import `APP_VERSION` directly from the single source of truth instead of maintaining duplicate hardcoded strings.
+  - Subtask 286.2: Build automated version synchronization script `scripts/sync-version.ts` and GitHub Action workflow `.github/workflows/version-sync.yml` to automatically synchronize `android-shell/app/build.gradle.kts` from `package.json`.
+  - Subtask 286.3: Update `AGENTS.md` versioning rule and `scripts/verify-agents-version-rule.ts` to formalize and validate the single source of truth policy.
+  - Subtask 286.4: Create dedicated automated test `scripts/verify-single-source-version-architecture.ts`, compile (`compile_applet`), lint (`lint_applet`), run full test suite (`npm run test:agents-all`), commit, and migrate to `docs/done.md`.
 
 ## Later Tasks
 

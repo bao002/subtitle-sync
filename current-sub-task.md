@@ -1,6 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: [COMPLETED]
-- **Active Task**: None (Hotfix for Dev Server Pre-warming and Task 284 are completed and migrated to `docs/done.md`)
-- **Sub-task**: None
-- **Validation**: `npm run test:dev-server-prewarming-hotfix`, `npm run test:named-ratio-compositions-dropdown`, `npm run test:agents-all`, `compile_applet`, `lint_applet`.
+- **Status**: [IN_PROGRESS]
+- **Active Task**: Task 286: Single Source of Truth Versioning Architecture & Automated GitHub Actions Sync
+- **Sub-task**: Subtask 286.1 - Establish package.json as single source of truth; refactor appConfig.ts, apkUpdater.ts, and appSettings.ts to derive/import version dynamically.
+- **Validation**: `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, `npm run test:apk-version`.

@@ -1,0 +1,60 @@
+name: Single Source of Truth Version Sync
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "package.json"
+      - "android-shell/app/build.gradle.kts"
+      - "src/config/appConfig.ts"
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - "package.json"
+      - "android-shell/app/build.gradle.kts"
+  workflow_dispatch:
+
+concurrency:
+  group: version-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  version-sync:
+    name: Verify & Sync Application Version from package.json
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify Single Source of Truth Version Parity
+        run: |
+          echo "Checking version synchronization with single source of truth (package.json)..."
+          npx tsx scripts/sync-version.ts --check
+
+      - name: Auto-Sync Downstream Targets if Needed
+        if: failure() && github.event_name == 'push'
+        run: |
+          npx tsx scripts/sync-version.ts
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add android-shell/app/build.gradle.kts
+            git commit -m "chore(version): sync build.gradle.kts with package.json [skip ci]"
+            git push
+          fi

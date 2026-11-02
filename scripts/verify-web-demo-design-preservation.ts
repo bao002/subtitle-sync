@@ -32,19 +32,23 @@ assert.ok(
 
 const appConfig = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert.ok(
-  appConfig.includes(`APP_VERSION = "${expectedVersion}"`),
+  appConfig.includes(`APP_VERSION = "${expectedVersion}"`) ||
+    appConfig.includes("APP_VERSION = packageJson.version"),
   `appConfig.ts must declare APP_VERSION ${expectedVersion}`,
 );
 
 const apkUpdater = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
 assert.ok(
-  apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVersion}"`),
+  apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVersion}"`) ||
+    apkUpdater.includes("`v${APP_VERSION}`") ||
+    apkUpdater.includes('"v" + APP_VERSION'),
   `apkUpdater.ts must declare CURRENT_APK_VERSION v${expectedVersion}`,
 );
 
 const appSettings = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
 assert.ok(
-  appSettings.includes(`version: "${expectedVersion}"`),
+  appSettings.includes(`version: "${expectedVersion}"`) ||
+    appSettings.includes("version: APP_VERSION"),
   `appSettings.ts must declare version ${expectedVersion}`,
 );
 console.log("✅ PASS: Version 1.0.25 strictly aligned across all target files.");

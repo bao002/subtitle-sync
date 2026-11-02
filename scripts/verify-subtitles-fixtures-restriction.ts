@@ -31,7 +31,7 @@ assert.ok(gradle.includes(pkg.version), `build.gradle.kts must have versionName 
 
 const appSettings = fs.readFileSync("src/utils/appSettings.ts", "utf-8");
 assert.ok(
-  appSettings.includes(`version: "${pkg.version}"`),
+  appSettings.includes(`version: "${pkg.version}"`) || appSettings.includes("version: APP_VERSION"),
   `appSettings.ts must have version ${pkg.version}`,
 );
 console.log(`✓ Version ${pkg.version} verified across all targets.`);

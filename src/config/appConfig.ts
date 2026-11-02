@@ -1,16 +1,18 @@
 import { LibraryVideoItem } from "../types";
+import packageJson from "../../package.json";
 
 /**
  * Global Application Configuration & Default Settings
+ * Single Source of Truth: package.json
  */
 
-export const APP_VERSION = "2.0.84";
+export const APP_VERSION = packageJson.version;
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||
   "e482b19";
 export const APP_VERSION_DESCRIPTION =
-  "Named language ratio compositions and quick switching dropdown next to video (Version 2.0.84)";
+  `Subtitle Sync (Version ${APP_VERSION})`;
 
 
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";

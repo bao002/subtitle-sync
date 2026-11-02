@@ -51,7 +51,7 @@ export interface ArtifactUpdateProgress {
   tagName?: string;
 }
 
-export const CURRENT_APK_VERSION = "v2.0.84";
+export const CURRENT_APK_VERSION = `v${APP_VERSION}`;
 
 export { APP_COMMIT_ID, APP_VERSION_DESCRIPTION };
 export const ALL_RELEASES_URL = "https://github.com/mostuf2556/subtitle-sync/releases";

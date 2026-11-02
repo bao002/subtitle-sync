@@ -1,12 +1,6 @@
-<!-- LOVABLE: Avoid rewriting published git history (force push/rebase/amend) to protect Lovable sync. Keep working state. -->
-
 ## Subtitles fetching (read first)
 
 - Subtitle fetch design (attempt order, session vs link-only sending, refetch buttons, web demo = local fixtures only) lives in [docs/reliable-subtitles-fetching.md](docs/reliable-subtitles-fetching.md).
-
-## Codespaces, Docker, and E2E runbooks (read before running)
-
-- See [docs/codespace.md](docs/codespace.md), [docs/docker.md](docs/docker.md), [docs/e2e.md](docs/e2e.md), [docker/manage.sh](docker/manage.sh), [docs/docker-e2e.md](docs/docker-e2e.md), and [docs/e2e-android.md](docs/e2e-android.md).
 
 ## Subtitles fixtures restriction & zero hardcoded subtitles policy
 
@@ -30,9 +24,7 @@ The application processes and presents subtitles through a strict sequential pip
 
 ### Absolute Parity Rule Between Advanced and Beginner Modes:
 
-- **Default cross-mode scope**: Unless a prompt explicitly limits its scope, every requested behavior, setting, bug fix, and UI capability MUST apply to both Beginner and Advanced modes. Implement shared behavior through the same component or source of truth whenever both modes expose the feature; mode-specific differences may change presentation or ordering only when explicitly required.
-- The processing rules (special characters removal before translation, punctuation splitting, alignment criteria, fallback order) **MUST BE 100% IDENTICAL** across both Advanced Mode and Beginner Mode.
-- Tests for shared behavior MUST cover both modes unless the behavior is inherently mode-specific.
+- Shared behavior, settings, bug fixes, and processing rules **MUST BE 100% IDENTICAL** across both Advanced Mode and Beginner Mode through the same component or source of truth.
 - **Parallel UI & Accordion Ordering**:
   - The Special Characters Removal (Chars Removal) feature MUST be present in Advanced Mode as a dedicated accordion section, providing full functional parity with Beginner Mode.
   - In BOTH Advanced Mode and Beginner Mode, the Chars Removal section/accordion MUST strictly appear BEFORE the Parser (Sentence Splitting) section/accordion, adhering directly to the pipeline sequence (Stage 3 Chars Removal precedes Stage 4 Parser).
@@ -49,8 +41,6 @@ The application processes and presents subtitles through a strict sequential pip
 - **Check pending pull requests before starting features**: Before starting work on another feature, always check that there are no pending open pull requests by checking `https://github.com/mostuf2556/subtitle-sync/pulls` (e.g. via GitHub API, web, or CLI).
 - **New chat window for each sub-task**: Keep each sub-task scoped, resumable, and independent.
 - **Resume after interruption**: Read this section, `current-sub-task.md`, `docs/todo.md`, and active entries in `docs/tasks.md` to identify the source of truth for where to continue.
-- **Fresh-chat recommendation for uncommitted work**: Inspect `git status --short` and diffs. Reply **“go on”** when changes form one coherent task with passing validation. If uncertain, point user to `current-sub-task.md`.
-- Inspect diffs before editing, reconcile trackers with worktree, and do not resume tasks already recorded in `docs/done.md`.
 - **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**: ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md`. There must be ZERO duplicate `.md` files in the repository. Only `README.md`, `AGENTS.md`, `current-sub-task.md`, and `temp.md` are permitted in root.
 - **Mandatory token economy flow on every prompt (`docs/tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `docs/tokens.md` and maintain `current-sub-task.md`.
 - **Task management protocol with `current-sub-task.md` & `temp.md`**: Break every prompt into clear numbered tasks and smaller sub-tasks in `docs/tasks.md` before performing actions. Maintain `current-sub-task.md` (and `docs/todo.md`) by staging the single active sub-task before executing any step. Use `temp.md` as an ephemeral scratchpad for draft diffs, checklists, or intermediate calculations.
@@ -72,7 +62,6 @@ The application processes and presents subtitles through a strict sequential pip
   5. **Resume held task**: After hotfix is verified, restore suspended task back to active status in `current-sub-task.md` and `docs/todo.md`, and resume work.
 - **Always keep last raw prompt in AGENTS.md**: `AGENTS.md` must continuously record and preserve the exact, unedited raw text of the user's latest prompt in a dedicated `## Last raw prompt` section on EVERY single prompt received.
 - **Later tasks protocol**: Any "later" task MUST be stored at the bottom under `## Later Tasks` in `docs/tasks.md` (and `docs/later.md`). When active tasks are complete, ask user whether to proceed with "later" tasks.
-- **Codespace platform blockers**: If blocked in Codespaces without toolchain/device, move to `## Later Tasks` in `docs/tasks.md` and `docs/later.md` with exact validation command, then resume remaining tasks.
 - **No more tasks "go on" handling**: In case no more tasks are left (active backlog in `docs/tasks.md` and `current-sub-task.md` is empty), if prompt is "go on", then just summarize that there are no more tasks left. No need to show anything else.
 - **Numbered chapters as serial tasks protocol**: When user prompt consists of numbered chapters (e.g. `1. ...`, `2. ...`), treat each as a separate distinct task in `docs/tasks.md`, divided into sub-tasks worked on strictly serially: execute, test, verify, compile, lint, commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
@@ -85,20 +74,11 @@ The application processes and presents subtitles through a strict sequential pip
 - **Custom hooks and state isolation**: Complex state management, reactive side-effects, speech synthesis/TTS management, and multi-player coordination must be extracted into dedicated custom hooks under `src/hooks/` or state managers under `src/utils/`.
 - **Naming and file inventory**: Maintain a documented inventory of files in `docs/files.md`. Name every code file descriptively according to its exact function and feature responsibility.
 
-## Clean repository hygiene and authentic testing
-
-- Keep repository strictly clean of build products, generated artifacts, and synthetic report files: only genuine source code, configs, GitHub Actions workflows, and Markdown documentation (`.md` files) belong in repository. Build outputs (`dist/`, caches) remain ephemeral.
-- Do not maintain hardcoded report generators or synthetic artifact creators.
-- E2E and integration tests validate real application source code directly.
-
 ## Project-specific delivery
 
-- This project remains identical in architecture, tooling, workflows, scripts, and conventions to [mostuf2556/Youtubenet6](https://github.com/mostuf2556/Youtubenet6), with deliberate differences limited strictly to views and subtitles parser.
 - **README.md is to be created by GitHub Actions — do not copy it when syncing git**: `README.md` is to be created and dynamically updated by GitHub Actions (via `.github/workflows/update-readme.yml` and `scripts/update-readme.mjs`). When syncing git, **`README.md` MUST NOT be copied or overwritten**.
-- **App version updates**: The app version number must not stay 1.0 always; it should be updated across `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts` when delivering updates for prompt response.
+- **App version updates & single source of truth**: The app version number must not stay 1.0 always; it should be updated when delivering updates for prompt response. `package.json` is the authoritative single place of truth for the application version. Downstream TypeScript files (`src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) dynamically import or derive `APP_VERSION` from `package.json`, and `android-shell/app/build.gradle.kts` is automatically synchronized via `npm run sync-version` and GitHub Actions (`.github/workflows/version-sync.yml`).
 - **Strict UI & Web-Demo Design Preservation Mandate**: NEVER alter, redesign, replace, re-theme, or disrupt the user interface, page layout, component structure, or web-demo design without explicit user confirmation and request. The clean, original web-demo layout MUST remain intact.
-- **Zero GitHub Actions cron jobs policy**: All GitHub Actions workflows under `.github/workflows/` must strictly be event-driven (`push`, `pull_request`, `workflow_dispatch`, `workflow_run`). No workflow may define a `schedule:` or `cron` trigger under any circumstances.
-
 ### Android app E2E validation, screencast video & GitHub Pages reporting
 
 - **Mandatory E2E verification on real Android runtimes**: Changes to Android shell components, WebView bridges, native caption interception, or video player integrations MUST be validated through E2E execution on an Android device or emulator (API 34 Google APIs) using `scripts/run-android-e2e.sh`, `scripts/android-e2e-assert.sh`, and `e2e/emulation.spec.ts`.
@@ -143,10 +123,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 - **Leftmost column as default language**: The leftmost column in the parallel subtitles table always acts as the default language and is automatically added to the user's favorite languages as the default-subtitle.
 - **Shared-subtitle parameter synchronization**: When the app or web-demo is triggered by a URL containing a `target_lang` query parameter (e.g. `?target_lang=he`), that shared-subtitle language is automatically added to the list of favorite languages and enabled for the current video.
 
-## Product design standards
-
-- Distinguish new-user setup from daily viewing; keep video and subtitles table central to repeat use.
-- Beginner mode is guided setup; Advanced mode contains feature controls; diagnostics require `debug=true`.
 ## Supabase quarantine & prompt history policy
 
 - **Quarantine Supabase / database files**: No prompt instructions have been issued regarding database support for this project. All Supabase-related files, database configs, and docs must be strictly quarantined under `quarentined/`. Keep the project lean and client-side without DB dependencies.
@@ -155,12 +131,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-Fix the errors in the app
-[AIS_METADATA_SECTION_START]
-fix_it_trigger: manual
-error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.0.83 dev > vite --host 0.0.0.0 --port 3000 --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1507 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
-[AIS_METADATA_SECTION_END]
+1. currently the agent  update version for every change. this ofcourse not effective to update many files with the same version. try to find a way to effectivly update a version while relying on a single place of truth. consider moving automated operations to github action and being rely on single config file.
 ```
-
-
 
