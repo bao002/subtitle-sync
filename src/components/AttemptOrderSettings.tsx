@@ -25,6 +25,8 @@ import {
   moveAttempt,
 } from "@/lib/subtitle-fetch-plan";
 import { WinnerPromotionReportModal } from "./WinnerPromotionReportModal";
+import { ExperimentalSubtitleFetchPanel } from "./ExperimentalSubtitleFetchPanel";
+import { Json3 } from "@/types";
 
 interface Props {
   order: FetchAttempt[];
@@ -41,6 +43,9 @@ interface Props {
   windowSeconds?: number;
   onChangeWindowSeconds?: (sec: number) => void;
   developerMode?: boolean;
+  currentVideoId?: string;
+  observedUrl?: string;
+  onApplySubtitles?: (lang: string, json: Json3) => void;
 }
 
 export const AttemptOrderSettings: React.FC<Props> = ({
@@ -58,6 +63,9 @@ export const AttemptOrderSettings: React.FC<Props> = ({
   windowSeconds,
   onChangeWindowSeconds,
   developerMode = false,
+  currentVideoId,
+  observedUrl,
+  onApplySubtitles,
 }) => {
   const [inputServerUrl, setInputServerUrl] = useState(fetchServerUrl);
   const [showWinnerReport, setShowWinnerReport] = useState(false);
@@ -458,6 +466,16 @@ export const AttemptOrderSettings: React.FC<Props> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {developerMode && (
+        <ExperimentalSubtitleFetchPanel
+          currentVideoId={currentVideoId}
+          observedUrl={observedUrl}
+          fetchServerUrl={fetchServerUrl}
+          defaultServerEnabled={useFetchServer}
+          onApplySubtitles={onApplySubtitles}
+        />
       )}
 
       <WinnerPromotionReportModal

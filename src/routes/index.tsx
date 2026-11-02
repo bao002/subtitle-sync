@@ -6756,6 +6756,24 @@ function Index() {
                                           subtitleRequestQueue.setWindowSeconds(sec);
                                         }}
                                         developerMode={isDeveloperMode}
+                                        currentVideoId={videoId}
+                                        observedUrl={observedUrl}
+                                        onApplySubtitles={(langCode, json) => {
+                                          if (videoId) {
+                                            saveCachedRawJson3(
+                                              videoId,
+                                              langCode,
+                                              JSON.stringify(json),
+                                            );
+                                          }
+                                          startSubtitlesTransition(() => {
+                                            setTracks((prev) => ({ ...prev, [langCode]: json }));
+                                            setShown((prev) =>
+                                              prev.includes(langCode) ? prev : [...prev, langCode],
+                                            );
+                                          });
+                                          speakFetchedLanguageName(langCode);
+                                        }}
                                       />
                                     )}
                                     <div className="pt-2 border-t border-border/60 space-y-2">

@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.74",
+  "version": "2.0.79",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -17,6 +17,10 @@
     "lint": "eslint src/lib src/routes",
     "coverage": "npm run test:coverage",
     "test:coverage": "tsx scripts/generate-test-coverage.ts",
+    "test:experimental-subtitle-fetching": "tsx scripts/verify-experimental-subtitle-fetching.ts",
+    "test:steps-doc": "tsx scripts/verify-steps-doc.ts",
+    "test:next-version-from-scratch": "tsx scripts/verify-next-version-from-scratch.ts",
+    "test:next-version-review": "tsx scripts/verify-next-version-review.ts",
     "test:storybook-deploy-readme": "tsx scripts/verify-storybook-deploy-readme.ts",
     "test:storybook-components-catalog": "tsx scripts/verify-storybook-components-catalog.ts",
     "test:storybook-setup": "tsx scripts/verify-storybook-setup.ts",
