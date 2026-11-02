@@ -1,5 +1,165 @@
 # Done tasks
 
+## Task 279: Experimental Subtitle Fetching Controls in Debug Mode
+
+- **Prompt**:
+  ```
+  the fetching subtitles module should include the experimental features on debug mode which allow it to try fetch subtitles in other langs using with/without tlang/lang ,with/without using the server
+  ```
+- **Implementation**:
+  - **Sub-task 279.1 (Modular Experimental Subtitle Fetching Playground)**:
+    - Created `src/components/ExperimentalSubtitleFetchPanel.tsx` marked with `data-control-category="experimental"` and `data-testid="experimental-subtitle-fetch-panel"`.
+    - Implemented other languages selection supporting presets (`es`, `he`, `fr`, `de`, `ar`, `ru`, `ja`, `it`) and custom language codes.
+    - Added mode toggles:
+      - `with tlang` (retains base lang, appends `&tlang=<lang>`)
+      - `with lang` / without tlang (replaces `&lang=<lang>`, deletes `tlang`)
+    - Added transport route toggles:
+      - `without server` (direct web fetch or Android native shell bridge)
+      - `with server` (server proxy via `<server>/api/proxy?url=...` with configured URL)
+    - Added interactive actions:
+      - "Try Fetch Subtitles" button for the selected combination.
+      - "Test All 4 Combinations" matrix runner to simultaneously diagnose all 4 permutations (`tlang direct`, `tlang server`, `lang direct`, `lang server`).
+    - Added real-time diagnostics viewer displaying HTTP status, executed URL, schema outcome (`Valid JSON3`, `HTML Bot Blocked`, or error details), and a "Load into Player" action.
+    - Integrated `ExperimentalSubtitleFetchPanel` into `AttemptOrderSettings.tsx` strictly guarded by `developerMode`.
+    - Wired `onApplySubtitles` in `src/routes/index.tsx` to directly load successful experimental subtitle tracks into active player state.
+    - Created Storybook story `src/components/ExperimentalSubtitleFetchPanel.stories.tsx` for isolated component design and inspection.
+  - **Sub-task 279.2 (Version Bump & Automated Test)**:
+    - Synchronized application version `2.0.79` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode 20079), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Implemented dedicated automated test `scripts/verify-experimental-subtitle-fetching.ts` registered as `test:experimental-subtitle-fetching` in `package.json`.
+    - Preserved `AGENTS.md` raw prompt and size budget (`20,687` <= 21,000 bytes) and recorded Prompt 29 in `prompt_history.md`.
+- **Validation**:
+  - `npm run test:experimental-subtitle-fetching` PASSED (100% verified controls, options, and version parity).
+  - `npm run test:agents-all` PASSED (19/19 AGENTS.md constitutional contract checks).
+  - `compile_applet` PASSED cleanly.
+  - `lint_applet` PASSED cleanly (0 errors).
+
+## Task 278: Author `docs/steps.md` for Isolated Module Design, Testing & Minimal Integration
+
+- **Prompt**:
+  ```
+  1. write the steps.md  of creating such app in a way that every module and component can be tested in isolation. can be design in isolation and be able to be part of the app using minimal integration. order the steps by importance (for example)
+  ```
+- **Implementation**:
+  - **Sub-task 278.1 (Author Architectural Steps Guide in docs/steps.md)**:
+    - Formulated `docs/steps.md` strictly under `docs/*.md` adhering to the repository hygiene and zero-duplicate markdown rules.
+    - Structured the architecture into 6 ordered steps ranked strictly by descending importance:
+      - **Step 1 (Highest Importance): Pure Transformation Pipeline (Sanitization & Sentence Splitting)**: Pure functional text sanitization and punctuation splitting with time interpolation; tested in milliseconds with zero DOM, zero network, zero React.
+      - **Step 2 (High Importance): Multi-Language Temporal Alignment Matrix Engine**: Synchronizes heterogeneous tracks to a base time spine; deterministic unit tests with duration mismatches.
+      - **Step 3 (High Importance): Headless Playback & Speech Coordination State Machine**: FSM managing video pausing, speech synthesis (TTS) completion, and active cue synchronization; tested headlessly with synthetic millisecond ticks.
+      - **Step 4 (Medium Importance): Caption Ingestion & Schema Conformance Gate**: YouTube JSON3 validator rejecting non-200 and HTML captcha pages; validated with contract test fixtures.
+      - **Step 5 (Medium Importance): Isolated UI Components in Storybook**: Visual design of `SentenceRow`, `SubtitleMatrixView`, `PlaybackToolbar`, `LanguageSelector`, `TtsControlPanel`, and `PreferencesDrawer` using pure props and Storybook stories.
+      - **Step 6 (Minimal Integration Layer): The Glue Shell**: Container wiring player clock ticks to state store and passing derived props to UI components with minimal coupling.
+    - Provided the summary isolation/integration table outlining design patterns, test harnesses, and integration surfaces for every step.
+  - **Sub-task 278.2 (Version Bump & Verification Suite)**:
+    - Synchronized application version `2.0.78` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts` (versionCode 20078), `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Implemented dedicated automated test `scripts/verify-steps-doc.ts` registered as `test:steps-doc` in `package.json`.
+    - Preserved `AGENTS.md` raw prompt and size budget (`20,732` <= 21,000 bytes) and appended Prompt 28 to `prompt_history.md`.
+- **Validation**:
+  - `npm run test:steps-doc` PASSED (100% verified all steps, isolated design/testing, and version parity).
+  - `npm run test:agents-all` PASSED (19/19 AGENTS.md constitutional contract checks).
+  - `compile_applet` PASSED cleanly.
+  - `lint_applet` PASSED cleanly (0 errors).
+
+## Task 277: Persist Yes/No Architectural Review into `docs/next_version_from_scratch.md`
+
+- **Prompt**:
+  ```
+  did u wrote all to the .md file ?
+  ```
+- **Implementation**:
+  - **Sub-task 277.1 (Persist Architectural Review into Blueprint)**:
+    - Appended Section 7 "Architectural Review: Key App-Level Design Decisions (Yes/No Diagnostic Guide)" directly into `docs/next_version_from_scratch.md`.
+    - Documented all 8 diagnostic Yes/No questions, architectural decisions, core rationales, and the specific historical anti-patterns ("bad parts") avoided:
+      1. Data Flow & Clock Heartbeat (Unidirectional clock bus vs scattered polling).
+      2. Pipeline Sequence & Text Sanitization (Sanitize before splitting/translating).
+      3. Backend & Persistence Strategy (100% client-first localStorage vs database/backend sprawl).
+      4. Audio Coordination & Video Pausing (Deterministic FSM vs `setTimeout` timer hacks).
+      5. UI Hierarchy & Modes (Unified component tree with progressive disclosure vs dual-mode DOM duplication).
+      6. Subtitle Ingestion & Fixture Boundaries (Zero hardcoded subtitles vs inlined static mock arrays).
+      7. Component Responsibilities & Modularity (<250-line modular components vs 9,000+ line mega-files).
+      8. Subtitle Matrix Grid Model (Base track as temporal spine vs unaligned independent rows).
+    - Added the complete summary checklist table for clean-slate rebuilds.
+  - **Sub-task 277.2 (Test Suite & Version Synchronization)**:
+    - Updated `scripts/verify-next-version-review.ts` to assert the presence of Section 7 and all 8 Yes/No questions in `docs/next_version_from_scratch.md`.
+    - Synchronized version `2.0.77` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Preserved `AGENTS.md` raw prompt and size budget (`20,599` <= 21,000 bytes) and appended Prompt 27 to `prompt_history.md`.
+- **Validation**:
+  - `npm run test:next-version-review` PASSED (all pipeline steps, core components, and 8 Yes/No questions verified).
+  - `npm run test:agents-all` PASSED (19/19 AGENTS.md constitutional contract checks).
+  - `compile_applet` PASSED cleanly.
+  - `lint_applet` PASSED cleanly (0 errors).
+
+## Task 276: Architectural Review of Next Version Design via Yes/No Questions
+
+- **Prompt**:
+  ```
+  lets review that document. using yes/no question to reveal what is the most important app-level-design decisions.
+  ```
+- **Implementation**:
+  - **Sub-task 276.1 (Diagnostic Yes/No Architectural Evaluation Framework)**:
+    - Reviewed `docs/next_version_from_scratch.md` and formulated 8 core diagnostic Yes/No questions dissecting foundational app-level design decisions.
+    - Isolated key architectural paradigms: Unidirectional Media-Driven Clock, Strict Sanitization Before Translation, 100% Client-Side Reactive State (No DB), Deterministic Finite State Machine (FSM) for Audio/Video Coordination, Single Unified Component Tree with Progressive Disclosure, Zero Hardcoded Subtitles Policy, Pure Functional Pipeline Transformations, and Headless Decoupled Audio Coordinator.
+    - Articulated the architectural rationale, pitfalls avoided ("bad parts"), and concrete benefits for each decision.
+  - **Sub-task 276.2 (Synchronization & Quality Verification)**:
+    - Updated version to `2.0.76` across all 5 targets: `package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, and `src/utils/appSettings.ts`.
+    - Created dedicated verification test `scripts/verify-next-version-review.ts` and registered `test:next-version-review` in `package.json`.
+    - Updated `AGENTS.md` (last raw prompt retained, size budget 20,749 <= 21,000 bytes) and `prompt_history.md`.
+- **Validation**:
+  - `npm run test:next-version-review` PASSED (100% verified).
+  - `npm run test:agents-all` PASSED (all 19/19 AGENTS.md constitutional contract checks).
+  - `compile_applet` PASSED cleanly.
+  - `lint_applet` PASSED cleanly (0 errors).
+
+## Task 275: Create Next Version From Scratch Architecture Guide
+
+- **Prompt**:
+  ```
+  create a docs/next_version_from_scratch.md
+  explain how to create this application in the simplest form by explaining the app design without getting into details. that doc should be used as the how-to build such application but without taking the bad part which are part of this project history.
+  start from a zoom out explanaiton and give a closer overview in few steps. no need to explain how to build a component only to dscribe each's goal.
+  ```
+- **Implementation**:
+  - **Sub-task 275.1 (Author Architectural Guide `docs/next_version_from_scratch.md`)**:
+    - Created authoritative clean-slate architecture document strictly under `docs/*.md`.
+    - Included **The Zoom-Out View (30,000-Foot Architectural Mental Model)**:
+      - Formulated the unidirectional media-driven pipeline where player timestamp ticks drive subtitle highlight and audio coordination.
+      - Defined the clean-slate simplicity principle: 100% client-side reactive state, zero database/server complexity, and pure functional caption transformations.
+    - Provided **The Closer Overview in 5 Sequential Build Steps**:
+      - Step 1: Media Host & Playback Clock (lightweight player abstraction & monotonic time bus).
+      - Step 2: Caption Ingestion & Schema Gate (JSON3 timedtext validation, rejecting HTML errors).
+      - Step 3: Text Sanitization & Sentence Boundary Splitting (strict order: sanitize noise/speaker brackets before splitting/translating, followed by linear timestamp interpolation).
+      - Step 4: Multi-Language Sentence Matrix Alignment (temporal overlap alignment of secondary/translated tracks to base sentence spine).
+      - Step 5: Read-Along & Audio Synthesis Coordinator (clean deterministic Finite State Machine for video pause, TTS speech, and playback resumption).
+    - Formulated **Component Inventory**:
+      - Focused strictly on component *goals and responsibilities* without code implementation boilerplate (`VideoPlayerHost`, `SubtitleMatrixView`, `SentenceRow`, `AudioCoordinator`, `LanguageSelector`, `PlaybackToolbar`, `PreferencesDrawer`, `CaptionSourceGate`).
+    - Explicitly Analyzed and Omitted **The "Bad Parts" of Project History**:
+      - No Monolithic Files (preventing 9,000+ line routes by enforcing modular <250 line components).
+      - No Dual-Mode DOM Duplication (unifying Beginner and Advanced views into a single component tree with progressive disclosure).
+      - No Premature Database or Backend Sprawl (100% serverless with standard localStorage persistence).
+      - No Ad-hoc Race Conditions or Timer Hacks (formal FSM instead of scattered setTimeout calls).
+      - Zero Hardcoded Subtitle Pollution (strict zero hardcoded subtitles in source code; isolated mock providers for tests).
+      - No Deeply Nested Accordion Mazes (clean tabbed/drawer hierarchy).
+  - **Sub-task 275.2 (Dedicated Automated Verification Suite)**:
+    - Implemented `scripts/verify-next-version-from-scratch.ts` testing:
+      - Path existence strictly under `docs/*.md` and no duplicate files in root.
+      - Zoom-out explanation and unidirectional pipeline presence.
+      - Closer overview in 5 sequential build steps.
+      - Component inventory focusing on goals and responsibilities.
+      - Explicit identification and omission of historical bad parts (monolithic files, dual-mode duplication, database creep, timer race condition hacks, hardcoded subtitle pollution).
+    - Registered `"test:next-version-from-scratch"` script in `package.json`.
+  - **Sub-task 275.3 (Version 2.0.75 Parity)**:
+    - Incremented version to `2.0.75` (`versionCode = 20075`) across all 5 constitutional targets:
+      1. `package.json`
+      2. `android-shell/app/build.gradle.kts`
+      3. `src/config/appConfig.ts`
+      4. `src/utils/apkUpdater.ts`
+      5. `src/utils/appSettings.ts`
+- **Dedicated verification**:
+  - `npm run test:next-version-from-scratch` (PASS, 100% assertions)
+  - `npm run test:agents-all` (PASS, 19/19 constitutional contract checks passed)
+  - `compile_applet` (PASS)
+  - `lint_applet` (PASS, 0 errors)
+
 ## Task 274: Deploy Storybook via GitHub Actions and Link in README
 
 - **Prompt**: `github actions should deploy the storybook and README should contain its link`

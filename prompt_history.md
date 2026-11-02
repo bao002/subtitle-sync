@@ -302,3 +302,53 @@ ensure storybook contains the component of the application
 github actions should deploy the storybook and README should contain its link
 ```
 
+---
+
+### Prompt 25: Create Next Version From Scratch Architecture Guide
+```
+create a docs/next_version_from_scratch.md
+explain how to create this application in the simplest form by explaining the app design without getting into details. that doc should be used as the how-to build such application but without taking the bad part which are part of this project history.
+start from a zoom out explanaiton and give a closer overview in few steps. no need to explain how to build a component only to dscribe each's goal.
+```
+
+---
+
+### Prompt 26: Architectural Review of Next Version Design via Yes/No Questions
+```
+lets review that document. using yes/no question to reveal what is the most important app-level-design decisions.
+```
+
+---
+
+### Prompt 27: Persist Yes/No Architectural Decisions into Document
+```
+did u wrote all to the .md file ?
+```
+
+---
+
+### Prompt 28: Write steps.md of creating app with isolated testable/designable modules and minimal integration
+```
+1. write the steps.md  of creating such app in a way that every module and component can be tested in isolation. can be design in isolation and be able to be part of the app using minimal integration. order the steps by importance (for example)
+```
+
+---
+
+---
+
+### Prompt 30: Proxy Server Investigation for Subtitle URL Fetching & Historical Implementation
+```
+1. which server does it use to proxy the   subtitles url fetch address with/without entire request params ?
+
+2. did u find the old implementation for that feature ?
+```
+
+---
+
+### Prompt 31: Verify Full Use of Old Implementation: Random Strategy & Statistics-Driven Promotion
+```
+does it fully used the old implementation including the random strategy being used and report statistics while using it to choose the best strategy next ?
+```
+
+
+

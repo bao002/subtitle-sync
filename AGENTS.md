@@ -155,7 +155,11 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-github actions should deploy the storybook and README should contain its link
+does it fully used the old implementation including the random strategy being used and report statistics while using it to choose the best strategy next ?
 ```
+
+
+
+
 
 
