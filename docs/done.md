@@ -1,5 +1,48 @@
 # Done tasks
 
+### Task 298: Remove Redundant Video Sequence Controls and TTS Order Column (Superseded by Video Precedence Bar)
+
+- **Prompt**:
+  ```
+  those items are redundunt now after having the video precedence bar
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3)
+  CSS 1: {
+
+  }
+  CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(7)
+  CSS 2: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - Researched focus-mode skill and targeted the selected redundant UI elements:
+    - CSS Selector 1: `VideoLanguageSequenceControl` and `section-order-select` container in Languages panel (Advanced Mode) and Beginner Mode.
+    - CSS Selector 2: "TTS Order" column header (`th:nth-of-type(7)`) and per-language order selects (`LanguageTtsOrderSelect`) in `unified-languages-table`.
+  - In `src/routes/index.tsx` (Advanced Mode):
+    - Removed `VideoLanguageSequenceControl` and the `section-order-select` container.
+    - Removed `<th>TTS Order</th>` from `unified-languages-table` header.
+    - Removed `<td><LanguageTtsOrderSelect ... /></td>` from each language row.
+    - Updated `unified-languages-table` from 10 columns to 9 columns (Language, Is Primary, Rate, TTS Ratio, TTS-Play, Present in Table, JSON3, Subtitle URL, Order).
+    - Updated `VideoPlaybackPrecedenceBar asTableRow` `colSpan` to 9 (both at top of table and in row positions).
+    - Updated subtitle URL drawer `colSpan` to 9.
+    - Cleaned up unused imports (`VideoLanguageSequenceControl`, `LanguageTtsOrderSelect`).
+  - In `src/components/beginner/PerLanguageTtsPreferences.tsx` (Beginner Mode):
+    - Enforced strict 100% parity with Advanced Mode.
+    - Removed `<VideoLanguageSequenceControl ... />` and `<div id="beginner-section-order-select" ... />`.
+    - Removed `<LanguageTtsOrderSelect ... />` from each language card.
+    - Preserved `VideoPlaybackPrecedenceBar` and the "Place Video Here" button as the single unified precedence authority.
+    - Cleaned up unused imports.
+  - Quarantined root `supabase/` and `src/integrations/supabase` into `quarentined/` in compliance with Supabase quarantine rules.
+- **Validation**:
+  - Dedicated automated test `scripts/verify-video-precedence-replaces-redundant-order-controls.ts` passed 100%.
+  - Regression tests `scripts/verify-tts-language-playback-order.ts`, `scripts/verify-supabase-quarantine-tts-and-sequence.ts`, and `scripts/verify-accordion-stages-of-appearance.ts` passed 100%.
+  - Bumped version to `2.0.97` across all 5 files (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) via `npm run sync-version`.
+  - `compile_applet` passed (`Build succeeded - the applet is compiled`).
+  - `lint_applet` passed with zero errors (`eslint src/lib src/routes`).
+
 ### Hotfix: Import Filter from lucide-react in src/routes/index.tsx
 
 - **Prompt**:

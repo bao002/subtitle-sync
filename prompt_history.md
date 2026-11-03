@@ -658,4 +658,23 @@ error 3: %o
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 53: Remove Redundant Sequence Control & TTS Order Column (Superseded by Video Precedence Bar)
+```
+those items are redundunt now after having the video precedence bar
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(7)
+CSS 2: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+
 

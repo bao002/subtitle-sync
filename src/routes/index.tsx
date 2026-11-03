@@ -149,7 +149,6 @@ import {
 import { LanguageBoxesSelector } from "@/components/LanguageBoxesSelector";
 import { GlobalFavoriteLanguagesPanel } from "@/components/GlobalFavoriteLanguagesPanel";
 import { LanguageSubtitleUrlModal } from "@/components/LanguageSubtitleUrlModal";
-import { VideoLanguageSequenceControl } from "@/components/VideoLanguageSequenceControl";
 import {
   VideoPlaybackPrecedenceBar,
   getVideoBarIndex,
@@ -263,7 +262,6 @@ import {
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
 import { PerLanguageTtsPreferences } from "@/components/beginner/PerLanguageTtsPreferences";
-import { LanguageTtsOrderSelect } from "@/components/LanguageTtsOrderSelect";
 import {
   BeginnerTtsServiceControl,
   type BeginnerTtsService,
@@ -9036,47 +9034,6 @@ function Index() {
                                   onApplyFavoritesToVideo={handleResetVideoToFavorites}
                                   onSaveCurrentSelectionAsFavorites={handleSaveCurrentAsFavorites}
                                 />
-                                <VideoLanguageSequenceControl
-                                  spokenLanguages={spoken.map((c) => ({
-                                    code: c,
-                                    name: LANGS.find((l) => l.code === c)?.name || c,
-                                  }))}
-                                  sectionOrder={sectionOrder}
-                                  languageOrders={ttsLanguageOrders}
-                                  onSectionOrderChange={handleSectionOrderChange}
-                                  onLanguageOrderChange={handleTtsLanguageOrderChange}
-                                />
-                                <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
-                                  <div className="space-y-0.5">
-                                    <label
-                                      htmlFor="section-order-select"
-                                      className="text-xs font-medium text-foreground cursor-pointer"
-                                    >
-                                      Video &amp; TTS Playback Sequence
-                                    </label>
-                                    <div className="text-[11px] text-muted-foreground">
-                                      Choose whether video plays before, after, or in between
-                                      TTS-play groups
-                                    </div>
-                                  </div>
-                                  <select
-                                    id="section-order-select"
-                                    data-testid="section-order-select"
-                                    value={sectionOrder}
-                                    onChange={(e) =>
-                                      handleSectionOrderChange(e.target.value as SectionOrder)
-                                    }
-                                    className="rounded border border-input bg-background px-2.5 py-1 text-xs text-foreground cursor-pointer font-medium"
-                                  >
-                                    <option value="video-first">
-                                      Video before TTS (Video first)
-                                    </option>
-                                    <option value="tts-first">Video after TTS (TTS first)</option>
-                                    <option value="video-middle">
-                                      Video in between TTS groups (1 group before, 1 group after)
-                                    </option>
-                                  </select>
-                                </div>
                                 <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
                                   <div className="space-y-0.5">
                                     <label
@@ -9233,12 +9190,6 @@ function Index() {
                                           </th>
                                           <th
                                             className="font-normal text-center py-1.5 px-1.5"
-                                            title="Choose whether each language speaks before or after its video section"
-                                          >
-                                            TTS Order
-                                          </th>
-                                          <th
-                                            className="font-normal text-center py-1.5 px-1.5"
                                             data-testid="th-json3"
                                             title="Direct JSON3 subtitle status and manual video player caption toggle indication"
                                           >
@@ -9259,7 +9210,7 @@ function Index() {
                                         {activeVideoBarIndex === 0 && (
                                           <VideoPlaybackPrecedenceBar
                                             asTableRow
-                                            colSpan={10}
+                                            colSpan={9}
                                             currentPosition={0}
                                             totalRecords={orderedLangs.length}
                                             onMoveUp={() => handleSetVideoBarPosition(0)}
@@ -9504,16 +9455,6 @@ function Index() {
                                                     }
                                                   />
                                                 </td>
-                                                <td className="py-1 px-1.5">
-                                                  <LanguageTtsOrderSelect
-                                                    languageCode={lang.code}
-                                                    languageName={lang.name}
-                                                    order={
-                                                      ttsLanguageOrders[lang.code] ?? sectionOrder
-                                                    }
-                                                    onChange={handleTtsLanguageOrderChange}
-                                                  />
-                                                </td>
                                                 <td
                                                   className="text-center py-1 px-1.5"
                                                   data-testid={`col-json3-${lang.code}`}
@@ -9644,7 +9585,7 @@ function Index() {
                                                   data-testid={`url-input-row-${lang.code}`}
                                                   className="bg-primary/5 border-y border-primary/20"
                                                 >
-                                                  <td colSpan={8} className="p-2.5">
+                                                  <td colSpan={9} className="p-2.5">
                                                     <div className="space-y-2 max-w-xl text-xs">
                                                       <div className="flex items-center justify-between">
                                                         <span className="font-semibold text-foreground flex items-center gap-1.5">
@@ -9815,7 +9756,7 @@ function Index() {
                                               {activeVideoBarIndex === index + 1 && (
                                                 <VideoPlaybackPrecedenceBar
                                                   asTableRow
-                                                  colSpan={10}
+                                                  colSpan={9}
                                                   currentPosition={index + 1}
                                                   totalRecords={orderedLangs.length}
                                                   onMoveUp={() => handleSetVideoBarPosition(index)}
