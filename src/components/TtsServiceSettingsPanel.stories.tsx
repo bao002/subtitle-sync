@@ -47,6 +47,7 @@ const InteractivePanelWrapper: React.FC<Partial<TtsServiceSettingsPanelProps>> =
   const [voice, setVoice] = useState<string>(props.voice || "");
   const [speechRate, setSpeechRate] = useState<number>(props.speechRate ?? 0.5);
   const [key, setKey] = useState<string>(props.currentKeyInput || "");
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(props.isAnonymous ?? false);
   const [isValidating, setIsValidating] = useState(false);
   const [isTestingAudio, setIsTestingAudio] = useState(false);
   const [validationResult, setValidationResult] = useState<RemoteTtsValidationResult | null>(
@@ -59,7 +60,8 @@ const InteractivePanelWrapper: React.FC<Partial<TtsServiceSettingsPanelProps>> =
     setIsValidating(false);
     setValidationResult({
       ok: true,
-      serviceName: engine === "google_translate" ? "Google TTS (Direct)" : `Lovable Speak API (${provider})`,
+      service: engine,
+      serviceName: engine === "google_translate" ? "Google TTS Directly" : `Lovable Speak API (${provider})`,
       latencyMs: 142,
       timestamp: Date.now(),
       details: "Audio stream operational and responsive",
@@ -96,6 +98,8 @@ const InteractivePanelWrapper: React.FC<Partial<TtsServiceSettingsPanelProps>> =
         isValidating={isValidating}
         isTestingAudio={isTestingAudio}
         validationResult={validationResult}
+        isAnonymous={isAnonymous}
+        onAnonymousChange={setIsAnonymous}
         showDebugger={props.showDebugger ?? false}
         {...props}
       />
@@ -104,21 +108,64 @@ const InteractivePanelWrapper: React.FC<Partial<TtsServiceSettingsPanelProps>> =
 };
 
 /**
- * 1. Google Direct Mode (Zero clutter: No provider, no voice, no token input, single validate button)
+ * 1. Google Direct Mode (Initial Unvalidated State: Shows Validate button, hides Play button)
  */
 export const GoogleDirect: Story = {
   render: () => <InteractivePanelWrapper engine="google_translate" mode="always" />,
 };
 
 /**
- * 2. Lovable Auto Public Tier (Shows provider selector; hides voice & token input since auto uses public tier)
+ * 2. Validated State with Play Button (After validation is OK: Shows Play button & Re-validate)
+ */
+export const ValidatedWithPlayButton: Story = {
+  render: () => (
+    <InteractivePanelWrapper
+      engine="google_translate"
+      mode="always"
+      validationResult={{
+        ok: true,
+        service: "google_translate",
+        serviceName: "Google TTS Directly (translate_tts)",
+        latencyMs: 88,
+        audioVerified: true,
+        details: "Audio stream loaded and decoded successfully",
+        timestamp: Date.now(),
+      }}
+    />
+  ),
+};
+
+/**
+ * 3. Anonymous Mode (Choose between regular and anonymous mode)
+ */
+export const AnonymousModeGoogleDirect: Story = {
+  render: () => (
+    <InteractivePanelWrapper
+      engine="google_translate"
+      mode="always"
+      isAnonymous={true}
+      validationResult={{
+        ok: true,
+        service: "google_translate",
+        serviceName: "Google TTS Directly (translate_tts)",
+        latencyMs: 92,
+        audioVerified: true,
+        details: "Anonymous stream verified",
+        timestamp: Date.now(),
+      }}
+    />
+  ),
+};
+
+/**
+ * 4. Lovable Auto Public Tier (Shows provider selector; hides voice & token input since auto uses public tier)
  */
 export const LovableAutoPublic: Story = {
   render: () => <InteractivePanelWrapper engine="lovable" provider="auto" mode="always" />,
 };
 
 /**
- * 3. Lovable OpenRouter Keyed (Reveals voice dropdown and token input for Speak API personal token or upstream key)
+ * 5. Lovable OpenRouter Keyed (Reveals voice dropdown and token input for Speak API personal token or upstream key)
  */
 export const LovableOpenRouterKeyed: Story = {
   render: () => (
@@ -133,33 +180,27 @@ export const LovableOpenRouterKeyed: Story = {
 };
 
 /**
- * 4. Lovable OpenAI Provider (Reveals OpenAI voices: alloy, echo, fable, onyx, nova, shimmer)
+ * 6. Live Visual Debugger Monitoring on Same View
  */
-export const LovableOpenAi: Story = {
-  render: () => (
-    <InteractivePanelWrapper
-      engine="lovable"
-      provider="openai"
-      voice="nova"
-      mode="always"
-    />
-  ),
-};
-
-/**
- * 5. Fallback Only Mode
- */
-export const FallbackOnlyMode: Story = {
+export const LiveVisualMonitor: Story = {
   render: () => (
     <InteractivePanelWrapper
       engine="google_translate"
-      mode="fallback_only"
+      mode="always"
+      showDebugger={true}
+      validationResult={{
+        ok: true,
+        service: "google_translate",
+        serviceName: "Google TTS Directly",
+        latencyMs: 104,
+        timestamp: Date.now(),
+      }}
     />
   ),
 };
 
 /**
- * 6. Validation Error State
+ * 7. Validation Error State
  */
 export const ValidationFailedState: Story = {
   render: () => (
@@ -169,6 +210,7 @@ export const ValidationFailedState: Story = {
       mode="always"
       validationResult={{
         ok: false,
+        service: "lovable",
         serviceName: "Lovable Speak API (openrouter)",
         latencyMs: 812,
         timestamp: Date.now(),

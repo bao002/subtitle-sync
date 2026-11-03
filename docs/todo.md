@@ -1,6 +1,6 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 286: Single Source of Truth Versioning Architecture & Automated GitHub Actions Sync
-- **Sub-task**: Subtask 286.1 - Establish package.json as single source of truth; refactor appConfig.ts, apkUpdater.ts, and appSettings.ts to derive/import version dynamically.
-- **Validation**: `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`, `npm run test:apk-version`.
+- **Active Task**: Task 289: TTS Service Validation-Before-Play, Live Request Visual Monitor & Anonymous Mode Toggle (Chapter 0 & 0.1)
+- **Sub-task**: Subtask 289.1 - Add anonymous mode settings, fallback order state in alternative-tts.ts, update TtsServiceSettingsPanel with validate-first-then-play flow, visual monitoring, and anonymous toggle in Storybook.
+- **Validation**: `src/lib/alternative-tts.ts`, `src/components/TtsServiceSettingsPanel.tsx`, `src/components/TtsServiceSettingsPanel.stories.tsx`.

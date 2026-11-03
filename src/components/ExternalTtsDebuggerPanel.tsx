@@ -226,6 +226,17 @@ export const ExternalTtsDebuggerPanel: React.FC<Props> = ({
                         provider: {activeRecord.provider || "google"}
                       </span>
 
+                      <span
+                        data-testid="external-tts-anonymity-badge"
+                        className={`px-1.5 py-0.5 rounded font-mono text-[10px] font-medium ${
+                          activeRecord.isAnonymous
+                            ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30"
+                            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {activeRecord.isAnonymous ? "Anonymous" : "Regular"}
+                      </span>
+
                       {activeRecord.voice && (
                         <span className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px]">
                           voice: {activeRecord.voice}

@@ -66,6 +66,8 @@ import {
   getDefaultVoiceForProvider,
   validateRemoteTtsService,
   getLastValidationResult,
+  getAlternativeTtsAnonymousMode,
+  setAlternativeTtsAnonymousMode,
   type AlternativeTtsMode,
   type AlternativeTtsEngine,
   type LovableTtsProvider,
@@ -151,6 +153,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       return null;
     }
   });
+  const [isAnonymousState, setIsAnonymousState] = useState<boolean>(() => getAlternativeTtsAnonymousMode());
   const [showOrderHelp, setShowOrderHelp] = useState<boolean>(false);
 
   const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
@@ -160,6 +163,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       const res = await validateRemoteTtsService(targetEngine, {
         lang: baseLanguage || "en",
         provider: lovableTtsProviderState,
+        isAnonymous: isAnonymousState,
       });
       setRemoteValidationResult(res);
     } catch (err: any) {
@@ -724,97 +728,187 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 <span>•</span>
                 <span>Voice: <span className="text-foreground">{lovableTtsProviderState === "google" ? "Default" : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore")}</span></span>
               </p>
+              {/* Anonymity Mode Selector (Regular vs Anonymous) */}
+              <div
+                data-testid="beginner-tts-anonymity-mode-control"
+                className="flex flex-wrap items-center justify-between gap-2 rounded border border-border/50 bg-background/50 px-2.5 py-1.5 text-xs"
+              >
+                <div className="flex flex-col">
+                  <span className="text-foreground font-medium flex items-center gap-1.5">
+                    <span>Access Mode:</span>
+                    <span
+                      data-testid="beginner-tts-anonymity-status-label"
+                      className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-semibold ${
+                        isAnonymousState
+                          ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {isAnonymousState ? "Anonymous" : "Regular"}
+                    </span>
+                  </span>
+                  <span className="text-[10.5px] text-muted-foreground">
+                    {isAnonymousState
+                      ? "Anonymous: strips cookies, session tokens, and personal identifiers"
+                      : "Regular: uses standard credentials and session tracking"}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded border border-input">
+                  <button
+                    type="button"
+                    data-testid="beginner-tts-anonymity-regular-btn"
+                    onClick={() => {
+                      setIsAnonymousState(false);
+                      setAlternativeTtsAnonymousMode(false);
+                    }}
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono cursor-pointer transition-all ${
+                      !isAnonymousState
+                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Regular
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="beginner-tts-anonymity-anonymous-btn"
+                    onClick={() => {
+                      setIsAnonymousState(true);
+                      setAlternativeTtsAnonymousMode(true);
+                    }}
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono cursor-pointer transition-all ${
+                      isAnonymousState
+                        ? "bg-amber-500 text-white dark:bg-amber-600 font-semibold shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Anonymous
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-2 pt-1 border-t border-border/40">
               <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  data-testid="btn-validate-remote-tts"
-                  disabled={isValidatingRemoteTts}
-                  onClick={() => handleValidateRemoteService()}
-                  className="px-2.5 py-1 rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-xs font-mono inline-flex items-center gap-1.5 text-primary disabled:opacity-60 cursor-pointer font-medium"
-                >
-                  {isValidatingRemoteTts ? (
-                    <>
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                      <span>Validating Service…</span>
-                    </>
-                  ) : (
-                    <>
-                      <Activity className="h-3 w-3" />
-                      <span>
-                        Validate {alternativeTtsEngineState === "lovable" ? "TTS3 Service" : "Google TTS Directly"}
-                      </span>
-                    </>
-                  )}
-                </button>
+                {!remoteValidationResult?.ok ? (
+                  <>
+                    <button
+                      type="button"
+                      data-testid="btn-validate-remote-tts"
+                      disabled={isValidatingRemoteTts}
+                      onClick={() => handleValidateRemoteService()}
+                      className="px-2.5 py-1 rounded border border-primary/40 bg-primary/10 hover:bg-primary/20 text-xs font-mono inline-flex items-center gap-1.5 text-primary disabled:opacity-60 cursor-pointer font-medium"
+                    >
+                      {isValidatingRemoteTts ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <span>Validating Service…</span>
+                        </>
+                      ) : (
+                        <>
+                          <Activity className="h-3 w-3" />
+                          <span>
+                            Validate {alternativeTtsEngineState === "lovable" ? "TTS3 Service" : "Google TTS Directly"}
+                          </span>
+                        </>
+                      )}
+                    </button>
 
-                <button
-                  type="button"
-                  data-testid="btn-validate-google-tts-directly"
-                  disabled={isValidatingRemoteTts}
-                  onClick={() => handleValidateRemoteService("google_translate")}
-                  className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                  title="Validate Google Translate TTS endpoint directly"
-                >
-                  Validate Google Direct
-                </button>
+                    <button
+                      type="button"
+                      data-testid="btn-validate-google-tts-directly"
+                      disabled={isValidatingRemoteTts}
+                      onClick={() => handleValidateRemoteService("google_translate")}
+                      className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                      title="Validate Google Translate TTS endpoint directly"
+                    >
+                      Validate Google Direct
+                    </button>
 
-                <button
-                  type="button"
-                  data-testid="btn-validate-tts3-service"
-                  disabled={isValidatingRemoteTts}
-                  onClick={() => handleValidateRemoteService("lovable")}
-                  className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                  title="Validate Lovable TTS3 public endpoint"
-                >
-                  Validate TTS3 Service
-                </button>
+                    <button
+                      type="button"
+                      data-testid="btn-validate-tts3-service"
+                      disabled={isValidatingRemoteTts}
+                      onClick={() => handleValidateRemoteService("lovable")}
+                      className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                      title="Validate Lovable TTS3 public endpoint"
+                    >
+                      Validate TTS3 Service
+                    </button>
 
-                <button
-                  type="button"
-                  data-testid="btn-test-alternative-tts"
-                  disabled={isTestingAlternativeTts}
-                  onClick={async () => {
-                    setIsTestingAlternativeTts(true);
-                    try {
-                      await playAlternativeTtsAudio(
-                        "Hello world",
-                        baseLanguage || "en",
-                        ttsSpeed,
-                        undefined,
-                        alternativeTtsEngineState,
-                        {
-                          provider: lovableTtsProviderState,
-                          voice:
-                            lovableTtsProviderState === "google"
-                              ? undefined
-                              : lovableTtsVoiceState ||
-                                (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
-                          speed: ttsSpeed,
-                        },
-                      );
-                    } catch (err) {
-                      console.warn("Test Alternative TTS error:", err);
-                    } finally {
-                      setIsTestingAlternativeTts(false);
-                    }
-                  }}
-                  className="px-2.5 py-1 rounded border border-input bg-background hover:bg-muted text-xs font-mono inline-flex items-center gap-1.5 text-foreground disabled:opacity-60 cursor-pointer"
-                >
-                  {isTestingAlternativeTts ? (
-                    <>
-                      <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                      <span>Playing test audio…</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="h-3 w-3 text-primary" />
-                      <span>▶ Test Audio ({alternativeTtsEngineState === "lovable" ? "TTS3" : "Google Direct"})</span>
-                    </>
-                  )}
-                </button>
+                    <span
+                      data-testid="beginner-tts-validation-required-hint"
+                      className="text-[11px] text-muted-foreground font-mono inline-flex items-center gap-1"
+                    >
+                      <AlertCircle className="h-3 w-3 text-muted-foreground/70" />
+                      <span>Validate service first to enable playback</span>
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      data-testid="btn-test-alternative-tts"
+                      disabled={isTestingAlternativeTts}
+                      onClick={async () => {
+                        setIsTestingAlternativeTts(true);
+                        try {
+                          await playAlternativeTtsAudio(
+                            "Hello world",
+                            baseLanguage || "en",
+                            ttsSpeed,
+                            undefined,
+                            alternativeTtsEngineState,
+                            {
+                              provider: lovableTtsProviderState,
+                              voice:
+                                lovableTtsProviderState === "google"
+                                  ? undefined
+                                  : lovableTtsVoiceState ||
+                                    (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
+                              speed: ttsSpeed,
+                              isAnonymous: isAnonymousState,
+                            },
+                          );
+                        } catch (err) {
+                          console.warn("Test Alternative TTS error:", err);
+                        } finally {
+                          setIsTestingAlternativeTts(false);
+                        }
+                      }}
+                      className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-mono inline-flex items-center gap-1.5 disabled:opacity-60 cursor-pointer font-semibold shadow-xs"
+                    >
+                      {isTestingAlternativeTts ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin text-white" />
+                          <span>Playing test audio…</span>
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-3 w-3 text-white fill-current" />
+                          <span>▶ Test Audio ({alternativeTtsEngineState === "lovable" ? "TTS3" : "Google Direct"})</span>
+                        </>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      data-testid="btn-validate-remote-tts"
+                      disabled={isValidatingRemoteTts}
+                      onClick={() => handleValidateRemoteService()}
+                      className="px-2 py-1 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                      title="Re-validate service endpoint"
+                    >
+                      {isValidatingRemoteTts ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Activity className="h-3 w-3" />
+                      )}
+                      <span>Re-validate</span>
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Validation Status Feedback */}

@@ -31,6 +31,8 @@ const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_TARGET_LANG = "yt_alternative_tts_lova
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY = "yt_alternative_tts_lovable_api_key_v1";
 export const STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN = "yt_speak_api_token_v1";
 export const STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY = "yt_provider_api_key_v1";
+export const STORAGE_KEY_ALTERNATIVE_TTS_ANONYMOUS_MODE = "yt_tts_anonymous_mode_v1";
+export const STORAGE_KEY_TTS_FALLBACK_ORDER = "yt_tts_fallback_order_v1";
 const STORAGE_KEY_REMOTE_TTS_VALIDATION_RESULT = "yt_remote_tts_val_res_v1";
 
 export type AlternativeTtsMode = "fallback_only" | "always";
@@ -39,6 +41,16 @@ export type LovableTtsProvider =
   "auto" | "google" | "lovable" | "openrouter" | "gemini" | "openai" | "elevenlabs" | "deepgram";
 export type LovableTtsMethod = "get" | "post";
 export type LovableTtsFormat = "binary" | "json";
+
+export type TtsFallbackOrder =
+  | "google_tts3_native"
+  | "tts3_google_native"
+  | "native_google_tts3"
+  | "google_native"
+  | "tts3_native"
+  | "native_only";
+
+export const DEFAULT_TTS_FALLBACK_ORDER: TtsFallbackOrder = "google_tts3_native";
 
 /**
  * Checks if a token is a remote Speak API Personal Access / Bearer Token.
@@ -188,6 +200,7 @@ export interface ExternalTtsAuditRecord {
   error?: string;
   diagnosticAdvice?: string;
   source: "test_button" | "validate_service" | "playback" | "api_call";
+  isAnonymous?: boolean;
 }
 
 const MAX_AUDIT_RECORDS = 30;
@@ -267,6 +280,7 @@ export interface LovableTtsOptions {
   apiKey?: string;
   speakApiToken?: string;
   method?: LovableTtsMethod;
+  isAnonymous?: boolean;
 }
 
 export interface LovableTtsRequestBody {
@@ -421,6 +435,11 @@ export function resolveTtsCredentials(options?: LovableTtsOptions): {
   speakApiToken: string;
   providerApiKey: string;
 } {
+  const isAnon = options?.isAnonymous ?? getAlternativeTtsAnonymousMode();
+  if (isAnon) {
+    return { speakApiToken: "", providerApiKey: "" };
+  }
+
   let speakApiToken = (options?.speakApiToken || "").trim();
   let providerApiKey = (options?.apiKey || "").trim();
 
@@ -1303,6 +1322,28 @@ export async function validateRemoteTtsService(
           audio.load();
         });
 
+        const isAnonymous = options?.isAnonymous ?? getAlternativeTtsAnonymousMode();
+        addExternalTtsAuditRecord({
+          id: `val-google-${Date.now()}`,
+          timestamp: Date.now(),
+          method: "GET",
+          url,
+          endpoint: GOOGLE_TRANSLATE_TTS_ENDPOINT,
+          requestHeaders: isAnonymous ? {} : { Referer: "https://translate.google.com" },
+          queryParams: { tl: normalizeLanguageCode(testLang), q: testText },
+          lang: testLang,
+          text: testText,
+          status: audioTestResult.ok ? 200 : (audioTestResult.statusCode || 500),
+          statusText: audioTestResult.ok ? "OK" : "Error",
+          latencyMs: audioTestResult.latencyMs,
+          responseHeaders: {},
+          responseBody: audioTestResult.details || audioTestResult.error,
+          responseType: audioTestResult.ok ? "media" : "error",
+          error: audioTestResult.error,
+          source: "validate_service",
+          isAnonymous,
+        });
+
         setLastValidationResult("google_translate", audioTestResult);
         return audioTestResult;
       } catch (err: unknown) {
@@ -1316,6 +1357,27 @@ export async function validateRemoteTtsService(
           error: (err as Error)?.message || String(err),
           timestamp: Date.now(),
         };
+        const isAnonymous = options?.isAnonymous ?? getAlternativeTtsAnonymousMode();
+        addExternalTtsAuditRecord({
+          id: `val-google-err-${Date.now()}`,
+          timestamp: Date.now(),
+          method: "GET",
+          url,
+          endpoint: GOOGLE_TRANSLATE_TTS_ENDPOINT,
+          requestHeaders: isAnonymous ? {} : { Referer: "https://translate.google.com" },
+          queryParams: { tl: normalizeLanguageCode(testLang), q: testText },
+          lang: testLang,
+          text: testText,
+          status: 500,
+          statusText: "Error",
+          latencyMs: Date.now() - startTime,
+          responseHeaders: {},
+          responseBody: result.error,
+          responseType: "error",
+          error: result.error,
+          source: "validate_service",
+          isAnonymous,
+        });
         setLastValidationResult("google_translate", result);
         return result;
       }
@@ -1658,6 +1720,75 @@ export function setAlternativeTtsMode(mode: AlternativeTtsMode): void {
     console.warn("Failed to persist alternative TTS mode:", err);
   }
   memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_MODE] = mode;
+}
+
+/**
+ * Retrieves whether Alternative TTS runs in Anonymous Mode (no cookies/tokens/identifiers).
+ */
+export function getAlternativeTtsAnonymousMode(): boolean {
+  try {
+    const stored =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_ANONYMOUS_MODE)
+        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_ANONYMOUS_MODE];
+    return stored === "true";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Persists whether Alternative TTS runs in Anonymous Mode.
+ */
+export function setAlternativeTtsAnonymousMode(enabled: boolean): void {
+  const val = enabled ? "true" : "false";
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_ANONYMOUS_MODE, val);
+    }
+  } catch (err) {
+    console.warn("Failed to persist anonymous TTS mode:", err);
+  }
+  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_ANONYMOUS_MODE] = val;
+}
+
+/**
+ * Retrieves the configured TTS fallback order (e.g. google directly -> tts3 -> native).
+ */
+export function getTtsFallbackOrder(): TtsFallbackOrder {
+  try {
+    const stored =
+      typeof localStorage !== "undefined"
+        ? (localStorage.getItem(STORAGE_KEY_TTS_FALLBACK_ORDER) as TtsFallbackOrder)
+        : (memoryFallbackStore[STORAGE_KEY_TTS_FALLBACK_ORDER] as TtsFallbackOrder);
+    if (
+      stored === "google_tts3_native" ||
+      stored === "tts3_google_native" ||
+      stored === "native_google_tts3" ||
+      stored === "google_native" ||
+      stored === "tts3_native" ||
+      stored === "native_only"
+    ) {
+      return stored;
+    }
+  } catch {
+    // fallback
+  }
+  return DEFAULT_TTS_FALLBACK_ORDER;
+}
+
+/**
+ * Persists the TTS fallback order.
+ */
+export function setTtsFallbackOrder(order: TtsFallbackOrder): void {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_TTS_FALLBACK_ORDER, order);
+    }
+  } catch (err) {
+    console.warn("Failed to persist TTS fallback order:", err);
+  }
+  memoryFallbackStore[STORAGE_KEY_TTS_FALLBACK_ORDER] = order;
 }
 
 /**
@@ -2062,6 +2193,7 @@ export async function playAlternativeTtsAudio(
   }
 
   // Direct Google TTS service fallback or direct engine selection:
+  const isAnonymous = optionsOverride?.isAnonymous ?? getAlternativeTtsAnonymousMode();
   if (!audioUrl) {
     audioUrl = buildGoogleTranslateTtsUrl(text, lang);
     const auditId = `tts-google-direct-${Date.now()}`;
@@ -2071,7 +2203,7 @@ export async function playAlternativeTtsAudio(
       method: "GET",
       url: audioUrl,
       endpoint: GOOGLE_TRANSLATE_TTS_ENDPOINT,
-      requestHeaders: {},
+      requestHeaders: isAnonymous ? {} : { Referer: "https://translate.google.com" },
       queryParams: { tl: normalizeLanguageCode(lang), q: text },
       lang,
       text,
@@ -2083,12 +2215,16 @@ export async function playAlternativeTtsAudio(
       responseType: "media",
       audioUrl,
       source: optionsOverride ? "test_button" : "playback",
+      isAnonymous,
     });
   }
   if (!audioUrl) return;
 
   return new Promise((resolve) => {
     const audio = new Audio();
+    if (isAnonymous) {
+      audio.crossOrigin = "anonymous";
+    }
     activeAlternativeAudio = audio;
 
     let hasEnded = false;

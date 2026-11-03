@@ -199,10 +199,15 @@ import {
   getDefaultVoiceForProvider,
   validateRemoteTtsService,
   getLastValidationResult,
+  getAlternativeTtsAnonymousMode,
+  setAlternativeTtsAnonymousMode,
+  getTtsFallbackOrder,
+  setTtsFallbackOrder,
   type RemoteTtsValidationResult,
   type AlternativeTtsMode,
   type AlternativeTtsEngine,
   type LovableTtsProvider,
+  type TtsFallbackOrder,
 } from "@/lib/alternative-tts";
 import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
 import { TtsServiceSettingsPanel } from "@/components/TtsServiceSettingsPanel";
@@ -1212,6 +1217,9 @@ function Index() {
         return null;
       }
     });
+  const [alternativeTtsAnonymousState, setAlternativeTtsAnonymousState] = useState<boolean>(() =>
+    typeof window !== "undefined" ? getAlternativeTtsAnonymousMode() : false,
+  );
 
   const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
     const targetEngine = serviceToValidate || alternativeTtsEngineState;
@@ -1220,6 +1228,7 @@ function Index() {
       const res = await validateRemoteTtsService(targetEngine, {
         lang: baseLanguage || "en",
         provider: lovableTtsProviderState,
+        isAnonymous: alternativeTtsAnonymousState,
       });
       setRemoteValidationResult(res);
     } catch (err: unknown) {
@@ -6006,10 +6015,8 @@ function Index() {
                 }
                 onServiceChange={(service: BeginnerTtsService) => {
                   if (service === "google") {
-                    setLovableTtsProviderState("google");
-                    setLovableTtsProvider("google");
-                    setAlternativeTtsEngineState("lovable");
-                    setAlternativeTtsEngine("lovable");
+                    setAlternativeTtsEngineState("google_translate");
+                    setAlternativeTtsEngine("google_translate");
                     setAlternativeTtsModeState("always");
                     setAlternativeTtsMode("always");
                     setUseAlternativeTtsState(true);
@@ -6741,10 +6748,8 @@ function Index() {
                                   }
                                   onServiceChange={(service: BeginnerTtsService) => {
                                     if (service === "google") {
-                                      setLovableTtsProviderState("google");
-                                      setLovableTtsProvider("google");
-                                      setAlternativeTtsEngineState("lovable");
-                                      setAlternativeTtsEngine("lovable");
+                                      setAlternativeTtsEngineState("google_translate");
+                                      setAlternativeTtsEngine("google_translate");
                                       setAlternativeTtsModeState("always");
                                       setAlternativeTtsMode("always");
                                       setUseAlternativeTtsState(true);
@@ -7398,6 +7403,7 @@ function Index() {
                                                         ? "alloy"
                                                         : "Kore"),
                                                 speed: testRate,
+                                                isAnonymous: alternativeTtsAnonymousState,
                                               },
                                             );
                                           } catch (err) {
@@ -7409,6 +7415,11 @@ function Index() {
                                         isValidating={isValidatingRemoteTts}
                                         isTestingAudio={isTestingAlternativeTts}
                                         validationResult={remoteValidationResult}
+                                        isAnonymous={alternativeTtsAnonymousState}
+                                        onAnonymousChange={(anon) => {
+                                          setAlternativeTtsAnonymousState(anon);
+                                          setAlternativeTtsAnonymousMode(anon);
+                                        }}
                                         showDebugger={true}
                                       />
                                     </div>
