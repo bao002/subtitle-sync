@@ -4,15 +4,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 289 (Chapter 0 & 0.1): TTS Service Validation-Before-Play, Live Request Visual Monitor & Anonymous Mode Toggle**
-  - Subtask 289.1: In Storybook (`src/components/TtsServiceSettingsPanel.stories.tsx`), implement and test the UI state flow: validate button shown first; only after successful validation is the play button unlocked/shown; add visual real-time monitoring display for all requests to the TTS service on the same view; add toggle for regular vs anonymous usage mode.
-  - Subtask 289.2: Implement in `src/components/TtsServiceSettingsPanel.tsx`, `src/lib/alternative-tts.ts`, and `src/utils/appSettings.ts` (state persistence for anonymous mode, validation status, and live request event emission/history).
-  - Subtask 289.3: Dedicated test `scripts/verify-tts-service-validation-and-anonymity.ts`, compile, lint, commit, and migrate to `docs/done.md`.
-
-- [ ] **Task 290 (Chapter 1): Fix Direct Google TTS to Play Purely Directly Without Raising Lovable Error**
-  - Subtask 290.1: Prevent Lovable error reporter from intercepting or triggering on direct Google TTS in `src/lib/alternative-tts.ts` and `src/routes/index.tsx`. Ensure direct Google TTS uses standard browser `Audio` element playback with authentic Google Translate TTS URL directly without Lovable wrapper or synthetic errors.
-  - Subtask 290.2: Dedicated automated test `scripts/verify-direct-google-tts-no-lovable-error.ts`, compile, lint, commit, and migrate to `docs/done.md`.
-
 - [ ] **Task 291 (Chapter 2): TTS Fallback Order Switch Around Video Player with Deep-Link to TTS3 Setup**
   - Subtask 291.1: Build `src/components/TtsFallbackOrderSwitch.tsx` and Storybook story `src/components/TtsFallbackOrderSwitch.stories.tsx` allowing user to configure/switch the fallback order (`google` -> `tts3` -> `native`, etc.) with quick link/button navigating directly to TTS service setup (where TTS3 token and auto provider default can be configured).
   - Subtask 291.2: Place the component around the player (in `src/routes/index.tsx` at the focused CSS selector area `div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)`), connect to playback speech synthesis engine to honor the configured fallback sequence.

@@ -132,21 +132,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-0. general for tts service: first show validation button. after validation is ok - show a play button. (any request to tts service - should be visually monitored for farther debugging on the same view)
-0.1 allow to choose between using that service regular way or anonymosly.
-
-0.AGENTS.md - any component should first be implemented on storyboard - and only after being approved be used on the application itself.
-
-1. choosing tts service: direct google tts rises lovable error!!! but this should use google tts directly and not via lovable !!!! 
-
- 2. use a switch around the player - to determine the order of fallbacks while using the tts service: i.e: 1. google directly 2. tts3 service 3. native (the user would be able to click to navigate into the tts-service-setup to set tts3 token and choose which provider to use on tts3 - by default use "auto")
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)
-CSS 1: {
-
-}
-[AIS_METADATA_SECTION_END]
+go on
 ```
 
 

@@ -203,6 +203,7 @@ import {
   setAlternativeTtsAnonymousMode,
   getTtsFallbackOrder,
   setTtsFallbackOrder,
+  executeTtsFallbackSequence,
   type RemoteTtsValidationResult,
   type AlternativeTtsMode,
   type AlternativeTtsEngine,
@@ -211,6 +212,7 @@ import {
 } from "@/lib/alternative-tts";
 import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
 import { TtsServiceSettingsPanel } from "@/components/TtsServiceSettingsPanel";
+import { TtsFallbackOrderSwitch } from "@/components/TtsFallbackOrderSwitch";
 import {
   computeVideoInstances,
   multiVideoPlayerRegistry,
@@ -495,7 +497,7 @@ function speak(
       const altProvider = typeof window !== "undefined" ? getLovableTtsProvider() : "google";
       const altVoice = typeof window !== "undefined" ? getLovableTtsVoice() : "Kore";
 
-      // 1. If alternative TTS service is enabled as preferred / always, speak with it directly
+      // 1. If alternative TTS service is enabled as preferred / always, speak using configured fallback sequence
       if (useAltTts && altTtsMode === "always") {
         try {
           onProgress({
@@ -504,10 +506,11 @@ function speak(
             start: 0,
             end: text.length,
           });
-          await playAlternativeTtsAudio(
+          const outcome = await executeTtsFallbackSequence(
             text,
             lang,
             altSpeed,
+            getTtsFallbackOrder(),
             (pct) => {
               onProgress({
                 lang: lang.slice(0, 2),
@@ -516,17 +519,18 @@ function speak(
                 end: Math.round((pct / 100) * text.length),
               });
             },
-            altEngine,
             {
-              provider: altProvider,
-              voice: altVoice,
-              speed: altSpeed,
+              tts3Provider: altProvider,
+              tts3Voice: altVoice,
+              isAnonymous: alternativeTtsAnonymousState,
             },
           );
-          onProgress(null);
-          return res();
+          if (outcome !== "none") {
+            onProgress(null);
+            return res();
+          }
         } catch (err) {
-          console.warn("Alternative TTS primary error, continuing to Web Speech:", err);
+          console.warn("Alternative TTS sequence error, continuing to Web Speech:", err);
         }
       }
 
@@ -1220,6 +1224,37 @@ function Index() {
   const [alternativeTtsAnonymousState, setAlternativeTtsAnonymousState] = useState<boolean>(() =>
     typeof window !== "undefined" ? getAlternativeTtsAnonymousMode() : false,
   );
+  const [ttsFallbackOrderState, setTtsFallbackOrderState] = useState<TtsFallbackOrder>(() =>
+    typeof window !== "undefined" ? getTtsFallbackOrder() : "google_tts3_native",
+  );
+
+  const handleNavigateToTtsSetup = useCallback(() => {
+    if (workflowMode === "beginner") {
+      const prefTabBtn = document.querySelector(
+        '[data-testid="beginner-tab-preferences"]',
+      ) as HTMLButtonElement | null;
+      if (prefTabBtn) {
+        prefTabBtn.click();
+      }
+    } else {
+      setShowOtherSettingsAccordions(true);
+      setOpenPanels((prev) => ({
+        ...prev,
+        playback: true,
+      }));
+    }
+    setUseAlternativeTtsState(true);
+    setUseAlternativeTts(true);
+    setTimeout(() => {
+      const el =
+        document.getElementById("tts-service-settings-panel") ||
+        document.querySelector('[data-testid="tts-service-settings-panel"]') ||
+        document.querySelector('[data-testid="beginner-alternative-tts-card"]');
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 150);
+  }, [workflowMode]);
 
   const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
     const targetEngine = serviceToValidate || alternativeTtsEngineState;
@@ -5946,6 +5981,18 @@ function Index() {
                     }
                   }}
                 />
+                <div className="pt-2">
+                  <TtsFallbackOrderSwitch
+                    currentOrder={ttsFallbackOrderState}
+                    onOrderChange={(newOrder) => {
+                      setTtsFallbackOrderState(newOrder);
+                      setTtsFallbackOrder(newOrder);
+                    }}
+                    onNavigateToSetup={handleNavigateToTtsSetup}
+                    tts3TokenConfigured={Boolean(openRouterKeyInput || getSpeakApiToken())}
+                    tts3Provider={lovableTtsProviderState}
+                  />
+                </div>
                 {!isVideoPlaying && pauseReason && (
                   <div
                     data-testid="video-pause-reason-banner"
@@ -6008,8 +6055,7 @@ function Index() {
                 service={
                   useAlternativeTtsState &&
                   alternativeTtsModeState === "always" &&
-                  (lovableTtsProviderState === "google" ||
-                    alternativeTtsEngineState === "google_translate")
+                  alternativeTtsEngineState === "google_translate"
                     ? "google"
                     : "native"
                 }
@@ -6737,12 +6783,23 @@ function Index() {
                                 onRateChange={handleRateChange}
                               />
                               <div className="pt-2">
+                                <TtsFallbackOrderSwitch
+                                  currentOrder={ttsFallbackOrderState}
+                                  onOrderChange={(newOrder) => {
+                                    setTtsFallbackOrderState(newOrder);
+                                    setTtsFallbackOrder(newOrder);
+                                  }}
+                                  onNavigateToSetup={handleNavigateToTtsSetup}
+                                  tts3TokenConfigured={Boolean(openRouterKeyInput || getSpeakApiToken())}
+                                  tts3Provider={lovableTtsProviderState}
+                                />
+                              </div>
+                              <div className="pt-2">
                                 <BeginnerTtsServiceControl
                                   service={
                                     useAlternativeTtsState &&
                                     alternativeTtsModeState === "always" &&
-                                    (lovableTtsProviderState === "google" ||
-                                      alternativeTtsEngineState === "google_translate")
+                                    alternativeTtsEngineState === "google_translate"
                                       ? "google"
                                       : "native"
                                   }

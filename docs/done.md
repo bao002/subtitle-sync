@@ -1,5 +1,76 @@
 # Done tasks
 
+### Task 290 (Chapter 1): Fix Direct Google TTS to Play Purely Directly Without Raising Lovable Error
+
+- **Prompt**:
+  ```
+  1. choosing tts service: direct google tts rises lovable error!!! but this should use google tts directly and not via lovable !!!!
+  ```
+- **Implementation**:
+  - **Subtask 290.1: Direct Google TTS Routing & Error Isolation**:
+    - In `src/lib/alternative-tts.ts`, added strict `isDirectGoogle` guard in `playAlternativeTtsAudio` (`engine === "google_translate" || engineOverride === "google_translate" || (engine !== "lovable" && provider === "google")`).
+    - When direct Google TTS is active, speech synthesis bypasses Lovable Speak API (`tts3.lovable.app`) completely and plays purely directly via `buildGoogleTranslateTtsUrl` and the browser's HTML5 `Audio` element.
+    - Guaranteed that Lovable error telemetry (`reportLovableError` or synthetic Lovable exceptions) is never triggered on direct Google TTS. Any audio media or load error gracefully falls back to local Web Speech without throwing unhandled promise rejections.
+    - In `src/routes/index.tsx`, updated `BeginnerTtsServiceControl` to bind `service === "google"` strictly to `alternativeTtsEngineState === "google_translate"`, ensuring choosing Google TTS in the UI directly selects the native Google Translate endpoint rather than routing through Lovable's Google provider.
+    - Synchronized `speak()` call in `src/routes/index.tsx` to pass clean direct options without provider/voice parameters when `altEngine === "google_translate"`.
+  - **Subtask 290.2: Automated Test & Verification**:
+    - Created dedicated automated test `scripts/verify-direct-google-tts-no-lovable-error.ts` verifying URL construction, direct engine routing, code separation, UI control parity, and exception-free resolution.
+    - Registered `test:direct-google-tts-no-lovable-error` in `package.json`.
+    - Bumped app version to `2.0.89` via `scripts/sync-version.ts`.
+- **Validation**:
+  - `npm run test:direct-google-tts-no-lovable-error` PASSED (all 5 checks).
+  - `npm run check-version` PASSED (v2.0.89 in sync).
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+
+### Task 289 (Chapter 0 & 0.1): TTS Service Validation-Before-Play, Live Request Visual Monitor & Anonymous Mode Toggle
+
+- **Prompt**:
+  ```
+  0. general for tts service: first show validation button. after validation is ok - show a play button. (any request to tts service - should be visually monitored for farther debugging on the same view)
+  0.1 allow to choose between using that service regular way or anonymosly.
+  ```
+- **Implementation**:
+  - **Subtask 289.1: Storybook Component Implementation & Stories**:
+    - Created and updated stories in `src/components/TtsServiceSettingsPanel.stories.tsx` covering all states: unvalidated state (shows validate button, hides play button), validated state (unlocked play test audio button with audio badge), anonymous mode toggle, and live visual monitoring debugger.
+  - **Subtask 289.2: Validate-First-Then-Play Logic & Anonymity Mode**:
+    - In `src/components/TtsServiceSettingsPanel.tsx`, enforced validate-first-then-play flow: when `!isValidationOk`, only the validate button is rendered alongside an explanatory alert hint. Once validated (`isValidationOk`), the green Play Test Audio button is unlocked along with a secondary Re-validate button.
+    - Integrated `<ExternalTtsDebuggerPanel className="mt-2" />` directly onto the view for real-time visual request/response tracking.
+    - Implemented Regular vs Anonymous mode toggle with persistent storage (`STORAGE_KEY_ALTERNATIVE_TTS_ANONYMOUS_MODE`), credential stripping in `resolveTtsCredentials`, and `isAnonymous` tracking in request audit records.
+    - Maintained 100% parity across Advanced Mode and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`).
+  - **Subtask 289.3: Automated Test & Verification**:
+    - Ran dedicated test `scripts/verify-tts-service-validation-and-anonymity.ts`.
+- **Validation**:
+  - `npm run test:tts-service-validation-and-anonymity` PASSED (100% verified).
+  - Storybook stories verified for unvalidated, validated, anonymous, and debugger states.
+  - Parity verified across Beginner and Advanced modes.
+
+### Hotfix 292: Fix Dev Server Pre-warming Stability & ESLint Prettier Lint in alternative-tts.ts
+
+- **Issue**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.0.87 dev > vite --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1828 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Implementation**:
+  - In `src/lib/alternative-tts.ts`, resolved Prettier syntax error on line 1336 by removing redundant parentheses around `audioTestResult.statusCode || 500`.
+  - Executed `restart_dev_server` to cleanly restart the Node.js dev server on port 3000.
+  - Confirmed live HTTP 200 connectivity and stability on `http://localhost:3000/`.
+  - Updated `scripts/verify-dev-server-prewarming-hotfix.ts` to assert clean Prettier formatting in `src/lib/alternative-tts.ts` in addition to clean dev scripts and HTTP 200 dev server health.
+  - Bumped version to `2.0.88` via `scripts/sync-version.ts` single source of truth.
+  - Validated app compilation with `compile_applet` and syntax linting with `lint_applet` (0 errors).
+- **Validation**:
+  - `npm run test:dev-server-prewarming-hotfix` PASSED (100% verified).
+  - `npm run check-version` PASSED (v2.0.88 in sync).
+  - `npm run test:single-source-version` PASSED (all 6 tests).
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+  - Dev server HTTP 200 confirmed.
+  - Restored Task 289 to active status in `current-sub-task.md` and `docs/todo.md`.
+
 ### Task 288 (Chapter 0.AGENTS.md): Storybook-First Component Workflow Rule & Automated Validation
 
 - **Prompt**:
