@@ -20,6 +20,7 @@ import {
   Maximize2,
   Subtitles,
   Filter,
+  Film,
 } from "lucide-react";
 import {
   TtsServiceSettingsPanel,
@@ -34,6 +35,7 @@ import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel"
 import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
 import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSubtitlesBar";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
+import { VideoPlaybackPrecedenceBar } from "@/components/VideoPlaybackPrecedenceBar";
 import {
   addExternalTtsAuditRecord,
   type AlternativeTtsEngine,
@@ -53,7 +55,8 @@ type ComponentKey =
   | "tts_debugger"
   | "mode_switcher"
   | "default_subtitles"
-  | "learning_filters";
+  | "learning_filters"
+  | "precedence_bar";
 
 export const StorybookWorkbench: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<ComponentKey>("tts_service");
@@ -104,6 +107,9 @@ export const StorybookWorkbench: React.FC = () => {
   // 8. LearningGoalsFiltersPanel State
   const [learningFilterMaxWords, setLearningFilterMaxWords] = useState<number>(10);
   const [learningFilterSkipIncomplete, setLearningFilterSkipIncomplete] = useState<boolean>(false);
+
+  // 9. VideoPlaybackPrecedenceBar State
+  const [videoBarPos, setVideoBarPos] = useState<number>(1);
 
   // Prepopulate sample audit records for Debugger story
   useEffect(() => {
@@ -275,6 +281,7 @@ export const StorybookWorkbench: React.FC = () => {
             { id: "mode_switcher", label: "Mode Switcher", icon: Sparkles },
             { id: "default_subtitles", label: "Default Subtitles", icon: Subtitles },
             { id: "learning_filters", label: "Learning Filters", icon: Filter },
+            { id: "precedence_bar", label: "Precedence Bar", icon: Film },
           ].map((c) => {
             const Icon = c.icon;
             const isSelected = selectedComponent === c.id;
@@ -428,6 +435,8 @@ export const StorybookWorkbench: React.FC = () => {
                 {selectedComponent === "tts_debugger" && "ExternalTtsDebuggerPanel"}
                 {selectedComponent === "mode_switcher" && "ModeSwitcherHeader"}
                 {selectedComponent === "default_subtitles" && "SwitchableDefaultSubtitlesBar"}
+                {selectedComponent === "learning_filters" && "LearningGoalsFiltersPanel"}
+                {selectedComponent === "precedence_bar" && "VideoPlaybackPrecedenceBar"}
               </h1>
               <p className="text-xs text-muted-foreground">
                 Active Component Catalog:{" "}
@@ -659,6 +668,81 @@ export const StorybookWorkbench: React.FC = () => {
                   skipIncompleteSentences={learningFilterSkipIncomplete}
                   onSkipIncompleteSentencesChange={setLearningFilterSkipIncomplete}
                 />
+              </div>
+            )}
+
+            {selectedComponent === "precedence_bar" && (
+              <div className="space-y-4">
+                <div className="text-xs text-muted-foreground">
+                  Move and place the Video-Playing Precedence Bar among pointed table records:
+                </div>
+                <table className="w-full text-xs border border-border rounded-lg overflow-hidden">
+                  <thead className="bg-muted/50 border-b border-border">
+                    <tr>
+                      <th className="p-2 text-left">Language</th>
+                      <th className="p-2 text-center">Execution Precedence</th>
+                      <th className="p-2 text-right">Place Bar</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {videoBarPos === 0 && (
+                      <VideoPlaybackPrecedenceBar
+                        currentPosition={videoBarPos}
+                        totalRecords={4}
+                        onMoveUp={() => setVideoBarPos((p) => Math.max(0, p - 1))}
+                        onMoveDown={() => setVideoBarPos((p) => Math.min(4, p + 1))}
+                        onPlaceAtTop={() => setVideoBarPos(0)}
+                        onPlaceAtBottom={() => setVideoBarPos(4)}
+                        asTableRow
+                        colSpan={3}
+                      />
+                    )}
+                    {["English (en)", "Hebrew (he)", "Spanish (es)", "Russian (ru)"].map(
+                      (name, idx) => (
+                        <React.Fragment key={name}>
+                          <tr className="border-b border-border/40 hover:bg-muted/20">
+                            <td className="p-2 font-medium">{name}</td>
+                            <td className="p-2 text-center">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
+                                  idx < videoBarPos
+                                    ? "bg-sky-500/15 text-sky-700 dark:text-sky-300"
+                                    : "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                                }`}
+                              >
+                                {idx < videoBarPos ? "Before Video (TTS)" : "After Video (Video First)"}
+                              </span>
+                            </td>
+                            <td className="p-2 text-right">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 text-[10px] gap-1"
+                                onClick={() => setVideoBarPos(idx)}
+                              >
+                                <Film className="h-2.5 w-2.5 text-primary" />
+                                Place Video Here
+                              </Button>
+                            </td>
+                          </tr>
+                          {videoBarPos === idx + 1 && (
+                            <VideoPlaybackPrecedenceBar
+                              currentPosition={videoBarPos}
+                              totalRecords={4}
+                              onMoveUp={() => setVideoBarPos((p) => Math.max(0, p - 1))}
+                              onMoveDown={() => setVideoBarPos((p) => Math.min(4, p + 1))}
+                              onPlaceAtTop={() => setVideoBarPos(0)}
+                              onPlaceAtBottom={() => setVideoBarPos(4)}
+                              asTableRow
+                              colSpan={3}
+                            />
+                          )}
+                        </React.Fragment>
+                      ),
+                    )}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

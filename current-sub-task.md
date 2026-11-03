@@ -1,6 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [IDLE]
-- **Active Task**: None (All active prompt tasks completed and verified)
+- **Active Task**: None
 - **Sub-task**: None
-- **Validation**: All tests, compile, and lint checks passed with 100% success.
+- **Validation**: Completed Task 295 verification, compile, lint, and migration to docs/done.md.
