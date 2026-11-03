@@ -41,9 +41,11 @@ import {
   HelpCircle,
   History,
   Volume2,
+  VolumeX,
   Hourglass,
   Bug,
   Settings,
+  Settings2,
   ArrowRight,
   ArrowLeft,
   AlertTriangle,
@@ -140,6 +142,7 @@ import {
 } from "@/utils/favoriteLanguagesRules";
 import { ShareStateModal } from "@/components/ShareStateModal";
 import { VideoMetadataModal } from "@/components/VideoMetadataModal";
+import { SettingsBackupModal } from "@/components/SettingsBackupModal";
 import {
   translateSentencesAhead,
   getStoredOnDemandTranslation,
@@ -272,6 +275,10 @@ import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
 import {
   getSectionOrder,
   setSectionOrder as saveSectionOrder,
+  getFavoriteLanguagesPreference,
+  getTargetLanguagesPreference,
+  getBaseLanguagePreference,
+  getTtsVoicesPreference,
   getTtsLanguageOrdersPreference,
   getSubtitleRequestMode,
   getTtsRatiosPreference,
@@ -304,6 +311,10 @@ import {
   setLearningGoalsMaxWords as saveLearningGoalsMaxWords,
   getLearningGoalsSkipIncomplete,
   setLearningGoalsSkipIncomplete as saveLearningGoalsSkipIncomplete,
+  getTtsBlacklist,
+  setTtsBlacklist,
+  isLanguageTtsBlacklisted,
+  extractLanguageCodeString,
   type SectionOrder,
   type SubtitleRequestMode,
 } from "@/lib/playback-preferences";
@@ -2047,6 +2058,31 @@ function Index() {
     setSpoken((prev) => (prev.includes(code) ? prev : [...prev, code]));
   }, []);
 
+  const [ttsBlacklist, setTtsBlacklistState] = useState<string[]>(() => getTtsBlacklist());
+
+  const handleToggleTtsBlacklist = useCallback(
+    (langCode: string) => {
+      const code = extractLanguageCodeString(langCode);
+      if (!code) return;
+      setTtsBlacklistState((prev) => {
+        const isBl = isLanguageTtsBlacklisted(code, prev);
+        const next = isBl
+          ? prev.filter(
+              (c) =>
+                c.toLowerCase() !== code.toLowerCase() &&
+                c.toLowerCase() !== (code === "iw" ? "he" : code === "he" ? "iw" : ""),
+            )
+          : [...prev, code];
+        setTtsBlacklist(next);
+        if (videoId) {
+          saveVideoSettings(videoId, { ttsBlacklist: next });
+        }
+        return next;
+      });
+    },
+    [videoId],
+  );
+
   const [activeRatioCompositionId, setActiveRatioCompositionIdState] = useState<string>(() =>
     getActiveRatioCompositionId(),
   );
@@ -2194,8 +2230,17 @@ function Index() {
         handleTogglePlayerCaptionTrack;
       (window as unknown as Record<string, unknown>).__setPrimaryTtsLang =
         handlePrimaryTtsLangChange;
+      (window as unknown as Record<string, unknown>).__toggleTtsBlacklist =
+        handleToggleTtsBlacklist;
+      (window as unknown as Record<string, unknown>).__getTtsBlacklist = () => ttsBlacklist;
     }
-  }, [handlePlayerCaptionToggled, handleTogglePlayerCaptionTrack, handlePrimaryTtsLangChange]);
+  }, [
+    handlePlayerCaptionToggled,
+    handleTogglePlayerCaptionTrack,
+    handlePrimaryTtsLangChange,
+    handleToggleTtsBlacklist,
+    ttsBlacklist,
+  ]);
 
   useEffect(() => {
     if (primaryTtsLang) {
@@ -2220,6 +2265,9 @@ function Index() {
       if (favs.length > 0) {
         setTargetLanguages(favs);
       }
+    }
+    if (settings?.ttsBlacklist && Array.isArray(settings.ttsBlacklist)) {
+      setTtsBlacklistState(settings.ttsBlacklist);
     }
     if (settings?.ttsRatios) {
       setTtsRatios((curr) => ({
@@ -3906,6 +3954,7 @@ function Index() {
     sectionOrder,
     isSetupPaused,
     baseLanguage,
+    ttsBlacklist,
   });
   st.current = {
     rows,
@@ -3921,6 +3970,7 @@ function Index() {
     sectionOrder,
     isSetupPaused,
     baseLanguage,
+    ttsBlacklist,
   };
 
   const playerEl = useRef<HTMLDivElement>(null);
@@ -4358,6 +4408,7 @@ function Index() {
         orderedLangs,
         audioTrackMode: isAudioTrackMode,
         baseLanguage: currentBaseLanguage,
+        ttsBlacklist: currentTtsBlacklist,
       } = st.current;
       const effectivePrimary = currentPrimaryTtsLang || spoken[0] || "";
       const primaryRatio = getLanguageTtsRatio(currentTtsRatios, effectivePrimary);
@@ -4374,7 +4425,8 @@ function Index() {
         if (skipIncompleteRef.current && !isCompleteSentence(baseText)) return [];
         let eligibleLanguages = orderedLangs.filter(
           (l) =>
-            isTtsSpeakableLanguage(l.code, currentBaseLanguage) &&
+            !isLanguageTtsBlacklisted(l.code, currentTtsBlacklist) &&
+            isTtsSpeakableLanguage(l.code, currentBaseLanguage, currentTtsBlacklist) &&
             isLanguageSpoken(l.code, spoken) &&
             isLanguageEligibleForTtsWithRole({
               rowIdx,
@@ -4382,17 +4434,28 @@ function Index() {
               ratio: getLanguageTtsRatio(currentTtsRatios, l.code),
               primaryLang: effectivePrimary,
               primaryRatio,
+              blacklist: currentTtsBlacklist,
             }),
         );
         if (eligibleLanguages.length === 0 && isAudioTrackMode && spoken.length === 0) {
-          const fallbackLang = orderedLangs.find((l) => l.code === currentBaseLanguage) ||
-            orderedLangs[0] || { code: "primary", tts: "en-US", name: "Primary" };
-          eligibleLanguages = [fallbackLang];
+          const fallbackLang =
+            orderedLangs.find(
+              (l) =>
+                l.code === currentBaseLanguage &&
+                !isLanguageTtsBlacklisted(l.code, currentTtsBlacklist),
+            ) || orderedLangs.find((l) => !isLanguageTtsBlacklisted(l.code, currentTtsBlacklist));
+          if (fallbackLang) {
+            eligibleLanguages = [fallbackLang];
+          }
         }
         // In beginner mode or default playback, use the first available target subtitle when none are selected.
         if (eligibleLanguages.length === 0 && spoken.length === 0 && orderedLangs.length > 0) {
           const fallbackLang =
-            orderedLangs.find((l) => l.code !== currentBaseLanguage) || orderedLangs[0];
+            orderedLangs.find(
+              (l) =>
+                l.code !== currentBaseLanguage &&
+                !isLanguageTtsBlacklisted(l.code, currentTtsBlacklist),
+            ) || orderedLangs.find((l) => !isLanguageTtsBlacklisted(l.code, currentTtsBlacklist));
           if (
             fallbackLang &&
             isSubtitleInstanceEligibleForTTS(
@@ -4434,6 +4497,14 @@ function Index() {
         try {
           for (const l of langs) {
             if (!busy.current) break;
+            if (isLanguageTtsBlacklisted(l.code, currentTtsBlacklist)) {
+              logStateMachineAction("TTS_BLACKLIST_SKIPPED", {
+                videoId,
+                rowIndex: rowIdx,
+                langCode: l.code,
+              });
+              continue;
+            }
             const ratio = getLanguageTtsRatio(currentTtsRatios, l.code);
             const isEligible = isLanguageEligibleForTtsWithRole({
               rowIdx,
@@ -6277,6 +6348,7 @@ function Index() {
                   const voice = voiceSelections[lang] || "";
                   void speak(text, lang, rate, voice, -1, () => {});
                 }}
+                blacklist={ttsBlacklist}
               />
             }
           />
@@ -8822,18 +8894,17 @@ function Index() {
                                     <div className="flex items-center gap-2">
                                       <Sliders className="h-3.5 w-3.5 text-primary" />
                                       <label className="font-semibold text-foreground">
-                                        3. Learning Goals: Language Narration Ratios:
+                                        3. Learning Goals: Narration Ratios & Whitelist / Blacklist:
                                       </label>
                                     </div>
                                     <span className="text-[11px] text-muted-foreground font-mono">
-                                      Primary 1 : Secondary N
+                                      Primary 1 : Secondary N (up to 1:20)
                                     </span>
                                   </div>
                                   <p className="text-[11px] text-muted-foreground">
-                                    Configure narration frequency as part of your learning goals.
-                                    Each secondary language speaks relative to the primary language
-                                    (e.g. 1:1 to speak every sentence, 1:2 to speak every 2
-                                    sentences).
+                                    Configure narration frequency and whitelist/blacklist.
+                                    Blacklisted languages are skipped from TTS-play even if they are
+                                    the default subtitles.
                                   </p>
 
                                   <div className="space-y-2 pt-1">
@@ -8853,6 +8924,10 @@ function Index() {
                                           (l) => l.code === langCode,
                                         );
                                       const currentRatio = getLanguageTtsRatio(ttsRatios, langCode);
+                                      const isBlacklisted = isLanguageTtsBlacklisted(
+                                        langCode,
+                                        ttsBlacklist,
+                                      );
 
                                       return (
                                         <div
@@ -8879,14 +8954,51 @@ function Index() {
                                                 Secondary
                                               </span>
                                             )}
+                                            {isBlacklisted && (
+                                              <span
+                                                data-testid={`stage-2-blacklisted-badge-${langCode}`}
+                                                className="bg-destructive/20 text-destructive border border-destructive/40 px-1.5 py-0.2 rounded text-[9px] font-bold uppercase"
+                                              >
+                                                Blacklisted
+                                              </span>
+                                            )}
                                           </div>
 
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-[11px] text-muted-foreground">
-                                              Ratio:
-                                            </span>
+                                          <div className="flex flex-wrap items-center gap-2">
+                                            <button
+                                              type="button"
+                                              data-testid={`stage-2-toggle-blacklist-${langCode}`}
+                                              aria-label={`Toggle TTS blacklist for ${meta?.name || langCode}`}
+                                              title={
+                                                isBlacklisted
+                                                  ? `${meta?.name || langCode} is BLACKLISTED from TTS-play (click to whitelist)`
+                                                  : `Click to blacklist ${meta?.name || langCode} from TTS-play`
+                                              }
+                                              onClick={() => handleToggleTtsBlacklist(langCode)}
+                                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border transition-colors cursor-pointer ${
+                                                isBlacklisted
+                                                  ? "bg-destructive/15 text-destructive border-destructive/40 font-semibold"
+                                                  : "bg-muted/60 text-muted-foreground hover:text-foreground border-border"
+                                              }`}
+                                            >
+                                              {isBlacklisted ? (
+                                                <>
+                                                  <VolumeX className="h-3 w-3" />
+                                                  <span>Blacklisted (Skipped)</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <Volume2 className="h-3 w-3 text-emerald-500" />
+                                                  <span>Whitelisted</span>
+                                                </>
+                                              )}
+                                            </button>
+
                                             <div className="flex items-center gap-1">
-                                              {[1, 2, 3, 5, 10].map((ratioVal) => (
+                                              <span className="text-[11px] text-muted-foreground">
+                                                Ratio:
+                                              </span>
+                                              {[1, 2, 3, 4, 5, 7, 10, 15, 20].map((ratioVal) => (
                                                 <button
                                                   key={ratioVal}
                                                   type="button"
@@ -8904,7 +9016,7 @@ function Index() {
                                                       });
                                                     }
                                                   }}
-                                                  className={`px-2 py-0.5 rounded text-xs font-mono font-medium border transition-colors cursor-pointer ${
+                                                  className={`px-1.5 py-0.5 rounded text-xs font-mono font-medium border transition-colors cursor-pointer ${
                                                     currentRatio === ratioVal
                                                       ? "bg-primary text-primary-foreground border-primary font-bold shadow-sm"
                                                       : "bg-background text-muted-foreground hover:text-foreground border-border hover:border-primary/40"
@@ -8921,9 +9033,9 @@ function Index() {
                                                 data-testid={`stage-2-ratio-input-${langCode}`}
                                                 aria-label={`${meta?.name || langCode} ratio`}
                                                 onChange={(e) => {
-                                                  const val = Math.max(
-                                                    1,
-                                                    parseInt(e.target.value, 10) || 1,
+                                                  const val = Math.min(
+                                                    20,
+                                                    Math.max(1, parseInt(e.target.value, 10) || 1),
                                                   );
                                                   const next = {
                                                     ...ttsRatios,
@@ -9374,7 +9486,7 @@ function Index() {
                                                         onChange={(e) => {
                                                           const val = Math.max(
                                                             1,
-                                                            Math.min(10, Number(e.target.value)),
+                                                            Math.min(20, Number(e.target.value)),
                                                           );
                                                           setTtsRatios((curr) => ({
                                                             ...curr,
@@ -9388,7 +9500,7 @@ function Index() {
                                                         }}
                                                         className="rounded border border-input bg-background px-1 py-0.5 text-xs"
                                                       >
-                                                        {[1, 2, 3, 4, 5, 7, 10].map((n) => (
+                                                        {[1, 2, 3, 4, 5, 7, 10, 15, 20].map((n) => (
                                                           <option
                                                             key={n}
                                                             value={n}
@@ -9422,16 +9534,57 @@ function Index() {
                                                   )}
                                                 </td>
                                                 <td className="text-center py-1 px-1.5">
-                                                  <input
-                                                    type="checkbox"
-                                                    data-testid={`checkbox-tts-play-${lang.code}`}
-                                                    aria-label={`TTS-play: ${lang.name}`}
-                                                    title={`TTS-play: ${lang.name}`}
-                                                    checked={isSpoken}
-                                                    onChange={() =>
-                                                      toggle(spoken, setSpoken, lang.code)
-                                                    }
-                                                  />
+                                                  <div className="flex items-center justify-center gap-1">
+                                                    <input
+                                                      type="checkbox"
+                                                      data-testid={`checkbox-tts-play-${lang.code}`}
+                                                      aria-label={`TTS-play: ${lang.name}`}
+                                                      title={`TTS-play: ${lang.name}`}
+                                                      checked={
+                                                        isSpoken &&
+                                                        !isLanguageTtsBlacklisted(
+                                                          lang.code,
+                                                          ttsBlacklist,
+                                                        )
+                                                      }
+                                                      onChange={() =>
+                                                        toggle(spoken, setSpoken, lang.code)
+                                                      }
+                                                    />
+                                                    <button
+                                                      type="button"
+                                                      data-testid={`tts-blacklist-toggle-${lang.code}`}
+                                                      aria-label={`Toggle TTS blacklist for ${lang.name}`}
+                                                      title={
+                                                        isLanguageTtsBlacklisted(
+                                                          lang.code,
+                                                          ttsBlacklist,
+                                                        )
+                                                          ? `${lang.name} is BLACKLISTED from TTS-play (click to whitelist)`
+                                                          : `Click to blacklist ${lang.name} from TTS-play`
+                                                      }
+                                                      onClick={() =>
+                                                        handleToggleTtsBlacklist(lang.code)
+                                                      }
+                                                      className={`p-1 rounded text-xs transition-colors cursor-pointer ${
+                                                        isLanguageTtsBlacklisted(
+                                                          lang.code,
+                                                          ttsBlacklist,
+                                                        )
+                                                          ? "bg-destructive/20 text-destructive border border-destructive/40"
+                                                          : "text-muted-foreground hover:text-foreground"
+                                                      }`}
+                                                    >
+                                                      {isLanguageTtsBlacklisted(
+                                                        lang.code,
+                                                        ttsBlacklist,
+                                                      ) ? (
+                                                        <VolumeX className="h-3.5 w-3.5" />
+                                                      ) : (
+                                                        <Volume2 className="h-3.5 w-3.5" />
+                                                      )}
+                                                    </button>
+                                                  </div>
                                                 </td>
                                                 <td className="text-center py-1 px-1.5">
                                                   <input
@@ -9835,6 +9988,7 @@ function Index() {
                               parserConfig={simpleParserConfig}
                               onParserConfigChange={handleSimpleParserConfigChange}
                               onScrollToActivePosition={handleScrollToActivePosition}
+                              blacklist={ttsBlacklist}
                             />
                             {currentAccordionStage === 2 && (
                               <div

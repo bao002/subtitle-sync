@@ -1,6 +1,21 @@
 # Done tasks
 
-### Task 267: Create docs/stop.md and Remove All Reasons Why Video Doesn't Resume After Pause (Prompt 54, Chapter 4)
+### Task 285: TTS Blacklist in Learning Goals (Skip from TTS-play even if default subtitles), Allow TTS Ratio up to 1:20, and localStorage Persistence (Prompt 55, Chapter 1)
+
+- **Prompt**: `languages goal - whitelist/blacklist - allow to set languages to be on the black-list of tts-play - in that case even if the default subtitles are X , then X would be skipped for tts-play. allow tts-ratio to be up to 1:20 ratio. tts-ration is to be stored using local-storage.`
+- **Context & Implementation**:
+  - Implemented TTS Blacklist preference storage (`yt_tts_blacklist_v1` in `localStorage`) via `getTtsBlacklist()`, `setTtsBlacklist()`, `isLanguageTtsBlacklisted()`, and `toggleLanguageTtsBlacklist()` in `src/lib/playback-preferences.ts`.
+  - Added strict guard in `getEligibleLangs`, `speakRow`, `isTtsSpeakableLanguage`, `isLanguageEligibleForTtsWithRole`, and `shouldHighlightSentenceForTtsWithRole` ensuring blacklisted languages are completely skipped from TTS speech and highlighting under all circumstances (even when active as default subtitles track X, primary language, or fallback).
+  - Extended TTS ratios up to 1:20 (`Math.min(20, Math.max(1, ...))`) persisted in `localStorage` under both `yt_tts_ratios_v1` and individual `yt_tts_ratio_<lang>`.
+  - Added Whitelist / Blacklist toggle button and badge (`stage-2-toggle-blacklist-${langCode}`) in Stage 2 Learning Goals card, and ratio presets `[1, 2, 3, 4, 5, 7, 10, 15, 20]`.
+  - Added Blacklist toggle button (`tts-blacklist-toggle-${lang.code}`) and ratio presets up to 20 in Beginner `PerLanguageTtsPreferences.tsx` and Advanced `unified-languages-table` with 100% parity.
+  - Forwarded `blacklist` prop to `SubtitlesTablePanel` across both Beginner and Advanced modes.
+- **Validation**:
+  - Authored dedicated test `scripts/verify-tts-blacklist-and-ratios.ts` (`npm run test:tts-blacklist-and-ratios`).
+  - Single source version updated to `2.0.99` across all 5 files.
+  - `compile_applet`: PASSED.
+  - `lint_applet` (`npm run lint`): PASSED.
+
 
 - **Prompt**: `4. list the reasons why the app doesnt resume the video after it pauses docs/stop.md  - and remove all of them.`
 - **Context & Implementation**:

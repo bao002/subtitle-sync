@@ -31,6 +31,7 @@ export interface SubtitleRowProps {
   spokenLangs?: string[];
   ttsRatios?: Record<string, number>;
   primaryTtsLang?: string;
+  blacklist?: string[];
   onSpeakCue?: (text: string, lang: string) => void;
   freezeColumns?: boolean;
 }
@@ -47,6 +48,7 @@ export const SubtitleRow = memo(function SubtitleRow({
   spokenLangs,
   ttsRatios,
   primaryTtsLang,
+  blacklist,
   onSpeakCue,
   freezeColumns = true,
 }: SubtitleRowProps) {
@@ -83,6 +85,7 @@ export const SubtitleRow = memo(function SubtitleRow({
           ratio,
           primaryLang: primaryTtsLang,
           primaryRatio,
+          blacklist,
         });
         const isPronouncedHighlight = shouldHighlightSentenceForTtsWithRole({
           rowIdx: actualIndex,
@@ -91,6 +94,7 @@ export const SubtitleRow = memo(function SubtitleRow({
           primaryLang: primaryTtsLang,
           primaryRatio,
           isSpoken,
+          blacklist,
         });
         const isPrimary = primaryTtsLang ? l.code === primaryTtsLang : false;
         return (

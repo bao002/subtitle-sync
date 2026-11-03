@@ -132,10 +132,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. the demo website doesnt include a subtitles-table-view on stage 3
-2. create docs/auto-focus.md - create table of auto-focus /auto-scroll triggers - and disable all of them !
-3. the first stage should be learning-goals. the last stage should be the video and the video shouldn't be shown on any other stage
-4. list the reasons why the app doesnt resume the video after it pauses docs/stop.md  - and remove all of them.
+languages goal - whitelist/blacklist - allow to set languages to be on the black-list of tts-play - in that case even if the default subtitles are X , then X would be skipped for tts-play.
+allow tts-ratio to be up to 1:20 ratio.
+tts-ration is to be stored using local-storage.
+2
+add option to export/import application settings
 ```
-
-

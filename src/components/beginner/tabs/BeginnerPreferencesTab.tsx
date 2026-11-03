@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Activity,
+  Settings2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -103,6 +104,7 @@ export interface BeginnerPreferencesTabProps {
   videoId?: string;
   onApplyFavoritesToVideo?: () => void;
   onSaveCurrentSelectionAsFavorites?: () => void;
+  onOpenBackupModal?: () => void;
 }
 
 export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
@@ -127,6 +129,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   videoId,
   onApplyFavoritesToVideo,
   onSaveCurrentSelectionAsFavorites,
+  onOpenBackupModal,
 }) => {
   const [voices, setVoices] = useState<SpeechVoiceLike[]>(() => getCachedVoices());
   const [isAuditioning, setIsAuditioning] = useState(false);
@@ -339,16 +342,29 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
     >
       {/* Tab Title */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-1">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
-            <Sliders className="w-4 h-4" />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
+              <Sliders className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">Preferences</h2>
+              <p className="text-xs text-muted-foreground">
+                Configure speech, narration order, and favorite languages.
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Preferences</h2>
-            <p className="text-xs text-muted-foreground">
-              Configure speech, narration order, and favorite languages.
-            </p>
-          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-testid="beginner-export-import-settings-btn"
+            onClick={onOpenBackupModal}
+            className="text-xs h-7 gap-1 border-primary/30 text-primary hover:bg-primary/10 cursor-pointer"
+          >
+            <Settings2 className="h-3.5 w-3.5" />
+            <span>Export / Import Settings</span>
+          </Button>
         </div>
       </div>
 
