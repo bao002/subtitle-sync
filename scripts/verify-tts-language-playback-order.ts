@@ -74,14 +74,14 @@ const beginnerPreferences = fs.readFileSync(
 assert.match(route, /getEligibleLangs\(idx, "tts-first"\)/);
 assert.match(route, /getEligibleLangs\(candidateRow, "video-first"\)/);
 assert.match(route, /playedTtsLanguageRecords/);
-assert.match(route, /<LanguageTtsOrderSelect/);
-assert.match(route, /data-testid="section-order-select"/);
-assert.match(route, /value="video-middle"/);
+assert.match(route, /VideoPlaybackPrecedenceBar/);
+assert.doesNotMatch(route, /<LanguageTtsOrderSelect/);
+assert.doesNotMatch(route, /data-testid="section-order-select"/);
 
-assert.match(beginnerPreferences, /<LanguageTtsOrderSelect/);
-assert.match(beginnerPreferences, /data-testid="beginner-section-order-select"/);
-assert.match(beginnerPreferences, /value="video-middle"/);
-console.log("✅ PASS: Playback sequence controls verified with full parity in both modes");
+assert.match(beginnerPreferences, /VideoPlaybackPrecedenceBar/);
+assert.doesNotMatch(beginnerPreferences, /<LanguageTtsOrderSelect/);
+assert.doesNotMatch(beginnerPreferences, /data-testid="beginner-section-order-select"/);
+console.log("✅ PASS: Video precedence bar verified with full parity in both modes without redundant order controls");
 
 console.log("\n=========================================================================");
 console.log("🎉 ALL PLAYBACK ORDER AND IN-BETWEEN TESTS PASSED (100%)!");

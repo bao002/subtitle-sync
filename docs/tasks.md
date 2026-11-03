@@ -4,8 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*(No active tasks pending)*
-
+*(No active tasks currently pending)*
 
 
 ## Later Tasks

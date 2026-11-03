@@ -99,8 +99,8 @@ assert(
   !indexContent.includes("p.pauseVideo();\n            await speakRow(idx, \"tts-first\");\n            setPauseReason(null);\n            const wasCancelled = !busy.current;\n            busy.current = false;\n            if (wasCancelled || st.current.isSetupPaused || userExplicitlyPausedRef.current) return;\n            const targetSec = (rows[idx]?.start ?? 0) / 1000;\n            lastMs.current = targetSec * 1000;\n            multiVideoPlayerRegistry.unmuteOnly(\"primary\");\n            p.seekTo(targetSec, true);\n            p.playVideo();\n          }\n        }\n        return;"),
   "index.tsx must not have blocking return at the end of tts-first block",
 );
-assert(indexContent.includes("VideoLanguageSequenceControl"), "index.tsx must render VideoLanguageSequenceControl");
-console.log("✅ PASS: In-between order and VideoLanguageSequenceControl verified.");
+assert(indexContent.includes("VideoPlaybackPrecedenceBar"), "index.tsx must render VideoPlaybackPrecedenceBar");
+console.log("✅ PASS: In-between order and VideoPlaybackPrecedenceBar verified.");
 
 // 5. Mobile View Responsive Styling
 console.log("\n--> [Step 5] Verifying Mobile View Responsive Styling...");
