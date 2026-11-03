@@ -4,10 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 294 (Chapter 1): Learning Goals - Max Words Per Subtitle Row Slider & Complete Sentence Filter**
-  - Subtask 294.1: Add max words slider and complete sentence filter (`","`, `"."`, `"?"`, `"!"`) to Learning Goals in both Beginner Mode (`Stage 2 Learning Goals`) and Advanced Mode with 100% parity.
-  - Subtask 294.2: Update subtitle rows generation and playback coordinator to skip any record exceeding max words or not ending with terminal punctuation (`","`, `"."`, `"?"`, `"!"`).
-  - Subtask 294.3: Dedicated automated test `scripts/verify-learning-goals-word-and-sentence-filters.ts`, Storybook coverage, compile, lint, version bump, and migrate to `docs/done.md`.
+(No active tasks remaining. All active prompt items have been completed and verified.)
 
 ## Later Tasks
 

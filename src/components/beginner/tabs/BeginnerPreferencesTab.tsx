@@ -76,6 +76,10 @@ import {
 import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
 
 import { GlobalFavoriteLanguagesPanel } from "@/components/GlobalFavoriteLanguagesPanel";
+import {
+  LearningGoalsFiltersPanel,
+  type LearningGoalsFiltersPanelProps,
+} from "@/components/shared/LearningGoalsFiltersPanel";
 
 export interface BeginnerPreferencesTabProps {
   ttsSpeed: number;
@@ -88,6 +92,11 @@ export interface BeginnerPreferencesTabProps {
   onToggleVideoSubtitles: () => void;
   baseLanguage?: string;
   perLanguageTtsSettingsSlot?: React.ReactNode;
+  learningGoalsFiltersSlot?: React.ReactNode;
+  maxWordsPerSentence?: number;
+  onMaxWordsPerSentenceChange?: (words: number) => void;
+  skipIncompleteSentences?: boolean;
+  onSkipIncompleteSentencesChange?: (skip: boolean) => void;
   onContinueToNextTab?: () => void;
   catalog?: Array<{ code: string; name: string }>;
   targetLanguages?: string[];
@@ -107,6 +116,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   onToggleVideoSubtitles,
   baseLanguage = "en",
   perLanguageTtsSettingsSlot,
+  learningGoalsFiltersSlot,
+  maxWordsPerSentence,
+  onMaxWordsPerSentenceChange,
+  skipIncompleteSentences,
+  onSkipIncompleteSentencesChange,
   onContinueToNextTab,
   catalog,
   targetLanguages,
@@ -984,6 +998,24 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           className="space-y-2"
         >
           {perLanguageTtsSettingsSlot}
+        </div>
+      )}
+
+      {/* 5. Learning Goals: Subtitle Row Filters (Max Words Slider & Complete Sentence Filter) */}
+      {(learningGoalsFiltersSlot || onMaxWordsPerSentenceChange) && (
+        <div
+          id="beginner-learning-goals-filters-container"
+          data-testid="beginner-learning-goals-filters-container"
+          className="space-y-2"
+        >
+          {learningGoalsFiltersSlot ?? (
+            <LearningGoalsFiltersPanel
+              maxWords={maxWordsPerSentence ?? 10}
+              onMaxWordsChange={onMaxWordsPerSentenceChange!}
+              skipIncompleteSentences={skipIncompleteSentences ?? false}
+              onSkipIncompleteSentencesChange={onSkipIncompleteSentencesChange ?? (() => {})}
+            />
+          )}
         </div>
       )}
 

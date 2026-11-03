@@ -29,6 +29,11 @@ export interface BeginnerFlowContainerProps {
   subtitlesTableSlot?: React.ReactNode;
   criticalCaptionsAlertSlot?: React.ReactNode;
   perLanguageTtsSettingsSlot?: React.ReactNode;
+  learningGoalsFiltersSlot?: React.ReactNode;
+  maxWordsPerSentence?: number;
+  onMaxWordsPerSentenceChange?: (words: number) => void;
+  skipIncompleteSentences?: boolean;
+  onSkipIncompleteSentencesChange?: (skip: boolean) => void;
   favoriteLanguageCatalog: Array<{ code: string; name: string }>;
   favoriteLanguages: string[];
   baseLanguage: string;
@@ -63,6 +68,11 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   subtitlesTableSlot,
   criticalCaptionsAlertSlot,
   perLanguageTtsSettingsSlot,
+  learningGoalsFiltersSlot,
+  maxWordsPerSentence,
+  onMaxWordsPerSentenceChange,
+  skipIncompleteSentences,
+  onSkipIncompleteSentencesChange,
   favoriteLanguageCatalog,
   favoriteLanguages,
   baseLanguage,
@@ -210,6 +220,11 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             onToggleVideoSubtitles={onToggleVideoSubtitles}
             baseLanguage={baseLanguage}
             perLanguageTtsSettingsSlot={perLanguageTtsSettingsSlot}
+            learningGoalsFiltersSlot={learningGoalsFiltersSlot}
+            maxWordsPerSentence={maxWordsPerSentence}
+            onMaxWordsPerSentenceChange={onMaxWordsPerSentenceChange}
+            skipIncompleteSentences={skipIncompleteSentences}
+            onSkipIncompleteSentencesChange={onSkipIncompleteSentencesChange}
             onContinueToNextTab={() => handleTabChange("video")}
             catalog={favoriteLanguageCatalog}
             targetLanguages={selectedTargetLanguages}

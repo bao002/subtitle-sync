@@ -19,6 +19,7 @@ import {
   Activity,
   Maximize2,
   Subtitles,
+  Filter,
 } from "lucide-react";
 import {
   TtsServiceSettingsPanel,
@@ -32,6 +33,7 @@ import { VideoLanguageSequenceControl } from "@/components/VideoLanguageSequence
 import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
 import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
 import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSubtitlesBar";
+import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import {
   addExternalTtsAuditRecord,
   type AlternativeTtsEngine,
@@ -50,7 +52,8 @@ type ComponentKey =
   | "sequence_control"
   | "tts_debugger"
   | "mode_switcher"
-  | "default_subtitles";
+  | "default_subtitles"
+  | "learning_filters";
 
 export const StorybookWorkbench: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<ComponentKey>("tts_service");
@@ -97,6 +100,10 @@ export const StorybookWorkbench: React.FC = () => {
 
   // 7. ModeSwitcherHeader State
   const [workflowMode, setWorkflowMode] = useState<"beginner" | "expert">("expert");
+
+  // 8. LearningGoalsFiltersPanel State
+  const [learningFilterMaxWords, setLearningFilterMaxWords] = useState<number>(10);
+  const [learningFilterSkipIncomplete, setLearningFilterSkipIncomplete] = useState<boolean>(false);
 
   // Prepopulate sample audit records for Debugger story
   useEffect(() => {
@@ -267,6 +274,7 @@ export const StorybookWorkbench: React.FC = () => {
             { id: "tts_debugger", label: "TTS Debugger", icon: Activity },
             { id: "mode_switcher", label: "Mode Switcher", icon: Sparkles },
             { id: "default_subtitles", label: "Default Subtitles", icon: Subtitles },
+            { id: "learning_filters", label: "Learning Filters", icon: Filter },
           ].map((c) => {
             const Icon = c.icon;
             const isSelected = selectedComponent === c.id;
@@ -641,6 +649,17 @@ export const StorybookWorkbench: React.FC = () => {
                 }}
                 defaultExpandedStats={true}
               />
+            )}
+
+            {selectedComponent === "learning_filters" && (
+              <div className="max-w-md mx-auto">
+                <LearningGoalsFiltersPanel
+                  maxWords={learningFilterMaxWords}
+                  onMaxWordsChange={setLearningFilterMaxWords}
+                  skipIncompleteSentences={learningFilterSkipIncomplete}
+                  onSkipIncompleteSentencesChange={setLearningFilterSkipIncomplete}
+                />
+              </div>
             )}
           </div>
 

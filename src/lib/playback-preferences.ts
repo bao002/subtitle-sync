@@ -37,6 +37,8 @@ const KEYS = {
   retryPacingMaxSec: "yt_retry_pacing_max_sec_v1",
   backgroundAudio: "yt_background_audio_enabled_v1",
   primaryTtsLang: "yt_primary_tts_lang_v1",
+  learningGoalsMaxWords: "yt_learning_goals_max_words_v1",
+  learningGoalsSkipIncomplete: "yt_learning_goals_skip_incomplete_v1",
 } as const;
 
 const memoryStorage = new Map<string, string>();
@@ -585,4 +587,37 @@ export const getBackgroundAudioEnabled = (): boolean => {
 
 export const setBackgroundAudioEnabled = (enabled: boolean) => {
   write(KEYS.backgroundAudio, enabled ? "1" : "0");
+};
+
+export const getLearningGoalsMaxWords = (): number => {
+  const s = getStorage();
+  if (!s) return 10;
+  try {
+    const raw = s.getItem(KEYS.learningGoalsMaxWords);
+    if (!raw) return 10;
+    const parsed = parseInt(raw, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 10;
+  } catch {
+    return 10;
+  }
+};
+
+export const setLearningGoalsMaxWords = (maxWords: number) => {
+  const safe = Math.max(1, Math.min(100, Math.round(maxWords)));
+  write(KEYS.learningGoalsMaxWords, String(safe));
+};
+
+export const getLearningGoalsSkipIncomplete = (): boolean => {
+  const s = getStorage();
+  if (!s) return false;
+  try {
+    const raw = s.getItem(KEYS.learningGoalsSkipIncomplete);
+    return raw !== null ? raw === "1" || raw === "true" : false;
+  } catch {
+    return false;
+  }
+};
+
+export const setLearningGoalsSkipIncomplete = (skip: boolean) => {
+  write(KEYS.learningGoalsSkipIncomplete, skip ? "1" : "0");
 };
