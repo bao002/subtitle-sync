@@ -1,5 +1,41 @@
 # Done tasks
 
+### Task 294 (Chapter 1): Learning Goals - Max Words Per Subtitle Row Slider & Complete Sentence Filter
+
+- **Prompt**:
+  ```
+  1.
+  learning goals:
+
+  - add slider which allows to limit the number of words a subtitle row contains (then skip any record which have highter number of words)
+
+  - add control to skip any record which is not a complete sentence (not ending with a punctuation sign which is "," or "." or "?" or "!")
+  ```
+- **Implementation**:
+  - Created shared component `src/components/shared/LearningGoalsFiltersPanel.tsx` with:
+    - Responsive slider for max words per subtitle row (range 1-50, step 1, with numeric input, +/- adjustment buttons, and active word count badge `learning-goals-max-words-value`).
+    - Toggle switch for complete sentence filter (`learning-goals-skip-incomplete-switch`) requiring sentences to terminate with `,`, `.`, `?`, or `!`.
+    - Integrated with 100% parity into Advanced Mode (Stage 2 Learning Goals card: `stage-2-learning-filters-container`) and Beginner Mode (`beginner-learning-goals-filters-container`).
+  - Added Storybook story `src/components/shared/LearningGoalsFiltersPanel.stories.tsx` and registered component in `src/storybook/StorybookWorkbench.tsx` clean-room testbed under `learning_filters`.
+  - Updated `src/utils/newSubtitlesParser.ts`:
+    - Added `skipIncompleteSentences: boolean` to `SimpleParserConfig` and `DEFAULT_SIMPLE_PARSER_CONFIG`.
+    - Implemented `isCompleteSentence(text: string): boolean` detecting terminal punctuation (`[,.?!]`), accounting for enclosing quotes, parentheses, brackets, and trailing whitespace.
+    - Updated `splitCuesIntoSentences` to preserve terminal commas when `skipIncompleteSentences` is active, and filter segments based on both max words and complete sentence criteria.
+    - Updated `simpleAlign` so generated rows automatically exclude segments exceeding max words or failing the complete sentence check.
+  - Updated `src/lib/playback-preferences.ts`:
+    - Added `getLearningGoalsMaxWords`, `setLearningGoalsMaxWords`, `getLearningGoalsSkipIncomplete`, `setLearningGoalsSkipIncomplete` with device-saved localStorage persistence.
+  - Updated `src/routes/index.tsx`:
+    - Initialized `simpleParserConfig` with persistent learning goals preferences.
+    - Maintained `maxTtsWordsRef` and `skipIncompleteRef` for runtime synchronization.
+    - Enforced filters in `getEligibleLangs` and `isSentenceEligibleForTts` for robust audio playback coordination and on-demand translation skipping.
+  - Bumped version to `2.0.94` and synchronized `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+- **Validation**:
+  - Dedicated automated test `scripts/verify-learning-goals-word-and-sentence-filters.ts` executed and passed all 6 test suites.
+  - `scripts/verify-learning-goals-language-ratios.ts` executed and passed.
+  - `npm run test:type-safety` passed with 0 TypeScript/module errors.
+  - `compile_applet` succeeded.
+  - `lint_applet` passed with 0 errors.
+
 ### Hotfix: Fix Vite Reload and TypeScript Type Errors
 
 - **Prompt**:

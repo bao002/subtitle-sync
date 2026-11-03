@@ -16,6 +16,7 @@ export interface SimpleParserConfig {
   splitIntraCue: boolean;
   shortCompleteSentences: boolean;
   maxWordsPerSentence: number;
+  skipIncompleteSentences?: boolean;
   customDelimiters: string;
   dotAbbreviationExceptions: string;
   wrapCoupledPunctuation: boolean;
@@ -31,6 +32,7 @@ export const DEFAULT_SIMPLE_PARSER_CONFIG: SimpleParserConfig = {
   splitIntraCue: true,
   shortCompleteSentences: true,
   maxWordsPerSentence: 10,
+  skipIncompleteSentences: false,
   customDelimiters: "",
   dotAbbreviationExceptions: "dr., mrs., mr., ms., prof., etc., e.g., i.e.",
   wrapCoupledPunctuation: true,
@@ -194,6 +196,16 @@ export function isSentenceWithinWordLimit(text: string, maxWords: number): boole
 }
 
 /**
+ * Checks if a string is a complete sentence ending with terminal punctuation: ',' or '.' or '?' or '!'
+ * Strips any trailing whitespace and quotes/brackets before testing.
+ */
+export function isCompleteSentence(text: string): boolean {
+  if (!text || !text.trim()) return false;
+  const cleaned = text.trim().replace(/[\s"'”’»\)\]\}]+$/, "");
+  return /[,.?!]$/.test(cleaned);
+}
+
+/**
  * Splits each native timed cue independently so parser output never crosses cue boundaries.
  * Grabs grammatically complete sentence/clause units bounded by punctuation (e.g. XXX, YYY? ZZ -> XXX, YYY?, ZZ).
  * Rejects anti-patterns like "XXX, Y" or "Y? ZZ" by strictly requiring whole-clause boundaries.
@@ -247,8 +259,10 @@ export function splitCuesIntoSentences(
       }
 
       let partText = cueText.slice(lastMatchEnd, delimiterEnd).trim();
-      if (config.shortCompleteSentences) {
+      if (config.shortCompleteSentences && !config.skipIncompleteSentences) {
         partText = partText.replace(/^[,\s;:]+|[,\s;:]+$/g, "").trim();
+      } else if (config.shortCompleteSentences && config.skipIncompleteSentences) {
+        partText = partText.replace(/^[,\s;:]+|[;\s:]+$/g, "").trim();
       }
       const charStartFraction = Math.min(1, Math.max(0, lastMatchEnd / cueText.length));
       const charEndFraction = Math.min(1, Math.max(0, delimiterEnd / cueText.length));
@@ -264,8 +278,10 @@ export function splitCuesIntoSentences(
     }
 
     let leftover = cueText.slice(lastMatchEnd).trim();
-    if (config.shortCompleteSentences) {
+    if (config.shortCompleteSentences && !config.skipIncompleteSentences) {
       leftover = leftover.replace(/^[,\s;:]+|[,\s;:]+$/g, "").trim();
+    } else if (config.shortCompleteSentences && config.skipIncompleteSentences) {
+      leftover = leftover.replace(/^[,\s;:]+|[;\s:]+$/g, "").trim();
     }
     if (leftover && /[^\s\p{P}]/u.test(leftover)) {
       const charStartFraction = Math.min(1, Math.max(0, lastMatchEnd / cueText.length));
@@ -285,16 +301,23 @@ export function splitCuesIntoSentences(
     }
   }
 
+  let result = segments;
+
   // User-defined max words per sentence filter: discard sentences exceeding word count limit
   if (
     config.enabled &&
     typeof config.maxWordsPerSentence === "number" &&
     config.maxWordsPerSentence > 0
   ) {
-    return segments.filter((seg) => countWords(seg.text) <= config.maxWordsPerSentence);
+    result = result.filter((seg) => countWords(seg.text) <= config.maxWordsPerSentence);
   }
 
-  return segments;
+  // Complete sentence filter: skip any record which is not a complete sentence (not ending with "," or "." or "?" or "!")
+  if (config.enabled && config.skipIncompleteSentences) {
+    result = result.filter((seg) => isCompleteSentence(seg.text));
+  }
+
+  return result;
 }
 
 /**

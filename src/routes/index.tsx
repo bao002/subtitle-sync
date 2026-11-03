@@ -249,9 +249,11 @@ import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
 import {
   simpleAlign,
   isSentenceWithinWordLimit,
+  isCompleteSentence,
   type SimpleParserConfig,
   DEFAULT_SIMPLE_PARSER_CONFIG,
 } from "@/utils/newSubtitlesParser";
+import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
 import { PerLanguageTtsPreferences } from "@/components/beginner/PerLanguageTtsPreferences";
 import { LanguageTtsOrderSelect } from "@/components/LanguageTtsOrderSelect";
@@ -293,6 +295,10 @@ import {
   setRetryPacingMaxSec as saveRetryPacingMaxSec,
   getBackgroundAudioEnabled,
   setBackgroundAudioEnabled as saveBackgroundAudioEnabled,
+  getLearningGoalsMaxWords,
+  setLearningGoalsMaxWords as saveLearningGoalsMaxWords,
+  getLearningGoalsSkipIncomplete,
+  setLearningGoalsSkipIncomplete as saveLearningGoalsSkipIncomplete,
   type SectionOrder,
   type SubtitleRequestMode,
 } from "@/lib/playback-preferences";
@@ -1342,23 +1348,32 @@ function Index() {
 
   const [explicitBaseLanguage, setExplicitBaseLanguage] = useState<string>("");
   const [simpleParserConfig, setSimpleParserConfig] = useState<SimpleParserConfig>(() => {
+    let base = DEFAULT_SIMPLE_PARSER_CONFIG;
     if (typeof window !== "undefined") {
       try {
         const stored = localStorage.getItem("yt_simple_parser_config");
         if (stored) {
           const parsed = JSON.parse(stored);
-          return { ...DEFAULT_SIMPLE_PARSER_CONFIG, ...parsed };
+          base = { ...DEFAULT_SIMPLE_PARSER_CONFIG, ...parsed };
         }
       } catch {
         // ignore
       }
     }
-    return DEFAULT_SIMPLE_PARSER_CONFIG;
+    const savedMax = getLearningGoalsMaxWords();
+    const savedSkip = getLearningGoalsSkipIncomplete();
+    return {
+      ...base,
+      maxWordsPerSentence: savedMax ?? base.maxWordsPerSentence,
+      skipIncompleteSentences: savedSkip ?? base.skipIncompleteSentences,
+    };
   });
   const maxTtsWordsRef = useRef(simpleParserConfig.maxWordsPerSentence);
+  const skipIncompleteRef = useRef(Boolean(simpleParserConfig.skipIncompleteSentences));
   useEffect(() => {
     maxTtsWordsRef.current = simpleParserConfig.maxWordsPerSentence;
-  }, [simpleParserConfig.maxWordsPerSentence]);
+    skipIncompleteRef.current = Boolean(simpleParserConfig.skipIncompleteSentences);
+  }, [simpleParserConfig.maxWordsPerSentence, simpleParserConfig.skipIncompleteSentences]);
 
   const setBaseLanguage = useCallback((lang: string) => {
     // The default language can only be one of those languages their subtitles have been successfully fetched already
@@ -3758,12 +3773,11 @@ function Index() {
         startIndex,
         sentencesAhead: onDemandAheadCount,
         isSentenceEligibleForTts: (idx) => {
-          if (
-            !isSentenceWithinWordLimit(
-              sourceSentences[idx] || "",
-              simpleParserConfig.maxWordsPerSentence,
-            )
-          ) {
+          const sent = sourceSentences[idx] || "";
+          if (!isSentenceWithinWordLimit(sent, simpleParserConfig.maxWordsPerSentence)) {
+            return false;
+          }
+          if (simpleParserConfig.skipIncompleteSentences && !isCompleteSentence(sent)) {
             return false;
           }
           const ratio = getLanguageTtsRatio(ttsRatios, targetLang);
@@ -3812,6 +3826,7 @@ function Index() {
     ttsRatios,
     primaryTtsLang,
     simpleParserConfig.maxWordsPerSentence,
+    simpleParserConfig.skipIncompleteSentences,
   ]);
 
   const activeCatalog = useMemo(() => {
@@ -4360,6 +4375,7 @@ function Index() {
           return [];
         const baseText = st.current.rows[rowIdx]?.texts[st.current.baseLanguage] ?? "";
         if (!isSentenceWithinWordLimit(baseText, maxTtsWordsRef.current)) return [];
+        if (skipIncompleteRef.current && !isCompleteSentence(baseText)) return [];
         let eligibleLanguages = orderedLangs.filter(
           (l) =>
             isTtsSpeakableLanguage(l.code, currentBaseLanguage) &&
@@ -6169,6 +6185,54 @@ function Index() {
                 onDefaultOrderChange={handleSectionOrderChange}
               />
             }
+            learningGoalsFiltersSlot={
+              <LearningGoalsFiltersPanel
+                maxWords={simpleParserConfig.maxWordsPerSentence}
+                onMaxWordsChange={(val) => {
+                  const next = { ...simpleParserConfig, maxWordsPerSentence: val };
+                  setSimpleParserConfig(next);
+                  saveLearningGoalsMaxWords(val);
+                  try {
+                    localStorage.setItem("yt_simple_parser_config", JSON.stringify(next));
+                  } catch {
+                    // ignore storage errors
+                  }
+                }}
+                skipIncompleteSentences={Boolean(simpleParserConfig.skipIncompleteSentences)}
+                onSkipIncompleteSentencesChange={(val) => {
+                  const next = { ...simpleParserConfig, skipIncompleteSentences: val };
+                  setSimpleParserConfig(next);
+                  saveLearningGoalsSkipIncomplete(val);
+                  try {
+                    localStorage.setItem("yt_simple_parser_config", JSON.stringify(next));
+                  } catch {
+                    // ignore storage errors
+                  }
+                }}
+              />
+            }
+            maxWordsPerSentence={simpleParserConfig.maxWordsPerSentence}
+            onMaxWordsPerSentenceChange={(val) => {
+              const next = { ...simpleParserConfig, maxWordsPerSentence: val };
+              setSimpleParserConfig(next);
+              saveLearningGoalsMaxWords(val);
+              try {
+                localStorage.setItem("yt_simple_parser_config", JSON.stringify(next));
+              } catch {
+                // ignore storage errors
+              }
+            }}
+            skipIncompleteSentences={Boolean(simpleParserConfig.skipIncompleteSentences)}
+            onSkipIncompleteSentencesChange={(val) => {
+              const next = { ...simpleParserConfig, skipIncompleteSentences: val };
+              setSimpleParserConfig(next);
+              saveLearningGoalsSkipIncomplete(val);
+              try {
+                localStorage.setItem("yt_simple_parser_config", JSON.stringify(next));
+              } catch {
+                // ignore storage errors
+              }
+            }}
             onSwitchToAdvanced={() => handleWorkflowModeChange("expert")}
             charsRemovalSlot={
               <BeginnerCharsRemovalAccordion>
@@ -8710,6 +8774,51 @@ function Index() {
                                         </div>
                                       )}
                                     </div>
+                                  </div>
+
+                                  {/* 4. Subtitle Row Learning Filters (Max Words Slider & Complete Sentence Filter) */}
+                                  <div
+                                    id="stage-2-learning-filters-container"
+                                    data-testid="stage-2-learning-filters-container"
+                                  >
+                                    <LearningGoalsFiltersPanel
+                                      maxWords={simpleParserConfig.maxWordsPerSentence}
+                                      onMaxWordsChange={(val) => {
+                                        const next = {
+                                          ...simpleParserConfig,
+                                          maxWordsPerSentence: val,
+                                        };
+                                        setSimpleParserConfig(next);
+                                        saveLearningGoalsMaxWords(val);
+                                        try {
+                                          localStorage.setItem(
+                                            "yt_simple_parser_config",
+                                            JSON.stringify(next),
+                                          );
+                                        } catch {
+                                          /* ignore storage error */
+                                        }
+                                      }}
+                                      skipIncompleteSentences={Boolean(
+                                        simpleParserConfig.skipIncompleteSentences,
+                                      )}
+                                      onSkipIncompleteSentencesChange={(val) => {
+                                        const next = {
+                                          ...simpleParserConfig,
+                                          skipIncompleteSentences: val,
+                                        };
+                                        setSimpleParserConfig(next);
+                                        saveLearningGoalsSkipIncomplete(val);
+                                        try {
+                                          localStorage.setItem(
+                                            "yt_simple_parser_config",
+                                            JSON.stringify(next),
+                                          );
+                                        } catch {
+                                          /* ignore storage error */
+                                        }
+                                      }}
+                                    />
                                   </div>
                                 </div>
 
