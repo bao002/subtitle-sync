@@ -52,6 +52,7 @@ import {
   BookmarkCheck,
   Plus,
   Film,
+  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -2310,6 +2311,12 @@ function Index() {
         } catch {
           // ignore
         }
+      }
+      if (typeof config.maxWordsPerSentence === "number") {
+        saveLearningGoalsMaxWords(config.maxWordsPerSentence);
+      }
+      if (typeof config.skipIncompleteSentences === "boolean") {
+        saveLearningGoalsSkipIncomplete(config.skipIncompleteSentences);
       }
     },
     [videoId],
@@ -6554,9 +6561,8 @@ function Index() {
                     }
                     if (currentAccordionStage === 3) {
                       if (panelId === "subtitles" && !hasLegitimateSubtitles) return false;
-                      return (
-                        panelId === "player" || panelId === "languages" || panelId === "subtitles"
-                      );
+                      // Hide language settings on Stage 3 because they are already configured on Stage 2
+                      return panelId === "player" || panelId === "subtitles";
                     }
                     return true;
                   })
@@ -8783,49 +8789,38 @@ function Index() {
                                     </div>
                                   </div>
 
-                                  {/* 4. Subtitle Row Learning Filters (Max Words Slider & Complete Sentence Filter) */}
+                                  {/* 4. Subtitle Row Learning Filters - Moved to Subtitles Table View */}
                                   <div
                                     id="stage-2-learning-filters-container"
                                     data-testid="stage-2-learning-filters-container"
+                                    className="p-3 rounded-lg border border-border bg-card/60 flex flex-wrap items-center justify-between gap-2.5"
                                   >
-                                    <LearningGoalsFiltersPanel
-                                      maxWords={simpleParserConfig.maxWordsPerSentence}
-                                      onMaxWordsChange={(val) => {
-                                        const next = {
-                                          ...simpleParserConfig,
-                                          maxWordsPerSentence: val,
-                                        };
-                                        setSimpleParserConfig(next);
-                                        saveLearningGoalsMaxWords(val);
-                                        try {
-                                          localStorage.setItem(
-                                            "yt_simple_parser_config",
-                                            JSON.stringify(next),
-                                          );
-                                        } catch {
-                                          /* ignore storage error */
-                                        }
+                                    <div className="flex items-center gap-2">
+                                      <Filter className="h-4 w-4 text-primary shrink-0" />
+                                      <div>
+                                        <div className="font-semibold text-xs text-foreground">
+                                          Row Criteria: Subtitle Row Filters
+                                        </div>
+                                        <div className="text-[11px] text-muted-foreground">
+                                          Row criteria (max words and sentence splitting) has moved
+                                          to the Subtitles Table view to see updates dynamically on
+                                          the table.
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setCurrentAccordionStage(3);
+                                        setOpenPanels((prev) => ({ ...prev, subtitles: true }));
                                       }}
-                                      skipIncompleteSentences={Boolean(
-                                        simpleParserConfig.skipIncompleteSentences,
-                                      )}
-                                      onSkipIncompleteSentencesChange={(val) => {
-                                        const next = {
-                                          ...simpleParserConfig,
-                                          skipIncompleteSentences: val,
-                                        };
-                                        setSimpleParserConfig(next);
-                                        saveLearningGoalsSkipIncomplete(val);
-                                        try {
-                                          localStorage.setItem(
-                                            "yt_simple_parser_config",
-                                            JSON.stringify(next),
-                                          );
-                                        } catch {
-                                          /* ignore storage error */
-                                        }
-                                      }}
-                                    />
+                                      className="h-7 text-xs text-primary border-primary/40 hover:bg-primary/10 gap-1.5 cursor-pointer"
+                                    >
+                                      <span>Open Subtitles Table</span>
+                                      <ArrowRight className="h-3 w-3" />
+                                    </Button>
                                   </div>
                                 </div>
 

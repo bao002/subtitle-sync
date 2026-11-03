@@ -132,16 +132,36 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-in order to decide the video-playing precedence all we need is a bar to move and place among the pointed table records
-Apply style changes to the selected element(s).
+Fix the errors in the app
 [AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1)
-CSS 1: {
+fix_it_trigger: manual
+error 0: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Filter is not defined
+error 1: [APP_PAGE_ERROR] This page didn't load: Filter is not defined
+error 2: ReferenceError: Filter is not defined
+    at https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/src/routes/index.tsx:9551:52
+    at Array.map (<anonymous>)
+    at Index (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/src/routes/index.tsx:6186:9)
+    at Object.react_stack_bottom_frame (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:14140:12)
+    at renderWithHooks (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:4398:19)
+    at updateFunctionComponent (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:5773:16)
+    at beginWork (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:6389:20)
+    at runWithFiberInDEV (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:943:66)
+    at performUnitOfWork (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:9146:92)
+    at workLoopSync (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:9042:37)
+error 3: %o
 
-}
-CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(1)
-CSS 2: {
+%s
 
-}
+%s ReferenceError: Filter is not defined
+    at https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/src/routes/index.tsx:9551:52
+    at Array.map (<anonymous>)
+    at Index (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/src/routes/index.tsx:6186:9)
+    at Object.react_stack_bottom_frame (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:14140:12)
+    at renderWithHooks (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:4398:19)
+    at updateFunctionComponent (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:5773:16)
+    at beginWork (https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=6566324c:6389:20)
+    ... [3 frames omitted]
 [AIS_METADATA_SECTION_END]
 ```
+
+

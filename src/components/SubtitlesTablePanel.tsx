@@ -1,11 +1,12 @@
 import React from "react";
-import { Check, Languages, Sparkles, FileCode, Columns } from "lucide-react";
+import { Check, Languages, Sparkles, FileCode, Columns, Filter, ChevronDown, ChevronUp } from "lucide-react";
 
 import { type Row, type Json3, subtitleColumnName } from "@/lib/subtitles";
 import { SubtitleRow, type SubtitleColumn } from "@/components/SubtitleRow";
 import { type SpeechProgress } from "@/components/HighlightedSubtitle";
 import { NewSubtitlesParserBar } from "@/components/NewSubtitlesParserBar";
 import { SimpleParserConfig, DEFAULT_SIMPLE_PARSER_CONFIG } from "@/utils/newSubtitlesParser";
+import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 
 export interface SubtitlesTablePanelProps {
   isAndroid: boolean;
@@ -63,7 +64,8 @@ export function SubtitlesTablePanel({
     DEFAULT_SIMPLE_PARSER_CONFIG,
   );
   const [freezeColumns, setFreezeColumns] = React.useState<boolean>(true);
-    const shouldFreezeColumns = !isAndroid && freezeColumns;
+  const [showRowCriteria, setShowRowCriteria] = React.useState<boolean>(true);
+  const shouldFreezeColumns = !isAndroid && freezeColumns;
   const activeParserConfig = externalParserConfig || localParserConfig;
   const handleParserConfigChange = onParserConfigChange || setLocalParserConfig;
 
@@ -79,6 +81,60 @@ export function SubtitlesTablePanel({
         onChange={handleParserConfigChange}
         sentenceCount={rows.length}
       />
+      {/* Dynamic Row Criteria Subtitle Filters (Max Words Slider & Complete Sentences Only) */}
+      <div
+        id="subtitles-table-row-criteria-container"
+        data-testid="subtitles-table-row-criteria-container"
+        className="border-b border-border/70 bg-card/40 p-2"
+      >
+        <div className="flex items-center justify-between pb-1.5 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <Filter className="h-3.5 w-3.5 text-primary" />
+              <span>Row Criteria</span>
+            </span>
+            <span className="text-[10px] text-muted-foreground font-mono">
+              (Dynamic Table View)
+            </span>
+          </div>
+          <button
+            type="button"
+            data-testid="toggle-row-criteria-visibility-btn"
+            onClick={() => setShowRowCriteria((prev) => !prev)}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          >
+            {showRowCriteria ? (
+              <>
+                <ChevronUp className="h-3 w-3" />
+                <span>Collapse</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-3 w-3" />
+                <span>Expand ({activeParserConfig.maxWordsPerSentence ?? 10} words max)</span>
+              </>
+            )}
+          </button>
+        </div>
+        {showRowCriteria && (
+          <LearningGoalsFiltersPanel
+            maxWords={activeParserConfig.maxWordsPerSentence ?? 10}
+            onMaxWordsChange={(val) => {
+              handleParserConfigChange({
+                ...activeParserConfig,
+                maxWordsPerSentence: val,
+              });
+            }}
+            skipIncompleteSentences={Boolean(activeParserConfig.skipIncompleteSentences)}
+            onSkipIncompleteSentencesChange={(val) => {
+              handleParserConfigChange({
+                ...activeParserConfig,
+                skipIncompleteSentences: val,
+              });
+            }}
+          />
+        )}
+      </div>
       {isAndroid && rows.length > 0 && (
         <div
           data-testid="android-subtitles-pagination-bar"
