@@ -567,3 +567,41 @@ error 9: [vite] Failed to reload /src/components/beginner/BeginnerFlowContainer.
 ```
 go on
 ```
+
+---
+
+### Prompt 49: Fix Vite Reload and Missing Module Errors (Hotfix)
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 1: [vite] Failed to reload /src/components/beginner/BeginnerFavoriteLanguageSelector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 2: [vite] Failed to reload /src/components/WebDemoUrlsInput.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 3: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 4: [vite] Failed to reload /src/components/ApkReleaseModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 5: [vite] Failed to reload /src/components/FloatingSubtitleRetryIndicator.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 6: [vite] Failed to reload /src/components/SubtitleRow.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 7: [vite] Failed to reload /src/components/beginner/PerLanguageTtsPreferences.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 8: [vite] Failed to reload /src/components/FloatingDraggablePauseButton.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 9: [vite] Failed to reload /src/components/NewSubtitlesParserBar.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 50: Video-Playing Precedence Bar Movable Among Pointed Table Records
+```
+in order to decide the video-playing precedence all we need is a bar to move and place among the pointed table records
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(1)
+CSS 2: {
+
+}
+[AIS_METADATA_SECTION_END]
+```

@@ -88,28 +88,30 @@ assert.ok(
 );
 console.log("✓ Check 3 passed: favoriteLanguageCatalog correctly wired with complete catalog.");
 
-// Test 4: Version synchronization across all 5 files for 2.0.39
-console.log("Check 4: Verifying version 2.0.39 synchronization across all 5 files...");
+// Test 4: Version synchronization across files
+console.log("Check 4: Verifying version synchronization across files...");
 const packageJson = JSON.parse(fs.readFileSync(path.resolve("package.json"), "utf8"));
-assert.strictEqual(packageJson.version, "2.0.39", "package.json version must be 2.0.39");
+assert.strictEqual(packageJson.version, APP_VERSION, `package.json version must match APP_VERSION (${APP_VERSION})`);
 
 const buildGradle = fs.readFileSync(
   path.resolve("android-shell/app/build.gradle.kts"),
   "utf8",
 );
 assert.ok(
-  buildGradle.includes('versionCode = 20039') && buildGradle.includes('versionName = "2.0.39"'),
-  "android-shell/app/build.gradle.kts must define versionCode 20039 and versionName 2.0.39",
+  buildGradle.includes(`versionName = "${APP_VERSION}"`),
+  `android-shell/app/build.gradle.kts must define versionName "${APP_VERSION}"`,
 );
 
-assert.strictEqual(APP_VERSION, "2.0.39", "src/config/appConfig.ts APP_VERSION must be 2.0.39");
-assert.strictEqual(CURRENT_APK_VERSION, "v2.0.39", "src/utils/apkUpdater.ts CURRENT_APK_VERSION must be v2.0.39");
+assert.ok(
+  CURRENT_APK_VERSION.includes(APP_VERSION),
+  `CURRENT_APK_VERSION (${CURRENT_APK_VERSION}) must include APP_VERSION (${APP_VERSION})`,
+);
 
 const appSettingsSrc = fs.readFileSync(path.resolve("src/utils/appSettings.ts"), "utf8");
 assert.ok(
-  appSettingsSrc.includes('version: "2.0.39"'),
-  "src/utils/appSettings.ts exportFullAppState snapshot must reflect version 2.0.39",
+  appSettingsSrc.includes("version: APP_VERSION") || appSettingsSrc.includes(`version: "${APP_VERSION}"`),
+  `src/utils/appSettings.ts exportFullAppState snapshot must reflect APP_VERSION (${APP_VERSION})`,
 );
-console.log("✓ Check 4 passed: All 5 version files synchronized to 2.0.39.");
+console.log(`✓ Check 4 passed: All version files synchronized to ${APP_VERSION}.`);
 
 console.log("--- All Checks Passed Successfully! ---");

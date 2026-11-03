@@ -1,5 +1,81 @@
 # Done tasks
 
+### Task 295: Video-Playing Precedence Bar Movable and Placeable Among Pointed Table Records
+
+- **Prompt**:
+  ```
+  in order to decide the video-playing precedence all we need is a bar to move and place among the pointed table records
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(1) > td:nth-of-type(1)
+  CSS 1: {
+
+  }
+  CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > tbody:nth-of-type(1) > tr:nth-of-type(2) > td:nth-of-type(1)
+  CSS 2: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - Researched focus-mode skill and targeted the pointed `unified-languages-table` (`details:nth-of-type(2) > div > div:nth-of-type(3) > table`).
+  - Created reusable component `src/components/VideoPlaybackPrecedenceBar.tsx` supporting both table-row (`asTableRow`, `colSpan={10}`) and card-list rendering, with:
+    - Movable bar with Up, Down, Top, Bottom controls.
+    - `getVideoBarIndex(orderedLangCodes, languageOrders, sectionOrder)` to resolve the active bar index (0 to N).
+    - `updatePrecedenceFromVideoBarIndex(orderedLangCodes, videoBarIndex)` to map bar position to `sectionOrder` (`video-first`, `tts-first`, `video-middle`) and per-language order mappings.
+  - Implemented Storybook story `src/components/VideoPlaybackPrecedenceBar.stories.tsx` and registered it in `src/storybook/StorybookWorkbench.tsx`.
+  - Built Storybook assets via `npm run build:storybook`.
+  - Integrated into Advanced Mode in `src/routes/index.tsx`:
+    - Renders the precedence bar at index 0 and between rows at index + 1 in `unified-languages-table`.
+    - Added "Place Video Here" button (`btn-place-video-before-${lang.code}`) with Film icon in each row's Order cell.
+  - Maintained 100% functional parity in Beginner Mode in `src/components/beginner/PerLanguageTtsPreferences.tsx`:
+    - Renders the precedence bar at position 0 and between language cards.
+    - Added "Place Video Here" button (`btn-place-video-before-${language.code}`) in each language card.
+  - Bumped version to `2.0.95` across `package.json`, `build.gradle.kts`, and app settings via `npm run sync-version`.
+  - Created dedicated automated test `scripts/verify-video-playing-precedence-bar.ts` (`npm run test:video-playing-precedence-bar`).
+- **Validation**:
+  - `npm run test:video-playing-precedence-bar` passed with 100% success (tested top, bottom, and split middle positions, round-trip state stability, Advanced mode integration, Beginner mode parity, and Storybook integration).
+  - `npm run build:storybook` succeeded cleanly (`public/storybook/assets/VideoPlaybackPrecedenceBar.stories-B5qXjiVU.js`).
+  - `lint_applet` passed cleanly.
+  - `compile_applet` passed (`Build succeeded - the applet is compiled`).
+
+### Hotfix: Fix Vite Reload and Missing Beginner Module Errors
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 1: [vite] Failed to reload /src/components/beginner/BeginnerFavoriteLanguageSelector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 2: [vite] Failed to reload /src/components/WebDemoUrlsInput.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 3: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 4: [vite] Failed to reload /src/components/ApkReleaseModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 5: [vite] Failed to reload /src/components/FloatingSubtitleRetryIndicator.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 6: [vite] Failed to reload /src/components/SubtitleRow.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 7: [vite] Failed to reload /src/components/beginner/PerLanguageTtsPreferences.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 8: [vite] Failed to reload /src/components/FloatingDraggablePauseButton.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 9: [vite] Failed to reload /src/components/NewSubtitlesParserBar.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause & Diagnosis**:
+  - Module `/src/components/beginner/BeginnerFavoriteLanguageSelector.tsx` was missing on disk, causing Vite HMR reload failures and fallback to HTML (`<!doctype html>`) when requested, which cascaded reload errors to dependent modules.
+  - A React Hook exhaustive-deps warning in `src/routes/index.tsx` was present.
+  - Stale Vite dev server memory cache had accumulated un-evicted failed transform records.
+- **Implementation**:
+  - Implemented `src/components/beginner/BeginnerFavoriteLanguageSelector.tsx` with full language catalog resolution via `getDisplayLanguageName`, `ALL_KNOWN_LANGUAGES`, accessible title and aria-labels, and selection toggle support.
+  - Resolved eslint warning in `src/routes/index.tsx` at stable video player effect.
+  - Updated `scripts/verify-beginner-language-name-display.ts` to assert against current `APP_VERSION` and `package.json`.
+  - Added dedicated test `scripts/verify-vite-reload-and-modules-hotfix.ts` (`npm run test:vite-reload-hotfix`).
+  - Cleanly restarted the Vite development server to clear stale module graphs.
+- **Validation**:
+  - Dedicated automated test `npm run test:vite-reload-hotfix` executed and passed: all 10 modules physically exist and return HTTP 200 transformed JavaScript with zero parse errors.
+  - `npm run test:beginner-language-name-display` passed with 100% success.
+  - `npm run test:beginner-mode` passed with 100% success.
+  - `npm run test:type-safety` passed with 0 TypeScript/module errors.
+  - `lint_applet` passed with 0 errors and 0 warnings.
+  - `compile_applet` passed (`Build succeeded`).
+
 ### Task 294 (Chapter 1): Learning Goals - Max Words Per Subtitle Row Slider & Complete Sentence Filter
 
 - **Prompt**:
