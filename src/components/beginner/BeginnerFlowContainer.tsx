@@ -50,6 +50,7 @@ export interface BeginnerFlowContainerProps {
   onApplyFavoritesToVideo?: () => void;
   onSaveCurrentSelectionAsFavorites?: () => void;
   onSwitchToAdvanced?: () => void;
+  onOpenBackupModal?: () => void;
 }
 
 export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
@@ -89,6 +90,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   onApplyFavoritesToVideo,
   onSaveCurrentSelectionAsFavorites,
   onSwitchToAdvanced,
+  onOpenBackupModal,
 }) => {
   // Load initial settings
   const [settings, setSettings] = useState<AppSettings>(() => loadAppSettings());
@@ -231,6 +233,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             videoId={videoId}
             onApplyFavoritesToVideo={onApplyFavoritesToVideo}
             onSaveCurrentSelectionAsFavorites={onSaveCurrentSelectionAsFavorites}
+            onOpenBackupModal={onOpenBackupModal}
           />
         </div>
       </main>

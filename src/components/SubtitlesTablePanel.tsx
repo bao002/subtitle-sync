@@ -27,6 +27,7 @@ export interface SubtitlesTablePanelProps {
   spokenLangs: string[];
   ttsRatios: Record<string, number>;
   primaryTtsLang?: string;
+  blacklist?: string[];
   onLoadCachedAiSubtitles?: () => void;
   hasCachedAi?: boolean;
   onSpeakCue?: (text: string, lang: string) => void;
@@ -54,6 +55,7 @@ export function SubtitlesTablePanel({
   spokenLangs,
   ttsRatios,
   primaryTtsLang,
+  blacklist,
   onLoadCachedAiSubtitles,
   hasCachedAi,
   onSpeakCue,
@@ -367,6 +369,7 @@ export function SubtitlesTablePanel({
                   spokenLangs={spokenLangs}
                   ttsRatios={ttsRatios}
                   primaryTtsLang={primaryTtsLang}
+                  blacklist={blacklist}
                   onSpeakCue={onSpeakCue}
                   freezeColumns={shouldFreezeColumns}
                 />

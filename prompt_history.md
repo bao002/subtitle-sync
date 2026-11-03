@@ -686,6 +686,13 @@ CSS 2: {
 4. list the reasons why the app doesnt resume the video after it pauses docs/stop.md  - and remove all of them.
 ```
 
+---
 
-
-
+### Prompt 55: TTS Blacklist / Whitelist, Up to 1:20 Ratio, localStorage Persistence, and Export/Import Application Settings
+```
+languages goal - whitelist/blacklist - allow to set languages to be on the black-list of tts-play - in that case even if the default subtitles are X , then X would be skipped for tts-play.
+allow tts-ratio to be up to 1:20 ratio.
+tts-ration is to be stored using local-storage.
+2
+add option to export/import application settings
+```

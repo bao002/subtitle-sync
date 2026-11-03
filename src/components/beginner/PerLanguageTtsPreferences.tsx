@@ -1,7 +1,10 @@
 import React from "react";
-import { Gauge, Languages, Film } from "lucide-react";
+import { Gauge, Languages, Film, Volume2, VolumeX } from "lucide-react";
 import { getLanguageVoices, getUniqueVoiceKey, SpeechVoiceLike } from "@/utils/speechVoiceUtils";
-import { getLanguageTtsRatio } from "@/lib/playback-preferences";
+import {
+  getLanguageTtsRatio,
+  isLanguageTtsBlacklisted,
+} from "@/lib/playback-preferences";
 import {
   VideoPlaybackPrecedenceBar,
   getVideoBarIndex,
@@ -24,6 +27,8 @@ interface PerLanguageTtsPreferencesProps {
   defaultOrder: SectionOrder;
   voiceSelections: Record<string, string>;
   primaryLang?: string;
+  blacklist?: string[];
+  onToggleBlacklist?: (languageCode: string) => void;
   onPrimaryLangChange?: (languageCode: string) => void;
   onRatioChange: (languageCode: string, ratio: number) => void;
   onRateChange: (languageCode: string, rate: number) => void;
@@ -32,7 +37,7 @@ interface PerLanguageTtsPreferencesProps {
   onVoiceChange: (languageCode: string, voiceURI: string) => void;
 }
 
-const ratioPresets = [1, 2, 3, 4, 5, 7, 10];
+const ratioPresets = [1, 2, 3, 4, 5, 7, 10, 15, 20];
 
 export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps> = ({
   languages,
@@ -43,6 +48,8 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
   defaultOrder,
   voiceSelections,
   primaryLang,
+  blacklist,
+  onToggleBlacklist,
   onPrimaryLangChange,
   onRatioChange,
   onRateChange,
@@ -114,10 +121,15 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
             const ratio = getLanguageTtsRatio(ratios, language.code);
             const rate = rates[language.code] ?? 0.5;
             const isPrimary = language.code === effectivePrimary;
+            const isBlacklisted = isLanguageTtsBlacklisted(language.code, blacklist);
             return (
               <React.Fragment key={language.code}>
                 <div
-                  className="grid grid-cols-1 gap-2 rounded-lg border border-border/60 bg-muted/20 p-2 sm:grid-cols-[minmax(8rem,1fr)_auto_minmax(8rem,1fr)_minmax(10rem,1.5fr)_minmax(9rem,1fr)_auto] sm:items-center"
+                  className={`grid grid-cols-1 gap-2 rounded-lg border p-2 sm:grid-cols-[minmax(8rem,1fr)_auto_minmax(8rem,1fr)_minmax(10rem,1.5fr)_minmax(9rem,1fr)_auto] sm:items-center ${
+                    isBlacklisted
+                      ? "border-destructive/40 bg-destructive/5"
+                      : "border-border/60 bg-muted/20"
+                  }`}
                   data-testid={`beginner-tts-language-${language.code}`}
                 >
                   <div className="flex items-center gap-1.5 truncate">
@@ -161,6 +173,35 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                         </span>
                       </div>
                     )}
+                    {onToggleBlacklist && (
+                      <button
+                        type="button"
+                        data-testid={`tts-blacklist-toggle-${language.code}`}
+                        onClick={() => onToggleBlacklist(language.code)}
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border transition-colors shrink-0 ml-1 cursor-pointer ${
+                          isBlacklisted
+                            ? "bg-destructive/15 border-destructive text-destructive hover:bg-destructive/25"
+                            : "bg-muted/70 border-border text-muted-foreground hover:text-foreground"
+                        }`}
+                        title={
+                          isBlacklisted
+                            ? `${language.name} is blacklisted from TTS (skipped from voice narration)`
+                            : `${language.name} is whitelisted for TTS (click to blacklist)`
+                        }
+                      >
+                        {isBlacklisted ? (
+                          <>
+                            <VolumeX className="h-3 w-3" />
+                            <span>Blacklist</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="h-3 w-3" />
+                            <span>Whitelist</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                   <label className="flex items-center gap-1.5 text-xs">
                     <span
@@ -180,7 +221,7 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                       onChange={(event) =>
                         onRatioChange(
                           language.code,
-                          Math.max(1, Math.min(10, Number(event.target.value))),
+                          Math.max(1, Math.min(20, Number(event.target.value))),
                         )
                       }
                       className="rounded border border-input bg-background px-1.5 py-1 text-xs"

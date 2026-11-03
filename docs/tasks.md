@@ -4,7 +4,11 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*(No active tasks currently pending)*
+- [ ] **Task 286 (Chapter 2): Export / Import Application Settings**
+  - Subtask 286.1: Implement settings backup utility `src/utils/settingsBackupManager.ts` supporting full export and import of user settings, language goals, TTS ratios, blacklist, and preferences.
+  - Subtask 286.2: Add Export/Import UI modal and controls across Advanced Mode and Beginner Mode with full parity.
+  - Subtask 286.3: Dedicated automated test `scripts/verify-settings-export-import.ts`.
+  - Subtask 286.4: Synchronize version `2.1.0` across all 5 files, compile, lint, commit, push, and migrate Task 286 to `docs/done.md`.
 
 
 ## Later Tasks

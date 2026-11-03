@@ -4,25 +4,52 @@ export type SubtitleRequestMode = "tlang" | "lang";
 export type SectionOrder = "video-first" | "tts-first" | "video-middle";
 export type TtsLanguageOrders = Record<string, SectionOrder>;
 
-export const isTtsSpeakableLanguage = (languageCode: unknown, baseLanguage: unknown): boolean => {
-  const code =
-    typeof languageCode === "string"
-      ? languageCode.trim()
-      : languageCode &&
-          typeof languageCode === "object" &&
-          "code" in languageCode &&
-          typeof (languageCode as { code?: unknown }).code === "string"
-        ? (languageCode as { code: string }).code.trim()
-        : "";
-  const base =
-    typeof baseLanguage === "string"
-      ? baseLanguage.trim()
-      : baseLanguage &&
-          typeof baseLanguage === "object" &&
-          "code" in baseLanguage &&
-          typeof (baseLanguage as { code?: unknown }).code === "string"
-        ? (baseLanguage as { code: string }).code.trim()
-        : "";
+/**
+ * Extracts a normalized string language code from string or object ({ code, lang, value }).
+ */
+export function extractLanguageCodeString(val: unknown): string {
+  if (typeof val === "string") return val.trim();
+  if (val && typeof val === "object") {
+    if ("code" in val && typeof (val as { code?: unknown }).code === "string") {
+      return (val as { code: string }).code.trim();
+    }
+    if ("lang" in val && typeof (val as { lang?: unknown }).lang === "string") {
+      return (val as { lang: string }).lang.trim();
+    }
+    if ("value" in val && typeof (val as { value?: unknown }).value === "string") {
+      return (val as { value: string }).value.trim();
+    }
+  }
+  return "";
+}
+
+/**
+ * Normalizes an array or single value into a clean list of language code strings.
+ */
+export function extractLanguageCodeList(val: unknown): string[] {
+  if (Array.isArray(val)) {
+    return val.map(extractLanguageCodeString).filter((s) => s.length > 0);
+  }
+  if (typeof val === "string") {
+    const s = val.trim();
+    return s.length > 0 ? [s] : [];
+  }
+  if (val && typeof val === "object") {
+    const s = extractLanguageCodeString(val);
+    return s.length > 0 ? [s] : [];
+  }
+  return [];
+}
+
+export const isTtsSpeakableLanguage = (
+  languageCode: unknown,
+  baseLanguage: unknown,
+  blacklist?: string[] | null,
+): boolean => {
+  const code = extractLanguageCodeString(languageCode);
+  if (!code) return false;
+  if (isLanguageTtsBlacklisted(code, blacklist)) return false;
+  const base = extractLanguageCodeString(baseLanguage);
   return !base || code !== base;
 };
 
@@ -37,6 +64,7 @@ const KEYS = {
   retryPacingMaxSec: "yt_retry_pacing_max_sec_v1",
   backgroundAudio: "yt_background_audio_enabled_v1",
   primaryTtsLang: "yt_primary_tts_lang_v1",
+  ttsBlacklist: "yt_tts_blacklist_v1",
   learningGoalsMaxWords: "yt_learning_goals_max_words_v1",
   learningGoalsSkipIncomplete: "yt_learning_goals_skip_incomplete_v1",
 } as const;
@@ -164,9 +192,9 @@ export function partitionTtsLanguagesByOrder<T extends { code: string }>(
 }
 
 export const getTtsRatiosPreference = (): Record<string, number> => {
-  if (typeof window === "undefined") return {};
+  const s = getStorage();
   try {
-    const raw = window.localStorage.getItem(KEYS.ttsRatios);
+    const raw = s.getItem(KEYS.ttsRatios);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
@@ -174,16 +202,84 @@ export const getTtsRatiosPreference = (): Record<string, number> => {
 };
 
 export const setTtsRatioPreference = (langCode: string, ratio: number) => {
-  if (typeof window === "undefined") return;
+  const s = getStorage();
   try {
     const existing = getTtsRatiosPreference();
-    existing[langCode] = Math.max(1, Math.round(ratio));
-    window.localStorage.setItem(KEYS.ttsRatios, JSON.stringify(existing));
+    const clampedRatio = Math.max(1, Math.min(20, Math.round(ratio)));
+    existing[langCode] = clampedRatio;
+    s.setItem(KEYS.ttsRatios, JSON.stringify(existing));
+    try {
+      s.setItem(`yt_tts_ratio_${langCode}`, String(clampedRatio));
+    } catch {
+      // ignore
+    }
   } catch {
     // ignore storage errors
   }
 };
 export const saveTtsRatioPreference = setTtsRatioPreference;
+
+export const getTtsBlacklist = (): string[] => {
+  const s = getStorage();
+  if (!s) return [];
+  try {
+    const raw = s.getItem(KEYS.ttsBlacklist);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? extractLanguageCodeList(parsed) : [];
+  } catch {
+    return [];
+  }
+};
+
+export const setTtsBlacklist = (langs: unknown[]): void => {
+  const s = getStorage();
+  if (!s) return;
+  try {
+    const cleaned = extractLanguageCodeList(langs);
+    s.setItem(KEYS.ttsBlacklist, JSON.stringify(cleaned));
+  } catch {
+    // ignore
+  }
+};
+
+export const isLanguageTtsBlacklisted = (
+  langCode: unknown,
+  blacklist?: string[] | null,
+): boolean => {
+  const code = extractLanguageCodeString(langCode).toLowerCase();
+  if (!code) return false;
+  const list = blacklist ?? getTtsBlacklist();
+  const normalizedList = list.map((l) => l.toLowerCase());
+  if (normalizedList.includes(code)) return true;
+  if (
+    (code === "iw" && normalizedList.includes("he")) ||
+    (code === "he" && normalizedList.includes("iw"))
+  ) {
+    return true;
+  }
+  const prefix = code.split("-")[0];
+  if (prefix && normalizedList.includes(prefix)) {
+    return true;
+  }
+  return false;
+};
+
+export const toggleLanguageTtsBlacklist = (langCode: string): boolean => {
+  const code = extractLanguageCodeString(langCode);
+  if (!code) return false;
+  const current = getTtsBlacklist();
+  const isBlacklisted = isLanguageTtsBlacklisted(code, current);
+  const updated = isBlacklisted
+    ? current.filter(
+        (c) =>
+          c.toLowerCase() !== code.toLowerCase() &&
+          c.toLowerCase() !== (code === "iw" ? "he" : code === "he" ? "iw" : ""),
+      )
+    : [...current, code];
+  setTtsBlacklist(updated);
+  return !isBlacklisted;
+};
 
 export const getTtsRatesPreference = (): Record<string, number> => {
   if (typeof window === "undefined") return {};
@@ -213,43 +309,6 @@ export const setTtsRatePreference = (langCode: string, rate: number) => {
     // ignore storage errors
   }
 };
-
-/**
- * Extracts a normalized string language code from string or object ({ code, lang, value }).
- */
-export function extractLanguageCodeString(val: unknown): string {
-  if (typeof val === "string") return val.trim();
-  if (val && typeof val === "object") {
-    if ("code" in val && typeof (val as { code?: unknown }).code === "string") {
-      return (val as { code: string }).code.trim();
-    }
-    if ("lang" in val && typeof (val as { lang?: unknown }).lang === "string") {
-      return (val as { lang: string }).lang.trim();
-    }
-    if ("value" in val && typeof (val as { value?: unknown }).value === "string") {
-      return (val as { value: string }).value.trim();
-    }
-  }
-  return "";
-}
-
-/**
- * Normalizes an array or single value into a clean list of language code strings.
- */
-export function extractLanguageCodeList(val: unknown): string[] {
-  if (Array.isArray(val)) {
-    return val.map(extractLanguageCodeString).filter((s) => s.length > 0);
-  }
-  if (typeof val === "string") {
-    const s = val.trim();
-    return s.length > 0 ? [s] : [];
-  }
-  if (val && typeof val === "object") {
-    const s = extractLanguageCodeString(val);
-    return s.length > 0 ? [s] : [];
-  }
-  return [];
-}
 
 /**
  * Normalizes language codes to lookup the configured TTS ratio.
@@ -449,10 +508,12 @@ export interface TtsRoleEvaluationParams {
   primaryLang?: string | null;
   primaryRatio?: number | null;
   alreadyPlayedRecords?: Set<number | string> | ReadonlySet<number | string>;
+  blacklist?: string[] | null;
 }
 
 /**
  * Evaluates whether a subtitle sentence row is eligible for TTS playback based on primary vs secondary roles:
+ * - If langCode is on the TTS blacklist: always false (skipped from TTS-play under all circumstances).
  * - If langCode === primaryLang (or no primaryLang specified): standard ratio (1 in N sentences: rowIdx % N === 0).
  * - If langCode !== primaryLang: secondary relative to primary.
  *   i.e: every subtitles record where primary is activated, secondary is activated only 1:M from primary's records.
@@ -464,8 +525,10 @@ export const isLanguageEligibleForTtsWithRole = ({
   primaryLang,
   primaryRatio = 1,
   alreadyPlayedRecords,
+  blacklist,
 }: TtsRoleEvaluationParams): boolean => {
   if (rowIdx < 0) return false;
+  if (isLanguageTtsBlacklisted(langCode, blacklist)) return false;
   if (alreadyPlayedRecords?.has(rowIdx)) return false;
 
   const effectiveRatio = Math.max(1, Math.round(ratio ?? 1));
@@ -493,6 +556,7 @@ export const shouldHighlightSentenceForTtsWithRole = ({
   primaryLang,
   primaryRatio = 1,
   isSpoken = true,
+  blacklist,
 }: {
   rowIdx: number;
   langCode: string;
@@ -500,8 +564,10 @@ export const shouldHighlightSentenceForTtsWithRole = ({
   primaryLang?: string | null;
   primaryRatio?: number | null;
   isSpoken?: boolean;
+  blacklist?: string[] | null;
 }): boolean => {
   if (!isSpoken || rowIdx < 0) return false;
+  if (isLanguageTtsBlacklisted(langCode, blacklist)) return false;
   const isSecondary = Boolean(primaryLang && langCode !== primaryLang);
   const effectiveRatio = Math.max(1, Math.round(ratio ?? 1));
   if (!isSecondary && effectiveRatio <= 1) return false;
@@ -511,6 +577,7 @@ export const shouldHighlightSentenceForTtsWithRole = ({
     ratio: effectiveRatio,
     primaryLang,
     primaryRatio: Math.max(1, Math.round(primaryRatio ?? 1)),
+    blacklist,
   });
 };
 
