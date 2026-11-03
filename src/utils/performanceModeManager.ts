@@ -120,10 +120,11 @@ export function subscribePerformanceMode(listener: () => void): () => void {
   };
 }
 
-/**
- * Retrieves the current performance mode: "fast" (default) or "slow".
- */
-export function getPerformanceMode(): PerformanceMode {
+// ----------------------------------------------------------------------------
+// In-Memory Cached State (guarantees referential stability for useSyncExternalStore)
+// ----------------------------------------------------------------------------
+
+function readModeFromStorage(): PerformanceMode {
   if (typeof window === "undefined") return "fast";
   try {
     const stored = localStorage.getItem(STORAGE_KEY_PERFORMANCE_MODE);
@@ -136,23 +137,7 @@ export function getPerformanceMode(): PerformanceMode {
   return "fast";
 }
 
-/**
- * Persists the performance mode ("fast" | "slow").
- */
-export function setPerformanceMode(mode: PerformanceMode): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY_PERFORMANCE_MODE, mode);
-  } catch (e) {
-    console.warn("Failed to persist performance mode:", e);
-  }
-  notify();
-}
-
-/**
- * Retrieves explicit per-element overrides map.
- */
-export function getElementOverrides(): Record<string, boolean> {
+function readOverridesFromStorage(): Record<string, boolean> {
   if (typeof window === "undefined") return {};
   try {
     const raw = localStorage.getItem(STORAGE_KEY_DISABLED_ELEMENTS);
@@ -164,44 +149,92 @@ export function getElementOverrides(): Record<string, boolean> {
   }
 }
 
+let cachedMode: PerformanceMode = readModeFromStorage();
+let cachedOverrides: Record<string, boolean> = readOverridesFromStorage();
+let cachedEnabledMap: Record<NonObligatoryElementId, boolean> = computeEnabledMap(
+  cachedMode,
+  cachedOverrides,
+);
+
+function computeEnabledMap(
+  mode: PerformanceMode,
+  overrides: Record<string, boolean>,
+): Record<NonObligatoryElementId, boolean> {
+  const map = {} as Record<NonObligatoryElementId, boolean>;
+  for (const el of NON_OBLIGATORY_ELEMENTS) {
+    if (Object.prototype.hasOwnProperty.call(overrides, el.id)) {
+      map[el.id] = Boolean(overrides[el.id]);
+    } else {
+      map[el.id] = mode === "slow";
+    }
+  }
+  return map;
+}
+
+function updateCache(mode: PerformanceMode, overrides: Record<string, boolean>) {
+  cachedMode = mode;
+  cachedOverrides = overrides;
+  cachedEnabledMap = computeEnabledMap(mode, overrides);
+}
+
+/**
+ * Retrieves the current performance mode: "fast" (default) or "slow".
+ */
+export function getPerformanceMode(): PerformanceMode {
+  return cachedMode;
+}
+
+/**
+ * Persists the performance mode ("fast" | "slow").
+ */
+export function setPerformanceMode(mode: PerformanceMode): void {
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_KEY_PERFORMANCE_MODE, mode);
+    } catch (e) {
+      console.warn("Failed to persist performance mode:", e);
+    }
+  }
+  updateCache(mode, cachedOverrides);
+  notify();
+}
+
+/**
+ * Retrieves explicit per-element overrides map.
+ * Returns referentially stable cached object between notifications.
+ */
+export function getElementOverrides(): Record<string, boolean> {
+  return cachedOverrides;
+}
+
 /**
  * Persists explicit per-element overrides.
  */
 export function setElementOverrides(overrides: Record<string, boolean>): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY_DISABLED_ELEMENTS, JSON.stringify(overrides));
-  } catch (e) {
-    console.warn("Failed to persist element overrides:", e);
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_KEY_DISABLED_ELEMENTS, JSON.stringify(overrides));
+    } catch (e) {
+      console.warn("Failed to persist element overrides:", e);
+    }
   }
+  updateCache(cachedMode, overrides);
   notify();
 }
 
 /**
  * Determines whether a non-obligatory element is currently enabled and visible.
- *
- * Logic:
- * - If user explicitly set an override for this element, respect the override.
- * - Otherwise:
- *   - "fast" mode (default) -> FALSE (disabled & hidden)
- *   - "slow" mode -> TRUE (enabled & visible)
  */
 export function isElementEnabled(id: NonObligatoryElementId): boolean {
-  const overrides = getElementOverrides();
-  if (Object.prototype.hasOwnProperty.call(overrides, id)) {
-    return Boolean(overrides[id]);
-  }
-  const mode = getPerformanceMode();
-  return mode === "slow";
+  return cachedEnabledMap[id] ?? false;
 }
 
 /**
  * Sets the enabled state for a specific element.
  */
 export function setElementEnabled(id: NonObligatoryElementId, enabled: boolean): void {
-  const overrides = getElementOverrides();
-  overrides[id] = enabled;
-  setElementOverrides(overrides);
+  const updatedOverrides = { ...cachedOverrides, [id]: enabled };
+  setElementOverrides(updatedOverrides);
 }
 
 /**
@@ -209,17 +242,19 @@ export function setElementEnabled(id: NonObligatoryElementId, enabled: boolean):
  * Instantly sets mode to "fast" and disables all non-obligatory elements.
  */
 export function disableAllNonObligatoryElements(): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY_PERFORMANCE_MODE, "fast");
-    const disabledMap: Record<string, boolean> = {};
-    for (const el of NON_OBLIGATORY_ELEMENTS) {
-      disabledMap[el.id] = false;
-    }
-    localStorage.setItem(STORAGE_KEY_DISABLED_ELEMENTS, JSON.stringify(disabledMap));
-  } catch (e) {
-    console.warn("Failed to disable all non-obligatory elements:", e);
+  const disabledMap: Record<string, boolean> = {};
+  for (const el of NON_OBLIGATORY_ELEMENTS) {
+    disabledMap[el.id] = false;
   }
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_KEY_PERFORMANCE_MODE, "fast");
+      localStorage.setItem(STORAGE_KEY_DISABLED_ELEMENTS, JSON.stringify(disabledMap));
+    } catch (e) {
+      console.warn("Failed to disable all non-obligatory elements:", e);
+    }
+  }
+  updateCache("fast", disabledMap);
   notify();
 }
 
@@ -228,17 +263,19 @@ export function disableAllNonObligatoryElements(): void {
  * Instantly sets mode to "slow" and enables all non-obligatory elements.
  */
 export function enableAllNonObligatoryElements(): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(STORAGE_KEY_PERFORMANCE_MODE, "slow");
-    const enabledMap: Record<string, boolean> = {};
-    for (const el of NON_OBLIGATORY_ELEMENTS) {
-      enabledMap[el.id] = true;
-    }
-    localStorage.setItem(STORAGE_KEY_DISABLED_ELEMENTS, JSON.stringify(enabledMap));
-  } catch (e) {
-    console.warn("Failed to enable all non-obligatory elements:", e);
+  const enabledMap: Record<string, boolean> = {};
+  for (const el of NON_OBLIGATORY_ELEMENTS) {
+    enabledMap[el.id] = true;
   }
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(STORAGE_KEY_PERFORMANCE_MODE, "slow");
+      localStorage.setItem(STORAGE_KEY_DISABLED_ELEMENTS, JSON.stringify(enabledMap));
+    } catch (e) {
+      console.warn("Failed to enable all non-obligatory elements:", e);
+    }
+  }
+  updateCache("slow", enabledMap);
   notify();
 }
 
@@ -246,15 +283,42 @@ export function enableAllNonObligatoryElements(): void {
  * Resets performance mode to the clean initial state (Fast Mode, no overrides).
  */
 export function resetPerformanceModeToDefault(): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.removeItem(STORAGE_KEY_PERFORMANCE_MODE);
-    localStorage.removeItem(STORAGE_KEY_DISABLED_ELEMENTS);
-  } catch {
-    // ignore
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem(STORAGE_KEY_PERFORMANCE_MODE);
+      localStorage.removeItem(STORAGE_KEY_DISABLED_ELEMENTS);
+    } catch {
+      // ignore
+    }
   }
+  updateCache("fast", {});
   notify();
 }
+
+// ----------------------------------------------------------------------------
+// Static selectors & server snapshots (avoids re-creating closures on every render)
+// ----------------------------------------------------------------------------
+
+const SERVER_SNAPSHOT_FAST: PerformanceMode = "fast";
+const SERVER_SNAPSHOT_OVERRIDES: Readonly<Record<string, boolean>> = Object.freeze({});
+const getServerSnapshotFast = () => SERVER_SNAPSHOT_FAST;
+const getServerSnapshotOverrides = () => SERVER_SNAPSHOT_OVERRIDES;
+const getServerSnapshotDisabled = () => false;
+
+const elementSnapshotMap: Record<NonObligatoryElementId, () => boolean> = {
+  network_inspector: () => cachedEnabledMap.network_inspector ?? false,
+  state_machine_logs: () => cachedEnabledMap.state_machine_logs ?? false,
+  tts_debugger: () => cachedEnabledMap.tts_debugger ?? false,
+  timing_lab: () => cachedEnabledMap.timing_lab ?? false,
+  experimental_fetch: () => cachedEnabledMap.experimental_fetch ?? false,
+  multi_video_swiper: () => cachedEnabledMap.multi_video_swiper ?? false,
+  audio_track_sections: () => cachedEnabledMap.audio_track_sections ?? false,
+  winner_promotion: () => cachedEnabledMap.winner_promotion ?? false,
+  default_subtitles_stats: () => cachedEnabledMap.default_subtitles_stats ?? false,
+  floating_pause_button: () => cachedEnabledMap.floating_pause_button ?? false,
+  critical_captions_alert: () => cachedEnabledMap.critical_captions_alert ?? false,
+  settings_backup: () => cachedEnabledMap.settings_backup ?? false,
+};
 
 /**
  * React hook to reactively track the current PerformanceMode.
@@ -263,7 +327,7 @@ export function usePerformanceMode(): PerformanceMode {
   return useSyncExternalStore(
     subscribePerformanceMode,
     getPerformanceMode,
-    () => "fast",
+    getServerSnapshotFast,
   );
 }
 
@@ -271,10 +335,11 @@ export function usePerformanceMode(): PerformanceMode {
  * React hook to reactively check if a specific element is enabled.
  */
 export function useIsElementEnabled(id: NonObligatoryElementId): boolean {
+  const getSnapshot = elementSnapshotMap[id] ?? (() => isElementEnabled(id));
   return useSyncExternalStore(
     subscribePerformanceMode,
-    () => isElementEnabled(id),
-    () => false,
+    getSnapshot,
+    getServerSnapshotDisabled,
   );
 }
 
@@ -285,6 +350,6 @@ export function useElementOverrides(): Record<string, boolean> {
   return useSyncExternalStore(
     subscribePerformanceMode,
     getElementOverrides,
-    () => ({}),
+    getServerSnapshotOverrides,
   );
 }

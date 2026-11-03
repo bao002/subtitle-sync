@@ -760,4 +760,60 @@ error 9: %o
 slow/fast mode - by default dont use&show all elements which are not obligatory for the function of the app. this should be listed on docs/disable_and_hide.md. allow to disable-all/enable-all on the settings.
 ```
 
+---
+
+### Prompt 58: Fix App Errors (Vite Reload & TypeScript Compiler Errors across index.tsx, settingsBackupManager, SwitchableDefaultSubtitlesBar, StorybookWorkbench)
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [vite] Failed to reload /src/components/LanguageBoxesSelector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 1: [vite] Failed to reload /src/components/beginner/BeginnerFlowContainer.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 2: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 3: [vite] Failed to reload /src/components/SubtitlesTablePanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 4: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 5: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 6: [vite] Failed to reload /src/components/AiSubtitlePunctuationTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 7: [vite] Failed to reload /src/components/beginner/tabs/BeginnerPreferencesTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 8: [vite] Failed to reload /src/components/ExternalTtsDebuggerPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 9: [vite] Failed to reload /src/components/beginner/PerLanguageTtsPreferences.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 59: Hotfix Maximum Update Depth Exceeded & getSnapshot Caching in useSyncExternalStore
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: The result of getSnapshot should be cached to avoid an infinite loop
+error 1: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+error 2: [APP_PAGE_ERROR] This page didn't load: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+error 3: Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at getRootForUpdatedFiber (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:2784:166)
+    at enqueueConcurrentRenderForLane (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:2774:11)
+    at forceStoreRerender (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:4770:15)
+    at updateStoreInstance (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:4752:36)
+    at Object.react_stack_bottom_frame (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:14176:13)
+    at runWithFiberInDEV (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:943:66)
+    at commitHookEffectListMount (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:6899:153)
+    at commitHookPassiveMountEffects (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-w
+    ... [stack truncated]
+error 4: %o
+
+%s
+
+%s Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at getRootForUpdatedFiber (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:2784:166)
+    at enqueueConcurrentRenderForLane (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:2774:11)
+    at forceStoreRerender (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:4770:15)
+    at updateStoreInstance (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:4752:36)
+    at Object.react_stack_bottom_frame (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:14176:13)
+    at runWithFiberInDEV (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:943:66)
+    at commitHookEffectListMount (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=c9b35bb5:6899:153)
+    ... [3 frames omitted]
+[AIS_METADATA_SECTION_END]
+```
+
 

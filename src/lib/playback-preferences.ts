@@ -681,3 +681,205 @@ export const getLearningGoalsSkipIncomplete = (): boolean => {
 export const setLearningGoalsSkipIncomplete = (skip: boolean) => {
   write(KEYS.learningGoalsSkipIncomplete, skip ? "1" : "0");
 };
+
+// ----------------------------------------------------------------------------
+// Preferences Accessors for Settings Backup & Route State
+// ----------------------------------------------------------------------------
+
+export const getPrimaryTtsLanguagePreference = getPrimaryTtsLang;
+export const setPrimaryTtsLanguagePreference = setPrimaryTtsLang;
+
+export const getSubtitleRequestModePreference = getSubtitleRequestMode;
+export const setSubtitleRequestModePreference = setSubtitleRequestMode;
+
+export const getSectionOrderPreference = getSectionOrder;
+export const setSectionOrderPreference = setSectionOrder;
+
+export function getFavoriteLanguagesPreference(): string[] {
+  const s = getStorage();
+  try {
+    const raw = s.getItem("yt_favorite_languages");
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? extractLanguageCodeList(parsed) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function setFavoriteLanguagesPreference(langs: unknown[]): void {
+  const s = getStorage();
+  try {
+    const cleaned = extractLanguageCodeList(langs);
+    s.setItem("yt_favorite_languages", JSON.stringify(cleaned));
+  } catch {
+    // ignore
+  }
+}
+
+export function getTargetLanguagesPreference(): string[] {
+  const s = getStorage();
+  try {
+    const raw = s.getItem("yt_target_languages_v1") || s.getItem("yt_learning_languages_v1");
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? extractLanguageCodeList(parsed) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function setTargetLanguagesPreference(langs: unknown[]): void {
+  const s = getStorage();
+  try {
+    const cleaned = extractLanguageCodeList(langs);
+    s.setItem("yt_target_languages_v1", JSON.stringify(cleaned));
+  } catch {
+    // ignore
+  }
+}
+
+export function getBaseLanguagePreference(): string {
+  const s = getStorage();
+  try {
+    return s.getItem("yt_base_language") || "en";
+  } catch {
+    return "en";
+  }
+}
+
+export function setBaseLanguagePreference(lang: string): void {
+  const s = getStorage();
+  try {
+    s.setItem("yt_base_language", extractLanguageCodeString(lang) || "en");
+  } catch {
+    // ignore
+  }
+}
+
+export function getRatioCompositionsPreference(): Record<string, Record<string, number>> {
+  const s = getStorage();
+  try {
+    const raw = s.getItem("yt_language_ratio_compositions_v1");
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return {};
+    const res: Record<string, Record<string, number>> = {};
+    for (const item of parsed) {
+      if (
+        item &&
+        typeof item === "object" &&
+        "name" in item &&
+        typeof (item as { name: unknown }).name === "string" &&
+        "ratios" in item &&
+        (item as { ratios: unknown }).ratios &&
+        typeof (item as { ratios: unknown }).ratios === "object"
+      ) {
+        const comp = item as { name: string; ratios: Record<string, number> };
+        res[comp.name] = comp.ratios;
+      }
+    }
+    return res;
+  } catch {
+    return {};
+  }
+}
+
+export function saveRatioCompositionPreference(name: string, ratios: Record<string, number>): void {
+  const s = getStorage();
+  try {
+    const raw = s.getItem("yt_language_ratio_compositions_v1");
+    const parsed = raw ? JSON.parse(raw) : [];
+    const list = Array.isArray(parsed) ? parsed : [];
+    const updated = list.filter((i: unknown) => {
+      if (i && typeof i === "object" && "name" in i) {
+        return (i as { name: unknown }).name !== name;
+      }
+      return true;
+    });
+    updated.push({
+      id: `comp_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name,
+      ratios,
+      createdAt: Date.now(),
+    });
+    s.setItem("yt_language_ratio_compositions_v1", JSON.stringify(updated));
+  } catch {
+    // ignore
+  }
+}
+
+export function getTtsVoicesPreference(): Record<string, string> {
+  const s = getStorage();
+  try {
+    const raw = s.getItem("yt_tts_voices_v1");
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function setTtsVoicePreference(langCode: string, voiceName: string): void {
+  const s = getStorage();
+  try {
+    const existing = getTtsVoicesPreference();
+    existing[langCode] = voiceName;
+    s.setItem("yt_tts_voices_v1", JSON.stringify(existing));
+  } catch {
+    // ignore
+  }
+}
+
+export function getTtsServiceTypePreference(): string {
+  const s = getStorage();
+  try {
+    return s.getItem("yt_tts_service_type_v1") || "native";
+  } catch {
+    return "native";
+  }
+}
+
+export function setTtsServiceTypePreference(type: string): void {
+  const s = getStorage();
+  try {
+    s.setItem("yt_tts_service_type_v1", type);
+  } catch {
+    // ignore
+  }
+}
+
+export function getTtsAlternativeServicePreference(): string {
+  const s = getStorage();
+  try {
+    return s.getItem("yt_tts_alternative_service_v1") || "google_tts";
+  } catch {
+    return "google_tts";
+  }
+}
+
+export function setTtsAlternativeServicePreference(service: string): void {
+  const s = getStorage();
+  try {
+    s.setItem("yt_tts_alternative_service_v1", service);
+  } catch {
+    // ignore
+  }
+}
+
+export function getTtsCustomEndpointPreference(): string | null {
+  const s = getStorage();
+  try {
+    return s.getItem("yt_tts_custom_endpoint_v1") || null;
+  } catch {
+    return null;
+  }
+}
+
+export function setTtsCustomEndpointPreference(endpoint: string): void {
+  const s = getStorage();
+  try {
+    s.setItem("yt_tts_custom_endpoint_v1", endpoint);
+  } catch {
+    // ignore
+  }
+}

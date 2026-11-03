@@ -14,6 +14,7 @@ export interface DetectedSubtitleTrack {
   rawData?: string;
   url?: string;
   timestamp?: number;
+  cuesCount?: number;
 }
 
 export interface SwitchableDefaultSubtitlesBarProps {

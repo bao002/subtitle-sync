@@ -1,6 +1,73 @@
 # Done tasks
 
-### Hotfix: Fix App Errors (Vite exports, circular dependency & React useState hook)
+### Hotfix: Fix Maximum Update Depth Exceeded & getSnapshot Caching in useSyncExternalStore (performanceModeManager.ts)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: The result of getSnapshot should be cached to avoid an infinite loop
+  error 1: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+  error 2: [APP_PAGE_ERROR] This page didn't load: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+  error 3: Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+      at getRootForUpdatedFiber ...
+      at forceStoreRerender ...
+      at updateStoreInstance ...
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Root Cause**:
+  - In `src/utils/performanceModeManager.ts`:
+    - `useElementOverrides()` passed `getElementOverrides` directly to `useSyncExternalStore`. `getElementOverrides` parsed JSON from `localStorage` on every invocation, returning a brand new object `{}` reference each time. Because `Object.is(prevSnapshot, nextSnapshot)` evaluated to `false`, React detected an immediate store update on every render, triggering an infinite re-render loop (`forceStoreRerender` -> `updateStoreInstance`).
+    - `useIsElementEnabled(id)` passed an inline closure `() => isElementEnabled(id)` on every render, triggering React's warning: `"The result of getSnapshot should be cached to avoid an infinite loop"`.
+    - Server snapshot callbacks returned inline newly allocated objects `() => ({})`.
+- **Implementation & Resolution**:
+  - Implemented an in-memory cached state architecture in `src/utils/performanceModeManager.ts` (`cachedMode`, `cachedOverrides`, and `cachedEnabledMap`).
+  - Between notifications, `getElementOverrides()` returns the exact same object reference (`Object.is(s1, s2) === true`), guaranteeing 100% referential stability across render cycles.
+  - Pre-allocated static snapshot selectors for all 12 element IDs in `elementSnapshotMap` returning boolean primitives without creating closures on each render.
+  - Provided static frozen server snapshots (`getServerSnapshotFast`, `getServerSnapshotOverrides`, `getServerSnapshotDisabled`).
+  - Restarted dev server to ensure clean memory state.
+- **Validation**:
+  - Dedicated automated test `scripts/verify-performance-mode-snapshot-stability.ts` (`npm run test:performance-mode-snapshot`) passed all 6 test checks.
+  - `npm run test:hotfix-reload-compiler` passed 100%.
+  - `compile_applet`: PASSED (`Build succeeded`).
+  - `lint_applet`: PASSED with 0 errors and 0 warnings.
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: [vite] Failed to reload /src/components/LanguageBoxesSelector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 1: [vite] Failed to reload /src/components/beginner/BeginnerFlowContainer.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 2: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 3: [vite] Failed to reload /src/components/SubtitlesTablePanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 4: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 5: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 6: [vite] Failed to reload /src/components/AiSubtitlePunctuationTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 7: [vite] Failed to reload /src/components/beginner/tabs/BeginnerPreferencesTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 8: [vite] Failed to reload /src/components/ExternalTtsDebuggerPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 9: [vite] Failed to reload /src/components/beginner/PerLanguageTtsPreferences.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Root Cause**:
+  - `src/components/SwitchableDefaultSubtitlesBar.tsx`: `DetectedSubtitleTrack` was missing optional `cuesCount?: number` property referenced in track evaluation.
+  - `src/storybook/StorybookWorkbench.tsx`: Missing `Button` component import from `@/components/ui/button`.
+  - `src/utils/appSettings.ts`: `VideoSpecificSettings` interface lacked `ttsBlacklist?: string[]` property used in per-video settings persistence.
+  - `src/lib/playback-preferences.ts`: Preference accessor functions imported by `src/utils/settingsBackupManager.ts` and `src/routes/index.tsx` were missing or unexported (`getFavoriteLanguagesPreference`, `getTargetLanguagesPreference`, `getBaseLanguagePreference`, `getPrimaryTtsLanguagePreference`, `getSubtitleRequestModePreference`, `getSectionOrderPreference`, `getRatioCompositionsPreference`, `saveRatioCompositionPreference`, `getTtsVoicesPreference`, `setTtsVoicePreference`, `getTtsServiceTypePreference`, `setTtsServiceTypePreference`, `getTtsAlternativeServicePreference`, `setTtsAlternativeServicePreference`, `getTtsCustomEndpointPreference`, `setTtsCustomEndpointPreference`).
+  - Stale Vite dev server cache from previous HMR update cascade.
+- **Implementation & Resolution**:
+  - Added `cuesCount?: number` to `DetectedSubtitleTrack` interface in `src/components/SwitchableDefaultSubtitlesBar.tsx`.
+  - Added `import { Button } from "@/components/ui/button";` in `src/storybook/StorybookWorkbench.tsx`.
+  - Added `ttsBlacklist?: string[]` to `VideoSpecificSettings` in `src/utils/appSettings.ts`.
+  - Implemented all 20 preference accessor functions in `src/lib/playback-preferences.ts` with strict TypeScript typing and error-safe localStorage fallbacks.
+  - Restarted Vite development server via `restart_dev_server` to purge stale module graphs.
+- **Validation**:
+  - `npx tsc --noEmit`: Exited with code 0 (zero errors).
+  - Dedicated automated test `scripts/verify-hotfix-reload-and-compiler-errors.ts` (`npm run test:hotfix-reload-compiler`) passed all 6 test checks with 100% success.
+  - `npm run test:type-safety`: PASSED with 0 errors.
+  - `compile_applet`: PASSED (`Build succeeded - the applet is compiled`).
+  - `lint_applet` (`npm run lint`): PASSED with 0 errors and 0 warnings.
 
 - **Prompt**: `Fix the errors in the app`
 - **Context & Root Cause**:

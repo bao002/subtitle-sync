@@ -329,6 +329,7 @@ export interface VideoSpecificSettings {
   targetLanguages?: any[];
   ttsRates?: Record<string, number>; // langCode -> rate
   ttsRatios?: Record<string, number>; // langCode -> ratio (1 in N sentences)
+  ttsBlacklist?: string[];
   playOrder?: "video_first" | "tts_first";
   sourceLang?: string;
   activeTargetLang?: string;
