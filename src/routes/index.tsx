@@ -372,6 +372,7 @@ import {
   APP_VERSION_DESCRIPTION,
   ALL_RELEASES_URL,
   DEFAULT_VIDEO_ID,
+  JSON3_DEMO_VIDEO_ID,
 } from "@/config/appConfig";
 import serverConfig from "@/config/server.json";
 import { JSON3_RAW_MAP } from "../../test/fixtures/L2Ryrr6txwA/jsonStrings";
@@ -417,6 +418,9 @@ type YTPlayer = {
   getPlaybackRate?(): number;
   loadVideoById?(videoId: string | { videoId: string; startSeconds?: number }): void;
   cueVideoById?(videoId: string | { videoId: string; startSeconds?: number }): void;
+  setOption?(module: string, option: string, value: unknown): void;
+  getOption?(module: string, option: string): unknown;
+  getIframe?(): HTMLIFrameElement;
 };
 declare global {
   interface Window {
@@ -522,7 +526,7 @@ function speak(
             {
               tts3Provider: altProvider,
               tts3Voice: altVoice,
-              isAnonymous: alternativeTtsAnonymousState,
+              isAnonymous: typeof window !== "undefined" ? getAlternativeTtsAnonymousMode() : false,
             },
           );
           if (outcome !== "none") {
@@ -765,7 +769,10 @@ function speak(
         u.onend = () => done(false);
         u.onerror = (event) => {
           logError("State Machine", "Native speech synthesis failed", {
-            videoId,
+            videoId:
+              (typeof window !== "undefined" &&
+                (window as Window & { __ACTIVE_VIDEO_ID__?: string }).__ACTIVE_VIDEO_ID__) ||
+              undefined,
             lang,
             row,
             error: event.error,
@@ -785,7 +792,10 @@ function speak(
         window.speechSynthesis.speak(u);
       } catch (e) {
         logError("State Machine", "Speech synthesis setup failed", {
-          videoId,
+          videoId:
+            (typeof window !== "undefined" &&
+              (window as Window & { __ACTIVE_VIDEO_ID__?: string }).__ACTIVE_VIDEO_ID__) ||
+            undefined,
           lang,
           row,
           error: e instanceof Error ? e.message : String(e),
@@ -2049,7 +2059,7 @@ function Index() {
       if (videoId) {
         saveVideoSettings(videoId, { ttsRatios: nextRatios });
       }
-      notifySubtitleFetch("info", `Applied "${comp.name}" ratio composition`, comp.id);
+      notifySubtitleFetch("completed", `Applied "${comp.name}" ratio composition`, comp.id);
     },
     [baseLanguage, primaryTtsLangState, targetLanguages, videoId],
   );
@@ -3205,12 +3215,11 @@ function Index() {
         const cleanTarget = urlTargetLang.toLowerCase().trim();
         setTargetLanguages((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
         setShown((prev) => (prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev]));
-        setFavoriteLanguagesState((prev) =>
-          prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev],
-        );
-        setFavoriteLanguages((prev) =>
-          prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev],
-        );
+        setFavoriteLanguagesState((prev) => {
+          const next = prev.includes(cleanTarget) ? prev : [cleanTarget, ...prev];
+          setFavoriteLanguages(next);
+          return next;
+        });
       }
       const urlSubUrl = currentParams.get("subtitles_url") || currentParams.get("sub_url");
       if (urlSubUrl && urlSubUrl.trim()) {
@@ -4224,7 +4233,8 @@ function Index() {
           },
           onApiChange: () => {
             try {
-              const track = player.current?.getOption?.("captions", "track");
+              const track = player.current?.getOption?.("captions", "track") as
+                { languageCode?: string } | undefined;
               if (track?.languageCode) {
                 handlePlayerCaptionToggled(track.languageCode);
               } else if (track && Object.keys(track).length === 0) {
@@ -4283,7 +4293,8 @@ function Index() {
         // ignore
       }
       try {
-        const curTrack = p.getOption?.("captions", "track");
+        const curTrack = p.getOption?.("captions", "track") as
+          { languageCode?: string } | undefined;
         if (
           curTrack?.languageCode &&
           curTrack.languageCode !== activePlayerCaptionLangRef.current
@@ -4491,6 +4502,38 @@ function Index() {
         }
       };
       const isPlaying = p.getPlayerState() === 1;
+      const safelyResumePrimaryVideo = (resumeTargetSec?: number) => {
+        multiVideoPlayerRegistry.unmuteOnly("primary");
+        userExplicitlyPausedRef.current = false;
+        isPausedForTtsRef.current = false;
+        try {
+          if (typeof resumeTargetSec === "number" && Number.isFinite(resumeTargetSec)) {
+            p.seekTo(resumeTargetSec, true);
+          }
+          p.playVideo();
+          setIsVideoPlaying(true);
+          setPauseReason(null);
+        } catch (err) {
+          console.warn("[PlaybackCoordinator] playVideo error:", err);
+        }
+        // Secondary kick: Ensure player actually resumed, in case postMessage was delayed or state was transitioning
+        setTimeout(() => {
+          try {
+            if (
+              !userExplicitlyPausedRef.current &&
+              !st.current.isSetupPaused &&
+              !busy.current &&
+              p.getPlayerState?.() !== 1
+            ) {
+              p.playVideo?.();
+              setIsVideoPlaying(true);
+            }
+          } catch {
+            // ignore
+          }
+        }, 120);
+      };
+
       if (pauseMode) {
         // 1. Before Video (tts-first): check if active row has speech-first languages to speak on arrival
         const sectionId = idx >= 0 ? getPlaybackSectionId(rows[idx]!) : "";
@@ -4500,45 +4543,12 @@ function Index() {
           !handledTtsFirstSections.current.has(sectionId)
         ) {
           const eligibleLangs = getEligibleLangs(idx, "tts-first");
-          const safelyResumePrimaryVideo = (resumeTargetSec?: number) => {
-            multiVideoPlayerRegistry.unmuteOnly("primary");
-            userExplicitlyPausedRef.current = false;
-            isPausedForTtsRef.current = false;
-            try {
-              if (typeof resumeTargetSec === "number" && Number.isFinite(resumeTargetSec)) {
-                p.seekTo(resumeTargetSec, true);
-              }
-              p.playVideo();
-              setIsVideoPlaying(true);
-              setPauseReason(null);
-            } catch (err) {
-              console.warn("[PlaybackCoordinator] playVideo error:", err);
-            }
-            // Secondary kick: Ensure player actually resumed, in case postMessage was delayed or state was transitioning
-            setTimeout(() => {
-              try {
-                if (
-                  !userExplicitlyPausedRef.current &&
-                  !st.current.isSetupPaused &&
-                  !busy.current &&
-                  p.getPlayerState?.() !== 1
-                ) {
-                  p.playVideo?.();
-                  setIsVideoPlaying(true);
-                }
-              } catch {
-                // ignore
-              }
-            }, 120);
-          };
 
           if (eligibleLangs.length > 0) {
             handledTtsFirstSections.current.add(sectionId);
             busy.current = true;
             isPausedForTtsRef.current = true;
-            const langLabels = eligibleLangs
-              .map((c) => LANGS.find((l) => l.code === c)?.name || c)
-              .join(", ");
+            const langLabels = eligibleLangs.map((l) => l.name || l.code).join(", ");
             setPauseReason(`Waiting for speech synthesis (${langLabels}) before playing`);
             try {
               p.pauseVideo();
@@ -4576,9 +4586,7 @@ function Index() {
             handledVideoFirstSections.current.add(candidateSectionId);
             busy.current = true;
             isPausedForTtsRef.current = true;
-            const langLabels = eligibleLangs
-              .map((c) => LANGS.find((l) => l.code === c)?.name || c)
-              .join(", ");
+            const langLabels = eligibleLangs.map((l) => l.name || l.code).join(", ");
             setPauseReason(`Section complete: speaking translation (${langLabels})`);
             try {
               p.pauseVideo();
@@ -5249,20 +5257,52 @@ function Index() {
                     className="px-2.5 pb-2.5 pt-1 border-t border-border/40 space-y-2 bg-background/50 rounded-b-lg"
                   >
                     {crit.id === "sentence" && (
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-medium text-foreground block">
-                          Sentence End Punctuation Characters
+                      <div className="space-y-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={criteriaSettings.sentence.includeCommas}
+                            onChange={(e) =>
+                              handleUpdateGroupSettings("sentence", {
+                                includeCommas: e.target.checked,
+                              })
+                            }
+                            className="rounded border-border text-primary h-3.5 w-3.5"
+                          />
+                          <span className="text-[11px]">
+                            Split on secondary clauses (commas, semicolons, colons)
+                          </span>
                         </label>
-                        <p className="text-[10px] text-muted-foreground">
-                          Split continuous stream at these punctuation marks.
-                        </p>
-                        <input
-                          type="text"
-                          value={criteriaSettings.sentence.punctuation}
-                          onChange={(e) => handleUpdateSentencePunctuation(e.target.value)}
-                          className="w-full text-xs font-mono bg-background border border-border rounded px-2 py-1"
-                          placeholder=".,!?;:。？！"
-                        />
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={criteriaSettings.sentence.splitIntraCue}
+                            onChange={(e) =>
+                              handleUpdateGroupSettings("sentence", {
+                                splitIntraCue: e.target.checked,
+                              })
+                            }
+                            className="rounded border-border text-primary h-3.5 w-3.5"
+                          />
+                          <span className="text-[11px]">Split sentences inside a subtitle cue</span>
+                        </label>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] text-muted-foreground">
+                            Minimum words per sentence:
+                          </span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={criteriaSettings.sentence.minWords}
+                            onChange={(e) =>
+                              handleUpdateGroupSettings("sentence", {
+                                minWords: Math.max(1, parseInt(e.target.value) || 1),
+                              })
+                            }
+                            className="w-16 text-xs bg-background border border-border rounded px-1.5 py-0.5 text-right font-mono"
+                          />
+                        </div>
                       </div>
                     )}
 
@@ -5270,9 +5310,9 @@ function Index() {
                       <div className="space-y-2">
                         <div>
                           <div className="flex justify-between text-[11px] mb-1">
-                            <span className="text-muted-foreground">Pause threshold:</span>
+                            <span className="text-muted-foreground">Minimum pause:</span>
                             <span className="font-semibold text-primary">
-                              {criteriaSettings.pause.thresholdMs} ms
+                              {criteriaSettings.pause.minPauseMs} ms
                             </span>
                           </div>
                           <input
@@ -5280,54 +5320,33 @@ function Index() {
                             min={100}
                             max={2000}
                             step={50}
-                            value={criteriaSettings.pause.thresholdMs}
-                            onChange={(e) => handleUpdatePauseThreshold(parseInt(e.target.value))}
+                            value={criteriaSettings.pause.minPauseMs}
+                            onChange={(e) =>
+                              handleUpdateGroupSettings("pause", {
+                                minPauseMs: parseInt(e.target.value),
+                              })
+                            }
                             className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                           />
                         </div>
-                      </div>
-                    )}
-
-                    {crit.id === "duration" && (
-                      <div className="space-y-2">
                         <div>
                           <div className="flex justify-between text-[11px] mb-1">
-                            <span className="text-muted-foreground">Max section duration:</span>
+                            <span className="text-muted-foreground">Snap tolerance:</span>
                             <span className="font-semibold text-primary">
-                              {(criteriaSettings.duration.maxDurationMs / 1000).toFixed(1)} s
+                              {criteriaSettings.pause.snapToleranceMs} ms
                             </span>
                           </div>
                           <input
                             type="range"
-                            min={2000}
-                            max={15000}
-                            step={500}
-                            value={criteriaSettings.duration.maxDurationMs}
-                            onChange={(e) => handleUpdateMaxDuration(parseInt(e.target.value))}
-                            className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {crit.id === "length" && (
-                      <div className="space-y-2">
-                        <div>
-                          <div className="flex justify-between text-[11px] mb-1">
-                            <span className="text-muted-foreground">
-                              Max characters per section:
-                            </span>
-                            <span className="font-semibold text-primary">
-                              {criteriaSettings.length.maxChars} chars
-                            </span>
-                          </div>
-                          <input
-                            type="range"
-                            min={30}
-                            max={200}
-                            step={5}
-                            value={criteriaSettings.length.maxChars}
-                            onChange={(e) => handleUpdateMaxLength(parseInt(e.target.value))}
+                            min={200}
+                            max={3000}
+                            step={100}
+                            value={criteriaSettings.pause.snapToleranceMs}
+                            onChange={(e) =>
+                              handleUpdateGroupSettings("pause", {
+                                snapToleranceMs: parseInt(e.target.value),
+                              })
+                            }
                             className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                           />
                         </div>
@@ -6162,7 +6181,7 @@ function Index() {
                 hasSubtitles={hasAnySubtitles}
                 isVideoPlaying={isVideoPlaying}
                 onRecheck={handleRecheckCaptions}
-                onOpenManualUrlModal={() => setIsSubtitlesUrlModalOpen(true)}
+                onOpenManualUrlModal={() => setUrlModalLang(baseLanguage || "en")}
               />
             }
             subtitlesTableSlot={
@@ -6327,7 +6346,7 @@ function Index() {
                   hasSubtitles={hasAnySubtitles}
                   isVideoPlaying={isVideoPlaying}
                   onRecheck={handleRecheckCaptions}
-                  onOpenManualUrlModal={() => setIsSubtitlesUrlModalOpen(true)}
+                  onOpenManualUrlModal={() => setUrlModalLang(baseLanguage || "en")}
                 />
               </div>
 

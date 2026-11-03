@@ -1,5 +1,49 @@
 # Done tasks
 
+### Hotfix: Fix Vite Reload and TypeScript Type Errors
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 1: [vite] Failed to reload /src/components/LanguageSubtitleUrlModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 2: [vite] Failed to reload /src/components/WebDemoUrlsInput.tsx. This could be due to syntax errors or importing non-existent modules. (see errors count 10)
+  error 3: [vite] Failed to reload /src/components/VideoLibraryPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 4: [vite] Failed to reload /src/components/ShareStateModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 5: [vite] Failed to reload /src/components/ApkReleasesFooter.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 6: [vite] Failed to reload /src/components/WinnerPromotionReportModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 7: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 8: [vite] Failed to reload /src/components/LanguageBoxesSelector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 9: [vite] Failed to reload /src/components/beginner/BeginnerFlowContainer.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause & Diagnosis**:
+  - `npx tsc --noEmit` and Vite runtime HMR encountered type errors and scope mismatches across multiple files:
+    - Missing `isAnonymous` in `RemoteTtsValidationOptions` in `src/lib/alternative-tts.ts`.
+    - Missing `wireMagic`, `pens`, etc. in `Json3` type definition in `src/lib/subtitles.ts`.
+    - Missing `setOption`, `getOption`, `getIframe` methods on `YTPlayerLike` and `YTPlayer`.
+    - Missing import of `removeAngleBrackets` in `src/components/VideoPlayground.tsx`.
+    - Undefined narrowing for `onSpeakCue` in `src/components/beginner/tabs/BeginnerPlayerTab.tsx`.
+    - Missing `endpoint` and `audioVerified` properties in `RemoteTtsValidationResult` mocks in `TtsServiceSettingsPanel.stories.tsx` and `StorybookWorkbench.tsx`.
+    - Outdated and undefined criteria property references in `src/routes/index.tsx` parser settings.
+    - Undeclared `setIsSubtitlesUrlModalOpen` in `src/routes/index.tsx` (corrected to `setUrlModalLang`).
+    - Missing import of `serverConfig` in `src/components/LanguageBoxesSelector.tsx`.
+    - Unexported `SubtitleRequestMode` in `src/lib/subtitle-fetch-plan.ts`.
+    - Scope placement of `safelyResumePrimaryVideo` in `src/routes/index.tsx`.
+- **Implementation**:
+  - Fixed type definitions and exports across `src/lib/alternative-tts.ts`, `src/lib/subtitles.ts`, `src/lib/subtitle-fetch-plan.ts`, and `src/utils/multiVideoPlayerManager.ts`.
+  - Fixed scope and method calls in `src/routes/index.tsx`, `src/components/LanguageBoxesSelector.tsx`, and `src/components/VideoPlayground.tsx`.
+  - Fixed story mocks in `src/components/TtsServiceSettingsPanel.stories.tsx`, `src/components/ExternalTtsDebuggerPanel.stories.tsx`, and `src/storybook/StorybookWorkbench.tsx`.
+  - Formatted with prettier and cleanly restarted the development server.
+- **Validation**:
+  - `npm run test:type-safety` passes cleanly with 0 errors.
+  - Verified all 10 mentioned modules in dev server return HTTP 200 OK.
+  - `compile_applet` passed (`Build succeeded`).
+  - `lint_applet` passed (0 errors).
+  - Version bumped to `2.0.93`.
+
 ### Task 293 (Chapter 0): Fix Video Playback Resume After TTS Play Finishes
 
 - **Prompt**:

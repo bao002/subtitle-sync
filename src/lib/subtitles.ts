@@ -3,6 +3,10 @@ import { removeAngleBrackets } from "../utils/captionParser";
 import { isInsidePairedWrapper } from "../utils/newSubtitlesParser";
 
 export type Json3 = {
+  wireMagic?: string;
+  pens?: unknown[];
+  wsWinStyles?: unknown[];
+  wpWinPositions?: unknown[];
   events?: {
     tStartMs?: number;
     dDurationMs?: number;

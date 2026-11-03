@@ -23,6 +23,7 @@ import {
 import { parseJson3 } from "../lib/native-captions";
 import { isValidJsonSubtitleResponse } from "../utils/subtitleCache";
 import { fetchViaServer } from "../lib/subtitle-fetch-plan";
+import serverConfig from "@/config/server.json";
 import { Json3 } from "../types";
 import { isSharedLanguageForVideo } from "@/utils/favoriteLanguagesRules";
 

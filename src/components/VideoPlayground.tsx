@@ -27,6 +27,7 @@ import {
   getActiveRatioCompositionId,
   type LanguageRatioComposition,
 } from "@/utils/ratioCompositionsManager";
+import { removeAngleBrackets } from "@/utils/captionParser";
 
 export interface DetectedSubtitleTrack {
   lang: string;

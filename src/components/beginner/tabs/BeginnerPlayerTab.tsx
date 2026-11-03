@@ -254,7 +254,9 @@ export const BeginnerPlayerTab: React.FC<BeginnerPlayerTabProps> = ({
                           variant="ghost"
                           onClick={(e) => {
                             e.stopPropagation();
-                            onSpeakCue(cue.targetText, targetLanguage);
+                            if (cue.targetText && targetLanguage) {
+                              onSpeakCue(cue.targetText, targetLanguage);
+                            }
                           }}
                           className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground hover:bg-muted rounded"
                           data-testid={`btn-speak-cue-${idx}`}

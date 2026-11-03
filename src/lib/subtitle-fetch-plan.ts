@@ -6,6 +6,7 @@ import serverConfig from "../config/server.json";
  */
 import { buildLangReplacedCaptionUrl, buildTranslatedCaptionUrl } from "./native-captions";
 import type { SubtitleRequestMode } from "./playback-preferences";
+export type { SubtitleRequestMode };
 
 export type SendMode = "session" | "anon";
 export type FetchAttempt = { mode: SubtitleRequestMode; send: SendMode; enabled: boolean };

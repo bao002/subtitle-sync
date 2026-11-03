@@ -403,7 +403,7 @@ export const ExternalTtsDebuggerPanel: React.FC<Props> = ({
                         </div>
                       </div>
 
-                      {activeRecord.method === "POST" && activeRecord.requestBody && (
+                      {activeRecord.method === "POST" && Boolean(activeRecord.requestBody) && (
                         <div>
                           <span className="text-muted-foreground block text-[10px] mb-1">
                             Request Body (application/json):
