@@ -1,5 +1,68 @@
 # Done tasks
 
+### Task 288 (Chapter 0.AGENTS.md): Storybook-First Component Workflow Rule & Automated Validation
+
+- **Prompt**:
+  ```
+  0.AGENTS.md - any component should first be implemented on storyboard - and only after being approved be used on the application itself.
+  ```
+- **Implementation**:
+  - Formulated and documented the constitutional rule in `AGENTS.md` under `## Code architecture, modularity, and standards`:
+    `Storybook-first component workflow: Any component should first be implemented and tested in Storybook (.stories.tsx or src/storybook/) and only after being approved be integrated into the application itself.`
+  - Created dedicated automated test `scripts/verify-storybook-first-component-workflow.ts` validating AGENTS.md rule presence, Storybook configuration files (`.storybook/main.ts`, `.storybook/preview.ts`), package.json scripts, and existing component stories.
+  - Registered `test:storybook-first-component-workflow` in `package.json`.
+- **Validation**:
+  - `npm run test:storybook-first-component-workflow` PASSED (100% verified).
+  - `npm run test:agents-all` PASSED (19/19 checks).
+
+### Hotfix 287: Fix Dev Server Pre-warming Failure & Stabilize Vite Lifecycle
+
+- **Issue**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.0.86 dev > vite --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 2122 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Implementation**:
+  - Restarted dev server process on port 3000 and confirmed Vite serves all client bundles and route assets cleanly without exit.
+  - Verified `vite.config.ts` configuration contracts with host `0.0.0.0` and port `3000`.
+  - Confirmed `package.json` dev script cleanly set to `"vite"` without conflicting flags.
+  - Validated live HTTP 200 response on port 3000 and verified fast response times.
+  - Executed dedicated test `scripts/verify-dev-server-prewarming-hotfix.ts`.
+  - Bumped application version to `2.0.87` via `sync-version.ts` single source of truth.
+- **Validation**:
+  - `npm run test:dev-server-prewarming-hotfix` PASSED (100% verified).
+  - Dev server HTTP 200 connectivity verified.
+  - `compile_applet` PASSED.
+  - `lint_applet` PASSED (0 errors).
+
+### Task 286: Single Source of Truth Versioning Architecture & Automated GitHub Actions Sync
+
+- **Prompt**:
+  ```
+  1. currently the agent update version for every change. this ofcourse not effective to update many files with the same version. try to find a way to effectivly update a version while relying on a single place of truth. consider moving automated operations to github action and being rely on single config file.
+  ```
+- **Implementation**:
+  - **Subtask 286.1: Establish Single Source of Truth in package.json**:
+    - Established `package.json` as the authoritative single place of truth for the application version.
+    - Refactored `src/config/appConfig.ts` to dynamically import `package.json` version: `export const APP_VERSION: string = packageJson.version;`.
+    - Refactored `src/utils/apkUpdater.ts` to derive `export const CURRENT_APK_VERSION = "v" + APP_VERSION;` dynamically from `APP_VERSION`.
+    - Refactored `src/utils/appSettings.ts` to reference `APP_VERSION` in `AppStateSnapshot`.
+  - **Subtask 286.2: Build Version Sync Script & GitHub Actions Workflow**:
+    - Created `scripts/sync-version.ts` providing automated synchronization of `android-shell/app/build.gradle.kts` (`versionCode` and `versionName`) matching `package.json`, with `--check` mode for CI pipelines.
+    - Created `.github/workflows/version-sync.yml` running version synchronization on push/PR when `package.json` or Gradle files change.
+  - **Subtask 286.3: Formalize Rule in AGENTS.md**:
+    - Formalized single source of truth rule in `AGENTS.md` and updated `scripts/verify-agents-version-rule.ts` to validate both literal and dynamic single-source derivations.
+  - **Subtask 286.4: Automated Test & Verification**:
+    - Created `scripts/verify-single-source-version-architecture.ts` and registered `test:single-source-version` and `sync-version`/`check-version` scripts in `package.json`.
+- **Validation**:
+  - `npm run test:single-source-version` PASSED (all 6 contract tests).
+  - `npm run check-version` PASSED (in sync).
+  - `npm run test:apk-version` PASSED (v2.0.87).
+  - `npm run test:agents-all` PASSED (19/19 checks).
+
 ### Hotfix 285: Fix ReferenceError: Sliders is not defined in src/routes/index.tsx
 
 - **Issue**:
