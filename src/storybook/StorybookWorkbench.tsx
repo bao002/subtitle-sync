@@ -18,6 +18,7 @@ import {
   Move,
   Activity,
   Maximize2,
+  Subtitles,
 } from "lucide-react";
 import {
   TtsServiceSettingsPanel,
@@ -30,6 +31,7 @@ import { SpecialCharactersRemovalPanel } from "@/components/SpecialCharactersRem
 import { VideoLanguageSequenceControl } from "@/components/VideoLanguageSequenceControl";
 import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
 import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
+import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSubtitlesBar";
 import {
   addExternalTtsAuditRecord,
   type AlternativeTtsEngine,
@@ -47,11 +49,13 @@ type ComponentKey =
   | "chars_removal"
   | "sequence_control"
   | "tts_debugger"
-  | "mode_switcher";
+  | "mode_switcher"
+  | "default_subtitles";
 
 export const StorybookWorkbench: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<ComponentKey>("tts_service");
   const [selectedStory, setSelectedStory] = useState<string>("google_direct");
+  const [activeDefaultSubtitle, setActiveDefaultSubtitle] = useState<string>("en");
 
   // 1. TtsServiceSettingsPanel State
   const [mode, setMode] = useState<AlternativeTtsMode>("always");
@@ -246,6 +250,7 @@ export const StorybookWorkbench: React.FC = () => {
             { id: "sequence_control", label: "Sequence Order", icon: Sliders },
             { id: "tts_debugger", label: "TTS Debugger", icon: Activity },
             { id: "mode_switcher", label: "Mode Switcher", icon: Sparkles },
+            { id: "default_subtitles", label: "Default Subtitles", icon: Subtitles },
           ].map((c) => {
             const Icon = c.icon;
             const isSelected = selectedComponent === c.id;
@@ -398,6 +403,7 @@ export const StorybookWorkbench: React.FC = () => {
                 {selectedComponent === "sequence_control" && "VideoLanguageSequenceControl"}
                 {selectedComponent === "tts_debugger" && "ExternalTtsDebuggerPanel"}
                 {selectedComponent === "mode_switcher" && "ModeSwitcherHeader"}
+                {selectedComponent === "default_subtitles" && "SwitchableDefaultSubtitlesBar"}
               </h1>
               <p className="text-xs text-muted-foreground">
                 Active Component Catalog:{" "}
@@ -549,6 +555,75 @@ export const StorybookWorkbench: React.FC = () => {
                 currentMode={workflowMode}
                 onModeChange={setWorkflowMode}
                 className="!flex"
+              />
+            )}
+
+            {selectedComponent === "default_subtitles" && (
+              <SwitchableDefaultSubtitlesBar
+                videoId="L2Ryrr6txwA"
+                defaultLanguages={["en", "es", "he"]}
+                activeLanguage={activeDefaultSubtitle}
+                onSelectLanguage={setActiveDefaultSubtitle}
+                tracks={{
+                  en: {
+                    wireMagic: "pb3",
+                    pens: [],
+                    wsWinStyles: [],
+                    wpWinPositions: [],
+                    events: [
+                      {
+                        tStartMs: 0,
+                        dDurationMs: 4000,
+                        segs: [{ utf8: "Hello, welcome back, my dear friends, to this tutorial." }],
+                      },
+                      {
+                        tStartMs: 4100,
+                        dDurationMs: 5000,
+                        segs: [
+                          {
+                            utf8: "In this lesson, we will learn, practice, and master, step by step, all concepts.",
+                          },
+                        ],
+                      },
+                      {
+                        tStartMs: 9200,
+                        dDurationMs: 4500,
+                        segs: [
+                          {
+                            utf8: "First, check the sound, then, watch the video, and finally, repeat aloud!",
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  es: {
+                    wireMagic: "pb3",
+                    pens: [],
+                    wsWinStyles: [],
+                    wpWinPositions: [],
+                    events: [
+                      {
+                        tStartMs: 0,
+                        dDurationMs: 4000,
+                        segs: [{ utf8: "Hola, bienvenidos a este tutorial paso a paso." }],
+                      },
+                    ],
+                  },
+                  he: {
+                    wireMagic: "pb3",
+                    pens: [],
+                    wsWinStyles: [],
+                    wpWinPositions: [],
+                    events: [
+                      {
+                        tStartMs: 0,
+                        dDurationMs: 4000,
+                        segs: [{ utf8: "שלום וברוכים הבאים למדריך זה." }],
+                      },
+                    ],
+                  },
+                }}
+                defaultExpandedStats={true}
               />
             )}
           </div>

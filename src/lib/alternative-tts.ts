@@ -1830,8 +1830,11 @@ export function getLovableTtsProvider(): LovableTtsProvider {
   try {
     const stored =
       typeof localStorage !== "undefined"
-        ? (localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER) as LovableTtsProvider | null)
-        : (memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER] as LovableTtsProvider | undefined);
+        ? (localStorage.getItem(
+            STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER,
+          ) as LovableTtsProvider | null)
+        : (memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER] as
+            LovableTtsProvider | undefined);
     if (stored && (LOVABLE_TTS_PROVIDERS as readonly string[]).includes(stored)) {
       return stored;
     }
@@ -2452,4 +2455,3 @@ export async function executeTtsFallbackSequence(
 
   return "none";
 }
-

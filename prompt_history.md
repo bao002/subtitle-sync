@@ -500,3 +500,47 @@ fix_it_trigger: manual
 error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.0.87 dev > vite --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1828 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
 [AIS_METADATA_SECTION_END]
 ```
+
+---
+
+### Prompt 43: Hotfix Client Pre-transform Parse Error & Prettier Lint Formatting
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 1:04:08 AM [vite] (client) Pre-transform error: Transform failed with 1 error:
+error 1: [31m[PARSE_ERROR] [0mExpected a semicolon or an implicit semicolon after a statement, but found none
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 44: Go On
+```
+go on
+```
+
+---
+
+### Prompt 45: Default Subtitles Comma-Based Recommendation Icon & Punctuation Statistics
+```
+add recommendation icon next to the default subtitles which has more "," signs, and expose statistics of punctuation counting for all the default subtitles.
+```
+
+---
+
+### Prompt 46: Fix Video Playback Resume After TTS Play & Learning Goals Filters (Max Words Slider & Complete Sentence Filter)
+```
+0. it happens that the app doesnt resume the video after tts-play is finish playing.
+
+1.
+learning goals:
+
+- add slider which allows to limit the number of words a subtitle row contains (then skip any record which have highter number of words)
+
+- add control to skip any record which is not a complete sentence (not ending with a punctuation sign which is "," or "." or  "?" or "!")
+```
+
+
+
+

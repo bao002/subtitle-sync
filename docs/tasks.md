@@ -4,10 +4,10 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 291 (Chapter 2): TTS Fallback Order Switch Around Video Player with Deep-Link to TTS3 Setup**
-  - Subtask 291.1: Build `src/components/TtsFallbackOrderSwitch.tsx` and Storybook story `src/components/TtsFallbackOrderSwitch.stories.tsx` allowing user to configure/switch the fallback order (`google` -> `tts3` -> `native`, etc.) with quick link/button navigating directly to TTS service setup (where TTS3 token and auto provider default can be configured).
-  - Subtask 291.2: Place the component around the player (in `src/routes/index.tsx` at the focused CSS selector area `div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)`), connect to playback speech synthesis engine to honor the configured fallback sequence.
-  - Subtask 291.3: Dedicated automated test `scripts/verify-tts-fallback-order-switch.ts`, compile, lint, commit, and migrate to `docs/done.md`.
+- [ ] **Task 294 (Chapter 1): Learning Goals - Max Words Per Subtitle Row Slider & Complete Sentence Filter**
+  - Subtask 294.1: Add max words slider and complete sentence filter (`","`, `"."`, `"?"`, `"!"`) to Learning Goals in both Beginner Mode (`Stage 2 Learning Goals`) and Advanced Mode with 100% parity.
+  - Subtask 294.2: Update subtitle rows generation and playback coordinator to skip any record exceeding max words or not ending with terminal punctuation (`","`, `"."`, `"?"`, `"!"`).
+  - Subtask 294.3: Dedicated automated test `scripts/verify-learning-goals-word-and-sentence-filters.ts`, Storybook coverage, compile, lint, version bump, and migrate to `docs/done.md`.
 
 ## Later Tasks
 
