@@ -21,6 +21,12 @@ console.log("--> [Test 1] Verifying Stage 3 hides language settings in index.tsx
 
 const indexTsx = fs.readFileSync(path.join(root, "src/routes/index.tsx"), "utf8");
 
+// Ensure Filter icon is imported in index.tsx
+assert.ok(
+  /import\s*\{[\s\S]*?\bFilter\b[\s\S]*?\}\s*from\s*"lucide-react"/.test(indexTsx),
+  "index.tsx must import Filter icon from lucide-react",
+);
+
 // Stage 3 filtering check
 assert.ok(
   indexTsx.includes("if (currentAccordionStage === 3)"),

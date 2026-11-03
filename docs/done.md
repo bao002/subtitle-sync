@@ -1,5 +1,26 @@
 # Done tasks
 
+### Hotfix: Import Filter from lucide-react in src/routes/index.tsx
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Filter is not defined
+  error 1: [APP_PAGE_ERROR] This page didn't load: Filter is not defined
+  error 2: ReferenceError: Filter is not defined
+      at https://ais-dev-qr7b7j46r5yv52es5uzhcu-94725394228.europe-west2.run.app/src/routes/index.tsx:9551:52
+  ```
+- **Context & Implementation**:
+  - Located runtime `ReferenceError: Filter is not defined` in `src/routes/index.tsx`.
+  - Added `Filter` to the `lucide-react` import statement in `src/routes/index.tsx`.
+  - Added regression assertion in `scripts/verify-row-criteria-in-subtitles-table.ts` verifying `Filter` import from `lucide-react`.
+- **Validation**:
+  - `npx tsx scripts/verify-row-criteria-in-subtitles-table.ts` passed 100%.
+  - `compile_applet` passed (`Build succeeded - the applet is compiled`).
+  - `lint_applet` passed with zero errors.
+
 ### Task 296: Move Row Criteria to Subtitles Table View and Hide Language Settings on Stage 3
 
 - **Prompt**:
