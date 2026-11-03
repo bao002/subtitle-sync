@@ -1,5 +1,19 @@
 # Done tasks
 
+### Hotfix: Fix App Errors (Vite exports, circular dependency & React useState hook)
+
+- **Prompt**: `Fix the errors in the app`
+- **Context & Root Cause**:
+  - `src/lib/playback-preferences.ts`: `isLanguageTtsBlacklisted` was declared with `const` after `isTtsSpeakableLanguage`, causing a temporal dead zone / unhoisted export issue during Vite dev transforms. Resolved by converting `isLanguageTtsBlacklisted` to a standard hoisted function defined before callers.
+  - `src/lib/alternative-tts.ts`: `getTtsFallbackOrder` and `setTtsFallbackOrder` were declared at line 1759 while fallback order types were at the top, leading to module export resolution issues during HMR. Resolved by moving `memoryFallbackStore`, `getTtsFallbackOrder`, and `setTtsFallbackOrder` to the top near the constants and types.
+  - Circular Dependency: `VideoPlayground.tsx` and `SwitchableDefaultSubtitlesBar.tsx` had a circular dependency (`VideoPlayground` -> `SwitchableDefaultSubtitlesBar` -> `VideoPlayground`), which caused Vite HMR invalidation crashes (`SendBeforeConnectError: send was called before connect`). Resolved by co-locating `DetectedSubtitleTrack` in `SwitchableDefaultSubtitlesBar.tsx` and breaking the cycle.
+  - React `useState` Hook Error: Mismatched React resolution in Vite was solved by configuring `dedupe: ["react", "react-dom"]` in `vite.config.ts`.
+- **Validation**:
+  - Dedicated automated test `scripts/verify-hotfix-exports-and-hooks.ts` (`npm run test:hotfix-exports-and-hooks`) verifying all function exports, non-circular imports, dedupe config, server-side hook rendering, and Vite transforms with 200 OK across all affected modules.
+  - `restart_dev_server`: Dev server restarted successfully.
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
 ### Task 285: TTS Blacklist in Learning Goals (Skip from TTS-play even if default subtitles), Allow TTS Ratio up to 1:20, and localStorage Persistence (Prompt 55, Chapter 1)
 
 - **Prompt**: `languages goal - whitelist/blacklist - allow to set languages to be on the black-list of tts-play - in that case even if the default subtitles are X , then X would be skipped for tts-play. allow tts-ratio to be up to 1:20 ratio. tts-ration is to be stored using local-storage.`

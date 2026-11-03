@@ -262,6 +262,8 @@ import {
   type SimpleParserConfig,
   DEFAULT_SIMPLE_PARSER_CONFIG,
 } from "@/utils/newSubtitlesParser";
+import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceModeSettingsPanel";
+import { useIsElementEnabled } from "@/utils/performanceModeManager";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
 import { PerLanguageTtsPreferences } from "@/components/beginner/PerLanguageTtsPreferences";
@@ -877,6 +879,13 @@ function Index() {
       new URLSearchParams(window.location.search).get("android") === "true"
     );
   });
+
+  const networkInspectorEnabled = useIsElementEnabled("network_inspector");
+  const stateMachineLogsEnabled = useIsElementEnabled("state_machine_logs");
+  const floatingPauseEnabled = useIsElementEnabled("floating_pause_button");
+  const timingLabEnabled = useIsElementEnabled("timing_lab");
+  const multiVideoSwiperEnabled = useIsElementEnabled("multi_video_swiper");
+  const criticalCaptionsAlertEnabled = useIsElementEnabled("critical_captions_alert");
 
   const [workflowMode, setWorkflowMode] = useState<"beginner" | "expert">(() => {
     if (typeof window !== "undefined") {
@@ -5155,15 +5164,17 @@ function Index() {
 
   const parserPanelContent = (
     <div className="space-y-4">
-      {/* Interactive Timing & Punctuation Splitting Lab */}
-      <ParserTimingLab
-        tracks={tracks}
-        baseLanguage={baseLanguage}
-        selectedCriteria={selectedCriteria}
-        criteriaSettings={criteriaSettings}
-        onApplyCriteria={handleApplyPreset}
-        onUpdateGroupSettings={handleUpdateGroupSettings}
-      />
+      {/* Interactive Timing & Punctuation Splitting Lab (Hidden by default in Fast Mode) */}
+      {timingLabEnabled && (
+        <ParserTimingLab
+          tracks={tracks}
+          baseLanguage={baseLanguage}
+          selectedCriteria={selectedCriteria}
+          criteriaSettings={criteriaSettings}
+          onApplyCriteria={handleApplyPreset}
+          onUpdateGroupSettings={handleUpdateGroupSettings}
+        />
+      )}
 
       {/* Presets Header */}
       <div>
@@ -6310,13 +6321,15 @@ function Index() {
               </BeginnerCharsRemovalAccordion>
             }
             criticalCaptionsAlertSlot={
-              <CriticalCaptionsAlert
-                videoId={videoId}
-                hasSubtitles={hasAnySubtitles}
-                isVideoPlaying={isVideoPlaying}
-                onRecheck={handleRecheckCaptions}
-                onOpenManualUrlModal={() => setUrlModalLang(baseLanguage || "en")}
-              />
+              criticalCaptionsAlertEnabled ? (
+                <CriticalCaptionsAlert
+                  videoId={videoId}
+                  hasSubtitles={hasAnySubtitles}
+                  isVideoPlaying={isVideoPlaying}
+                  onRecheck={handleRecheckCaptions}
+                  onOpenManualUrlModal={() => setUrlModalLang(baseLanguage || "en")}
+                />
+              ) : null
             }
             subtitlesTableSlot={
               <SubtitlesTablePanel
@@ -6475,15 +6488,17 @@ function Index() {
                 </div>
               )}
 
-              <div className="px-4 md:px-6 pt-2">
-                <CriticalCaptionsAlert
-                  videoId={videoId}
-                  hasSubtitles={hasAnySubtitles}
-                  isVideoPlaying={isVideoPlaying}
-                  onRecheck={handleRecheckCaptions}
-                  onOpenManualUrlModal={() => setUrlModalLang(baseLanguage || "en")}
-                />
-              </div>
+              {criticalCaptionsAlertEnabled && (
+                <div className="px-4 md:px-6 pt-2">
+                  <CriticalCaptionsAlert
+                    videoId={videoId}
+                    hasSubtitles={hasAnySubtitles}
+                    isVideoPlaying={isVideoPlaying}
+                    onRecheck={handleRecheckCaptions}
+                    onOpenManualUrlModal={() => setUrlModalLang(baseLanguage || "en")}
+                  />
+                </div>
+              )}
 
               {/* Floating Red-Text Instruction: Appears in Stage 1 when no subtitles are detected */}
               {currentAccordionStage === 1 && detectedSubtitleCount === 0 && (
@@ -7090,6 +7105,9 @@ function Index() {
 
                         {panelId === "playback" && (
                           <div className="space-y-4">
+                            {/* Performance Mode: Fast (Default) vs. Slow Mode */}
+                            <PerformanceModeSettingsPanel />
+
                             {/* Sub-Accordion 1: General Playback & Audio Settings */}
                             <details
                               className="group rounded-xl border border-border bg-card/60 overflow-hidden shadow-xs"
@@ -7960,15 +7978,17 @@ function Index() {
 
                         {panelId === "parser" && (
                           <div className="space-y-4">
-                            {/* Interactive Timing & Punctuation Splitting Lab */}
-                            <ParserTimingLab
-                              tracks={tracks}
-                              baseLanguage={baseLanguage}
-                              selectedCriteria={selectedCriteria}
-                              criteriaSettings={criteriaSettings}
-                              onApplyCriteria={handleApplyPreset}
-                              onUpdateGroupSettings={handleUpdateGroupSettings}
-                            />
+                            {/* Interactive Timing & Punctuation Splitting Lab (Hidden by default in Fast Mode) */}
+                            {timingLabEnabled && (
+                              <ParserTimingLab
+                                tracks={tracks}
+                                baseLanguage={baseLanguage}
+                                selectedCriteria={selectedCriteria}
+                                criteriaSettings={criteriaSettings}
+                                onApplyCriteria={handleApplyPreset}
+                                onUpdateGroupSettings={handleUpdateGroupSettings}
+                              />
+                            )}
 
                             {/* Presets Header */}
                             <div>

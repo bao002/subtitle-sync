@@ -26,6 +26,7 @@ import {
 } from "@/lib/subtitle-fetch-plan";
 import { WinnerPromotionReportModal } from "./WinnerPromotionReportModal";
 import { ExperimentalSubtitleFetchPanel } from "./ExperimentalSubtitleFetchPanel";
+import { useIsElementEnabled } from "@/utils/performanceModeManager";
 import { Json3 } from "@/types";
 
 interface Props {
@@ -71,6 +72,9 @@ export const AttemptOrderSettings: React.FC<Props> = ({
   const [showWinnerReport, setShowWinnerReport] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showServerHelp, setShowServerHelp] = useState(false);
+
+  const experimentalFetchEnabled = useIsElementEnabled("experimental_fetch");
+  const winnerPromotionEnabled = useIsElementEnabled("winner_promotion");
 
   const [activeStrategyConfig, setActiveStrategyConfig] = useState<SubtitleFetchStrategyConfig>(
     () => strategyConfig || getFetchStrategyConfig(),
@@ -468,7 +472,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
         </div>
       )}
 
-      {developerMode && (
+      {developerMode && experimentalFetchEnabled && (
         <ExperimentalSubtitleFetchPanel
           currentVideoId={currentVideoId}
           observedUrl={observedUrl}
@@ -478,11 +482,13 @@ export const AttemptOrderSettings: React.FC<Props> = ({
         />
       )}
 
-      <WinnerPromotionReportModal
-        isOpen={showWinnerReport}
-        onClose={() => setShowWinnerReport(false)}
-        onSelectVideo={onSelectVideo}
-      />
+      {winnerPromotionEnabled && (
+        <WinnerPromotionReportModal
+          isOpen={showWinnerReport}
+          onClose={() => setShowWinnerReport(false)}
+          onSelectVideo={onSelectVideo}
+        />
+      )}
     </div>
   );
 };

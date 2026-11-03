@@ -1,11 +1,20 @@
 import React, { useState, useMemo } from "react";
 import { Check, Subtitles, Sparkles, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
 import { LANGS, type Json3 } from "@/lib/subtitles";
-import type { DetectedSubtitleTrack } from "@/components/VideoPlayground";
 import {
   analyzeDefaultSubtitlesPunctuation,
   type SubtitlePunctuationStats,
 } from "@/utils/subtitlePunctuationStats";
+import { useIsElementEnabled } from "@/utils/performanceModeManager";
+
+export interface DetectedSubtitleTrack {
+  lang: string;
+  langName: string;
+  json: Json3;
+  rawData?: string;
+  url?: string;
+  timestamp?: number;
+}
 
 export interface SwitchableDefaultSubtitlesBarProps {
   videoId: string;
@@ -44,6 +53,7 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
   defaultExpandedStats = false,
 }) => {
   const [showStats, setShowStats] = useState<boolean>(defaultExpandedStats);
+  const statsEnabled = useIsElementEnabled("default_subtitles_stats");
 
   // Deduplicate and filter non-empty languages
   const uniqueLangs = useMemo(
@@ -224,8 +234,8 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
             )}
           </div>
 
-          {/* Toggle Punctuation Statistics Button */}
-          {uniqueLangs.length > 0 && (
+          {/* Toggle Punctuation Statistics Button (Hidden by default in Fast Mode) */}
+          {statsEnabled && uniqueLangs.length > 0 && (
             <button
               type="button"
               data-testid="toggle-punctuation-stats-btn"
@@ -255,8 +265,8 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
         </div>
       </div>
 
-      {/* Exposed Punctuation Statistics Breakdown Section */}
-      {showStats && uniqueLangs.length > 0 && (
+      {/* Exposed Punctuation Statistics Breakdown Section (Hidden by default in Fast Mode) */}
+      {statsEnabled && showStats && uniqueLangs.length > 0 && (
         <div
           data-testid="default-subtitles-punctuation-stats"
           className="w-full mt-1 pt-2 border-t border-border/60 space-y-2 text-xs animate-in fade-in-50 duration-150"

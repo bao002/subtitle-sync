@@ -4,11 +4,18 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
+- [ ] **Task 288: Slow / Fast Mode (Hide & Disable Non-Obligatory Elements by Default, docs/disable_and_hide.md, Disable-All/Enable-All in Settings)**
+  - Subtask 288.1: Document obligatory vs non-obligatory elements matrix and mode controls in `docs/disable_and_hide.md`.
+  - Subtask 288.2: Implement performance mode state manager `src/utils/performanceModeManager.ts` (Fast Mode by default, disable-all / enable-all helpers, element-level flags, localStorage persistence).
+  - Subtask 288.3: Integrate Fast / Slow mode and "Disable All" / "Enable All" controls in Settings across both Advanced Mode and Beginner Mode, and apply conditional rendering to hide/disable non-obligatory elements in Fast mode.
+  - Subtask 288.4: Dedicated automated verification script `scripts/verify-slow-fast-mode.ts` (`npm run test:slow-fast-mode`).
+  - Subtask 288.5: Bump version to `2.1.0` across 5 single-source version files, compile (`compile_applet`), lint (`lint_applet`), and migrate Task 288 to `docs/done.md`.
+
 - [ ] **Task 286 (Chapter 2): Export / Import Application Settings**
   - Subtask 286.1: Implement settings backup utility `src/utils/settingsBackupManager.ts` supporting full export and import of user settings, language goals, TTS ratios, blacklist, and preferences.
   - Subtask 286.2: Add Export/Import UI modal and controls across Advanced Mode and Beginner Mode with full parity.
   - Subtask 286.3: Dedicated automated test `scripts/verify-settings-export-import.ts`.
-  - Subtask 286.4: Synchronize version `2.1.0` across all 5 files, compile, lint, commit, push, and migrate Task 286 to `docs/done.md`.
+  - Subtask 286.4: Synchronize version across all 5 files, compile, lint, commit, push, and migrate Task 286 to `docs/done.md`.
 
 
 ## Later Tasks

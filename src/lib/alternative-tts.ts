@@ -52,6 +52,47 @@ export type TtsFallbackOrder =
 
 export const DEFAULT_TTS_FALLBACK_ORDER: TtsFallbackOrder = "google_tts3_native";
 
+const memoryFallbackStore: Record<string, string> = {};
+
+/**
+ * Retrieves the configured TTS fallback order (e.g. google directly -> tts3 -> native).
+ */
+export function getTtsFallbackOrder(): TtsFallbackOrder {
+  try {
+    const stored =
+      typeof localStorage !== "undefined"
+        ? (localStorage.getItem(STORAGE_KEY_TTS_FALLBACK_ORDER) as TtsFallbackOrder)
+        : (memoryFallbackStore[STORAGE_KEY_TTS_FALLBACK_ORDER] as TtsFallbackOrder);
+    if (
+      stored === "google_tts3_native" ||
+      stored === "tts3_google_native" ||
+      stored === "native_google_tts3" ||
+      stored === "google_native" ||
+      stored === "tts3_native" ||
+      stored === "native_only"
+    ) {
+      return stored;
+    }
+  } catch {
+    // fallback
+  }
+  return DEFAULT_TTS_FALLBACK_ORDER;
+}
+
+/**
+ * Persists the TTS fallback order.
+ */
+export function setTtsFallbackOrder(order: TtsFallbackOrder): void {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_TTS_FALLBACK_ORDER, order);
+    }
+  } catch (err) {
+    console.warn("Failed to persist TTS fallback order:", err);
+  }
+  memoryFallbackStore[STORAGE_KEY_TTS_FALLBACK_ORDER] = order;
+}
+
 /**
  * Checks if a token is a remote Speak API Personal Access / Bearer Token.
  * Tokens starting with 'spk_' (Personal API token) or 'tts_' (Temporary access token)
@@ -1659,8 +1700,6 @@ export async function validateRemoteTtsService(
   }
 }
 
-const memoryFallbackStore: Record<string, string> = {};
-
 /**
  * Retrieves whether the alternative TTS service is enabled (off by default).
  */
@@ -1751,45 +1790,6 @@ export function setAlternativeTtsAnonymousMode(enabled: boolean): void {
     console.warn("Failed to persist anonymous TTS mode:", err);
   }
   memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_ANONYMOUS_MODE] = val;
-}
-
-/**
- * Retrieves the configured TTS fallback order (e.g. google directly -> tts3 -> native).
- */
-export function getTtsFallbackOrder(): TtsFallbackOrder {
-  try {
-    const stored =
-      typeof localStorage !== "undefined"
-        ? (localStorage.getItem(STORAGE_KEY_TTS_FALLBACK_ORDER) as TtsFallbackOrder)
-        : (memoryFallbackStore[STORAGE_KEY_TTS_FALLBACK_ORDER] as TtsFallbackOrder);
-    if (
-      stored === "google_tts3_native" ||
-      stored === "tts3_google_native" ||
-      stored === "native_google_tts3" ||
-      stored === "google_native" ||
-      stored === "tts3_native" ||
-      stored === "native_only"
-    ) {
-      return stored;
-    }
-  } catch {
-    // fallback
-  }
-  return DEFAULT_TTS_FALLBACK_ORDER;
-}
-
-/**
- * Persists the TTS fallback order.
- */
-export function setTtsFallbackOrder(order: TtsFallbackOrder): void {
-  try {
-    if (typeof localStorage !== "undefined") {
-      localStorage.setItem(STORAGE_KEY_TTS_FALLBACK_ORDER, order);
-    }
-  } catch (err) {
-    console.warn("Failed to persist TTS fallback order:", err);
-  }
-  memoryFallbackStore[STORAGE_KEY_TTS_FALLBACK_ORDER] = order;
 }
 
 /**

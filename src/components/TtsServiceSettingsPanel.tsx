@@ -26,6 +26,7 @@ import {
   setAlternativeTtsAnonymousMode,
 } from "@/lib/alternative-tts";
 import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
+import { useIsElementEnabled } from "@/utils/performanceModeManager";
 
 export interface TtsServiceSettingsPanelProps {
   mode: AlternativeTtsMode;
@@ -106,6 +107,8 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
     if (isAnonymous !== undefined) return isAnonymous;
     return getAlternativeTtsAnonymousMode();
   });
+
+  const debuggerEnabled = useIsElementEnabled("tts_debugger");
 
   React.useEffect(() => {
     if (isAnonymous !== undefined) {
@@ -617,8 +620,8 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
         </div>
       )}
 
-      {/* 7. External TTS Request/Response Debugger Panel */}
-      {showDebugger && <ExternalTtsDebuggerPanel className="mt-2" />}
+      {/* 7. External TTS Request/Response Debugger Panel (Hidden by default in Fast Mode) */}
+      {showDebugger && debuggerEnabled && <ExternalTtsDebuggerPanel className="mt-2" />}
     </div>
   );
 };
