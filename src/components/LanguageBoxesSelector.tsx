@@ -117,13 +117,6 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
       next = [...selectedLanguages, code];
     }
     onSelectionChange(next);
-    // Explicitly preserve focus on the clicked element without scrolling the page
-    requestAnimationFrame(() => {
-      const btn = document.getElementById(`lang-box-${code}`);
-      if (btn) {
-        btn.focus({ preventScroll: true });
-      }
-    });
   };
 
   const moveFavoriteLanguage = (code: string, direction: -1 | 1) => {
@@ -245,10 +238,6 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
               size="sm"
               onClick={() => {
                 setShowAllLanguages(true);
-                requestAnimationFrame(() => {
-                  const input = document.getElementById("search-language-input");
-                  if (input) input.focus();
-                });
               }}
               className="h-7 text-xs gap-1 hover:bg-muted font-medium text-primary cursor-pointer"
               title="Select more languages from catalog"
@@ -421,12 +410,6 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                       e.stopPropagation();
                       recordUserInteraction(Date.now());
                       setExpandedLangUrl((cur) => (cur === lang.code ? null : lang.code));
-                      requestAnimationFrame(() => {
-                        const btn = document.getElementById(`expand-subtitles-url-${lang.code}`);
-                        if (btn) {
-                          btn.focus({ preventScroll: true });
-                        }
-                      });
                     }}
                     className={`p-1.5 rounded-md hover:bg-background/80 transition-colors ml-1 text-xs shrink-0 cursor-pointer ${
                       isExpanded

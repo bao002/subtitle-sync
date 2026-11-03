@@ -1266,15 +1266,6 @@ function Index() {
     }
     setUseAlternativeTtsState(true);
     setUseAlternativeTts(true);
-    setTimeout(() => {
-      const el =
-        document.getElementById("tts-service-settings-panel") ||
-        document.querySelector('[data-testid="tts-service-settings-panel"]') ||
-        document.querySelector('[data-testid="beginner-alternative-tts-card"]');
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    }, 150);
   }, [workflowMode]);
 
   const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
@@ -2366,6 +2357,7 @@ function Index() {
   isVideoPlayingRef.current = isVideoPlaying;
   const userExplicitlyPausedRef = useRef(false);
   const isPausedForTtsRef = useRef(false);
+  const programmaticPauseTimestampRef = useRef<number>(0);
   const [playbackCurrentTime, setPlaybackCurrentTime] = useState(0);
   const [playbackDuration, setPlaybackDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1.0);
@@ -3986,10 +3978,6 @@ function Index() {
         const matchingRowIdx = rows.findIndex((r) => r.start <= targetMs && targetMs <= r.end);
         if (matchingRowIdx >= 0) {
           setActive(matchingRowIdx);
-          const rowEl = document.getElementById(`subtitle-row-${matchingRowIdx}`);
-          if (rowEl) {
-            rowEl.scrollIntoView({ behavior: "smooth", block: "center" });
-          }
         }
       }
     },
@@ -4230,7 +4218,9 @@ function Index() {
               setPauseReason(null);
             } else if (event.data === 2) {
               setIsVideoPlaying(false);
-              if (!busy.current && !isPausedForTtsRef.current) {
+              const isRecentProgrammaticPause =
+                Date.now() - programmaticPauseTimestampRef.current < 1500;
+              if (!busy.current && !isPausedForTtsRef.current && !isRecentProgrammaticPause) {
                 userExplicitlyPausedRef.current = true;
                 setPauseReason((prev) => prev || "Paused by user");
                 cancelSpeech();
@@ -4248,13 +4238,8 @@ function Index() {
               setSpeakingRow(-1);
               setSpeechProgress(null);
             } else if (event.data === -1) {
-              userExplicitlyPausedRef.current = true;
+              // Unstarted / buffering state: do NOT mark userExplicitlyPausedRef as true
               setIsVideoPlaying(false);
-              cancelSpeech();
-              busy.current = false;
-              setSpeakingLang(null);
-              setSpeakingRow(-1);
-              setSpeechProgress(null);
             }
           },
           onApiChange: () => {
@@ -4487,7 +4472,7 @@ function Index() {
                   },
                 });
               } else {
-                await speak(
+                const speakPromise = speak(
                   rows[rowIdx]?.texts[l.code] ?? "",
                   l.tts,
                   rates[l.code] ?? 0.5,
@@ -4495,6 +4480,10 @@ function Index() {
                   rowIdx,
                   setSpeechProgress,
                 );
+                await Promise.race([
+                  speakPromise,
+                  new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+                ]);
               }
             } catch (err) {
               console.warn(`[TTS] Speak error for ${l.code} at row ${rowIdx}:`, err);
@@ -4533,6 +4522,7 @@ function Index() {
         multiVideoPlayerRegistry.unmuteOnly("primary");
         userExplicitlyPausedRef.current = false;
         isPausedForTtsRef.current = false;
+        programmaticPauseTimestampRef.current = 0;
         try {
           if (typeof resumeTargetSec === "number" && Number.isFinite(resumeTargetSec)) {
             p.seekTo(resumeTargetSec, true);
@@ -4543,22 +4533,28 @@ function Index() {
         } catch (err) {
           console.warn("[PlaybackCoordinator] playVideo error:", err);
         }
-        // Secondary kick: Ensure player actually resumed, in case postMessage was delayed or state was transitioning
+        // First kick at 80ms: Ensure player actually resumed
         setTimeout(() => {
           try {
-            if (
-              !userExplicitlyPausedRef.current &&
-              !st.current.isSetupPaused &&
-              !busy.current &&
-              p.getPlayerState?.() !== 1
-            ) {
+            if (!busy.current && p.getPlayerState?.() !== 1) {
               p.playVideo?.();
               setIsVideoPlaying(true);
             }
           } catch {
             // ignore
           }
-        }, 120);
+        }, 80);
+        // Second kick at 240ms: In case of delay or state transition
+        setTimeout(() => {
+          try {
+            if (!busy.current && p.getPlayerState?.() !== 1) {
+              p.playVideo?.();
+              setIsVideoPlaying(true);
+            }
+          } catch {
+            // ignore
+          }
+        }, 240);
       };
 
       if (pauseMode) {
@@ -4575,6 +4571,7 @@ function Index() {
             handledTtsFirstSections.current.add(sectionId);
             busy.current = true;
             isPausedForTtsRef.current = true;
+            programmaticPauseTimestampRef.current = Date.now();
             const langLabels = eligibleLangs.map((l) => l.name || l.code).join(", ");
             setPauseReason(`Waiting for speech synthesis (${langLabels}) before playing`);
             try {
@@ -4591,7 +4588,7 @@ function Index() {
             const wasCancelled = !busy.current;
             busy.current = false;
             isPausedForTtsRef.current = false;
-            if (wasCancelled || st.current.isSetupPaused || userExplicitlyPausedRef.current) return;
+            if (wasCancelled) return;
             const targetSec = (rows[idx]?.start ?? 0) / 1000;
             lastMs.current = targetSec * 1000;
             safelyResumePrimaryVideo(targetSec);
@@ -4613,6 +4610,7 @@ function Index() {
             handledVideoFirstSections.current.add(candidateSectionId);
             busy.current = true;
             isPausedForTtsRef.current = true;
+            programmaticPauseTimestampRef.current = Date.now();
             const langLabels = eligibleLangs.map((l) => l.name || l.code).join(", ");
             setPauseReason(`Section complete: speaking translation (${langLabels})`);
             try {
@@ -4629,7 +4627,7 @@ function Index() {
             const wasCancelled = !busy.current;
             busy.current = false;
             isPausedForTtsRef.current = false;
-            if (wasCancelled || st.current.isSetupPaused || userExplicitlyPausedRef.current) return;
+            if (wasCancelled) return;
             const nextRowIdx = candidateRow + 1;
             if (nextRowIdx < rows.length && rows[nextRowIdx]) {
               const nextRow = rows[nextRowIdx];
@@ -4639,19 +4637,8 @@ function Index() {
               setActive(nextRowIdx);
               safelyResumePrimaryVideo(resumeTarget);
             } else {
-              const dur = p.getDuration?.() ?? 0;
-              const currentPos = p.getCurrentTime?.() ?? 0;
-              if (dur > 0 && currentPos < dur - 1.5) {
-                safelyResumePrimaryVideo();
-              } else {
-                setPauseReason("Reached end of subtitle track");
-                multiVideoPlayerRegistry.unmuteOnly("primary");
-                try {
-                  p.pauseVideo();
-                } catch {
-                  // ignore
-                }
-              }
+              // End of subtitle track reached: resume normal playback until natural end
+              safelyResumePrimaryVideo();
             }
           }
         }
@@ -6466,7 +6453,10 @@ function Index() {
                       type="button"
                       id="stage-step-1"
                       data-testid="stage-step-1"
-                      onClick={() => setCurrentAccordionStage(1)}
+                      onClick={() => {
+                        setCurrentAccordionStage(1);
+                        setOpenPanels((prev) => ({ ...prev, languages: true }));
+                      }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
                         currentAccordionStage === 1
                           ? "bg-primary text-primary-foreground shadow"
@@ -6476,7 +6466,7 @@ function Index() {
                       <span className="h-4 w-4 rounded-full bg-background/20 flex items-center justify-center text-[10px] font-bold">
                         1
                       </span>
-                      <span>Video &amp; Captions</span>
+                      <span>Learning Goals</span>
                     </button>
                     <button
                       type="button"
@@ -6484,7 +6474,7 @@ function Index() {
                       data-testid="stage-step-2"
                       onClick={() => {
                         setCurrentAccordionStage(2);
-                        setOpenPanels((prev) => ({ ...prev, languages: true }));
+                        setOpenPanels((prev) => ({ ...prev, subtitles: true }));
                       }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
                         currentAccordionStage === 2
@@ -6495,7 +6485,7 @@ function Index() {
                       <span className="h-4 w-4 rounded-full bg-background/20 flex items-center justify-center text-[10px] font-bold">
                         2
                       </span>
-                      <span>Learning Goals</span>
+                      <span>Subtitles Table</span>
                     </button>
                     <button
                       type="button"
@@ -6503,7 +6493,7 @@ function Index() {
                       data-testid="stage-step-3"
                       onClick={() => {
                         setCurrentAccordionStage(3);
-                        setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+                        setOpenPanels((prev) => ({ ...prev, player: true, subtitles: true }));
                       }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
                         currentAccordionStage === 3
@@ -6514,7 +6504,7 @@ function Index() {
                       <span className="h-4 w-4 rounded-full bg-background/20 flex items-center justify-center text-[10px] font-bold">
                         3
                       </span>
-                      <span>Subtitles Table</span>
+                      <span>Video &amp; Playback</span>
                     </button>
                   </div>
 
@@ -6547,19 +6537,18 @@ function Index() {
 
                     // Stage 4: If settings toggle is active, present all accordions
                     if (showOtherSettingsAccordions) {
-                      if (panelId === "subtitles" && !hasLegitimateSubtitles) return false;
                       return true;
                     }
                     // Otherwise, strictly filter by stages:
+                    // First stage is learning-goals; last stage is video; video is NOT shown on any other stage
                     if (currentAccordionStage === 1) {
-                      return panelId === "player";
+                      return panelId === "languages";
                     }
                     if (currentAccordionStage === 2) {
-                      return panelId === "player" || panelId === "languages";
+                      return panelId === "subtitles";
                     }
                     if (currentAccordionStage === 3) {
-                      if (panelId === "subtitles" && !hasLegitimateSubtitles) return false;
-                      // Hide language settings on Stage 3 because they are already configured on Stage 2
+                      // Final stage: video and subtitles table for synchronized playback
                       return panelId === "player" || panelId === "subtitles";
                     }
                     return true;
@@ -6568,7 +6557,8 @@ function Index() {
                     const panel = PANELS.find((candidate) => candidate.id === panelId);
                     if (!panel) return null;
                     const panelTitle =
-                      panelId === "languages" && currentAccordionStage === 2
+                      panelId === "languages" &&
+                      (currentAccordionStage === 1 || currentAccordionStage === 2)
                         ? "Learning goals"
                         : panel.title;
                     return (
@@ -8493,7 +8483,7 @@ function Index() {
                         )}
 
                         {panelId === "languages" &&
-                          (currentAccordionStage === 2 ? (
+                          (currentAccordionStage === 1 || currentAccordionStage === 2 ? (
                             <div
                               id="stage-2-learning-goals-card"
                               data-testid="stage-2-learning-goals-card"
@@ -8503,11 +8493,11 @@ function Index() {
                                 <div className="flex items-center gap-2">
                                   <Sparkles className="h-4 w-4 text-primary" />
                                   <h3 className="font-semibold text-sm text-foreground">
-                                    Stage 2: Learning Goals &amp; Default Language
+                                    Stage 1: Learning Goals &amp; Default Language
                                   </h3>
                                 </div>
                                 <span className="text-[11px] font-medium bg-primary/10 text-primary px-2.5 py-0.5 rounded-full">
-                                  Stage 2 of 3
+                                  Stage 1 of 3
                                 </span>
                               </div>
 
@@ -8970,7 +8960,7 @@ function Index() {
                                   className="gap-1.5 text-xs h-8"
                                 >
                                   <ArrowLeft className="h-3.5 w-3.5" />
-                                  <span>Back to Video</span>
+                                  <span>Stage 1 (Learning Goals)</span>
                                 </Button>
                                 <Button
                                   id="stage-2-next-button"
@@ -8978,7 +8968,7 @@ function Index() {
                                   type="button"
                                   size="sm"
                                   onClick={() => {
-                                    setCurrentAccordionStage(3);
+                                    setCurrentAccordionStage(2);
                                     setOpenPanels((prev) => ({ ...prev, subtitles: true }));
                                   }}
                                   className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 text-xs h-8 shadow-sm flex items-center gap-1.5"
@@ -9811,44 +9801,82 @@ function Index() {
                             </>
                           ))}
 
-                        {panelId === "subtitles" &&
-                          (!hasLegitimateSubtitles ? null : (
-                            <section
-                              className="space-y-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3"
-                              aria-label="Parallel subtitles table"
-                              data-testid="advanced-parallel-subtitles"
-                              data-control-category="daily-usage"
-                            >
-                              <h3 className="text-xs font-semibold text-foreground">
-                                Parallel subtitles
-                              </h3>
-                              <SubtitlesTablePanel
-                                isAndroid={isAndroid}
-                                rows={rows}
-                                displayedRows={displayedRows}
-                                cols={cols}
-                                baseLanguage={baseLanguage}
-                                subtitlesLimit={subtitlesLimit}
-                                setSubtitlesLimit={setSubtitlesLimit}
-                                subtitlesPage={subtitlesPage}
-                                setSubtitlesPage={setSubtitlesPage}
-                                active={active}
-                                allFavoritesAligned={allFavoritesAligned}
-                                targetLanguages={targetLanguages}
-                                speechProgress={speechProgress}
-                                tracks={tracks}
-                                onSeek={seek}
-                                spokenLangs={spoken}
-                                ttsRatios={ttsRatios}
-                                primaryTtsLang={primaryTtsLang}
-                                hasCachedAi={hasCachedAi}
-                                onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
-                                parserConfig={simpleParserConfig}
-                                onParserConfigChange={handleSimpleParserConfigChange}
-                                onScrollToActivePosition={handleScrollToActivePosition}
-                              />
-                            </section>
-                          ))}
+                        {panelId === "subtitles" && (
+                          <section
+                            className="space-y-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3"
+                            aria-label="Parallel subtitles table"
+                            data-testid="advanced-parallel-subtitles"
+                            data-control-category="daily-usage"
+                          >
+                            <h3 className="text-xs font-semibold text-foreground">
+                              Parallel subtitles
+                            </h3>
+                            <SubtitlesTablePanel
+                              isAndroid={isAndroid}
+                              rows={rows}
+                              displayedRows={displayedRows}
+                              cols={cols}
+                              baseLanguage={baseLanguage}
+                              subtitlesLimit={subtitlesLimit}
+                              setSubtitlesLimit={setSubtitlesLimit}
+                              subtitlesPage={subtitlesPage}
+                              setSubtitlesPage={setSubtitlesPage}
+                              active={active}
+                              allFavoritesAligned={allFavoritesAligned}
+                              targetLanguages={targetLanguages}
+                              speechProgress={speechProgress}
+                              tracks={tracks}
+                              onSeek={seek}
+                              spokenLangs={spoken}
+                              ttsRatios={ttsRatios}
+                              primaryTtsLang={primaryTtsLang}
+                              hasCachedAi={hasCachedAi}
+                              onLoadCachedAiSubtitles={handleLoadCachedAiFromViewer}
+                              parserConfig={simpleParserConfig}
+                              onParserConfigChange={handleSimpleParserConfigChange}
+                              onScrollToActivePosition={handleScrollToActivePosition}
+                            />
+                            {currentAccordionStage === 2 && (
+                              <div
+                                id="stage-2-table-navigation"
+                                data-testid="stage-2-table-navigation"
+                                className="flex items-center justify-between pt-2 border-t border-border mt-3"
+                              >
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setCurrentAccordionStage(1);
+                                    setOpenPanels((prev) => ({ ...prev, languages: true }));
+                                  }}
+                                  className="gap-1.5 text-xs h-8"
+                                >
+                                  <ArrowLeft className="h-3.5 w-3.5" />
+                                  <span>Back to Learning Goals</span>
+                                </Button>
+                                <Button
+                                  id="stage-2-to-video-button"
+                                  data-testid="stage-2-to-video-button"
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => {
+                                    setCurrentAccordionStage(3);
+                                    setOpenPanels((prev) => ({
+                                      ...prev,
+                                      player: true,
+                                      subtitles: true,
+                                    }));
+                                  }}
+                                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 text-xs h-8 shadow-sm flex items-center gap-1.5"
+                                >
+                                  <span>NEXT to Video (Stage 3)</span>
+                                  <ArrowRight className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            )}
+                          </section>
+                        )}
                       </AccordionSection>
                     );
                   })}
@@ -9920,12 +9948,6 @@ function Index() {
       <SubtitleFetchToast
         onViewSubtitles={() => {
           setOpenPanels((prev) => ({ ...prev, subtitles: true }));
-          const el =
-            document.getElementById("subtitles-table-panel") ||
-            document.getElementById("accordion-section-subtitles");
-          if (el) {
-            el.scrollIntoView({ behavior: "smooth", block: "start" });
-          }
         }}
       />
       <FloatingDraggablePauseButton

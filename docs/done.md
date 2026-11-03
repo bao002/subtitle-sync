@@ -1,5 +1,78 @@
 # Done tasks
 
+### Task 267: Create docs/stop.md and Remove All Reasons Why Video Doesn't Resume After Pause (Prompt 54, Chapter 4)
+
+- **Prompt**: `4. list the reasons why the app doesnt resume the video after it pauses docs/stop.md  - and remove all of them.`
+- **Context & Implementation**:
+  - Authored `docs/stop.md` analyzing all 7 architectural and runtime blockage mechanisms preventing playback resumption:
+    - VR-01: Pause flag race condition from asynchronous YouTube `onStateChange` (fixed with programmatic pause timestamp guard).
+    - VR-02: Transient buffering / unstarted (`event.data === -1`) state polluting `userExplicitlyPausedRef` (fixed by removing pause flag setting on -1).
+    - VR-03: Speech synthesis stalling without `onend` (fixed with `Promise.race` 8000ms timeout safeguard in `speakRow`).
+    - VR-04: Setup mode pause lock (fixed by resetting setup pause upon playback trigger).
+    - VR-05: Artificial end-of-track pause (fixed by continuing video playback until natural video completion).
+    - VR-06: Dropped postMessage play commands (fixed with dual 80ms and 240ms delayed recovery kicks in `safelyResumePrimaryVideo`).
+    - VR-07: Immediate boundary re-pause loops (fixed with strict section record tracking and timestamp advancement).
+- **Validation**:
+  - Authored dedicated test `scripts/verify-video-resume-fixes.ts` (`npm run test:video-resume-fixes`).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+
+### Task 266: First Stage Learning Goals, Last Stage Video (Video Hidden on All Other Stages) (Prompt 54, Chapter 3)
+
+- **Prompt**: `3. the first stage should be learning-goals. the last stage should be the video and the video shouldn't be shown on any other stage`
+- **Context & Implementation**:
+  - Reordered application progressive stages so that:
+    - **Stage 1**: Learning Goals (`panelId === "languages"`). Video player (`panelId === "player"`) is strictly omitted and not rendered.
+    - **Stage 2**: Subtitles Table (`panelId === "subtitles"`). Video player is strictly omitted and not rendered. Includes direct back navigation to Learning Goals and forward navigation to Video.
+    - **Stage 3 (Last Stage)**: Video & Playback (`panelId === "player"` and `panelId === "subtitles"` for coordinated playback).
+  - Updated accordion stepper labels:
+    - Button 1 (`stage-step-1`): "1. Learning Goals"
+    - Button 2 (`stage-step-2`): "2. Subtitles Table"
+    - Button 3 (`stage-step-3`): "3. Video & Playback"
+  - Enforced strict rule: Video player (`player`) is never returned or shown on any stage other than the last stage (Stage 3).
+  - Updated `scripts/verify-accordion-stages-of-appearance.ts` and `src/routes/index.tsx` stage filtering logic.
+- **Validation**:
+  - Authored dedicated test `scripts/verify-stages-order-and-video-placement.ts` (`npm run test:stages-order-and-video-placement`).
+  - Ran `scripts/verify-accordion-stages-of-appearance.ts`: PASSED.
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+
+### Task 265: Create docs/auto-focus.md and Disable All Auto-Focus / Auto-Scroll Triggers (Prompt 54, Chapter 2)
+
+- **Prompt**: `2. create docs/auto-focus.md - create table of auto-focus /auto-scroll triggers - and disable all of them !`
+- **Context & Implementation**:
+  - Authored `docs/auto-focus.md` cataloging all 9 auto-focus and auto-scroll triggers across the application in a Markdown table.
+  - Set `getAutoScrollSetting()` in `src/utils/appSettings.ts` to strictly return `false` (disabled) by default.
+  - In `src/routes/index.tsx`:
+    - Disabled auto-scroll row tracking during playback (`autoFocus = false`).
+    - Disabled automatic page flipping on Android pagination during playback.
+    - Removed programmatic `scrollIntoView` in `handleNavigateToTtsSettings`.
+    - Removed programmatic `scrollIntoView` in `handleSeekToActiveRow` / seek handler.
+    - Removed programmatic `scrollIntoView` in `SubtitleFetchToast` action.
+  - In `src/components/LanguageBoxesSelector.tsx`:
+    - Removed all programmatic `.focus()` calls (`btn.focus()` on toggle, `input.focus()` on select more languages, `btn.focus()` on expand subtitle URL).
+- **Validation**:
+  - Authored dedicated test `scripts/verify-auto-focus-disabled.ts` (`npm run test:auto-focus-disabled`).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+
+### Task 264: Include Subtitles-Table-View on Stage 3 (Prompt 54, Chapter 1)
+
+- **Prompt**: `1. the demo website doesnt include a subtitles-table-view on stage 3`
+- **Context & Implementation**:
+  - Removed restrictive `if (panelId === "subtitles" && !hasLegitimateSubtitles) return false;` filter gate in `src/routes/index.tsx`.
+  - Removed `(!hasLegitimateSubtitles ? null : ...)` wrapper inside the subtitles accordion section so that `SubtitlesTablePanel` is unconditionally rendered on Stage 3.
+  - When no subtitles have loaded yet, `SubtitlesTablePanel` gracefully displays its structured table headers (Time, freeze columns, default subtitles) with the standard empty notice `"No subtitles loaded for this video."` instead of omitting the view entirely.
+  - When subtitles are loaded, it immediately displays the full parallel multi-language subtitle sentences and tools.
+- **Validation**:
+  - Authored dedicated test `scripts/verify-subtitles-table-on-stage-3.ts` (`npm run test:subtitles-table-on-stage-3`).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
+
 ### Task 298: Remove Redundant Video Sequence Controls and TTS Order Column (Superseded by Video Precedence Bar)
 
 - **Prompt**:

@@ -582,7 +582,8 @@ export function getAutoScrollSetting(): boolean {
     return false;
   }
   try {
-    return window.localStorage.getItem(AUTO_SCROLL_STORAGE_KEY) === "true";
+    const val = window.localStorage.getItem(AUTO_SCROLL_STORAGE_KEY);
+    return val === "true" ? false : false; // All auto-focus and auto-scroll triggers disabled per Prompt 54
   } catch {
     return false;
   }

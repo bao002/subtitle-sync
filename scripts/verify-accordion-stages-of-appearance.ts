@@ -51,11 +51,11 @@ async function main() {
     "Must contain NEXT button to proceed to Stage 3 subtitles table (stage-2-next-button)",
   );
   assert.ok(
-    indexTsx.includes('panelId === "languages" && currentAccordionStage === 2') &&
+    /panelId === "languages"\s*&&\s*\(currentAccordionStage === 1 \|\| currentAccordionStage === 2\)/.test(indexTsx) &&
       indexTsx.includes('? "Learning goals"'),
-    "Languages accordion title must dynamically reflect 'Learning goals' in Stage 2",
+    "Languages accordion title must dynamically reflect 'Learning goals' in Stage 1/2",
   );
-  console.log("✓ Stage 2 Learning Goals card, default language selection, and action buttons verified");
+  console.log("✓ Stage Learning Goals card, default language selection, and action buttons verified");
 
   // 3. Stage Stepper & Stage 4 Settings Toggle
   console.log("Checking Stages Stepper and Stage 4 settings toggle...");
@@ -93,15 +93,15 @@ async function main() {
   );
   assert.ok(
     indexTsx.includes('if (currentAccordionStage === 1)'),
-    "Must isolate to video player accordion only in Stage 1",
+    "Must show learning goals in Stage 1",
   );
   assert.ok(
     indexTsx.includes('if (currentAccordionStage === 2)'),
-    "Must show video and learning goals accordions in Stage 2",
+    "Must show subtitles table in Stage 2",
   );
   assert.ok(
     indexTsx.includes('if (currentAccordionStage === 3)'),
-    "Must show video, learning goals, and subtitles table in Stage 3",
+    "Must show video player and subtitles table in Stage 3",
   );
   console.log("✓ Stage visibility filtering logic verified");
 

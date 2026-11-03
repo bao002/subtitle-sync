@@ -676,5 +676,16 @@ CSS 2: {
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 54: Subtitles-Table on Stage 3, Auto-Focus/Auto-Scroll Disablement, Learning Goals Stage 1 & Video Final Stage, Video Resume Causes & Fixes
+```
+1. the demo website doesnt include a subtitles-table-view on stage 3
+2. create docs/auto-focus.md - create table of auto-focus /auto-scroll triggers - and disable all of them !
+3. the first stage should be learning-goals. the last stage should be the video and the video shouldn't be shown on any other stage
+4. list the reasons why the app doesnt resume the video after it pauses docs/stop.md  - and remove all of them.
+```
+
+
 
 

@@ -132,18 +132,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-those items are redundunt now after having the video precedence bar
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3)
-CSS 1: {
-
-}
-CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(3) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(7)
-CSS 2: {
-
-}
-[AIS_METADATA_SECTION_END]
+1. the demo website doesnt include a subtitles-table-view on stage 3
+2. create docs/auto-focus.md - create table of auto-focus /auto-scroll triggers - and disable all of them !
+3. the first stage should be learning-goals. the last stage should be the video and the video shouldn't be shown on any other stage
+4. list the reasons why the app doesnt resume the video after it pauses docs/stop.md  - and remove all of them.
 ```
 
 
