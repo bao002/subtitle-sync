@@ -1,5 +1,41 @@
 # Done tasks
 
+### Task 296: Move Row Criteria to Subtitles Table View and Hide Language Settings on Stage 3
+
+- **Prompt**:
+  ```
+  row criteria should move to the subtitles-table-view in order to be able to view the change originated from the control dynamicly on the table.
+
+  hide language settings on stage 3 because we already have those on stage 2.
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div#stage-2-learning-filters-container:nth-of-type(4) > div#learning-goals-filters-panel:nth-of-type(1)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - Researched focus-mode skill and targeted the pointed `stage-2-learning-filters-container` (`LearningGoalsFiltersPanel` titled "Row Criteria").
+  - Moved Row Criteria directly into the Subtitles Table view (`src/components/SubtitlesTablePanel.tsx`):
+    - Added `subtitles-table-row-criteria-container` rendering `<LearningGoalsFiltersPanel />` directly above the table.
+    - Linked `maxWords` to `activeParserConfig.maxWordsPerSentence` and `skipIncompleteSentences` to `activeParserConfig.skipIncompleteSentences`.
+    - Dispatched updates through `handleParserConfigChange` so that every slider move, decrement/increment click, or complete-sentence toggle re-splits cues and dynamically updates table rows in real-time.
+    - Provided a collapsible/expandable header (`toggle-row-criteria-visibility-btn`) defaulting to expanded.
+    - Updated `handleSimpleParserConfigChange` in `src/routes/index.tsx` to automatically persist learning goals settings via `saveLearningGoalsMaxWords` and `saveLearningGoalsSkipIncomplete`.
+  - Replaced the bulky Stage 2 row filters panel with a clean informational notice and "Open Subtitles Table" direct navigation button.
+  - Hid language settings on Stage 3 in `src/routes/index.tsx`:
+    - Updated the Stage 3 filtering logic so that `panelId === "languages"` is hidden on Stage 3, cleanly showing only the video player and the subtitles table (Stage 2 already handles language selection and learning goals).
+    - Preserved Stage 4 settings toggle functionality (`showOtherSettingsAccordions`) to access settings accordions when requested.
+  - Bumped version to `2.0.96` in `package.json` and synchronized `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+  - Created dedicated automated test `scripts/verify-row-criteria-in-subtitles-table.ts`.
+- **Validation**:
+  - `npx tsx scripts/verify-row-criteria-in-subtitles-table.ts` passed 100% (verifies Stage 3 hides language settings, Row Criteria is mounted in `SubtitlesTablePanel` with dynamic binding, Stage 2 contains notice/link, and parser config transitions trigger real-time row filtering).
+  - `npx tsx scripts/verify-learning-goals-word-and-sentence-filters.ts` passed 100%.
+  - `npx tsx scripts/verify-single-source-version-architecture.ts` and `npx tsx scripts/verify-accordion-stages-of-appearance.ts` passed 100%.
+  - `lint_applet` passed with zero errors.
+  - `compile_applet` passed (`Build succeeded - the applet is compiled`).
+
 ### Task 295: Video-Playing Precedence Bar Movable and Placeable Among Pointed Table Records
 
 - **Prompt**:

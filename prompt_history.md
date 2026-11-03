@@ -605,3 +605,20 @@ CSS 2: {
 }
 [AIS_METADATA_SECTION_END]
 ```
+
+---
+
+### Prompt 51: Move Row Criteria to Subtitles Table View & Hide Language Settings on Stage 3
+```
+row criteria should move to the subtitles-table-view in order to be able to view the change originated from the control dynamicly on the table.
+
+hide language settings on stage 3 because we already have those on stage 2.
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(2) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div#stage-2-learning-filters-container:nth-of-type(4) > div#learning-goals-filters-panel:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+

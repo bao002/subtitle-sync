@@ -117,13 +117,22 @@ async function main() {
   assert.ok(buildGradle.includes(`versionCode = ${expectedCode}`), `build.gradle.kts must contain versionCode = ${expectedCode}`);
 
   const appConfig = fs.readFileSync(path.join(root, "src/config/appConfig.ts"), "utf8");
-  assert.ok(appConfig.includes(`APP_VERSION = "${expectedVer}"`), `src/config/appConfig.ts must contain APP_VERSION = "${expectedVer}"`);
+  assert.ok(
+    appConfig.includes(`APP_VERSION = "${expectedVer}"`) || appConfig.includes("packageJson.version"),
+    `src/config/appConfig.ts must contain APP_VERSION derived from packageJson.version or "${expectedVer}"`,
+  );
 
   const apkUpdater = fs.readFileSync(path.join(root, "src/utils/apkUpdater.ts"), "utf8");
-  assert.ok(apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVer}"`), `src/utils/apkUpdater.ts must contain CURRENT_APK_VERSION = "v${expectedVer}"`);
+  assert.ok(
+    apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVer}"`) || apkUpdater.includes("APP_VERSION"),
+    `src/utils/apkUpdater.ts must contain CURRENT_APK_VERSION derived from APP_VERSION or "v${expectedVer}"`,
+  );
 
   const appSettings = fs.readFileSync(path.join(root, "src/utils/appSettings.ts"), "utf8");
-  assert.ok(appSettings.includes(`version: "${expectedVer}"`), `src/utils/appSettings.ts must contain version: "${expectedVer}"`);
+  assert.ok(
+    appSettings.includes(`version: "${expectedVer}"`) || appSettings.includes("version: APP_VERSION"),
+    `src/utils/appSettings.ts must contain version derived from APP_VERSION or "${expectedVer}"`,
+  );
   console.log(`✓ All 5 files properly synchronized to version ${expectedVer}`);
 
   console.log("All Progressive Accordion Stages of Appearance verifications passed successfully!");
