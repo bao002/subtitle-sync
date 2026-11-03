@@ -77,6 +77,8 @@ import {
 import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
 
 import { GlobalFavoriteLanguagesPanel } from "@/components/GlobalFavoriteLanguagesPanel";
+import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceModeSettingsPanel";
+import { useIsElementEnabled } from "@/utils/performanceModeManager";
 import {
   LearningGoalsFiltersPanel,
   type LearningGoalsFiltersPanelProps,
@@ -132,6 +134,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   onOpenBackupModal,
 }) => {
   const [voices, setVoices] = useState<SpeechVoiceLike[]>(() => getCachedVoices());
+  const ttsDebuggerEnabled = useIsElementEnabled("tts_debugger");
   const [isAuditioning, setIsAuditioning] = useState(false);
   const [useAlternativeTtsState, setUseAlternativeTtsState] = useState<boolean>(() =>
     typeof window !== "undefined" ? getUseAlternativeTts() : false,
@@ -986,12 +989,15 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 </div>
               )}
 
-              {/* External TTS Request & Response Debugger Panel */}
-              <ExternalTtsDebuggerPanel className="mt-3" />
+              {/* External TTS Request & Response Debugger Panel (Hidden by default in Fast Mode) */}
+              {ttsDebuggerEnabled && <ExternalTtsDebuggerPanel className="mt-3" />}
             </div>
           </div>
         )}
       </div>
+
+      {/* Performance Mode: Fast vs. Slow (Disables and hides non-obligatory elements by default) */}
+      <PerformanceModeSettingsPanel />
 
       {/* 3. Global Favorite Languages Panel (Learning Goals: Favorite & Target Languages) */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">

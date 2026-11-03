@@ -36,6 +36,7 @@ import { ModeSwitcherHeader } from "@/components/ModeSwitcherHeader";
 import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSubtitlesBar";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import { VideoPlaybackPrecedenceBar } from "@/components/VideoPlaybackPrecedenceBar";
+import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceModeSettingsPanel";
 import {
   addExternalTtsAuditRecord,
   type AlternativeTtsEngine,
@@ -56,7 +57,8 @@ type ComponentKey =
   | "mode_switcher"
   | "default_subtitles"
   | "learning_filters"
-  | "precedence_bar";
+  | "precedence_bar"
+  | "performance_mode";
 
 export const StorybookWorkbench: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<ComponentKey>("tts_service");
@@ -282,6 +284,7 @@ export const StorybookWorkbench: React.FC = () => {
             { id: "default_subtitles", label: "Default Subtitles", icon: Subtitles },
             { id: "learning_filters", label: "Learning Filters", icon: Filter },
             { id: "precedence_bar", label: "Precedence Bar", icon: Film },
+            { id: "performance_mode", label: "Fast/Slow Mode", icon: Zap },
           ].map((c) => {
             const Icon = c.icon;
             const isSelected = selectedComponent === c.id;
@@ -437,6 +440,7 @@ export const StorybookWorkbench: React.FC = () => {
                 {selectedComponent === "default_subtitles" && "SwitchableDefaultSubtitlesBar"}
                 {selectedComponent === "learning_filters" && "LearningGoalsFiltersPanel"}
                 {selectedComponent === "precedence_bar" && "VideoPlaybackPrecedenceBar"}
+                {selectedComponent === "performance_mode" && "PerformanceModeSettingsPanel"}
               </h1>
               <p className="text-xs text-muted-foreground">
                 Active Component Catalog:{" "}
@@ -743,6 +747,12 @@ export const StorybookWorkbench: React.FC = () => {
                     )}
                   </tbody>
                 </table>
+              </div>
+            )}
+
+            {selectedComponent === "performance_mode" && (
+              <div className="max-w-2xl mx-auto">
+                <PerformanceModeSettingsPanel />
               </div>
             )}
           </div>

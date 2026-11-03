@@ -1,6 +1,6 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 286 (Chapter 2): Export / Import Application Settings
-- **Sub-task**: Subtask 286.1 & 286.2 - Implement settings export/import utility (`src/utils/settingsBackupManager.ts`) and add Export/Import UI buttons and modal in Settings and Learning Goals across both Advanced and Beginner modes.
-- **Validation**: `src/utils/settingsBackupManager.ts`, `src/routes/index.tsx`, `scripts/verify-settings-export-import.ts`.
+- **Active Task**: Task 288: Slow / Fast Mode (Hide & Disable Non-Obligatory Elements by Default, docs/disable_and_hide.md, Disable-All/Enable-All in Settings)
+- **Sub-task**: Subtask 288.1 & 288.2 - Document non-obligatory elements in `docs/disable_and_hide.md` and implement `src/utils/performanceModeManager.ts`.
+- **Validation**: `docs/disable_and_hide.md`, `src/utils/performanceModeManager.ts`, `scripts/verify-slow-fast-mode.ts`.

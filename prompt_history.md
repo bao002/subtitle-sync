@@ -696,3 +696,68 @@ tts-ration is to be stored using local-storage.
 2
 add option to export/import application settings
 ```
+
+---
+
+### Prompt 56: Fix App Errors (getTtsFallbackOrder, isLanguageTtsBlacklisted, SwitchableDefaultSubtitlesBar useState Hook Error)
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [vite] SyntaxError: The requested module '/src/lib/alternative-tts.ts' does not provide an export named 'getTtsFallbackOrder'
+error 1: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 2: [vite] SendBeforeConnectError: send was called before connect
+    at Object.send (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/@vite/client:384:15)
+    at HMRClient.send (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/@vite/client:161:18)
+    at HMRContext.send (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/@vite/client:123:18)
+    at HMRContext.invalidate (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/@vite/client:92:8)
+    at https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/src/components/VideoPlayground.tsx:990:46
+    at https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/@vite/client:70:95
+    at https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/@vite/client:222:52
+    at https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/@vite/client:200:55
+    at Array.forEach (<anonymous>)
+    at HMRClient.queueUpdate (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/@vite/client:200:33)
+error 3: [vite] SyntaxError: The requested module '/src/lib/playback-preferences.ts' does not provide an export named 'isLanguageTtsBlacklisted'
+error 4: [vite] Failed to reload /src/components/beginner/PerLanguageTtsPreferences.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 5: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+error 6: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Cannot read properties of null (reading 'useState')
+error 7: [APP_PAGE_ERROR] This page didn't load: Cannot read properties of null (reading 'useState')
+error 8: TypeError: Cannot read properties of null (reading 'useState')
+    at exports.useState (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react.js?v=8cb0b07d:769:30)
+    at SwitchableDefaultSubtitlesBar (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/src/components/SwitchableDefaultSubtitlesBar.tsx?t=1793742056192:23:36)
+    at Object.react_stack_bottom_frame (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:14140:12)
+    at renderWithHooks (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:4398:19)
+    at updateFunctionComponent (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:5773:16)
+    at beginWork (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:6389:20)
+    at runWithFiberInDEV (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:943:66)
+    at performUnitOfWork (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:9146:92)
+    at workLoopSync (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/dep
+    ... [stack truncated]
+error 9: %o
+
+%s
+
+%s TypeError: Cannot read properties of null (reading 'useState')
+    at exports.useState (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react.js?v=8cb0b07d:769:30)
+    at SwitchableDefaultSubtitlesBar (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/src/components/SwitchableDefaultSubtitlesBar.tsx?t=1793742056192:23:36)
+    at Object.react_stack_bottom_frame (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:14140:12)
+    at renderWithHooks (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:4398:19)
+    at updateFunctionComponent (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:5773:16)
+    at beginWork (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:6389:20)
+    at runWithFiberInDEV (https://ais-dev-o4fswksomoqcbae6o4fp6v-515898758927.europe-west1.run.app/node_modules/.vite/deps/react-dom_client.js?v=74830f5e:943:66)
+    ... [3 frames omitted]
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 57: Slow / Fast Mode (Hide & Disable Non-Obligatory Elements by Default, docs/disable_and_hide.md, Disable-All/Enable-All in Settings)
+```
+slow/fast mode - by default dont use&show all elements which are not obligatory for the function of the app. this should be listed on docs/disable_and_hide.md. allow to disable-all/enable-all on the settings.
+```
+
+

@@ -132,9 +132,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-languages goal - whitelist/blacklist - allow to set languages to be on the black-list of tts-play - in that case even if the default subtitles are X , then X would be skipped for tts-play.
-allow tts-ratio to be up to 1:20 ratio.
-tts-ration is to be stored using local-storage.
-2
-add option to export/import application settings
+slow/fast mode - by default dont use&show all elements which are not obligatory for the function of the app. this should be listed on docs/disable_and_hide.md. allow to disable-all/enable-all on the settings.
 ```
+
+

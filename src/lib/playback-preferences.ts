@@ -41,18 +41,6 @@ export function extractLanguageCodeList(val: unknown): string[] {
   return [];
 }
 
-export const isTtsSpeakableLanguage = (
-  languageCode: unknown,
-  baseLanguage: unknown,
-  blacklist?: string[] | null,
-): boolean => {
-  const code = extractLanguageCodeString(languageCode);
-  if (!code) return false;
-  if (isLanguageTtsBlacklisted(code, blacklist)) return false;
-  const base = extractLanguageCodeString(baseLanguage);
-  return !base || code !== base;
-};
-
 const KEYS = {
   requestMode: "yt_subtitle_request_mode_v1",
   sectionOrder: "yt_section_order_v1",
@@ -73,12 +61,8 @@ const memoryStorage = new Map<string, string>();
 
 function getStorage(): { getItem(k: string): string | null; setItem(k: string, v: string): void } {
   try {
-    if (typeof window !== "undefined" && window.localStorage) return window.localStorage;
-    if (
-      typeof globalThis !== "undefined" &&
-      (globalThis as unknown as { localStorage?: Storage }).localStorage
-    ) {
-      return (globalThis as unknown as { localStorage: Storage }).localStorage;
+    if (typeof window !== "undefined" && window.localStorage) {
+      return window.localStorage;
     }
   } catch {
     // ignore
@@ -90,6 +74,77 @@ function getStorage(): { getItem(k: string): string | null; setItem(k: string, v
     },
   };
 }
+
+export function getTtsBlacklist(): string[] {
+  const s = getStorage();
+  if (!s) return [];
+  try {
+    const raw = s.getItem(KEYS.ttsBlacklist);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? extractLanguageCodeList(parsed) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function setTtsBlacklist(langs: unknown[]): void {
+  const s = getStorage();
+  if (!s) return;
+  try {
+    const cleaned = extractLanguageCodeList(langs);
+    s.setItem(KEYS.ttsBlacklist, JSON.stringify(cleaned));
+  } catch {
+    // ignore
+  }
+}
+
+export function isLanguageTtsBlacklisted(langCode: unknown, blacklist?: string[] | null): boolean {
+  const code = extractLanguageCodeString(langCode).toLowerCase();
+  if (!code) return false;
+  const list = blacklist ?? getTtsBlacklist();
+  const normalizedList = list.map((l) => l.toLowerCase());
+  if (normalizedList.includes(code)) return true;
+  if (
+    (code === "iw" && normalizedList.includes("he")) ||
+    (code === "he" && normalizedList.includes("iw"))
+  ) {
+    return true;
+  }
+  const prefix = code.split("-")[0];
+  if (prefix && normalizedList.includes(prefix)) {
+    return true;
+  }
+  return false;
+}
+
+export function toggleLanguageTtsBlacklist(langCode: string): boolean {
+  const code = extractLanguageCodeString(langCode);
+  if (!code) return false;
+  const current = getTtsBlacklist();
+  const isBlacklisted = isLanguageTtsBlacklisted(code, current);
+  const updated = isBlacklisted
+    ? current.filter(
+        (c) =>
+          c.toLowerCase() !== code.toLowerCase() &&
+          c.toLowerCase() !== (code === "iw" ? "he" : code === "he" ? "iw" : ""),
+      )
+    : [...current, code];
+  setTtsBlacklist(updated);
+  return !isBlacklisted;
+}
+
+export const isTtsSpeakableLanguage = (
+  languageCode: unknown,
+  baseLanguage: unknown,
+  blacklist?: string[] | null,
+): boolean => {
+  const code = extractLanguageCodeString(languageCode);
+  if (!code) return false;
+  if (isLanguageTtsBlacklisted(code, blacklist)) return false;
+  const base = extractLanguageCodeString(baseLanguage);
+  return !base || code !== base;
+};
 
 function read<T extends string>(key: string, allowed: readonly T[], fallback: T): T {
   const s = getStorage();
@@ -218,68 +273,6 @@ export const setTtsRatioPreference = (langCode: string, ratio: number) => {
   }
 };
 export const saveTtsRatioPreference = setTtsRatioPreference;
-
-export const getTtsBlacklist = (): string[] => {
-  const s = getStorage();
-  if (!s) return [];
-  try {
-    const raw = s.getItem(KEYS.ttsBlacklist);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? extractLanguageCodeList(parsed) : [];
-  } catch {
-    return [];
-  }
-};
-
-export const setTtsBlacklist = (langs: unknown[]): void => {
-  const s = getStorage();
-  if (!s) return;
-  try {
-    const cleaned = extractLanguageCodeList(langs);
-    s.setItem(KEYS.ttsBlacklist, JSON.stringify(cleaned));
-  } catch {
-    // ignore
-  }
-};
-
-export const isLanguageTtsBlacklisted = (
-  langCode: unknown,
-  blacklist?: string[] | null,
-): boolean => {
-  const code = extractLanguageCodeString(langCode).toLowerCase();
-  if (!code) return false;
-  const list = blacklist ?? getTtsBlacklist();
-  const normalizedList = list.map((l) => l.toLowerCase());
-  if (normalizedList.includes(code)) return true;
-  if (
-    (code === "iw" && normalizedList.includes("he")) ||
-    (code === "he" && normalizedList.includes("iw"))
-  ) {
-    return true;
-  }
-  const prefix = code.split("-")[0];
-  if (prefix && normalizedList.includes(prefix)) {
-    return true;
-  }
-  return false;
-};
-
-export const toggleLanguageTtsBlacklist = (langCode: string): boolean => {
-  const code = extractLanguageCodeString(langCode);
-  if (!code) return false;
-  const current = getTtsBlacklist();
-  const isBlacklisted = isLanguageTtsBlacklisted(code, current);
-  const updated = isBlacklisted
-    ? current.filter(
-        (c) =>
-          c.toLowerCase() !== code.toLowerCase() &&
-          c.toLowerCase() !== (code === "iw" ? "he" : code === "he" ? "iw" : ""),
-      )
-    : [...current, code];
-  setTtsBlacklist(updated);
-  return !isBlacklisted;
-};
 
 export const getTtsRatesPreference = (): Record<string, number> => {
   if (typeof window === "undefined") return {};
