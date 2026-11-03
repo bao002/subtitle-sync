@@ -101,8 +101,13 @@ export const StorybookWorkbench: React.FC = () => {
   // Prepopulate sample audit records for Debugger story
   useEffect(() => {
     addExternalTtsAuditRecord({
+      id: "audit-sb-init",
+      timestamp: Date.now(),
       method: "POST",
       url: "https://tts3.lovable.app/api/v1/tts",
+      endpoint: "https://tts3.lovable.app/api/v1/tts",
+      lang: "en",
+      text: "Hello from Storybook",
       requestHeaders: {
         "content-type": "application/json",
         authorization: "Bearer spk_sample_token_9876",
@@ -111,10 +116,12 @@ export const StorybookWorkbench: React.FC = () => {
       requestBody: { text: "Hello from Storybook", lang: "en", voice: "alloy", provider: "openrouter" },
       status: 200,
       statusText: "OK",
-      durationMs: 125,
+      latencyMs: 125,
       responseHeaders: { "content-type": "audio/mp3" },
-      audioLengthBytes: 15400,
+      responseType: "binary",
+      audioSizeBytes: 15400,
       audioMime: "audio/mp3",
+      source: "test_button",
     });
   }, []);
 
@@ -163,7 +170,10 @@ export const StorybookWorkbench: React.FC = () => {
           setMode("always");
           setValidationResult({
             ok: false,
+            service: "lovable",
             serviceName: "Lovable Speak API (openrouter)",
+            endpoint: "https://tts3.lovable.app/api/public/tts",
+            audioVerified: false,
             latencyMs: 742,
             timestamp: Date.now(),
             error: "401 Unauthorized: Invalid API key credentials",
@@ -197,10 +207,16 @@ export const StorybookWorkbench: React.FC = () => {
     setIsValidating(false);
     setValidationResult({
       ok: true,
+      service: engine === "google_translate" ? "google_translate" : "lovable",
       serviceName:
         engine === "google_translate"
           ? "Google TTS (Direct)"
           : `Lovable Speak API (${provider})`,
+      endpoint:
+        engine === "google_translate"
+          ? "https://translate.google.com/translate_tts"
+          : "https://tts3.lovable.app/api/public/tts",
+      audioVerified: true,
       latencyMs: 138,
       timestamp: Date.now(),
       details: "Audio stream verified successfully",

@@ -541,6 +541,22 @@ learning goals:
 - add control to skip any record which is not a complete sentence (not ending with a punctuation sign which is "," or "." or  "?" or "!")
 ```
 
+---
 
-
-
+### Prompt 47: Fix Vite Reload and TypeScript Type Errors (Hotfix)
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 1: [vite] Failed to reload /src/components/LanguageSubtitleUrlModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 2: [vite] Failed to reload /src/components/WebDemoUrlsInput.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 3: [vite] Failed to reload /src/components/VideoLibraryPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 4: [vite] Failed to reload /src/components/ShareStateModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 5: [vite] Failed to reload /src/components/ApkReleasesFooter.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 6: [vite] Failed to reload /src/components/WinnerPromotionReportModal.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 7: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 8: [vite] Failed to reload /src/components/LanguageBoxesSelector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 9: [vite] Failed to reload /src/components/beginner/BeginnerFlowContainer.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[AIS_METADATA_SECTION_END]
+```

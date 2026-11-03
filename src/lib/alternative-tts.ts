@@ -1163,6 +1163,7 @@ export interface RemoteTtsValidationOptions {
   text?: string;
   provider?: LovableTtsProvider;
   timeoutMs?: number;
+  isAnonymous?: boolean;
 }
 
 const lastValidationResults: Partial<

@@ -62,7 +62,12 @@ const InteractivePanelWrapper: React.FC<Partial<TtsServiceSettingsPanelProps>> =
       ok: true,
       service: engine,
       serviceName: engine === "google_translate" ? "Google TTS Directly" : `Lovable Speak API (${provider})`,
+      endpoint:
+        engine === "google_translate"
+          ? "https://translate.google.com/translate_tts"
+          : "https://tts3.lovable.app/api/public/tts",
       latencyMs: 142,
+      audioVerified: true,
       timestamp: Date.now(),
       details: "Audio stream operational and responsive",
     });
@@ -126,6 +131,7 @@ export const ValidatedWithPlayButton: Story = {
         ok: true,
         service: "google_translate",
         serviceName: "Google TTS Directly (translate_tts)",
+        endpoint: "https://translate.google.com/translate_tts",
         latencyMs: 88,
         audioVerified: true,
         details: "Audio stream loaded and decoded successfully",
@@ -148,6 +154,7 @@ export const AnonymousModeGoogleDirect: Story = {
         ok: true,
         service: "google_translate",
         serviceName: "Google TTS Directly (translate_tts)",
+        endpoint: "https://translate.google.com/translate_tts",
         latencyMs: 92,
         audioVerified: true,
         details: "Anonymous stream verified",
@@ -192,7 +199,9 @@ export const LiveVisualMonitor: Story = {
         ok: true,
         service: "google_translate",
         serviceName: "Google TTS Directly",
+        endpoint: "https://translate.google.com/translate_tts",
         latencyMs: 104,
+        audioVerified: true,
         timestamp: Date.now(),
       }}
     />
@@ -212,7 +221,9 @@ export const ValidationFailedState: Story = {
         ok: false,
         service: "lovable",
         serviceName: "Lovable Speak API (openrouter)",
+        endpoint: "https://tts3.lovable.app/api/public/tts",
         latencyMs: 812,
+        audioVerified: false,
         timestamp: Date.now(),
         error: "401 Unauthorized: Invalid Speak API token or provider credentials",
       }}

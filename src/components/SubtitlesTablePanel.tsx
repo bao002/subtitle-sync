@@ -250,28 +250,31 @@ export function SubtitlesTablePanel({
                   <span className="inline-flex items-center gap-1.5">
                     {subtitleColumnName(l.code, l.name)}
                     {l.isYouTubeOrJson && (
-                      <FileCode
-                        className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"
-                        aria-label="YouTube subtitles or JSON artifact"
-                        data-testid={`column-source-youtube-or-json-${l.code}`}
-                        title="Parsed from YouTube subtitles or .json artifact"
-                      />
+                      <span title="Parsed from YouTube subtitles or .json artifact">
+                        <FileCode
+                          className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"
+                          aria-label="YouTube subtitles or JSON artifact"
+                          data-testid={`column-source-youtube-or-json-${l.code}`}
+                        />
+                      </span>
                     )}
                     {l.isOnDemandTranslation && (
-                      <Sparkles
-                        className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400"
-                        aria-label="On-demand translation"
-                        data-testid={`column-source-on-demand-${l.code}`}
-                        title="On-demand translation"
-                      />
+                      <span title="On-demand translation">
+                        <Sparkles
+                          className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400"
+                          aria-label="On-demand translation"
+                          data-testid={`column-source-on-demand-${l.code}`}
+                        />
+                      </span>
                     )}
                     {l.isYouTubeTranslated && (
-                      <Languages
-                        className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400"
-                        aria-label="YouTube translation"
-                        data-testid={`youtube-translation-indicator-${l.code}`}
-                        title="Translated by YouTube"
-                      />
+                      <span title="Translated by YouTube">
+                        <Languages
+                          className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400"
+                          aria-label="YouTube translation"
+                          data-testid={`youtube-translation-indicator-${l.code}`}
+                        />
+                      </span>
                     )}
                   </span>
                 </th>

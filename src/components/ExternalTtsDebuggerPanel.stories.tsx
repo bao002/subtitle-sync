@@ -25,8 +25,13 @@ const DebuggerWrapper: React.FC = () => {
   useEffect(() => {
     // Populate sample audit records for story preview
     addExternalTtsAuditRecord({
+      id: "sample-lovable-1",
+      timestamp: Date.now() - 3000,
       method: "POST",
       url: "https://tts3.lovable.app/api/v1/tts",
+      endpoint: "https://tts3.lovable.app/api/v1/tts",
+      lang: "he",
+      text: "Shalom, how are you today?",
       requestHeaders: {
         "content-type": "application/json",
         authorization: "Bearer spk_sample_personal_token_1234",
@@ -40,25 +45,34 @@ const DebuggerWrapper: React.FC = () => {
       },
       status: 200,
       statusText: "OK",
-      durationMs: 142,
+      latencyMs: 142,
       responseHeaders: { "content-type": "audio/mp3" },
-      audioLengthBytes: 18450,
+      responseType: "binary",
+      audioSizeBytes: 18450,
       audioMime: "audio/mp3",
+      source: "test_button",
     });
 
     addExternalTtsAuditRecord({
+      id: "sample-google-2",
+      timestamp: Date.now() - 1000,
       method: "GET",
       url: "https://translate.google.com/translate_tts?ie=UTF-8&tl=he&q=%D7%A9%D7%9C%D7%95%D7%9D&client=tw-ob",
+      endpoint: "https://translate.google.com/translate_tts",
+      lang: "he",
+      text: "שלום",
       requestHeaders: {
         referer: "https://www.youtube.com/",
         "user-agent": "Mozilla/5.0",
       },
       status: 200,
       statusText: "OK",
-      durationMs: 88,
+      latencyMs: 88,
       responseHeaders: { "content-type": "audio/mpeg" },
-      audioLengthBytes: 9400,
+      responseType: "media",
+      audioSizeBytes: 9400,
       audioMime: "audio/mpeg",
+      source: "test_button",
     });
   }, []);
 
