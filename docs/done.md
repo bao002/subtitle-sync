@@ -1,5 +1,104 @@
 # Done tasks
 
+### Task 293 (Chapter 0): Fix Video Playback Resume After TTS Play Finishes
+
+- **Prompt**:
+  ```
+  0. it happens that the app doesnt resume the video after tts-play is finish playing.
+  ```
+- **Root Cause & Diagnosis**:
+  - When the video was paused for speech synthesis (`p.pauseVideo()`), YouTube emitted an asynchronous `onStateChange: 2` (PAUSED) event.
+  - If speech finished rapidly or was cancelled, `busy.current` became `false` before `onStateChange` was handled, causing `if (!busy.current)` to incorrectly flag `userExplicitlyPausedRef.current = true` ("Paused by user").
+  - Subsequent resume calls checked `if (userExplicitlyPausedRef.current) return;` and aborted resuming video playback.
+  - Furthermore, when the final subtitle row completed, playback coordinator was hard-pausing the video even if the video had additional remaining content.
+- **Implementation**:
+  - In `src/routes/index.tsx`, added `isPausedForTtsRef` to track programmatic TTS pause state and prevent false user pause classification (`if (!busy.current && !isPausedForTtsRef.current)`).
+  - Created `safelyResumePrimaryVideo(resumeTargetSec)` helper clearing `userExplicitlyPausedRef`, clearing `isPausedForTtsRef`, unmutes primary video, invokes `p.playVideo()`, sets `isVideoPlaying(true)`, and provides a secondary 120ms kick to ensure player state transitions to playing.
+  - Connected `safelyResumePrimaryVideo` across both `tts-first` and `video-first` playback flows.
+  - If subtitle rows end but video duration still has remaining content (`dur > 0 && currentPos < dur - 1.5`), video playback now continues uninterrupted instead of stopping prematurely.
+- **Validation**:
+  - Dedicated automated test: `scripts/verify-video-resume-after-tts.ts` (`npm run test:video-resume-after-tts` - 100% PASS).
+  - Clean `lint_applet` (0 errors).
+  - Clean `compile_applet`.
+
+### Task 292: Recommendation Icon Next to Default Subtitles with More Comma (',') Signs & Punctuation Statistics Breakdown
+
+- **Prompt**:
+  ```
+  add recommendation icon next to the default subtitles which has more "," signs, and expose statistics of punctuation counting for all the default subtitles.
+  ```
+- **Implementation**:
+  - **Subtask 292.1: Subtitle Punctuation Statistics Helper**:
+    - Created `src/utils/subtitlePunctuationStats.ts` supporting `calculateTrackPunctuationStats`, `extractTextFromTrack`, and `analyzeDefaultSubtitlesPunctuation`.
+    - Handles standard ASCII and international commas (Arabic `،`, fullwidth `，`, ideographic `、`), periods (`.`, `۔`, `。`), question marks (`?`, `؟`, `？`), exclamations (`!`, `！`), colons, and semicolons.
+    - Determines track with the highest number of commas (`maxCommas`) and marks it as the recommended default subtitle candidate (`recommendedLang`).
+  - **Subtask 292.2: Storybook-First Component & Stories**:
+    - Created `src/components/SwitchableDefaultSubtitlesBar.stories.tsx` providing stories for `WithCommaRecommendation`, `PreExpandedStatistics`, `SingleSubtitleTrack`, and `EmptyTracksFallback`.
+    - Integrated `default_subtitles` into `src/storybook/StorybookWorkbench.tsx` with live interactive preview and verification.
+    - Successfully built Storybook (`npm run build:storybook`).
+  - **Subtask 292.3: Recommendation Icon & Punctuation Breakdown UI**:
+    - Enhanced `src/components/SwitchableDefaultSubtitlesBar.tsx` to render an animated `Sparkles` recommendation icon (`data-testid="recommended-default-subtitle-icon"`) and badge next to the default subtitle track with the highest comma count.
+    - Added inline comma count badge (`data-testid="default-subtitle-comma-count-${langCode}"`) on each language button.
+    - Added interactive toggle button (`data-testid="toggle-punctuation-stats-btn"`) exposing full punctuation statistics table (`data-testid="default-subtitles-punctuation-stats"`).
+    - Table lists commas, periods, questions, exclamations, colons/semicolons, total punctuation, and cues for all default subtitle options with recommended track highlighted.
+    - Maintained 100% parity across Beginner and Advanced modes in `src/routes/index.tsx`.
+  - **Subtask 292.4: Automated Test & Verification**:
+    - Created dedicated automated test `scripts/verify-default-subtitles-comma-recommendation.ts` asserting counting algorithms, international punctuation support, recommendation selection, UI testids, Storybook coverage, and mode parity.
+    - Registered script `"test:default-subtitles-comma-recommendation"` in `package.json`.
+    - Bumped application version to `2.0.92` and synchronized across all files.
+- **Validation**:
+  - `npm run test:default-subtitles-comma-recommendation`: 100% PASS (all 8 checks).
+  - `npm run build:storybook`: Successfully built into `public/storybook`.
+  - `compile_applet`: Clean build success.
+  - `lint_applet`: 0 errors.
+
+### Hotfix 293: Fix Client Pre-transform Parse Error & ESLint Prettier Formatting
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: 1:04:08 AM [vite] (client) Pre-transform error: Transform failed with 1 error:
+  error 1: [31m[PARSE_ERROR] [0mExpected a semicolon or an implicit semicolon after a statement, but found none
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause & Fixes**:
+  - Vite dev server reported a transient client pre-transform parse error when the client requested modules during mid-edit state.
+  - Formatted `src/lib/alternative-tts.ts` and `src/routes/index.tsx` via `npx eslint --fix`, bringing the codebase to zero ESLint/Prettier errors.
+  - Restarted the Node.js Vite development server via `restart_dev_server`, ensuring clean in-memory HMR and transform state.
+  - Probed endpoints `http://localhost:3000/src/client.tsx` and `http://localhost:3000/src/routes/index.tsx` via HTTP GET and confirmed both respond with HTTP 200 OK and zero transform errors.
+  - Created dedicated automated test `scripts/verify-client-pretransform-health.ts` and registered script `"test:client-pretransform-health"`.
+  - Bumped version to `2.0.91` and ran `npm run sync-version`.
+- **Validation**:
+  - `npm run test:client-pretransform-health`: 100% PASS.
+  - `npm run test:tts-fallback-order-switch`: 100% PASS.
+  - `compile_applet`: Clean build success.
+  - `lint_applet`: 0 errors.
+
+### Task 291 (Chapter 2): TTS Fallback Order Switch Around Video Player with Deep-Link to TTS3 Setup
+
+- **Prompt**:
+  ```
+  2. use a switch around the player - to determine the order of fallbacks while using the tts service: i.e: 1. google directly 2. tts3 service 3. native (the user would be able to click to navigate into the tts-service-setup to set tts3 token and choose which provider to use on tts3 - by default use "auto")
+  ```
+- **Implementation**:
+  - **Subtask 291.1: Component Architecture & Storybook Coverage**:
+    - Created `src/components/TtsFallbackOrderSwitch.tsx` rendering all 6 permutations of TTS fallback sequences (`google_tts3_native`, `google_native_tts3`, `tts3_google_native`, `tts3_native_google`, `native_google_tts3`, `native_tts3_google`).
+    - Added one-click deep-link action button (`onNavigateToSetup`) allowing user to jump directly into the TTS Service Setup panel to configure their TTS3 token (`openRouterApiKey`) and select the provider (defaults to `"auto"`).
+    - Authored Storybook stories in `src/components/TtsFallbackOrderSwitch.stories.tsx` covering unconfigured, configured, and various fallback order sequences.
+  - **Subtask 291.2: Placement Around Player & Synthesis Execution Pipeline**:
+    - Positioned `<TtsFallbackOrderSwitch>` around the player in both Advanced Mode and Beginner Mode with 100% parity at the requested selector container (`div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > main:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)`).
+    - Implemented `handleNavigateToTtsSetup` opening the Settings/Preferences accordion and smoothly scrolling directly to the TTS setup section.
+    - Updated `src/lib/alternative-tts.ts` with `executeTtsFallbackSequence` and `getTtsFallbackOrder`/`setTtsFallbackOrder` persisting to `localStorage` under `STORAGE_KEY_ALTERNATIVE_TTS_FALLBACK_ORDER`.
+    - Integrated speech synthesis sequence into `speak()` in `src/routes/index.tsx`, cleanly executing fallback chains across direct Google Translate, Lovable TTS3 (`tts3.lovable.app`), and Native Web Speech / Android Native Shell.
+  - **Subtask 291.3: Dedicated Automated Test & Parity Verification**:
+    - Authored `scripts/verify-tts-fallback-order-switch.ts` asserting sequence definitions, storage defaults, provider defaults, navigation callbacks, and identical rendering across both modes.
+- **Validation**:
+  - `npm run test:tts-fallback-order-switch`: 100% PASS.
+  - `compile_applet`: Clean build success.
+  - `lint_applet`: 0 errors.
+
 ### Task 290 (Chapter 1): Fix Direct Google TTS to Play Purely Directly Without Raising Lovable Error
 
 - **Prompt**:

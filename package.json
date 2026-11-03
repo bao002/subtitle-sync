@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.0.90",
+  "version": "2.0.92",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -18,6 +18,9 @@
     "coverage": "npm run test:coverage",
     "sync-version": "tsx scripts/sync-version.ts",
     "check-version": "tsx scripts/sync-version.ts --check",
+    "test:video-resume-after-tts": "tsx scripts/verify-video-resume-after-tts.ts",
+    "test:default-subtitles-comma-recommendation": "tsx scripts/verify-default-subtitles-comma-recommendation.ts",
+    "test:client-pretransform-health": "tsx scripts/verify-client-pretransform-health.ts",
     "test:tts-fallback-order-switch": "tsx scripts/verify-tts-fallback-order-switch.ts",
     "test:direct-google-tts-no-lovable-error": "tsx scripts/verify-direct-google-tts-no-lovable-error.ts",
     "test:storybook-first-component-workflow": "tsx scripts/verify-storybook-first-component-workflow.ts",

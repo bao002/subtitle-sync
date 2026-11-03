@@ -132,8 +132,13 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on
+0. it happens that the app doesnt resume the video after tts-play is finish playing.
+
+1.
+learning goals:
+
+- add slider which allows to limit the number of words a subtitle row contains (then skip any record which have highter number of words)
+
+- add control to skip any record which is not a complete sentence (not ending with a punctuation sign which is "," or "." or  "?" or "!")
 ```
-
-
 
