@@ -438,6 +438,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
 
       {/* Alternative TTS Service (Lovable Speak API & Google Translate) */}
       <div
+        id="tts-service-settings-panel"
         className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-2.5"
         data-testid="beginner-alternative-tts-card"
       >

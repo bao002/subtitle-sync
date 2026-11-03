@@ -55,6 +55,13 @@ add validation to tts-remove-service: google-tts-directly or tts3 service
 
 ---
 
+### Prompt 43: Go On
+```
+go on
+```
+
+---
+
 ### Prompt 6: Quarantine Beginner Mode, Debug Mode Menu Toggle, and Language Selection Columns (is-primary and json3)
 ```
 1. go on
@@ -146,6 +153,13 @@ CSS 2: {
 ---
 
 ### Prompt 11: Go On
+```
+
+---
+
+### Prompt 43: Go on (Resume Task 291 Chapter 2)
+```
+go on
 ```
 go on
 ```
@@ -476,10 +490,13 @@ CSS 1: {
 [AIS_METADATA_SECTION_END]
 ```
 
+---
 
-
-
-
-
-
-
+### Prompt 42: Hotfix Dev Server Pre-warming Failure & Lint Formatting
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.0.87 dev > vite --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1828 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
+[AIS_METADATA_SECTION_END]
+```

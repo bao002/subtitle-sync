@@ -1333,7 +1333,7 @@ export async function validateRemoteTtsService(
           queryParams: { tl: normalizeLanguageCode(testLang), q: testText },
           lang: testLang,
           text: testText,
-          status: audioTestResult.ok ? 200 : (audioTestResult.statusCode || 500),
+          status: audioTestResult.ok ? 200 : audioTestResult.statusCode || 500,
           statusText: audioTestResult.ok ? "OK" : "Error",
           latencyMs: audioTestResult.latencyMs,
           responseHeaders: {},
@@ -1824,28 +1824,28 @@ export function setAlternativeTtsEngine(engine: AlternativeTtsEngine): void {
 }
 
 /**
- * Retrieves the configured Lovable TTS Provider: "lovable", "google", or "openrouter" (defaults to "google").
+ * Retrieves the configured Lovable TTS Provider (defaults to "auto").
  */
 export function getLovableTtsProvider(): LovableTtsProvider {
   try {
     const stored =
       typeof localStorage !== "undefined"
-        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER)
-        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER];
-    if (stored === "google" || stored === "lovable" || stored === "openrouter") {
+        ? (localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER) as LovableTtsProvider | null)
+        : (memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER] as LovableTtsProvider | undefined);
+    if (stored && (LOVABLE_TTS_PROVIDERS as readonly string[]).includes(stored)) {
       return stored;
     }
   } catch {
     // ignore
   }
-  return "google";
+  return "auto";
 }
 
 /**
  * Persists the Lovable TTS Provider choice.
  */
 export function setLovableTtsProvider(provider: LovableTtsProvider): void {
-  const p = provider === "lovable" || provider === "openrouter" ? provider : "google";
+  const p = (LOVABLE_TTS_PROVIDERS as readonly string[]).includes(provider) ? provider : "auto";
   try {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER, p);
@@ -2165,11 +2165,19 @@ export async function playAlternativeTtsAudio(
   const engine = engineOverride || getAlternativeTtsEngine();
   const provider = optionsOverride?.provider || getLovableTtsProvider();
 
+  // If engine is explicitly google_translate, or engineOverride is google_translate,
+  // or provider is "google" and engine is not explicitly set to lovable:
+  // use Direct Google TTS (translate.google.com) directly and NOT via Lovable!
+  const isDirectGoogle =
+    engine === "google_translate" ||
+    engineOverride === "google_translate" ||
+    (engine !== "lovable" && provider === "google");
+
   let audioUrl = "";
   let shouldRevoke = false;
 
-  // When engine is lovable, synthesize using Lovable Speak API (OpenAPI spec: https://tts3.lovable.app/api/public/openapi.json)
-  if (engine === "lovable") {
+  // Only call Lovable Speak API (tts3.lovable.app) if engine is strictly 'lovable' and NOT direct google
+  if (engine === "lovable" && !isDirectGoogle) {
     try {
       const requestedSpeed =
         optionsOverride?.speed ?? (typeof rate === "number" && rate > 0 ? rate : 1.0);
@@ -2348,3 +2356,100 @@ export async function playAlternativeTtsAudio(
     }
   });
 }
+
+/**
+ * Executes subtitle speech synthesis following the configured fallback order:
+ * e.g., google_tts3_native:
+ *  1. Google Translate TTS directly
+ *  2. Lovable TTS3 Speak API (tts3.lovable.app, defaults to provider: "auto")
+ *  3. Local device voice (Web Speech API or Android Native Shell)
+ */
+export async function executeTtsFallbackSequence(
+  text: string,
+  lang: string,
+  rate = 1.0,
+  orderOverride?: TtsFallbackOrder,
+  onProgress?: (progressPercent: number) => void,
+  options?: {
+    tts3Provider?: LovableTtsProvider;
+    tts3Voice?: string;
+    isAnonymous?: boolean;
+    onNativeSpeak?: () => Promise<boolean>;
+  },
+): Promise<"google" | "tts3" | "native" | "none"> {
+  const order = orderOverride || getTtsFallbackOrder();
+  const isAnonymous = options?.isAnonymous ?? getAlternativeTtsAnonymousMode();
+  const provider = options?.tts3Provider || "auto";
+  const voice = options?.tts3Voice;
+
+  // Derive steps array from order
+  const steps: Array<"google" | "tts3" | "native"> = [];
+  if (order === "google_tts3_native") {
+    steps.push("google", "tts3", "native");
+  } else if (order === "tts3_google_native") {
+    steps.push("tts3", "google", "native");
+  } else if (order === "native_google_tts3") {
+    steps.push("native", "google", "tts3");
+  } else if (order === "google_native") {
+    steps.push("google", "native");
+  } else if (order === "tts3_native") {
+    steps.push("tts3", "native");
+  } else if (order === "native_only") {
+    steps.push("native");
+  } else {
+    steps.push("google", "tts3", "native");
+  }
+
+  for (const step of steps) {
+    if (step === "google") {
+      try {
+        await playAlternativeTtsAudio(text, lang, rate, onProgress, "google_translate", {
+          isAnonymous,
+          speed: rate,
+        });
+        return "google";
+      } catch (err) {
+        console.warn("[TtsFallbackSequence] Direct Google TTS step failed, continuing:", err);
+      }
+    } else if (step === "tts3") {
+      try {
+        await playAlternativeTtsAudio(text, lang, rate, onProgress, "lovable", {
+          provider,
+          voice,
+          speed: rate,
+          isAnonymous,
+        });
+        return "tts3";
+      } catch (err) {
+        console.warn("[TtsFallbackSequence] TTS3 Speak API step failed, continuing:", err);
+      }
+    } else if (step === "native") {
+      if (options?.onNativeSpeak) {
+        try {
+          const ok = await options.onNativeSpeak();
+          if (ok) return "native";
+        } catch (err) {
+          console.warn("[TtsFallbackSequence] Native speak step failed:", err);
+        }
+      } else if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        try {
+          await new Promise<void>((resolve) => {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = normalizeLanguageCode(lang);
+            u.rate = Math.max(0.3, Math.min(1.5, rate || 0.5));
+            u.onend = () => resolve();
+            u.onerror = () => resolve();
+            window.speechSynthesis.speak(u);
+          });
+          return "native";
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }
+
+  return "none";
+}
+
