@@ -1,5 +1,30 @@
 # Done tasks
 
+### Task 301 (Prompt 66 - Chapter 4): Settings Export / Import in Settings Stage
+
+- **Prompt**:
+  ```
+  4. settings: 
+  - add option to export/import the setings
+  ```
+- **Context & Implementation**:
+  - `src/routes/index.tsx`:
+    - Added `isSettingsBackupModalOpen` state and `handleSettingsImported` callback.
+    - Mounted `<SettingsBackupModal>` in the main route to support full export/import lifecycle.
+    - Rendered dedicated "Settings Backup & Restore" section in Settings Stage (Stage 4) with `data-testid="settings-export-import-section"` and action button `data-testid="settings-export-import-btn"`.
+    - Passed `onOpenBackupModal={() => setIsSettingsBackupModalOpen(true)}` to `BeginnerFlowContainer` ensuring 100% feature parity with Beginner Mode.
+  - `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`:
+    - Verified `beginner-export-import-settings-btn` triggers `onOpenBackupModal`.
+  - `src/components/SettingsBackupModal.tsx` & `src/utils/settingsBackupManager.ts`:
+    - Verified full JSON schema generation, download, clipboard copy, file upload, parsing, validation, and localStorage restoration.
+  - `scripts/verify-settings-export-import-stage.ts`:
+    - Dedicated test script verifying Settings stage section, index mounting, Beginner parity, and backup manager serialization/import.
+- **Verification Outcomes**:
+  - `npm run test:settings-export-import-stage`: PASSED (7/7 checks passed).
+  - `npm run sync-version 2.1.3`: PASSED (v2.1.3 synchronized across all targets).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors).
+
 ### Task 300 (Prompt 66 - Chapter 3): Unified & Synchronized Default Language Selection Across All Places
 
 - **Prompt**:

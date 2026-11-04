@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -19,6 +19,7 @@
     "sync-version": "tsx scripts/sync-version.ts",
     "check-version": "tsx scripts/sync-version.ts --check",
     "test:default-language-unified-sync": "tsx scripts/verify-default-language-unified-sync.ts",
+    "test:settings-export-import-stage": "tsx scripts/verify-settings-export-import-stage.ts",
     "test:settings-scrolling-and-autofocus": "tsx scripts/verify-settings-scrolling-and-autofocus.ts",
     "test:settings-dedicated-stage": "tsx scripts/verify-settings-dedicated-stage.ts",
     "test:fetched-subtitles-info-stage": "tsx scripts/verify-fetched-subtitles-info-stage.ts",
