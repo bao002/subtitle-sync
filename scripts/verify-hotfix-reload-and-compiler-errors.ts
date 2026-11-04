@@ -28,95 +28,67 @@ function probeUrl(urlPath: string): Promise<{ status: number; text: string; cont
 
 async function run() {
   console.log("=========================================================================");
-  console.log("🧪 Verifying Vite Reload & TypeScript Compiler Health (Hotfix Prompt 58)");
+  console.log("🧪 Verifying Hotfix: Vite Reload, Module Exports, and Dev Server Health");
   console.log("=========================================================================");
 
-  // 1. The 10 modules specified in the prompt
+  // 1. Verify appSettings.ts exports
+  console.log("Check 1: Verifying appSettings.ts exports...");
+  const appSettings = await import("../src/utils/appSettings");
+  assert.strictEqual(
+    typeof appSettings.getDisableAutoFocusSetting,
+    "function",
+    "appSettings must export getDisableAutoFocusSetting",
+  );
+  assert.strictEqual(
+    typeof appSettings.setDisableAutoFocusSetting,
+    "function",
+    "appSettings must export setDisableAutoFocusSetting",
+  );
+  assert.strictEqual(
+    typeof appSettings.getDisableScrollingSetting,
+    "function",
+    "appSettings must export getDisableScrollingSetting",
+  );
+  assert.strictEqual(
+    typeof appSettings.setDisableScrollingSetting,
+    "function",
+    "appSettings must export setDisableScrollingSetting",
+  );
+  console.log("✓ Check 1 passed: appSettings exports verified.");
+
+  // 2. Verify subtitleCache.ts exports
+  console.log("Check 2: Verifying subtitleCache.ts exports...");
+  const subtitleCache = await import("../src/utils/subtitleCache");
+  assert.strictEqual(
+    typeof subtitleCache.cacheJson3Track,
+    "function",
+    "subtitleCache must export cacheJson3Track",
+  );
+  console.log("✓ Check 2 passed: subtitleCache.cacheJson3Track verified.");
+
+  // 3. Target modules from the prompt error log
   const targetModules = [
-    "/src/components/LanguageBoxesSelector.tsx",
-    "/src/components/beginner/BeginnerFlowContainer.tsx",
     "/src/styles.css",
-    "/src/components/SubtitlesTablePanel.tsx",
-    "/src/routes/index.tsx",
-    "/src/components/NetworkRequestsInspector.tsx",
-    "/src/components/AiSubtitlePunctuationTab.tsx",
+    "/src/components/AttemptOrderSettings.tsx",
+    "/src/utils/appSettings.ts",
     "/src/components/beginner/tabs/BeginnerPreferencesTab.tsx",
-    "/src/components/ExternalTtsDebuggerPanel.tsx",
-    "/src/components/beginner/PerLanguageTtsPreferences.tsx",
+    "/src/utils/subtitleCache.ts",
+    "/src/routes/index.tsx",
+    "/src/storybook/StorybookWorkbench.tsx",
+    "/src/client.tsx",
   ];
 
-  console.log("Check 1: Verifying all 10 target files exist on disk...");
+  console.log("Check 3: Verifying all target files exist on disk without merge markers...");
   for (const modPath of targetModules) {
     const diskPath = path.resolve(process.cwd(), modPath.slice(1));
     assert.ok(fs.existsSync(diskPath), `File must exist on disk: ${diskPath}`);
     const content = fs.readFileSync(diskPath, "utf-8");
     assert.ok(!content.includes("<<<<<<<"), `File must not contain merge markers: ${modPath}`);
   }
-  console.log("✓ Check 1 passed: All 10 files exist on disk with valid content.");
+  console.log("✓ Check 3 passed: All target files exist cleanly on disk.");
 
-  // 2. Verify preference exports in playback-preferences.ts
-  console.log("Check 2: Verifying preference exports in playback-preferences.ts...");
-  const playbackPrefs = await import("../src/lib/playback-preferences");
-  assert.strictEqual(typeof playbackPrefs.getFavoriteLanguagesPreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setFavoriteLanguagesPreference, "function");
-  assert.strictEqual(typeof playbackPrefs.getTargetLanguagesPreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setTargetLanguagesPreference, "function");
-  assert.strictEqual(typeof playbackPrefs.getBaseLanguagePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setBaseLanguagePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.getPrimaryTtsLanguagePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setPrimaryTtsLanguagePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.getSubtitleRequestModePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setSubtitleRequestModePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.getSectionOrderPreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setSectionOrderPreference, "function");
-  assert.strictEqual(typeof playbackPrefs.getTtsVoicesPreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setTtsVoicePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.getTtsServiceTypePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setTtsServiceTypePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.getTtsAlternativeServicePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setTtsAlternativeServicePreference, "function");
-  assert.strictEqual(typeof playbackPrefs.getTtsCustomEndpointPreference, "function");
-  assert.strictEqual(typeof playbackPrefs.setTtsCustomEndpointPreference, "function");
-  console.log("✓ Check 2 passed: All 20 preference accessor functions properly exported.");
-
-  // 3. Verify DetectedSubtitleTrack cuesCount property in SwitchableDefaultSubtitlesBar.tsx
-  console.log("Check 3: Verifying DetectedSubtitleTrack cuesCount in SwitchableDefaultSubtitlesBar.tsx...");
-  const switchableBarSrc = fs.readFileSync(
-    path.resolve(process.cwd(), "src/components/SwitchableDefaultSubtitlesBar.tsx"),
-    "utf-8",
-  );
-  assert.ok(
-    switchableBarSrc.includes("cuesCount?: number;"),
-    "DetectedSubtitleTrack must define cuesCount?: number;",
-  );
-  console.log("✓ Check 3 passed: cuesCount property present on DetectedSubtitleTrack.");
-
-  // 4. Verify VideoSpecificSettings ttsBlacklist in appSettings.ts
-  console.log("Check 4: Verifying VideoSpecificSettings ttsBlacklist in appSettings.ts...");
-  const appSettingsSrc = fs.readFileSync(
-    path.resolve(process.cwd(), "src/utils/appSettings.ts"),
-    "utf-8",
-  );
-  assert.ok(
-    appSettingsSrc.includes("ttsBlacklist?: string[];"),
-    "VideoSpecificSettings must define ttsBlacklist?: string[];",
-  );
-  console.log("✓ Check 4 passed: ttsBlacklist property present on VideoSpecificSettings.");
-
-  // 5. Verify Button import in StorybookWorkbench.tsx
-  console.log("Check 5: Verifying Button import in StorybookWorkbench.tsx...");
-  const storybookSrc = fs.readFileSync(
-    path.resolve(process.cwd(), "src/storybook/StorybookWorkbench.tsx"),
-    "utf-8",
-  );
-  assert.ok(
-    storybookSrc.includes('import { Button } from "@/components/ui/button";'),
-    "StorybookWorkbench must import Button component",
-  );
-  console.log("✓ Check 5 passed: Button imported in StorybookWorkbench.");
-
-  // 6. Probe Vite dev server for all 10 modules
-  console.log("Check 6: Probing Vite dev server transforms for all 10 modules...");
+  // 4. Probe Vite dev server for all target modules
+  console.log("Check 4: Probing Vite dev server transforms for all target modules...");
   for (const modPath of targetModules) {
     const res = await probeUrl(modPath);
     assert.strictEqual(
@@ -136,10 +108,10 @@ async function run() {
     }
     console.log(`  ✓ ${modPath}: 200 OK (${res.text.length} bytes)`);
   }
-  console.log("✓ Check 6 passed: All 10 modules successfully transformed with 200 OK.");
+  console.log("✓ Check 4 passed: All target modules successfully transformed with 200 OK.");
 
   console.log("=========================================================================");
-  console.log("🎉 ALL CHECKS PASSED: Vite reload & TypeScript errors completely resolved!");
+  console.log("🎉 ALL CHECKS PASSED: Hotfix verified and dev server is healthy!");
   console.log("=========================================================================");
 }
 

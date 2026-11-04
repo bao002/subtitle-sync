@@ -906,3 +906,28 @@ error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.0 dev 
 
 6. the tts service network request shows error while the app tts-play "hello world". add button to fetch and play audio - while allowing few options to speak few sentences in few langs based on the configured settings. network request/response to be log on the log viewer
 ```
+
+---
+
+### Prompt 67: Fix Vite HMR Reload Errors & Module Exports
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 1: [vite] Failed to reload /src/components/AttemptOrderSettings.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 2: [vite] SyntaxError: The requested module '/src/utils/appSettings.ts' does not provide an export named 'getDisableAutoFocusSetting'
+error 3: [vite] Failed to reload /src/components/beginner/tabs/BeginnerPreferencesTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 4: [vite] SyntaxError: The requested module '/src/utils/subtitleCache.ts' does not provide an export named 'cacheJson3Track'
+error 5: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 6: [vite] Failed to reload /src/storybook/StorybookWorkbench.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 7: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+error 8: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Cannot read properties of null (reading 'useState')
+error 9: [APP_PAGE_ERROR] This page didn't load: Cannot read properties of null (reading 'useState')
+[AIS_METADATA_SECTION_END]
+```
+
