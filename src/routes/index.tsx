@@ -93,6 +93,10 @@ import {
   setUserLearningLanguages,
   getAutoScrollSetting,
   setAutoScrollSetting,
+  getDisableScrollingSetting,
+  setDisableScrollingSetting,
+  getDisableAutoFocusSetting,
+  setDisableAutoFocusSetting,
   recordUserInteraction,
   isAutoScrollAllowed,
   getLastUserInteractionTimestamp,
@@ -2317,12 +2321,38 @@ function Index() {
     setAudioTrackModeState(enabled);
     setAudioTrackMode(enabled);
   };
+  const [disableScrolling, setDisableScrollingState] = useState(() =>
+    typeof window !== "undefined" ? getDisableScrollingSetting() : true,
+  );
+  const onDisableScrollingChange = (disabled: boolean) => {
+    setDisableScrollingState(disabled);
+    setDisableScrollingSetting(disabled);
+    if (disabled) {
+      setAutoFocusState(false);
+      setAutoScrollSetting(false);
+    }
+  };
+  const [disableAutoFocus, setDisableAutoFocusState] = useState(() =>
+    typeof window !== "undefined" ? getDisableAutoFocusSetting() : true,
+  );
+  const onDisableAutoFocusChange = (disabled: boolean) => {
+    setDisableAutoFocusState(disabled);
+    setDisableAutoFocusSetting(disabled);
+    if (disabled) {
+      setAutoFocusState(false);
+      setAutoScrollSetting(false);
+    }
+  };
   const [autoFocus, setAutoFocusState] = useState(() =>
     typeof window !== "undefined" ? getAutoScrollSetting() : false,
   );
   const onAutoFocusChange = (enabled: boolean) => {
     setAutoFocusState(enabled);
     setAutoScrollSetting(enabled);
+    setDisableScrollingState(!enabled);
+    setDisableScrollingSetting(!enabled);
+    setDisableAutoFocusState(!enabled);
+    setDisableAutoFocusSetting(!enabled);
   };
   const onDebugModeChange = (enabled: boolean) => {
     setDebugModeState(enabled);
@@ -4902,7 +4932,7 @@ function Index() {
   }, [active]);
 
   useEffect(() => {
-    if (!autoFocus || isSetupPaused) return;
+    if (disableScrolling || !autoFocus || isSetupPaused) return;
     if (active < 0) return;
 
     // Never auto-scroll or steal focus if user recently interacted via mouse, keyboard, or touch
@@ -4926,7 +4956,7 @@ function Index() {
       const rowRect = rowEl.getBoundingClientRect();
       panel.scrollTop += rowRect.top - panelRect.top - panel.clientHeight / 2 + rowRect.height / 2;
     }
-  }, [active, autoFocus, isSetupPaused]);
+  }, [active, autoFocus, disableScrolling, isSetupPaused]);
 
   const seek = (r: Row, i: number) => {
     cancelSpeech();
@@ -5941,10 +5971,21 @@ function Index() {
             data-testid="header-stage4-settings-button"
             type="button"
             size="sm"
-            variant={showOtherSettingsAccordions ? "default" : "ghost"}
-            onClick={() => setShowOtherSettingsAccordions((prev) => !prev)}
+            variant={
+              currentAccordionStage === 4 || showOtherSettingsAccordions ? "default" : "ghost"
+            }
+            onClick={() => {
+              if (currentAccordionStage === 4) {
+                setCurrentAccordionStage(3);
+                setShowOtherSettingsAccordions(false);
+              } else {
+                setCurrentAccordionStage(4);
+                setShowOtherSettingsAccordions(true);
+                setOpenPanels((prev) => ({ ...prev, playback: true }));
+              }
+            }}
             className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-muted-foreground/30 font-medium"
-            title="Stage 4: Toggle all other accordion elements (Settings, Special Characters, Parser, Library)"
+            title="Stage 4: Settings (Playback, Parser, Chars Removal, Library)"
           >
             <Settings className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Settings</span>
@@ -6670,21 +6711,54 @@ function Index() {
                       </span>
                       <span>Video &amp; Playback</span>
                     </button>
+                    <button
+                      type="button"
+                      id="stage-step-4"
+                      data-testid="stage-step-4"
+                      onClick={() => {
+                        setCurrentAccordionStage(4);
+                        setShowOtherSettingsAccordions(true);
+                        setOpenPanels((prev) => ({ ...prev, playback: true }));
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                        currentAccordionStage === 4
+                          ? "bg-primary text-primary-foreground shadow"
+                          : "bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <span className="h-4 w-4 rounded-full bg-background/20 flex items-center justify-center text-[10px] font-bold">
+                        4
+                      </span>
+                      <span>Settings</span>
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Button
                       id="toggle-stage4-settings-btn"
                       data-testid="toggle-stage4-settings-btn"
-                      variant={showOtherSettingsAccordions ? "default" : "outline"}
+                      variant={
+                        currentAccordionStage === 4 || showOtherSettingsAccordions
+                          ? "default"
+                          : "outline"
+                      }
                       size="sm"
-                      onClick={() => setShowOtherSettingsAccordions((prev) => !prev)}
+                      onClick={() => {
+                        if (currentAccordionStage === 4) {
+                          setCurrentAccordionStage(3);
+                          setShowOtherSettingsAccordions(false);
+                        } else {
+                          setCurrentAccordionStage(4);
+                          setShowOtherSettingsAccordions(true);
+                          setOpenPanels((prev) => ({ ...prev, playback: true }));
+                        }
+                      }}
                       className="gap-1.5 text-xs h-8"
-                      title="Stage 4: Toggle additional accordion settings (Playback, Parser, Chars Removal, Library)"
+                      title="Stage 4: Settings (Playback, Parser, Chars Removal, Library)"
                     >
                       <Settings className="h-3.5 w-3.5" />
                       <span>
-                        {showOtherSettingsAccordions
+                        {currentAccordionStage === 4
                           ? "Hide Settings (Stage 4)"
                           : "Settings (Stage 4)"}
                       </span>
@@ -6699,7 +6773,16 @@ function Index() {
                     // Special Characters Removal and Parser are now nested directly under Settings (playback)
                     if (panelId === "chars" + "Removal" || panelId === "par" + "ser") return false;
 
-                    // Stage 4: If settings toggle is active, present all accordions
+                    // Stage 4: Settings should appear ONLY on its own stage
+                    if (currentAccordionStage === 4) {
+                      return panelId === "playback" || panelId === "library";
+                    }
+
+                    // On Stages 0, 1, 2, 3: Settings never appears
+                    if (panelId === "playback" || panelId === "library") {
+                      return false;
+                    }
+
                     if (showOtherSettingsAccordions) {
                       return true;
                     }
@@ -6717,7 +6800,7 @@ function Index() {
                       // Final stage: video and subtitles table for synchronized playback
                       return panelId === "player" || panelId === "subtitles";
                     }
-                    return true;
+                    return false;
                   })
                   .map((panelId, panelIndex) => {
                     const panel = PANELS.find((candidate) => candidate.id === panelId);
@@ -7493,6 +7576,88 @@ function Index() {
                                     synthesized WebSpeech or alternative TTS.
                                   </p>
                                 )}
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                      <input
+                                        id="disable-scrolling-toggle"
+                                        data-testid="disable-scrolling-toggle"
+                                        type="checkbox"
+                                        checked={disableScrolling}
+                                        onChange={(e) => onDisableScrollingChange(e.target.checked)}
+                                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                      />
+                                      <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                        <LayoutList className="w-3.5 h-3.5 text-primary" />
+                                        <span>Disable scrolling</span>
+                                      </span>
+                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setExpandedPrefsHelp((p) => ({
+                                          ...p,
+                                          disableScrolling: !p.disableScrolling,
+                                        }))
+                                      }
+                                      className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                      title="Toggle disable scrolling explanation"
+                                      aria-expanded={Boolean(expandedPrefsHelp.disableScrolling)}
+                                    >
+                                      <HelpCircle className="w-3 h-3" />
+                                      <span>
+                                        {expandedPrefsHelp.disableScrolling ? "Hide" : "Info"}
+                                      </span>
+                                    </button>
+                                  </div>
+                                  {expandedPrefsHelp.disableScrolling && (
+                                    <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                      Disables automatic table scrolling during playback so the view
+                                      remains stationary.
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="space-y-0.5">
+                                  <div className="flex items-center justify-between gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                      <input
+                                        id="disable-autofocus-toggle"
+                                        data-testid="disable-autofocus-toggle"
+                                        type="checkbox"
+                                        checked={disableAutoFocus}
+                                        onChange={(e) => onDisableAutoFocusChange(e.target.checked)}
+                                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                      />
+                                      <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                        <LayoutList className="w-3.5 h-3.5 text-primary" />
+                                        <span>Disable auto-focus</span>
+                                      </span>
+                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setExpandedPrefsHelp((p) => ({
+                                          ...p,
+                                          disableAutoFocus: !p.disableAutoFocus,
+                                        }))
+                                      }
+                                      className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                      title="Toggle disable auto-focus explanation"
+                                      aria-expanded={Boolean(expandedPrefsHelp.disableAutoFocus)}
+                                    >
+                                      <HelpCircle className="w-3 h-3" />
+                                      <span>
+                                        {expandedPrefsHelp.disableAutoFocus ? "Hide" : "Info"}
+                                      </span>
+                                    </button>
+                                  </div>
+                                  {expandedPrefsHelp.disableAutoFocus && (
+                                    <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                      Disables automatic focus shifting to active elements or rows
+                                      during playback.
+                                    </p>
+                                  )}
+                                </div>
                                 <div className="space-y-0.5">
                                   <div className="flex items-center justify-between gap-2">
                                     <label className="flex items-center gap-2 cursor-pointer select-none">

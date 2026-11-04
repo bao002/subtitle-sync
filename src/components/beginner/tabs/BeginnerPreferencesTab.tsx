@@ -37,6 +37,10 @@ import {
   ALL_KNOWN_LANGUAGES,
   getOpenRouterApiKeySetting,
   setOpenRouterApiKeySetting,
+  getDisableScrollingSetting,
+  setDisableScrollingSetting,
+  getDisableAutoFocusSetting,
+  setDisableAutoFocusSetting,
 } from "@/utils/appSettings";
 import {
   playAlternativeTtsAudio,
@@ -107,6 +111,10 @@ export interface BeginnerPreferencesTabProps {
   onApplyFavoritesToVideo?: () => void;
   onSaveCurrentSelectionAsFavorites?: () => void;
   onOpenBackupModal?: () => void;
+  disableScrolling?: boolean;
+  onDisableScrollingChange?: (disabled: boolean) => void;
+  disableAutoFocus?: boolean;
+  onDisableAutoFocusChange?: (disabled: boolean) => void;
 }
 
 export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
@@ -132,6 +140,10 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   onApplyFavoritesToVideo,
   onSaveCurrentSelectionAsFavorites,
   onOpenBackupModal,
+  disableScrolling,
+  onDisableScrollingChange,
+  disableAutoFocus,
+  onDisableAutoFocusChange,
 }) => {
   const [voices, setVoices] = useState<SpeechVoiceLike[]>(() => getCachedVoices());
   const ttsDebuggerEnabled = useIsElementEnabled("tts_debugger");
@@ -175,6 +187,23 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   });
   const [isAnonymousState, setIsAnonymousState] = useState<boolean>(() => getAlternativeTtsAnonymousMode());
   const [showOrderHelp, setShowOrderHelp] = useState<boolean>(false);
+  const [localDisableScrolling, setLocalDisableScrolling] = useState<boolean>(() => getDisableScrollingSetting());
+  const [localDisableAutoFocus, setLocalDisableAutoFocus] = useState<boolean>(() => getDisableAutoFocusSetting());
+
+  const currentDisableScrolling = disableScrolling !== undefined ? disableScrolling : localDisableScrolling;
+  const currentDisableAutoFocus = disableAutoFocus !== undefined ? disableAutoFocus : localDisableAutoFocus;
+
+  const handleToggleDisableScrolling = (checked: boolean) => {
+    setLocalDisableScrolling(checked);
+    setDisableScrollingSetting(checked);
+    onDisableScrollingChange?.(checked);
+  };
+
+  const handleToggleDisableAutoFocus = (checked: boolean) => {
+    setLocalDisableAutoFocus(checked);
+    setDisableAutoFocusSetting(checked);
+    onDisableAutoFocusChange?.(checked);
+  };
 
   const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
     const targetEngine = serviceToValidate || alternativeTtsEngineState;
@@ -388,6 +417,42 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           data-testid="beginner-overlay-preference"
         />
       </label>
+
+      {/* Global Features: Disable Scrolling & Disable Auto-Focus */}
+      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3" data-testid="beginner-global-features-card">
+        <div className="flex items-center gap-2">
+          <Sliders className="w-4 h-4 text-primary" />
+          <h3 className="text-xs font-semibold text-foreground">Global Features</h3>
+        </div>
+        <div className="space-y-2 pt-1 text-xs">
+          <label className="flex items-center justify-between gap-2 p-2 rounded-lg border border-border/60 bg-muted/20 cursor-pointer">
+            <span className="text-foreground font-medium flex items-center gap-1.5">
+              <span>Disable scrolling</span>
+            </span>
+            <input
+              type="checkbox"
+              id="beginner-disable-scrolling-toggle"
+              data-testid="beginner-disable-scrolling-toggle"
+              checked={currentDisableScrolling}
+              onChange={(e) => handleToggleDisableScrolling(e.target.checked)}
+              className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+            />
+          </label>
+          <label className="flex items-center justify-between gap-2 p-2 rounded-lg border border-border/60 bg-muted/20 cursor-pointer">
+            <span className="text-foreground font-medium flex items-center gap-1.5">
+              <span>Disable auto-focus</span>
+            </span>
+            <input
+              type="checkbox"
+              id="beginner-disable-autofocus-toggle"
+              data-testid="beginner-disable-autofocus-toggle"
+              checked={currentDisableAutoFocus}
+              onChange={(e) => handleToggleDisableAutoFocus(e.target.checked)}
+              className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+            />
+          </label>
+        </div>
+      </div>
 
       {/* TTS Speed & Voice Selection */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">

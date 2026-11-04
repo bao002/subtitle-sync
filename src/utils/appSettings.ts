@@ -104,6 +104,10 @@ export interface AppSettings {
   // By default exclude the default subtitles from tts-play
   excludeDefaultSubtitlesFromTTS?: boolean;
 
+  // Global features: disable scrolling & disable auto-focus
+  disableScrolling?: boolean;
+  disableAutoFocus?: boolean;
+
   // Limits
   onDemandCount: number; // Limited to next X=4 subtitles (Step 4.4)
   maxRetries: number; // Max retry limit to X=2 (Step 2.3)
@@ -280,6 +284,10 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 
   // By default exclude the default subtitles from tts-play
   excludeDefaultSubtitlesFromTTS: true,
+
+  // Global features: disable scrolling & disable auto-focus by default
+  disableScrolling: true,
+  disableAutoFocus: true,
 };
 
 const SETTINGS_STORAGE_KEY = STORAGE_KEYS.SETTINGS_STORAGE_KEY;
@@ -573,6 +581,68 @@ export function importFullAppState(jsonString: string): {
 }
 
 export const AUTO_SCROLL_STORAGE_KEY = "yt_auto_scroll";
+export const DISABLE_SCROLLING_STORAGE_KEY = "yt_disable_scrolling";
+export const DISABLE_AUTOFOCUS_STORAGE_KEY = "yt_disable_autofocus";
+
+/**
+ * Get whether scrolling is globally disabled.
+ * Defaults to true per Prompt 66 Chapter 1.
+ */
+export function getDisableScrollingSetting(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return true;
+  }
+  try {
+    const val = window.localStorage.getItem(DISABLE_SCROLLING_STORAGE_KEY);
+    return val !== null ? val === "true" : true;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Set whether scrolling is globally disabled.
+ */
+export function setDisableScrollingSetting(disabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  try {
+    window.localStorage.setItem(DISABLE_SCROLLING_STORAGE_KEY, disabled ? "true" : "false");
+  } catch {
+    // Ignore storage errors in restricted contexts
+  }
+}
+
+/**
+ * Get whether auto-focus is globally disabled.
+ * Defaults to true per Prompt 66 Chapter 1.
+ */
+export function getDisableAutoFocusSetting(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return true;
+  }
+  try {
+    const val = window.localStorage.getItem(DISABLE_AUTOFOCUS_STORAGE_KEY);
+    return val !== null ? val === "true" : true;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Set whether auto-focus is globally disabled.
+ */
+export function setDisableAutoFocusSetting(disabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return;
+  }
+  try {
+    window.localStorage.setItem(DISABLE_AUTOFOCUS_STORAGE_KEY, disabled ? "true" : "false");
+  } catch {
+    // Ignore storage errors in restricted contexts
+  }
+}
 
 /**
  * Get whether auto-focus and scroll to current subtitle is enabled.

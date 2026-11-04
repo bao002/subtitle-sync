@@ -879,8 +879,30 @@ CSS 1: {
 [AIS_METADATA_SECTION_END]
 ```
 
+### Prompt 65: Fix Errors in Dev Server Pre-warming
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.0 dev > vite --port 3000 --host 0.0.0.0
+[AIS_METADATA_SECTION_END]
+```
 
+### Prompt 66: Settings Controls, Separate Stage, Default Language Sync, Export/Import, Subtitle Logs, TTS Audio Test
+```
+1. update global features on settings: 
+- disable scrolling 
+- disable auto-focus
 
+2. settings - should appear only on its own stage
 
+3. there are too many places to set the default language and this parameter is not sync within the app !
 
+4. settings: 
+- add option to export/import the setings
 
+5.   Auto-Fetching Subtitles
+- the log viewer should show the request/response
+
+6. the tts service network request shows error while the app tts-play "hello world". add button to fetch and play audio - while allowing few options to speak few sentences in few langs based on the configured settings. network request/response to be log on the log viewer
+```

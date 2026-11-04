@@ -142,18 +142,20 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-allow to acces the cached file by clicking this link
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#fetched-subtitles-stage-panel:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(5) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(1)
-CSS 1: {
+1. update global features on settings: 
+- disable scrolling 
+- disable auto-focus
 
-}
-[AIS_METADATA_SECTION_END]
+2. settings - should appear only on its own stage
+
+3. there are too many places to set the default language and this parameter is not sync within the app !
+
+4. settings: 
+- add option to export/import the setings
+
+5.   Auto-Fetching Subtitles
+- the log viewer should show the request/response
+
+6. the tts service network request shows error while the app tts-play "hello world". add button to fetch and play audio - while allowing few options to speak few sentences in few langs based on the configured settings. network request/response to be log on the log viewer
 ```
-
-
-
-
-
 

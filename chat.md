@@ -6,11 +6,11 @@ This channel provides a shared coordination registry and execution lock for AI a
 
 ## Active Lock
 
-- **Status**: [UNLOCKED]
-- **Agent ID**: None
-- **Task ID**: None
-- **Scope / Files**: None
-- **Acquired At**: None
+- **Status**: [LOCKED]
+- **Agent ID**: Agent-298
+- **Task ID**: Tasks 298-303 (Chapters 1-6)
+- **Scope / Files**: Settings, stages, default language sync, settings backup, subtitle fetch logs, TTS audio testing
+- **Acquired At**: 2026-11-04T04:41:00Z
 
 ---
 
@@ -37,6 +37,9 @@ This channel provides a shared coordination registry and execution lock for AI a
 | 2026-11-03T20:02:40Z | Agent-295 | Completed Task 295: Verified with npm run test:subtitle-fetch-logger, compile_applet, lint_applet. Lock released. | Completed |
 | 2026-11-03T20:11:15Z | Agent-296 | Acquired lock for Task 296: Interactive Cached Subtitle File Access & Inspection Modal from Stage 0 Card Link. | In Progress |
 | 2026-11-03T20:13:20Z | Agent-296 | Completed Task 296: Verified with npm run test:cached-file-link, compile_applet, lint_applet. Lock released. | Completed |
+| 2026-11-04T04:27:00Z | Agent-297 | Acquired lock for Task 297: Hotfix dev server pre-warming stability, test verification scripts, and version bump. | In Progress |
+| 2026-11-04T04:31:00Z | Agent-297 | Completed Task 297: Dev server restarted cleanly on port 3000 (HTTP 200), version bumped to v2.1.1, all 21 AGENTS.md checks passed. Lock released. | Completed |
+| 2026-11-04T04:41:00Z | Agent-298 | Acquired lock for Tasks 298-303 (Prompt 66: Chapters 1-6): Serial execution per Numbered Chapters Protocol. | In Progress |
 
 
 
