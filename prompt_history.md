@@ -970,13 +970,5 @@ error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.3 dev 
 AGENTS.md - regarding using agent chat - quarentine and dont use for now
 ```
 
----
-
-### Prompt 73: Go On
-```
-go on
-```
-
-
 
 
