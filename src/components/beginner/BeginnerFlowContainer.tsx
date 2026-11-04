@@ -221,6 +221,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             showVideoSubtitles={showVideoSubtitles}
             onToggleVideoSubtitles={onToggleVideoSubtitles}
             baseLanguage={baseLanguage}
+            onBaseLanguageChange={(l) => onBaseLangChange?.(l)}
+            availableDefaultLanguages={observedTracks.map((t) => t.lang)}
             perLanguageTtsSettingsSlot={perLanguageTtsSettingsSlot}
             learningGoalsFiltersSlot={learningGoalsFiltersSlot}
             maxWordsPerSentence={maxWordsPerSentence}

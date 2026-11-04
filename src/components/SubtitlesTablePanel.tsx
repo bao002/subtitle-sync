@@ -24,6 +24,7 @@ export interface SubtitlesTablePanelProps {
   speechProgress: SpeechProgress;
   tracks: Record<string, Json3> | null;
   onSeek: (r: Row, index: number) => void;
+  onSelectBaseLanguage?: (langCode: string) => void;
   spokenLangs: string[];
   ttsRatios: Record<string, number>;
   primaryTtsLang?: string;
@@ -52,6 +53,7 @@ export function SubtitlesTablePanel({
   speechProgress,
   tracks,
   onSeek,
+  onSelectBaseLanguage,
   spokenLangs,
   ttsRatios,
   primaryTtsLang,
@@ -329,6 +331,7 @@ export function SubtitlesTablePanel({
             </th>
             {cols.map((l, idx) => {
               const isFirstCol = idx === 0;
+              const isDefault = l.code === baseLanguage || (isFirstCol && !baseLanguage);
               return (
                 <th
                   key={l.code}
@@ -339,36 +342,61 @@ export function SubtitlesTablePanel({
                       : ""
                   }`}
                 >
-                  <span className="inline-flex items-center gap-1.5">
-                    {subtitleColumnName(l.code, l.name)}
-                    {l.isYouTubeOrJson && (
-                      <span title="Parsed from YouTube subtitles or .json artifact">
-                        <FileCode
-                          className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"
-                          aria-label="YouTube subtitles or JSON artifact"
-                          data-testid={`column-source-youtube-or-json-${l.code}`}
-                        />
+                  <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                    <span className="inline-flex items-center gap-1.5">
+                      {subtitleColumnName(l.code, l.name)}
+                      {l.isYouTubeOrJson && (
+                        <span title="Parsed from YouTube subtitles or .json artifact">
+                          <FileCode
+                            className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400"
+                            aria-label="YouTube subtitles or JSON artifact"
+                            data-testid={`column-source-youtube-or-json-${l.code}`}
+                          />
+                        </span>
+                      )}
+                      {l.isOnDemandTranslation && (
+                        <span title="On-demand translation">
+                          <Sparkles
+                            className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400"
+                            aria-label="On-demand translation"
+                            data-testid={`column-source-on-demand-${l.code}`}
+                          />
+                        </span>
+                      )}
+                      {l.isYouTubeTranslated && (
+                        <span title="Translated by YouTube">
+                          <Languages
+                            className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400"
+                            aria-label="YouTube translation"
+                            data-testid={`youtube-translation-indicator-${l.code}`}
+                          />
+                        </span>
+                      )}
+                    </span>
+                    {isDefault ? (
+                      <span
+                        data-testid={`table-col-default-badge-${l.code}`}
+                        className="inline-flex items-center gap-1 rounded bg-primary/20 text-primary px-1.5 py-0.5 text-[10px] font-semibold tracking-tight"
+                        title="Active Default Translation Source"
+                      >
+                        <Check className="h-2.5 w-2.5" />
+                        <span>Default</span>
                       </span>
-                    )}
-                    {l.isOnDemandTranslation && (
-                      <span title="On-demand translation">
-                        <Sparkles
-                          className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400"
-                          aria-label="On-demand translation"
-                          data-testid={`column-source-on-demand-${l.code}`}
-                        />
-                      </span>
-                    )}
-                    {l.isYouTubeTranslated && (
-                      <span title="Translated by YouTube">
-                        <Languages
-                          className="h-3.5 w-3.5 text-sky-600 dark:text-sky-400"
-                          aria-label="YouTube translation"
-                          data-testid={`youtube-translation-indicator-${l.code}`}
-                        />
-                      </span>
-                    )}
-                  </span>
+                    ) : onSelectBaseLanguage ? (
+                      <button
+                        type="button"
+                        data-testid={`table-set-default-btn-${l.code}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onSelectBaseLanguage(l.code);
+                        }}
+                        className="inline-flex items-center gap-1 rounded border border-border/80 bg-background hover:bg-muted text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 transition-colors cursor-pointer"
+                        title={`Set ${l.name || l.code} as default translation source`}
+                      >
+                        Set Default
+                      </button>
+                    ) : null}
+                  </div>
                 </th>
               );
             })}
