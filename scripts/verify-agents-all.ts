@@ -87,6 +87,16 @@ const CHECKS: ScriptCheck[] = [
     name: "Pending Pull Requests Check Before Features",
     file: "scripts/verify-pending-prs-rule.ts",
   },
+  {
+    id: "20",
+    name: "Parallel AI Agent Coordination & Lock Protocol",
+    file: "scripts/verify-parallel-agent-coordination.ts",
+  },
+  {
+    id: "21",
+    name: "Parallel Planning Mode Protocol (docs/plans/)",
+    file: "scripts/verify-parallel-planning-mode.ts",
+  },
 ];
 
 function run() {

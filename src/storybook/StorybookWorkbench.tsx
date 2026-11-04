@@ -22,6 +22,7 @@ import {
   Filter,
   Film,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   TtsServiceSettingsPanel,
   type TtsServiceSettingsPanelProps,

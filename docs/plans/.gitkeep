@@ -1,0 +1,5 @@
+# Parallel Plans Directory
+# Plans are stored here as timestamp_<desc>.md (e.g. 20261103_153000_sample_feature.md)
+# Continuation format:
+# prompt: <x>
+# work: <y>

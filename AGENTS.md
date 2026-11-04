@@ -41,7 +41,7 @@ The application processes and presents subtitles through a strict sequential pip
 - **Check pending pull requests before starting features**: Before starting work on another feature, always check that there are no pending open pull requests by checking `https://github.com/mostuf2556/subtitle-sync/pulls` (e.g. via GitHub API, web, or CLI).
 - **New chat window for each sub-task**: Keep each sub-task scoped, resumable, and independent.
 - **Resume after interruption**: Read this section, `current-sub-task.md`, `docs/todo.md`, and active entries in `docs/tasks.md` to identify the source of truth for where to continue.
-- **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**: ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md`. There must be ZERO duplicate `.md` files in the repository. Only `README.md`, `AGENTS.md`, `current-sub-task.md`, and `temp.md` are permitted in root.
+- **Mandatory location of all .md files under `docs/*.md` & zero duplicates policy**: ALL documentation, specification, design, operational, and architectural Markdown files MUST be located strictly under `docs/*.md`. There must be ZERO duplicate `.md` files in the repository. Only `README.md`, `AGENTS.md`, `current-sub-task.md`, `temp.md`, `chat.md`, and `prompt_history.md` are permitted in root.
 - **Mandatory token economy flow on every prompt (`docs/tokens.md`)**: On EVERY single prompt received, the agent MUST activate and process the token optimization flow defined in `docs/tokens.md` and maintain `current-sub-task.md`.
 - **Task management protocol with `current-sub-task.md` & `temp.md`**: Break every prompt into clear numbered tasks and smaller sub-tasks in `docs/tasks.md` before performing actions. Maintain `current-sub-task.md` (and `docs/todo.md`) by staging the single active sub-task before executing any step. Use `temp.md` as an ephemeral scratchpad for draft diffs, checklists, or intermediate calculations.
 - **Enforce updating .md tracking files first before action**: BEFORE jumping to any code edits, actions, or test implementations on a prompt, the agent MUST update `docs/tokens.md`, `docs/tasks.md`, `current-sub-task.md`, and `docs/todo.md`.
@@ -66,6 +66,16 @@ The application processes and presents subtitles through a strict sequential pip
 - **Numbered chapters as serial tasks protocol**: When user prompt consists of numbered chapters (e.g. `1. ...`, `2. ...`), treat each as a separate distinct task in `docs/tasks.md`, divided into sub-tasks worked on strictly serially: execute, test, verify, compile, lint, commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter.
 - To verify any feature, always implement a dedicated test specifically validating the new behavior.
 - Check last GitHub Actions result and fix failed flows promptly (`web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, `integrity.yml`).
+
+## Parallel AI agent coordination & lock mechanism (chat.md)
+
+- **Allow parallel work via lock mechanism and shared communication channel**: Independent AI agents may execute in parallel by coordinating through a shared communication channel in `chat.md` and acquiring a dedicated execution lock to prevent overlapping file edits and race conditions.
+- **Mandatory lock release upon job completion**: Before beginning work on any task, an agent checks `chat.md` for active locks and registers its lock (Agent ID, Task ID, and file scope) under `## Active Lock`. Whenever an agent finishes a job, it MUST immediately take off the lock (resetting status to `[UNLOCKED]`) and record completion in `chat.md`.
+- **Interrupted job priority resolution**: If a job was stopped or interrupted before being accomplished (e.g. stale lock or incomplete prior task), the agent MUST NOT blindly overwrite or proceed; the agent MUST inquire about the job's priority and ask what task to continue before starting work.
+- **Duplicate job suspicion communication**: If an agent suspects or observes another agent is working on the same job, task, or overlapping file scope, the agent MUST explicitly post and communicate this in `chat.md` before performing edits.
+- **Fallback redirection to user**: If no agent replies to an inquiry or conflict notice on `chat.md`, the agent MUST redirect the question directly to the prompt user for resolution.
+- **Parallel planning mode in `docs/plans/`**: Parallel work can be simplified by focusing on creating plans without updating repository code. When a prompt asks to plan, create the plan strictly in a separate directory `docs/plans/timestamp_<desc>.md` (e.g. `docs/plans/<YYYYMMDD_HHMMSS>_<desc>.md`) and do NOT update any other repo file. Instead of modifying repository files during planning, record continuations on the same plan file using format `prompt: <x>` followed by `work: <y>`.
+
 
 ## Code architecture, modularity, and standards
 
@@ -132,7 +142,8 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-slow/fast mode - by default dont use&show all elements which are not obligatory for the function of the app. this should be listed on docs/disable_and_hide.md. allow to disable-all/enable-all on the settings.
+parallel work - can be simplified by focusing on creating plans without updating the code. therefor if the prompt ask you to plan - do it in saperated directory like docs/plans/timestamp_<desc>.md and dont update any other repo's file. instead of updating a repo file  - create its continue on the same plan file, such as content: prompt:x work:y.
 ```
+
 
 
