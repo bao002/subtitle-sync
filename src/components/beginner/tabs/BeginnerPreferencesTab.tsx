@@ -98,6 +98,8 @@ export interface BeginnerPreferencesTabProps {
   showVideoSubtitles: boolean;
   onToggleVideoSubtitles: () => void;
   baseLanguage?: string;
+  onBaseLanguageChange?: (lang: string) => void;
+  availableDefaultLanguages?: string[];
   perLanguageTtsSettingsSlot?: React.ReactNode;
   learningGoalsFiltersSlot?: React.ReactNode;
   maxWordsPerSentence?: number;
@@ -127,6 +129,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   showVideoSubtitles,
   onToggleVideoSubtitles,
   baseLanguage = "en",
+  onBaseLanguageChange,
+  availableDefaultLanguages,
   perLanguageTtsSettingsSlot,
   learningGoalsFiltersSlot,
   maxWordsPerSentence,
@@ -417,6 +421,56 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           data-testid="beginner-overlay-preference"
         />
       </label>
+
+      {/* Default Language (Translation Source) Card */}
+      <div
+        className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3"
+        data-testid="beginner-default-language-card"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Languages className="w-4 h-4 text-primary" />
+            <h3 className="text-xs font-semibold text-foreground">
+              Default Language (Translation Source)
+            </h3>
+          </div>
+          <span className="text-[10px] bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-full">
+            Synchronized
+          </span>
+        </div>
+        <p className="text-[11px] text-muted-foreground">
+          The single authoritative source language used for translation and parallel alignment across the entire app.
+        </p>
+        <div className="flex flex-wrap gap-2 pt-1">
+          {availableDefaultLanguages && availableDefaultLanguages.length > 0 ? (
+            availableDefaultLanguages.map((langCode) => {
+              const isDefault = baseLanguage === langCode;
+              const langMeta = ALL_KNOWN_LANGUAGES.find((l) => l.code === langCode);
+              return (
+                <button
+                  key={langCode}
+                  type="button"
+                  data-testid={`beginner-default-lang-btn-${langCode}`}
+                  onClick={() => onBaseLanguageChange?.(langCode)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all cursor-pointer ${
+                    isDefault
+                      ? "border-primary bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/40"
+                      : "border-border bg-background hover:bg-muted text-foreground"
+                  }`}
+                >
+                  {isDefault && <Check className="h-3 w-3" />}
+                  <span>{langMeta?.name || langCode.toUpperCase()}</span>
+                  <span className="text-[10px] opacity-75 font-mono">({langCode})</span>
+                </button>
+              );
+            })
+          ) : (
+            <span className="text-muted-foreground italic text-[11px]">
+              No fetched subtitle languages detected yet.
+            </span>
+          )}
+        </div>
+      </div>
 
       {/* Global Features: Disable Scrolling & Disable Auto-Focus */}
       <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3" data-testid="beginner-global-features-card">

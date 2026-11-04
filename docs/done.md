@@ -1,5 +1,37 @@
 # Done tasks
 
+### Task 300 (Prompt 66 - Chapter 3): Unified & Synchronized Default Language Selection Across All Places
+
+- **Prompt**:
+  ```
+  3. there are too many places to set the default language and this parameter is not sync within the app !
+  ```
+- **Context & Implementation**:
+  - `src/utils/defaultLanguageManager.ts`:
+    - Created single authoritative default language state manager.
+    - Defined `DEFAULT_LANGUAGE_STORAGE_KEY = "yt_base_language"` and `DEFAULT_LANGUAGE_EVENT = "yt_default_language_changed"`.
+    - Implemented `getDefaultLanguage(fallback = "en")`, `setDefaultLanguage(lang)`, and `subscribeDefaultLanguage(listener)`.
+  - `src/routes/index.tsx`:
+    - Initialized `explicitBaseLanguage` from `getDefaultLanguage("")`.
+    - Subscribed to `subscribeDefaultLanguage` so any external or component changes to the default language update state across all views.
+    - Updated `handleSelectDefaultSubtitle` to update `setBaseLanguage`, `setDefaultLanguage`, `setBaseLanguagePreference`, add to `shown` and `favoriteLanguages`, and synchronize native/web player caption track (`primaryPlayer?.setOption?.("captions", "track", { languageCode: langCode })`).
+    - Synchronized Stage 1 button click (`data-testid="stage-2-default-lang-${langCode}"`) to invoke `handleSelectDefaultSubtitle(langCode)`.
+    - Synchronized Beginner Mode `onBaseLangChange` to invoke `handleSelectDefaultSubtitle(lang)`.
+    - Added dedicated "Default Language (Translation Source)" section in Settings Stage (Stage 4) (`data-testid="settings-default-language-card"`, selector `data-testid="settings-default-language-select"`, buttons `data-testid="settings-default-lang-btn-${langCode}"`).
+    - Passed `onSelectBaseLanguage={handleSelectDefaultSubtitle}` to all `SubtitlesTablePanel` instances.
+  - `src/components/SubtitlesTablePanel.tsx`:
+    - Added `onSelectBaseLanguage?: (langCode: string) => void` to `SubtitlesTablePanelProps`.
+    - Displayed `table-col-default-badge-${l.code}` for active default column and `table-set-default-btn-${l.code}` on other columns to allow 1-click default language switching directly from table headers.
+  - `src/components/beginner/tabs/BeginnerPreferencesTab.tsx` & `BeginnerFlowContainer.tsx`:
+    - Added `beginner-default-language-card` and `beginner-default-lang-btn-${langCode}` for 100% parity with Advanced Settings.
+  - `scripts/verify-default-language-unified-sync.ts`:
+    - Dedicated test script validating manager, index integration, table headers, Stage 1, Stage 4 Settings, Beginner parity, and event persistence.
+- **Verification Outcomes**:
+  - `npm run test:default-language-unified-sync`: PASSED (9/9 checks passed).
+  - `npm run sync-version 2.1.2`: PASSED (v2.1.2 synchronized across all targets).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors).
+
 ### Hotfix: Vite HMR Stale Transform, Module Exports & React Router Hydration (Prompt 67, Task 299-Hotfix)
 
 - **Prompt**:

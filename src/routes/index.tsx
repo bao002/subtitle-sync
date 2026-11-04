@@ -277,8 +277,12 @@ import {
   BeginnerTtsServiceControl,
   type BeginnerTtsService,
 } from "@/components/beginner/BeginnerTtsServiceControl";
-import { getPlaybackSectionId } from "@/lib/playback-section-identity";
-
+import {
+  getDefaultLanguage,
+  setDefaultLanguage,
+  subscribeDefaultLanguage,
+} from "@/utils/defaultLanguageManager";
+import { setBaseLanguagePreference } from "@/lib/playback-preferences";
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
 import {
   getSectionOrder,
@@ -1368,7 +1372,21 @@ function Index() {
     [videoId, speakFetchedLanguageName],
   );
 
-  const [explicitBaseLanguage, setExplicitBaseLanguage] = useState<string>("");
+  const [explicitBaseLanguage, setExplicitBaseLanguage] = useState<string>(() => {
+    return getDefaultLanguage("");
+  });
+
+  // Keep explicitBaseLanguage and primary TTS synchronized with global default language events
+  useEffect(() => {
+    const unsubscribe = subscribeDefaultLanguage((newLang) => {
+      if (newLang) {
+        setExplicitBaseLanguage(newLang);
+        setPrimaryTtsLangState(newLang);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
   const [simpleParserConfig, setSimpleParserConfig] = useState<SimpleParserConfig>(() => {
     let base = DEFAULT_SIMPLE_PARSER_CONFIG;
     if (typeof window !== "undefined") {
@@ -1401,6 +1419,7 @@ function Index() {
     // The default language can only be one of those languages their subtitles have been successfully fetched already
     if (!lang) {
       setExplicitBaseLanguage("");
+      setDefaultLanguage("");
       return;
     }
     const hasFetched = tracksRef.current
@@ -1413,14 +1432,20 @@ function Index() {
       : false;
     if (hasFetched || !tracksRef.current) {
       setExplicitBaseLanguage(lang);
+      setDefaultLanguage(lang);
+      setBaseLanguagePreference(lang);
     }
   }, []);
 
   const handleSelectDefaultSubtitle = useCallback(
     (langCode: string) => {
+      if (!langCode) return;
       setBaseLanguage(langCode);
       setPrimaryTtsLangState(langCode);
+      setDefaultLanguage(langCode);
+      setBaseLanguagePreference(langCode);
       setShown((prev) => (prev.includes(langCode) ? prev : [langCode, ...prev]));
+      setFavoriteLanguages((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
       try {
         const primaryPlayer = multiVideoPlayerRegistry.get("primary");
         primaryPlayer?.setOption?.("captions", "track", { languageCode: langCode });
@@ -6299,7 +6324,7 @@ function Index() {
             onApplyFavoritesToVideo={handleResetVideoToFavorites}
             onSaveCurrentSelectionAsFavorites={handleSaveCurrentAsFavorites}
             onBaseLangChange={(lang) => {
-              setBaseLanguage(lang);
+              handleSelectDefaultSubtitle(lang);
               if (!spoken.includes(lang)) {
                 setSpoken((prev) => [...prev, lang]);
               }
@@ -6452,6 +6477,7 @@ function Index() {
                 speechProgress={speechProgress}
                 tracks={tracks}
                 onSeek={seek}
+                onSelectBaseLanguage={handleSelectDefaultSubtitle}
                 spokenLangs={spoken}
                 ttsRatios={ttsRatios}
                 primaryTtsLang={primaryTtsLang}
@@ -7545,6 +7571,58 @@ function Index() {
                                     </div>
                                   </>
                                 )}
+                                <div
+                                  className="space-y-2 p-2.5 rounded-lg border border-border/80 bg-card/60 shadow-xs"
+                                  data-testid="settings-default-language-card"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-semibold text-xs text-foreground flex items-center gap-1.5">
+                                      <Languages className="w-3.5 h-3.5 text-primary" />
+                                      <span>Default Language (Translation Source)</span>
+                                    </span>
+                                    <span className="text-[10px] bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-full">
+                                      Synchronized
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground">
+                                    The single authoritative default language for translation and
+                                    parallel alignment across the entire application.
+                                  </p>
+                                  <div
+                                    className="flex flex-wrap gap-1.5 pt-1"
+                                    data-testid="settings-default-language-select"
+                                  >
+                                    {fetchedSubtitleLanguages.length > 0 ? (
+                                      fetchedSubtitleLanguages.map((langCode) => {
+                                        const isDefault = baseLanguage === langCode;
+                                        const langMeta = LANGS.find((l) => l.code === langCode);
+                                        return (
+                                          <button
+                                            key={langCode}
+                                            type="button"
+                                            data-testid={`settings-default-lang-btn-${langCode}`}
+                                            onClick={() => handleSelectDefaultSubtitle(langCode)}
+                                            className={`px-2.5 py-1 rounded-md text-xs font-medium border flex items-center gap-1 transition-all cursor-pointer ${
+                                              isDefault
+                                                ? "border-primary bg-primary text-primary-foreground shadow-xs ring-1 ring-primary/40"
+                                                : "border-border bg-background hover:bg-muted text-foreground"
+                                            }`}
+                                          >
+                                            {isDefault && <Check className="h-3 w-3" />}
+                                            <span>{langMeta?.name || langCode.toUpperCase()}</span>
+                                            <span className="text-[10px] opacity-75 font-mono">
+                                              ({langCode})
+                                            </span>
+                                          </button>
+                                        );
+                                      })
+                                    ) : (
+                                      <span className="text-muted-foreground italic text-[11px]">
+                                        No fetched subtitle languages detected yet.
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
                                 <div className="flex items-center justify-between gap-2">
                                   <label className="flex items-center gap-2 cursor-pointer select-none">
                                     <input
@@ -8921,8 +8999,7 @@ function Index() {
                                             data-testid={`stage-2-default-lang-${langCode}`}
                                             onClick={() => {
                                               if (fetchedSubtitleLanguages.includes(langCode)) {
-                                                setBaseLanguage(langCode);
-                                                setPrimaryTtsLang(langCode);
+                                                handleSelectDefaultSubtitle(langCode);
                                               }
                                             }}
                                             className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition-all cursor-pointer ${
@@ -10318,6 +10395,7 @@ function Index() {
                               speechProgress={speechProgress}
                               tracks={tracks}
                               onSeek={seek}
+                              onSelectBaseLanguage={handleSelectDefaultSubtitle}
                               spokenLangs={spoken}
                               ttsRatios={ttsRatios}
                               primaryTtsLang={primaryTtsLang}

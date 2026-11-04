@@ -4,11 +4,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 300 (Prompt 66 - Chapter 3): Unified & Synchronized Default Language Selection Across All Places**
-  - Subtask 300.1: Unify default language state into a single authoritative source of truth across Stage 0, Subtitles Table, Settings, and Player captions.
-  - Subtask 300.2: Dedicated automated test script `scripts/verify-default-language-unified-sync.ts` (`npm run test:default-language-unified-sync`).
-  - Subtask 300.3: Version bump, compile, lint, commit, migrate Task 300 to `docs/done.md`.
-
 - [ ] **Task 301 (Prompt 66 - Chapter 4): Settings Export / Import in Settings Stage**
   - Subtask 301.1: Add export and import settings controls directly inside the Settings stage for backup/restore of all app configuration.
   - Subtask 301.2: Dedicated automated test script `scripts/verify-settings-export-import-stage.ts` (`npm run test:settings-export-import-stage`).
