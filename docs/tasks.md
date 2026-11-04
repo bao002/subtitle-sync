@@ -4,6 +4,27 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
+- [ ] **Task 300 (Prompt 66 - Chapter 3): Unified & Synchronized Default Language Selection Across All Places**
+  - Subtask 300.1: Unify default language state into a single authoritative source of truth across Stage 0, Subtitles Table, Settings, and Player captions.
+  - Subtask 300.2: Dedicated automated test script `scripts/verify-default-language-unified-sync.ts` (`npm run test:default-language-unified-sync`).
+  - Subtask 300.3: Version bump, compile, lint, commit, migrate Task 300 to `docs/done.md`.
+
+- [ ] **Task 301 (Prompt 66 - Chapter 4): Settings Export / Import in Settings Stage**
+  - Subtask 301.1: Add export and import settings controls directly inside the Settings stage for backup/restore of all app configuration.
+  - Subtask 301.2: Dedicated automated test script `scripts/verify-settings-export-import-stage.ts` (`npm run test:settings-export-import-stage`).
+  - Subtask 301.3: Version bump, compile, lint, commit, migrate Task 301 to `docs/done.md`.
+
+- [ ] **Task 302 (Prompt 66 - Chapter 5): Auto-Fetching Subtitles - Request & Response in Log Viewer**
+  - Subtask 302.1: Enhance subtitle fetch logging to capture and display full request details and response payloads (HTTP status, cues count, byte size) in the Stage 0 log viewer.
+  - Subtask 302.2: Dedicated automated test script `scripts/verify-subtitle-fetch-log-viewer-req-res.ts` (`npm run test:subtitle-fetch-log-viewer-req-res`).
+  - Subtask 302.3: Version bump, compile, lint, commit, migrate Task 302 to `docs/done.md`.
+
+- [ ] **Task 303 (Prompt 66 - Chapter 6): TTS Service Audio Test & Log Viewer Integration**
+  - Subtask 303.1: Resolve TTS network request issues on "hello world" test playback.
+  - Subtask 303.2: Add "Fetch & Play Audio" button with options to speak multiple test sentences in configured languages, logging network request/response to log viewer.
+  - Subtask 303.3: Dedicated automated test script `scripts/verify-tts-audio-test-and-log-viewer.ts` (`npm run test:tts-audio-test-and-log-viewer`).
+  - Subtask 303.4: Version bump, compile, lint, commit, migrate Task 303 to `docs/done.md`.
+
 - [ ] **Task 288: Slow / Fast Mode (Hide & Disable Non-Obligatory Elements by Default, docs/disable_and_hide.md, Disable-All/Enable-All in Settings)**
   - Subtask 288.1: Document obligatory vs non-obligatory elements matrix and mode controls in `docs/disable_and_hide.md`.
   - Subtask 288.2: Implement performance mode state manager `src/utils/performanceModeManager.ts` (Fast Mode by default, disable-all / enable-all helpers, element-level flags, localStorage persistence).

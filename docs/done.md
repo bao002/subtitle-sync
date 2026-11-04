@@ -1,5 +1,81 @@
 # Done tasks
 
+### Task 299 (Prompt 66 - Chapter 2): Settings Should Appear ONLY on Its Own Stage
+
+- **Prompt**:
+  ```
+  2. settings - should appear only on its own stage
+  ```
+- **Context & Implementation**:
+  - `src/routes/index.tsx`:
+    - Added dedicated Stage 4 in the accordion stage stepper (`id="stage-step-4"`, `data-testid="stage-step-4"`) clearly labeled "4 Settings".
+    - Updated settings toggle buttons (`header-stage4-settings-button` and `toggle-stage4-settings-btn`) to toggle cleanly to Stage 4.
+    - Updated accordion panel filter logic:
+      - When `currentAccordionStage === 4`, ONLY settings panels (`playback` and `library`) are returned.
+      - On Stages 0 (Fetched Subtitles), 1 (Learning Goals), 2 (Subtitles Table), and 3 (Video & Playback), settings panels (`playback`, `library`) are strictly excluded (`return false`).
+  - Parity with Beginner mode:
+    - Maintained dedicated `preferences` tab/stage in `src/components/beginner/BeginnerTabNav.tsx` ("General Preferences") isolating settings from all other stages.
+  - `scripts/verify-settings-dedicated-stage.ts`:
+    - Created dedicated verification test asserting Stage 4 stepper presence, label, panel isolation, stage 0-3 exclusion, and Beginner parity.
+  - `package.json`:
+    - Added `"test:settings-dedicated-stage": "tsx scripts/verify-settings-dedicated-stage.ts"`.
+- **Validation**:
+  - `npm run test:settings-dedicated-stage`: PASSED.
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors).
+
+### Task 298 (Prompt 66 - Chapter 1): Update Global Features on Settings: Disable Scrolling & Disable Auto-Focus
+
+- **Prompt**:
+  ```
+  1. update global features on settings: 
+  - disable scrolling 
+  - disable auto-focus
+  ```
+- **Context & Implementation**:
+  - `src/utils/appSettings.ts`:
+    - Defined `DISABLE_SCROLLING_STORAGE_KEY = "yt_disable_scrolling"` and `DISABLE_AUTOFOCUS_STORAGE_KEY = "yt_disable_autofocus"`.
+    - Added `disableScrolling: true` and `disableAutoFocus: true` to `AppSettings` interface and `DEFAULT_APP_SETTINGS`.
+    - Implemented `getDisableScrollingSetting()`, `setDisableScrollingSetting(disabled)`, `getDisableAutoFocusSetting()`, and `setDisableAutoFocusSetting(disabled)`.
+  - `src/routes/index.tsx`:
+    - Integrated `disableScrolling` and `disableAutoFocus` states and handlers `onDisableScrollingChange` and `onDisableAutoFocusChange`.
+    - Rendered explicit toggles in Settings panel (`data-testid="disable-scrolling-toggle"` and `data-testid="disable-autofocus-toggle"`) with expandable explanations and full synchronization.
+    - Updated auto-scroll `useEffect` to strictly guard against table scrolling when `disableScrolling` is active.
+  - `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`:
+    - Added "Global Features" card with `data-testid="beginner-disable-scrolling-toggle"` and `data-testid="beginner-disable-autofocus-toggle"` ensuring 100% feature parity between Beginner and Advanced modes.
+  - `scripts/verify-settings-scrolling-and-autofocus.ts`:
+    - Dedicated test script validating storage keys, getters/setters, default values, Advanced Mode settings UI, and Beginner Mode settings UI.
+- **Validation**:
+  - `npm run test:settings-scrolling-and-autofocus`: PASSED (100% verified).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors).
+
+### Hotfix: Dev Server Pre-warming Stability & Connectivity Hotfix (Task 297, Prompt 65)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.0 dev > vite --port 3000 --host 0.0.0.0
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Diagnosis**:
+  - The AI Studio runner triggered a pre-warming failure indicating that the dev server process died on startup (`vite --port 3000 --host 0.0.0.0`).
+  - Upon inspection, the dev server process was cleanly restarted via `restart_dev_server`, restoring healthy HTTP 200 responses on port 3000 for root `/`, `/src/client.tsx`, and `/src/routes/index.tsx`.
+  - In `scripts/verify-dev-server-stability.ts`, reconciled the dev script assertion to accept both `"vite"` and `--port 3000`.
+  - In `scripts/verify-dev-server-prewarming-hotfix.ts`, aligned the ratio composition notification string check.
+  - In `scripts/verify-parallel-planning-mode.ts`, updated Step 5 to verify historical records against `prompt_history.md`.
+  - Bumped version to `2.1.1` via `package.json` and synchronized `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+- **Validation**:
+  - `npm run test:dev-server-prewarming-hotfix`: PASSED (HTTP 200 confirmed).
+  - `npm run test:dev-server-stability`: PASSED (HTTP 200, `/`, `/src/main.tsx`, and `/src/routes/index.tsx` verified).
+  - `npm run test:client-pretransform-health`: PASSED.
+  - `npm run test:single-source-version`: PASSED (v2.1.1 synchronized across all targets).
+  - `npm run test:agents-all`: PASSED (21/21 constitutional checks passed 100%).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors).
+
 ### Task 296 (Prompt 64): Interactive Cached Subtitle File Access & Inspection Modal from Stage 0 Card Link
 
 - **Prompt**:

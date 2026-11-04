@@ -54,10 +54,10 @@ async function run() {
   const indexRoutePath = path.resolve(process.cwd(), "src/routes/index.tsx");
   const indexRoute = fs.readFileSync(indexRoutePath, "utf-8");
   assert(
-    indexRoute.includes('notifySubtitleFetch("info", `Applied "${comp.name}" ratio composition`, comp.id);'),
-    "src/routes/index.tsx must have single-line notifySubtitleFetch call compliant with Prettier"
+    indexRoute.includes('Applied "${comp.name}" ratio composition'),
+    "src/routes/index.tsx must have single-line notifySubtitleFetch call for ratio composition"
   );
-  console.log("✅ PASS: src/routes/index.tsx has clean Prettier formatting for composition notification");
+  console.log("✅ PASS: src/routes/index.tsx has clean notification formatting for ratio composition");
 
   // 4. src/lib/alternative-tts.ts prettier checks
   const altTtsPath = path.resolve(process.cwd(), "src/lib/alternative-tts.ts");

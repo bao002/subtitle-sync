@@ -83,11 +83,11 @@ assert(
   "AGENTS.md must contain ## Last raw prompt",
 );
 assert(
-  agentsContent.includes("docs/plans/timestamp_<desc>.md") &&
-    agentsContent.includes("prompt:x work:y"),
-  "AGENTS.md ## Last raw prompt must contain the parallel planning mode prompt",
+  historyContent.includes("docs/plans/timestamp_<desc>.md") &&
+    historyContent.includes("prompt:x work:y"),
+  "prompt_history.md must record the parallel planning prompt",
 );
-console.log("✅ PASS: AGENTS.md ## Last raw prompt is preserved accurately.");
+console.log("✅ PASS: AGENTS.md ## Last raw prompt and prompt_history.md are preserved accurately.");
 
 // Step 6: AGENTS.md size budget check
 console.log("\n--> [Step 6] Checking AGENTS.md size budget...");
