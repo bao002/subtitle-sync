@@ -8,6 +8,7 @@ import {
   getFetchServerUrl,
   isYouTubeTranslatedSubtitle,
 } from "../lib/subtitle-fetch-plan";
+import { emitSubtitleFetchLog } from "../utils/subtitleFetchLogger";
 import { Json3 } from "../types";
 import {
   RefreshCw,
@@ -182,8 +183,19 @@ export function WebDemoUrlsInput({
       setIsFetching(false);
       setStatusType("error");
       setStatusMessage("Could not parse any valid subtitle URLs from input.");
+      emitSubtitleFetchLog(
+        "warn",
+        "[Quick Loader] Could not parse any valid subtitle URLs from input",
+        trimmedSubtitlesInput,
+      );
       return;
     }
+
+    emitSubtitleFetchLog(
+      "info",
+      `[Quick Loader] Initiating fetch for video ${extractedVideoId}`,
+      `Targets: ${entriesToFetch.map((e) => e.lang).join(", ")} (${entriesToFetch.length} stream${entriesToFetch.length === 1 ? "" : "s"})`,
+    );
 
     const loadedTracks: Record<string, Json3> = {};
     const successLangs: string[] = [];
@@ -192,6 +204,12 @@ export function WebDemoUrlsInput({
     const serverUrl = getFetchServerUrl();
 
     for (const entry of entriesToFetch) {
+      emitSubtitleFetchLog(
+        "info",
+        `[Quick Loader] Requesting '${entry.lang}' timedtext stream`,
+        entry.url,
+        { url: entry.url, lang: entry.lang },
+      );
       try {
         let text = "";
         let parsed: Json3 | null = null;
@@ -209,6 +227,12 @@ export function WebDemoUrlsInput({
 
         // 2. If direct fetch failed and URL is a YouTube timedtext URL, use the server proxy
         if (!parsed && entry.url.includes("youtube.com/api/timedtext") && serverUrl) {
+          emitSubtitleFetchLog(
+            "info",
+            `[Quick Loader] Direct fetch blocked/cors for '${entry.lang}', retrying via proxy...`,
+            entry.url,
+            { url: entry.url, lang: entry.lang },
+          );
           const proxyRes = await fetchViaServer(serverUrl, entry.url);
           if (proxyRes.status === 200 && proxyRes.body) {
             text = proxyRes.body;
@@ -217,16 +241,35 @@ export function WebDemoUrlsInput({
         }
 
         if (parsed && isValidJsonSubtitleResponse(parsed)) {
+          const cuesCount = parsed.events?.length || 0;
           loadedTracks[entry.lang] = parsed;
           successLangs.push(entry.lang);
           if (isYouTubeTranslatedSubtitle(entry.url, entry.lang)) {
             youtubeTranslatedLanguages.add(entry.lang);
           }
+          emitSubtitleFetchLog(
+            "success",
+            `[Quick Loader] Successfully loaded '${entry.lang}' (${cuesCount} cues, HTTP 200 OK)`,
+            entry.url,
+            { url: entry.url, lang: entry.lang, status: 200 },
+          );
         } else {
           failedLangs.push(entry.lang);
+          emitSubtitleFetchLog(
+            "warn",
+            `[Quick Loader] Failed to load valid JSON3 subtitles for '${entry.lang}'`,
+            entry.url,
+            { url: entry.url, lang: entry.lang },
+          );
         }
-      } catch {
+      } catch (err: any) {
         failedLangs.push(entry.lang);
+        emitSubtitleFetchLog(
+          "error",
+          `[Quick Loader] Error fetching '${entry.lang}': ${err?.message || String(err)}`,
+          entry.url,
+          { url: entry.url, lang: entry.lang },
+        );
       }
     }
 

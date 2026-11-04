@@ -70,6 +70,7 @@ export function SubtitlesTablePanel({
   const shouldFreezeColumns = !isAndroid && freezeColumns;
   const activeParserConfig = externalParserConfig || localParserConfig;
   const handleParserConfigChange = onParserConfigChange || setLocalParserConfig;
+  const [showQuarantinedParser, setShowQuarantinedParser] = React.useState(false);
 
   return (
     <div
@@ -78,11 +79,44 @@ export function SubtitlesTablePanel({
       data-control-category="daily-usage"
       className="custom-beautiful-scrollbar max-h-[calc(100vh-8rem)] overflow-auto rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-1"
     >
-      <NewSubtitlesParserBar
-        config={activeParserConfig}
-        onChange={handleParserConfigChange}
-        sentenceCount={rows.length}
-      />
+      {showQuarantinedParser ? (
+        <div className="relative">
+          <div className="flex items-center justify-between px-3 py-1 bg-amber-500/10 border-b border-amber-500/30 text-[11px] text-amber-800 dark:text-amber-200">
+            <span className="font-semibold">Notice: Experimental Inner Subtitles Parser (Quarantined by Default)</span>
+            <button
+              type="button"
+              data-testid="hide-quarantined-parser-btn"
+              onClick={() => setShowQuarantinedParser(false)}
+              className="text-[10px] underline hover:text-foreground cursor-pointer"
+            >
+              Quarantine / Hide
+            </button>
+          </div>
+          <NewSubtitlesParserBar
+            config={activeParserConfig}
+            onChange={handleParserConfigChange}
+            sentenceCount={rows.length}
+          />
+        </div>
+      ) : (
+        <div
+          data-testid="subtitles-parser-quarantined-banner"
+          className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-muted/40 border-b border-border text-[11px] text-muted-foreground"
+        >
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-foreground/80">Inner Parser Quarantined:</span>
+            <span>YouTube translations are naturally punctuated and used directly as translation source.</span>
+          </div>
+          <button
+            type="button"
+            data-testid="btn-toggle-quarantined-parser"
+            onClick={() => setShowQuarantinedParser(true)}
+            className="text-[10px] font-medium text-primary underline hover:text-primary/80 cursor-pointer"
+          >
+            Show Inner Parser
+          </button>
+        </div>
+      )}
       {/* Dynamic Row Criteria Subtitle Filters (Max Words Slider & Complete Sentences Only) */}
       <div
         id="subtitles-table-row-criteria-container"

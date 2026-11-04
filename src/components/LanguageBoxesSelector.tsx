@@ -26,6 +26,7 @@ import { fetchViaServer } from "../lib/subtitle-fetch-plan";
 import serverConfig from "@/config/server.json";
 import { Json3 } from "../types";
 import { isSharedLanguageForVideo } from "@/utils/favoriteLanguagesRules";
+import { emitSubtitleFetchLog } from "@/utils/subtitleFetchLogger";
 
 export interface LanguageBoxesSelectorProps {
   catalog: Array<{ code: string; name: string }>;
@@ -132,6 +133,13 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
     const inputUrl = (urlInputs[code] || "").trim();
     if (!inputUrl) return;
 
+    emitSubtitleFetchLog({
+      type: "info",
+      message: `Language Box fetch triggered for '${name}' (${code})`,
+      url: inputUrl,
+      lang: code,
+    });
+
     setFetchStatus((prev) => ({
       ...prev,
       [code]: { loading: true, message: `Fetching subtitles for ${name}…`, type: "info" },
@@ -145,9 +153,21 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
         if (resp.ok) {
           const text = await resp.text();
           parsed = parseJson3(text);
+          emitSubtitleFetchLog({
+            type: "info",
+            message: `Language Box direct fetch HTTP ${resp.status} for '${name}' (${code})`,
+            url: inputUrl,
+            status: resp.status,
+            lang: code,
+          });
         }
-      } catch {
-        // Direct fetch failed
+      } catch (directErr) {
+        emitSubtitleFetchLog({
+          type: "warning",
+          message: `Language Box direct fetch failed for '${name}' (${code}) (${directErr instanceof Error ? directErr.message : String(directErr)}), attempting proxy fallback...`,
+          url: inputUrl,
+          lang: code,
+        });
       }
 
       // 2. Server proxy if direct fetch failed
@@ -160,12 +180,27 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           const proxyResp = await fetchViaServer(inputUrl, serverUrl);
           if (proxyResp && proxyResp.status === 200 && proxyResp.body) {
             parsed = parseJson3(proxyResp.body);
+            emitSubtitleFetchLog({
+              type: "info",
+              message: `Language Box server proxy returned HTTP 200 for '${name}' (${code})`,
+              url: inputUrl,
+              status: 200,
+              lang: code,
+            });
           }
         }
       }
 
       if (parsed && isValidJsonSubtitleResponse(parsed)) {
         const cuesCount = parsed.events?.length || 0;
+        emitSubtitleFetchLog({
+          type: "success",
+          message: `Successfully loaded ${cuesCount} cues for '${name}' (${code})!`,
+          url: inputUrl,
+          status: 200,
+          lang: code,
+          cuesCount,
+        });
         setFetchStatus((prev) => ({
           ...prev,
           [code]: {
@@ -184,6 +219,12 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
           onSaveSubtitleUrl(code, parsed, inputUrl);
         }
       } else {
+        emitSubtitleFetchLog({
+          type: "error",
+          message: `Failed to parse valid YouTube JSON3 subtitles for '${name}' (${code})`,
+          url: inputUrl,
+          lang: code,
+        });
         setFetchStatus((prev) => ({
           ...prev,
           [code]: {
@@ -195,11 +236,18 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
         }));
       }
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      emitSubtitleFetchLog({
+        type: "error",
+        message: `Error fetching subtitles for '${name}' (${code}): ${errMsg}`,
+        url: inputUrl,
+        lang: code,
+      });
       setFetchStatus((prev) => ({
         ...prev,
         [code]: {
           loading: false,
-          message: `Error: ${err instanceof Error ? err.message : String(err)}`,
+          message: `Error: ${errMsg}`,
           type: "error",
         },
       }));

@@ -142,8 +142,13 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-parallel work - can be simplified by focusing on creating plans without updating the code. therefor if the prompt ask you to plan - do it in saperated directory like docs/plans/timestamp_<desc>.md and dont update any other repo's file. instead of updating a repo file  - create its continue on the same plan file, such as content: prompt:x work:y.
+pasting: https://www.youtube.com/api/timedtext?v=5-Mid7GNZ1M&ei=mqnqarjvMZfEhcIPl-TJ2AQ&caps=asr&opi=112496729&exp=xpe&xoaf=5&xowf=1&xospf=1&hl=iw&ip=0.0.0.0&ipbits=0&expire=1793788938&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&signature=227DA5C056CDB43797F3564B70A8CB3B321A5C6D.48EF7CEC5878106AE78A53E4EA023431BBF30306&key=yt8&kind=asr&lang=it&variant=timing-optimized&fmt=json3&c=WEB&pot=MlLEuGjtveoUoMSD11sGmFsIFJL9ESRQPsPy7sZjMzW3hQ00QcoZHs7ySY1ARis7DODpyyHDzHgOU9wclQyomHNnB2Nviybi6CJv1dfJhkQpsRFn to the quick loader 
+
+
+and then clicking on some favorite languages and click on fetch button - the log element doesnt show the fetch request
 ```
+
+
 
 
 
