@@ -3629,7 +3629,12 @@ function Index() {
     }
     setAudioTrackModeState(getAudioTrackMode());
     setAutoFocusState(getAutoScrollSetting());
-    setDebugModeState(getDebugModeSetting());
+    if (typeof window !== "undefined") {
+      const urlDebug = new URLSearchParams(window.location.search).get("debug");
+      if (urlDebug === null && isDeveloperModeEnabled()) {
+        setDebugModeState(true);
+      }
+    }
 
     // Prevent background pause on visibility changes
     try {

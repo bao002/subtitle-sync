@@ -1,5 +1,43 @@
 # Done tasks
 
+### Hotfix: Vite HMR Stale Transform, Module Exports & React Router Hydration (Prompt 67, Task 299-Hotfix)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 1: [vite] Failed to reload /src/components/AttemptOrderSettings.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 2: [vite] SyntaxError: The requested module '/src/utils/appSettings.ts' does not provide an export named 'getDisableAutoFocusSetting'
+  error 3: [vite] Failed to reload /src/components/beginner/tabs/BeginnerPreferencesTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 4: [vite] SyntaxError: The requested module '/src/utils/subtitleCache.ts' does not provide an export named 'cacheJson3Track'
+  error 5: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 6: [vite] Failed to reload /src/storybook/StorybookWorkbench.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 7: Invalid hook call. Hooks can only be called inside of the body of a function component.
+  error 8: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Cannot read properties of null (reading 'useState')
+  error 9: [APP_PAGE_ERROR] This page didn't load: Cannot read properties of null (reading 'useState')
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Diagnosis**:
+  - The exports `getDisableAutoFocusSetting` in `src/utils/appSettings.ts` and `cacheJson3Track` in `src/utils/subtitleCache.ts` were already declared and exported on disk, but the dev server had stale in-memory transforms following mid-edit reloads.
+  - The invalid hook call and `Cannot read properties of null (reading 'useState')` errors during router hydration were cascading errors caused by the browser loading partially-failed modules before React dispatcher initialization.
+  - In `src/routes/index.tsx`, an unconditional `setDebugModeState(getDebugModeSetting())` on mount was turning on developer-only views from persisted localStorage even when `debug=true` was not present in the URL.
+- **Implementation & Resolution**:
+  - Dev Server: Cleanly restarted the Vite development server using `restart_dev_server`, immediately clearing stale in-memory module graphs.
+  - `src/routes/index.tsx`: Fixed debug mode initialization to strictly respect URL query parameters: `if (urlDebug === null && isDeveloperModeEnabled()) { setDebugModeState(true); }`.
+  - `scripts/verify-hotfix-reload-and-compiler-errors.ts`: Enhanced to probe all 8 target modules (`/src/styles.css`, `/src/components/AttemptOrderSettings.tsx`, `/src/utils/appSettings.ts`, `/src/components/beginner/tabs/BeginnerPreferencesTab.tsx`, `/src/utils/subtitleCache.ts`, `/src/routes/index.tsx`, `/src/storybook/StorybookWorkbench.tsx`, `/src/client.tsx`) over HTTP, verifying 200 OK responses, no parse errors, and confirming `getDisableAutoFocusSetting`, `setDisableAutoFocusSetting`, `getDisableScrollingSetting`, `setDisableScrollingSetting`, and `cacheJson3Track` are exported functions.
+  - `AGENTS.md`: Optimized prose to strictly maintain safe byte budget (20,794 bytes <= 21,000 bytes) with >3,780 bytes headroom, while preserving all 21 constitutional contract checks.
+- **Verification Outcomes**:
+  - `npm run test:hotfix-reload-compiler`: PASSED (all 8 target files verified 200 OK without errors).
+  - `npm run test:hotfix-exports-and-hooks`: PASSED (all 6 checks passed).
+  - `npm run test:vite-reload-hotfix`: PASSED (all 10 modules returned 200 OK).
+  - `npm run test:client-pretransform-health`: PASSED.
+  - `npm run test:agents-all`: PASSED 21/21 (100% of AGENTS.md constitutional checks passed).
+  - `npm run test:no-duplicate-md`: PASSED (70 unique markdown files, 0 duplicates).
+  - `compile_applet`: PASSED (Build succeeded).
+  - `lint_applet`: PASSED (0 errors).
+
 ### Task 299 (Prompt 66 - Chapter 2): Settings Should Appear ONLY on Its Own Stage
 
 - **Prompt**:
