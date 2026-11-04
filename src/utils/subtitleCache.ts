@@ -584,6 +584,75 @@ export function getAllCachedTargetLanguages(videoId: string): string[] {
   return Array.from(set);
 }
 
+export interface CachedTrackDetails {
+  videoId: string;
+  lang: string;
+  isCached: boolean;
+  byteSize: number;
+  timestamp: number;
+  cuesCount: number;
+  isFixture: boolean;
+}
+
+/**
+ * Retrieves detailed cache information (byte size, cues count, timestamp, fixture status)
+ * for a specific subtitle track.
+ */
+export function getCachedTrackDetails(videoId: string, lang: string): CachedTrackDetails {
+  const cleanLang = lang.trim().toLowerCase().split("-")[0];
+  const isFixture =
+    videoId === "L2Ryrr6txwA" && Boolean(getCachedJson3ForVideoAndLanguage("L2Ryrr6txwA", cleanLang));
+  let byteSize = 0;
+  let timestamp = 0;
+  let cuesCount = 0;
+  let isCached = isFixture;
+
+  if (isStorageAvailable()) {
+    try {
+      const rawKey = `${SUBTITLE_CACHE_PREFIX}raw_${videoId}_${cleanLang}`;
+      const raw = localStorage.getItem(rawKey);
+      if (raw) {
+        byteSize = new Blob([raw]).size || raw.length;
+        isCached = true;
+      }
+      const cuesKey = `${SUBTITLE_CACHE_PREFIX}${videoId}_${cleanLang}`;
+      const stored = localStorage.getItem(cuesKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.timestamp) timestamp = parsed.timestamp;
+        if (Array.isArray(parsed?.cues)) cuesCount = parsed.cues.length;
+        if (!byteSize) byteSize = new Blob([stored]).size || stored.length;
+        isCached = true;
+      }
+    } catch {}
+  }
+
+  return {
+    videoId,
+    lang: cleanLang,
+    isCached,
+    byteSize,
+    timestamp: timestamp || Date.now(),
+    cuesCount,
+    isFixture,
+  };
+}
+
+/**
+ * Caches a JSON3 track to localStorage and memory, registering it in default subtitles.
+ */
+export function cacheJson3Track(videoId: string, lang: string, json3: unknown): boolean {
+  if (!videoId || !lang || !json3) return false;
+  try {
+    const rawString = typeof json3 === "string" ? json3 : JSON.stringify(json3);
+    const saved = saveCachedRawJson3(videoId, lang, rawString);
+    addDefaultSubtitleLanguage(videoId, lang);
+    return saved;
+  } catch {
+    return false;
+  }
+}
+
 const defaultSubtitlesMemoryMap = new Map<string, Set<string>>();
 
 function getStorage(): Storage | null {

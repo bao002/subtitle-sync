@@ -830,5 +830,57 @@ error 4: %o
 parallel work - can be simplified by focusing on creating plans without updating the code. therefor if the prompt ask you to plan - do it in saperated directory like docs/plans/timestamp_<desc>.md and dont update any other repo's file. instead of updating a repo file  - create its continue on the same plan file, such as content: prompt:x work:y.
 ```
 
+---
+
+### Prompt 62: Fetched Subtitles Info & Stats Stage, Move Fetching to Accordion, Quarantine Inner Parser, Log Element
+```
+0. add another stage which only responsible of showing the fetched subtitles info and statisics. its crusial for the app to cache those fetched subtitles and allow to choose which of the subtitles fetched will be used as based for translation. (by default pick the one with the highest number of sentence punctuations (as it does now). the subtitles-table-view should be reactive to the default subtitles (the source for translation).
+
+1. main issues: mv anything related to fetching subtitles to this elememt (design it as accordion like the rest of the elements on the page)
+
+2. by default - hide/disable/quarentine anything related to subtitles parsing (i have find out that youtube translation is punctuated so it can be used as translation-source/deafult-language instead of trying to split to sentences using app's inner subtitles parser)
+
+3.use such log element:
+https://youtube-subtitles-fetcher.base44.app/
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(2)
+CSS 2: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 63: Connect All Subtitle Fetch Actions & Quick Loader to Central Log Element
+```
+pasting: https://www.youtube.com/api/timedtext?v=5-Mid7GNZ1M&ei=mqnqarjvMZfEhcIPl-TJ2AQ&caps=asr&opi=112496729&exp=xpe&xoaf=5&xowf=1&xospf=1&hl=iw&ip=0.0.0.0&ipbits=0&expire=1793788938&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&signature=227DA5C056CDB43797F3564B70A8CB3B321A5C6D.48EF7CEC5878106AE78A53E4EA023431BBF30306&key=yt8&kind=asr&lang=it&variant=timing-optimized&fmt=json3&c=WEB&pot=MlLEuGjtveoUoMSD11sGmFsIFJL9ESRQPsPy7sZjMzW3hQ00QcoZHs7ySY1ARis7DODpyyHDzHgOU9wclQyomHNnB2Nviybi6CJv1dfJhkQpsRFn to the quick loader 
+
+
+and then clicking on some favorite languages and click on fetch button - the log element doesnt show the fetch request
+```
+
+---
+
+### Prompt 64: Allow Access to Cached Subtitle File by Clicking Link
+```
+allow to acces the cached file by clicking this link
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#fetched-subtitles-stage-panel:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(5) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+
+
+
 
 

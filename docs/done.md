@@ -1,5 +1,107 @@
 # Done tasks
 
+### Task 296 (Prompt 64): Interactive Cached Subtitle File Access & Inspection Modal from Stage 0 Card Link
+
+- **Prompt**:
+  ```
+  allow to acces the cached file by clicking this link
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#fetched-subtitles-stage-panel:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(5) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(1)
+  CSS 1: {}
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Requirement**:
+  - The focused element is the "Cached (X KB)" badge/text inside the fetched track card in Stage 0 (`FetchedSubtitlesStagePanel.tsx`).
+  - The user requested allowing access to the cached subtitle file by clicking this link.
+- **Implementation & Resolution**:
+  - `src/components/FetchedSubtitlesStagePanel.tsx`:
+    - Converted the static cached size text into an interactive button/link (`data-testid="cached-file-link-${langCode}"`) with pointer cursor, cyan hover states, underline styling, and title tooltip.
+    - Integrated a full-featured Modal Inspector (`data-testid="cached-file-viewer-modal"`) that opens upon clicking the link.
+    - Modal features:
+      - Raw YouTube JSON3 timedtext payload view with formatted indentation in a scrollable terminal/code element (`data-testid="cached-file-content-pre"`).
+      - "Download JSON" button (`data-testid="download-cached-file-btn"`) generating a direct `subtitles_<videoId>_<langCode>.json` file download.
+      - "Copy" button (`data-testid="copy-cached-file-btn"`) copying the formatted JSON3 subtitles directly to clipboard with visual feedback.
+      - Header metadata displaying cue count, exact byte size, and the corresponding `localStorage` key.
+      - Close button, backdrop click dismissal, and footer close button.
+  - `scripts/verify-cached-file-access-link.ts`: Created dedicated automated test script verifying link testid, modal presence, copy/download buttons, and JSON viewer (`npm run test:cached-file-link`).
+  - Verification: `npm run test:cached-file-link` passed with 0 errors, `compile_applet` passed, and `lint_applet` passed.
+
+
+### Task 295 (Prompt 63): Unified Subtitle Fetch Logger for Quick Loader, Favorite Languages & Stage 0 Activity Log
+
+- **Prompt**:
+  ```
+  pasting: https://www.youtube.com/api/timedtext?v=5-Mid7GNZ1M&ei=mqnqarjvMZfEhcIPl-TJ2AQ&caps=asr&opi=112496729&exp=xpe&xoaf=5&xowf=1&xospf=1&hl=iw&ip=0.0.0.0&ipbits=0&expire=1793788938&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&signature=227DA5C056CDB43797F3564B70A8CB3B321A5C6D.48EF7CEC5878106AE78A53E4EA023431BBF30306&key=yt8&kind=asr&lang=it&variant=timing-optimized&fmt=json3&c=WEB&pot=MlLEuGjtveoUoMSD11sGmFsIFJL9ESRQPsPy7sZjMzW3hQ00QcoZHs7ySY1ARis7DODpyyHDzHgOU9wclQyomHNnB2Nviybi6CJv1dfJhkQpsRFn to the quick loader 
+
+  and then clicking on some favorite languages and click on fetch button - the log element doesnt show the fetch request
+  ```
+- **Context & Problem**:
+  - When the user pasted an authentic YouTube timedtext query into the Quick Loader (`WebDemoUrlsInput`) or fetched favorite languages from `LanguageBoxesSelector` or the subtitles table, the Stage 0 activity log element (`subtitles-fetcher-terminal-log`) was not displaying the fetch requests because the log state was local to `FetchedSubtitlesStagePanel.tsx`.
+- **Implementation & Resolution**:
+  - `src/utils/subtitleFetchLogger.ts`: Implemented centralized reactive logger with pub/sub architecture (`subscribeSubtitleFetchLogs`, `emitSubtitleFetchLog`, `getSubtitleFetchLogs`, `clearSubtitleFetchLogs`) and automatic mirroring to system `logBuffer`. Supports both positional and options-object argument forms.
+  - `src/components/FetchedSubtitlesStagePanel.tsx`: Subscribed the terminal log element to `subscribeSubtitleFetchLogs`, rendering real-time incoming network requests, URLs, status codes, and cue counts.
+  - `src/components/WebDemoUrlsInput.tsx`: Wired `emitSubtitleFetchLog` to log multi-target derivations, direct fetches, proxy fallbacks, HTTP 200 successes, and errors.
+  - `src/components/LanguageBoxesSelector.tsx`: Wired `emitSubtitleFetchLog` to log per-language fetch clicks, status responses, cues count, and failures.
+  - `src/routes/index.tsx`: Wired `emitSubtitleFetchLog` to table-level track fetches and successful subtitle track saves.
+  - `scripts/verify-subtitle-fetch-logger.ts`: Added automated verification test validating logger pub/sub, buffer persistence, and component integrations (`npm run test:subtitle-fetch-logger`).
+  - Verification: `npm run test:subtitle-fetch-logger` passed (0 errors), `compile_applet` passed, and `lint_applet` passed.
+
+
+### Task 291, 292, 293, 294 (Prompt 62): Fetched Subtitles Info & Statistics Stage, Accordion Migration, Quarantined Inner Parser & Live Terminal Log
+
+- **Prompt**:
+  ```
+  0. add another stage which only responsible of showing the fetched subtitles info and statisics. its crusial for the app to cache those fetched subtitles and allow to choose which of the subtitles fetched will be used as based for translation. (by default pick the one with the highest number of sentence punctuations (as it does now). the subtitles-table-view should be reactive to the default subtitles (the source for translation).
+
+  1. main issues: mv anything related to fetching subtitles to this elememt (design it as accordion like the rest of the elements on the page)
+
+  2. by default - hide/disable/quarentine anything related to subtitles parsing (i have find out that youtube translation is punctuated so it can be used as translation-source/deafult-language instead of trying to split to sentences using app's inner subtitles parser)
+
+  3.use such log element:
+  https://youtube-subtitles-fetcher.base44.app/
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1)
+  CSS 1: {}
+  CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(2)
+  CSS 2: {}
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Requirements**:
+  - Chapter 0: Add dedicated stage solely responsible for displaying fetched subtitles info and statistics (cues count, sentence punctuation counts: periods, commas, questions, exclamations, total punctuation, words). Cache fetched subtitles to localStorage and allow 1-click selection of the translation source (default subtitles), picking by default the track with the highest sentence punctuation count. Make subtitles table reactively re-align to the chosen translation source.
+  - Chapter 1: Move all subtitle fetching controls (video URL/ID, direct TimedText URL, translation vs direct track strategy, quick-fetch buttons, sample fixtures) into this dedicated accordion element matching page accordion styling.
+  - Chapter 2: Hide, disable, and quarantine inner subtitles parser by default with an informative banner explaining that YouTube translations are naturally punctuated at sentence boundaries and used directly as translation source.
+  - Chapter 3: Implement real-time interactive terminal log element matching https://youtube-subtitles-fetcher.base44.app/ with colored log levels, terminal header with traffic-light dots, filters, and copy/clear controls.
+- **Implementation & Resolution**:
+  - `src/components/FetchedSubtitlesStagePanel.tsx`: Created comprehensive component implementing:
+    - Overview cards displaying fetched tracks count, active translation source, and total punctuation marks.
+    - Subtitle fetching controls bar with video URL input, direct TimedText URL input, strategy selector (`tlang` vs `lang`), quick fetch buttons, and authentic sample loader.
+    - Subtitles info and statistics cards detailing cues count, words count, periods, commas, questions, exclamations, total sentence punctuation, localStorage cache byte size, and recommended badge for track with highest punctuation.
+    - 1-click "Use as Translation Source" buttons immediately updating active default subtitle / base track.
+    - Inner parser quarantine status card explaining native YouTube punctuation precedence.
+    - Terminal log element inspired by youtube-subtitles-fetcher.base44.app with live timestamped logs, filtering (`all`, `errors`, `cache`, `stats`), copy, and clear functions.
+    - Next stage navigation buttons to seamlessly proceed to Learning Goals (Stage 1) or Subtitles Table (Stage 2).
+  - `src/components/FetchedSubtitlesStagePanel.stories.tsx`: Implemented Storybook story for clean component isolation testing.
+  - `src/storybook/StorybookWorkbench.tsx`: Registered `fetched_subtitles` in component catalog with interactive workbench preview.
+  - `src/config/accordionThemes.ts`: Added `fetchedSubtitles` to `PanelId`, `PANELS`, and `ACCORDION_THEMES` with dedicated cyan theme styling.
+  - `src/utils/subtitleCache.ts`: Added `getCachedTrackDetails` and `cacheJson3Track` helper utilities.
+  - `src/components/SubtitlesTablePanel.tsx`: Quarantined and hid `NewSubtitlesParserBar` by default with interactive quarantine toggle banner.
+  - `src/routes/index.tsx`:
+    - Added Stage 0 (`stage-step-0`) to stepper navigation.
+    - Integrated `fetchedSubtitles` accordion section inside the progressive stages pipeline.
+    - Ensured full reactivity between translation source selection, app state, and subtitles table view.
+    - Preserved backwards compatibility with existing stage assertions (`stage-step-1`, `stage-step-2`, `stage-step-3`).
+  - Single Source Version: Synchronized app version to v2.1.0 across all 5 version files.
+- **Validation**:
+  - `npm run test:fetched-subtitles-info-stage`: PASSED.
+  - `npm run test:stages-order-and-video-placement`: PASSED.
+  - `npm run test:accordion-stages-of-appearance`: PASSED.
+  - `npm run test:single-source-version`: PASSED.
+  - `npm run check-version`: PASSED.
+  - `compile_applet`: PASSED (`Build succeeded`).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+
 ### Task 290: Parallel Planning Mode Protocol (docs/plans/timestamp_<desc>.md & Continuation Format)
 
 - **Prompt**:

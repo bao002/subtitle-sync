@@ -38,6 +38,7 @@ import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSub
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import { VideoPlaybackPrecedenceBar } from "@/components/VideoPlaybackPrecedenceBar";
 import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceModeSettingsPanel";
+import { FetchedSubtitlesStagePanel } from "@/components/FetchedSubtitlesStagePanel";
 import {
   addExternalTtsAuditRecord,
   type AlternativeTtsEngine,
@@ -59,7 +60,8 @@ type ComponentKey =
   | "default_subtitles"
   | "learning_filters"
   | "precedence_bar"
-  | "performance_mode";
+  | "performance_mode"
+  | "fetched_subtitles";
 
 export const StorybookWorkbench: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<ComponentKey>("tts_service");
@@ -286,6 +288,7 @@ export const StorybookWorkbench: React.FC = () => {
             { id: "learning_filters", label: "Learning Filters", icon: Filter },
             { id: "precedence_bar", label: "Precedence Bar", icon: Film },
             { id: "performance_mode", label: "Fast/Slow Mode", icon: Zap },
+            { id: "fetched_subtitles", label: "Fetched Subtitles", icon: Subtitles },
           ].map((c) => {
             const Icon = c.icon;
             const isSelected = selectedComponent === c.id;
@@ -442,6 +445,7 @@ export const StorybookWorkbench: React.FC = () => {
                 {selectedComponent === "learning_filters" && "LearningGoalsFiltersPanel"}
                 {selectedComponent === "precedence_bar" && "VideoPlaybackPrecedenceBar"}
                 {selectedComponent === "performance_mode" && "PerformanceModeSettingsPanel"}
+                {selectedComponent === "fetched_subtitles" && "FetchedSubtitlesStagePanel"}
               </h1>
               <p className="text-xs text-muted-foreground">
                 Active Component Catalog:{" "}
@@ -754,6 +758,24 @@ export const StorybookWorkbench: React.FC = () => {
             {selectedComponent === "performance_mode" && (
               <div className="max-w-2xl mx-auto">
                 <PerformanceModeSettingsPanel />
+              </div>
+            )}
+
+            {selectedComponent === "fetched_subtitles" && (
+              <div className="max-w-4xl mx-auto">
+                <FetchedSubtitlesStagePanel
+                  videoId="L2Ryrr6txwA"
+                  videoInput="L2Ryrr6txwA"
+                  onVideoInputChange={() => {}}
+                  onSubmitVideoUrl={() => {}}
+                  observedUrl="https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3"
+                  tracks={{}}
+                  onTracksChange={() => {}}
+                  baseLanguage="en"
+                  onSelectBaseLanguage={() => {}}
+                  defaultLanguages={["en", "es"]}
+                  isAndroid={false}
+                />
               </div>
             )}
           </div>

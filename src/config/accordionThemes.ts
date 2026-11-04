@@ -1,4 +1,5 @@
 export type PanelId =
+  | "fetchedSubtitles"
   | "player"
   | "playback"
   | "charsRemoval"
@@ -13,6 +14,7 @@ export interface PanelConfig {
 }
 
 export const PANELS: PanelConfig[] = [
+  { id: "fetchedSubtitles", title: "Fetched Subtitles & Statistics" },
   { id: "player", title: "Video" },
   { id: "playback", title: "Settings" },
   { id: "charsRemoval", title: "Special characters removal" },
@@ -32,6 +34,14 @@ export interface AccordionTheme {
 }
 
 export const ACCORDION_THEMES: Record<PanelId, AccordionTheme> = {
+  fetchedSubtitles: {
+    borderLeft: "border-l-4 border-l-cyan-500",
+    summaryBg: "bg-cyan-50/70 hover:bg-cyan-100/70 dark:bg-cyan-950/30 dark:hover:bg-cyan-950/50",
+    badgeBg: "bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border-cyan-500/30",
+    dotBg: "bg-cyan-500",
+    tagColor: "cyan",
+    panelBg: "bg-cyan-50/20 dark:bg-cyan-950/25 border-cyan-200/50 dark:border-cyan-900/40",
+  },
   player: {
     borderLeft: "border-l-4 border-l-blue-500",
     summaryBg: "bg-blue-50/70 hover:bg-blue-100/70 dark:bg-blue-950/30 dark:hover:bg-blue-950/50",

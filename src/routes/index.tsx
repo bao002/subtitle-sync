@@ -157,6 +157,7 @@ import {
   getVideoBarIndex,
   updatePrecedenceFromVideoBarIndex,
 } from "@/components/VideoPlaybackPrecedenceBar";
+import { FetchedSubtitlesStagePanel } from "@/components/FetchedSubtitlesStagePanel";
 
 import {
   addUniqueSubtitleColumn,
@@ -247,6 +248,7 @@ import { AccordionSection } from "@/components/AccordionSection";
 import { StateMachineActionLogsInspector } from "@/components/StateMachineActionLogsInspector";
 import { CriticalCaptionsAlert } from "@/components/CriticalCaptionsAlert";
 import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
+import { emitSubtitleFetchLog } from "@/utils/subtitleFetchLogger";
 import { HighlightedSubtitle } from "@/components/HighlightedSubtitle";
 import { ApkReleasesFooter } from "@/components/ApkReleasesFooter";
 import { VideoPlayground, type DetectedSubtitleTrack } from "@/components/VideoPlayground";
@@ -2453,6 +2455,13 @@ function Index() {
       if (autoSpeakOnFetch && langCode !== baseLanguage) {
         setSpoken((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
       }
+      emitSubtitleFetchLog({
+        type: "success",
+        message: `Saved subtitle track for '${getLanguageMeta(langCode).name}' (${langCode}) with ${track.events?.length || 0} cues`,
+        url,
+        lang: langCode,
+        cuesCount: track.events?.length || 0,
+      });
       notifySubtitleFetch(
         "completed",
         `Subtitles loaded for ${getLanguageMeta(langCode).name}`,
@@ -2466,6 +2475,13 @@ function Index() {
   const handleFetchTableUrl = async (langCode: string, langName: string) => {
     const inputUrl = (tableUrlInputs[langCode] || "").trim();
     if (!inputUrl) return;
+
+    emitSubtitleFetchLog({
+      type: "info",
+      message: `Table row fetch triggered for '${langName}' (${langCode})`,
+      url: inputUrl,
+      lang: langCode,
+    });
 
     setTableFetchStatus((prev) => ({
       ...prev,
@@ -2483,9 +2499,21 @@ function Index() {
         if (resp.ok) {
           const text = await resp.text();
           parsed = parseJson3(text);
+          emitSubtitleFetchLog({
+            type: "info",
+            message: `Table row direct fetch HTTP ${resp.status} for '${langName}' (${langCode})`,
+            url: inputUrl,
+            status: resp.status,
+            lang: langCode,
+          });
         }
-      } catch {
-        // Direct fetch failed
+      } catch (directErr) {
+        emitSubtitleFetchLog({
+          type: "warning",
+          message: `Table row direct fetch failed for '${langName}' (${langCode}) (${directErr instanceof Error ? directErr.message : String(directErr)}), attempting proxy fallback...`,
+          url: inputUrl,
+          lang: langCode,
+        });
       }
 
       if (!parsed || !isValidJsonSubtitleResponse(parsed)) {
@@ -2497,12 +2525,27 @@ function Index() {
           const proxyResp = await fetchViaServer(inputUrl, serverUrl);
           if (proxyResp && proxyResp.status === 200 && proxyResp.body) {
             parsed = parseJson3(proxyResp.body);
+            emitSubtitleFetchLog({
+              type: "info",
+              message: `Table row server proxy returned HTTP 200 for '${langName}' (${langCode})`,
+              url: inputUrl,
+              status: 200,
+              lang: langCode,
+            });
           }
         }
       }
 
       if (parsed && isValidJsonSubtitleResponse(parsed)) {
         const cuesCount = parsed.events?.length || 0;
+        emitSubtitleFetchLog({
+          type: "success",
+          message: `Loaded ${cuesCount} cues for '${langName}' (${langCode})!`,
+          url: inputUrl,
+          status: 200,
+          lang: langCode,
+          cuesCount,
+        });
         setTableFetchStatus((prev) => ({
           ...prev,
           [langCode]: {
@@ -2514,6 +2557,12 @@ function Index() {
 
         handleSaveTrackFromUrl(langCode, parsed, inputUrl);
       } else {
+        emitSubtitleFetchLog({
+          type: "error",
+          message: `Invalid YouTube JSON3 subtitles for '${langName}' (${langCode})`,
+          url: inputUrl,
+          lang: langCode,
+        });
         setTableFetchStatus((prev) => ({
           ...prev,
           [langCode]: {
@@ -2524,11 +2573,18 @@ function Index() {
         }));
       }
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      emitSubtitleFetchLog({
+        type: "error",
+        message: `Error fetching table subtitles for '${langName}' (${langCode}): ${errMsg}`,
+        url: inputUrl,
+        lang: langCode,
+      });
       setTableFetchStatus((prev) => ({
         ...prev,
         [langCode]: {
           loading: false,
-          message: `Error: ${err instanceof Error ? err.message : String(err)}`,
+          message: `Error: ${errMsg}`,
           type: "error",
         },
       }));
@@ -2538,6 +2594,7 @@ function Index() {
   const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => PANELS.map((panel) => panel.id));
   const [subtitlesPanelWide, setSubtitlesPanelWide] = useState(true);
   const [openPanels, setOpenPanels] = useState<Record<PanelId, boolean>>({
+    fetchedSubtitles: true,
     player: false,
     playback: false,
     charsRemoval: false,
@@ -2548,11 +2605,12 @@ function Index() {
   });
 
   // Stages of appearance:
-  // Stage 1: Only video accordion until subtitles are detected.
-  // Stage 2: "Learning goals" accordion - user approves favorite languages and sets default language.
-  // Stage 3: Subtitles table view accordion.
-  // Stage 4: Toggle via settings icon to present all other accordion elements (playback, charsRemoval, parser, library).
-  const [currentAccordionStage, setCurrentAccordionStage] = useState<1 | 2 | 3>(1);
+  // Stage 0: Fetched Subtitles & Statistics: Info, stats, caching, translation source selection.
+  // Stage 1: "Learning goals" accordion - user approves favorite languages.
+  // Stage 2: Subtitles table view accordion (reactive to default subtitle / translation source).
+  // Stage 3: Video & playback synchronized view.
+  // Stage 4: Toggle via settings icon to present all other accordion elements.
+  const [currentAccordionStage, setCurrentAccordionStage] = useState<0 | 1 | 2 | 3>(0);
   const [showOtherSettingsAccordions, setShowOtherSettingsAccordions] = useState<boolean>(false);
 
   const handleToggleVideoSubtitles = () => {
@@ -6538,6 +6596,25 @@ function Index() {
                     <span className="text-xs font-semibold text-muted-foreground mr-1">Stage:</span>
                     <button
                       type="button"
+                      id="stage-step-0"
+                      data-testid="stage-step-0"
+                      onClick={() => {
+                        setCurrentAccordionStage(0);
+                        setOpenPanels((prev) => ({ ...prev, fetchedSubtitles: true }));
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                        currentAccordionStage === 0
+                          ? "bg-primary text-primary-foreground shadow"
+                          : "bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <span className="h-4 w-4 rounded-full bg-background/20 flex items-center justify-center text-[10px] font-bold">
+                        0
+                      </span>
+                      <span>Fetched Subtitles</span>
+                    </button>
+                    <button
+                      type="button"
                       id="stage-step-1"
                       data-testid="stage-step-1"
                       onClick={() => {
@@ -6627,7 +6704,9 @@ function Index() {
                       return true;
                     }
                     // Otherwise, strictly filter by stages:
-                    // First stage is learning-goals; last stage is video; video is NOT shown on any other stage
+                    if (currentAccordionStage === 0) {
+                      return panelId === "fetchedSubtitles";
+                    }
                     if (currentAccordionStage === 1) {
                       return panelId === "languages";
                     }
@@ -6670,6 +6749,55 @@ function Index() {
                         }
                         autoTimeout={panelId === "library" ? videoLibraryTimeoutEnabled : false}
                       >
+                        {panelId === "fetchedSubtitles" && (
+                          <FetchedSubtitlesStagePanel
+                            videoId={videoId}
+                            videoInput={videoInput}
+                            onVideoInputChange={setVideoInput}
+                            onSubmitVideoUrl={(url) => {
+                              const parsed = parseVideoId(url);
+                              const newId = parsed || url.trim();
+                              handleSelectLibraryVideo(newId, url);
+                            }}
+                            observedUrl={observedUrl}
+                            onObservedUrlChange={setObservedUrl}
+                            tracks={tracks}
+                            onTracksChange={(newTracks) => setTracks(newTracks)}
+                            baseLanguage={baseLanguage}
+                            onSelectBaseLanguage={handleSelectDefaultSubtitle}
+                            defaultLanguages={defaultSubtitleLanguages}
+                            isAndroid={isAndroid}
+                            onLoadSampleSubtitles={() => {
+                              const validEntries = Object.entries(JSON3_RAW_MAP)
+                                .map(([code, raw]) => {
+                                  const j = parseJson3(raw);
+                                  return j ? ([code, j] as const) : null;
+                                })
+                                .filter((entry): entry is [string, Json3] => entry !== null);
+                              setTracks(Object.fromEntries(validEntries));
+                              setObservedUrl(
+                                "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3",
+                              );
+                            }}
+                            onProceedToStage={(stage) => {
+                              setCurrentAccordionStage(stage as 0 | 1 | 2 | 3);
+                              if (stage === 1) {
+                                setOpenPanels((prev) => ({ ...prev, languages: true }));
+                              }
+                              if (stage === 2) {
+                                setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+                              }
+                              if (stage === 3) {
+                                setOpenPanels((prev) => ({
+                                  ...prev,
+                                  player: true,
+                                  subtitles: true,
+                                }));
+                              }
+                            }}
+                            innerParserQuarantined={true}
+                          />
+                        )}
                         {panelId === "player" && (
                           <div>
                             {isAndroid && (
@@ -9082,18 +9210,38 @@ function Index() {
 
                               {/* Stage 2 Action Bar */}
                               <div className="flex items-center justify-between pt-2 border-t border-primary/20">
-                                <Button
-                                  id="stage-2-back-button"
-                                  data-testid="stage-2-back-button"
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setCurrentAccordionStage(1)}
-                                  className="gap-1.5 text-xs h-8"
-                                >
-                                  <ArrowLeft className="h-3.5 w-3.5" />
-                                  <span>Stage 1 (Learning Goals)</span>
-                                </Button>
+                                <div className="flex items-center gap-1.5">
+                                  <Button
+                                    id="stage-to-stage-0-btn"
+                                    data-testid="stage-to-stage-0-btn"
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      setCurrentAccordionStage(0);
+                                      setOpenPanels((prev) => ({
+                                        ...prev,
+                                        fetchedSubtitles: true,
+                                      }));
+                                    }}
+                                    className="gap-1 text-xs h-8 text-muted-foreground hover:text-foreground"
+                                  >
+                                    <ArrowLeft className="h-3.5 w-3.5" />
+                                    <span>Stage 0 (Fetched Subtitles)</span>
+                                  </Button>
+                                  <Button
+                                    id="stage-2-back-button"
+                                    data-testid="stage-2-back-button"
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentAccordionStage(1)}
+                                    className="gap-1.5 text-xs h-8"
+                                  >
+                                    <ArrowLeft className="h-3.5 w-3.5" />
+                                    <span>Stage 1 (Learning Goals)</span>
+                                  </Button>
+                                </div>
                                 <Button
                                   id="stage-2-next-button"
                                   data-testid="stage-2-next-button"
