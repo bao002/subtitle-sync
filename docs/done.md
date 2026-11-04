@@ -1,5 +1,63 @@
 # Done tasks
 
+### Task 290: Parallel Planning Mode Protocol (docs/plans/timestamp_<desc>.md & Continuation Format)
+
+- **Prompt**:
+  ```
+  parallel work - can be simplified by focusing on creating plans without updating the code. therefor if the prompt ask you to plan - do it in saperated directory like docs/plans/timestamp_<desc>.md and dont update any other repo's file. instead of updating a repo file  - create its continue on the same plan file, such as content: prompt:x work:y.
+  ```
+- **Context & Requirements**:
+  - Parallel work can be simplified by focusing on creating plans without updating the code.
+  - If a prompt asks to plan, create the plan in a separate directory `docs/plans/timestamp_<desc>.md` and do not update any other repo file.
+  - Instead of updating a repo file during planning, append continuations on the same plan file with content format `prompt: <x>` and `work: <y>`.
+  - Directory `docs/plans/` conforms to constitutional markdown location rules under `docs/`.
+  - Dedicated automated verification script, AGENTS.md contract suite integration, compilation, and linting.
+- **Implementation & Resolution**:
+  - `AGENTS.md`:
+    - Added dedicated parallel planning mode rule under `## Parallel AI agent coordination & lock mechanism (chat.md)`.
+    - Preserved exact raw prompt in `## Last raw prompt` while maintaining file size under the 21,000-byte safe budget (20,559 bytes, 4,017 bytes headroom).
+  - `docs/plans/`: Created `docs/plans/` directory with `.gitkeep` documenting plan naming convention and continuation format.
+  - `prompt_history.md`: Recorded Prompt 61.
+  - `chat.md`: Acquired lock for Task 290 during execution and released lock upon completion.
+  - `scripts/verify-parallel-planning-mode.ts`: Created dedicated test validating AGENTS.md rules, `docs/plans/` directory, continuation schema, prompt retention, and size budget.
+  - `scripts/verify-agents-all.ts`: Registered Check #21 (`Parallel Planning Mode Protocol (docs/plans/)`).
+  - `package.json`: Registered `"test:parallel-planning-mode"` test script.
+- **Validation**:
+  - `npm run test:parallel-planning-mode`: PASSED (100% verified across all 6 steps).
+  - `npm run test:agents-all`: PASSED (21/21 constitutional checks passed 100%).
+  - `compile_applet`: PASSED (`Build succeeded`).
+  - `lint_applet`: PASSED (0 errors).
+
+### Task 289 (Chapter 1): AGENTS.md - Parallel AI Agent Coordination, Lock Mechanism & chat.md Shared Channel
+
+- **Prompt**:
+  ```
+  1. AGENTS.md - allow parallel work of AI agent by using a lock mechanism and by sharing a communication channel as chat.md in order to effeciently work in parallel without getting into code conflicts.the whenever an agent finish a job he needs to take off the lock. if a job was stopped before accomplished shoud the agent ask if the jobs priority and what task to continue before starting to work. if agent suspect another agents is working on the same job as he does -he needs to communucate it. the prompt user can can answer if no agent does reply - in this case redirect the question to the user
+  ```
+- **Context & Requirements**:
+  - Allow parallel work of AI agents using a lock mechanism and a shared communication channel in `chat.md` to prevent code conflicts.
+  - Whenever an agent finishes a job, it must release/take off the lock (`[UNLOCKED]`).
+  - If a job was stopped before being accomplished, the agent must inquire about the job's priority and ask what task to continue before starting work.
+  - If an agent suspects another agent is working on the same job, it must communicate via `chat.md`.
+  - If no agent replies to the inquiry or conflict notice on `chat.md`, redirect the question directly to the prompt user.
+  - Allow `chat.md` in root markdown exception list alongside `README.md`, `AGENTS.md`, `current-sub-task.md`, `temp.md`, and `prompt_history.md`.
+- **Implementation & Resolution**:
+  - `AGENTS.md`:
+    - Updated `## Work tracking` to permit `chat.md` in root markdown files.
+    - Added dedicated section `## Parallel AI agent coordination & lock mechanism (chat.md)` defining the lock protocol, mandatory lock release upon job completion, interrupted job priority inquiry, duplicate job suspicion communication, and fallback user redirection.
+    - Preserved exact raw prompt in `## Last raw prompt` while maintaining file size under the 21,000-byte safe budget (20,320 bytes).
+  - `chat.md`: Created root communication channel file with `## Active Lock` state schema (`Status`, `Agent ID`, `Task ID`, `Scope / Files`, `Acquired At`) and `## Communication Log`.
+  - `scripts/verify-no-duplicate-md-files.ts`: Updated `allowedRootMdFiles` to include `chat.md`.
+  - `scripts/verify-auto-retry-and-versioning.ts`: Updated `allowedRootMd` to include `chat.md` and `prompt_history.md`.
+  - `scripts/verify-parallel-agent-coordination.ts`: Created dedicated automated test suite (`npm run test:parallel-agent-coordination`).
+  - `scripts/verify-agents-all.ts`: Registered check #20 (`Parallel AI Agent Coordination & Lock Protocol`) in the unified constitutional contract test suite.
+  - `package.json`: Added `test:parallel-agent-coordination` test script.
+- **Validation**:
+  - `npm run test:parallel-agent-coordination`: PASSED 100% with all 4 verification steps.
+  - `npm run test:agents-all`: PASSED 20/20 constitutional checks.
+  - `compile_applet`: PASSED (`Build succeeded`).
+  - `lint_applet`: PASSED with 0 errors.
+
 ### Hotfix: Fix Maximum Update Depth Exceeded & getSnapshot Caching in useSyncExternalStore (performanceModeManager.ts)
 
 - **Prompt**:

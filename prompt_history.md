@@ -816,4 +816,19 @@ error 4: %o
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 60: Parallel AI Agent Coordination, Lock Mechanism & chat.md Shared Channel
+```
+1. AGENTS.md - allow parallel work of AI agent by using a lock mechanism and by sharing a communication channel as chat.md in order to effeciently work in parallel without getting into code conflicts.the whenever an agent finish a job he needs to take off the lock. if a job was stopped before accomplished shoud the agent ask if the jobs priority and what task to continue before starting to work. if agent suspect another agents is working on the same job as he does -he needs to communucate it. the prompt user can can answer if no agent does reply - in this case redirect the question to the user
+```
+
+---
+
+### Prompt 61: Parallel Planning Mode in docs/plans/ & Append Continuation Format
+```
+parallel work - can be simplified by focusing on creating plans without updating the code. therefor if the prompt ask you to plan - do it in saperated directory like docs/plans/timestamp_<desc>.md and dont update any other repo's file. instead of updating a repo file  - create its continue on the same plan file, such as content: prompt:x work:y.
+```
+
+
 

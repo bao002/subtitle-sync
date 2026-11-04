@@ -117,6 +117,7 @@ const allowedRootMdFiles = new Set([
   "AGENTS.md",
   "current-sub-task.md",
   "temp.md",
+  "chat.md",
   "prompt_history.md",
 ]);
 const rootMdFiles = fs.readdirSync(rootDir).filter((f) => f.endsWith(".md"));

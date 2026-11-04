@@ -158,6 +158,8 @@
     "test:agents-version": "tsx scripts/verify-agents-version-rule.ts",
     "test:agents-size-budget": "tsx scripts/verify-agents-size-budget.ts",
     "test:agents-all": "tsx scripts/verify-agents-all.ts",
+    "test:parallel-agent-coordination": "tsx scripts/verify-parallel-agent-coordination.ts",
+    "test:parallel-planning-mode": "tsx scripts/verify-parallel-planning-mode.ts",
     "test:pending-prs-rule": "tsx scripts/verify-pending-prs-rule.ts",
     "test:html-guard-caching": "tsx scripts/verify-html-response-guard-and-caching.ts",
     "test:strict-json3-validation": "tsx scripts/verify-strict-json3-only-validation.ts",

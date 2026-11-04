@@ -235,7 +235,14 @@ console.log(
 console.log("--> [Step 6] Verifying zero duplicate markdown files policy...");
 const rootFiles = fs.readdirSync(path.resolve(__dirname, ".."));
 const rootMdFiles = rootFiles.filter((f) => f.endsWith(".md"));
-const allowedRootMd = new Set(["README.md", "AGENTS.md", "current-sub-task.md", "temp.md"]);
+const allowedRootMd = new Set([
+  "README.md",
+  "AGENTS.md",
+  "current-sub-task.md",
+  "temp.md",
+  "chat.md",
+  "prompt_history.md",
+]);
 const invalidRootMd = rootMdFiles.filter((f) => !allowedRootMd.has(f));
 assert(
   invalidRootMd.length === 0,
