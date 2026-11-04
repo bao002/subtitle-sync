@@ -55,7 +55,14 @@ assert(
   agentsContent.includes("Only `README.md`, `AGENTS.md`, `current-sub-task.md`, `temp.md`, `chat.md`"),
   "AGENTS.md must allow chat.md in the root markdown exceptions list",
 );
-console.log("✅ PASS: AGENTS.md rules satisfy all parallel agent coordination requirements.");
+
+assert(
+  agentsContent.includes("Quarantine agent chat") ||
+    agentsContent.includes("quarentine and dont use for now") ||
+    agentsContent.includes("quarantined and must NOT be used for now"),
+  "AGENTS.md must mandate quarantining agent chat and not using it for now",
+);
+console.log("✅ PASS: AGENTS.md rules satisfy all parallel agent coordination & quarantine requirements.");
 
 // Step 2: Verify chat.md physical presence and schema
 console.log("\n--> [Step 2] Verifying chat.md structure, active lock schema, and communication log...");
@@ -84,7 +91,18 @@ assert(
   chatContent.includes("## Communication Log"),
   "chat.md must contain ## Communication Log section",
 );
-console.log("✅ PASS: chat.md exists with required lock schema and communication log.");
+
+assert(
+  chatContent.includes("QUARANTINED") || chatContent.includes("Quarantined"),
+  "chat.md must indicate quarantine notice",
+);
+
+const quarentinedChatPath = path.resolve(rootDir, "quarentined/chat.md");
+assert(
+  fs.existsSync(quarentinedChatPath),
+  "quarentined/chat.md must physically exist under quarentined/",
+);
+console.log("✅ PASS: chat.md exists with required lock schema, quarantine notice, and quarentined/ archive.");
 
 // Step 3: Verify scripts allowlist for root markdown files
 console.log("\n--> [Step 3] Verifying root markdown file allowlists in audit scripts...");

@@ -64,7 +64,8 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Parallel AI agent coordination & lock mechanism (chat.md)
 
-- **Allow parallel work via lock mechanism and shared communication channel**: AI agents coordinate via `chat.md` and acquire a dedicated execution lock to prevent overlapping file edits.
+- **Quarantine agent chat (chat.md) & do not use for now**: Agent chat and coordination via `chat.md` are strictly quarantined and must NOT be used for now. Do not acquire locks, post messages, or coordinate via `chat.md`. Execute tasks independently without using agent chat.
+- **Allow parallel work via lock mechanism and shared communication channel (quarantined specification)**: AI agents coordinate via `chat.md` and acquire a dedicated execution lock to prevent overlapping file edits.
 - **Mandatory lock release upon job completion**: Before work, an agent checks `chat.md` for active locks and registers lock (Agent ID, Task ID, Scope) under `## Active Lock`. When finished, an agent MUST immediately take off the lock (resetting status to `[UNLOCKED]`) and record completion in `chat.md`.
 - **Interrupted job priority resolution**: If a job stopped or interrupted (stale lock/incomplete task), an agent MUST NOT blindly overwrite; the agent MUST inquire about the job's priority and ask what task to continue before starting work.
 - **Duplicate job suspicion communication**: If an agent suspects or observes another agent is working on the same job, task, or overlapping file scope, the agent MUST explicitly post and communicate this in `chat.md` before performing edits.
@@ -126,12 +127,13 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Supabase quarantine & prompt history policy
 
 - **Quarantine Supabase / database files**: No prompt instructions issued regarding database support. All Supabase files, DB configs, and docs must be strictly quarantined under `quarentined/`. Keep the project lean and client-side without DB dependencies.
+- **Quarantine agent chat (`chat.md`)**: Agent chat and `chat.md` coordination are strictly quarantined and must NOT be used for now.
 - **Historic prompts tracking in `prompt_history.md`**: Always record and preserve all historic prompts in `prompt_history.md`.
 
 ## Last raw prompt
 
 ```
-ensure github actions works correctly and e2e test recognize the current application crash
+go on
 ```
 
 

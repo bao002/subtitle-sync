@@ -952,4 +952,31 @@ go on
 ensure github actions works correctly and e2e test recognize the current application crash
 ```
 
+---
+
+### Prompt 71: Fix Errors in App (Dev Server Pre-warming Failure)
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.3 dev > vite --port 3000 --host 0.0.0.0
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 72: Quarantine Agent Chat in AGENTS.md & Do Not Use For Now
+```
+AGENTS.md - regarding using agent chat - quarentine and dont use for now
+```
+
+---
+
+### Prompt 73: Go On
+```
+go on
+```
+
+
+
 
