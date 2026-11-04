@@ -1662,6 +1662,12 @@ function Index() {
   const [actionLogsOpen, setActionLogsOpen] = useState(false);
   const [apkModalOpen, setApkModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [isSettingsBackupModalOpen, setIsSettingsBackupModalOpen] = useState(false);
+  const handleSettingsImported = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.location.reload();
+    }
+  }, []);
   const networkRequests = useNetworkRequests();
   const apkReleaseLinks = useMemo(() => getApkReleaseLinks(), []);
 
@@ -6329,6 +6335,7 @@ function Index() {
                 setSpoken((prev) => [...prev, lang]);
               }
             }}
+            onOpenBackupModal={() => setIsSettingsBackupModalOpen(true)}
             ttsServiceControlsSlot={
               <BeginnerTtsServiceControl
                 service={
@@ -7621,6 +7628,37 @@ function Index() {
                                         No fetched subtitle languages detected yet.
                                       </span>
                                     )}
+                                  </div>
+                                </div>
+                                <div
+                                  className="space-y-2 p-2.5 rounded-lg border border-border/80 bg-card/60 shadow-xs"
+                                  data-testid="settings-export-import-section"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-semibold text-xs text-foreground flex items-center gap-1.5">
+                                      <Settings2 className="w-3.5 h-3.5 text-primary" />
+                                      <span>Settings Backup &amp; Restore</span>
+                                    </span>
+                                    <span className="text-[10px] bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-full">
+                                      JSON
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground">
+                                    Export, download, or restore your complete application settings,
+                                    preferences, language choices, and learning goals.
+                                  </p>
+                                  <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                                    <Button
+                                      type="button"
+                                      variant="default"
+                                      size="sm"
+                                      data-testid="settings-export-import-btn"
+                                      onClick={() => setIsSettingsBackupModalOpen(true)}
+                                      className="h-7 text-xs gap-1.5 cursor-pointer font-medium"
+                                    >
+                                      <Settings2 className="h-3.5 w-3.5" />
+                                      <span>Export / Import Settings</span>
+                                    </Button>
                                   </div>
                                 </div>
                                 <div className="flex items-center justify-between gap-2">
@@ -10514,6 +10552,11 @@ function Index() {
         openRouterApiKey={getOpenRouterApiKeySetting()}
         ttsProvider={lovableTtsProviderState}
         isAndroid={isAndroid}
+      />
+      <SettingsBackupModal
+        isOpen={isSettingsBackupModalOpen}
+        onClose={() => setIsSettingsBackupModalOpen(false)}
+        onSettingsImported={handleSettingsImported}
       />
       <SubtitleFetchToast
         onViewSubtitles={() => {
