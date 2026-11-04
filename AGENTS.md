@@ -142,11 +142,16 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-pasting: https://www.youtube.com/api/timedtext?v=5-Mid7GNZ1M&ei=mqnqarjvMZfEhcIPl-TJ2AQ&caps=asr&opi=112496729&exp=xpe&xoaf=5&xowf=1&xospf=1&hl=iw&ip=0.0.0.0&ipbits=0&expire=1793788938&sparams=ip,ipbits,expire,v,ei,caps,opi,exp,xoaf&signature=227DA5C056CDB43797F3564B70A8CB3B321A5C6D.48EF7CEC5878106AE78A53E4EA023431BBF30306&key=yt8&kind=asr&lang=it&variant=timing-optimized&fmt=json3&c=WEB&pot=MlLEuGjtveoUoMSD11sGmFsIFJL9ESRQPsPy7sZjMzW3hQ00QcoZHs7ySY1ARis7DODpyyHDzHgOU9wclQyomHNnB2Nviybi6CJv1dfJhkQpsRFn to the quick loader 
+allow to acces the cached file by clicking this link
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#fetched-subtitles-stage-panel:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(5) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(1)
+CSS 1: {
 
-
-and then clicking on some favorite languages and click on fetch button - the log element doesnt show the fetch request
+}
+[AIS_METADATA_SECTION_END]
 ```
+
 
 
 

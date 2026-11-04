@@ -35,6 +35,8 @@ This channel provides a shared coordination registry and execution lock for AI a
 | 2026-11-03T19:46:00Z | Agent-291 | Completed Tasks 291-294: Verified with dedicated tests, build, and linter. Lock released. | Completed |
 | 2026-11-03T19:55:45Z | Agent-295 | Acquired lock for Task 295: Fix Subtitle Fetching Activity Logs for Quick Loader & Favorite Languages Fetch. | In Progress |
 | 2026-11-03T20:02:40Z | Agent-295 | Completed Task 295: Verified with npm run test:subtitle-fetch-logger, compile_applet, lint_applet. Lock released. | Completed |
+| 2026-11-03T20:11:15Z | Agent-296 | Acquired lock for Task 296: Interactive Cached Subtitle File Access & Inspection Modal from Stage 0 Card Link. | In Progress |
+| 2026-11-03T20:13:20Z | Agent-296 | Completed Task 296: Verified with npm run test:cached-file-link, compile_applet, lint_applet. Lock released. | Completed |
 
 
 

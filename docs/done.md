@@ -1,5 +1,33 @@
 # Done tasks
 
+### Task 296 (Prompt 64): Interactive Cached Subtitle File Access & Inspection Modal from Stage 0 Card Link
+
+- **Prompt**:
+  ```
+  allow to acces the cached file by clicking this link
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#fetched-subtitles-stage-panel:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(5) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(1)
+  CSS 1: {}
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Requirement**:
+  - The focused element is the "Cached (X KB)" badge/text inside the fetched track card in Stage 0 (`FetchedSubtitlesStagePanel.tsx`).
+  - The user requested allowing access to the cached subtitle file by clicking this link.
+- **Implementation & Resolution**:
+  - `src/components/FetchedSubtitlesStagePanel.tsx`:
+    - Converted the static cached size text into an interactive button/link (`data-testid="cached-file-link-${langCode}"`) with pointer cursor, cyan hover states, underline styling, and title tooltip.
+    - Integrated a full-featured Modal Inspector (`data-testid="cached-file-viewer-modal"`) that opens upon clicking the link.
+    - Modal features:
+      - Raw YouTube JSON3 timedtext payload view with formatted indentation in a scrollable terminal/code element (`data-testid="cached-file-content-pre"`).
+      - "Download JSON" button (`data-testid="download-cached-file-btn"`) generating a direct `subtitles_<videoId>_<langCode>.json` file download.
+      - "Copy" button (`data-testid="copy-cached-file-btn"`) copying the formatted JSON3 subtitles directly to clipboard with visual feedback.
+      - Header metadata displaying cue count, exact byte size, and the corresponding `localStorage` key.
+      - Close button, backdrop click dismissal, and footer close button.
+  - `scripts/verify-cached-file-access-link.ts`: Created dedicated automated test script verifying link testid, modal presence, copy/download buttons, and JSON viewer (`npm run test:cached-file-link`).
+  - Verification: `npm run test:cached-file-link` passed with 0 errors, `compile_applet` passed, and `lint_applet` passed.
+
+
 ### Task 295 (Prompt 63): Unified Subtitle Fetch Logger for Quick Loader, Favorite Languages & Stage 0 Activity Log
 
 - **Prompt**:

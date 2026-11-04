@@ -27,6 +27,7 @@
     "test:stages-order-and-video-placement": "tsx scripts/verify-stages-order-and-video-placement.ts",
     "test:auto-focus-disabled": "tsx scripts/verify-auto-focus-disabled.ts",
     "test:subtitles-table-on-stage-3": "tsx scripts/verify-subtitles-table-on-stage-3.ts",
+    "test:cached-file-link": "tsx scripts/verify-cached-file-access-link.ts",
     "test:subtitle-fetch-logger": "tsx scripts/verify-subtitle-fetch-logger.ts",
     "test:video-playing-precedence-bar": "tsx scripts/verify-video-playing-precedence-bar.ts",
     "test:vite-reload-hotfix": "tsx scripts/verify-vite-reload-and-modules-hotfix.ts",

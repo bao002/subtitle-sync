@@ -3,4 +3,4 @@
 - **Status**: [IDLE]
 - **Active Task**: None
 - **Sub-task**: None
-- **Validation**: All tasks for Prompt 63 completed, verified, and migrated to `docs/done.md`.
+- **Validation**: Task 296 completed, verified with `npm run test:cached-file-link`, and migrated to `docs/done.md`.

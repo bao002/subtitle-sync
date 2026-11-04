@@ -865,6 +865,21 @@ pasting: https://www.youtube.com/api/timedtext?v=5-Mid7GNZ1M&ei=mqnqarjvMZfEhcIP
 and then clicking on some favorite languages and click on fetch button - the log element doesnt show the fetch request
 ```
 
+---
+
+### Prompt 64: Allow Access to Cached Subtitle File by Clicking Link
+```
+allow to acces the cached file by clicking this link
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#fetched-subtitles-stage-panel:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(5) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+
 
 
 

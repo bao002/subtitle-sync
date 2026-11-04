@@ -18,6 +18,7 @@ import {
   Check,
   Search,
   Filter,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +101,16 @@ export const FetchedSubtitlesStagePanel: React.FC<FetchedSubtitlesStagePanelProp
   const [logFilter, setLogFilter] = useState<"all" | "errors" | "cache" | "stats">("all");
   const [copiedLog, setCopiedLog] = useState<boolean>(false);
   const [selectedQuickLang, setSelectedQuickLang] = useState<string>("en");
+  const [viewingCachedTrack, setViewingCachedTrack] = useState<{
+    langCode: string;
+    langName: string;
+    content: string;
+    byteSize: number;
+    isFixture: boolean;
+    cuesCount: number;
+    storageKey?: string;
+  } | null>(null);
+  const [copiedCachedContent, setCopiedCachedContent] = useState<boolean>(false);
 
   // Activity & Terminal Logs (youtube-subtitles-fetcher style)
   const [logs, setLogs] = useState<SubtitleFetchLogEntry[]>(() => getSubtitleFetchLogs());
@@ -627,12 +638,51 @@ export const FetchedSubtitlesStagePanel: React.FC<FetchedSubtitlesStagePanelProp
                   {/* Cache info & Action */}
                   <div className="flex flex-wrap items-center justify-between gap-1.5 text-[10px] text-muted-foreground mb-2">
                     <span className="flex items-center gap-1">
-                      <HardDrive className="h-3 w-3 text-cyan-500" />
-                      <span>
+                      <HardDrive className="h-3 w-3 text-cyan-500 shrink-0" />
+                      <button
+                        type="button"
+                        data-testid={`cached-file-link-${langCode}`}
+                        onClick={() => {
+                          let fileContent = "";
+                          const rawStored = getCachedRawJson3(videoId, langCode);
+                          if (rawStored) {
+                            try {
+                              fileContent = JSON.stringify(JSON.parse(rawStored), null, 2);
+                            } catch {
+                              fileContent = rawStored;
+                            }
+                          } else if (tracks && tracks[langCode]) {
+                            fileContent = JSON.stringify(tracks[langCode], null, 2);
+                          } else {
+                            fileContent = JSON.stringify({ events: [] }, null, 2);
+                          }
+
+                          const cleanLang = langCode.trim().toLowerCase().split("-")[0];
+                          const storageKey = `yt_sub_cache_raw_${videoId}_${cleanLang}`;
+
+                          setViewingCachedTrack({
+                            langCode,
+                            langName,
+                            content: fileContent,
+                            byteSize: cacheDetails?.byteSize || fileContent.length,
+                            isFixture: Boolean(cacheDetails?.isFixture),
+                            cuesCount: stats.cuesCount,
+                            storageKey,
+                          });
+                          setCopiedCachedContent(false);
+                          addLog(
+                            "info",
+                            `Opened cached subtitle file for '${langName}' (${langCode})`,
+                            `Size: ${Math.round((cacheDetails?.byteSize || fileContent.length) / 1024)} KB, Cues: ${stats.cuesCount}`,
+                          );
+                        }}
+                        className="cursor-pointer text-cyan-600 dark:text-cyan-400 hover:text-cyan-500 dark:hover:text-cyan-300 underline underline-offset-2 font-medium transition-colors focus:outline-hidden focus:ring-1 focus:ring-cyan-500 rounded px-0.5"
+                        title={`Click to view, copy, or download cached subtitles for ${langName} (${langCode})`}
+                      >
                         {cacheDetails?.isCached
                           ? `Cached (${Math.round((cacheDetails.byteSize || 1024) / 1024)} KB)`
                           : "In Memory"}
-                      </span>
+                      </button>
                     </span>
                     {cacheDetails?.isFixture && (
                       <span className="text-amber-600 dark:text-amber-400 font-medium">
@@ -854,6 +904,149 @@ export const FetchedSubtitlesStagePanel: React.FC<FetchedSubtitlesStagePanelProp
               <span>Stage 2: Subtitles Table</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* 7. Cached Subtitle File Viewer & Inspector Modal */}
+      {viewingCachedTrack && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Cached Subtitle File: ${viewingCachedTrack.langName}`}
+          data-testid="cached-file-viewer-modal"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150"
+          onClick={() => setViewingCachedTrack(null)}
+        >
+          <div
+            className="w-full max-w-3xl max-h-[85vh] bg-card border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileCode className="h-4 w-4 text-cyan-500 shrink-0" />
+                <span className="font-bold text-sm text-foreground truncate">
+                  Cached File: {viewingCachedTrack.langName} ({viewingCachedTrack.langCode})
+                </span>
+                {viewingCachedTrack.isFixture && (
+                  <Badge variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-500/30">
+                    Fixture
+                  </Badge>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  data-testid="download-cached-file-btn"
+                  onClick={() => {
+                    const blob = new Blob([viewingCachedTrack.content], { type: "application/json" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `subtitles_${videoId || "video"}_${viewingCachedTrack.langCode}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    addLog(
+                      "success",
+                      `Downloaded cached subtitles file for '${viewingCachedTrack.langName}'`,
+                      `Filename: subtitles_${videoId || "video"}_${viewingCachedTrack.langCode}.json`,
+                    );
+                  }}
+                  className="h-7 text-xs gap-1"
+                  title="Download raw JSON3 file"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  <span>Download JSON</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  data-testid="copy-cached-file-btn"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(viewingCachedTrack.content);
+                      setCopiedCachedContent(true);
+                      setTimeout(() => setCopiedCachedContent(false), 2000);
+                      addLog(
+                        "success",
+                        `Copied cached subtitles JSON for '${viewingCachedTrack.langName}' to clipboard`,
+                      );
+                    } catch {}
+                  }}
+                  className="h-7 text-xs gap-1"
+                  title="Copy full JSON3 content to clipboard"
+                >
+                  {copiedCachedContent ? (
+                    <>
+                      <Check className="h-3.5 w-3.5 text-emerald-500" />
+                      <span className="text-emerald-500">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-3.5 w-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  data-testid="close-cached-file-modal-btn"
+                  onClick={() => setViewingCachedTrack(null)}
+                  className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                  title="Close modal"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Modal Metadata Sub-header */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 bg-muted/10 border-b border-border/60 text-[11px] text-muted-foreground font-mono">
+              <div className="flex items-center gap-3">
+                <span>Cues: <strong className="text-foreground">{viewingCachedTrack.cuesCount}</strong></span>
+                <span>Size: <strong className="text-foreground">{(viewingCachedTrack.byteSize / 1024).toFixed(1)} KB</strong></span>
+                {viewingCachedTrack.storageKey && (
+                  <span className="truncate max-w-xs" title={`localStorage key: ${viewingCachedTrack.storageKey}`}>
+                    Key: <code className="text-cyan-600 dark:text-cyan-400">{viewingCachedTrack.storageKey}</code>
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] text-muted-foreground">Format: YouTube JSON3 timedtext</span>
+            </div>
+
+            {/* Modal Body: Code view */}
+            <div className="flex-1 overflow-auto p-3 bg-slate-950 font-mono text-[11px] text-slate-200 select-text">
+              <pre data-testid="cached-file-content-pre" className="whitespace-pre-wrap break-all leading-relaxed">
+                {viewingCachedTrack.content}
+              </pre>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between px-4 py-2.5 border-t border-border bg-muted/20 text-xs">
+              <span className="text-muted-foreground text-[11px]">
+                Click outside or press Escape / close button to return to Stage 0.
+              </span>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setViewingCachedTrack(null)}
+                className="h-7 text-xs"
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </div>
       )}
