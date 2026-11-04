@@ -55,7 +55,9 @@ import {
   Plus,
   Film,
   Filter,
+  Languages,
 } from "lucide-react";
+import { getPlaybackSectionId } from "@/lib/playback-section-identity";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
@@ -1445,7 +1447,11 @@ function Index() {
       setDefaultLanguage(langCode);
       setBaseLanguagePreference(langCode);
       setShown((prev) => (prev.includes(langCode) ? prev : [langCode, ...prev]));
-      setFavoriteLanguages((prev) => (prev.includes(langCode) ? prev : [...prev, langCode]));
+      setFavoriteLanguagesState((prev) => {
+        const next = prev.includes(langCode) ? prev : [...prev, langCode];
+        setFavoriteLanguages(next);
+        return next;
+      });
       try {
         const primaryPlayer = multiVideoPlayerRegistry.get("primary");
         primaryPlayer?.setOption?.("captions", "track", { languageCode: langCode });
@@ -2671,8 +2677,32 @@ function Index() {
   // Stage 2: Subtitles table view accordion (reactive to default subtitle / translation source).
   // Stage 3: Video & playback synchronized view.
   // Stage 4: Toggle via settings icon to present all other accordion elements.
-  const [currentAccordionStage, setCurrentAccordionStage] = useState<0 | 1 | 2 | 3>(0);
-  const [showOtherSettingsAccordions, setShowOtherSettingsAccordions] = useState<boolean>(false);
+  const [currentAccordionStage, setCurrentAccordionStage] = useState<0 | 1 | 2 | 3 | 4>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const stageParam = params.get("stage");
+      if (stageParam === "0") return 0;
+      if (stageParam === "1") return 1;
+      if (stageParam === "2") return 2;
+      if (stageParam === "3") return 3;
+      if (stageParam === "4" || stageParam === "settings") return 4;
+      if (params.get("all_stages") === "true") return 4;
+    }
+    return 0;
+  });
+  const [showOtherSettingsAccordions, setShowOtherSettingsAccordions] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (
+        params.get("stage") === "4" ||
+        params.get("stage") === "settings" ||
+        params.get("all_stages") === "true"
+      ) {
+        return true;
+      }
+    }
+    return false;
+  });
 
   const handleToggleVideoSubtitles = () => {
     const next = !showVideoSubtitles;
@@ -6351,6 +6381,8 @@ function Index() {
                     setAlternativeTtsEngine("google_translate");
                     setAlternativeTtsModeState("always");
                     setAlternativeTtsMode("always");
+                    setLovableTtsProvider("google");
+                    setLovableTtsProviderState("google");
                     setUseAlternativeTtsState(true);
                     setUseAlternativeTts(true);
                     return;
@@ -7265,6 +7297,8 @@ function Index() {
                                       setAlternativeTtsEngine("google_translate");
                                       setAlternativeTtsModeState("always");
                                       setAlternativeTtsMode("always");
+                                      setLovableTtsProvider("google");
+                                      setLovableTtsProviderState("google");
                                       setUseAlternativeTtsState(true);
                                       setUseAlternativeTts(true);
                                       return;

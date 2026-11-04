@@ -125,7 +125,7 @@ export const FetchedSubtitlesStagePanel: React.FC<FetchedSubtitlesStagePanelProp
   const terminalEndRef = useRef<HTMLDivElement>(null);
 
   const addLog = (
-    level: "info" | "success" | "warn" | "error" | "stats",
+    level: "info" | "success" | "warn" | "error" | "stats" | "cache",
     message: string,
     details?: string,
   ) => {

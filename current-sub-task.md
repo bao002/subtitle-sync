@@ -1,6 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 302 (Prompt 66 - Chapter 5): Auto-Fetching Subtitles - Request & Response in Log Viewer
-- **Sub-task**: 302.1 - Enhance subtitle fetch logging to capture and display full request details and response payloads (HTTP status, cues count, byte size) in the Stage 0 log viewer.
-- **Validation**: Dedicated test `scripts/verify-subtitle-fetch-log-viewer-req-res.ts`, `compile_applet`, `lint_applet`.
+- **Active Task**: Task 304: Ensure GitHub Actions Work Correctly & E2E Tests Recognize Application Crashes
+- **Sub-task**: 304.1 - Fix GitHub Actions workflows alignment in `scripts/verify-workflows-alignment.ts` (include `version-sync.yml`) and ensure `web.yml` properly executes Playwright test suite for web and emulation specs.
+- **Validation**: `npm run test:workflows`, dedicated test `scripts/verify-github-actions-and-e2e-crash-detection.ts`, `compile_applet`, `lint_applet`.

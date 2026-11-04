@@ -1,5 +1,69 @@
 import { expect, test } from "@playwright/test";
 
+const capturedBrowserErrors: string[] = [];
+
+test.beforeEach(async ({ page }) => {
+  capturedBrowserErrors.length = 0;
+  page.on("pageerror", (error) => {
+    capturedBrowserErrors.push(`[PAGE_ERROR] ${error.message}\n${error.stack || ""}`);
+  });
+  page.on("console", (msg) => {
+    if (msg.type() === "error" && msg.text().includes("[APP_BOOT_ERROR]")) {
+      capturedBrowserErrors.push(msg.text());
+    }
+  });
+});
+
+test.afterEach(async ({ page }) => {
+  const errorComponent = page.locator('[data-testid="router-error-component"]');
+  const count = await errorComponent.count().catch(() => 0);
+  if (count > 0) {
+    const errorText = await errorComponent.textContent().catch(() => "");
+    throw new Error(`[APPLICATION_CRASH] Application rendered error boundary:\n${errorText}`);
+  }
+  if (capturedBrowserErrors.length > 0) {
+    throw new Error(
+      `[APPLICATION_CRASH] Uncaught browser exceptions detected:\n${capturedBrowserErrors.join("\n")}`,
+    );
+  }
+});
+
+test("e2e tests recognize application crashes and error boundary markers", async ({ page }) => {
+  // 1. Verify clean boot does NOT render crash boundary
+  await page.goto("./");
+  await expect(page.locator("[data-testid='router-error-component']")).toHaveCount(0);
+  await expect(page.locator("text=This page didn't load")).toHaveCount(0);
+  await expect(page.locator("text=Something went wrong on our end")).toHaveCount(0);
+  expect(capturedBrowserErrors.length).toBe(0);
+
+  // 2. Verify that when an error screen occurs, E2E locator recognizes it accurately
+  await page.evaluate(() => {
+    const simulatedError = document.createElement("div");
+    simulatedError.dataset.testid = "router-error-component";
+    simulatedError.innerHTML = `
+      <h1 data-testid="router-error-title">This page didn't load</h1>
+      <p data-testid="router-error-description">Something went wrong on our end. You can try refreshing or head back home.</p>
+      <pre data-testid="router-error-message">ReferenceError: Languages is not defined</pre>
+    `;
+    document.body.prepend(simulatedError);
+  });
+
+  const errorScreen = page.locator("[data-testid='router-error-component']");
+  await expect(errorScreen).toBeVisible();
+  await expect(page.getByTestId("router-error-title")).toHaveText("This page didn't load");
+  await expect(page.getByTestId("router-error-description")).toContainText(
+    "Something went wrong on our end",
+  );
+  await expect(page.getByTestId("router-error-message")).toContainText(
+    "ReferenceError: Languages is not defined",
+  );
+
+  // Clean up simulated element so afterEach hook remains clean
+  await page.evaluate(() => {
+    document.querySelector("[data-testid='router-error-component']")?.remove();
+  });
+});
+
 test("developer-only views are hidden unless debug=true is in the URL", async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("app_workflow_mode", "expert");
@@ -17,11 +81,11 @@ test("developer-only views are hidden unless debug=true is in the URL", async ({
   await expect(page.getByTestId("tab-playground")).toHaveCount(0);
   await expect(page.getByTestId("tab-ai-punctuation")).toHaveCount(0);
 
-  await page.goto("./?android=true&debug=false");
+  await page.goto("./?android=true&debug=false&stage=4");
   await page.locator('details[data-panel-id="playback"] > summary').click();
   await expect(page.getByTestId("experimental-server-fetch-controls")).toHaveCount(0);
 
-  await page.goto("./?android=true&debug=true");
+  await page.goto("./?android=true&debug=true&stage=4");
   await page.locator('details[data-panel-id="playback"] > summary').click();
   await expect(page.getByTestId("experimental-server-fetch-controls")).toBeVisible();
   await expect(page.getByTestId("fetch-server-url-input")).toBeVisible();
@@ -64,7 +128,10 @@ test("state-machine action logs open and copy the diagnostic report", async ({ p
 test("beginner mode has two flows and presents the daily video, favorites, parser, and table", async ({
   page,
 }) => {
-  await page.goto("./");
+  await page.addInitScript(() => {
+    window.localStorage.setItem("app_workflow_mode", "beginner");
+  });
+  await page.goto("./?mode=beginner");
 
   await expect(page.getByTestId("beginner-tab-nav")).toBeVisible();
   await expect(page.locator('button[data-testid^="beginner-tab-"]')).toHaveCount(2);
@@ -162,7 +229,7 @@ test("Beginner and Advanced render the shared language selector", async ({ page 
   await page.addInitScript(() => {
     window.localStorage.setItem("app_workflow_mode", "beginner");
   });
-  await page.goto("./");
+  await page.goto("./?mode=beginner");
   await page.getByTestId("beginner-tab-video").click();
   await expect(page.getByTestId("language-boxes-selector-wrapper")).toBeVisible();
   await expect(page.getByTestId("language-boxes-grid")).toBeVisible();
@@ -171,6 +238,7 @@ test("Beginner and Advanced render the shared language selector", async ({ page 
   await expect(hebrewLanguage).toHaveAttribute("data-selected", "true");
 
   await page.getByTestId("nav-switch-to-advanced").click();
+  await page.getByTestId("stage-step-1").click();
   await page.locator('details[data-panel-id="languages"] > summary').click();
   await expect(page.getByTestId("language-boxes-selector-wrapper")).toBeVisible();
   await expect(page.getByTestId("language-box-he")).toHaveAttribute("data-selected", "true");
@@ -188,7 +256,7 @@ test("per-language playback order is shared by Beginner and Advanced Language Se
     window.localStorage.setItem("app_workflow_mode", "beginner");
     window.localStorage.setItem("yt_section_order_v1", "video-first");
   });
-  await page.goto("./");
+  await page.goto("./?mode=beginner");
 
   const hebrewOrder = page.getByTestId("tts-order-select-he");
   const italianOrder = page.getByTestId("tts-order-select-it");
@@ -200,6 +268,7 @@ test("per-language playback order is shared by Beginner and Advanced Language Se
 
   await page.getByTestId("beginner-tab-video").click();
   await page.getByTestId("nav-switch-to-advanced").click();
+  await page.getByTestId("stage-step-1").click();
   await page.locator('details[data-panel-id="languages"] > summary').click();
   await expect(page.getByTestId("tts-order-select-he")).toHaveValue("tts-first");
   await expect(page.getByTestId("tts-order-select-it")).toHaveValue("video-first");
@@ -237,13 +306,14 @@ test("Beginner preferences persist ratio, speed, and voice per favorite language
         default: false,
       },
     ];
+    window.localStorage.setItem("app_workflow_mode", "beginner");
     Object.defineProperty(window.speechSynthesis, "getVoices", {
       configurable: true,
       value: () => testVoices,
     });
   });
 
-  await page.goto("./");
+  await page.goto("./?mode=beginner");
   await expect(page.getByTestId("beginner-per-language-tts-settings")).toBeVisible();
   if (
     !(await page
@@ -280,7 +350,10 @@ test("Beginner preferences persist ratio, speed, and voice per favorite language
 });
 
 test("Daily Video switches between native speech and primary Google TTS", async ({ page }) => {
-  await page.goto("./");
+  await page.addInitScript(() => {
+    window.localStorage.setItem("app_workflow_mode", "beginner");
+  });
+  await page.goto("./?mode=beginner");
   await page.getByTestId("beginner-tab-video").click();
 
   const serviceControl = page.getByTestId("beginner-tts-service-control");
@@ -412,7 +485,10 @@ test("web-demo video input remains playable without recreating the YouTube playe
     });
   });
 
-  await page.goto("./");
+  await page.addInitScript(() => {
+    window.localStorage.setItem("app_workflow_mode", "beginner");
+  });
+  await page.goto("./?mode=beginner");
   await expect(page.locator("header")).toBeVisible();
   await page.getByTestId("btn-continue-to-video").click();
   await expect(page.getByTestId("beginner-video-tab")).toBeVisible();

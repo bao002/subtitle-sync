@@ -945,3 +945,11 @@ go on
 go on
 ```
 
+---
+
+### Prompt 70: Ensure GitHub Actions Works Correctly & E2E Tests Recognize Application Crash
+```
+ensure github actions works correctly and e2e test recognize the current application crash
+```
+
+

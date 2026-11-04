@@ -7,10 +7,10 @@ This channel provides a shared coordination registry and execution lock for AI a
 ## Active Lock
 
 - **Status**: [LOCKED]
-- **Agent ID**: Agent-298
-- **Task ID**: Tasks 298-303 (Chapters 1-6)
-- **Scope / Files**: Settings, stages, default language sync, settings backup, subtitle fetch logs, TTS audio testing
-- **Acquired At**: 2026-11-04T04:41:00Z
+- **Agent ID**: Agent-304
+- **Task ID**: Task 304
+- **Scope / Files**: .github/workflows/, e2e/, scripts/verify-workflows-alignment.ts, package.json
+- **Acquired At**: 2026-11-04T14:25:00Z
 
 ---
 
@@ -43,6 +43,7 @@ This channel provides a shared coordination registry and execution lock for AI a
 | 2026-11-04T06:41:00Z | Agent-298 | Resolved Prompt 67 Hotfix: dev server restarted cleanly, module exports verified across HTTP 200 transforms, React dispatcher intact, AGENTS.md budget <21,000 bytes (21/21 passed). Resumed Task 300. | In Progress |
 | 2026-11-04T07:11:00Z | Agent-298 | Completed Task 300: Unified & synchronized default language across all places (Stage 0, Stage 1, Subtitles Table, Player Bar, Settings Stage 4, Beginner Mode), verified via npm run test:default-language-unified-sync (9/9 passed), compile_applet, lint_applet, bumped to v2.1.2. Staging Task 301. | In Progress |
 | 2026-11-04T07:19:00Z | Agent-298 | Completed Task 301: Added settings export/import controls in Settings Stage (Stage 4) and wired SettingsBackupModal with Beginner parity, verified via npm run test:settings-export-import-stage (7/7 passed), compile_applet, lint_applet, bumped to v2.1.3. Staging Task 302. | In Progress |
+| 2026-11-04T14:25:00Z | Agent-304 | Acquired lock for Task 304: Ensure GitHub Actions work correctly & E2E tests recognize application crashes. | In Progress |
 
 
 

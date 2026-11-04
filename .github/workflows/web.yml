@@ -139,7 +139,7 @@ jobs:
           if [ -n "${{ inputs.test-filter }}" ]; then
             FILTER_ARG="--grep \"${{ inputs.test-filter }}\""
           fi
-          npx playwright test e2e/emulation.spec.ts --timeout=60000 $PROJECT_ARG $FILTER_ARG
+          npx playwright test --timeout=60000 $PROJECT_ARG $FILTER_ARG
 
       - name: Run Cypress Tests against Deployed Website (if spec exists)
         if: steps.target_url.outputs.use_deployed == 'true'

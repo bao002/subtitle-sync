@@ -131,6 +131,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on
+ensure github actions works correctly and e2e test recognize the current application crash
 ```
+
 

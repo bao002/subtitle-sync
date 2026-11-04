@@ -4,6 +4,12 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
+- [ ] **Task 304: Ensure GitHub Actions Work Correctly & E2E Tests Recognize Application Crashes**
+  - Subtask 304.1: Fix GitHub Actions workflows alignment in `scripts/verify-workflows-alignment.ts` (include `version-sync.yml`) and ensure `web.yml` properly executes Playwright test suite for web and emulation specs.
+  - Subtask 304.2: Update E2E test framework (`e2e/web.spec.ts` and `e2e/emulation.spec.ts`) with crash recognition listeners (`pageerror`, `router-error-component`, and crash diagnostic capture) so tests fail immediately with actionable crash logs when an app crash occurs, and add a dedicated test verifying that application crashes are detected.
+  - Subtask 304.3: Fix the E2E web specs in `e2e/web.spec.ts` to align with current stage filtering (Stage 4 Settings navigation, Beginner Mode mode setup) so that all 10 E2E tests pass cleanly without timing out or failing.
+  - Subtask 304.4: Dedicated verification test `scripts/verify-github-actions-and-e2e-crash-detection.ts`, version bump to v2.1.4, compile, lint, commit, and migrate Task 304 to `docs/done.md`.
+
 - [ ] **Task 302 (Prompt 66 - Chapter 5): Auto-Fetching Subtitles - Request & Response in Log Viewer**
   - Subtask 302.1: Enhance subtitle fetch logging to capture and display full request details and response payloads (HTTP status, cues count, byte size) in the Stage 0 log viewer.
   - Subtask 302.2: Dedicated automated test script `scripts/verify-subtitle-fetch-log-viewer-req-res.ts` (`npm run test:subtitle-fetch-log-viewer-req-res`).

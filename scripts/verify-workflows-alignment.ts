@@ -26,6 +26,7 @@ const expectedWorkflows = [
   "release-apk.yml",
   "report-video-flow.yml",
   "update-readme.yml",
+  "version-sync.yml",
   "web.yml",
 ];
 const actualWorkflows = fs.readdirSync(workflowsDir).sort();

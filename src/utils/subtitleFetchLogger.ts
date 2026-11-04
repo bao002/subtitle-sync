@@ -1,9 +1,11 @@
 import { logBuffer } from "./logBuffer";
 
+export type SubtitleFetchLogLevel = "info" | "success" | "warn" | "error" | "stats" | "cache";
+
 export interface SubtitleFetchLogEntry {
   id: string;
   timestamp: string;
-  level: "info" | "success" | "warn" | "error" | "stats";
+  level: SubtitleFetchLogLevel;
   message: string;
   details?: string;
   url?: string;
@@ -33,11 +35,9 @@ function notifySubscribers() {
   });
 }
 
-export type SubtitleFetchLogLevel = "info" | "success" | "warn" | "error" | "stats";
-
 export interface EmitSubtitleFetchLogParams {
-  type?: "info" | "success" | "warn" | "warning" | "error" | "stats";
-  level?: "info" | "success" | "warn" | "warning" | "error" | "stats";
+  type?: SubtitleFetchLogLevel | "warning";
+  level?: SubtitleFetchLogLevel | "warning";
   message: string;
   details?: string;
   url?: string;
@@ -101,20 +101,20 @@ export function emitSubtitleFetchLog(
   // Mirror to central logBuffer
   try {
     const systemLevel =
-      level === "error"
+      finalLevel === "error"
         ? "ERROR"
-        : level === "warn"
+        : finalLevel === "warn"
           ? "WARN"
-          : level === "success"
+          : finalLevel === "success"
             ? "SUCCESS"
             : "SUBTITLES";
     logBuffer.add({
       level: systemLevel,
       category: "SUBTITLES_FETCH",
-      message,
-      details: details || meta,
-      url: meta?.url,
-      status: meta?.status,
+      message: finalMessage,
+      details: finalDetails,
+      url: finalUrl,
+      status: finalStatus,
     });
   } catch {}
 

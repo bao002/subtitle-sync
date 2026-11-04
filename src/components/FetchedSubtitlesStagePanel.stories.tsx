@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { FetchedSubtitlesStagePanel } from "./FetchedSubtitlesStagePanel";
-import { SAMPLE_JSON3_TRACK } from "@/lib/subtitles";
 
 const meta: Meta<typeof FetchedSubtitlesStagePanel> = {
   title: "Components/FetchedSubtitlesStagePanel",
@@ -19,7 +18,11 @@ export const Default: Story = {
     const [videoInput, setVideoInput] = useState("L2Ryrr6txwA");
     const [baseLanguage, setBaseLanguage] = useState("en");
     const [tracks, setTracks] = useState<any>({
-      en: SAMPLE_JSON3_TRACK,
+      en: {
+        events: [
+          { tStartMs: 0, dDurationMs: 2000, segs: [{ utf8: "Hello world. How are you?" }] },
+        ],
+      },
       es: {
         events: [
           { tStartMs: 0, dDurationMs: 2000, segs: [{ utf8: "Hola, ¿cómo estás? Bien." }] },
