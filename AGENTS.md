@@ -132,7 +132,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-update: there is no option of direct request to google tts from the client. therefor rm that option from entire app
+ensure all github actions are passing
 ```
 
 

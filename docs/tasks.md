@@ -4,17 +4,12 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 308 (Prompt 77): Remove Direct Google TTS Client Option Across Entire App**
-  - Subtask 308.1: Update `src/lib/alternative-tts.ts` to remove client direct Google TTS URL construction (`GOOGLE_TRANSLATE_TTS_ENDPOINT`, `buildGoogleTranslateTtsUrl`), update `AlternativeTtsEngine` to `"lovable"`, eliminate `"google_translate"` / `"google-tts-directly"` client service options, update fallback order types to remove direct client google fallback, and route remote audio strictly through Lovable Speak API (tts3.lovable.app).
-  - Subtask 308.2: Update UI components (`TtsServiceSettingsPanel.tsx`, `BeginnerPreferencesTab.tsx`, `BeginnerTtsServiceControl.tsx`, `routes/index.tsx`, `StorybookWorkbench.tsx`, and stories) to completely remove the Google TTS direct selection option, notice banners, and direct Google validate buttons.
-  - Subtask 308.3: Implement dedicated automated test `scripts/verify-remove-direct-google-tts-client-option.ts`, synchronize application version to `v2.1.7` across all 5 single-source files (`package.json`, `appConfig.ts`, `apkUpdater.ts`, `appSettings.ts`, `build.gradle.kts`).
-  - Subtask 308.4: Verify test passes, verify `compile_applet`, run `lint_applet`, and migrate Task 308 to `docs/done.md`.
+- [ ] **Task 309 (Prompt 79): Ensure All GitHub Actions Are Passing**
+  - Subtask 309.1: Add header active video ID identifier (`data-testid="header-active-video-id"`) in `src/routes/index.tsx` so `e2e/emulation.spec.ts` passes reliably in Playwright E2E suite (`web.yml`).
+  - Subtask 309.2: Verify full Playwright E2E suite (`e2e/emulation.spec.ts` and `e2e/web.spec.ts`) passes 100% under `npx playwright test --project=web`.
+  - Subtask 309.3: Verify all 10 GitHub Actions workflows (`web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, `integrity.yml`, `version-sync.yml`, `update-readme.yml`, `error-reporting.yml`, `report-video-flow.yml`, `android-system-smoke.yml`) and their underlying scripts pass.
+  - Subtask 309.4: Implement dedicated automated test `scripts/verify-all-github-actions-pass.ts`, bump version to `2.1.9`, run `sync-version`, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate Task 309 to `docs/done.md`.
 
-- [ ] **Task 307 (Prompt 75): TTS3 Service Authorization Code Input & POST Request Execution**
-  - Subtask 307.1: Update `TtsServiceSettingsPanel.tsx` (and `BeginnerPreferencesTab.tsx`) so that choosing the TTS service `"tts3.lovable.app"` always displays the Authorization Code input field (accepting `Bearer spk_...` or `spk_...` tokens), with clear label, placeholder, and saved status badge.
-  - Subtask 307.2: Update `alternative-tts.ts` to set default Lovable TTS method to `"post"`, sanitize `Bearer ` prefixes from token storage, ensure requests to `https://tts3.lovable.app/api/public/tts` use `POST` method with `Content-Type: application/json`, `Accept: */*`, `Authorization: Bearer <token>`, and payload containing `text`, `lang`, `provider: "auto"`, `debug: true`.
-  - Subtask 307.3: Synchronize version to `v2.1.7` across `package.json`, `appConfig.ts`, `apkUpdater.ts`, `appSettings.ts`, `build.gradle.kts`.
-  - Subtask 307.4: Implement dedicated automated test `scripts/verify-tts3-service-post-and-auth.ts`, verify full test suite passes, `compile_applet`, `lint_applet`, commit, and migrate Task 307 to `docs/done.md`.
 
 
 

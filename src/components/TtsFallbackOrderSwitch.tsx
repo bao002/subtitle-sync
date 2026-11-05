@@ -1,5 +1,5 @@
 import React from "react";
-import { Settings, Sparkles, Volume2, Globe, ArrowRight, ExternalLink } from "lucide-react";
+import { Settings, Sparkles, Volume2, ArrowRight, ExternalLink } from "lucide-react";
 import {
   type TtsFallbackOrder,
   DEFAULT_TTS_FALLBACK_ORDER,
@@ -89,10 +89,7 @@ export const TtsFallbackOrderSwitch: React.FC<TtsFallbackOrderSwitchProps> = ({
     let badgeColor = "bg-muted text-muted-foreground border-border";
     let icon = <Volume2 className="h-3 w-3" />;
 
-    if (step.type === "google") {
-      badgeColor = "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30";
-      icon = <Globe className="h-3 w-3" />;
-    } else if (step.type === "tts3") {
+    if (step.type === "tts3") {
       badgeColor = "bg-primary/15 text-primary border-primary/30";
       icon = <Sparkles className="h-3 w-3" />;
     }
