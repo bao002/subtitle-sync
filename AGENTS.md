@@ -132,7 +132,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-ensure all github actions are passing
+wrong technic - no need to alternate plan while its not working at all
 ```
-
-

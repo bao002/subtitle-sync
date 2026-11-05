@@ -10,11 +10,10 @@ export type { SubtitleRequestMode };
 
 export type SendMode = "session" | "anon";
 export type FetchAttempt = { mode: SubtitleRequestMode; send: SendMode; enabled: boolean };
-export type FetchStrategyMode = "ordered" | "random" | "server_alternate";
+export type FetchStrategyMode = "ordered" | "random";
 
 export interface SubtitleFetchStrategyConfig {
   mode: FetchStrategyMode;
-  useServerAlternate: boolean;
   allowSession: boolean;
   allowAnon: boolean;
   allowTlang: boolean;
@@ -24,7 +23,6 @@ export interface SubtitleFetchStrategyConfig {
 
 export const DEFAULT_FETCH_STRATEGY_CONFIG: SubtitleFetchStrategyConfig = {
   mode: "random",
-  useServerAlternate: false,
   allowSession: true,
   allowAnon: true,
   allowTlang: true,
@@ -132,11 +130,7 @@ export function getFetchStrategyConfig(): SubtitleFetchStrategyConfig {
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === "object") {
         return {
-          mode:
-            parsed.mode === "random" || parsed.mode === "server_alternate"
-              ? parsed.mode
-              : "ordered",
-          useServerAlternate: Boolean(parsed.useServerAlternate),
+          mode: parsed.mode === "random" ? "random" : "ordered",
           allowSession: parsed.allowSession !== false,
           allowAnon: parsed.allowAnon !== false,
           allowTlang: parsed.allowTlang !== false,
@@ -186,7 +180,6 @@ export function shuffleAttempts(attempts: FetchAttempt[]): FetchAttempt[] {
  * - Filters by session/anon and tlang/lang toggles.
  * - If mode === "random" (first-random-strategy), returns randomized order.
  * - If mode === "ordered", preserves base order.
- * - If mode === "server_alternate", sets up attempts with server alternation flag.
  */
 export function buildActiveAttemptOrder(
   baseOrder: FetchAttempt[],

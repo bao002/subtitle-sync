@@ -1063,3 +1063,23 @@ error 9: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. T
 ensure all github actions are passing
 ```
 
+---
+
+### Prompt 80: Suppress Passing Voice to the TTS Service
+```
+suppress passing voice to the tts service
+```
+
+---
+
+### Prompt 81: Auto-Fetching Subtitles Server/Client and Session/No-Session Debug Display
+```
+does auto-fetching use server/client session/no-session to fetch - these experimental stuff are to be shown on the "Auto-Fetching Subtitles" element when debug is enabled
+```
+
+---
+
+### Prompt 82: Remove Non-Working Alternating Fetch Plan Technique
+```
+wrong technic - no need to alternate plan while its not working at all
+```

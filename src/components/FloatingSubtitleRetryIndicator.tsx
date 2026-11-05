@@ -2,6 +2,17 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Json3 } from "../lib/subtitles";
 import { getRandomRetryDelayMs } from "../lib/playback-preferences";
 import { subtitleRequestQueue } from "../utils/subtitleRequestQueue";
+import { isDeveloperModeEnabled } from "../utils/developerMode";
+import {
+  getFetchStrategyConfig,
+  setFetchStrategyConfig,
+  getUseFetchServer,
+  setUseFetchServer,
+  getAttemptOrder,
+  buildActiveAttemptOrder,
+  type FetchAttempt,
+  type SubtitleFetchStrategyConfig,
+} from "../lib/subtitle-fetch-plan";
 import {
   RotateCcw,
   Pause,
@@ -12,6 +23,10 @@ import {
   ChevronDown,
   ChevronUp,
   Loader2,
+  Server,
+  Shuffle,
+  Sliders,
+  Radio,
 } from "lucide-react";
 
 export interface FloatingSubtitleRetryIndicatorProps {
@@ -24,6 +39,7 @@ export interface FloatingSubtitleRetryIndicatorProps {
   maxPacingSec?: number;
   onToggleAutoRetry?: (enabled: boolean) => void;
   floating?: boolean;
+  debugMode?: boolean;
 }
 
 export function FloatingSubtitleRetryIndicator({
@@ -36,7 +52,29 @@ export function FloatingSubtitleRetryIndicator({
   maxPacingSec = 8,
   onToggleAutoRetry,
   floating = false,
+  debugMode,
 }: FloatingSubtitleRetryIndicatorProps) {
+  // Determine if debug / developer mode is active (either via prop or developer mode setting)
+  const isDebug = debugMode !== undefined ? debugMode : isDeveloperModeEnabled();
+
+  // Experimental fetch config and server/client state for debug panel
+  const [useServer, setUseServer] = useState<boolean>(() => getUseFetchServer());
+  const [strategyConfig, setStrategyState] = useState<SubtitleFetchStrategyConfig>(() =>
+    getFetchStrategyConfig(),
+  );
+  const [attempts, setAttempts] = useState<FetchAttempt[]>(() => getAttemptOrder());
+
+  // Keep state synced with localStorage/settings
+  const refreshFetchConfig = useCallback(() => {
+    setUseServer(getUseFetchServer());
+    setStrategyState(getFetchStrategyConfig());
+    setAttempts(getAttemptOrder());
+  }, []);
+
+  useEffect(() => {
+    refreshFetchConfig();
+  }, [refreshFetchConfig]);
+
   // Compute which favorite languages still lack valid subtitle cues
   const pendingLanguages = targetLanguages.filter((code) => {
     const track = tracks?.[code];
@@ -147,6 +185,33 @@ export function FloatingSubtitleRetryIndicator({
     clearTimers();
     triggerNextFetch();
   };
+
+  // Experimental debug toggle handlers
+  const handleToggleServer = () => {
+    const nextVal = !useServer;
+    setUseFetchServer(nextVal);
+    setUseServer(nextVal);
+  };
+
+  const handleToggleSession = () => {
+    const updated = setFetchStrategyConfig({ allowSession: !strategyConfig.allowSession });
+    setStrategyState(updated);
+  };
+
+  const handleToggleAnon = () => {
+    const updated = setFetchStrategyConfig({ allowAnon: !strategyConfig.allowAnon });
+    setStrategyState(updated);
+  };
+
+  const handleCycleStrategy = () => {
+    const nextMode = strategyConfig.mode === "random" ? "ordered" : "random";
+    const updated = setFetchStrategyConfig({ mode: nextMode });
+    setStrategyState(updated);
+  };
+
+  // Determine current active attempt order for debug display
+  const activeAttempts = buildActiveAttemptOrder(attempts, strategyConfig);
+  const nextAttempt = activeAttempts[0];
 
   return (
     <div
@@ -300,6 +365,137 @@ export function FloatingSubtitleRetryIndicator({
                     {isPaused ? "Resume" : "Pause"}
                   </button>
                 </div>
+
+                {/* Experimental Debug Panel (Visible only when debug / developer mode is active) */}
+                {isDebug && (
+                  <div
+                    data-testid="auto-fetch-debug-panel"
+                    className="mt-2.5 rounded-lg border border-dashed border-amber-500/40 bg-amber-500/5 p-2.5 space-y-2 text-[11px]"
+                  >
+                    <div className="flex items-center justify-between font-semibold text-amber-600 dark:text-amber-400">
+                      <span className="flex items-center gap-1">
+                        <Sliders className="h-3 w-3" />
+                        <span>Experimental Fetch Architecture (Debug)</span>
+                      </span>
+                      <span
+                        data-testid="debug-fetch-strategy-badge"
+                        className="rounded px-1.5 py-0.2 font-mono text-[9px] uppercase bg-amber-500/20 text-amber-700 dark:text-amber-300"
+                      >
+                        {strategyConfig.mode}
+                      </span>
+                    </div>
+
+                    {/* Architectural badges */}
+                    <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                      {/* Origin badge: Server Proxy vs Client */}
+                      <div className="flex items-center justify-between rounded bg-background/80 p-1.5 border border-border/60">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Server className="h-3 w-3" />
+                          <span>Origin:</span>
+                        </span>
+                        <span
+                          data-testid="debug-fetch-route-badge"
+                          className={`font-semibold font-mono text-[10px] ${
+                            useServer
+                              ? "text-purple-600 dark:text-purple-400"
+                              : "text-blue-600 dark:text-blue-400"
+                          }`}
+                        >
+                          {useServer ? "Server Proxy" : "Client (Direct)"}
+                        </span>
+                      </div>
+
+                      {/* Session vs No-Session (Anon) badge */}
+                      <div className="flex items-center justify-between rounded bg-background/80 p-1.5 border border-border/60">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Radio className="h-3 w-3" />
+                          <span>Session:</span>
+                        </span>
+                        <span
+                          data-testid="debug-fetch-session-badge"
+                          className="font-semibold font-mono text-[10px] text-foreground truncate"
+                        >
+                          {strategyConfig.allowSession && strategyConfig.allowAnon
+                            ? "Session & Anon"
+                            : strategyConfig.allowSession
+                              ? "Session Only"
+                              : strategyConfig.allowAnon
+                                ? "No-Session (Anon)"
+                                : "Disabled"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Next attempt preview */}
+                    {nextAttempt && (
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground bg-muted/30 px-1.5 py-1 rounded">
+                        <span>Next planned attempt:</span>
+                        <span
+                          data-testid="debug-fetch-next-attempt-badge"
+                          className="font-mono font-semibold text-foreground"
+                        >
+                          {nextAttempt.mode} / {nextAttempt.send === "session" ? "Session" : "No-Session"}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Interactive Debug Toggles */}
+                    <div className="pt-1 border-t border-amber-500/20 grid grid-cols-2 gap-1">
+                      <button
+                        type="button"
+                        onClick={handleToggleServer}
+                        data-testid="debug-toggle-server-btn"
+                        className={`px-1.5 py-1 rounded text-[10px] font-medium border text-center transition ${
+                          useServer
+                            ? "border-purple-500 bg-purple-500/15 text-purple-700 dark:text-purple-300"
+                            : "border-border bg-background hover:bg-muted text-muted-foreground"
+                        }`}
+                        title="Toggle Server Proxy vs Client direct fetch"
+                      >
+                        {useServer ? "✓ Server Proxy" : "Client Direct"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleCycleStrategy}
+                        data-testid="debug-toggle-strategy-btn"
+                        className="px-1.5 py-1 rounded text-[10px] font-medium border border-border bg-background hover:bg-muted text-foreground text-center transition flex items-center justify-center gap-1"
+                        title="Toggle strategy mode: random <-> ordered"
+                      >
+                        <Shuffle className="h-2.5 w-2.5" />
+                        <span>Mode: {strategyConfig.mode}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleToggleSession}
+                        data-testid="debug-toggle-session-btn"
+                        className={`px-1.5 py-1 rounded text-[10px] font-medium border text-center transition ${
+                          strategyConfig.allowSession
+                            ? "border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                            : "border-border bg-background hover:bg-muted text-muted-foreground line-through opacity-70"
+                        }`}
+                        title="Allow/disallow Session requests"
+                      >
+                        Session: {strategyConfig.allowSession ? "ON" : "OFF"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleToggleAnon}
+                        data-testid="debug-toggle-anon-btn"
+                        className={`px-1.5 py-1 rounded text-[10px] font-medium border text-center transition ${
+                          strategyConfig.allowAnon
+                            ? "border-emerald-500 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                            : "border-border bg-background hover:bg-muted text-muted-foreground line-through opacity-70"
+                        }`}
+                        title="Allow/disallow No-Session (Anon) requests"
+                      >
+                        Anon: {strategyConfig.allowAnon ? "ON" : "OFF"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </>
             )}
           </div>

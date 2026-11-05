@@ -570,10 +570,8 @@ export function buildLovableTtsUrl(
     url.searchParams.set("provider", provider);
   }
 
-  const voice = options?.voice ?? getLovableTtsVoice();
-  if (voice && voice.trim()) {
-    url.searchParams.set("voice", voice.trim());
-  }
+  // Voice parameter is explicitly suppressed from being passed to the remote TTS service
+  url.searchParams.delete("voice");
 
   const speed = options?.speed ?? getLovableTtsSpeed();
   if (typeof speed === "number" && !isNaN(speed) && speed !== 1) {
@@ -624,7 +622,6 @@ export function buildLovableTtsRequestBody(
   const normalizedText = (text || "").slice(0, 5000);
   const normalizedLang = normalizeLanguageCode(lang);
   const provider = options?.provider || getLovableTtsProvider();
-  const voice = options?.voice ?? getLovableTtsVoice();
   const speed = options?.speed ?? getLovableTtsSpeed();
   const rawOptions = options?.options ?? getLovableTtsOptions();
   const targetLang = options?.target_lang ?? getLovableTtsTargetLang();
@@ -640,9 +637,8 @@ export function buildLovableTtsRequestBody(
     body.provider = provider;
   }
 
-  if (voice && voice.trim()) {
-    body.voice = voice.trim();
-  }
+  // Voice parameter is explicitly suppressed from being passed to the remote TTS service
+
   if (typeof speed === "number" && !isNaN(speed) && speed !== 1) {
     body.speed = Math.max(0.25, Math.min(4, Math.round(speed * 100) / 100));
   }
@@ -918,7 +914,7 @@ export async function fetchLovableTtsJson(
         requestHeaders: headers,
         queryParams,
         provider,
-        voice: options?.voice,
+        voice: undefined,
         lang,
         text,
         status: res.status,
@@ -947,7 +943,7 @@ export async function fetchLovableTtsJson(
       requestHeaders: headers,
       queryParams,
       provider,
-      voice: options?.voice,
+      voice: undefined,
       lang,
       text,
       status: res.status,
