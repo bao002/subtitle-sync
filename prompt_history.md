@@ -1063,3 +1063,11 @@ error 9: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. T
 ensure all github actions are passing
 ```
 
+---
+
+### Prompt 80: Suppress Passing Voice to the TTS Service
+```
+suppress passing voice to the tts service
+```
+
+

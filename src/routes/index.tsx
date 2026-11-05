@@ -561,7 +561,6 @@ function speak(
             },
             {
               tts3Provider: altProvider,
-              tts3Voice: altVoice,
               isAnonymous: typeof window !== "undefined" ? getAlternativeTtsAnonymousMode() : false,
             },
           );
@@ -635,7 +634,6 @@ function speak(
                       altEngine,
                       {
                         provider: altProvider || "google",
-                        voice: altVoice,
                         speed: altSpeed,
                       },
                     );
@@ -681,7 +679,6 @@ function speak(
                 altEngine,
                 {
                   provider: altProvider || "google",
-                  voice: altVoice,
                   speed: altSpeed,
                 },
               );
@@ -720,7 +717,6 @@ function speak(
               altEngine,
               {
                 provider: altProvider,
-                voice: altVoice,
                 speed: altSpeed,
               },
             );
@@ -8112,13 +8108,6 @@ function Index() {
                                               alternativeTtsEngineState,
                                               {
                                                 provider: lovableTtsProviderState,
-                                                voice:
-                                                  lovableTtsProviderState === "google"
-                                                    ? undefined
-                                                    : lovableTtsVoiceState ||
-                                                      (lovableTtsProviderState === "openrouter"
-                                                        ? "alloy"
-                                                        : "Kore"),
                                                 speed: testRate,
                                                 isAnonymous: alternativeTtsAnonymousState,
                                               },

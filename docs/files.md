@@ -472,4 +472,6 @@ This document serves as the master catalog and directory of all repository docum
 | `src/components/VideoPlaybackPrecedenceBar.stories.tsx`       | Storybook Stories for VideoPlaybackPrecedenceBar (Task 295)                       | Storybook coverage for TopPosition, MiddlePosition, BottomPosition, and StandaloneCardList configurations. |
 | `scripts/verify-video-playing-precedence-bar.ts`              | Video Playing Precedence Bar Verification Suite (Task 295)                        | Asserts calculation helpers, table-row integration, beginner parity, place buttons, round-trip state, and Storybook build. |
 | `scripts/verify-vite-reload-and-ts2367-hotfix.ts`             | Vite Reload & TS2367 Comparison Hotfix Suite (Prompt 78)                          | Verifies clean module transforms for all 10 target files, elimination of TS2367 comparison errors, and version 2.1.8 synchronization. |
+| `scripts/verify-suppress-voice-to-tts-service.ts`             | Suppress Voice to TTS Service Verification Suite (Task 310, Prompt 80)             | Validates that voice parameter is suppressed from query parameters and POST request body across all TTS providers, audit records, and callers. |
+
 

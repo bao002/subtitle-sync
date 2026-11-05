@@ -56,7 +56,7 @@ assert.ok(OPENROUTER_VOICES.includes("onyx" as any), "OPENROUTER_VOICES must inc
 assert.ok(OPENROUTER_VOICES.includes("nova" as any), "OPENROUTER_VOICES must include 'nova'");
 assert.ok(OPENROUTER_VOICES.includes("shimmer" as any), "OPENROUTER_VOICES must include 'shimmer'");
 
-// Check custom voice forwarding
+// Check voice suppression to TTS service (prompt requirement: suppress passing voice to the tts service)
 const customVoiceUrl = buildLovableTtsUrl("Custom voice test", "en", {
   provider: "lovable",
   voice: "Zephyr",
@@ -64,17 +64,17 @@ const customVoiceUrl = buildLovableTtsUrl("Custom voice test", "en", {
 const customVoiceParsed = new URL(customVoiceUrl);
 assert.equal(
   customVoiceParsed.searchParams.get("voice"),
-  "Zephyr",
-  "Must pass custom voice name in query",
+  null,
+  "Must suppress passing voice name in query to TTS service",
 );
 
 const customVoiceBody = buildLovableTtsRequestBody("Custom voice test", "en", {
   provider: "lovable",
   voice: "Zephyr",
 });
-assert.equal(customVoiceBody.voice, "Zephyr", "Must pass custom voice name in POST body");
+assert.equal(customVoiceBody.voice, undefined, "Must suppress passing voice name in POST body to TTS service");
 console.log(
-  "✅ PASS: Gemini voices (including Charon), OpenAI voices, and custom voices verified.",
+  "✅ PASS: Gemini voices, OpenAI voices, and voice suppression to TTS service verified.",
 );
 
 // Section 2: Speed Multiplier (0.25 - 4.0)

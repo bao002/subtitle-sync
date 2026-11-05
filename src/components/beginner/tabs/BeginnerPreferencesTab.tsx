@@ -268,10 +268,6 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       setIsAuditioning(true);
       playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
         provider: lovableTtsProviderState,
-        voice:
-          lovableTtsProviderState === "google"
-            ? undefined
-            : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
         speed: ttsSpeed,
       })
         .catch(() => {})
@@ -295,7 +291,6 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           window.onNativeTTSError = prevErr;
           playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
             provider: lovableTtsProviderState || "google",
-            voice: lovableTtsVoiceState,
             speed: ttsSpeed,
           }).finally(() => setIsAuditioning(false));
         } else if (prevErr) prevErr(uid, err);
@@ -308,10 +303,6 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       setIsAuditioning(true);
       playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
         provider: lovableTtsProviderState || "google",
-        voice:
-          lovableTtsProviderState === "google"
-            ? undefined
-            : lovableTtsVoiceState || (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
         speed: ttsSpeed,
       })
         .catch(() => {})
@@ -336,11 +327,6 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         if (useAltTts) {
           playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
             provider: lovableTtsProviderState,
-            voice:
-              lovableTtsProviderState === "google"
-                ? undefined
-                : lovableTtsVoiceState ||
-                  (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
             speed: ttsSpeed,
           })
             .catch(() => {})
@@ -355,11 +341,6 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       if (useAltTts) {
         playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
           provider: lovableTtsProviderState,
-          voice:
-            lovableTtsProviderState === "google"
-              ? undefined
-              : lovableTtsVoiceState ||
-                (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
           speed: ttsSpeed,
         })
           .catch(() => {})
@@ -1001,11 +982,6 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                             alternativeTtsEngineState,
                             {
                               provider: lovableTtsProviderState,
-                              voice:
-                                lovableTtsProviderState === "google"
-                                  ? undefined
-                                  : lovableTtsVoiceState ||
-                                    (lovableTtsProviderState === "openrouter" ? "alloy" : "Kore"),
                               speed: ttsSpeed,
                               isAnonymous: isAnonymousState,
                             },

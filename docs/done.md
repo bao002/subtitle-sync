@@ -1,5 +1,31 @@
 # Done tasks
 
+### Task 310 (Prompt 80): Suppress Passing Voice to the TTS Service
+
+- **Prompt**:
+  ```
+  suppress passing voice to the tts service
+  ```
+- **Context & Implementation**:
+  - `src/lib/alternative-tts.ts`:
+    - In `buildLovableTtsUrl`: Suppressed the `voice` query parameter so that `url.searchParams` never includes `voice` when generating TTS service URLs across all providers.
+    - In `buildLovableTtsRequestBody`: Suppressed the `voice` property from the request body so that POST requests sent to the Lovable Speak API (`tts3.lovable.app/api/public/tts`) omit `voice`.
+    - In `synthesizeLovableTtsPost`, `fetchLovableTtsJson`, `fetchLovableTtsBinaryBlob`, and `validateRemoteTtsService`: Updated external TTS audit recording to record `voice: undefined`, ensuring audit logs and cURL commands accurately reflect clean requests without voice payloads.
+  - UI & Callers:
+    - `src/routes/index.tsx`: Cleaned fallback sequence and alternative TTS execution paths (`playAlternativeTtsAudio`, `executeTtsFallbackSequence`) to omit passing `voice`.
+    - `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`: Cleaned all 5 audition and test calls (`playAlternativeTtsAudio`) to omit passing `voice`.
+  - Tests & Version:
+    - Updated `scripts/verify-lovable-tts-speed-and-voices.ts` to assert that `voice` is suppressed from both query parameters and request bodies.
+    - Created dedicated verification test `scripts/verify-suppress-voice-to-tts-service.ts` validating suppression across all providers, mock outbound POST/GET requests, audit records, and source callers.
+    - Registered `"test:suppress-voice-to-tts-service"` in `package.json` and `docs/files.md`.
+    - Bumped application version to `v2.1.9` in `package.json` and synchronized `android-shell/app/build.gradle.kts` (versionCode 20109) via `npm run sync-version`.
+- **Validation**:
+  - `npm run test:suppress-voice-to-tts-service`: PASSED 100% (all 6 tests passed).
+  - `npm run test:single-source-version`: PASSED (v2.1.9 synchronized).
+  - `npm run test:agents-all`: PASSED 21/21 (100% AGENTS.md constitutional contract checks).
+  - `compile_applet`: PASSED (`Build succeeded`).
+  - `lint_applet`: PASSED (0 errors).
+
 ### Hotfix (Prompt 78): Fix Vite Reload and TS2367 Comparison Error in TtsFallbackOrderSwitch
 
 - **Problem & Root Cause**:
