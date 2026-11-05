@@ -24,59 +24,42 @@ import {
 
 async function run() {
   console.log("=========================================================================");
-  console.log("🧪 Verifying Direct Google TTS Plays Directly Without Lovable Error (Task 290)");
+  console.log("🧪 Verifying Direct Client Google TTS Removed & Lovable Remote Engine Active");
   console.log("=========================================================================");
 
   const rootDir = process.cwd();
 
-  // Test 1: Google Translate URL format verification
-  console.log("--> [Test 1] Verifying authentic Google Translate TTS URL construction...");
-  const googleUrl = buildGoogleTranslateTtsUrl("Hello world", "en");
-  assert(googleUrl.startsWith(GOOGLE_TRANSLATE_TTS_ENDPOINT), "Must start with GOOGLE_TRANSLATE_TTS_ENDPOINT");
-  assert(googleUrl.includes("client=tw-ob"), "Must include client=tw-ob");
-  assert(googleUrl.includes("tl=en"), "Must include tl=en");
-  assert(googleUrl.includes("q=Hello%20world"), "Must include encoded query");
-  assert(!googleUrl.includes("lovable.app"), "Google URL must never contain lovable.app");
-  console.log("✅ PASS: Direct Google TTS URL correctly formulated without Lovable");
+  // Test 1: buildAlternativeTtsUrl points strictly to Lovable Speak API
+  console.log("--> [Test 1] Verifying buildAlternativeTtsUrl routes to Lovable Speak API...");
+  const altUrl = buildAlternativeTtsUrl("Testing speech", "es");
+  assert(altUrl.startsWith(LOVABLE_TTS_ENDPOINT), `Must route to ${LOVABLE_TTS_ENDPOINT}`);
+  assert(!altUrl.includes("translate.google.com/translate_tts"), "Must not point to translate.google.com/translate_tts");
+  console.log("✅ PASS: buildAlternativeTtsUrl strictly targets Lovable Speak API");
 
-  // Test 2: buildAlternativeTtsUrl with google_translate engine
-  console.log("--> [Test 2] Verifying buildAlternativeTtsUrl with engine='google_translate'...");
-  const altUrl = buildAlternativeTtsUrl("Testing speech", "es", "google_translate");
-  assert(altUrl.startsWith("https://translate.google.com"), "Must route to translate.google.com");
-  assert(!altUrl.includes(LOVABLE_TTS_ENDPOINT), "Must not point to lovable endpoint");
-  console.log("✅ PASS: buildAlternativeTtsUrl routes directly to Google Translate");
+  // Test 2: Verify AlternativeTtsEngine type and runtime engine
+  console.log("--> [Test 2] Verifying AlternativeTtsEngine is strictly lovable...");
+  const engine = getAlternativeTtsEngine();
+  assert.strictEqual(engine, "lovable", "Current engine must be 'lovable'");
+  console.log("✅ PASS: Engine is strictly lovable");
 
-  // Test 3: Verify source code separation in src/lib/alternative-tts.ts
-  console.log("--> [Test 3] Verifying src/lib/alternative-tts.ts direct google execution...");
-  const altTtsSrc = fs.readFileSync(path.resolve(rootDir, "src/lib/alternative-tts.ts"), "utf-8");
-  assert(
-    altTtsSrc.includes("const isDirectGoogle ="),
-    "alternative-tts.ts must define isDirectGoogle guard",
-  );
-  assert(
-    altTtsSrc.includes("if (engine === \"lovable\" && !isDirectGoogle)"),
-    "Lovable synthesis must be bypassed completely for direct google",
-  );
-  console.log("✅ PASS: alternative-tts.ts strictly isolates direct Google TTS from Lovable API");
-
-  // Test 4: Verify src/routes/index.tsx BeginnerTtsServiceControl mapping
-  console.log("--> [Test 4] Verifying src/routes/index.tsx BeginnerTtsServiceControl parity...");
+  // Test 3: Verify src/routes/index.tsx BeginnerTtsServiceControl mapping
+  console.log("--> [Test 3] Verifying src/routes/index.tsx BeginnerTtsServiceControl parity...");
   const indexSrc = fs.readFileSync(path.resolve(rootDir, "src/routes/index.tsx"), "utf-8");
   assert(
-    indexSrc.includes('alternativeTtsEngineState === "google_translate"'),
-    "service 'google' in BeginnerTtsServiceControl must check alternativeTtsEngineState === 'google_translate'",
+    !indexSrc.includes('setAlternativeTtsEngineState("google_translate")'),
+    "Must not set alternativeTtsEngineState to google_translate",
   );
   assert(
-    !indexSrc.includes('lovableTtsProviderState === "google" ||\n                    alternativeTtsEngineState === "google_translate"'),
-    "Must not mix lovable provider with direct google translate engine in service check",
+    indexSrc.includes('setAlternativeTtsEngineState("lovable")'),
+    "Must set alternativeTtsEngineState to lovable",
   );
-  console.log("✅ PASS: index.tsx BeginnerTtsServiceControl strictly selects direct google_translate engine");
+  console.log("✅ PASS: index.tsx BeginnerTtsServiceControl strictly selects lovable engine");
 
-  // Test 5: Verify no unhandled error or lovable error trigger in headless playAlternativeTtsAudio
-  console.log("--> [Test 5] Verifying playAlternativeTtsAudio with engine='google_translate'...");
+  // Test 4: Verify playAlternativeTtsAudio resolves cleanly without raising exceptions
+  console.log("--> [Test 4] Verifying playAlternativeTtsAudio resolves cleanly...");
   let audioErrorCaught = false;
   try {
-    await playAlternativeTtsAudio("Test Direct Google", "en", 1.0, undefined, "google_translate");
+    await playAlternativeTtsAudio("Test Speech", "en", 1.0, undefined, "lovable");
   } catch (e) {
     audioErrorCaught = true;
   }
@@ -84,7 +67,7 @@ async function run() {
   console.log("✅ PASS: playAlternativeTtsAudio resolves cleanly without raising exceptions");
 
   console.log("=========================================================================");
-  console.log("🎉 ALL CHECKS PASSED! Direct Google TTS plays directly without Lovable error.");
+  console.log("🎉 ALL CHECKS PASSED! Direct client Google TTS removed and verified.");
   console.log("=========================================================================");
 }
 

@@ -1,6 +1,9 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 307: TTS3 Service Authorization Code Input & POST Request Execution
-- **Sub-task**: 307.1 - Update `TtsServiceSettingsPanel.tsx` (and `BeginnerPreferencesTab.tsx`) so choosing the TTS service "tts3.lovable.app" always displays the Authorization Code input field, accepting `Bearer spk_...` or `spk_...`.
-- **Validation**: Dedicated test `scripts/verify-tts3-service-post-and-auth.ts`, Storybook stories, `compile_applet`, `lint_applet`.
+- **Active Task**: Task 308 (Prompt 77): Remove Direct Google TTS Client Option Across Entire App
+- **Sub-task**: 308.1 - Update `src/lib/alternative-tts.ts` to remove client direct Google TTS URL construction (`GOOGLE_TRANSLATE_TTS_ENDPOINT`, `buildGoogleTranslateTtsUrl`), set `AlternativeTtsEngine` strictly to `"lovable"`, eliminate `"google_translate"` / `"google-tts-directly"` client service options, update fallback order types to remove direct client google fallback, and route remote audio strictly through Lovable Speak API (tts3.lovable.app).
+- **Validation**: `compile_applet`, `lint_applet`, dedicated test `scripts/verify-remove-direct-google-tts-client-option.ts`.
+
+
+

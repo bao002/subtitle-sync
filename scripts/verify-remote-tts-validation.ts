@@ -56,37 +56,39 @@ console.log("✅ Step 2 PASS: Validation result caching and retrieval verified."
 
 // 3. Verify programmatic validation execution
 async function testValidationExecution() {
-  // Test Google validation logic (simulated Node fetch environment)
-  const gResult = await validateRemoteTtsService("google_translate", { timeoutMs: 5000 });
-  assert.ok(typeof gResult.ok === "boolean", "Google result must have boolean ok status");
-  assert.ok(typeof gResult.latencyMs === "number", "Google result must have numeric latency");
-  assert.ok(gResult.serviceName.includes("Google"), "Google result serviceName must indicate Google");
+  // Test Lovable validation logic with Google provider
+  const gResult = await validateRemoteTtsService("lovable", { timeoutMs: 5000, provider: "google" });
+  assert.ok(typeof gResult.ok === "boolean", "Google provider result must have boolean ok status");
+  assert.ok(typeof gResult.latencyMs === "number", "Google provider result must have numeric latency");
+  assert.ok(gResult.serviceName.includes("TTS3"), "Google provider result serviceName must indicate TTS3");
 
-  // Test Lovable validation logic
-  const lResult = await validateRemoteTtsService("lovable", { timeoutMs: 5000, provider: "google" });
-  assert.ok(typeof lResult.ok === "boolean", "Lovable result must have boolean ok status");
-  assert.ok(typeof lResult.latencyMs === "number", "Lovable result must have numeric latency");
-  assert.ok(lResult.serviceName.includes("TTS3"), "Lovable result serviceName must indicate TTS3");
+  // Test Lovable validation logic with auto provider
+  const lResult = await validateRemoteTtsService("lovable", { timeoutMs: 5000, provider: "auto" });
+  assert.ok(typeof lResult.ok === "boolean", "Auto provider result must have boolean ok status");
+  assert.ok(typeof lResult.latencyMs === "number", "Auto provider result must have numeric latency");
+  assert.ok(lResult.serviceName.includes("TTS3"), "Auto provider result serviceName must indicate TTS3");
 
   console.log("✅ Step 3 PASS: Programmatic validation functions executed without unhandled errors.");
 }
 
 // 4. Verify UI parity across Advanced Mode and Beginner Mode
-const indexTsxPath = path.resolve(__dirname, "../src/routes/index.tsx");
+const advancedPanelPath = path.resolve(
+  __dirname,
+  "../src/components/TtsServiceSettingsPanel.tsx",
+);
 const beginnerPrefsPath = path.resolve(
   __dirname,
   "../src/components/beginner/tabs/BeginnerPreferencesTab.tsx",
 );
 
-assert.ok(fs.existsSync(indexTsxPath), "routes/index.tsx must exist");
+assert.ok(fs.existsSync(advancedPanelPath), "TtsServiceSettingsPanel.tsx must exist");
 assert.ok(fs.existsSync(beginnerPrefsPath), "BeginnerPreferencesTab.tsx must exist");
 
-const indexContent = fs.readFileSync(indexTsxPath, "utf-8");
+const advancedContent = fs.readFileSync(advancedPanelPath, "utf-8");
 const beginnerContent = fs.readFileSync(beginnerPrefsPath, "utf-8");
 
 const requiredTestIds = [
   "btn-validate-remote-tts",
-  "btn-validate-google-tts-directly",
   "btn-validate-tts3-service",
   "remote-tts-validation-badge",
   "remote-tts-validation-details",
@@ -94,8 +96,8 @@ const requiredTestIds = [
 
 for (const testId of requiredTestIds) {
   assert.ok(
-    indexContent.includes(testId),
-    `Advanced mode (src/routes/index.tsx) must contain data-testid="${testId}"`,
+    advancedContent.includes(testId),
+    `Advanced mode (src/components/TtsServiceSettingsPanel.tsx) must contain data-testid="${testId}"`,
   );
   assert.ok(
     beginnerContent.includes(testId),

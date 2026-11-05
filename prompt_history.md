@@ -1017,3 +1017,24 @@ CSS 1: {
 }
 [AIS_METADATA_SECTION_END]
 ```
+
+---
+
+### Prompt 76: Dev Server Pre-warming Failure & Lint Errors Hotfix
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.6 dev > vite --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1504 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 77: Remove Direct Google TTS Client Option Across Entire App
+```
+update: there is no option of direct request to google tts from the client. therefor rm that option from entire app
+```
+
+
+

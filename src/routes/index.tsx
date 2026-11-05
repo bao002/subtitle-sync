@@ -1278,7 +1278,7 @@ function Index() {
     typeof window !== "undefined" ? getAlternativeTtsAnonymousMode() : false,
   );
   const [ttsFallbackOrderState, setTtsFallbackOrderState] = useState<TtsFallbackOrder>(() =>
-    typeof window !== "undefined" ? getTtsFallbackOrder() : "google_tts3_native",
+    typeof window !== "undefined" ? getTtsFallbackOrder() : "tts3_native",
   );
 
   const handleNavigateToTtsSetup = useCallback(() => {
@@ -1298,6 +1298,12 @@ function Index() {
     }
     setUseAlternativeTtsState(true);
     setUseAlternativeTts(true);
+    setTimeout(() => {
+      const el = document.getElementById("tts-service-settings-panel");
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
   }, [workflowMode]);
 
   const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
@@ -6369,16 +6375,14 @@ function Index() {
             ttsServiceControlsSlot={
               <BeginnerTtsServiceControl
                 service={
-                  useAlternativeTtsState &&
-                  alternativeTtsModeState === "always" &&
-                  alternativeTtsEngineState === "google_translate"
+                  useAlternativeTtsState && alternativeTtsModeState === "always"
                     ? "google"
                     : "native"
                 }
                 onServiceChange={(service: BeginnerTtsService) => {
                   if (service === "google") {
-                    setAlternativeTtsEngineState("google_translate");
-                    setAlternativeTtsEngine("google_translate");
+                    setAlternativeTtsEngineState("lovable");
+                    setAlternativeTtsEngine("lovable");
                     setAlternativeTtsModeState("always");
                     setAlternativeTtsMode("always");
                     setLovableTtsProvider("google");
@@ -7285,16 +7289,14 @@ function Index() {
                               <div className="pt-2">
                                 <BeginnerTtsServiceControl
                                   service={
-                                    useAlternativeTtsState &&
-                                    alternativeTtsModeState === "always" &&
-                                    alternativeTtsEngineState === "google_translate"
+                                    useAlternativeTtsState && alternativeTtsModeState === "always"
                                       ? "google"
                                       : "native"
                                   }
                                   onServiceChange={(service: BeginnerTtsService) => {
                                     if (service === "google") {
-                                      setAlternativeTtsEngineState("google_translate");
-                                      setAlternativeTtsEngine("google_translate");
+                                      setAlternativeTtsEngineState("lovable");
+                                      setAlternativeTtsEngine("lovable");
                                       setAlternativeTtsModeState("always");
                                       setAlternativeTtsMode("always");
                                       setLovableTtsProvider("google");

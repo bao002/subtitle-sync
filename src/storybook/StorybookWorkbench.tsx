@@ -65,12 +65,12 @@ type ComponentKey =
 
 export const StorybookWorkbench: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<ComponentKey>("tts_service");
-  const [selectedStory, setSelectedStory] = useState<string>("google_direct");
+  const [selectedStory, setSelectedStory] = useState<string>("lovable_auto");
   const [activeDefaultSubtitle, setActiveDefaultSubtitle] = useState<string>("en");
 
   // 1. TtsServiceSettingsPanel State
   const [mode, setMode] = useState<AlternativeTtsMode>("always");
-  const [engine, setEngine] = useState<AlternativeTtsEngine>("google_translate");
+  const [engine, setEngine] = useState<AlternativeTtsEngine>("lovable");
   const [provider, setProvider] = useState<LovableTtsProvider>("auto");
   const [voice, setVoice] = useState<string>("alloy");
   const [speechRate, setSpeechRate] = useState<number>(0.5);
@@ -147,8 +147,9 @@ export const StorybookWorkbench: React.FC = () => {
     setSelectedStory(storyKey);
     if (selectedComponent === "tts_service") {
       switch (storyKey) {
-        case "google_direct":
-          setEngine("google_translate");
+        case "lovable_google":
+          setEngine("lovable");
+          setProvider("google");
           setMode("always");
           setKeyInput("");
           setValidationResult(null);
@@ -177,7 +178,7 @@ export const StorybookWorkbench: React.FC = () => {
           setValidationResult(null);
           break;
         case "fallback_only":
-          setEngine("google_translate");
+          setEngine("lovable");
           setMode("fallback_only");
           setKeyInput("");
           setValidationResult(null);
@@ -225,15 +226,9 @@ export const StorybookWorkbench: React.FC = () => {
     setIsValidating(false);
     setValidationResult({
       ok: true,
-      service: engine === "google_translate" ? "google_translate" : "lovable",
-      serviceName:
-        engine === "google_translate"
-          ? "Google TTS (Direct)"
-          : `Lovable Speak API (${provider})`,
-      endpoint:
-        engine === "google_translate"
-          ? "https://translate.google.com/translate_tts"
-          : "https://tts3.lovable.app/api/public/tts",
+      service: "lovable",
+      serviceName: `Lovable Speak API (${provider})`,
+      endpoint: "https://tts3.lovable.app/api/public/tts",
       audioVerified: true,
       latencyMs: 138,
       timestamp: Date.now(),
@@ -349,8 +344,8 @@ export const StorybookWorkbench: React.FC = () => {
             </div>
             <div className="space-y-1" data-testid="storybook-stories-list">
               {selectedComponent === "tts_service" && [
-                { id: "google_direct", title: "1. Google TTS Direct", desc: "Hides provider & voice dropdowns; single validate button" },
-                { id: "lovable_auto", title: "2. Lovable Auto Public", desc: "Shows provider select; hides custom keys & voices" },
+                { id: "lovable_auto", title: "1. Lovable Auto Public", desc: "Shows provider select; hides custom keys & voices" },
+                { id: "lovable_google", title: "2. Lovable Google Provider", desc: "Hides voice & token dropdowns; single validate button" },
                 { id: "lovable_openrouter", title: "3. Lovable OpenRouter (Keyed)", desc: "Shows provider voices & Speak API / upstream key input" },
                 { id: "lovable_openai", title: "4. Lovable OpenAI Provider", desc: "OpenAI neural voices (alloy, nova, etc.)" },
                 { id: "fallback_only", title: "5. Fallback Only Mode", desc: "Radio set to fallback mode" },
@@ -469,9 +464,6 @@ export const StorybookWorkbench: React.FC = () => {
                 engine={engine}
                 onEngineChange={(eng) => {
                   setEngine(eng);
-                  if (eng === "google_translate") {
-                    setSelectedStory("google_direct");
-                  }
                 }}
                 provider={provider}
                 onProviderChange={setProvider}

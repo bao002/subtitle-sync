@@ -20,38 +20,33 @@ console.log("=== Running verify-tts-fallback-order-switch.ts ===");
 // 1. Component file and options structure
 assert(typeof TtsFallbackOrderSwitch === "function", "TtsFallbackOrderSwitch must be a exported React component");
 assert(Array.isArray(TTS_FALLBACK_ORDER_OPTIONS), "TTS_FALLBACK_ORDER_OPTIONS must be an array");
-assert(TTS_FALLBACK_ORDER_OPTIONS.length === 6, `Expected 6 fallback order options, got ${TTS_FALLBACK_ORDER_OPTIONS.length}`);
+assert(TTS_FALLBACK_ORDER_OPTIONS.length === 3, `Expected 3 fallback order options, got ${TTS_FALLBACK_ORDER_OPTIONS.length}`);
 
 const orderIds = TTS_FALLBACK_ORDER_OPTIONS.map((o) => o.id);
-assert(orderIds.includes("google_tts3_native"), "Must contain google_tts3_native");
-assert(orderIds.includes("tts3_google_native"), "Must contain tts3_google_native");
-assert(orderIds.includes("native_google_tts3"), "Must contain native_google_tts3");
-assert(orderIds.includes("google_native"), "Must contain google_native");
 assert(orderIds.includes("tts3_native"), "Must contain tts3_native");
+assert(orderIds.includes("native_tts3"), "Must contain native_tts3");
 assert(orderIds.includes("native_only"), "Must contain native_only");
 
-console.log("✓ All 6 fallback sequences correctly defined in options");
+console.log("✓ All 3 fallback sequences correctly defined in options");
 
 // 2. Storybook stories coverage
 const storiesPath = path.resolve(process.cwd(), "src/components/TtsFallbackOrderSwitch.stories.tsx");
 assert(fs.existsSync(storiesPath), "TtsFallbackOrderSwitch.stories.tsx must exist");
 const storiesContent = fs.readFileSync(storiesPath, "utf-8");
-assert(storiesContent.includes("GoogleDirectFirst"), "Stories must include GoogleDirectFirst story");
 assert(storiesContent.includes("Tts3ServiceFirst"), "Stories must include Tts3ServiceFirst story");
 assert(storiesContent.includes("NativeVoiceFirst"), "Stories must include NativeVoiceFirst story");
-assert(storiesContent.includes("GoogleAndNative"), "Stories must include GoogleAndNative story");
 assert(storiesContent.includes("NativeOnly"), "Stories must include NativeOnly story");
 
 console.log("✓ Storybook stories file verified with complete coverage");
 
 // 3. Fallback order state persistence & default provider
-assert(DEFAULT_TTS_FALLBACK_ORDER === "google_tts3_native", "DEFAULT_TTS_FALLBACK_ORDER must default to google_tts3_native");
+assert(DEFAULT_TTS_FALLBACK_ORDER === "tts3_native", "DEFAULT_TTS_FALLBACK_ORDER must default to tts3_native");
 
-setTtsFallbackOrder("tts3_google_native");
-assert(getTtsFallbackOrder() === "tts3_google_native", "getTtsFallbackOrder must return persisted order");
+setTtsFallbackOrder("native_tts3");
+assert(getTtsFallbackOrder() === "native_tts3", "getTtsFallbackOrder must return persisted order");
 
-setTtsFallbackOrder("google_tts3_native");
-assert(getTtsFallbackOrder() === "google_tts3_native", "getTtsFallbackOrder restored to default");
+setTtsFallbackOrder("tts3_native");
+assert(getTtsFallbackOrder() === "tts3_native", "getTtsFallbackOrder restored to default");
 
 // Provider default to "auto"
 setLovableTtsProvider("auto");
@@ -79,13 +74,13 @@ async function testFallbackExecution() {
     "Hello test",
     "en",
     1.0,
-    "native_google_tts3",
+    "native_tts3",
     undefined,
     {
       onNativeSpeak: async () => true,
     },
   );
-  assert(fallbackOutcome === "native", `Expected native outcome for native_google_tts3 when native succeeds, got ${fallbackOutcome}`);
+  assert(fallbackOutcome === "native", `Expected native outcome for native_tts3 when native succeeds, got ${fallbackOutcome}`);
 
   console.log("✓ executeTtsFallbackSequence execution verified");
 }

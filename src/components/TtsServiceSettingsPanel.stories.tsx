@@ -42,7 +42,7 @@ type Story = StoryObj<typeof TtsServiceSettingsPanel>;
 // Interactive Wrapper to allow live testing in Storybook
 const InteractivePanelWrapper: React.FC<Partial<TtsServiceSettingsPanelProps>> = (props) => {
   const [mode, setMode] = useState<AlternativeTtsMode>(props.mode || "always");
-  const [engine, setEngine] = useState<AlternativeTtsEngine>(props.engine || "google_translate");
+  const [engine, setEngine] = useState<AlternativeTtsEngine>(props.engine || "lovable");
   const [provider, setProvider] = useState<LovableTtsProvider>(props.provider || "auto");
   const [voice, setVoice] = useState<string>(props.voice || "");
   const [speechRate, setSpeechRate] = useState<number>(props.speechRate ?? 0.5);
@@ -60,12 +60,9 @@ const InteractivePanelWrapper: React.FC<Partial<TtsServiceSettingsPanelProps>> =
     setIsValidating(false);
     setValidationResult({
       ok: true,
-      service: engine,
-      serviceName: engine === "google_translate" ? "Google TTS Directly" : `Lovable Speak API (${provider})`,
-      endpoint:
-        engine === "google_translate"
-          ? "https://translate.google.com/translate_tts"
-          : "https://tts3.lovable.app/api/public/tts",
+      service: "lovable",
+      serviceName: `Lovable Speak API (${provider})`,
+      endpoint: "https://tts3.lovable.app/api/public/tts",
       latencyMs: 142,
       audioVerified: true,
       timestamp: Date.now(),
@@ -113,10 +110,10 @@ const InteractivePanelWrapper: React.FC<Partial<TtsServiceSettingsPanelProps>> =
 };
 
 /**
- * 1. Google Direct Mode (Initial Unvalidated State: Shows Validate button, hides Play button)
+ * 1. Lovable Google Provider (Shows provider selector; hides voice & token input since Google uses free tier)
  */
 export const GoogleDirect: Story = {
-  render: () => <InteractivePanelWrapper engine="google_translate" mode="always" />,
+  render: () => <InteractivePanelWrapper engine="lovable" provider="google" mode="always" />,
 };
 
 /**
@@ -125,13 +122,14 @@ export const GoogleDirect: Story = {
 export const ValidatedWithPlayButton: Story = {
   render: () => (
     <InteractivePanelWrapper
-      engine="google_translate"
+      engine="lovable"
+      provider="google"
       mode="always"
       validationResult={{
         ok: true,
-        service: "google_translate",
-        serviceName: "Google TTS Directly (translate_tts)",
-        endpoint: "https://translate.google.com/translate_tts",
+        service: "lovable",
+        serviceName: "Lovable Speak API (google)",
+        endpoint: "https://tts3.lovable.app/api/public/tts",
         latencyMs: 88,
         audioVerified: true,
         details: "Audio stream loaded and decoded successfully",
@@ -147,14 +145,15 @@ export const ValidatedWithPlayButton: Story = {
 export const AnonymousModeGoogleDirect: Story = {
   render: () => (
     <InteractivePanelWrapper
-      engine="google_translate"
+      engine="lovable"
+      provider="google"
       mode="always"
       isAnonymous={true}
       validationResult={{
         ok: true,
-        service: "google_translate",
-        serviceName: "Google TTS Directly (translate_tts)",
-        endpoint: "https://translate.google.com/translate_tts",
+        service: "lovable",
+        serviceName: "Lovable Speak API (google)",
+        endpoint: "https://tts3.lovable.app/api/public/tts",
         latencyMs: 92,
         audioVerified: true,
         details: "Anonymous stream verified",
@@ -192,14 +191,15 @@ export const LovableOpenRouterKeyed: Story = {
 export const LiveVisualMonitor: Story = {
   render: () => (
     <InteractivePanelWrapper
-      engine="google_translate"
+      engine="lovable"
+      provider="google"
       mode="always"
       showDebugger={true}
       validationResult={{
         ok: true,
-        service: "google_translate",
-        serviceName: "Google TTS Directly",
-        endpoint: "https://translate.google.com/translate_tts",
+        service: "lovable",
+        serviceName: "Lovable Speak API (google)",
+        endpoint: "https://tts3.lovable.app/api/public/tts",
         latencyMs: 104,
         audioVerified: true,
         timestamp: Date.now(),
