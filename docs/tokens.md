@@ -6,7 +6,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-Task 305: Quarantine Agent Chat (`chat.md`) in `AGENTS.md` and repository staged in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md). Keep this file limited to the token-economy workflow, not per-prompt objectives or completion history. Stage numbered prompt items and their verification criteria in [`docs/tasks.md`](tasks.md), and keep only the current subtask in [`current-sub-task.md`](../current-sub-task.md).
+Task 306: UI/UX Expert - Elevate and Modernize Application Design staged in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md). Keep this file limited to the token-economy workflow, not per-prompt objectives or completion history. Stage numbered prompt items and their verification criteria in [`docs/tasks.md`](tasks.md), and keep only the current subtask in [`current-sub-task.md`](../current-sub-task.md).
 
 ---
 

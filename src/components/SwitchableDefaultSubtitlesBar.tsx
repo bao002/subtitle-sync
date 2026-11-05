@@ -81,7 +81,7 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
     <div
       data-testid="switchable-default-subtitles-bar"
       id="switchable-default-subtitles-bar"
-      className={`flex flex-col gap-2 px-3 py-2 text-xs border border-border/80 bg-card/90 rounded-lg shadow-sm backdrop-blur-sm ${className}`}
+      className={`flex flex-col gap-2 px-3 py-2 text-xs border border-border/70 bg-card/95 rounded-xl shadow-xs backdrop-blur-md studio-card-elevated ${className}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 min-w-0">

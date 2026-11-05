@@ -376,7 +376,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
                 } flex flex-col transition-all`}
               >
                 <div
-                  className={`flex items-center justify-between rounded-lg border p-1.5 sm:p-2 text-left text-sm font-medium transition-all min-h-[48px] select-none ${
+                  className={`flex items-center justify-between rounded-xl border p-1.5 sm:p-2 text-left text-sm font-medium transition-all min-h-[48px] select-none studio-card-elevated ${
                     isSelected
                       ? "border-primary bg-primary/15 text-primary shadow-xs ring-1 ring-primary/40 font-semibold"
                       : "border-border bg-card hover:bg-accent/40 text-foreground"

@@ -111,15 +111,15 @@ export function AccordionSection({
       onKeyDown={markActivity}
       onFocus={markActivity}
       onToggle={(event) => onOpenChange(event.currentTarget.open)}
-      className={`overflow-hidden rounded-lg border text-sm ${theme.panelBg || "bg-card border-border"} ${theme.borderLeft} ${wide ? "lg:col-span-2" : ""}`}
+      className={`overflow-hidden rounded-xl border text-sm shadow-xs transition-all ${theme.panelBg || "bg-card border-border"} ${theme.borderLeft} ${wide ? "lg:col-span-2" : ""}`}
     >
       <summary
         data-testid={`accordion-bar-${id}`}
-        className={`flex cursor-pointer list-none items-center gap-1 px-3 py-1 marker:hidden transition-colors ${theme.summaryBg}`}
+        className={`flex cursor-pointer list-none items-center gap-1.5 px-3.5 py-1.5 marker:hidden transition-all duration-150 select-none ${theme.summaryBg}`}
       >
         <ChevronDown
           aria-hidden="true"
-          className={`size-4 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`size-4 text-muted-foreground/80 transition-transform duration-200 ${open ? "rotate-180 text-foreground" : ""}`}
         />
         <h2 className="mr-auto text-xs font-semibold uppercase tracking-wider text-foreground flex items-center gap-2">
           <span>{title}</span>

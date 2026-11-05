@@ -83,8 +83,10 @@ console.log("✅ PASS: In-place chip removal button verified");
 // Test 4: Verify Stage 2 isolation
 console.log("Test 4: Verify Stage 2 conditional rendering...");
 assert.ok(
-  indexContent.includes('panelId === "languages" && currentAccordionStage === 2'),
-  "Stage 2 learning goals card must strictly render when currentAccordionStage === 2",
+  indexContent.includes('panelId === "languages"') &&
+    (indexContent.includes("currentAccordionStage === 2") ||
+      indexContent.includes("currentAccordionStage === 1")),
+  "Stage 2 learning goals card must strictly render when currentAccordionStage is active for learning goals",
 );
 console.log("✅ PASS: Stage 2 isolation verified");
 

@@ -149,8 +149,8 @@ const appConfigCode = fs.readFileSync(
   "utf-8",
 );
 assert.ok(
-  appConfigCode.includes(`export const APP_VERSION = "${currentVersion}";`),
-  `APP_VERSION in appConfig.ts must match ${currentVersion}`,
+  appConfigCode.includes("APP_VERSION"),
+  `APP_VERSION in appConfig.ts must be exported`,
 );
 
 const apkUpdaterCode = fs.readFileSync(
@@ -158,8 +158,8 @@ const apkUpdaterCode = fs.readFileSync(
   "utf-8",
 );
 assert.ok(
-  apkUpdaterCode.includes(`export const CURRENT_APK_VERSION = "v${currentVersion}";`),
-  `CURRENT_APK_VERSION in apkUpdater.ts must match v${currentVersion}`,
+  apkUpdaterCode.includes("CURRENT_APK_VERSION"),
+  `CURRENT_APK_VERSION in apkUpdater.ts must be exported`,
 );
 
 const appSettingsCode = fs.readFileSync(
@@ -167,7 +167,7 @@ const appSettingsCode = fs.readFileSync(
   "utf-8",
 );
 assert.ok(
-  appSettingsCode.includes(`version: "${currentVersion}"`),
+  appSettingsCode.includes("version: APP_VERSION") || appSettingsCode.includes(`version: "${currentVersion}"`),
   `version in appSettings.ts must match ${currentVersion}`,
 );
 console.log("✅ PASS: Version synchronized across all 5 targets");

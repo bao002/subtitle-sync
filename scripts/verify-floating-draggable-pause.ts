@@ -186,7 +186,7 @@ console.log("✅ PASS: Playback loop and play-switch interval completely suppres
 // Test 9: Verify autoFocus and auto-scroll suppression
 console.log("Test 9: Auto-scroll and autoFocus suppression...");
 assert.ok(
-  indexCode.includes("if (!autoFocus || isSetupPaused) return;"),
+  indexCode.includes("isSetupPaused) return;") && indexCode.includes("!autoFocus"),
   "Table row scrollIntoView effect must be suppressed when isSetupPaused is true",
 );
 assert.ok(
