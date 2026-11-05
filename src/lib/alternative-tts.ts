@@ -101,7 +101,10 @@ export function setTtsFallbackOrder(order: TtsFallbackOrder): void {
  */
 export function isSpeakApiPersonalToken(token?: string | null): boolean {
   if (!token) return false;
-  const t = token.trim();
+  let t = token.trim();
+  if (t.toLowerCase().startsWith("bearer ")) {
+    t = t.slice(7).trim();
+  }
   return t.startsWith("spk_") || t.startsWith("tts_");
 }
 
@@ -322,6 +325,7 @@ export interface LovableTtsOptions {
   speakApiToken?: string;
   method?: LovableTtsMethod;
   isAnonymous?: boolean;
+  debug?: boolean;
 }
 
 export interface LovableTtsRequestBody {
@@ -334,6 +338,7 @@ export interface LovableTtsRequestBody {
   speed?: number;
   options?: Record<string, unknown>;
   format?: LovableTtsFormat;
+  debug?: boolean;
 }
 
 export interface LovableTtsJsonResponse {
@@ -367,13 +372,21 @@ export function normalizeLanguageCode(lang: string): string {
 export function getSpeakApiToken(): string {
   if (typeof window === "undefined") return "";
   try {
-    const directToken = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN);
+    let directToken = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN);
     if (directToken && directToken.trim()) {
-      return directToken.trim();
+      let t = directToken.trim();
+      if (t.toLowerCase().startsWith("bearer ")) {
+        t = t.slice(7).trim();
+      }
+      return t;
     }
     const legacyKey = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY);
     if (legacyKey && isSpeakApiPersonalToken(legacyKey)) {
-      return legacyKey.trim();
+      let t = legacyKey.trim();
+      if (t.toLowerCase().startsWith("bearer ")) {
+        t = t.slice(7).trim();
+      }
+      return t;
     }
     return "";
   } catch {
@@ -386,7 +399,10 @@ export function getSpeakApiToken(): string {
  */
 export function setSpeakApiToken(token: string): void {
   if (typeof window === "undefined") return;
-  const clean = token.trim();
+  let clean = token.trim();
+  if (clean.toLowerCase().startsWith("bearer ")) {
+    clean = clean.slice(7).trim();
+  }
   try {
     if (clean) {
       localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN, clean);
@@ -2098,7 +2114,10 @@ export function getLovableTtsApiKey(): string {
  */
 export function setLovableTtsApiKey(apiKey: string): void {
   if (typeof window === "undefined") return;
-  const clean = apiKey.trim();
+  let clean = apiKey.trim();
+  if (clean.toLowerCase().startsWith("bearer ")) {
+    clean = clean.slice(7).trim();
+  }
   try {
     if (clean) {
       if (isSpeakApiPersonalToken(clean)) {

@@ -4,6 +4,12 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
+- [ ] **Task 307 (Prompt 75): TTS3 Service Authorization Code Input & POST Request Execution**
+  - Subtask 307.1: Update `TtsServiceSettingsPanel.tsx` (and `BeginnerPreferencesTab.tsx`) so that choosing the TTS service `"tts3.lovable.app"` always displays the Authorization Code input field (accepting `Bearer spk_...` or `spk_...` tokens), with clear label, placeholder, and saved status badge.
+  - Subtask 307.2: Update `alternative-tts.ts` to set default Lovable TTS method to `"post"`, sanitize `Bearer ` prefixes from token storage, ensure requests to `https://tts3.lovable.app/api/public/tts` use `POST` method with `Content-Type: application/json`, `Accept: */*`, `Authorization: Bearer <token>`, and payload containing `text`, `lang`, `provider: "auto"`, `debug: true`.
+  - Subtask 307.3: Synchronize version to `v2.1.7` across `package.json`, `appConfig.ts`, `apkUpdater.ts`, `appSettings.ts`, `build.gradle.kts`.
+  - Subtask 307.4: Implement dedicated automated test `scripts/verify-tts3-service-post-and-auth.ts`, verify full test suite passes, `compile_applet`, `lint_applet`, commit, and migrate Task 307 to `docs/done.md`.
+
 - [ ] **Task 304: Ensure GitHub Actions Work Correctly & E2E Tests Recognize Application Crashes**
   - Subtask 304.1: Fix GitHub Actions workflows alignment in `scripts/verify-workflows-alignment.ts` (include `version-sync.yml`) and ensure `web.yml` properly executes Playwright test suite for web and emulation specs.
   - Subtask 304.2: Update E2E test framework (`e2e/web.spec.ts` and `e2e/emulation.spec.ts`) with crash recognition listeners (`pageerror`, `router-error-component`, and crash diagnostic capture) so tests fail immediately with actionable crash logs when an app crash occurs, and add a dedicated test verifying that application crashes are detected.

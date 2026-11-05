@@ -797,8 +797,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                       }}
                       placeholder={
                         getServerOpenRouterApiKey()
-                          ? "Using server key (or enter spk_... / sk-or-...)"
-                          : "spk_... (Speak API token) or sk-or-... / sk_..."
+                          ? "Using server key (or enter Bearer spk_...)"
+                          : "Bearer spk_... or spk_... (authorization code)"
                       }
                       className="w-full rounded border border-input bg-background px-2.5 py-1 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground/60"
                     />
@@ -846,7 +846,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                   )}
                 </div>
                 <p className="text-[10.5px] text-muted-foreground leading-normal">
-                  Enter your Speak API Personal Token (<code className="font-mono text-primary">spk_...</code>) from tts3.lovable.app or an upstream provider key (<code className="font-mono text-primary">sk_...</code>, <code className="font-mono text-primary">sk-or-...</code>).
+                  Set authorization code (<code className="font-mono text-primary">Bearer spk_...</code> or <code className="font-mono text-primary">spk_...</code>) for <code className="font-mono text-primary">https://tts3.lovable.app/api/public/tts</code> POST requests, or an upstream key (<code className="font-mono text-primary">sk_...</code>).
                 </p>
               </div>
 

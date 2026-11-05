@@ -309,107 +309,98 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
               </div>
             </div>
 
-            {/* API Key / Speak API Token Input (Strictly shown only for keyed providers) */}
-            {isKeyedProvider ? (
-              <div
-                data-testid="tts-token-input-section"
-                className="space-y-1.5 pt-2 border-t border-border/60"
-              >
-                <div className="flex items-center justify-between flex-wrap gap-1">
-                  <label
-                    htmlFor="tts-panel-token-input"
-                    className="text-muted-foreground font-medium flex items-center gap-1.5 flex-wrap"
-                  >
-                    <span>Speak API Token / Provider Key:</span>
-                    {hasCustomSpeakToken ? (
-                      <span
-                        data-testid="speak-token-custom-badge"
-                        className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/30"
-                      >
-                        ✓ Speak API token (spk_...) saved
-                      </span>
-                    ) : hasCustomKey ? (
-                      <span
-                        data-testid="openrouter-key-custom-badge"
-                        className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-1.5 py-0.2 rounded border border-emerald-500/30"
-                      >
-                        ✓ Provider key saved
-                      </span>
-                    ) : hasServerKey ? (
-                      <span
-                        data-testid="openrouter-key-server-badge"
-                        className="text-[10px] text-primary font-medium"
-                      >
-                        (Using server .env key)
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-muted-foreground">
-                        (Optional - free tier default)
-                      </span>
-                    )}
-                  </label>
-                </div>
-
-                <div className="flex items-center gap-1.5">
-                  <div className="relative flex-1">
-                    <input
-                      id="tts-panel-token-input"
-                      data-testid="openrouter-tts-key-input"
-                      type={showKeyPassword ? "text" : "password"}
-                      value={keyInput}
-                      onChange={(e) => setKeyInput(e.target.value)}
-                      placeholder={
-                        hasServerKey
-                          ? "Using server key (or enter spk_... / sk-or-...)"
-                          : "spk_... (Speak API token) or sk-or-... / sk_..."
-                      }
-                      className="w-full rounded border border-input bg-background px-2.5 py-1 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground/60"
-                    />
-                    <button
-                      type="button"
-                      data-testid="toggle-show-openrouter-key-btn"
-                      onClick={() => setShowKeyPassword(!showKeyPassword)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs cursor-pointer"
-                      title={showKeyPassword ? "Hide key" : "Show key"}
+            {/* API Key / Speak API Token / Authorization Code Input (Shown for Lovable Speak API tts3.lovable.app) */}
+            <div
+              data-testid="tts-token-input-section"
+              className="space-y-1.5 pt-2 border-t border-border/60"
+            >
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <label
+                  htmlFor="tts-panel-token-input"
+                  className="text-muted-foreground font-medium flex items-center gap-1.5 flex-wrap"
+                >
+                  <span>Authorization Code / API Token:</span>
+                  {hasCustomSpeakToken ? (
+                    <span
+                      data-testid="speak-token-custom-badge"
+                      className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30"
                     >
-                      {showKeyPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                    </button>
-                  </div>
+                      ✓ Authorization code (spk_...) saved
+                    </span>
+                  ) : hasCustomKey ? (
+                    <span
+                      data-testid="openrouter-key-custom-badge"
+                      className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/30"
+                    >
+                      ✓ Provider key saved
+                    </span>
+                  ) : hasServerKey ? (
+                    <span
+                      data-testid="openrouter-key-server-badge"
+                      className="text-[10px] text-primary font-medium"
+                    >
+                      (Using server .env key)
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground">
+                      (Optional - enter Bearer token or spk_...)
+                    </span>
+                  )}
+                </label>
+              </div>
 
+              <div className="flex items-center gap-1.5">
+                <div className="relative flex-1">
+                  <input
+                    id="tts-panel-token-input"
+                    data-testid="openrouter-tts-key-input"
+                    type={showKeyPassword ? "text" : "password"}
+                    value={keyInput}
+                    onChange={(e) => setKeyInput(e.target.value)}
+                    placeholder={
+                      hasServerKey
+                        ? "Using server key (or enter Bearer spk_...)"
+                        : "Bearer spk_... or spk_... (authorization code)"
+                    }
+                    className="w-full rounded border border-input bg-background px-2.5 py-1 pr-8 text-xs font-mono text-foreground placeholder:text-muted-foreground/60"
+                  />
                   <button
                     type="button"
-                    data-testid="save-openrouter-key-btn"
-                    onClick={handleSaveKeyClick}
-                    className="px-2.5 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium cursor-pointer"
+                    data-testid="toggle-show-openrouter-key-btn"
+                    onClick={() => setShowKeyPassword(!showKeyPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs cursor-pointer"
+                    title={showKeyPassword ? "Hide key" : "Show key"}
                   >
-                    {keySavedFeedback ? "Saved!" : "Save"}
+                    {showKeyPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                   </button>
-
-                  {keyInput && (
-                    <button
-                      type="button"
-                      data-testid="clear-openrouter-key-btn"
-                      onClick={handleClearKeyClick}
-                      className="px-2 py-1 rounded border border-input bg-background text-muted-foreground hover:text-foreground text-xs cursor-pointer"
-                      title="Clear custom key"
-                    >
-                      Clear
-                    </button>
-                  )}
                 </div>
 
-                <p className="text-[10.5px] text-muted-foreground leading-normal mt-0.5">
-                  Enter your Speak API Personal Token (<code className="font-mono text-primary">spk_...</code>) from tts3.lovable.app or an upstream provider key (<code className="font-mono text-primary">sk_...</code>, <code className="font-mono text-primary">sk-or-...</code>).
-                </p>
+                <button
+                  type="button"
+                  data-testid="save-openrouter-key-btn"
+                  onClick={handleSaveKeyClick}
+                  className="px-2.5 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-medium cursor-pointer"
+                >
+                  {keySavedFeedback ? "Saved!" : "Save"}
+                </button>
+
+                {keyInput && (
+                  <button
+                    type="button"
+                    data-testid="clear-openrouter-key-btn"
+                    onClick={handleClearKeyClick}
+                    className="px-2 py-1 rounded border border-input bg-background text-muted-foreground hover:text-foreground text-xs cursor-pointer"
+                    title="Clear custom key"
+                  >
+                    Clear
+                  </button>
+                )}
               </div>
-            ) : (
-              <div
-                data-testid="public-tier-notice"
-                className="text-[11px] text-muted-foreground/90 italic pt-1 border-t border-border/40"
-              >
-                Auto / Google provider on Speak API operates in public mode without required API keys.
-              </div>
-            )}
+
+              <p className="text-[10.5px] text-muted-foreground leading-normal mt-0.5">
+                Set authorization code (<code className="font-mono text-primary">Bearer spk_...</code> or <code className="font-mono text-primary">spk_...</code>) for <code className="font-mono text-primary">https://tts3.lovable.app/api/public/tts</code> POST requests, or an upstream key (<code className="font-mono text-primary">sk_...</code>).
+              </p>
+            </div>
           </div>
         )}
 

@@ -1,6 +1,6 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 304: Ensure GitHub Actions Work Correctly & E2E Tests Recognize Application Crashes
-- **Sub-task**: 304.1 - Fix GitHub Actions workflows alignment in `scripts/verify-workflows-alignment.ts` (include `version-sync.yml`) and ensure `web.yml` properly executes Playwright test suite for web and emulation specs.
-- **Validation**: `npm run test:workflows`, dedicated test `scripts/verify-github-actions-and-e2e-crash-detection.ts`, `compile_applet`, `lint_applet`.
+- **Active Task**: Task 307: TTS3 Service Authorization Code Input & POST Request Execution
+- **Sub-task**: 307.1 - Update `TtsServiceSettingsPanel.tsx` (and `BeginnerPreferencesTab.tsx`) so choosing the TTS service "tts3.lovable.app" always displays the Authorization Code input field, accepting `Bearer spk_...` or `spk_...`.
+- **Validation**: Dedicated test `scripts/verify-tts3-service-post-and-auth.ts`, Storybook stories, `compile_applet`, `lint_applet`.
