@@ -319,12 +319,12 @@ export function SubtitlesTablePanel({
         </div>
       )}
       <table data-testid="subtitles-table" className="w-full border-collapse text-sm">
-        <thead data-testid="subtitles-table-head" className="sticky top-0 z-20 bg-secondary">
+        <thead data-testid="subtitles-table-head" className="sticky top-0 z-20 bg-secondary/95 backdrop-blur-md shadow-xs border-b border-border/70">
           <tr>
             <th
               data-testid="table-header-time"
-              className={`w-28 min-w-[7rem] max-w-[7rem] px-3 py-2 text-left font-medium ${
-                shouldFreezeColumns ? "sticky left-0 z-30 bg-secondary shadow-[1px_0_0_0_rgba(0,0,0,0.1)]" : ""
+              className={`w-28 min-w-[7rem] max-w-[7rem] px-3 py-2.5 text-left font-semibold text-xs tracking-wider uppercase text-muted-foreground ${
+                shouldFreezeColumns ? "sticky left-0 z-30 bg-secondary/95 backdrop-blur-md shadow-[1px_0_0_0_rgba(0,0,0,0.1)]" : ""
               }`}
             >
               Time
@@ -336,14 +336,14 @@ export function SubtitlesTablePanel({
                 <th
                   key={l.code}
                   data-testid={`table-header-col-${l.code}`}
-                  className={`px-3 py-2 text-left font-medium min-w-[12rem] ${
+                  className={`px-3 py-2.5 text-left font-semibold text-xs text-foreground min-w-[12rem] ${
                     shouldFreezeColumns && isFirstCol
-                      ? "sticky left-28 z-30 bg-secondary shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]"
+                      ? "sticky left-28 z-30 bg-secondary/95 backdrop-blur-md shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]"
                       : ""
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                    <span className="inline-flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1.5 font-medium">
                       {subtitleColumnName(l.code, l.name)}
                       {l.isYouTubeOrJson && (
                         <span title="Parsed from YouTube subtitles or .json artifact">
@@ -390,7 +390,7 @@ export function SubtitlesTablePanel({
                           e.stopPropagation();
                           onSelectBaseLanguage(l.code);
                         }}
-                        className="inline-flex items-center gap-1 rounded border border-border/80 bg-background hover:bg-muted text-[10px] text-muted-foreground hover:text-foreground px-1.5 py-0.5 transition-colors cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-md border border-border/80 bg-background/80 hover:bg-muted text-[10px] text-muted-foreground hover:text-foreground px-2 py-0.5 transition-all shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
                         title={`Set ${l.name || l.code} as default translation source`}
                       >
                         Set Default

@@ -145,7 +145,7 @@ export const SubtitleRow = memo(function SubtitleRow({
                   />
                 </div>
                 <div
-                  className="flex items-center gap-1 shrink-0"
+                  className="flex items-center gap-1 shrink-0 pt-0.5"
                   data-testid="sentence-actions-wrapper"
                 >
                   {onSpeakCue && columnText && l.code !== baseLanguage && (
@@ -155,7 +155,7 @@ export const SubtitleRow = memo(function SubtitleRow({
                         e.stopPropagation();
                         onSpeakCue(columnText, l.code);
                       }}
-                      className="opacity-40 hover:opacity-100 p-0.5 rounded text-muted-foreground hover:text-foreground transition-opacity"
+                      className="opacity-45 hover:opacity-100 p-1 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-all active:scale-90 cursor-pointer"
                       data-testid={`btn-speak-cell-${actualIndex}-${l.code}`}
                       title={`Listen to pronunciation (${l.name})`}
                     >
@@ -165,7 +165,7 @@ export const SubtitleRow = memo(function SubtitleRow({
                   {isSpoken && ratio > 1 && (
                     <span
                       data-testid={`row-${actualIndex}-tts-status-${l.code}`}
-                      className={`inline-flex items-center px-1 py-0.2 rounded text-[9px] font-mono select-none ${
+                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono select-none transition-colors ${
                         isEligible
                           ? "bg-primary text-primary-foreground font-semibold shadow-xs"
                           : "opacity-35 text-muted-foreground line-through"

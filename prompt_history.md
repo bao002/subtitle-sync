@@ -970,5 +970,16 @@ error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.3 dev 
 AGENTS.md - regarding using agent chat - quarentine and dont use for now
 ```
 
+---
 
+### Prompt 73: UI/UX Expert - Update the Project Design
+```
+as a UI/UX expert - update the project design
+```
 
+---
+
+### Prompt 74: Design Simplicity Inquiry
+```
+hi expert, is it the most simple design now ?
+```

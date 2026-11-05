@@ -1,5 +1,44 @@
 # Done tasks
 
+### Task 306 (Prompt 73): UI/UX Expert - Elevate and Modernize Application Design
+
+- **Prompt**:
+  ```
+  as a UI/UX expert - update the project design
+  ```
+- **Context & Implementation**:
+  - `index.html`:
+    - Integrated Google Fonts for contemporary typography pairing: loaded `Plus Jakarta Sans` (weights 400, 500, 600, 700) for clean editorial and UI display structure, alongside `Fraunces`, `Figtree`, and `JetBrains Mono` for tabular figures.
+    - Preserved default `<html lang="en" class="dark dark-blue">` for immediate midnight theme hydration.
+  - `src/styles.css`:
+    - Updated typography mapping in `@theme inline` to register `--font-display: "Plus Jakarta Sans", "Fraunces", system-ui, sans-serif`, `--font-sans: "Plus Jakarta Sans", "Figtree", system-ui, sans-serif`, and `--font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace`.
+    - Added modern studio utility classes: `.studio-glass`, `.studio-card-elevated`, `.studio-interactive-btn`, and `.studio-subtle-glow`.
+  - `src/components/AccordionSection.tsx`:
+    - Elevated accordion card geometry with `rounded-xl`, subtle shadow depth `shadow-xs`, and smooth chevron rotation animation `duration-200 ease-out`.
+    - Retained all functional contracts, data attributes (`data-accordion-type`, `data-accordion-color`, `theme.panelBg`, `theme.borderLeft`), and test IDs.
+  - `src/components/SubtitlesTablePanel.tsx` & `src/components/SubtitleRow.tsx`:
+    - Polished sticky table header with glassmorphism backdrop blur (`bg-secondary/95 backdrop-blur-md shadow-xs`), clean tracking (`uppercase text-muted-foreground`), and tactile button feedback.
+    - Enhanced speak cue button with hover background and press scaling (`active:scale-90`) and tabular figures (`tabular-nums font-mono`).
+  - `src/components/SwitchableDefaultSubtitlesBar.tsx` & `src/components/LanguageBoxesSelector.tsx`:
+    - Refined containers with `rounded-xl`, `studio-card-elevated`, and backdrop blur.
+  - Application Version & Single Source of Truth:
+    - Bumped to `v2.1.6` in `package.json` and synchronized `android-shell/app/build.gradle.kts` (versionCode 20106) via `npm run sync-version`.
+- **Validation Outcomes**:
+  - Dedicated automated test: `npm run test:ui-ux-design-update` (100% PASSED).
+  - `npm run test:theme-colors-consistency`: PASSED.
+  - `npm run test:default-midnight-theme`: PASSED.
+  - `npm run test:single-source-version`: PASSED.
+  - `npm run test:accordion-colors`: PASSED.
+  - `npm run test:language-boxes`: PASSED.
+  - `npm run test:floating-pause`: PASSED.
+  - `npm run test:single-icon-floating-button`: PASSED.
+  - `npm run test:simplified-design-and-reduced-text`: PASSED.
+  - `npm run test:stage-2-extend-favorite-languages`: PASSED.
+  - `npm run test:accordion-stages-of-appearance`: PASSED.
+  - `npm run test:fetched-subtitles-info-stage`: PASSED.
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED (0 errors).
+
 ### Task 305 (Prompt 72): Quarantine Agent Chat (`chat.md`) in AGENTS.md & Repository
 
 - **Prompt**:

@@ -133,7 +133,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-AGENTS.md - regarding using agent chat - quarentine and dont use for now
+hi expert, is it the most simple design now ?
 ```
-
-
