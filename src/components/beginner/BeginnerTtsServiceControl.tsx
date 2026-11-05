@@ -42,10 +42,10 @@ export const BeginnerTtsServiceControl: React.FC<BeginnerTtsServiceControlProps>
         checked={service === "google"}
         onChange={() => onServiceChange("google")}
       />
-      Google TTS (primary)
+      TTS3 service (Google provider)
     </label>
     <span className="text-[10px] text-muted-foreground">
-      Google plays directly, not only as a fallback.
+      Plays via TTS3 speech service with provider "google".
     </span>
   </fieldset>
 );

@@ -36,26 +36,20 @@ export const STORAGE_KEY_TTS_FALLBACK_ORDER = "yt_tts_fallback_order_v1";
 const STORAGE_KEY_REMOTE_TTS_VALIDATION_RESULT = "yt_remote_tts_val_res_v1";
 
 export type AlternativeTtsMode = "fallback_only" | "always";
-export type AlternativeTtsEngine = "lovable" | "google_translate";
+export type AlternativeTtsEngine = "lovable";
 export type LovableTtsProvider =
   "auto" | "google" | "lovable" | "openrouter" | "gemini" | "openai" | "elevenlabs" | "deepgram";
 export type LovableTtsMethod = "get" | "post";
 export type LovableTtsFormat = "binary" | "json";
 
-export type TtsFallbackOrder =
-  | "google_tts3_native"
-  | "tts3_google_native"
-  | "native_google_tts3"
-  | "google_native"
-  | "tts3_native"
-  | "native_only";
+export type TtsFallbackOrder = "tts3_native" | "native_tts3" | "native_only";
 
-export const DEFAULT_TTS_FALLBACK_ORDER: TtsFallbackOrder = "google_tts3_native";
+export const DEFAULT_TTS_FALLBACK_ORDER: TtsFallbackOrder = "tts3_native";
 
 const memoryFallbackStore: Record<string, string> = {};
 
 /**
- * Retrieves the configured TTS fallback order (e.g. google directly -> tts3 -> native).
+ * Retrieves the configured TTS fallback order (TTS3 service -> Native or Native -> TTS3).
  */
 export function getTtsFallbackOrder(): TtsFallbackOrder {
   try {
@@ -63,14 +57,7 @@ export function getTtsFallbackOrder(): TtsFallbackOrder {
       typeof localStorage !== "undefined"
         ? (localStorage.getItem(STORAGE_KEY_TTS_FALLBACK_ORDER) as TtsFallbackOrder)
         : (memoryFallbackStore[STORAGE_KEY_TTS_FALLBACK_ORDER] as TtsFallbackOrder);
-    if (
-      stored === "google_tts3_native" ||
-      stored === "tts3_google_native" ||
-      stored === "native_google_tts3" ||
-      stored === "google_native" ||
-      stored === "tts3_native" ||
-      stored === "native_only"
-    ) {
+    if (stored === "tts3_native" || stored === "native_tts3" || stored === "native_only") {
       return stored;
     }
   } catch {
@@ -372,7 +359,7 @@ export function normalizeLanguageCode(lang: string): string {
 export function getSpeakApiToken(): string {
   if (typeof window === "undefined") return "";
   try {
-    let directToken = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN);
+    const directToken = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN);
     if (directToken && directToken.trim()) {
       let t = directToken.trim();
       if (t.toLowerCase().startsWith("bearer ")) {
@@ -1173,37 +1160,29 @@ export async function synthesizeLovableTtsAudio(
 
 /**
  * Builds the Google Translate TTS audio URL.
+/**
+ * @deprecated Direct requests to Google TTS from the client are not supported.
  */
-export function buildGoogleTranslateTtsUrl(text: string, lang: string): string {
-  if (!text) return "";
-  const tl = normalizeLanguageCode(lang);
-  const encodedText = encodeURIComponent(text);
-  const encodedTl = encodeURIComponent(tl);
-
-  return `${GOOGLE_TRANSLATE_TTS_ENDPOINT}?ie=UTF-8&client=tw-ob&tl=${encodedTl}&q=${encodedText}`;
+export function buildGoogleTranslateTtsUrl(_text: string, _lang: string): string {
+  return "";
 }
 
 /**
- * Builds the active alternative TTS URL based on the selected engine.
+ * Builds the active alternative TTS URL based on the selected engine (Lovable Speak API).
  */
 export function buildAlternativeTtsUrl(
   text: string,
   lang: string,
-  engine?: AlternativeTtsEngine,
+  _engine?: AlternativeTtsEngine,
 ): string {
-  const activeEngine = engine || getAlternativeTtsEngine();
-  if (activeEngine === "lovable") {
-    return buildLovableTtsUrl(text, lang);
-  }
-  return buildGoogleTranslateTtsUrl(text, lang);
+  return buildLovableTtsUrl(text, lang);
 }
 
-export type RemoteTtsServiceType =
-  "google_translate" | "google-tts-directly" | "google" | "lovable" | "tts3" | "tts3-service";
+export type RemoteTtsServiceType = "lovable" | "tts3" | "tts3-service";
 
 export interface RemoteTtsValidationResult {
   ok: boolean;
-  service: "google_translate" | "lovable";
+  service: "lovable";
   serviceName: string;
   endpoint: string;
   statusCode?: number;
@@ -1223,26 +1202,18 @@ export interface RemoteTtsValidationOptions {
   isAnonymous?: boolean;
 }
 
-const lastValidationResults: Partial<
-  Record<"google_translate" | "lovable", RemoteTtsValidationResult>
-> = {};
+const lastValidationResults: Partial<Record<"lovable", RemoteTtsValidationResult>> = {};
 
-export function getLastValidationResult(
-  service: "google_translate" | "lovable" | AlternativeTtsEngine | RemoteTtsServiceType,
-): RemoteTtsValidationResult | null {
-  const normKey =
-    service === "lovable" || service === "tts3" || service === "tts3-service"
-      ? "lovable"
-      : "google_translate";
-  if (lastValidationResults[normKey]) {
-    return lastValidationResults[normKey]!;
+export function getLastValidationResult(_service?: string): RemoteTtsValidationResult | null {
+  if (lastValidationResults["lovable"]) {
+    return lastValidationResults["lovable"]!;
   }
   try {
     if (typeof localStorage !== "undefined") {
-      const raw = localStorage.getItem(`${STORAGE_KEY_REMOTE_TTS_VALIDATION_RESULT}_${normKey}`);
+      const raw = localStorage.getItem(`${STORAGE_KEY_REMOTE_TTS_VALIDATION_RESULT}_lovable`);
       if (raw) {
         const parsed = JSON.parse(raw);
-        lastValidationResults[normKey] = parsed;
+        lastValidationResults["lovable"] = parsed;
         return parsed;
       }
     }
@@ -1252,19 +1223,12 @@ export function getLastValidationResult(
   return null;
 }
 
-export function setLastValidationResult(
-  service: "google_translate" | "lovable" | AlternativeTtsEngine | RemoteTtsServiceType,
-  result: RemoteTtsValidationResult,
-): void {
-  const normKey =
-    service === "lovable" || service === "tts3" || service === "tts3-service"
-      ? "lovable"
-      : "google_translate";
-  lastValidationResults[normKey] = result;
+export function setLastValidationResult(_service: string, result: RemoteTtsValidationResult): void {
+  lastValidationResults["lovable"] = result;
   try {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem(
-        `${STORAGE_KEY_REMOTE_TTS_VALIDATION_RESULT}_${normKey}`,
+        `${STORAGE_KEY_REMOTE_TTS_VALIDATION_RESULT}_lovable`,
         JSON.stringify(result),
       );
     }
@@ -1274,241 +1238,17 @@ export function setLastValidationResult(
 }
 
 /**
- * Validates availability, response time, and audio streams for remote TTS services:
- * 1. google-tts-directly: Direct Google Translate TTS endpoint (client=tw-ob)
- * 2. tts3 service: Lovable Speak API (https://tts3.lovable.app/api/public/tts & openapi.json)
+ * Validates availability, response time, and audio streams for the remote TTS service:
+ * Lovable Speak API (https://tts3.lovable.app/api/public/tts & openapi.json)
  */
 export async function validateRemoteTtsService(
-  serviceInput: RemoteTtsServiceType | AlternativeTtsEngine,
+  _serviceInput?: RemoteTtsServiceType | AlternativeTtsEngine | string,
   options?: RemoteTtsValidationOptions,
 ): Promise<RemoteTtsValidationResult> {
-  const isGoogle =
-    serviceInput === "google_translate" ||
-    serviceInput === "google-tts-directly" ||
-    serviceInput === "google";
-  const normalizedService: "google_translate" | "lovable" = isGoogle
-    ? "google_translate"
-    : "lovable";
   const timeoutMs = options?.timeoutMs ?? 7000;
   const testText = options?.text || "Test";
   const testLang = options?.lang || "en";
   const startTime = Date.now();
-
-  if (normalizedService === "google_translate") {
-    const serviceName = "Google TTS Directly (translate_tts)";
-    const url = buildGoogleTranslateTtsUrl(testText, testLang);
-
-    // 1. In browser environments with Audio support, validate audio loading and decode capability directly
-    if (typeof window !== "undefined" && typeof Audio !== "undefined") {
-      try {
-        const audioTestResult = await new Promise<RemoteTtsValidationResult>((resolve) => {
-          let resolved = false;
-          const audio = new Audio();
-          audio.preload = "auto";
-
-          const timer = setTimeout(() => {
-            if (resolved) return;
-            resolved = true;
-            cleanup();
-            resolve({
-              ok: false,
-              service: "google_translate",
-              serviceName,
-              endpoint: url,
-              latencyMs: Date.now() - startTime,
-              audioVerified: false,
-              error: `Validation timed out after ${timeoutMs}ms`,
-              timestamp: Date.now(),
-            });
-          }, timeoutMs);
-
-          const cleanup = () => {
-            audio.removeEventListener("canplay", onReady);
-            audio.removeEventListener("loadedmetadata", onReady);
-            audio.removeEventListener("canplaythrough", onReady);
-            audio.removeEventListener("error", onError);
-            audio.pause();
-            audio.src = "";
-          };
-
-          const onReady = () => {
-            if (resolved) return;
-            resolved = true;
-            clearTimeout(timer);
-            const latency = Date.now() - startTime;
-            cleanup();
-            resolve({
-              ok: true,
-              service: "google_translate",
-              serviceName,
-              endpoint: url,
-              statusCode: 200,
-              latencyMs: latency,
-              audioVerified: true,
-              details: "Audio stream loaded and decoded successfully",
-              timestamp: Date.now(),
-            });
-          };
-
-          const onError = () => {
-            if (resolved) return;
-            resolved = true;
-            clearTimeout(timer);
-            const latency = Date.now() - startTime;
-            const errCode = audio.error?.code;
-            const errMsg =
-              audio.error?.message ||
-              (errCode ? `Audio media error code ${errCode}` : "Failed to load audio stream");
-            cleanup();
-            resolve({
-              ok: false,
-              service: "google_translate",
-              serviceName,
-              endpoint: url,
-              latencyMs: latency,
-              audioVerified: false,
-              error: errMsg,
-              timestamp: Date.now(),
-            });
-          };
-
-          audio.addEventListener("canplay", onReady);
-          audio.addEventListener("loadedmetadata", onReady);
-          audio.addEventListener("canplaythrough", onReady);
-          audio.addEventListener("error", onError);
-          audio.src = url;
-          audio.load();
-        });
-
-        const isAnonymous = options?.isAnonymous ?? getAlternativeTtsAnonymousMode();
-        addExternalTtsAuditRecord({
-          id: `val-google-${Date.now()}`,
-          timestamp: Date.now(),
-          method: "GET",
-          url,
-          endpoint: GOOGLE_TRANSLATE_TTS_ENDPOINT,
-          requestHeaders: isAnonymous ? {} : { Referer: "https://translate.google.com" },
-          queryParams: { tl: normalizeLanguageCode(testLang), q: testText },
-          lang: testLang,
-          text: testText,
-          status: audioTestResult.ok ? 200 : audioTestResult.statusCode || 500,
-          statusText: audioTestResult.ok ? "OK" : "Error",
-          latencyMs: audioTestResult.latencyMs,
-          responseHeaders: {},
-          responseBody: audioTestResult.details || audioTestResult.error,
-          responseType: audioTestResult.ok ? "media" : "error",
-          error: audioTestResult.error,
-          source: "validate_service",
-          isAnonymous,
-        });
-
-        setLastValidationResult("google_translate", audioTestResult);
-        return audioTestResult;
-      } catch (err: unknown) {
-        const result: RemoteTtsValidationResult = {
-          ok: false,
-          service: "google_translate",
-          serviceName,
-          endpoint: url,
-          latencyMs: Date.now() - startTime,
-          audioVerified: false,
-          error: (err as Error)?.message || String(err),
-          timestamp: Date.now(),
-        };
-        const isAnonymous = options?.isAnonymous ?? getAlternativeTtsAnonymousMode();
-        addExternalTtsAuditRecord({
-          id: `val-google-err-${Date.now()}`,
-          timestamp: Date.now(),
-          method: "GET",
-          url,
-          endpoint: GOOGLE_TRANSLATE_TTS_ENDPOINT,
-          requestHeaders: isAnonymous ? {} : { Referer: "https://translate.google.com" },
-          queryParams: { tl: normalizeLanguageCode(testLang), q: testText },
-          lang: testLang,
-          text: testText,
-          status: 500,
-          statusText: "Error",
-          latencyMs: Date.now() - startTime,
-          responseHeaders: {},
-          responseBody: result.error,
-          responseType: "error",
-          error: result.error,
-          source: "validate_service",
-          isAnonymous,
-        });
-        setLastValidationResult("google_translate", result);
-        return result;
-      }
-    }
-
-    // 2. Headless / Node.js test environment validation via HTTP fetch
-    try {
-      const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-      const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
-      try {
-        const res = await fetch(url, {
-          method: "GET",
-          headers: {
-            "User-Agent": "Mozilla/5.0",
-          },
-          signal: controller?.signal,
-        });
-        if (timeoutId) clearTimeout(timeoutId);
-        const latency = Date.now() - startTime;
-        const contentType = res.headers.get("content-type") || "";
-        const isAudio =
-          contentType.includes("audio") ||
-          contentType.includes("mpeg") ||
-          contentType.includes("octet-stream");
-
-        const result: RemoteTtsValidationResult = {
-          ok: res.ok,
-          service: "google_translate",
-          serviceName,
-          endpoint: url,
-          statusCode: res.status,
-          latencyMs: latency,
-          audioVerified: res.ok && isAudio,
-          format: contentType || "audio/mpeg",
-          details: res.ok ? "Direct Google TTS service returned HTTP 200 OK" : `HTTP ${res.status}`,
-          error: res.ok ? undefined : `HTTP status ${res.status}: ${res.statusText}`,
-          timestamp: Date.now(),
-        };
-        setLastValidationResult("google_translate", result);
-        return result;
-      } catch (fetchErr: unknown) {
-        if (timeoutId) clearTimeout(timeoutId);
-        const isAbort = (fetchErr as Error)?.name === "AbortError";
-        const result: RemoteTtsValidationResult = {
-          ok: false,
-          service: "google_translate",
-          serviceName,
-          endpoint: url,
-          latencyMs: Date.now() - startTime,
-          audioVerified: false,
-          error: isAbort
-            ? `Request timed out after ${timeoutMs}ms`
-            : (fetchErr as Error)?.message || "Network request failed",
-          timestamp: Date.now(),
-        };
-        setLastValidationResult("google_translate", result);
-        return result;
-      }
-    } catch (err: unknown) {
-      const result: RemoteTtsValidationResult = {
-        ok: false,
-        service: "google_translate",
-        serviceName,
-        endpoint: url,
-        latencyMs: Date.now() - startTime,
-        audioVerified: false,
-        error: (err as Error)?.message || String(err),
-        timestamp: Date.now(),
-      };
-      setLastValidationResult("google_translate", result);
-      return result;
-    }
-  }
 
   // Lovable TTS3 Service (tts3.lovable.app)
   const serviceName = "Lovable TTS3 Service (tts3.lovable.app)";
@@ -1809,35 +1549,24 @@ export function setAlternativeTtsAnonymousMode(enabled: boolean): void {
 }
 
 /**
- * Retrieves the configured Alternative TTS Engine: "lovable" (default) or "google_translate".
+ * Retrieves the configured Alternative TTS Engine: "lovable" (TTS3 service).
  */
 export function getAlternativeTtsEngine(): AlternativeTtsEngine {
-  try {
-    const stored =
-      typeof localStorage !== "undefined"
-        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_ENGINE)
-        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_ENGINE];
-    if (stored === "google_translate" || stored === "lovable") {
-      return stored;
-    }
-  } catch {
-    // ignore
-  }
   return "lovable";
 }
 
 /**
  * Persists the Alternative TTS Engine choice.
  */
-export function setAlternativeTtsEngine(engine: AlternativeTtsEngine): void {
+export function setAlternativeTtsEngine(_engine?: AlternativeTtsEngine): void {
   try {
     if (typeof localStorage !== "undefined") {
-      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_ENGINE, engine);
+      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_ENGINE, "lovable");
     }
   } catch (err) {
     console.warn("Failed to persist alternative TTS engine:", err);
   }
-  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_ENGINE] = engine;
+  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_ENGINE] = "lovable";
 }
 
 /**
@@ -2188,68 +1917,33 @@ export async function playAlternativeTtsAudio(
   const engine = engineOverride || getAlternativeTtsEngine();
   const provider = optionsOverride?.provider || getLovableTtsProvider();
 
-  // If engine is explicitly google_translate, or engineOverride is google_translate,
-  // or provider is "google" and engine is not explicitly set to lovable:
-  // use Direct Google TTS (translate.google.com) directly and NOT via Lovable!
-  const isDirectGoogle =
-    engine === "google_translate" ||
-    engineOverride === "google_translate" ||
-    (engine !== "lovable" && provider === "google");
-
   let audioUrl = "";
   let shouldRevoke = false;
 
-  // Only call Lovable Speak API (tts3.lovable.app) if engine is strictly 'lovable' and NOT direct google
-  if (engine === "lovable" && !isDirectGoogle) {
-    try {
-      const requestedSpeed =
-        optionsOverride?.speed ?? (typeof rate === "number" && rate > 0 ? rate : 1.0);
-      const mergedOptions: LovableTtsOptions = {
-        speed: requestedSpeed,
-        ...optionsOverride,
-      };
-      const synthesized = await synthesizeLovableTtsAudio(
-        text,
-        lang,
-        mergedOptions,
-        optionsOverride ? "test_button" : "playback",
-      );
-      if (synthesized?.url) {
-        audioUrl = synthesized.url;
-        shouldRevoke = Boolean(synthesized.revokeOnDone);
-      }
-    } catch (err) {
-      console.warn("[LovableTTS] Synthesis error, will attempt fallback:", err);
+  try {
+    const requestedSpeed =
+      optionsOverride?.speed ?? (typeof rate === "number" && rate > 0 ? rate : 1.0);
+    const mergedOptions: LovableTtsOptions = {
+      speed: requestedSpeed,
+      ...optionsOverride,
+    };
+    const synthesized = await synthesizeLovableTtsAudio(
+      text,
+      lang,
+      mergedOptions,
+      optionsOverride ? "test_button" : "playback",
+    );
+    if (synthesized?.url) {
+      audioUrl = synthesized.url;
+      shouldRevoke = Boolean(synthesized.revokeOnDone);
     }
+  } catch (err) {
+    console.warn("[LovableTTS] Synthesis error, will attempt fallback:", err);
   }
 
-  // Direct Google TTS service fallback or direct engine selection:
-  const isAnonymous = optionsOverride?.isAnonymous ?? getAlternativeTtsAnonymousMode();
-  if (!audioUrl) {
-    audioUrl = buildGoogleTranslateTtsUrl(text, lang);
-    const auditId = `tts-google-direct-${Date.now()}`;
-    addExternalTtsAuditRecord({
-      id: auditId,
-      timestamp: Date.now(),
-      method: "GET",
-      url: audioUrl,
-      endpoint: GOOGLE_TRANSLATE_TTS_ENDPOINT,
-      requestHeaders: isAnonymous ? {} : { Referer: "https://translate.google.com" },
-      queryParams: { tl: normalizeLanguageCode(lang), q: text },
-      lang,
-      text,
-      status: 200,
-      statusText: "Direct Audio Stream",
-      latencyMs: 0,
-      responseHeaders: {},
-      responseBody: `[Direct Google Translate Audio Stream: ${audioUrl}]`,
-      responseType: "media",
-      audioUrl,
-      source: optionsOverride ? "test_button" : "playback",
-      isAnonymous,
-    });
-  }
   if (!audioUrl) return;
+
+  const isAnonymous = optionsOverride?.isAnonymous ?? getAlternativeTtsAnonymousMode();
 
   return new Promise((resolve) => {
     const audio = new Audio();
@@ -2330,17 +2024,10 @@ export async function playAlternativeTtsAudio(
     };
 
     const onError = (e: unknown) => {
-      console.warn(`Alternative TTS (${engine}) audio error, attempting fallback:`, e);
-      const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
-      if (fallbackUrl && activeAlternativeAudio === audio && audio.src !== fallbackUrl) {
-        applyPlaybackRate();
-        audio.src = fallbackUrl;
-        const retryPromise = audio.play();
-        if (retryPromise && typeof retryPromise.catch === "function") {
-          retryPromise.catch(() => fallbackToWebSpeech());
-        }
-        return;
-      }
+      console.warn(
+        `Alternative TTS (${engine}) audio error, attempting fallback to device speech:`,
+        e,
+      );
       fallbackToWebSpeech();
     };
 
@@ -2363,17 +2050,10 @@ export async function playAlternativeTtsAudio(
     const playPromise = audio.play();
     if (playPromise && typeof playPromise.catch === "function") {
       playPromise.catch((err) => {
-        console.warn("Alternative TTS playback rejected:", err);
-        const fallbackUrl = buildGoogleTranslateTtsUrl(text, lang);
-        if (fallbackUrl && activeAlternativeAudio === audio && audio.src !== fallbackUrl) {
-          applyPlaybackRate();
-          audio.src = fallbackUrl;
-          const retryPromise = audio.play();
-          if (retryPromise && typeof retryPromise.catch === "function") {
-            retryPromise.catch(() => fallbackToWebSpeech());
-          }
-          return;
-        }
+        console.warn(
+          "Alternative TTS playback rejected, attempting fallback to device speech:",
+          err,
+        );
         fallbackToWebSpeech();
       });
     }
@@ -2399,42 +2079,25 @@ export async function executeTtsFallbackSequence(
     isAnonymous?: boolean;
     onNativeSpeak?: () => Promise<boolean>;
   },
-): Promise<"google" | "tts3" | "native" | "none"> {
+): Promise<"tts3" | "native" | "none"> {
   const order = orderOverride || getTtsFallbackOrder();
   const isAnonymous = options?.isAnonymous ?? getAlternativeTtsAnonymousMode();
   const provider = options?.tts3Provider || "auto";
   const voice = options?.tts3Voice;
 
   // Derive steps array from order
-  const steps: Array<"google" | "tts3" | "native"> = [];
-  if (order === "google_tts3_native") {
-    steps.push("google", "tts3", "native");
-  } else if (order === "tts3_google_native") {
-    steps.push("tts3", "google", "native");
-  } else if (order === "native_google_tts3") {
-    steps.push("native", "google", "tts3");
-  } else if (order === "google_native") {
-    steps.push("google", "native");
-  } else if (order === "tts3_native") {
-    steps.push("tts3", "native");
+  const steps: Array<"tts3" | "native"> = [];
+  if (order === "native_tts3") {
+    steps.push("native", "tts3");
   } else if (order === "native_only") {
     steps.push("native");
   } else {
-    steps.push("google", "tts3", "native");
+    // default tts3_native
+    steps.push("tts3", "native");
   }
 
   for (const step of steps) {
-    if (step === "google") {
-      try {
-        await playAlternativeTtsAudio(text, lang, rate, onProgress, "google_translate", {
-          isAnonymous,
-          speed: rate,
-        });
-        return "google";
-      } catch (err) {
-        console.warn("[TtsFallbackSequence] Direct Google TTS step failed, continuing:", err);
-      }
-    } else if (step === "tts3") {
+    if (step === "tts3") {
       try {
         await playAlternativeTtsAudio(text, lang, rate, onProgress, "lovable", {
           provider,

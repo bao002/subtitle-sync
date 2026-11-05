@@ -663,7 +663,6 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 className="rounded border border-input bg-background px-2 py-1 text-xs text-foreground font-medium transition-all focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
               >
                 <option value="lovable">Lovable Speak API (tts3.lovable.app)</option>
-                <option value="google_translate">Google TTS (Direct translate_tts)</option>
               </select>
               <a
                 href={LOVABLE_TTS_DOCS_URL}
@@ -706,7 +705,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                   >
                     {LOVABLE_TTS_PROVIDERS.map((p) => (
                       <option key={p} value={p}>
-                        {p} {p === "google" ? "(Google TTS directly - default)" : ""}
+                        {p} {p === "google" ? "(Google TTS provider - default)" : ""}
                       </option>
                     ))}
                   </select>
@@ -961,22 +960,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                       ) : (
                         <>
                           <Activity className="h-3 w-3" />
-                          <span>
-                            Validate {alternativeTtsEngineState === "lovable" ? "TTS3 Service" : "Google TTS Directly"}
-                          </span>
+                          <span>Validate TTS3 Service</span>
                         </>
                       )}
-                    </button>
-
-                    <button
-                      type="button"
-                      data-testid="btn-validate-google-tts-directly"
-                      disabled={isValidatingRemoteTts}
-                      onClick={() => handleValidateRemoteService("google_translate")}
-                      className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                      title="Validate Google Translate TTS endpoint directly"
-                    >
-                      Validate Google Direct
                     </button>
 
                     <button

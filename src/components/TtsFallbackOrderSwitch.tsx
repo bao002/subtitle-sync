@@ -11,54 +11,11 @@ export interface TtsFallbackOrderOption {
   id: TtsFallbackOrder;
   label: string;
   shortLabel: string;
-  steps: Array<{ label: string; type: "google" | "tts3" | "native" }>;
+  steps: Array<{ label: string; type: "tts3" | "native" }>;
   description: string;
 }
 
 export const TTS_FALLBACK_ORDER_OPTIONS: TtsFallbackOrderOption[] = [
-  {
-    id: "google_tts3_native",
-    label: "1. Google directly ➔ 2. TTS3 service ➔ 3. Native voice",
-    shortLabel: "Google ➔ TTS3 ➔ Native",
-    steps: [
-      { label: "Google Direct", type: "google" },
-      { label: "TTS3 Service", type: "tts3" },
-      { label: "Native Device", type: "native" },
-    ],
-    description: "Direct public Google stream first, fallback to TTS3, then local voice",
-  },
-  {
-    id: "tts3_google_native",
-    label: "1. TTS3 service ➔ 2. Google directly ➔ 3. Native voice",
-    shortLabel: "TTS3 ➔ Google ➔ Native",
-    steps: [
-      { label: "TTS3 Service", type: "tts3" },
-      { label: "Google Direct", type: "google" },
-      { label: "Native Device", type: "native" },
-    ],
-    description: "TTS3 multi-provider voice first, fallback to Google, then local voice",
-  },
-  {
-    id: "native_google_tts3",
-    label: "1. Native voice ➔ 2. Google directly ➔ 3. TTS3 service",
-    shortLabel: "Native ➔ Google ➔ TTS3",
-    steps: [
-      { label: "Native Device", type: "native" },
-      { label: "Google Direct", type: "google" },
-      { label: "TTS3 Service", type: "tts3" },
-    ],
-    description: "Device speech first; external services if local voice is unavailable",
-  },
-  {
-    id: "google_native",
-    label: "1. Google directly ➔ 2. Native voice",
-    shortLabel: "Google ➔ Native",
-    steps: [
-      { label: "Google Direct", type: "google" },
-      { label: "Native Device", type: "native" },
-    ],
-    description: "Google Translate direct stream with device speech fallback",
-  },
   {
     id: "tts3_native",
     label: "1. TTS3 service ➔ 2. Native voice",
@@ -67,7 +24,17 @@ export const TTS_FALLBACK_ORDER_OPTIONS: TtsFallbackOrderOption[] = [
       { label: "TTS3 Service", type: "tts3" },
       { label: "Native Device", type: "native" },
     ],
-    description: "TTS3 service with device speech fallback",
+    description: "TTS3 multi-provider speech service with local device voice fallback",
+  },
+  {
+    id: "native_tts3",
+    label: "1. Native voice ➔ 2. TTS3 service",
+    shortLabel: "Native ➔ TTS3",
+    steps: [
+      { label: "Native Device", type: "native" },
+      { label: "TTS3 Service", type: "tts3" },
+    ],
+    description: "Device speech first; external TTS3 service if local voice is unavailable",
   },
   {
     id: "native_only",
@@ -118,7 +85,7 @@ export const TtsFallbackOrderSwitch: React.FC<TtsFallbackOrderSwitchProps> = ({
     TTS_FALLBACK_ORDER_OPTIONS.find((opt) => opt.id === internalOrder) ||
     TTS_FALLBACK_ORDER_OPTIONS[0];
 
-  const renderStepBadge = (step: { label: string; type: "google" | "tts3" | "native" }, index: number) => {
+  const renderStepBadge = (step: { label: string; type: "tts3" | "native" }, index: number) => {
     let badgeColor = "bg-muted text-muted-foreground border-border";
     let icon = <Volume2 className="h-3 w-3" />;
 

@@ -36,7 +36,7 @@ export default meta;
 type Story = StoryObj<typeof TtsFallbackOrderSwitch>;
 
 const InteractiveSwitchWrapper: React.FC<Partial<TtsFallbackOrderSwitchProps>> = (props) => {
-  const [order, setOrder] = useState<TtsFallbackOrder>(props.currentOrder || "google_tts3_native");
+  const [order, setOrder] = useState<TtsFallbackOrder>(props.currentOrder || "tts3_native");
   const [navigatedNotice, setNavigatedNotice] = useState<string | null>(null);
 
   const handleNavigate = () => {
@@ -68,38 +68,25 @@ const InteractiveSwitchWrapper: React.FC<Partial<TtsFallbackOrderSwitchProps>> =
 };
 
 /**
- * 1. Default: Google Directly First (Google -> TTS3 -> Native)
- */
-export const GoogleDirectFirst: Story = {
-  render: () => (
-    <InteractiveSwitchWrapper
-      currentOrder="google_tts3_native"
-      tts3Provider="auto"
-      tts3TokenConfigured={false}
-    />
-  ),
-};
-
-/**
- * 2. TTS3 Service First (TTS3 -> Google -> Native)
+ * 1. Default: TTS3 Service First (TTS3 -> Native)
  */
 export const Tts3ServiceFirst: Story = {
   render: () => (
     <InteractiveSwitchWrapper
-      currentOrder="tts3_google_native"
-      tts3Provider="openrouter"
-      tts3TokenConfigured={true}
+      currentOrder="tts3_native"
+      tts3Provider="auto"
+      tts3TokenConfigured={false}
     />
   ),
 };
 
 /**
- * 3. Native Device Voice First (Native -> Google -> TTS3)
+ * 2. Native Device Voice First (Native -> TTS3)
  */
 export const NativeVoiceFirst: Story = {
   render: () => (
     <InteractiveSwitchWrapper
-      currentOrder="native_google_tts3"
+      currentOrder="native_tts3"
       tts3Provider="auto"
       tts3TokenConfigured={false}
     />
@@ -107,20 +94,7 @@ export const NativeVoiceFirst: Story = {
 };
 
 /**
- * 4. Google with Native Fallback (No TTS3)
- */
-export const GoogleAndNative: Story = {
-  render: () => (
-    <InteractiveSwitchWrapper
-      currentOrder="google_native"
-      tts3Provider="auto"
-      tts3TokenConfigured={false}
-    />
-  ),
-};
-
-/**
- * 5. Native Only (Offline)
+ * 3. Native Only (Offline)
  */
 export const NativeOnly: Story = {
   render: () => (

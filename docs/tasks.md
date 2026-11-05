@@ -4,11 +4,19 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
+- [ ] **Task 308 (Prompt 77): Remove Direct Google TTS Client Option Across Entire App**
+  - Subtask 308.1: Update `src/lib/alternative-tts.ts` to remove client direct Google TTS URL construction (`GOOGLE_TRANSLATE_TTS_ENDPOINT`, `buildGoogleTranslateTtsUrl`), update `AlternativeTtsEngine` to `"lovable"`, eliminate `"google_translate"` / `"google-tts-directly"` client service options, update fallback order types to remove direct client google fallback, and route remote audio strictly through Lovable Speak API (tts3.lovable.app).
+  - Subtask 308.2: Update UI components (`TtsServiceSettingsPanel.tsx`, `BeginnerPreferencesTab.tsx`, `BeginnerTtsServiceControl.tsx`, `routes/index.tsx`, `StorybookWorkbench.tsx`, and stories) to completely remove the Google TTS direct selection option, notice banners, and direct Google validate buttons.
+  - Subtask 308.3: Implement dedicated automated test `scripts/verify-remove-direct-google-tts-client-option.ts`, synchronize application version to `v2.1.7` across all 5 single-source files (`package.json`, `appConfig.ts`, `apkUpdater.ts`, `appSettings.ts`, `build.gradle.kts`).
+  - Subtask 308.4: Verify test passes, verify `compile_applet`, run `lint_applet`, and migrate Task 308 to `docs/done.md`.
+
 - [ ] **Task 307 (Prompt 75): TTS3 Service Authorization Code Input & POST Request Execution**
   - Subtask 307.1: Update `TtsServiceSettingsPanel.tsx` (and `BeginnerPreferencesTab.tsx`) so that choosing the TTS service `"tts3.lovable.app"` always displays the Authorization Code input field (accepting `Bearer spk_...` or `spk_...` tokens), with clear label, placeholder, and saved status badge.
   - Subtask 307.2: Update `alternative-tts.ts` to set default Lovable TTS method to `"post"`, sanitize `Bearer ` prefixes from token storage, ensure requests to `https://tts3.lovable.app/api/public/tts` use `POST` method with `Content-Type: application/json`, `Accept: */*`, `Authorization: Bearer <token>`, and payload containing `text`, `lang`, `provider: "auto"`, `debug: true`.
   - Subtask 307.3: Synchronize version to `v2.1.7` across `package.json`, `appConfig.ts`, `apkUpdater.ts`, `appSettings.ts`, `build.gradle.kts`.
   - Subtask 307.4: Implement dedicated automated test `scripts/verify-tts3-service-post-and-auth.ts`, verify full test suite passes, `compile_applet`, `lint_applet`, commit, and migrate Task 307 to `docs/done.md`.
+
+
 
 - [ ] **Task 304: Ensure GitHub Actions Work Correctly & E2E Tests Recognize Application Crashes**
   - Subtask 304.1: Fix GitHub Actions workflows alignment in `scripts/verify-workflows-alignment.ts` (include `version-sync.yml`) and ensure `web.yml` properly executes Playwright test suite for web and emulation specs.

@@ -1,5 +1,20 @@
 # Done tasks
 
+### Hotfix: Dev Server Pre-warming Failure & Lint Prefer-Const Error Fix
+
+- **Problem & Root Cause**:
+  - The development server reported a pre-warming failure during cold startup.
+  - In addition, `src/lib/alternative-tts.ts` failed ESLint verification with `375:9 error 'directToken' is never reassigned. Use 'const' instead prefer-const`.
+- **Changes Applied**:
+  - `src/lib/alternative-tts.ts`: Changed `let directToken` to `const directToken` in `getSpeakApiToken()`, satisfying the ESLint `prefer-const` rule.
+  - Verified `vite.config.ts` maintains `port: 3000`, `host: "0.0.0.0"`, `strictPort: true`, and `allowedHosts: true`.
+  - Restarted dev server and verified HTTP 200 response on port 3000.
+- **Validation**:
+  - `npm run lint` / `lint_applet`: 0 errors.
+  - `compile_applet`: Build succeeded.
+  - `npm run test:dev-server-prewarming-hotfix`: PASSED (HTTP 200 on port 3000, vite.config.ts verified, package.json dev script verified).
+  - Dev server restarted and running stably.
+
 ### Task 306 (Prompt 73): UI/UX Expert - Elevate and Modernize Application Design
 
 - **Prompt**:

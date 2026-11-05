@@ -61,16 +61,11 @@ export interface TtsServiceSettingsPanelProps {
  * Reactive TTS Service Settings Panel.
  *
  * Enforces strict reactive visibility to eliminate UI clutter:
- * 1. Direct Google TTS (google_translate):
- *    - Hides provider selector (irrelevant for Google direct)
- *    - Hides voice selector (Google direct has single voice)
- *    - Hides API key input (Google direct is free, public, rejects keys)
- *    - Single validate button + single test audio button (no duplications!)
- * 2. Lovable Speak API (tts3.lovable.app):
- *    - Shows provider selector ("auto", "google", "openrouter", "gemini", etc.)
- *    - When provider is "google" or "auto": hides API key and voice dropdown
- *    - When provider is keyed (openrouter, openai, elevenlabs, etc.): dynamically shows provider voices and token input
- *    - Single validate button + single test audio button
+ * Lovable Speak API (tts3.lovable.app):
+ * - Shows provider selector ("auto", "google", "openrouter", "gemini", etc.)
+ * - When provider is "google" or "auto": hides API key and voice dropdown
+ * - When provider is keyed (openrouter, openai, elevenlabs, etc.): dynamically shows provider voices and token input
+ * - Single validate button + single test audio button
  */
 export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = ({
   mode,
@@ -127,12 +122,11 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
     setKeyInput(currentKeyInput);
   }, [currentKeyInput]);
 
-  const isGoogleDirect = engine === "google_translate";
-  const isLovablePublicProvider = engine === "lovable" && (provider === "google" || provider === "auto");
-  const isKeyedProvider = engine === "lovable" && !isLovablePublicProvider;
+  const isLovablePublicProvider = provider === "google" || provider === "auto";
+  const isKeyedProvider = !isLovablePublicProvider;
   const isValidationOk = Boolean(validationResult && validationResult.ok);
 
-  const availableVoices = isGoogleDirect ? [] : getVoicesForProvider(provider);
+  const availableVoices = getVoicesForProvider(provider);
 
   const handleSaveKeyClick = () => {
     if (onSaveKey) {
@@ -199,7 +193,6 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
             className="rounded-md border border-input bg-background px-2.5 py-1 text-xs text-foreground font-medium shadow-2xs transition-all focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
           >
             <option value="lovable">Lovable Speak API (tts3.lovable.app)</option>
-            <option value="google_translate">Google TTS (Direct translate_tts)</option>
           </select>
         </div>
 
@@ -232,28 +225,8 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
         data-testid="tts-reactive-controls-card"
         className="space-y-3 p-3 rounded-lg bg-muted/40 border border-border/60"
       >
-        {/* Direct Google TTS Mode: Clean, zero irrelevant menus */}
-        {isGoogleDirect ? (
-          <div
-            data-testid="google-direct-notice"
-            className="flex items-center justify-between gap-2 p-2 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 dark:text-emerald-200 text-xs"
-          >
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <div>
-                <span className="font-semibold block text-[11.5px]">Direct Google TTS Selected</span>
-                <span className="text-[10.5px] opacity-90">
-                  Public high-speed audio stream via Google Translate. No provider keys or custom voice menus required.
-                </span>
-              </div>
-            </div>
-            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-mono text-[10px] font-semibold shrink-0">
-              Free & Public
-            </span>
-          </div>
-        ) : (
-          /* Lovable Speak API Mode: Reactive Provider & Voice Selection */
-          <div className="space-y-3" data-testid="lovable-speak-api-controls">
+        {/* Lovable Speak API Mode: Reactive Provider & Voice Selection */}
+        <div className="space-y-3" data-testid="lovable-speak-api-controls">
             <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
               {/* Provider Selection */}
               <div className="flex items-center gap-2">
@@ -402,7 +375,6 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
               </p>
             </div>
           </div>
-        )}
 
         {/* 4. Speech Rate Notice & Control */}
         <div
@@ -507,11 +479,20 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
               ) : (
                 <>
                   <Activity className="h-3 w-3" />
-                  <span>
-                    Validate {isGoogleDirect ? "Google TTS Directly" : "TTS3 Service"}
-                  </span>
+                  <span>Validate TTS3 Service</span>
                 </>
               )}
+            </button>
+
+            <button
+              type="button"
+              data-testid="btn-validate-tts3-service"
+              disabled={isValidating}
+              onClick={() => onValidateService()}
+              className="px-2 py-0.5 rounded border border-border bg-background hover:bg-muted text-[11px] font-mono inline-flex items-center gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+              title="Validate Lovable TTS3 public endpoint"
+            >
+              Validate TTS3 Service
             </button>
 
             <span
@@ -540,9 +521,7 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
               ) : (
                 <>
                   <Play className="h-3.5 w-3.5 fill-current" />
-                  <span>
-                    ▶ Play Test Audio ({isGoogleDirect ? "Google Direct" : `TTS3 / ${provider}`})
-                  </span>
+                  <span>▶ Play Test Audio (TTS3 / {provider})</span>
                 </>
               )}
             </button>

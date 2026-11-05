@@ -132,32 +132,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-based on:https://tts3.lovable.app/api/public/openapi.json
-
-choosing the tts service: "tts3.lovable.app" should show input field to set the authorization code. then the request should be a POST request. something like this:
-curl --url 'https://tts3.lovable.app/api/public/tts' \
-  -H 'accept: */*' \
-  -H 'accept-language: he-IL,he;q=0.8' \
-  -H 'authorization: Bearer spk_7086d2cc-398e-43ba-a116-484e0ee7fbd4.8Dok04uUENzJ0D0XeUMEvd_crmJXDMHDJIIt2kFmu2Y' \
-  -H 'content-type: application/json' \
-  -b '__dpl=psr2.fdf14dcc-79bc-4a7e-9d6f-8d7859298348.1794446639.TTBfSAibDOF0qNNPycmGUgiPt1bhMHJlegICx82k9Bw; session-id=8a01f5fc-b2b6-4136-8369-76383f9c28a9' \
-  -H 'origin: https://tts3.lovable.app' \
-  -H 'priority: u=1, i' \
-  -H 'referer: https://tts3.lovable.app/docs' \
-  -H 'sec-ch-ua: "Not:A-Brand";v="8", "Chromium";v="156", "Brave";v="156"' \
-  -H 'sec-ch-ua-mobile: ?0' \
-  -H 'sec-ch-ua-platform: "Windows"' \
-  -H 'sec-fetch-dest: empty' \
-  -H 'sec-fetch-mode: cors' \
-  -H 'sec-fetch-site: same-origin' \
-  -H 'sec-gpc: 1' \
-  -H 'user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36' \
-  --data-raw $'{\n    "text": "Bonjour, comment allez-vous aujourd\'hui ? La lumière du soir est magnifique.",\n    "lang": "fr",\n    "provider": "auto",\n    "debug": true\n}'
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(9) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > select#tts-panel-engine-select:nth-of-type(1)
-CSS 1: {
-
-}
-[AIS_METADATA_SECTION_END]
+update: there is no option of direct request to google tts from the client. therefor rm that option from entire app
 ```
+
+
