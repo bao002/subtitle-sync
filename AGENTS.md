@@ -132,8 +132,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-suppress passing voice to the tts service
+wrong technic - no need to alternate plan while its not working at all
 ```
-
-
-

@@ -1,6 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 309 (Prompt 79): Ensure All GitHub Actions Are Passing
-- **Sub-task**: 309.1 - Add header active video ID identifier (`data-testid="header-active-video-id"`) in `src/routes/index.tsx` so `e2e/emulation.spec.ts` passes reliably in Playwright E2E suite (`web.yml`), run full Playwright test suite, audit and verify all 10 GitHub Actions workflows.
-- **Validation**: `npx playwright test --project=web`, `compile_applet`, `lint_applet`, dedicated test `scripts/verify-all-github-actions-pass.ts`.
+- **Active Task**: Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique
+- **Sub-task**: 312.1 - Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
+- **Validation**: `scripts/verify-auto-fetching-debug-experimental-stuff.ts`, `compile_applet`, `lint_applet`.

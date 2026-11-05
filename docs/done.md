@@ -1,5 +1,48 @@
 # Done tasks
 
+### Task 311 (Prompt 81): Expose Experimental Fetch Architecture (Server/Client & Session/No-Session) on Auto-Fetching Subtitles Element When Debug is Enabled
+
+- **Prompt**:
+  ```
+  does auto-fetching use server/client session/no-session to fetch - these experimental stuff are to be shown on the "Auto-Fetching Subtitles" element when debug is enabled
+  ```
+- **Context & Architecture Clarification**:
+  - **Does auto-fetching use Server or Client?**:
+    - By default on Android, it uses the **Client Direct** path: native shell bridge `AndroidNativeShell.fetchTimedTextExact` or direct client fetch with player headers.
+    - If `useFetchServer` is enabled or in `server_alternate` mode, requests are routed through the **Server Proxy** (`${serverUrl}/api/proxy?url=${encodedTarget}`).
+  - **Does auto-fetching use Session or No-Session?**:
+    - Auto-fetching executes an intelligent 4-attempt fallback pipeline that incorporates **both**:
+      1. `tlang/session`: Translation mode with authentic player **Session** (captured headers, cookies, tokens).
+      2. `lang/session`: Direct track replacement with player **Session**.
+      3. `tlang/anon`: Translation mode with **No-Session** (anonymous bare URL, no player cookies/headers).
+      4. `lang/anon`: Direct track replacement with **No-Session** (anonymous bare URL).
+    - Toggles `allowSession` and `allowAnon` allow enabling/disabling either sending method.
+  - **Strategy Modes**:
+    - Mode can be `"random"`, `"ordered"`, or `"server_alternate"`.
+- **Implementation**:
+  - `src/components/FloatingSubtitleRetryIndicator.tsx`:
+    - Added `debugMode?: boolean` prop and reactive hooks `getUseFetchServer()`, `getFetchStrategyConfig()`, and `buildActiveAttemptOrder()`.
+    - Added an interactive debug panel (`<div data-testid="auto-fetch-debug-panel">`) visible strictly when debug / developer mode is active.
+    - Displays:
+      - Origin badge (`data-testid="debug-fetch-route-badge"`): "Server Proxy" vs "Client (Direct)".
+      - Session/No-Session badge (`data-testid="debug-fetch-session-badge"`): "Session & Anon", "Session Only", "No-Session (Anon)", or "Disabled".
+      - Strategy badge (`data-testid="debug-fetch-strategy-badge"`): Mode (random / ordered / server_alternate).
+      - Next attempt badge (`data-testid="debug-fetch-next-attempt-badge"`): Mode and sending method of the upcoming request.
+      - Live debug buttons: Toggle Server Proxy (`debug-toggle-server-btn`), Cycle Strategy Mode (`debug-toggle-strategy-btn`), Toggle Session (`debug-toggle-session-btn`), and Toggle Anon (`debug-toggle-anon-btn`).
+  - `src/routes/index.tsx`:
+    - Passed `debugMode={debugMode}` to `<FloatingSubtitleRetryIndicator>` around line 10600.
+  - `src/components/NotificationsStatusTab.tsx`:
+    - Updated to forward active developer mode to non-floating retry indicator.
+  - Tests & Versioning:
+    - Created dedicated verification test `scripts/verify-auto-fetching-debug-experimental-stuff.ts`.
+    - Registered `"test:auto-fetching-debug-experimental-stuff"` in `package.json` and documented in `docs/files.md`.
+    - Bumped app version to `v2.1.10` in `package.json` and synchronized `android-shell/app/build.gradle.kts` (versionCode 20110).
+- **Validation**:
+  - `npm run test:auto-fetching-debug-experimental-stuff`: PASSED 100% (all 4 tests passed).
+  - `npm run sync-version`: PASSED (v2.1.10 synchronized).
+  - `compile_applet`: PASSED (`Build succeeded`).
+  - `lint_applet`: PASSED (0 errors).
+
 ### Task 310 (Prompt 80): Suppress Passing Voice to the TTS Service
 
 - **Prompt**:

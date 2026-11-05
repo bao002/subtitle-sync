@@ -182,24 +182,11 @@ export const AttemptOrderSettings: React.FC<Props> = ({
           >
             <option value="ordered">Ordered Fallback (Deterministic 1→4)</option>
             <option value="random">First-Random Strategy (Anti-Bot Fingerprint)</option>
-            <option value="server_alternate">Server Alternate (Client vs Proxy)</option>
           </select>
         </div>
 
         {/* Configuration Options / Switches */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1 border-t border-border/50 text-[11px]">
-          <label className="flex items-center gap-1.5 cursor-pointer select-none">
-            <input
-              type="checkbox"
-              id="strategy-toggle-server-alternate"
-              data-testid="strategy-toggle-server-alternate"
-              checked={activeStrategyConfig.useServerAlternate}
-              onChange={(e) => handleUpdateConfig({ useServerAlternate: e.target.checked })}
-              className="rounded border-input text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
-            />
-            <span className="text-foreground">server:alternate</span>
-          </label>
-
           <label className="flex items-center gap-1.5 cursor-pointer select-none">
             <input
               type="checkbox"

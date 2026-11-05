@@ -10603,6 +10603,7 @@ function Index() {
         minPacingSec={retryPacingMinSec}
         maxPacingSec={retryPacingMaxSec}
         onToggleAutoRetry={handleToggleAutoRetry}
+        debugMode={debugMode}
       />
       <VideoMetadataModal
         open={videoMetadataModalOpen}

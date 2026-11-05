@@ -4,6 +4,12 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
+- [ ] **Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique**
+  - Subtask 312.1: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
+  - Subtask 312.2: Update `src/components/FloatingSubtitleRetryIndicator.tsx` to cycle only between `random` and `ordered` modes, removing `server_alternate` option and tooltip.
+  - Subtask 312.3: Update `src/components/AttemptOrderSettings.tsx` to remove `server_alternate` from strategy select dropdown and remove obsolete `useServerAlternate` checkbox.
+  - Subtask 312.4: Update test suite `scripts/verify-auto-fetching-debug-experimental-stuff.ts`, `scripts/verify-fetch-strategy-and-defaults.ts`, `docs/reliable-subtitles-fetching.md`, bump version to `2.1.11`, compile, lint, commit, and migrate Task 312 to `docs/done.md`.
+
 - [ ] **Task 309 (Prompt 79): Ensure All GitHub Actions Are Passing**
   - Subtask 309.1: Add header active video ID identifier (`data-testid="header-active-video-id"`) in `src/routes/index.tsx` so `e2e/emulation.spec.ts` passes reliably in Playwright E2E suite (`web.yml`).
   - Subtask 309.2: Verify full Playwright E2E suite (`e2e/emulation.spec.ts` and `e2e/web.spec.ts`) passes 100% under `npx playwright test --project=web`.
