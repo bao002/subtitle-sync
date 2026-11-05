@@ -1036,5 +1036,30 @@ error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.6 dev 
 update: there is no option of direct request to google tts from the client. therefor rm that option from entire app
 ```
 
+---
 
+### Prompt 78: Fix Vite Reload and Missing Module Errors (Hotfix)
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 1: [vite] Failed to reload /src/components/TtsServiceSettingsPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 2: [vite] Failed to reload /src/components/beginner/BeginnerTtsServiceControl.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 3: [vite] Failed to reload /src/components/SwitchableDefaultSubtitlesBar.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 4: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 5: [vite] Failed to reload /src/components/ExternalTtsDebuggerPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 6: [vite] Failed to reload /src/components/TtsFallbackOrderSwitch.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 7: [vite] Failed to reload /src/components/beginner/tabs/BeginnerPreferencesTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 8: [vite] Failed to reload /src/storybook/StorybookWorkbench.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 9: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 79: Ensure All GitHub Actions Are Passing
+```
+ensure all github actions are passing
+```
 

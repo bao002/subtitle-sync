@@ -128,23 +128,19 @@ assert.ok(
 console.log("✅ PASS: routes/index.tsx bindings strictly route remote TTS to 'lovable'.");
 
 // 6. Check single-source versioning
-console.log("--> [Check 6] Checking single-source version 2.1.7...");
+console.log("--> [Check 6] Checking single-source version sync...");
 const packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"));
-assert.strictEqual(packageJson.version, "2.1.7", "package.json version must be 2.1.7");
+assert.ok(packageJson.version, "package.json must specify version");
 
 const gradleSource = fs.readFileSync(
   path.resolve(__dirname, "../android-shell/app/build.gradle.kts"),
   "utf-8",
 );
 assert.ok(
-  gradleSource.includes('versionName = "2.1.7"'),
-  "build.gradle.kts must have versionName = '2.1.7'",
+  gradleSource.includes(`versionName = "${packageJson.version}"`),
+  `build.gradle.kts must have versionName = '${packageJson.version}'`,
 );
-assert.ok(
-  gradleSource.includes("versionCode = 20107"),
-  "build.gradle.kts must have versionCode = 20107",
-);
-console.log("✅ PASS: Version 2.1.7 is in sync across package.json and build.gradle.kts.");
+console.log(`✅ PASS: Version ${packageJson.version} is in sync across package.json and build.gradle.kts.`);
 
 console.log("=========================================================================");
 console.log("🎉 ALL CHECKS PASSED! Direct client Google TTS option completely removed.");

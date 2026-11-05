@@ -9,7 +9,7 @@ This specification defines the alternative **Beginner-Mode** workflow for the An
 - **General Preferences**: Set playback order, TTS voice and speed, subtitle-overlay default, and favorite languages.
 - **Daily Video**: Use the video, quick favorite-language selector, and parallel subtitles table together. Adjust parser settings at the top of the table; adjust overlay visibility and size directly below the video. Caption discovery details remain secondary.
 
-The product design standard distinguishes occasional new-user preference setup from daily viewing. See [`../design.md`](../design.md): the repeat-use destination is the video plus subtitles-table view, with frequent language selection and parsing feedback close to that view.
+The product design standard distinguishes occasional new-user preference setup from daily viewing. See [`../../docs/design.md`](../../docs/design.md): the repeat-use destination is the video plus subtitles-table view, with frequent language selection and parsing feedback close to that view.
 
 ## Mode Switching & Layout Harmony
 

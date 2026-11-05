@@ -1,9 +1,8 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 308 (Prompt 77): Remove Direct Google TTS Client Option Across Entire App
-- **Sub-task**: 308.1 - Update `src/lib/alternative-tts.ts` to remove client direct Google TTS URL construction (`GOOGLE_TRANSLATE_TTS_ENDPOINT`, `buildGoogleTranslateTtsUrl`), set `AlternativeTtsEngine` strictly to `"lovable"`, eliminate `"google_translate"` / `"google-tts-directly"` client service options, update fallback order types to remove direct client google fallback, and route remote audio strictly through Lovable Speak API (tts3.lovable.app).
-- **Validation**: `compile_applet`, `lint_applet`, dedicated test `scripts/verify-remove-direct-google-tts-client-option.ts`.
-
+- **Active Task**: Task 309 (Prompt 79): Ensure All GitHub Actions Are Passing
+- **Sub-task**: 309.1 - Add header active video ID identifier (`data-testid="header-active-video-id"`) in `src/routes/index.tsx` so `e2e/emulation.spec.ts` passes reliably in Playwright E2E suite (`web.yml`), run full Playwright test suite, audit and verify all 10 GitHub Actions workflows.
+- **Validation**: `npx playwright test --project=web`, `compile_applet`, `lint_applet`, dedicated test `scripts/verify-all-github-actions-pass.ts`.
 
 

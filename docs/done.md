@@ -1,6 +1,53 @@
 # Done tasks
 
+### Hotfix (Prompt 78): Fix Vite Reload and TS2367 Comparison Error in TtsFallbackOrderSwitch
+
+- **Problem & Root Cause**:
+  - Vite reported `[vite] Failed to reload` across 10 modules (`/src/styles.css`, `TtsServiceSettingsPanel.tsx`, `BeginnerTtsServiceControl.tsx`, `SwitchableDefaultSubtitlesBar.tsx`, `routes/index.tsx`, `ExternalTtsDebuggerPanel.tsx`, `TtsFallbackOrderSwitch.tsx`, `BeginnerPreferencesTab.tsx`, `StorybookWorkbench.tsx`, `NetworkRequestsInspector.tsx`).
+  - Running `npx tsc --noEmit` pinpointed TypeScript compile error `TS2367`: `This comparison appears to be unintentional because the types '"native" | "tts3"' and '"google"' have no overlap.` in `src/components/TtsFallbackOrderSwitch.tsx` line 92.
+  - Following the complete removal of `"google"` from `TtsFallbackOrder`, the step parameter became `{ label: string; type: "tts3" | "native" }`, leaving an obsolete `if (step.type === "google")` branch and unused `Globe` icon import.
+- **Changes Applied**:
+  - `src/components/TtsFallbackOrderSwitch.tsx`:
+    - Removed unused `Globe` icon import from `lucide-react`.
+    - Removed invalid `if (step.type === "google")` check in `renderStepBadge`, keeping clean branches for `"tts3"` and default/`"native"`.
+  - `README.md`: Restored `1. [Docs](docs/)` entry so `verify-basic-readme.ts` and `verify-doc-contracts.ts` pass cleanly.
+  - `quarentined/docs/beginner-mode-tab-flow.md`: Corrected relative cross-reference path to `../../docs/design.md`.
+  - `package.json` & `android-shell/app/build.gradle.kts`: Bumped version to `2.1.8` (code: 20108) via single-source sync.
+  - `docs/files.md`: Registered `scripts/verify-vite-reload-and-ts2367-hotfix.ts`.
+- **Validation**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run test:vite-reload-and-ts2367-hotfix`: 100% PASSED (all 10 files confirmed, TS2367 eliminated, HTTP 200 transformed responses verified on dev server).
+  - `npm run test:remove-direct-google-tts-option`: 100% PASSED.
+  - `npm run test:single-source-version`: 100% PASSED.
+  - `npm run test:basic-readme` & `npm run test:doc-contracts`: 100% PASSED.
+  - `compile_applet` & `lint_applet`: PASSED (0 errors).
+  - Dev server restarted and fully healthy.
+
+### Task 308 (Prompt 77): Remove Direct Google TTS Client Option Across Entire App
+
+
+- **Prompt**:
+  ```
+  update: there is no option of direct request to google tts from the client. therefor rm that option from entire app
+  ```
+- **Context & Implementation**:
+  - `src/lib/alternative-tts.ts`:
+    - Updated `AlternativeTtsEngine` type strictly to `"lovable"`.
+    - Removed `GOOGLE_TRANSLATE_TTS_ENDPOINT`, `buildGoogleTranslateTtsUrl()`, and direct Google TTS client execution paths.
+    - Updated `TtsFallbackOrder` strictly to `"tts3_native" | "native_tts3" | "native_only"`.
+    - Routed all remote speech synthesis strictly through Lovable Speak API (tts3.lovable.app).
+  - UI Components:
+    - Updated `src/components/TtsServiceSettingsPanel.tsx`: Removed `google_translate` option and direct notice banner.
+    - Updated `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`: Removed `google_translate` option and test button.
+    - Updated `src/components/TtsFallbackOrderSwitch.tsx`: Restricted options to TTS3 service and native device voices.
+    - Updated `src/routes/index.tsx`: Cleaned fallback engine state bindings.
+  - Application version bumped to `2.1.7` across `package.json` and `build.gradle.kts`.
+- **Validation**:
+  - Dedicated automated test: `npm run test:remove-direct-google-tts-option` (`scripts/verify-remove-direct-google-tts-client-option.ts`) passed 100%.
+  - `compile_applet` passed.
+
 ### Hotfix: Dev Server Pre-warming Failure & Lint Prefer-Const Error Fix
+
 
 - **Problem & Root Cause**:
   - The development server reported a pre-warming failure during cold startup.
