@@ -1,11 +1,6 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
-- **Status**: [IN_PROGRESS]
-- **Active Task**: Task 324 (Prompt 89): Hide "Fetched Subtitles" Stage by Default & Access in Settings Stage
-- **Sub-task**: 324.1 - Default `currentAccordionStage` to 1 on startup, hide `stage-step-0` button from main stages stepper, and integrate Fetched Subtitles Info, Statistics & Caching sub-accordion under Settings stage (Stage 4).
-- **Validation**: Dedicated test `scripts/verify-hide-fetched-subtitles-default-and-settings-access.ts`, `compile_applet`, `lint_applet`.
-
-
-
-
-
+- **Status**: [COMPLETED]
+- **Completed Task**: Task 325 (Prompt 90): Zero Knowledge in Language Mode (`zero_knowledge_in_lang`) - Word & Translation Pronunciation with Pick-Word Strategy
+- **Validation**: Dedicated test `scripts/verify-zero-knowledge-word-learning.ts` (`npm run test:zero-knowledge-word-learning` - 100% pass), `compile_applet` passed, `lint_applet` passed.
+- **Next Backlog Item**: Task 318 (Prompt 83 - Chapter 6): State Machine Actions in Log View with Clear & Copy-to-Clipboard.

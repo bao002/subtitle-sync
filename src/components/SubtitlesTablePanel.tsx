@@ -7,6 +7,7 @@ import { type SpeechProgress } from "@/components/HighlightedSubtitle";
 import { NewSubtitlesParserBar } from "@/components/NewSubtitlesParserBar";
 import { SimpleParserConfig, DEFAULT_SIMPLE_PARSER_CONFIG } from "@/utils/newSubtitlesParser";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
+import { getZeroKnowledgeInLang, getPickWordStrategy } from "@/lib/playback-preferences";
 
 export interface SubtitlesTablePanelProps {
   isAndroid: boolean;
@@ -396,6 +397,15 @@ export function SubtitlesTablePanel({
                         Set Default
                       </button>
                     ) : null}
+                    {getZeroKnowledgeInLang(l.code) && (
+                      <span
+                        data-testid={`table-col-zero-knowledge-badge-${l.code}`}
+                        className="inline-flex items-center gap-1 rounded bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30 px-1 py-0.2 text-[9px] font-semibold"
+                        title={`Zero Knowledge Mode (${getPickWordStrategy(l.code)} word): Learns words rather than sentences`}
+                      >
+                        Words ({getPickWordStrategy(l.code)})
+                      </span>
+                    )}
                   </div>
                 </th>
               );

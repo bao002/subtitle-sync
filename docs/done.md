@@ -1,5 +1,42 @@
 # Done tasks
 
+### Task 325 (Prompt 90): Zero Knowledge in Language Mode (zero_knowledge_in_lang) - Word & Translation Pronunciation with Pick-Word Strategy
+
+- **Prompt**:
+  ```
+  some langauges the user doesnt know at - all and in this case it is best to start learning words rather then sentences. therefor define per language a param: zero_knowledge_in_lang:boolean 
+
+  for such language type - pronounce the word and its translation.
+  pick word strategy: choose between longest or random word
+  ```
+- **Implementation**:
+  - `src/utils/zeroKnowledgeWordManager.ts`:
+    - Implemented `extractWordsFromSentence` to extract clean words across all scripts (Latin, Hebrew, Arabic, Cyrillic, CJK, etc.) and punctuation boundaries.
+    - Implemented `pickWordFromSentence` with "longest" (most informative vocabulary) and "random" selection strategies.
+    - Implemented `getWordTranslation` using Google translation engine with memory caching (`wordTranslationCache`) and identity short-circuits.
+  - `src/lib/playback-preferences.ts`:
+    - Defined `PickWordStrategy = "longest" | "random"`.
+    - Added getters, setters, and togglers: `getZeroKnowledgeInLang`, `setZeroKnowledgeInLang`, `toggleZeroKnowledgeInLang`, `getAllZeroKnowledgeInLang`, `setAllZeroKnowledgeInLang`.
+    - Added pick word strategy preferences: `getPickWordStrategy`, `setPickWordStrategy` (supporting global and per-language overrides).
+    - Added custom events `ZERO_KNOWLEDGE_EVENT` and `PICK_WORD_STRATEGY_EVENT` for live cross-component synchronization.
+  - `src/routes/index.tsx`:
+    - Updated row playback TTS loop (lines ~4830-4895) to detect zero-knowledge languages, extract and pick the word using `pickWordFromSentence`, translate it to base language via `getWordTranslation`, log `ZERO_KNOWLEDGE_WORD_SPOKEN`, pronounce the picked word in the target language, and pronounce the translation in the base language.
+    - Added Stage 1 / Stage 2 Narration Ratios interactive toggle buttons (`zero-knowledge-toggle-${langCode}`) and strategy selectors (`pick-word-strategy-longest-${langCode}`, `pick-word-strategy-random-${langCode}`).
+    - Added Stage 4 Settings card (`data-testid="settings-zero-knowledge-card"`) with global pick word strategy select (`data-testid="settings-pick-word-strategy-select"`) and per-language toggles (`data-testid="settings-zero-knowledge-toggle-${langCode}"`).
+    - Handled manual speak clicks (`onSpeakCue={handleSpeakCue}`) for parallel subtitles table.
+  - `src/components/beginner/PerLanguageTtsPreferences.tsx`:
+    - Integrated Zero Knowledge toggle (`data-testid="beginner-zero-knowledge-toggle-${language.code}"`) and strategy select (`data-testid="beginner-pick-word-strategy-${language.code}"`) ensuring 100% parity across Beginner and Advanced modes.
+  - `src/components/SubtitlesTablePanel.tsx`:
+    - Displayed Zero Knowledge badge (`data-testid="table-col-zero-knowledge-badge-${l.code}"`) in subtitle column header.
+  - `src/utils/settingsBackupManager.ts`:
+    - Exported and imported `zeroKnowledgeInLang` and `pickWordStrategy` in settings backup payloads.
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-zero-knowledge-word-learning.ts` (`npm run test:zero-knowledge-word-learning`) covering tokenization, word picking strategies, translation caching, preferences persistence, settings backup/restore, and UI elements.
+  - Added script to `package.json`.
+  - Bumped version to `2.1.22` and synchronized via `npm run sync-version`.
+  - Verified `compile_applet` passed (`Build succeeded`).
+  - Verified `lint_applet` passed with 0 errors.
+
 ### Task 324 (Prompt 89): Hide "Fetched Subtitles" Stage by Default & Access in Settings Stage
 
 - **Prompt**:

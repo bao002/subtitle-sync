@@ -4,11 +4,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 324 (Prompt 89): Hide "Fetched Subtitles" Stage by Default & Access in Settings Stage**
-  - Subtask 324.1: Default `currentAccordionStage` to 1 ("Learning Goals & Default Language") on startup, hide `stage-step-0` button from main stages stepper, and integrate Fetched Subtitles Info, Statistics & Caching accordion under Settings stage (Stage 4).
-  - Subtask 324.2: Dedicated automated test `scripts/verify-hide-fetched-subtitles-default-and-settings-access.ts` (`npm run test:hide-fetched-subtitles-default-and-settings-access`).
-  - Subtask 324.3: Version bump, compile, lint, commit, and migrate Task 324 to `docs/done.md`.
-
 - [ ] **Task 318 (Prompt 83 - Chapter 6): State Machine Actions in Log View with Clear & Copy-to-Clipboard**
   - Subtask 318.1: Feed state machine actions into log view with Clear and Copy-to-Clipboard buttons for easy issue reporting and log inspection.
   - Subtask 318.2: Dedicated automated test `scripts/verify-state-machine-log-actions-copy-clear.ts` (`npm run test:state-machine-log-actions-copy-clear`).

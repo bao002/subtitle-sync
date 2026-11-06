@@ -4,6 +4,13 @@ import { getLanguageVoices, getUniqueVoiceKey, SpeechVoiceLike } from "@/utils/s
 import {
   getLanguageTtsRatio,
   isLanguageTtsBlacklisted,
+  getZeroKnowledgeInLang,
+  toggleZeroKnowledgeInLang,
+  getPickWordStrategy,
+  setPickWordStrategy,
+  ZERO_KNOWLEDGE_EVENT,
+  PICK_WORD_STRATEGY_EVENT,
+  PickWordStrategy,
 } from "@/lib/playback-preferences";
 import {
   VideoPlaybackPrecedenceBar,
@@ -71,6 +78,17 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
     }
   };
 
+  const [, setZkTick] = React.useState(0);
+  React.useEffect(() => {
+    const handler = () => setZkTick((t) => t + 1);
+    window.addEventListener(ZERO_KNOWLEDGE_EVENT, handler);
+    window.addEventListener(PICK_WORD_STRATEGY_EVENT, handler);
+    return () => {
+      window.removeEventListener(ZERO_KNOWLEDGE_EVENT, handler);
+      window.removeEventListener(PICK_WORD_STRATEGY_EVENT, handler);
+    };
+  }, []);
+
   return (
     <section
       className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3"
@@ -123,6 +141,8 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
             const rate = rates[language.code] ?? 0.5;
             const isPrimary = language.code === effectivePrimary;
             const isBlacklisted = isLanguageTtsBlacklisted(language.code, blacklist);
+            const isZeroKnowledge = getZeroKnowledgeInLang(language.code);
+            const wordStrategy = getPickWordStrategy(language.code);
             return (
               <React.Fragment key={language.code}>
                 <div
@@ -283,7 +303,44 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                       ))}
                     </select>
                   </label>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      data-testid={`beginner-zero-knowledge-toggle-${language.code}`}
+                      onClick={() => {
+                        toggleZeroKnowledgeInLang(language.code);
+                        setZkTick((t) => t + 1);
+                      }}
+                      className={`inline-flex items-center gap-1 rounded border px-2 py-1 text-[11px] font-medium transition-colors cursor-pointer shrink-0 ${
+                        isZeroKnowledge
+                          ? "border-amber-500/60 bg-amber-500/20 text-amber-300 font-semibold"
+                          : "border-border bg-background text-muted-foreground hover:text-foreground"
+                      }`}
+                      title={
+                        isZeroKnowledge
+                          ? `${language.name}: Zero knowledge enabled (pronounces picked word + translation)`
+                          : `Enable Zero Knowledge word learning for ${language.name}`
+                      }
+                    >
+                      <span>{isZeroKnowledge ? "0-Knowledge: Words" : "Sentences"}</span>
+                    </button>
+                    {isZeroKnowledge && (
+                      <div className="flex items-center gap-1">
+                        <select
+                          data-testid={`beginner-pick-word-strategy-${language.code}`}
+                          value={wordStrategy}
+                          onChange={(e) => {
+                            setPickWordStrategy(e.target.value as PickWordStrategy, language.code);
+                            setZkTick((t) => t + 1);
+                          }}
+                          className="rounded border border-input bg-background px-1.5 py-0.5 text-[10px]"
+                          aria-label={`Pick word strategy for ${language.name}`}
+                        >
+                          <option value="longest">Longest word</option>
+                          <option value="random">Random word</option>
+                        </select>
+                      </div>
+                    )}
                     <button
                       type="button"
                       data-testid={`btn-place-video-before-${language.code}`}
