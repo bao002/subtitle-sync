@@ -1,5 +1,22 @@
 # Done tasks
 
+### Hotfix: Fix ReferenceError: Cannot access 'baseLanguage' before initialization in `src/routes/index.tsx` (Prompt 91)
+
+- **Root Cause**:
+  - `handleSpeakCue` and `handleValidateRemoteService` (along with zero-knowledge helper state and hooks) were declared prior to `const baseLanguage = useMemo(...)` in `src/routes/index.tsx`.
+  - Because `handleSpeakCue`'s dependency array `[rates, voiceSelections, baseLanguage, isAndroid]` evaluated `baseLanguage` during component render, JavaScript threw `ReferenceError: Cannot access 'baseLanguage' before initialization` due to the temporal dead zone (TDZ).
+- **Implementation**:
+  - Reordered hook declarations in `src/routes/index.tsx`:
+    - Moved `handleValidateRemoteService`, `zeroKnowledgeMap`, `pickWordStrategyState`, the event sync effect, `handleToggleZeroKnowledge`, `handleSetPickWordStrategy`, and `handleSpeakCue` to immediately follow `baseLanguage` and its associated sync `useEffect`.
+    - Declared `tracksRef` and `observedUrlRef` right after `tracks` and `observedUrl` state declarations, ensuring they are always initialized before `setBaseLanguage`.
+  - Added dedicated test `scripts/verify-base-language-initialization-hotfix.ts` (`npm run test:base-language-initialization-hotfix`) to verify zero references before declaration and correct lexical order.
+  - Bumped version to `2.1.23` across all single-source version files (`package.json`, `android-shell/app/build.gradle.kts`, `src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) via `npm run sync-version`.
+- **Validation**:
+  - `npm run test:base-language-initialization-hotfix` (100% pass).
+  - `npm run test:zero-knowledge-word-learning` (100% pass).
+  - `compile_applet` (Build succeeded).
+  - `lint_applet` (Clean, 0 errors).
+
 ### Task 325 (Prompt 90): Zero Knowledge in Language Mode (zero_knowledge_in_lang) - Word & Translation Pronunciation with Pick-Word Strategy
 
 - **Prompt**:

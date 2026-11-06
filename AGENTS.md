@@ -132,11 +132,40 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-some langauges the user doesnt know at - all and in this case it is best to start learning words rather then sentences. therefor define per language a param: zero_knowledge_in_lang:boolean 
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Cannot access 'baseLanguage' before initialization
+error 1: [APP_PAGE_ERROR] This page didn't load: Cannot access 'baseLanguage' before initialization
+error 2: ReferenceError: Cannot access 'baseLanguage' before initialization
+    at Index (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/src/routes/index.tsx:862:3)
+    at Object.react_stack_bottom_frame (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:14140:12)
+    at renderWithHooks (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:4398:19)
+    at updateFunctionComponent (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:5773:16)
+    at beginWork (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:6389:20)
+    at runWithFiberInDEV (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:943:66)
+    at performUnitOfWork (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:9146:92)
+    at workLoopSync (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:9042:37)
+    at renderRootSync (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:9026:6)
+    at perfor
+    ... [stack truncated]
+error 3: %o
 
-for such language type - pronounce the word and its translation.
-pick word strategy: choose between longest or random word
+%s
+
+%s ReferenceError: Cannot access 'baseLanguage' before initialization
+    at Index (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/src/routes/index.tsx:862:3)
+    at Object.react_stack_bottom_frame (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:14140:12)
+    at renderWithHooks (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:4398:19)
+    at updateFunctionComponent (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:5773:16)
+    at beginWork (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:6389:20)
+    at runWithFiberInDEV (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:943:66)
+    at performUnitOfWork (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=db587351:9146:92)
+    ... [3 frames omitted]
+error 4: [APP_BOOT_ERROR] Application rendered error boundary: This page didn't load
+[AIS_METADATA_SECTION_END]
 ```
+
 
 
 

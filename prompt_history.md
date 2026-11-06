@@ -1210,6 +1210,20 @@ for such language type - pronounce the word and its translation.
 pick word strategy: choose between longest or random word
 ```
 
+---
+
+### Prompt 91: Hotfix: Cannot access 'baseLanguage' before initialization ReferenceError in Index route
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Cannot access 'baseLanguage' before initialization
+error 1: [APP_PAGE_ERROR] This page didn't load: Cannot access 'baseLanguage' before initialization
+error 2: ReferenceError: Cannot access 'baseLanguage' before initialization
+    at Index (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/src/routes/index.tsx:862:3)
+```
+
+
 
 
 

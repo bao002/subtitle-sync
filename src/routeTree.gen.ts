@@ -12,15 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as StorybookRouteImport } from './routes/storybook'
 
-const StorybookRoute = StorybookRouteImport.update({
-  id: '/storybook',
-  path: '/storybook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StorybookRoute = StorybookRouteImport.update({
+  id: '/storybook',
+  path: '/storybook',
   getParentRoute: () => rootRouteImport,
 } as any)
 

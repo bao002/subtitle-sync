@@ -1005,6 +1005,10 @@ function Index() {
   const [observedUrl, setObservedUrl] = useState("");
   const [defaultCaptionsLoaded, setDefaultCaptionsLoaded] = useState(false);
   const [tracks, setTracks] = useState<Record<string, Json3> | null>(null);
+  const tracksRef = useRef<Record<string, Json3> | null>(tracks);
+  tracksRef.current = tracks;
+  const observedUrlRef = useRef(observedUrl);
+  observedUrlRef.current = observedUrl;
   const [youtubeTranslatedLanguages, setYoutubeTranslatedLanguages] = useState<string[]>([]);
   const [isSubtitlesPending, startSubtitlesTransition] = useTransition();
   const [strategy, setStrategy] = useState<Strategy>("sentence");
@@ -1313,31 +1317,6 @@ function Index() {
     }, 100);
   }, [workflowMode]);
 
-  const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
-    const targetEngine = serviceToValidate || alternativeTtsEngineState;
-    setIsValidatingRemoteTts(true);
-    try {
-      const res = await validateRemoteTtsService(targetEngine, {
-        lang: baseLanguage || "en",
-        provider: lovableTtsProviderState,
-        isAnonymous: alternativeTtsAnonymousState,
-      });
-      setRemoteValidationResult(res);
-    } catch (err: unknown) {
-      setRemoteValidationResult({
-        ok: false,
-        service: targetEngine,
-        serviceName: targetEngine === "lovable" ? "Lovable TTS3" : "Google TTS Directly",
-        endpoint: "",
-        latencyMs: 0,
-        audioVerified: false,
-        error: (err as Error)?.message || "Validation failed",
-        timestamp: Date.now(),
-      });
-    } finally {
-      setIsValidatingRemoteTts(false);
-    }
-  };
   const [openRouterKeyInput, setOpenRouterKeyInput] = useState<string>(() =>
     typeof window !== "undefined" ? getOpenRouterApiKeySetting() : "",
   );
@@ -1352,77 +1331,6 @@ function Index() {
       // ignore storage errors
     }
   }, []);
-
-  const [zeroKnowledgeMap, setZeroKnowledgeMap] = useState<Record<string, boolean>>(() =>
-    typeof window !== "undefined" ? getAllZeroKnowledgeInLang() : {},
-  );
-  const [pickWordStrategyState, setPickWordStrategyState] = useState<PickWordStrategy>(() =>
-    typeof window !== "undefined" ? getPickWordStrategy() : "longest",
-  );
-
-  useEffect(() => {
-    const handleZkUpdate = () => {
-      setZeroKnowledgeMap(getAllZeroKnowledgeInLang());
-    };
-    const handleStrategyUpdate = () => {
-      setPickWordStrategyState(getPickWordStrategy());
-    };
-    window.addEventListener(ZERO_KNOWLEDGE_EVENT, handleZkUpdate);
-    window.addEventListener(PICK_WORD_STRATEGY_EVENT, handleStrategyUpdate);
-    return () => {
-      window.removeEventListener(ZERO_KNOWLEDGE_EVENT, handleZkUpdate);
-      window.removeEventListener(PICK_WORD_STRATEGY_EVENT, handleStrategyUpdate);
-    };
-  }, []);
-
-  const handleToggleZeroKnowledge = useCallback((langCode: string) => {
-    const next = toggleZeroKnowledgeInLang(langCode);
-    setZeroKnowledgeMap((prev) => ({ ...prev, [langCode.toLowerCase()]: next }));
-    logStateMachineAction("ZERO_KNOWLEDGE_TOGGLED", { langCode, enabled: next });
-  }, []);
-
-  const handleSetPickWordStrategy = useCallback((strategy: PickWordStrategy, langCode?: string) => {
-    setPickWordStrategy(strategy, langCode);
-    setPickWordStrategyState(strategy);
-  }, []);
-
-  const handleSpeakCue = useCallback(
-    (text: string, lang: string) => {
-      const rate = rates[lang] ?? 0.8;
-      const voice = voiceSelections[lang] || "";
-      const isZeroKnowledge = getZeroKnowledgeInLang(lang);
-      if (isZeroKnowledge) {
-        void (async () => {
-          const strategy = getPickWordStrategy(lang);
-          const pickedWord = pickWordFromSentence(text, strategy);
-          let wordTranslation = "";
-          try {
-            wordTranslation = await getWordTranslation(pickedWord, lang, baseLanguage || "en");
-          } catch {
-            // ignore
-          }
-          await speak(pickedWord, lang, rate, voice, -1, () => {});
-          if (
-            wordTranslation &&
-            wordTranslation.trim().length > 0 &&
-            wordTranslation.trim().toLowerCase() !== pickedWord.trim().toLowerCase()
-          ) {
-            await new Promise<void>((r) => setTimeout(r, 250));
-            const baseTtsMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
-              (x) => x.code === baseLanguage,
-            );
-            const baseTtsLang = baseTtsMeta?.tts || baseLanguage || "en";
-            const baseRate = rates[baseLanguage] ?? 0.8;
-            const baseVoice = voiceSelections[baseLanguage] ?? "";
-            await speak(wordTranslation, baseTtsLang, baseRate, baseVoice, -1, () => {});
-          }
-        })();
-      } else {
-        void speak(text, lang, rate, voice, -1, () => {});
-      }
-    },
-    [rates, voiceSelections, baseLanguage, isAndroid],
-  );
 
   const speakFetchedLanguageName = useCallback(
     (langCode: string) => {
@@ -1594,10 +1502,102 @@ function Index() {
     });
   }, [baseLanguage]);
 
-  const tracksRef = useRef<Record<string, Json3> | null>(tracks);
-  tracksRef.current = tracks;
-  const observedUrlRef = useRef(observedUrl);
-  observedUrlRef.current = observedUrl;
+  const handleValidateRemoteService = async (serviceToValidate?: AlternativeTtsEngine) => {
+    const targetEngine = serviceToValidate || alternativeTtsEngineState;
+    setIsValidatingRemoteTts(true);
+    try {
+      const res = await validateRemoteTtsService(targetEngine, {
+        lang: baseLanguage || "en",
+        provider: lovableTtsProviderState,
+        isAnonymous: alternativeTtsAnonymousState,
+      });
+      setRemoteValidationResult(res);
+    } catch (err: unknown) {
+      setRemoteValidationResult({
+        ok: false,
+        service: targetEngine,
+        serviceName: targetEngine === "lovable" ? "Lovable TTS3" : "Google TTS Directly",
+        endpoint: "",
+        latencyMs: 0,
+        audioVerified: false,
+        error: (err as Error)?.message || "Validation failed",
+        timestamp: Date.now(),
+      });
+    } finally {
+      setIsValidatingRemoteTts(false);
+    }
+  };
+
+  const [zeroKnowledgeMap, setZeroKnowledgeMap] = useState<Record<string, boolean>>(() =>
+    typeof window !== "undefined" ? getAllZeroKnowledgeInLang() : {},
+  );
+  const [pickWordStrategyState, setPickWordStrategyState] = useState<PickWordStrategy>(() =>
+    typeof window !== "undefined" ? getPickWordStrategy() : "longest",
+  );
+
+  useEffect(() => {
+    const handleZkUpdate = () => {
+      setZeroKnowledgeMap(getAllZeroKnowledgeInLang());
+    };
+    const handleStrategyUpdate = () => {
+      setPickWordStrategyState(getPickWordStrategy());
+    };
+    window.addEventListener(ZERO_KNOWLEDGE_EVENT, handleZkUpdate);
+    window.addEventListener(PICK_WORD_STRATEGY_EVENT, handleStrategyUpdate);
+    return () => {
+      window.removeEventListener(ZERO_KNOWLEDGE_EVENT, handleZkUpdate);
+      window.removeEventListener(PICK_WORD_STRATEGY_EVENT, handleStrategyUpdate);
+    };
+  }, []);
+
+  const handleToggleZeroKnowledge = useCallback((langCode: string) => {
+    const next = toggleZeroKnowledgeInLang(langCode);
+    setZeroKnowledgeMap((prev) => ({ ...prev, [langCode.toLowerCase()]: next }));
+    logStateMachineAction("ZERO_KNOWLEDGE_TOGGLED", { langCode, enabled: next });
+  }, []);
+
+  const handleSetPickWordStrategy = useCallback((strategy: PickWordStrategy, langCode?: string) => {
+    setPickWordStrategy(strategy, langCode);
+    setPickWordStrategyState(strategy);
+  }, []);
+
+  const handleSpeakCue = useCallback(
+    (text: string, lang: string) => {
+      const rate = rates[lang] ?? 0.8;
+      const voice = voiceSelections[lang] || "";
+      const isZeroKnowledge = getZeroKnowledgeInLang(lang);
+      if (isZeroKnowledge) {
+        void (async () => {
+          const strategy = getPickWordStrategy(lang);
+          const pickedWord = pickWordFromSentence(text, strategy);
+          let wordTranslation = "";
+          try {
+            wordTranslation = await getWordTranslation(pickedWord, lang, baseLanguage || "en");
+          } catch {
+            // ignore
+          }
+          await speak(pickedWord, lang, rate, voice, -1, () => {});
+          if (
+            wordTranslation &&
+            wordTranslation.trim().length > 0 &&
+            wordTranslation.trim().toLowerCase() !== pickedWord.trim().toLowerCase()
+          ) {
+            await new Promise<void>((r) => setTimeout(r, 250));
+            const baseTtsMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+              (x) => x.code === baseLanguage,
+            );
+            const baseTtsLang = baseTtsMeta?.tts || baseLanguage || "en";
+            const baseRate = rates[baseLanguage] ?? 0.8;
+            const baseVoice = voiceSelections[baseLanguage] ?? "";
+            await speak(wordTranslation, baseTtsLang, baseRate, baseVoice, -1, () => {});
+          }
+        })();
+      } else {
+        void speak(text, lang, rate, voice, -1, () => {});
+      }
+    },
+    [rates, voiceSelections, baseLanguage, isAndroid],
+  );
 
   const applyCriteriaNow = useCallback(
     (nextCriteria: CriteriaId[], nextSettings: CriteriaGroupSettings = criteriaSettings) => {
