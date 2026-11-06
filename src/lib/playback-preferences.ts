@@ -42,6 +42,8 @@ export function extractLanguageCodeList(val: unknown): string[] {
   return [];
 }
 
+export type PickWordStrategy = "longest" | "random";
+
 const KEYS = {
   requestMode: "yt_subtitle_request_mode_v1",
   sectionOrder: "yt_section_order_v1",
@@ -56,6 +58,9 @@ const KEYS = {
   ttsBlacklist: "yt_tts_blacklist_v1",
   learningGoalsMaxWords: "yt_learning_goals_max_words_v1",
   learningGoalsSkipIncomplete: "yt_learning_goals_skip_incomplete_v1",
+  zeroKnowledgeInLang: "yt_zero_knowledge_in_lang_v1",
+  pickWordStrategy: "yt_pick_word_strategy_v1",
+  perLangPickWordStrategy: "yt_per_lang_pick_word_strategy_v1",
 } as const;
 
 const memoryStorage = new Map<string, string>();
@@ -885,6 +890,155 @@ export function setTtsCustomEndpointPreference(endpoint: string): void {
   const s = getStorage();
   try {
     s.setItem("yt_tts_custom_endpoint_v1", endpoint);
+  } catch {
+    // ignore
+  }
+}
+
+export const ZERO_KNOWLEDGE_EVENT = "yt_zero_knowledge_changed";
+export const PICK_WORD_STRATEGY_EVENT = "yt_pick_word_strategy_changed";
+
+/**
+ * Returns true if the language is configured with zero_knowledge_in_lang = true.
+ */
+export function getZeroKnowledgeInLang(langCode: unknown): boolean {
+  const code = extractLanguageCodeString(langCode).toLowerCase();
+  if (!code) return false;
+  const s = getStorage();
+  try {
+    const rawDirect = s.getItem(`yt_zero_knowledge_${code}`);
+    if (rawDirect !== null) return rawDirect === "true" || rawDirect === "1";
+    const rawAll = s.getItem(KEYS.zeroKnowledgeInLang);
+    if (rawAll) {
+      const parsed = JSON.parse(rawAll);
+      if (parsed && typeof parsed === "object" && code in parsed) {
+        return Boolean(parsed[code]);
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return false;
+}
+
+/**
+ * Sets the zero_knowledge_in_lang parameter for a language.
+ */
+export function setZeroKnowledgeInLang(langCode: unknown, enabled: boolean): void {
+  const code = extractLanguageCodeString(langCode).toLowerCase();
+  if (!code) return;
+  const s = getStorage();
+  try {
+    s.setItem(`yt_zero_knowledge_${code}`, enabled ? "true" : "false");
+    const all = getAllZeroKnowledgeInLang();
+    all[code] = enabled;
+    s.setItem(KEYS.zeroKnowledgeInLang, JSON.stringify(all));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(ZERO_KNOWLEDGE_EVENT, { detail: { langCode: code, enabled } }),
+      );
+    }
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Toggles the zero_knowledge_in_lang parameter for a language and returns the new value.
+ */
+export function toggleZeroKnowledgeInLang(langCode: unknown): boolean {
+  const current = getZeroKnowledgeInLang(langCode);
+  const next = !current;
+  setZeroKnowledgeInLang(langCode, next);
+  return next;
+}
+
+/**
+ * Gets all zero knowledge settings as a map of languageCode -> boolean.
+ */
+export function getAllZeroKnowledgeInLang(): Record<string, boolean> {
+  const s = getStorage();
+  try {
+    const raw = s.getItem(KEYS.zeroKnowledgeInLang);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Sets all zero knowledge settings from a map of languageCode -> boolean.
+ */
+export function setAllZeroKnowledgeInLang(map: Record<string, boolean>): void {
+  const s = getStorage();
+  try {
+    s.setItem(KEYS.zeroKnowledgeInLang, JSON.stringify(map));
+    for (const [code, val] of Object.entries(map)) {
+      s.setItem(`yt_zero_knowledge_${code.toLowerCase()}`, val ? "true" : "false");
+    }
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(ZERO_KNOWLEDGE_EVENT, { detail: { map } }));
+    }
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Gets the pick word strategy ("longest" | "random") for a language or globally.
+ * Defaults to "longest".
+ */
+export function getPickWordStrategy(langCode?: unknown): PickWordStrategy {
+  const s = getStorage();
+  const code = langCode ? extractLanguageCodeString(langCode).toLowerCase() : "";
+  try {
+    if (code) {
+      const perLang = s.getItem(`yt_pick_word_strategy_${code}`);
+      if (perLang === "longest" || perLang === "random") return perLang;
+      const rawAll = s.getItem(KEYS.perLangPickWordStrategy);
+      if (rawAll) {
+        const parsed = JSON.parse(rawAll);
+        if (
+          parsed &&
+          typeof parsed === "object" &&
+          (parsed[code] === "longest" || parsed[code] === "random")
+        ) {
+          return parsed[code];
+        }
+      }
+    }
+    const globalVal = s.getItem(KEYS.pickWordStrategy);
+    if (globalVal === "longest" || globalVal === "random") return globalVal;
+  } catch {
+    // ignore
+  }
+  return "longest";
+}
+
+/**
+ * Sets the pick word strategy ("longest" | "random") for a language or globally.
+ */
+export function setPickWordStrategy(strategy: PickWordStrategy, langCode?: unknown): void {
+  if (strategy !== "longest" && strategy !== "random") return;
+  const s = getStorage();
+  const code = langCode ? extractLanguageCodeString(langCode).toLowerCase() : "";
+  try {
+    if (code) {
+      s.setItem(`yt_pick_word_strategy_${code}`, strategy);
+      const rawAll = s.getItem(KEYS.perLangPickWordStrategy);
+      const parsed = rawAll ? JSON.parse(rawAll) : {};
+      parsed[code] = strategy;
+      s.setItem(KEYS.perLangPickWordStrategy, JSON.stringify(parsed));
+    } else {
+      s.setItem(KEYS.pickWordStrategy, strategy);
+    }
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(PICK_WORD_STRATEGY_EVENT, { detail: { langCode: code, strategy } }),
+      );
+    }
   } catch {
     // ignore
   }

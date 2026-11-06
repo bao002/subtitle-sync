@@ -330,9 +330,19 @@ import {
   setTtsBlacklist,
   isLanguageTtsBlacklisted,
   extractLanguageCodeString,
+  getZeroKnowledgeInLang,
+  setZeroKnowledgeInLang,
+  toggleZeroKnowledgeInLang,
+  getAllZeroKnowledgeInLang,
+  getPickWordStrategy,
+  setPickWordStrategy,
+  ZERO_KNOWLEDGE_EVENT,
+  PICK_WORD_STRATEGY_EVENT,
   type SectionOrder,
   type SubtitleRequestMode,
+  type PickWordStrategy,
 } from "@/lib/playback-preferences";
+import { pickWordFromSentence, getWordTranslation } from "@/utils/zeroKnowledgeWordManager";
 import {
   initBackgroundMediaManager,
   syncMediaMetadata,
@@ -1342,6 +1352,77 @@ function Index() {
       // ignore storage errors
     }
   }, []);
+
+  const [zeroKnowledgeMap, setZeroKnowledgeMap] = useState<Record<string, boolean>>(() =>
+    typeof window !== "undefined" ? getAllZeroKnowledgeInLang() : {},
+  );
+  const [pickWordStrategyState, setPickWordStrategyState] = useState<PickWordStrategy>(() =>
+    typeof window !== "undefined" ? getPickWordStrategy() : "longest",
+  );
+
+  useEffect(() => {
+    const handleZkUpdate = () => {
+      setZeroKnowledgeMap(getAllZeroKnowledgeInLang());
+    };
+    const handleStrategyUpdate = () => {
+      setPickWordStrategyState(getPickWordStrategy());
+    };
+    window.addEventListener(ZERO_KNOWLEDGE_EVENT, handleZkUpdate);
+    window.addEventListener(PICK_WORD_STRATEGY_EVENT, handleStrategyUpdate);
+    return () => {
+      window.removeEventListener(ZERO_KNOWLEDGE_EVENT, handleZkUpdate);
+      window.removeEventListener(PICK_WORD_STRATEGY_EVENT, handleStrategyUpdate);
+    };
+  }, []);
+
+  const handleToggleZeroKnowledge = useCallback((langCode: string) => {
+    const next = toggleZeroKnowledgeInLang(langCode);
+    setZeroKnowledgeMap((prev) => ({ ...prev, [langCode.toLowerCase()]: next }));
+    logStateMachineAction("ZERO_KNOWLEDGE_TOGGLED", { langCode, enabled: next });
+  }, []);
+
+  const handleSetPickWordStrategy = useCallback((strategy: PickWordStrategy, langCode?: string) => {
+    setPickWordStrategy(strategy, langCode);
+    setPickWordStrategyState(strategy);
+  }, []);
+
+  const handleSpeakCue = useCallback(
+    (text: string, lang: string) => {
+      const rate = rates[lang] ?? 0.8;
+      const voice = voiceSelections[lang] || "";
+      const isZeroKnowledge = getZeroKnowledgeInLang(lang);
+      if (isZeroKnowledge) {
+        void (async () => {
+          const strategy = getPickWordStrategy(lang);
+          const pickedWord = pickWordFromSentence(text, strategy);
+          let wordTranslation = "";
+          try {
+            wordTranslation = await getWordTranslation(pickedWord, lang, baseLanguage || "en");
+          } catch {
+            // ignore
+          }
+          await speak(pickedWord, lang, rate, voice, -1, () => {});
+          if (
+            wordTranslation &&
+            wordTranslation.trim().length > 0 &&
+            wordTranslation.trim().toLowerCase() !== pickedWord.trim().toLowerCase()
+          ) {
+            await new Promise<void>((r) => setTimeout(r, 250));
+            const baseTtsMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+              (x) => x.code === baseLanguage,
+            );
+            const baseTtsLang = baseTtsMeta?.tts || baseLanguage || "en";
+            const baseRate = rates[baseLanguage] ?? 0.8;
+            const baseVoice = voiceSelections[baseLanguage] ?? "";
+            await speak(wordTranslation, baseTtsLang, baseRate, baseVoice, -1, () => {});
+          }
+        })();
+      } else {
+        void speak(text, lang, rate, voice, -1, () => {});
+      }
+    },
+    [rates, voiceSelections, baseLanguage, isAndroid],
+  );
 
   const speakFetchedLanguageName = useCallback(
     (langCode: string) => {
@@ -4737,18 +4818,86 @@ function Index() {
                   },
                 });
               } else {
-                const speakPromise = speak(
-                  rows[rowIdx]?.texts[l.code] ?? "",
-                  l.tts,
-                  rates[l.code] ?? 0.5,
-                  voiceSelections[l.code] ?? "",
-                  rowIdx,
-                  setSpeechProgress,
-                );
-                await Promise.race([
-                  speakPromise,
-                  new Promise<void>((resolve) => setTimeout(resolve, 8000)),
-                ]);
+                const rawText = rows[rowIdx]?.texts[l.code] ?? "";
+                const isZeroKnowledge = getZeroKnowledgeInLang(l.code);
+                if (isZeroKnowledge) {
+                  const strategy = getPickWordStrategy(l.code);
+                  const pickedWord = pickWordFromSentence(rawText, strategy);
+                  let wordTranslation = "";
+                  try {
+                    wordTranslation = await getWordTranslation(
+                      pickedWord,
+                      l.code,
+                      baseLanguage || "en",
+                    );
+                  } catch (e) {
+                    console.warn(`[ZeroKnowledge] Word translation failed for ${pickedWord}:`, e);
+                  }
+
+                  logStateMachineAction("ZERO_KNOWLEDGE_WORD_SPOKEN", {
+                    videoId,
+                    rowIndex: rowIdx,
+                    langCode: l.code,
+                    pickedWord,
+                    translation: wordTranslation,
+                    strategy,
+                  });
+
+                  // 1. Pronounce the picked word in the target language
+                  const speakWordPromise = speak(
+                    pickedWord,
+                    l.tts,
+                    rates[l.code] ?? 0.5,
+                    voiceSelections[l.code] ?? "",
+                    rowIdx,
+                    setSpeechProgress,
+                  );
+                  await Promise.race([
+                    speakWordPromise,
+                    new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+                  ]);
+
+                  // 2. Pronounce the translation in base language
+                  if (
+                    wordTranslation &&
+                    wordTranslation.trim().length > 0 &&
+                    wordTranslation.trim().toLowerCase() !== pickedWord.trim().toLowerCase()
+                  ) {
+                    await new Promise<void>((resolve) => setTimeout(resolve, 250));
+                    const baseTtsMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+                      (x) => x.code === baseLanguage,
+                    );
+                    const baseTtsLang = baseTtsMeta?.tts || baseLanguage || "en";
+                    const baseRate = rates[baseLanguage] ?? 0.8;
+                    const baseVoice = voiceSelections[baseLanguage] ?? "";
+
+                    const speakTransPromise = speak(
+                      wordTranslation,
+                      baseTtsLang,
+                      baseRate,
+                      baseVoice,
+                      rowIdx,
+                      setSpeechProgress,
+                    );
+                    await Promise.race([
+                      speakTransPromise,
+                      new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+                    ]);
+                  }
+                } else {
+                  const speakPromise = speak(
+                    rawText,
+                    l.tts,
+                    rates[l.code] ?? 0.5,
+                    voiceSelections[l.code] ?? "",
+                    rowIdx,
+                    setSpeechProgress,
+                  );
+                  await Promise.race([
+                    speakPromise,
+                    new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+                  ]);
+                }
               }
             } catch (err) {
               console.warn(`[TTS] Speak error for ${l.code} at row ${rowIdx}:`, err);
@@ -6557,11 +6706,7 @@ function Index() {
                 parserConfig={simpleParserConfig}
                 onParserConfigChange={handleSimpleParserConfigChange}
                 onScrollToActivePosition={handleScrollToActivePosition}
-                onSpeakCue={(text, lang) => {
-                  const rate = rates[lang] ?? 0.8;
-                  const voice = voiceSelections[lang] || "";
-                  void speak(text, lang, rate, voice, -1, () => {});
-                }}
+                onSpeakCue={handleSpeakCue}
                 blacklist={ttsBlacklist}
               />
             }
@@ -7664,6 +7809,89 @@ function Index() {
                                         No fetched subtitle languages detected yet.
                                       </span>
                                     )}
+                                  </div>
+                                </div>
+                                <div
+                                  className="space-y-2 p-2.5 rounded-lg border border-border/80 bg-card/60 shadow-xs"
+                                  data-testid="settings-zero-knowledge-card"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-semibold text-xs text-foreground flex items-center gap-1.5">
+                                      <Split className="w-3.5 h-3.5 text-primary" />
+                                      <span>Zero Knowledge in Language Mode (Word Learning)</span>
+                                    </span>
+                                    <span className="text-[10px] bg-amber-500/10 text-amber-300 font-medium px-2 py-0.5 rounded-full border border-amber-500/20">
+                                      Vocabulary First
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-muted-foreground">
+                                    When you don&apos;t know a language at all, learning words
+                                    rather than full sentences is most effective. For zero-knowledge
+                                    languages, the application pronounces the picked word and its
+                                    translation in your default language.
+                                  </p>
+                                  <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-border/50">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs font-medium text-foreground">
+                                        Pick Word Strategy:
+                                      </span>
+                                      <select
+                                        data-testid="settings-pick-word-strategy-select"
+                                        value={pickWordStrategyState}
+                                        onChange={(e) =>
+                                          handleSetPickWordStrategy(
+                                            e.target.value as PickWordStrategy,
+                                          )
+                                        }
+                                        className="rounded border border-input bg-background px-2 py-1 text-xs"
+                                        aria-label="Pick word strategy"
+                                      >
+                                        <option value="longest">
+                                          Longest word (Key vocabulary)
+                                        </option>
+                                        <option value="random">Random word</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                  <div className="pt-1 space-y-1.5">
+                                    <span className="text-[11px] font-medium text-muted-foreground block">
+                                      Configure per-language zero knowledge mode:
+                                    </span>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {Array.from(
+                                        new Set(
+                                          [baseLanguage, primaryTtsLang, ...targetLanguages].filter(
+                                            (code): code is string => Boolean(code),
+                                          ),
+                                        ),
+                                      ).map((langCode) => {
+                                        const isZk = getZeroKnowledgeInLang(langCode);
+                                        const meta =
+                                          LANGS.find((l) => l.code === langCode) ||
+                                          SUPPORTED_LANGUAGES_CATALOG.find(
+                                            (l) => l.code === langCode,
+                                          );
+                                        return (
+                                          <button
+                                            key={langCode}
+                                            type="button"
+                                            data-testid={`settings-zero-knowledge-toggle-${langCode}`}
+                                            onClick={() => handleToggleZeroKnowledge(langCode)}
+                                            className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center gap-1.5 transition-all cursor-pointer ${
+                                              isZk
+                                                ? "border-amber-500/60 bg-amber-500/20 text-amber-300 shadow-xs font-semibold"
+                                                : "border-border bg-background hover:bg-muted text-muted-foreground"
+                                            }`}
+                                            title={`Toggle zero knowledge mode for ${meta?.name || langCode}`}
+                                          >
+                                            <span>{meta?.name || langCode.toUpperCase()}</span>
+                                            <span className="text-[10px] opacity-75">
+                                              {isZk ? "✓ Words" : "Sentences"}
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
                                 </div>
                                 <div
@@ -9424,8 +9652,15 @@ function Index() {
                                                 Blacklisted
                                               </span>
                                             )}
+                                            {getZeroKnowledgeInLang(langCode) && (
+                                              <span
+                                                data-testid={`stage-2-zero-knowledge-badge-${langCode}`}
+                                                className="bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1.5 py-0.2 rounded text-[9px] font-bold uppercase"
+                                              >
+                                                0-Knowledge ({getPickWordStrategy(langCode)})
+                                              </span>
+                                            )}
                                           </div>
-
                                           <div className="flex flex-wrap items-center gap-2">
                                             <button
                                               type="button"
@@ -9455,6 +9690,66 @@ function Index() {
                                                 </>
                                               )}
                                             </button>
+                                            <button
+                                              type="button"
+                                              data-testid={`zero-knowledge-toggle-${langCode}`}
+                                              id={`zero-knowledge-toggle-${langCode}`}
+                                              aria-label={`Toggle zero knowledge word learning for ${meta?.name || langCode}`}
+                                              title={
+                                                getZeroKnowledgeInLang(langCode)
+                                                  ? `${meta?.name || langCode}: Zero knowledge enabled (pronounces picked word + translation)`
+                                                  : `Enable Zero Knowledge word learning for ${meta?.name || langCode}`
+                                              }
+                                              onClick={() => handleToggleZeroKnowledge(langCode)}
+                                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border transition-colors cursor-pointer ${
+                                                getZeroKnowledgeInLang(langCode)
+                                                  ? "bg-amber-500/20 text-amber-300 border-amber-500/50 font-semibold"
+                                                  : "bg-muted/60 text-muted-foreground hover:text-foreground border-border"
+                                              }`}
+                                            >
+                                              <span>
+                                                {getZeroKnowledgeInLang(langCode)
+                                                  ? "0-Knowledge: Words"
+                                                  : "Sentences"}
+                                              </span>
+                                            </button>
+                                            {getZeroKnowledgeInLang(langCode) && (
+                                              <div className="flex items-center gap-1 bg-background/60 px-1.5 py-0.5 rounded border border-border/60">
+                                                <span className="text-[10px] text-muted-foreground">
+                                                  Pick:
+                                                </span>
+                                                <button
+                                                  type="button"
+                                                  data-testid={`pick-word-strategy-longest-${langCode}`}
+                                                  onClick={() =>
+                                                    handleSetPickWordStrategy("longest", langCode)
+                                                  }
+                                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                                                    getPickWordStrategy(langCode) === "longest"
+                                                      ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                                                      : "text-muted-foreground hover:text-foreground"
+                                                  }`}
+                                                  title="Pick the longest word in the sentence (prioritizes key vocabulary)"
+                                                >
+                                                  Longest
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  data-testid={`pick-word-strategy-random-${langCode}`}
+                                                  onClick={() =>
+                                                    handleSetPickWordStrategy("random", langCode)
+                                                  }
+                                                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors cursor-pointer ${
+                                                    getPickWordStrategy(langCode) === "random"
+                                                      ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                                                      : "text-muted-foreground hover:text-foreground"
+                                                  }`}
+                                                  title="Pick a random word from the sentence"
+                                                >
+                                                  Random
+                                                </button>
+                                              </div>
+                                            )}
 
                                             <div className="flex items-center gap-1">
                                               <span className="text-[11px] text-muted-foreground">
@@ -10396,6 +10691,7 @@ function Index() {
                               parserConfig={simpleParserConfig}
                               onParserConfigChange={handleSimpleParserConfigChange}
                               onScrollToActivePosition={handleScrollToActivePosition}
+                              onSpeakCue={handleSpeakCue}
                               blacklist={ttsBlacklist}
                             />
                             {currentAccordionStage === 2 && (

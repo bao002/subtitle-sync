@@ -1200,6 +1200,17 @@ CSS 1: {
 hide the "Fetched Subtitles" stage by default - allow to access that info on the settings stage
 ```
 
+---
+
+### Prompt 90: Zero Knowledge in Language Mode (zero_knowledge_in_lang) - Pronounce Word and Translation with Longest/Random Word Strategy
+```
+some langauges the user doesnt know at - all and in this case it is best to start learning words rather then sentences. therefor define per language a param: zero_knowledge_in_lang:boolean 
+
+for such language type - pronounce the word and its translation.
+pick word strategy: choose between longest or random word
+```
+
+
 
 
 

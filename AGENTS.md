@@ -132,8 +132,12 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-hide the "Fetched Subtitles" stage by default - allow to access that info on the settings stage
+some langauges the user doesnt know at - all and in this case it is best to start learning words rather then sentences. therefor define per language a param: zero_knowledge_in_lang:boolean 
+
+for such language type - pronounce the word and its translation.
+pick word strategy: choose between longest or random word
 ```
+
 
 
 

@@ -30,6 +30,11 @@ import {
   setTtsServiceTypePreference,
   setTtsAlternativeServicePreference,
   setTtsCustomEndpointPreference,
+  getAllZeroKnowledgeInLang,
+  setAllZeroKnowledgeInLang,
+  getPickWordStrategy,
+  setPickWordStrategy,
+  PickWordStrategy,
 } from "../lib/playback-preferences";
 import { loadAppSettings, saveAppSettings, AppSettings } from "./appSettings";
 
@@ -104,6 +109,8 @@ export function createApplicationSettingsBackup(): ApplicationSettingsBackup {
     ttsServiceType: getTtsServiceTypePreference(),
     ttsAlternativeService: getTtsAlternativeServicePreference(),
     ttsCustomEndpoint: getTtsCustomEndpointPreference() ?? undefined,
+    zeroKnowledgeInLang: getAllZeroKnowledgeInLang(),
+    pickWordStrategy: getPickWordStrategy(),
     appSettings: loadAppSettings(),
   };
 
@@ -307,6 +314,17 @@ export function importApplicationSettings(jsonOrObj: string | unknown): ImportSe
       }
       if (typeof prefs.ttsCustomEndpoint === "string") {
         setTtsCustomEndpointPreference(prefs.ttsCustomEndpoint);
+        count++;
+      }
+      if (prefs.zeroKnowledgeInLang && typeof prefs.zeroKnowledgeInLang === "object") {
+        setAllZeroKnowledgeInLang(prefs.zeroKnowledgeInLang as Record<string, boolean>);
+        count++;
+      }
+      if (
+        typeof prefs.pickWordStrategy === "string" &&
+        (prefs.pickWordStrategy === "longest" || prefs.pickWordStrategy === "random")
+      ) {
+        setPickWordStrategy(prefs.pickWordStrategy as PickWordStrategy);
         count++;
       }
       if (prefs.appSettings && typeof prefs.appSettings === "object") {
