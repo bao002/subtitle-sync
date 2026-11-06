@@ -1163,3 +1163,43 @@ CSS 4: {
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 87: Fix Errors in Dev Server Pre-warming (Hotfix)
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.16 dev > vite --port 3000 --host 0.0.0.0
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 88: Language Usage Tracking (Start Date Added & Ratio Last Updated), Hide Deprecated Components, Hide Duplicated Settings Button
+```
+1.
+  remember the following 2 parameters for each language in order to track usage:
+- for each langauge - remember the start date that language has been added  (using localstorage), and remember the ratio's last update for that language
+
+2. hide deprecated components 
+3. hide pointed duplicated item (settings button)
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(4) > button#header-stage4-settings-button:nth-of-type(3)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 89: Hide "Fetched Subtitles" Stage by Default & Access Info in Settings Stage
+```
+hide the "Fetched Subtitles" stage by default - allow to access that info on the settings stage
+```
+
+
+
+

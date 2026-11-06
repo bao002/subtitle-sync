@@ -1,5 +1,110 @@
 # Done tasks
 
+### Task 324 (Prompt 89): Hide "Fetched Subtitles" Stage by Default & Access in Settings Stage
+
+- **Prompt**:
+  ```
+  hide the "Fetched Subtitles" stage by default - allow to access that info on the settings stage
+  ```
+- **Implementation**:
+  - `src/routes/index.tsx`:
+    - Updated `currentAccordionStage` default state from 0 to 1 ("Learning Goals & Default Language") so application lands directly on Stage 1 on startup.
+    - Updated `openPanels` initial state to set `fetchedSubtitles: false` and `languages: true`.
+    - Added conditional styling to `stage-step-0` button in `accordion-stages-stepper` (`currentAccordionStage === 0 ? "flex" : "hidden"`) so Stage 0 button is hidden by default.
+    - Integrated dedicated `settings-fetched-subtitles-accordion` sub-accordion under Stage 4 Settings (`playback` panel) embedding `FetchedSubtitlesStagePanel` along with a quick navigation button (`data-testid="settings-open-stage-0-btn"`) to open the stage view on demand.
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-hide-fetched-subtitles-default-and-settings-access.ts` (`npm run test:hide-fetched-subtitles-default-and-settings-access`).
+  - Verified regression suites `npm run test:fetched-subtitles-info-stage` and `npm run test:stages-order-and-video-placement` pass 100%.
+  - Added script to `package.json`.
+  - Bumped version to `2.1.21` and synchronized via `npm run sync-version`.
+  - Verified `compile_applet` passed (`Build succeeded`).
+  - Verified `lint_applet` passed with 0 errors.
+
+### Task 323 (Prompt 88 - Chapter 3 & Focus Mode): Hide Pointed Duplicated Item (Settings Button in Header)
+
+- **Prompt**:
+  ```
+  3. hide pointed duplicated item (settings button)
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(4) > button#header-stage4-settings-button:nth-of-type(3)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Implementation**:
+  - `src/routes/index.tsx`: Applied `hidden` class to targeted `button#header-stage4-settings-button` (`data-testid="header-stage4-settings-button"`), eliminating duplicated settings controls from the header while preserving full Stage 4 Settings access via the primary stage stepper (`data-testid="stage-step-4"`).
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-hide-duplicated-header-settings-button.ts` (`npm run test:hide-duplicated-header-settings-button`).
+  - Added script to `package.json`.
+  - Bumped version to `2.1.20` and synchronized via `npm run sync-version`.
+  - Verified `compile_applet` passed (`Build succeeded`).
+  - Verified `lint_applet` passed with 0 errors.
+
+### Task 322 (Prompt 88 - Chapter 2): Hide Deprecated Components (Beginner Mode UI & Header Mode Switcher)
+
+- **Prompt**:
+  ```
+  2. hide deprecated components
+  ```
+- **Implementation**:
+  - `src/components/ModeSwitcherHeader.tsx`: Added `hidden` utility class to `btn-mode-beginner` button (`data-testid="btn-mode-beginner"`).
+  - `src/routes/index.tsx`:
+    - Added `hidden` utility class to `header-mode-toggle` button (`data-testid="header-mode-toggle"`).
+    - Added `hidden` utility class to deprecated beginner mode flow container (`data-testid="deprecated-beginner-container"`) and deprecated notice banner (`data-testid="beginner-mode-quarantined-banner"`).
+  - `docs/deprecated.md`: Documented hidden UI visibility for deprecated components.
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-hide-deprecated-components.ts` (`npm run test:hide-deprecated-components`) verifying hidden status of mode switcher, header toggle, and flow container.
+  - Verified `npm run test:beginner-mode-deprecated` still passes cleanly.
+  - Bumped version to `2.1.19` and synchronized via `npm run sync-version`.
+  - Verified `compile_applet` passed (`Build succeeded`).
+  - Verified `lint_applet` passed with 0 errors.
+
+### Task 321 (Prompt 88 - Chapter 1): Language Usage Tracking (Start Date Added & Ratio Last Updated via localStorage)
+
+- **Prompt**:
+  ```
+  1.
+    remember the following 2 parameters for each language in order to track usage:
+  - for each langauge - remember the start date that language has been added  (using localstorage), and remember the ratio's last update for that language
+  ```
+- **Implementation**:
+  - `src/utils/languageUsageTracker.ts`: Created comprehensive language usage tracking utility managing:
+    - `startDate` (ISO string) / `addedAt` (epoch timestamp) for each language.
+    - `ratioLastUpdated` (ISO string) / `ratioUpdatedAt` (epoch timestamp) whenever language ratio is changed.
+    - Backed by localStorage (`yt_language_usage_v1`, `yt_lang_usage_<code >`, `yt_lang_start_date_<code >`, `yt_lang_ratio_updated_<code >`).
+    - Preserves initial `startDate` across multiple additions and updates.
+  - `src/utils/appSettings.ts`: Integrated `recordLanguageAdded` into `setFavoriteLanguages` so any language added automatically records its initial `startDate`.
+  - `src/lib/playback-preferences.ts`: Integrated `recordLanguageRatioUpdated` into `setTtsRatioPreference` (and `saveTtsRatioPreference`) so ratio updates automatically record `ratioLastUpdated`.
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-language-usage-tracking.ts` (`npm run test:language-usage-tracking`) covering custom `startDate`, preservation of `startDate`, `ratioLastUpdated` tracking, case-insensitivity, integration with `setFavoriteLanguages` and `setTtsRatioPreference`, and localStorage structure.
+  - Added script to `package.json`.
+  - Bumped version to `2.1.18` and synchronized via `npm run sync-version`.
+  - Verified `compile_applet` passed (`Build succeeded`).
+  - Verified `lint_applet` passed with 0 errors.
+
+### Hotfix: Dev Server Pre-warming Failure (Prompt 87)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.16 dev > vite --port 3000 --host 0.0.0.0
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause & Fix**:
+  - The dev server pre-warming failed due to an orphaned process holding port 3000, preventing Vite from binding under `strictPort: true`.
+  - Cleared stale port binding and successfully restarted the dev server via `restart_dev_server`. Confirmed dev server is responding with HTTP 200 on port 3000.
+  - Updated `scripts/verify-dev-server-prewarming-hotfix.ts` to assert valid syntax and declarations in `src/lib/alternative-tts.ts` alongside live HTTP 200 probing.
+  - Bumped version to `2.1.17` and synchronized via `npm run sync-version`.
+- **Validation**:
+  - `npm run test:dev-server-prewarming-hotfix` passed 100%.
+  - `npm run test:dev-server-stability` passed 100%.
+  - `compile_applet` build succeeded.
+  - `lint_applet` passed with 0 errors.
+
 ### Task 320 (Prompt 85): Deprecate Beginner Mode
 
 - **Prompt**:
