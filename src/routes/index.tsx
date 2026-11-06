@@ -2664,19 +2664,19 @@ function Index() {
   const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => PANELS.map((panel) => panel.id));
   const [subtitlesPanelWide, setSubtitlesPanelWide] = useState(true);
   const [openPanels, setOpenPanels] = useState<Record<PanelId, boolean>>({
-    fetchedSubtitles: true,
+    fetchedSubtitles: false,
     player: false,
     playback: false,
     charsRemoval: false,
     parser: false,
-    languages: false,
+    languages: true,
     subtitles: true,
     library: false,
   });
 
   // Stages of appearance:
-  // Stage 0: Fetched Subtitles & Statistics: Info, stats, caching, translation source selection.
-  // Stage 1: "Learning goals" accordion - user approves favorite languages.
+  // Stage 0: Fetched Subtitles & Statistics (hidden by default, accessible in Settings stage 4).
+  // Stage 1: "Learning goals" accordion - user approves favorite languages (default first stage).
   // Stage 2: Subtitles table view accordion (reactive to default subtitle / translation source).
   // Stage 3: Video & playback synchronized view.
   // Stage 4: Toggle via settings icon to present all other accordion elements.
@@ -2691,7 +2691,7 @@ function Index() {
       if (stageParam === "4" || stageParam === "settings") return 4;
       if (params.get("all_stages") === "true") return 4;
     }
-    return 0;
+    return 1;
   });
   const [showOtherSettingsAccordions, setShowOtherSettingsAccordions] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
@@ -5809,7 +5809,7 @@ function Index() {
               onClick={() =>
                 handleWorkflowModeChange(workflowMode === "beginner" ? "expert" : "beginner")
               }
-              className={`h-6 px-2 text-[11px] font-medium rounded-full border flex items-center gap-1 transition-all shrink-0 ${
+              className={`hidden h-6 px-2 text-[11px] font-medium rounded-full border items-center gap-1 transition-all shrink-0 ${
                 workflowMode === "beginner"
                   ? "bg-emerald-950/40 text-emerald-300 border-emerald-700/60 hover:bg-emerald-900/50"
                   : "bg-indigo-950/40 text-indigo-300 border-indigo-700/60 hover:bg-indigo-900/50"
@@ -6081,7 +6081,7 @@ function Index() {
                 setOpenPanels((prev) => ({ ...prev, playback: true }));
               }
             }}
-            className="h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-muted-foreground/30 font-medium"
+            className="hidden h-7 px-2 sm:px-2.5 text-xs gap-1.5 border border-muted-foreground/30 font-medium"
             title="Stage 4: Settings (Playback, Parser, Chars Removal, Library)"
           >
             <Settings className="h-3.5 w-3.5" />
@@ -6117,10 +6117,10 @@ function Index() {
       <ModeSwitcherHeader currentMode={workflowMode} onModeChange={handleWorkflowModeChange} />
 
       {workflowMode === "beginner" ? (
-        <div className="space-y-4">
+        <div className="hidden space-y-4" data-testid="deprecated-beginner-container">
           <div
             data-testid="beginner-mode-quarantined-banner"
-            className="mx-3 mt-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-800 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2 shadow-xs"
+            className="hidden mx-3 mt-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-800 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2 shadow-xs"
           >
             <div className="flex items-center gap-2">
               <span className="font-bold uppercase tracking-wider text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/40">
@@ -6745,7 +6745,9 @@ function Index() {
                         setCurrentAccordionStage(0);
                         setOpenPanels((prev) => ({ ...prev, fetchedSubtitles: true }));
                       }}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                      className={`${
+                        currentAccordionStage === 0 ? "flex" : "hidden"
+                      } px-3 py-1.5 rounded-lg text-xs font-medium transition-colors items-center gap-1.5 ${
                         currentAccordionStage === 0
                           ? "bg-primary text-primary-foreground shadow"
                           : "bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground"
@@ -8320,6 +8322,103 @@ function Index() {
                                   </p>
                                 </div>
                                 {parserPanelContent}
+                              </div>
+                            </details>
+
+                            {/* Sub-Accordion 4: Fetched Subtitles Info & Statistics */}
+                            <details
+                              className="group rounded-xl border border-sky-500/30 bg-card/60 overflow-hidden shadow-xs"
+                              data-testid="settings-fetched-subtitles-accordion"
+                            >
+                              <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-sky-700 dark:text-sky-300 hover:bg-sky-50/50 dark:hover:bg-sky-950/30 transition">
+                                <div className="flex items-center gap-2">
+                                  <Film className="h-4 w-4 text-sky-500" />
+                                  <span>Fetched Subtitles Info &amp; Statistics</span>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30"
+                                  >
+                                    Subtitles Info
+                                  </Badge>
+                                </div>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+                              </summary>
+                              <div
+                                className="p-3 pt-0 border-t border-border/40 space-y-4"
+                                data-testid="settings-fetched-subtitles-container"
+                              >
+                                <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
+                                  <div>
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                      Fetched Subtitles Info, Statistics &amp; Caching
+                                    </h3>
+                                    <p className="text-xs text-muted-foreground">
+                                      Inspect fetched timedtext responses, track statistics, and
+                                      manage cached subtitle files.
+                                    </p>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    data-testid="settings-open-stage-0-btn"
+                                    onClick={() => {
+                                      setCurrentAccordionStage(0);
+                                      setOpenPanels((prev) => ({
+                                        ...prev,
+                                        fetchedSubtitles: true,
+                                      }));
+                                    }}
+                                    className="h-6 px-2 text-[11px] gap-1"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    <span>Open Stage View</span>
+                                  </Button>
+                                </div>
+                                <FetchedSubtitlesStagePanel
+                                  videoId={videoId}
+                                  videoInput={videoInput}
+                                  onVideoInputChange={setVideoInput}
+                                  onSubmitVideoUrl={(url) => {
+                                    const parsed = parseVideoId(url);
+                                    const newId = parsed || url.trim();
+                                    handleSelectLibraryVideo(newId, url);
+                                  }}
+                                  observedUrl={observedUrl}
+                                  onObservedUrlChange={setObservedUrl}
+                                  tracks={tracks}
+                                  onTracksChange={(newTracks) => setTracks(newTracks)}
+                                  baseLanguage={baseLanguage}
+                                  onSelectBaseLanguage={handleSelectDefaultSubtitle}
+                                  defaultLanguages={defaultSubtitleLanguages}
+                                  isAndroid={isAndroid}
+                                  onLoadSampleSubtitles={() => {
+                                    const validEntries = Object.entries(JSON3_RAW_MAP)
+                                      .map(([code, raw]) => {
+                                        const j = parseJson3(raw);
+                                        return j ? ([code, j] as const) : null;
+                                      })
+                                      .filter((entry): entry is [string, Json3] => entry !== null);
+                                    setTracks(Object.fromEntries(validEntries));
+                                    setObservedUrl(
+                                      "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3",
+                                    );
+                                  }}
+                                  onProceedToStage={(stage) => {
+                                    setCurrentAccordionStage(stage as 0 | 1 | 2 | 3);
+                                    if (stage === 1) {
+                                      setOpenPanels((prev) => ({ ...prev, languages: true }));
+                                    } else if (stage === 2) {
+                                      setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+                                    } else if (stage === 3) {
+                                      setOpenPanels((prev) => ({
+                                        ...prev,
+                                        player: true,
+                                        subtitles: true,
+                                      }));
+                                    }
+                                  }}
+                                />
                               </div>
                             </details>
                           </div>

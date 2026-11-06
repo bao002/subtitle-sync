@@ -1,6 +1,11 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 317 (Prompt 83 - Chapter 5): "Change-All-Speed" Control Beside Video Player
-- **Sub-task**: 317.1 - Add a global "change-all-speed" control directly beside the video player to adjust all language playback speeds simultaneously.
-- **Validation**: Dedicated test `scripts/verify-change-all-speed-beside-video.ts`, `compile_applet`, `lint_applet`.
+- **Active Task**: Task 324 (Prompt 89): Hide "Fetched Subtitles" Stage by Default & Access in Settings Stage
+- **Sub-task**: 324.1 - Default `currentAccordionStage` to 1 on startup, hide `stage-step-0` button from main stages stepper, and integrate Fetched Subtitles Info, Statistics & Caching sub-accordion under Settings stage (Stage 4).
+- **Validation**: Dedicated test `scripts/verify-hide-fetched-subtitles-default-and-settings-access.ts`, `compile_applet`, `lint_applet`.
+
+
+
+
+

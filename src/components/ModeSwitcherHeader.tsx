@@ -55,7 +55,7 @@ export const ModeSwitcherHeader: React.FC<ModeSwitcherHeaderProps> = ({
           size="sm"
           variant={isBeginner ? "secondary" : "ghost"}
           onClick={() => onModeChange("beginner")}
-          className={`h-7 px-2.5 text-xs font-medium rounded-md transition-all ${
+          className={`hidden h-7 px-2.5 text-xs font-medium rounded-md transition-all ${
             isBeginner
               ? "bg-amber-600 text-white hover:bg-amber-500 shadow-sm"
               : "text-muted-foreground hover:text-foreground hover:bg-muted"

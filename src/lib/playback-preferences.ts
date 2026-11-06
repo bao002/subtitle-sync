@@ -1,4 +1,5 @@
 /** Device-saved playback/fetch preferences (localStorage). */
+import { recordLanguageRatioUpdated } from "../utils/languageUsageTracker";
 
 export type SubtitleRequestMode = "tlang" | "lang";
 export type SectionOrder = "video-first" | "tts-first" | "video-middle";
@@ -265,6 +266,11 @@ export const setTtsRatioPreference = (langCode: string, ratio: number) => {
     s.setItem(KEYS.ttsRatios, JSON.stringify(existing));
     try {
       s.setItem(`yt_tts_ratio_${langCode}`, String(clampedRatio));
+    } catch {
+      // ignore
+    }
+    try {
+      recordLanguageRatioUpdated(langCode);
     } catch {
       // ignore
     }

@@ -1,4 +1,5 @@
 import { STORAGE_KEYS, APP_VERSION } from "../config/appConfig";
+import { recordLanguageAdded } from "./languageUsageTracker";
 
 /**
  * App Settings Configuration and Local Persistence
@@ -442,6 +443,17 @@ export function setFavoriteLanguages(languages: string[]): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(FAVORITE_LANGUAGES_KEY, JSON.stringify(languages));
+    if (Array.isArray(languages)) {
+      languages.forEach((lang) => {
+        if (lang) {
+          try {
+            recordLanguageAdded(lang);
+          } catch {
+            // ignore
+          }
+        }
+      });
+    }
   } catch (err) {
     console.warn("[AppSettings] Failed to save favorite languages:", err);
   }

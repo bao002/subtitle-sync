@@ -4,10 +4,10 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 317 (Prompt 83 - Chapter 5): "Change-All-Speed" Control Beside Video Player**
-  - Subtask 317.1: Add a global "change-all-speed" control directly beside the video player to adjust all language playback speeds simultaneously.
-  - Subtask 317.2: Dedicated automated test `scripts/verify-change-all-speed-beside-video.ts` (`npm run test:change-all-speed-beside-video`).
-  - Subtask 317.3: Version bump, compile, lint, commit, migrate Task 317 to `docs/done.md`.
+- [ ] **Task 324 (Prompt 89): Hide "Fetched Subtitles" Stage by Default & Access in Settings Stage**
+  - Subtask 324.1: Default `currentAccordionStage` to 1 ("Learning Goals & Default Language") on startup, hide `stage-step-0` button from main stages stepper, and integrate Fetched Subtitles Info, Statistics & Caching accordion under Settings stage (Stage 4).
+  - Subtask 324.2: Dedicated automated test `scripts/verify-hide-fetched-subtitles-default-and-settings-access.ts` (`npm run test:hide-fetched-subtitles-default-and-settings-access`).
+  - Subtask 324.3: Version bump, compile, lint, commit, and migrate Task 324 to `docs/done.md`.
 
 - [ ] **Task 318 (Prompt 83 - Chapter 6): State Machine Actions in Log View with Clear & Copy-to-Clipboard**
   - Subtask 318.1: Feed state machine actions into log view with Clear and Copy-to-Clipboard buttons for easy issue reporting and log inspection.
