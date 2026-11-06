@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.10",
+  "version": "2.1.14",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -27,6 +27,10 @@
     "test:settings-export-import-stage": "tsx scripts/verify-settings-export-import-stage.ts",
     "test:settings-scrolling-and-autofocus": "tsx scripts/verify-settings-scrolling-and-autofocus.ts",
     "test:settings-dedicated-stage": "tsx scripts/verify-settings-dedicated-stage.ts",
+    "test:hide-non-debug-and-consolidate-controls": "tsx scripts/verify-hide-non-debug-and-consolidate-controls.ts",
+    "test:universal-bottom-log": "tsx scripts/verify-universal-bottom-log.ts",
+    "test:floating-pause-button-reaction-and-reason": "tsx scripts/verify-floating-pause-button-reaction-and-reason.ts",
+    "test:speed-change-no-scroll": "tsx scripts/verify-speed-change-no-scroll.ts",
     "test:fetched-subtitles-info-stage": "tsx scripts/verify-fetched-subtitles-info-stage.ts",
     "test:performance-mode-snapshot": "tsx scripts/verify-performance-mode-snapshot-stability.ts",
     "test:hotfix-reload-compiler": "tsx scripts/verify-hotfix-reload-and-compiler-errors.ts",

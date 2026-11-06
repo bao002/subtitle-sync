@@ -32,6 +32,8 @@ export interface VideoPlaybackControlsProps {
   onReplaySection?: () => void;
   onStop?: () => void;
   onRateChange?: (rate: number) => void;
+  globalSpeed?: number;
+  onChangeAllSpeed?: (speed: number) => void;
   className?: string;
 }
 
@@ -81,6 +83,8 @@ export const VideoPlaybackControls: React.FC<VideoPlaybackControlsProps> = ({
   onReplaySection,
   onStop,
   onRateChange,
+  globalSpeed = 1.0,
+  onChangeAllSpeed,
   className = "",
 }) => {
   const safeDuration = Number.isFinite(durationSec) && durationSec > 0 ? durationSec : 0;
@@ -319,20 +323,50 @@ export const VideoPlaybackControls: React.FC<VideoPlaybackControlsProps> = ({
           )}
         </div>
 
-        {/* Speed Rate Toggle */}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          data-testid="player-control-speed"
-          aria-label={`Playback speed: ${playbackRate}x. Click to change`}
-          title={`Cycle playback speed (Current: ${playbackRate}x)`}
-          onClick={handleCycleSpeed}
-          className="h-8 px-2.5 font-mono text-xs font-semibold gap-1 border-input hover:bg-accent"
-        >
-          <Gauge className="h-3.5 w-3.5 text-primary" />
-          <span>{playbackRate}x</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Change-All-Speed Control beside the video-player */}
+          {onChangeAllSpeed && (
+            <div
+              data-testid="change-all-speed-container"
+              className="flex items-center gap-1 rounded-md border border-primary/30 bg-primary/5 px-2 py-1 text-xs"
+              title="Change all language playback speeds simultaneously"
+            >
+              <span className="font-semibold text-primary text-[11px] flex items-center gap-1">
+                <Gauge className="h-3 w-3 text-primary" />
+                <span>All Speed:</span>
+              </span>
+              <select
+                id="change-all-speed-select"
+                data-testid="change-all-speed-select"
+                aria-label="Change all language speech rates"
+                value={globalSpeed.toFixed(1)}
+                onChange={(e) => onChangeAllSpeed(Number(e.target.value))}
+                className="h-6 rounded border border-input bg-background px-1 py-0 text-xs font-mono font-medium cursor-pointer"
+              >
+                {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
+                  <option key={rateVal} value={rateVal.toFixed(1)}>
+                    {rateVal.toFixed(1)}×
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Video Playback Rate Toggle */}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-testid="player-control-speed"
+            aria-label={`Playback speed: ${playbackRate}x. Click to change`}
+            title={`Cycle playback speed (Current: ${playbackRate}x)`}
+            onClick={handleCycleSpeed}
+            className="h-8 px-2.5 font-mono text-xs font-semibold gap-1 border-input hover:bg-accent"
+          >
+            <Gauge className="h-3.5 w-3.5 text-primary" />
+            <span>{playbackRate}x</span>
+          </Button>
+        </div>
       </div>
     </div>
   );

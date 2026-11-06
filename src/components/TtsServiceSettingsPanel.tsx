@@ -27,6 +27,7 @@ import {
 } from "@/lib/alternative-tts";
 import { ExternalTtsDebuggerPanel } from "@/components/ExternalTtsDebuggerPanel";
 import { useIsElementEnabled } from "@/utils/performanceModeManager";
+import { recordUserInteraction } from "@/utils/appSettings";
 
 export interface TtsServiceSettingsPanelProps {
   mode: AlternativeTtsMode;
@@ -390,7 +391,10 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
               data-testid="main-settings-tts-rate-select"
               aria-label="TTS speech rate"
               value={(speechRate ?? 0.5).toFixed(1)}
-              onChange={(e) => onSpeechRateChange(Number(e.target.value))}
+              onChange={(e) => {
+                recordUserInteraction(Date.now());
+                onSpeechRateChange(Number(e.target.value));
+              }}
               className="rounded border border-input bg-background px-1.5 py-0.5 text-xs font-mono cursor-pointer"
             >
               {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (

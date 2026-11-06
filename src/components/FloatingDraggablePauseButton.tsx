@@ -18,6 +18,9 @@ export interface FloatingDraggablePauseButtonProps {
   onToggleSetupPause: () => void;
   isAutoScrollEnabled?: boolean;
   onToggleAutoScroll?: () => void;
+  isVideoPlaying?: boolean;
+  isSpeaking?: boolean;
+  pauseReason?: string | null;
   className?: string;
 }
 
@@ -33,6 +36,9 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
   onToggleSetupPause,
   isAutoScrollEnabled = false,
   onToggleAutoScroll,
+  isVideoPlaying = false,
+  isSpeaking = false,
+  pauseReason = null,
   className = "",
 }) => {
   const [position, setPosition] = useState<Position>(() => {
@@ -209,6 +215,10 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
   const opensUpward = typeof window !== "undefined" ? position.y > window.innerHeight / 2 : true;
   const alignsRight = typeof window !== "undefined" ? position.x > window.innerWidth / 2 : false;
 
+  // The overall playback is effectively active if video is playing or speech is actively speaking
+  const isPlaybackActive = isVideoPlaying || isSpeaking;
+  const isEffectivelyPaused = isSetupPaused || !isPlaybackActive;
+
   return (
     <div
       ref={containerRef}
@@ -235,40 +245,40 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
         data-dropdown-trigger="true"
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        aria-pressed={isSetupPaused}
+        aria-pressed={isEffectivelyPaused}
         aria-label={
-          isSetupPaused
-            ? "Setup Paused: Click to resume normal playback and auto-scroll"
-            : "Pause for Setup: Freeze video, speech, and auto-scrolling to configure app"
+          isEffectivelyPaused
+            ? `Paused${pauseReason ? `: ${pauseReason}` : ""}. Click for controls`
+            : "Playing: Click for controls"
         }
         title={
-          isSetupPaused
-            ? "Setup Paused (OFF) - Click for controls"
-            : "Controls Active (ON) - Click for controls"
+          isEffectivelyPaused
+            ? `Paused${pauseReason ? ` (${pauseReason})` : ""} - Click for controls`
+            : "Playing - Click for controls"
         }
         onClick={handleTriggerClick}
         className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-2xl backdrop-blur-md transition-all duration-150 active:scale-95 ${
           isDragging ? "cursor-grabbing opacity-90 scale-105" : "cursor-grab hover:scale-105"
         } ${
-          isSetupPaused
+          isEffectivelyPaused
             ? "border-rose-500 bg-rose-600 text-white shadow-rose-500/40 hover:bg-rose-700 ring-2 ring-rose-400/50"
             : "border-emerald-500 bg-emerald-600 text-white shadow-emerald-500/40 hover:bg-emerald-700 ring-2 ring-emerald-400/50"
         }`}
       >
         <span data-testid="floating-dropdown-trigger" className="hidden" aria-hidden="true" />
         <span data-testid="floating-pause-status" className="sr-only">
-          {isSetupPaused
-            ? "Setup Paused (OFF)"
+          {isEffectivelyPaused
+            ? `Paused (OFF)${pauseReason ? ` - ${pauseReason}` : ""}`
             : isAutoScrollEnabled
               ? "Auto-Scroll ON"
-              : "Controls Active (ON)"}
+              : "Playback Active (ON)"}
         </span>
         <span data-testid="floating-pause-badge" className="sr-only">
-          {isSetupPaused ? "Autoscroll & Play OFF" : "Playback & Controls ON"}
+          {isEffectivelyPaused ? "Playback Paused" : "Playback Active"}
         </span>
 
         {/* Exactly 1 icon */}
-        {isSetupPaused ? (
+        {isEffectivelyPaused ? (
           <Pause className="h-5 w-5 fill-current shrink-0" />
         ) : isAutoScrollEnabled ? (
           <ScrollText className="h-5 w-5 shrink-0" />
@@ -276,6 +286,19 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
           <Play className="h-5 w-5 fill-current shrink-0 ml-0.5" />
         )}
       </button>
+
+      {/* Pause Reason Tooltip / Notification Chip attached to floating button */}
+      {isEffectivelyPaused && pauseReason && !isOpen && (
+        <div
+          data-testid="floating-pause-reason-chip"
+          className={`absolute pointer-events-none rounded-md bg-black/85 text-white px-2 py-1 text-[10px] font-medium shadow-md backdrop-blur-sm border border-white/20 whitespace-nowrap max-w-xs truncate transition-all duration-200 ${
+            opensUpward ? "bottom-full mb-1.5" : "top-full mt-1.5"
+          } ${alignsRight ? "right-0" : "left-0"}`}
+          title={pauseReason}
+        >
+          {pauseReason}
+        </div>
+      )}
 
       {/* Dropdown Menu Popup */}
       {isOpen && (
@@ -305,6 +328,20 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
           </div>
 
           <div className="space-y-2.5">
+            {/* Pause Reason Banner in Menu */}
+            {isEffectivelyPaused && pauseReason && (
+              <div
+                data-testid="floating-menu-pause-reason"
+                className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-2 text-xs"
+              >
+                <div className="font-semibold text-rose-600 dark:text-rose-400 text-[11px] flex items-center gap-1 mb-0.5">
+                  <Pause className="h-3 w-3 fill-current" />
+                  <span>Pause Reason</span>
+                </div>
+                <div className="text-[11px] text-foreground font-medium">{pauseReason}</div>
+              </div>
+            )}
+
             {/* Option 1: Pause for Setup */}
             <div
               data-testid="menu-option-setup-pause"
