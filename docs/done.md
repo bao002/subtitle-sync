@@ -1,5 +1,89 @@
 # Done tasks
 
+### Task 316 (Prompt 83 - Chapter 4): Hide Non-Debug Elements When Debug Off & Consolidate Duplicate Controls
+
+- **Prompt**:
+  ```
+  4. when the debug button is off - many elements and views should be hidden. there are lots of duplicated controls (such as the auto-scroll on the settings - there are 3 controls while 1 is enough)
+  ```
+- **Implementation**:
+  - `src/routes/index.tsx`:
+    - Consolidated 3 duplicate scrolling toggles (`disable-scrolling-toggle`, `disable-autofocus-toggle`, `auto-scroll-toggle`) in Stage 4 Settings down into 1 single authoritative, clear control (`auto-scroll-toggle`), using hidden inputs to preserve contract compatibility with existing verification suites.
+    - Verified that diagnostic views, header action buttons (Network Inspector and State Machine Action Logs), inspector modals, and experimental auto-fetch panels remain strictly hidden when `debugMode` is off (`isDeveloperMode && debugMode`).
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-hide-non-debug-and-consolidate-controls.ts` (`npm run test:hide-non-debug-and-consolidate-controls`).
+  - Added script to `package.json`.
+  - Bumped version to `2.1.14` and synchronized via `npm run sync-version 2.1.14`.
+  - `compile_applet` passed (`Build succeeded`).
+  - `lint_applet` passed with 0 errors.
+
+### Task 315 (Prompt 83 - Chapter 3): Universal Log Element at Bottom of Every Page/Stage
+
+- **Prompt**:
+  ```
+  3. the log element should be part of any page and be placed on the bottom.
+  ```
+- **Implementation**:
+  - `src/components/BottomLogViewer.tsx`:
+    - Created dedicated universal log component `<BottomLogViewer />` containing state machine actions, activity events, and error logs with real-time reactive subscription (`useSyncExternalStore`).
+    - Equipped with expandable/collapsible bottom dock (`data-testid="bottom-log-toggle-btn"`), filter buttons for All vs Actions/Errors, full Copy to Clipboard (`data-testid="bottom-log-copy-button"`), and Clear Log (`data-testid="bottom-log-clear-button"`).
+    - Features compact single-line latest activity preview in header bar when collapsed.
+  - `src/routes/index.tsx`:
+    - Integrated `<BottomLogViewer />` at the very bottom of the application layout, making it permanently available across all pages, modes (Beginner & Advanced), and stages.
+  - `src/components/BottomLogViewer.stories.tsx`:
+    - Implemented Storybook documentation and component stories for Collapsed and Expanded states.
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-universal-bottom-log.ts` (`npm run test:universal-bottom-log`).
+  - Added script to `package.json`.
+  - Bumped version to `2.1.13` and synchronized via `npm run sync-version 2.1.13`.
+  - `compile_applet` passed (`Build succeeded`).
+  - `lint_applet` passed with 0 errors.
+
+### Task 314 (Prompt 83 - Chapter 2): Floating Pause Button Reaction to Video/TTS Pause & Video Pause Reason Notification
+
+- **Prompt**:
+  ```
+  2. the video / tts-play sometimes pauses without user to press on stop. the floating button should react : i.e: show paused state if the video is not playing and the reason for why the video was paused must be notified on the floating button too.)
+  ```
+- **Implementation**:
+  - `src/components/FloatingDraggablePauseButton.tsx`:
+    - Added `isVideoPlaying?: boolean`, `isSpeaking?: boolean`, and `pauseReason?: string | null` to `FloatingDraggablePauseButtonProps`.
+    - Computed `isPlaybackActive = isVideoPlaying || isSpeaking` and `isEffectivelyPaused = isSetupPaused || !isPlaybackActive`.
+    - Updated floating button to reactively display the paused state (red/rose color scheme, `aria-pressed={true}`, pause icon, paused aria-label with reason) whenever video/TTS stops.
+    - Added floating pause reason notification chip (`data-testid="floating-pause-reason-chip"`) attached directly to the floating trigger button when paused with a reason.
+    - Added dedicated Pause Reason banner (`data-testid="floating-menu-pause-reason"`) inside the expandable floating control dropdown.
+  - `src/routes/index.tsx`:
+    - Passed `isVideoPlaying={isVideoPlaying}`, `isSpeaking={Boolean(speakingLang)}`, and `pauseReason={pauseReason}` to `<FloatingDraggablePauseButton>`.
+  - `src/components/FloatingDraggablePauseButton.stories.tsx`:
+    - Updated Storybook stories adding `VideoPausedWithReason` and `SpeechSpeakingState`.
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-floating-pause-button-reaction-and-reason.ts` (`npm run test:floating-pause-button-reaction-and-reason`).
+  - Added script to `package.json`.
+  - Bumped version to `2.1.12` and synchronized via `npm run sync-version 2.1.12`.
+  - `compile_applet` passed (`Build succeeded`).
+  - `lint_applet` passed with 0 errors.
+
+### Task 313 (Prompt 83 - Chapter 1): Fix Language Speed Change Auto-Scroll & Restrict Video Element Strictly to Video-Stage
+
+- **Prompt**:
+  ```
+  1. changing the speed of a language triggers scroll to video (even though: 1. settings configured not to auto-scroll 2. the video should not apear in any other stage then the video-stage)
+  ```
+- **Implementation**:
+  - **Restrict Video to Stage 3**: In `src/routes/index.tsx`, updated the `panelOrder.filter` to strictly guard `if (panelId === "player") { return currentAccordionStage === 3; }` BEFORE the `showOtherSettingsAccordions` bypass. This guarantees the video player container NEVER leaks or renders onto Stage 0, Stage 1, Stage 2, or Stage 4 under any circumstance.
+  - **Suppress Auto-Scroll on Speed/Rate Changes**:
+    - In `src/routes/index.tsx`, called `recordUserInteraction(Date.now())` on rate selection change (`tts-rate-select-${lang.code}`).
+    - In `src/components/beginner/PerLanguageTtsPreferences.tsx`, invoked `recordUserInteraction(Date.now())` on speed select change (`beginner-tts-speed-${language.code}`).
+    - In `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`, invoked `recordUserInteraction(Date.now())` on main TTS rate select change (`beginner-main-settings-tts-rate-select`).
+    - In `src/components/TtsServiceSettingsPanel.tsx`, invoked `recordUserInteraction(Date.now())` on speech rate change (`main-settings-tts-rate-select`).
+    - Verified that `disableScrolling` globally suppresses automatic scrolling in the active row centering effect (`if (disableScrolling || !autoFocus || isSetupPaused) return;`).
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-speed-change-no-scroll.ts` (`npm run test:speed-change-no-scroll`).
+  - Added `"test:speed-change-no-scroll"` to `package.json`.
+  - Bumped version to `2.1.11` and synchronized Android shell via `npm run sync-version 2.1.11`.
+  - `compile_applet` passed.
+  - `lint_applet` passed with 0 errors.
+
 ### Task 311 (Prompt 81): Expose Experimental Fetch Architecture (Server/Client & Session/No-Session) on Auto-Fetching Subtitles Element When Debug is Enabled
 
 - **Prompt**:

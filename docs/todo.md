@@ -1,6 +1,6 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [IN_PROGRESS]
-- **Active Task**: Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique
-- **Sub-task**: 312.1 - Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
-- **Validation**: `scripts/verify-auto-fetching-debug-experimental-stuff.ts`, `compile_applet`, `lint_applet`.
+- **Active Task**: Task 317 (Prompt 83 - Chapter 5): "Change-All-Speed" Control Beside Video Player
+- **Sub-task**: 317.1 - Add a global "change-all-speed" control directly beside the video player to adjust all language playback speeds simultaneously.
+- **Validation**: Dedicated test `scripts/verify-change-all-speed-beside-video.ts`, `compile_applet`, `lint_applet`.

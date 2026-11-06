@@ -48,5 +48,27 @@ export const NormalActiveState: Story = {
 };
 
 export const SetupPausedState: Story = {
-  render: () => <InteractiveFloatingWrapper isSetupPaused={true} isAutoScrollEnabled={false} />,
+  render: () => <InteractiveFloatingWrapper isSetupPaused={true} isAutoScrollEnabled={false} pauseReason="Paused for setup" />,
+};
+
+export const VideoPausedWithReason: Story = {
+  render: () => (
+    <InteractiveFloatingWrapper
+      isSetupPaused={false}
+      isVideoPlaying={false}
+      isSpeaking={false}
+      pauseReason="Waiting for speech synthesis (English, Hebrew) before playing"
+    />
+  ),
+};
+
+export const SpeechSpeakingState: Story = {
+  render: () => (
+    <InteractiveFloatingWrapper
+      isSetupPaused={false}
+      isVideoPlaying={false}
+      isSpeaking={true}
+      pauseReason="Section complete: speaking translation (Hebrew)"
+    />
+  ),
 };

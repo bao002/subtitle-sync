@@ -41,6 +41,7 @@ import {
   setDisableScrollingSetting,
   getDisableAutoFocusSetting,
   setDisableAutoFocusSetting,
+  recordUserInteraction,
 } from "@/utils/appSettings";
 import {
   playAlternativeTtsAudio,
@@ -844,7 +845,10 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                     data-testid="beginner-main-settings-tts-rate-select"
                     aria-label="Beginner main TTS speech rate"
                     value={ttsSpeed.toFixed(1)}
-                    onChange={(e) => onTtsSpeedChange(Number(e.target.value))}
+                    onChange={(e) => {
+                      recordUserInteraction(Date.now());
+                      onTtsSpeedChange(Number(e.target.value));
+                    }}
                     className="rounded border border-input bg-background px-1.5 py-0.5 text-xs font-mono cursor-pointer"
                   >
                     {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (

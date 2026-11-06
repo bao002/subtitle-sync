@@ -252,6 +252,7 @@ import {
 } from "@/utils/logBuffer";
 import { AccordionSection } from "@/components/AccordionSection";
 import { StateMachineActionLogsInspector } from "@/components/StateMachineActionLogsInspector";
+import { BottomLogViewer } from "@/components/BottomLogViewer";
 import { CriticalCaptionsAlert } from "@/components/CriticalCaptionsAlert";
 import { SubtitlesTablePanel } from "@/components/SubtitlesTablePanel";
 import { emitSubtitleFetchLog } from "@/utils/subtitleFetchLogger";
@@ -3159,6 +3160,34 @@ function Index() {
       // ignore
     }
   }, []);
+
+  const handleChangeAllSpeed = useCallback(
+    (speed: number) => {
+      recordUserInteraction(Date.now());
+      setRates((current) => {
+        const next: Record<string, number> = { ...current };
+        // Apply to base language
+        const base = baseLanguage || "en";
+        next[base] = speed;
+        saveTtsRatePreference(base, speed);
+        // Apply to target languages and spoken languages
+        for (const lang of targetLanguages) {
+          next[lang] = speed;
+          saveTtsRatePreference(lang, speed);
+        }
+        for (const lang of spoken) {
+          next[lang] = speed;
+          saveTtsRatePreference(lang, speed);
+        }
+        if (videoId) {
+          saveVideoSettings(videoId, { ttsRates: next });
+        }
+        return next;
+      });
+      logStateMachineAction("CHANGED_ALL_SPEED", { speed, videoId });
+    },
+    [baseLanguage, targetLanguages, spoken, videoId],
+  );
 
   useEffect(() => {
     const openLink = (link: string) => {
@@ -6297,6 +6326,8 @@ function Index() {
                       // ignore
                     }
                   }}
+                  globalSpeed={rates[baseLanguage || "en"] ?? 1.0}
+                  onChangeAllSpeed={handleChangeAllSpeed}
                 />
                 <div className="pt-2">
                   <TtsFallbackOrderSwitch
@@ -6413,6 +6444,7 @@ function Index() {
                   }
                 }}
                 onRateChange={(languageCode, rate) => {
+                  recordUserInteraction(Date.now());
                   setRates((current) => ({ ...current, [languageCode]: rate }));
                   saveTtsRatePreference(languageCode, rate);
                   if (videoId) {
@@ -6851,6 +6883,11 @@ function Index() {
                     // On Stages 0, 1, 2, 3: Settings never appears
                     if (panelId === "playback" || panelId === "library") {
                       return false;
+                    }
+
+                    // RESTRICTION: The video player element MUST NOT appear on any stage other than Stage 3 (video-stage)
+                    if (panelId === "player") {
+                      return currentAccordionStage === 3;
                     }
 
                     if (showOtherSettingsAccordions) {
@@ -7729,88 +7766,25 @@ function Index() {
                                     synthesized WebSpeech or alternative TTS.
                                   </p>
                                 )}
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                      <input
-                                        id="disable-scrolling-toggle"
-                                        data-testid="disable-scrolling-toggle"
-                                        type="checkbox"
-                                        checked={disableScrolling}
-                                        onChange={(e) => onDisableScrollingChange(e.target.checked)}
-                                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                      />
-                                      <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                        <LayoutList className="w-3.5 h-3.5 text-primary" />
-                                        <span>Disable scrolling</span>
-                                      </span>
-                                    </label>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setExpandedPrefsHelp((p) => ({
-                                          ...p,
-                                          disableScrolling: !p.disableScrolling,
-                                        }))
-                                      }
-                                      className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                      title="Toggle disable scrolling explanation"
-                                      aria-expanded={Boolean(expandedPrefsHelp.disableScrolling)}
-                                    >
-                                      <HelpCircle className="w-3 h-3" />
-                                      <span>
-                                        {expandedPrefsHelp.disableScrolling ? "Hide" : "Info"}
-                                      </span>
-                                    </button>
-                                  </div>
-                                  {expandedPrefsHelp.disableScrolling && (
-                                    <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                      Disables automatic table scrolling during playback so the view
-                                      remains stationary.
-                                    </p>
-                                  )}
-                                </div>
-                                <div className="space-y-0.5">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                      <input
-                                        id="disable-autofocus-toggle"
-                                        data-testid="disable-autofocus-toggle"
-                                        type="checkbox"
-                                        checked={disableAutoFocus}
-                                        onChange={(e) => onDisableAutoFocusChange(e.target.checked)}
-                                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                      />
-                                      <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                        <LayoutList className="w-3.5 h-3.5 text-primary" />
-                                        <span>Disable auto-focus</span>
-                                      </span>
-                                    </label>
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setExpandedPrefsHelp((p) => ({
-                                          ...p,
-                                          disableAutoFocus: !p.disableAutoFocus,
-                                        }))
-                                      }
-                                      className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                      title="Toggle disable auto-focus explanation"
-                                      aria-expanded={Boolean(expandedPrefsHelp.disableAutoFocus)}
-                                    >
-                                      <HelpCircle className="w-3 h-3" />
-                                      <span>
-                                        {expandedPrefsHelp.disableAutoFocus ? "Hide" : "Info"}
-                                      </span>
-                                    </button>
-                                  </div>
-                                  {expandedPrefsHelp.disableAutoFocus && (
-                                    <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                      Disables automatic focus shifting to active elements or rows
-                                      during playback.
-                                    </p>
-                                  )}
-                                </div>
+                                {/* Hidden inputs keep programmatic compatibility while consolidating duplicate UI controls */}
+                                <input
+                                  id="disable-scrolling-toggle"
+                                  data-testid="disable-scrolling-toggle"
+                                  type="checkbox"
+                                  checked={disableScrolling}
+                                  onChange={(e) => onDisableScrollingChange(e.target.checked)}
+                                  className="hidden"
+                                  aria-hidden="true"
+                                />
+                                <input
+                                  id="disable-autofocus-toggle"
+                                  data-testid="disable-autofocus-toggle"
+                                  type="checkbox"
+                                  checked={disableAutoFocus}
+                                  onChange={(e) => onDisableAutoFocusChange(e.target.checked)}
+                                  className="hidden"
+                                  aria-hidden="true"
+                                />
                                 <div className="space-y-0.5">
                                   <div className="flex items-center justify-between gap-2">
                                     <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -9928,6 +9902,7 @@ function Index() {
                                                     data-testid={`tts-rate-select-${lang.code}`}
                                                     value={(rates[lang.code] ?? 0.5).toFixed(1)}
                                                     onChange={(e) => {
+                                                      recordUserInteraction(Date.now());
                                                       const val = Number(e.target.value);
                                                       setRates((current) => ({
                                                         ...current,
@@ -10530,6 +10505,9 @@ function Index() {
         </>
       )}
 
+      {/* Universal Log Element: placed on the bottom of every page/stage */}
+      <BottomLogViewer />
+
       {isDeveloperMode && debugMode && (
         <NetworkRequestsInspector
           isOpen={networkInspectorOpen}
@@ -10593,6 +10571,9 @@ function Index() {
         onToggleSetupPause={toggleSetupPause}
         isAutoScrollEnabled={autoFocus}
         onToggleAutoScroll={() => onAutoFocusChange(!autoFocus)}
+        isVideoPlaying={isVideoPlaying}
+        isSpeaking={Boolean(speakingLang)}
+        pauseReason={pauseReason}
       />
       <FloatingSubtitleRetryIndicator
         targetLanguages={targetLanguages}

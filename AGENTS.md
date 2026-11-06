@@ -132,5 +132,16 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-wrong technic - no need to alternate plan while its not working at all
+1. changing the speed of a language triggers scroll to video (even though: 1. settings configured not to auto-scroll 2. the video should not apear in any other stage then the video-stage)
+
+2. the video / tts-play sometimes pauses without user to press on stop. the floating button should react : i.e: show paused state if the video is not playing and the reason for why the video was paused must be notified on the floating button too.)
+
+3. the log element should be part of any page and be placed on the bottom.
+
+4. when the debug button is off - many elements and views should be hidden. there are lots of duplicated controls (such as the auto-scroll on the settings - there are 3 controls while 1 is enough)
+
+5. there must be a change-all-speed control beside the video-player 
+
+6. the log view should show any state machine action. the app should use state machine in order to be able to easily debug it and effeciently use the log element to identify issues - add a clear option and a copy to clipboard so that it would be easier to report an issue after removing records which are not relevant)
 ```
+

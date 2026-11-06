@@ -4,6 +4,16 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
+- [ ] **Task 317 (Prompt 83 - Chapter 5): "Change-All-Speed" Control Beside Video Player**
+  - Subtask 317.1: Add a global "change-all-speed" control directly beside the video player to adjust all language playback speeds simultaneously.
+  - Subtask 317.2: Dedicated automated test `scripts/verify-change-all-speed-beside-video.ts` (`npm run test:change-all-speed-beside-video`).
+  - Subtask 317.3: Version bump, compile, lint, commit, migrate Task 317 to `docs/done.md`.
+
+- [ ] **Task 318 (Prompt 83 - Chapter 6): State Machine Actions in Log View with Clear & Copy-to-Clipboard**
+  - Subtask 318.1: Feed state machine actions into log view with Clear and Copy-to-Clipboard buttons for easy issue reporting and log inspection.
+  - Subtask 318.2: Dedicated automated test `scripts/verify-state-machine-log-actions-copy-clear.ts` (`npm run test:state-machine-log-actions-copy-clear`).
+  - Subtask 318.3: Version bump, compile, lint, commit, migrate Task 318 to `docs/done.md`.
+
 - [ ] **Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique**
   - Subtask 312.1: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
   - Subtask 312.2: Update `src/components/FloatingSubtitleRetryIndicator.tsx` to cycle only between `random` and `ordered` modes, removing `server_alternate` option and tooltip.

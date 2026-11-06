@@ -11,6 +11,7 @@ import {
   updatePrecedenceFromVideoBarIndex,
 } from "@/components/VideoPlaybackPrecedenceBar";
 import type { SectionOrder } from "@/lib/playback-preferences";
+import { recordUserInteraction } from "@/utils/appSettings";
 
 export interface TtsPreferenceLanguage {
   code: string;
@@ -241,7 +242,10 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                       aria-label={`${language.name} speech rate`}
                       data-testid={`beginner-tts-speed-${language.code}`}
                       value={rate.toFixed(1)}
-                      onChange={(event) => onRateChange(language.code, Number(event.target.value))}
+                      onChange={(event) => {
+                        recordUserInteraction(Date.now());
+                        onRateChange(language.code, Number(event.target.value));
+                      }}
                       className="rounded border border-input bg-background px-1.5 py-1 text-xs font-mono"
                     >
                       {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
