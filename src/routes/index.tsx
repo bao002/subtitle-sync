@@ -5818,7 +5818,7 @@ function Index() {
               title={
                 workflowMode === "beginner"
                   ? "Switch to Advanced Studio (Full Controls)"
-                  : "Switch to Guided Beginner Mode"
+                  : "Switch to Beginner Mode (Deprecated)"
               }
             >
               {workflowMode === "beginner" ? (
@@ -5829,7 +5829,7 @@ function Index() {
               ) : (
                 <>
                   <Sparkles className="h-3 w-3 text-indigo-400" />
-                  <span>To Beginner Mode</span>
+                  <span>Beginner Mode (Deprecated)</span>
                 </>
               )}
             </Button>
@@ -6124,11 +6124,11 @@ function Index() {
           >
             <div className="flex items-center gap-2">
               <span className="font-bold uppercase tracking-wider text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/40">
-                Notice: Quarantined
+                Notice: Deprecated
               </span>
               <span>
-                Beginner mode is currently quarantined per directive. Operating primarily in
-                Advanced Studio.
+                Beginner mode is deprecated. The primary, fully supported workflow is the unified
+                progressive pipeline in Advanced Studio.
               </span>
             </div>
             <Button
@@ -6835,37 +6835,7 @@ function Index() {
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button
-                      id="toggle-stage4-settings-btn"
-                      data-testid="toggle-stage4-settings-btn"
-                      variant={
-                        currentAccordionStage === 4 || showOtherSettingsAccordions
-                          ? "default"
-                          : "outline"
-                      }
-                      size="sm"
-                      onClick={() => {
-                        if (currentAccordionStage === 4) {
-                          setCurrentAccordionStage(3);
-                          setShowOtherSettingsAccordions(false);
-                        } else {
-                          setCurrentAccordionStage(4);
-                          setShowOtherSettingsAccordions(true);
-                          setOpenPanels((prev) => ({ ...prev, playback: true }));
-                        }
-                      }}
-                      className="gap-1.5 text-xs h-8"
-                      title="Stage 4: Settings (Playback, Parser, Chars Removal, Library)"
-                    >
-                      <Settings className="h-3.5 w-3.5" />
-                      <span>
-                        {currentAccordionStage === 4
-                          ? "Hide Settings (Stage 4)"
-                          : "Settings (Stage 4)"}
-                      </span>
-                    </Button>
-                  </div>
+                  <div className="flex items-center gap-2" />
                 </div>
               </div>
 
@@ -6883,11 +6853,6 @@ function Index() {
                     // On Stages 0, 1, 2, 3: Settings never appears
                     if (panelId === "playback" || panelId === "library") {
                       return false;
-                    }
-
-                    // RESTRICTION: The video player element MUST NOT appear on any stage other than Stage 3 (video-stage)
-                    if (panelId === "player") {
-                      return currentAccordionStage === 3;
                     }
 
                     if (showOtherSettingsAccordions) {
@@ -9280,40 +9245,6 @@ function Index() {
                                       )}
                                     </div>
                                   </div>
-
-                                  {/* 4. Subtitle Row Learning Filters - Moved to Subtitles Table View */}
-                                  <div
-                                    id="stage-2-learning-filters-container"
-                                    data-testid="stage-2-learning-filters-container"
-                                    className="p-3 rounded-lg border border-border bg-card/60 flex flex-wrap items-center justify-between gap-2.5"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <Filter className="h-4 w-4 text-primary shrink-0" />
-                                      <div>
-                                        <div className="font-semibold text-xs text-foreground">
-                                          Row Criteria: Subtitle Row Filters
-                                        </div>
-                                        <div className="text-[11px] text-muted-foreground">
-                                          Row criteria (max words and sentence splitting) has moved
-                                          to the Subtitles Table view to see updates dynamically on
-                                          the table.
-                                        </div>
-                                      </div>
-                                    </div>
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        setCurrentAccordionStage(3);
-                                        setOpenPanels((prev) => ({ ...prev, subtitles: true }));
-                                      }}
-                                      className="h-7 text-xs text-primary border-primary/40 hover:bg-primary/10 gap-1.5 cursor-pointer"
-                                    >
-                                      <span>Open Subtitles Table</span>
-                                      <ArrowRight className="h-3 w-3" />
-                                    </Button>
-                                  </div>
                                 </div>
 
                                 {/* 3. Language Ratios (Learning Goals Frequency) - Located at end of Stage 2 Learning Goals */}
@@ -9457,32 +9388,6 @@ function Index() {
                                                   1:{ratioVal}
                                                 </button>
                                               ))}
-                                              <input
-                                                type="number"
-                                                min={1}
-                                                max={20}
-                                                value={currentRatio}
-                                                data-testid={`stage-2-ratio-input-${langCode}`}
-                                                aria-label={`${meta?.name || langCode} ratio`}
-                                                onChange={(e) => {
-                                                  const val = Math.min(
-                                                    20,
-                                                    Math.max(1, parseInt(e.target.value, 10) || 1),
-                                                  );
-                                                  const next = {
-                                                    ...ttsRatios,
-                                                    [langCode]: val,
-                                                  };
-                                                  setTtsRatios(next);
-                                                  saveTtsRatioPreference(langCode, val);
-                                                  if (videoId) {
-                                                    saveVideoSettings(videoId, {
-                                                      ttsRatios: { [langCode]: val },
-                                                    });
-                                                  }
-                                                }}
-                                                className="w-12 h-6 text-xs text-center rounded border border-input bg-background font-mono"
-                                              />
                                             </div>
                                           </div>
                                         </div>
@@ -9490,56 +9395,6 @@ function Index() {
                                     })}
                                   </div>
                                 </div>
-                              </div>
-
-                              {/* Stage 2 Action Bar */}
-                              <div className="flex items-center justify-between pt-2 border-t border-primary/20">
-                                <div className="flex items-center gap-1.5">
-                                  <Button
-                                    id="stage-to-stage-0-btn"
-                                    data-testid="stage-to-stage-0-btn"
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      setCurrentAccordionStage(0);
-                                      setOpenPanels((prev) => ({
-                                        ...prev,
-                                        fetchedSubtitles: true,
-                                      }));
-                                    }}
-                                    className="gap-1 text-xs h-8 text-muted-foreground hover:text-foreground"
-                                  >
-                                    <ArrowLeft className="h-3.5 w-3.5" />
-                                    <span>Stage 0 (Fetched Subtitles)</span>
-                                  </Button>
-                                  <Button
-                                    id="stage-2-back-button"
-                                    data-testid="stage-2-back-button"
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setCurrentAccordionStage(1)}
-                                    className="gap-1.5 text-xs h-8"
-                                  >
-                                    <ArrowLeft className="h-3.5 w-3.5" />
-                                    <span>Stage 1 (Learning Goals)</span>
-                                  </Button>
-                                </div>
-                                <Button
-                                  id="stage-2-next-button"
-                                  data-testid="stage-2-next-button"
-                                  type="button"
-                                  size="sm"
-                                  onClick={() => {
-                                    setCurrentAccordionStage(2);
-                                    setOpenPanels((prev) => ({ ...prev, subtitles: true }));
-                                  }}
-                                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 text-xs h-8 shadow-sm flex items-center gap-1.5"
-                                >
-                                  <span>NEXT (View Subtitles Table)</span>
-                                  <ArrowRight className="h-3.5 w-3.5" />
-                                </Button>
                               </div>
                             </div>
                           ) : (

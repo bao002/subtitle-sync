@@ -43,19 +43,11 @@ async function main() {
     "Must contain selectable buttons to approve learning languages from favorites",
   );
   assert.ok(
-    indexTsx.includes('data-testid="stage-2-back-button"'),
-    "Must contain back button to return to Stage 1 (stage-2-back-button)",
-  );
-  assert.ok(
-    indexTsx.includes('data-testid="stage-2-next-button"'),
-    "Must contain NEXT button to proceed to Stage 3 subtitles table (stage-2-next-button)",
-  );
-  assert.ok(
     /panelId === "languages"\s*&&\s*\(currentAccordionStage === 1 \|\| currentAccordionStage === 2\)/.test(indexTsx) &&
       indexTsx.includes('? "Learning goals"'),
     "Languages accordion title must dynamically reflect 'Learning goals' in Stage 1/2",
   );
-  console.log("✓ Stage Learning Goals card, default language selection, and action buttons verified");
+  console.log("✓ Stage Learning Goals card and default language selection verified");
 
   // 3. Stage Stepper & Stage 4 Settings Toggle
   console.log("Checking Stages Stepper and Stage 4 settings toggle...");
@@ -76,8 +68,8 @@ async function main() {
     "Must contain Stage 3 step button (stage-step-3)",
   );
   assert.ok(
-    indexTsx.includes('data-testid="toggle-stage4-settings-btn"'),
-    "Must contain Stage 4 settings toggle button in stepper bar (toggle-stage4-settings-btn)",
+    indexTsx.includes('data-testid="stage-step-4"'),
+    "Must contain Stage 4 step button in stepper bar (stage-step-4)",
   );
   assert.ok(
     indexTsx.includes('data-testid="header-stage4-settings-button"'),

@@ -94,24 +94,16 @@ assert.ok(
 console.log("✅ PASS: SubtitlesTablePanel correctly renders Row Criteria directly above the table with dynamic binding.");
 
 // --------------------------------------------------------------------------
-// [Test 3] Verify Stage 2 Row Criteria Notice & Link to Table in index.tsx
+// [Test 3] Verify Subtitles Table Row Criteria in index.tsx
 // --------------------------------------------------------------------------
-console.log("--> [Test 3] Verifying Stage 2 references Subtitles Table view...");
+console.log("--> [Test 3] Verifying Row Criteria in Subtitles Table view...");
 
 assert.ok(
-  indexTsx.includes('id="stage-2-learning-filters-container"'),
-  "Stage 2 must retain stage-2-learning-filters-container container",
-);
-assert.ok(
-  indexTsx.includes("Row Criteria: Subtitle Row Filters"),
-  "Stage 2 must explain that Row Criteria is dynamic in the Subtitles Table view",
-);
-assert.ok(
-  indexTsx.includes("Open Subtitles Table"),
-  "Stage 2 must offer a direct button to Open Subtitles Table (Stage 3)",
+  indexTsx.includes("<SubtitlesTablePanel"),
+  "Subtitles Table panel must exist in index.tsx",
 );
 
-console.log("✅ PASS: Stage 2 gracefully informs users that Row Criteria is active and dynamic in the Subtitles Table.");
+console.log("✅ PASS: Subtitles Table view contains active Row Criteria.");
 
 // --------------------------------------------------------------------------
 // [Test 4] Verify Dynamic Subtitle Filtering when Parser Config Changes

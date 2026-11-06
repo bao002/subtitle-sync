@@ -1,5 +1,64 @@
 # Done tasks
 
+### Task 320 (Prompt 85): Deprecate Beginner Mode
+
+- **Prompt**:
+  ```
+  1.deprecate beginner mode
+  ```
+- **Implementation**:
+  - `docs/deprecated.md`: Formally documented Beginner Mode deprecation (`workflowMode === "beginner"`), detailing replacement with the unified progressive staged pipeline in Advanced Mode, backward-compatibility behavior, and deprecation date.
+  - `src/routes/index.tsx`:
+    - Verified application startup defaults directly to Advanced Studio (`"expert"`).
+    - Updated Notice banner on beginner view from "Notice: Quarantined" to "Notice: Deprecated" informing that the primary, supported workflow is the unified progressive pipeline in Advanced Studio with a direct button (`data-testid="btn-quarantine-to-expert"`) to switch to Advanced Studio.
+    - Updated header mode button (`data-testid="header-mode-toggle"`) label and title to indicate "Beginner Mode (Deprecated)".
+  - `src/components/ModeSwitcherHeader.tsx`:
+    - Updated mode button badge (`data-testid="btn-mode-beginner"`) from "Quarantined" to "Deprecated" with tooltip "Beginner Mode is deprecated".
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-beginner-mode-deprecated.ts` (`npm run test:beginner-mode-deprecated`).
+  - Added script to `package.json`.
+  - Bumped version to `2.1.16` and synchronized via `npm run sync-version`.
+  - Verified `compile_applet` passed (`Build succeeded`).
+  - Verified `lint_applet` passed with 0 errors.
+
+### Task 319 (Prompt 84): Remove Elements via Focus Mode Selection
+
+- **Prompt**:
+  ```
+  rm these elements
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)
+  CSS 1: {
+
+  }
+  CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div#stage-2-learning-filters-container:nth-of-type(4)
+  CSS 2: {
+
+  }
+  CSS selector 3: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(3)
+  CSS 3: {
+
+  }
+  CSS selector 4: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div#accordion-stages-stepper:nth-of-type(1) > div:nth-of-type(2) > button#toggle-stage4-settings-btn:nth-of-type(1)
+  CSS 4: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Implementation**:
+  - `src/routes/index.tsx`:
+    - Removed redundant custom ratio number input (`stage-2-ratio-input-${langCode}`) inside `stage-2-language-ratios-container` matching CSS selector 1.
+    - Removed `stage-2-learning-filters-container` matching CSS selector 2.
+    - Removed Stage 2 action bar (`stage-2-next-button`, `stage-2-back-button`, `stage-to-stage-0-btn`) at the bottom of `stage-2-learning-goals-card` matching CSS selector 3.
+    - Removed duplicate `toggle-stage4-settings-btn` from stepper bar matching CSS selector 4 (stepper button `stage-step-4` remains active).
+- **Validation**:
+  - Created dedicated automated test `scripts/verify-focus-mode-elements-removed.ts` (`npm run test:focus-mode-elements-removed`).
+  - Added script to `package.json`.
+  - Bumped version to `2.1.15` and synchronized via `npm run sync-version`.
+  - `compile_applet` passed (`Build succeeded`).
+  - `lint_applet` passed with 0 errors.
+
 ### Task 316 (Prompt 83 - Chapter 4): Hide Non-Debug Elements When Debug Off & Consolidate Duplicate Controls
 
 - **Prompt**:

@@ -61,12 +61,12 @@ export const ModeSwitcherHeader: React.FC<ModeSwitcherHeaderProps> = ({
               : "text-muted-foreground hover:text-foreground hover:bg-muted"
           }`}
           data-testid="btn-mode-beginner"
-          title="Beginner Mode is currently quarantined"
+          title="Beginner Mode is deprecated"
         >
           <Sparkles className="w-3 h-3 mr-1" />
           <span>Beginner</span>
           <span className="ml-1 text-[9px] opacity-80 font-mono uppercase bg-black/20 px-1 rounded">
-            Quarantined
+            Deprecated
           </span>
         </Button>
         <Button

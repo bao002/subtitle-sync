@@ -132,16 +132,28 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. changing the speed of a language triggers scroll to video (even though: 1. settings configured not to auto-scroll 2. the video should not apear in any other stage then the video-stage)
+1. allow to show hide those components and remember decision on the settings
+2. for all those items - the log element can store all info in a text mode and no need to inner design between records
+3. retry fetching subtitles - limit up to 3 retries (configurable and memoriable via settings)
+4. the settings button is redundant
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > footer#bottom-log-viewer:nth-of-type(1) > div:nth-of-type(1)
+CSS 1: {
 
-2. the video / tts-play sometimes pauses without user to press on stop. the floating button should react : i.e: show paused state if the video is not playing and the reason for why the video was paused must be notified on the floating button too.)
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1)
+CSS 2: {
 
-3. the log element should be part of any page and be placed on the bottom.
+}
+CSS selector 3: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(2)
+CSS 3: {
 
-4. when the debug button is off - many elements and views should be hidden. there are lots of duplicated controls (such as the auto-scroll on the settings - there are 3 controls while 1 is enough)
+}
+CSS selector 4: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(4) > button#header-stage4-settings-button:nth-of-type(3)
+CSS 4: {
 
-5. there must be a change-all-speed control beside the video-player 
-
-6. the log view should show any state machine action. the app should use state machine in order to be able to easily debug it and effeciently use the log element to identify issues - add a clear option and a copy to clipboard so that it would be easier to report an issue after removing records which are not relevant)
+}
+[AIS_METADATA_SECTION_END]
 ```
 

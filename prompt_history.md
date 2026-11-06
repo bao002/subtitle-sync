@@ -1101,3 +1101,65 @@ wrong technic - no need to alternate plan while its not working at all
 6. the log view should show any state machine action. the app should use state machine in order to be able to easily debug it and effeciently use the log element to identify issues - add a clear option and a copy to clipboard so that it would be easier to report an issue after removing records which are not relevant)
 ```
 
+---
+
+### Prompt 84: Remove Elements via Focus Mode Selection
+```
+rm these elements
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > input:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div#stage-2-learning-filters-container:nth-of-type(4)
+CSS 2: {
+
+}
+CSS selector 3: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(3)
+CSS 3: {
+
+}
+CSS selector 4: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div#accordion-stages-stepper:nth-of-type(1) > div:nth-of-type(2) > button#toggle-stage4-settings-btn:nth-of-type(1)
+CSS 4: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 85: Deprecate Beginner Mode
+```
+1.deprecate beginner mode
+```
+
+---
+
+### Prompt 86: Show/Hide Components, Text Mode Log, Subtitle Retries Limit, Redundant Settings Button Removal
+```
+1. allow to show hide those components and remember decision on the settings
+2. for all those items - the log element can store all info in a text mode and no need to inner design between records
+3. retry fetching subtitles - limit up to 3 retries (configurable and memoriable via settings)
+4. the settings button is redundant
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > footer#bottom-log-viewer:nth-of-type(1) > div:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1)
+CSS 2: {
+
+}
+CSS selector 3: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(2)
+CSS 3: {
+
+}
+CSS selector 4: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(4) > button#header-stage4-settings-button:nth-of-type(3)
+CSS 4: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+

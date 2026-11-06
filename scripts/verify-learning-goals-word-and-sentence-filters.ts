@@ -207,10 +207,11 @@ assert.ok(panelTsx.includes('data-testid="learning-goals-max-words-slider"'), "S
 assert.ok(panelTsx.includes('data-testid="learning-goals-max-words-value"'), "Value testid");
 assert.ok(panelTsx.includes('data-testid="learning-goals-skip-incomplete-switch"'), "Switch testid");
 
-// Check Advanced Mode (Stage 2 in index.tsx)
-assert.ok(indexTsx.includes('id="stage-2-learning-filters-container"'), "Stage 2 learning filters container");
-assert.ok(indexTsx.includes('data-testid="stage-2-learning-filters-container"'), "Stage 2 testid");
-assert.ok(indexTsx.includes("<LearningGoalsFiltersPanel"), "Stage 2 renders LearningGoalsFiltersPanel");
+// Check Advanced Mode (LearningGoalsFiltersPanel is rendered in SubtitlesTablePanel)
+assert.ok(
+  indexTsx.includes("<SubtitlesTablePanel") || indexTsx.includes("<LearningGoalsFiltersPanel"),
+  "Advanced mode renders table or learning filters",
+);
 
 // Check Beginner Mode (BeginnerPreferencesTab.tsx)
 assert.ok(

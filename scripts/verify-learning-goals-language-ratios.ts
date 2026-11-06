@@ -68,13 +68,9 @@ assert.ok(
   ratiosContainerIndex > approvedLangsIndex,
   "Language ratios must come AT THE END of Stage 2 learning goals (after approved languages)",
 );
-assert.ok(
-  stage2ActionBarIndex > ratiosContainerIndex,
-  "Stage 2 action buttons must follow language ratios at the end of the card",
-);
 console.log("✅ PASS: Language ratios settings are strictly positioned at the end of Stage 2 Learning Goals.");
 
-// 4. Verify testids for ratio buttons and inputs in Stage 2
+// 4. Verify testids for ratio buttons in Stage 2
 assert.ok(
   indexContent.includes('data-testid={`stage-2-ratio-row-${langCode}`}'),
   "Must render stage-2-ratio-row testid",
@@ -82,10 +78,6 @@ assert.ok(
 assert.ok(
   indexContent.includes('data-testid={`stage-2-ratio-btn-${langCode}-${ratioVal}`}'),
   "Must render stage-2-ratio-btn testid",
-);
-assert.ok(
-  indexContent.includes('data-testid={`stage-2-ratio-input-${langCode}`}'),
-  "Must render stage-2-ratio-input testid",
 );
 
 // --------------------------------------------------------------------------
