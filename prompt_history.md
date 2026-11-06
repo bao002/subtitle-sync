@@ -1223,6 +1223,26 @@ error 2: ReferenceError: Cannot access 'baseLanguage' before initialization
     at Index (https://ais-dev-ypeejppykfdal26vcakg74-778504381984.europe-west2.run.app/src/routes/index.tsx:862:3)
 ```
 
+---
+
+### Prompt 92: Hotfix: Dev server pre-warming process died recovery & health verification
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.23 dev > vite --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1040 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 93: Strict Main Stage Component Isolation (Video on Stage 3 Only, Subtitles Table on Stage 2 Only)
+```
+any one of the main stage's component - should apear only on his stage. i.e: the video - dont show anywhere else,same for the subtitles table and etc.
+```
+
+
+
 
 
 

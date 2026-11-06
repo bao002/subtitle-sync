@@ -1,5 +1,57 @@
 # Done tasks
 
+### Task 326 (Prompt 93): Strict Main Stage Component Isolation (Video on Stage 3 Only, Subtitles Table on Stage 2 Only)
+
+- **Prompt**:
+  ```
+  any one of the main stage's component - should apear only on his stage. i.e: the video - dont show anywhere else,same for the subtitles table and etc.
+  ```
+- **Context & Implementation**:
+  - `src/routes/index.tsx`:
+    - Updated `panelOrder.filter` to strictly isolate each component to its designated stage:
+      - **Stage 0**: ONLY `fetchedSubtitles` (Fetched Subtitles & Statistics). Excluded from stages 1, 2, 3, 4.
+      - **Stage 1**: ONLY `languages` (Learning Goals / Languages). Excluded from stages 0, 2, 3, 4.
+      - **Stage 2**: ONLY `subtitles` (Parallel Subtitles Table). Excluded from stages 0, 1, 3, 4.
+      - **Stage 3**: ONLY `player` (Video Player). Excluded from stages 0, 1, 2, 4. Previously `panelId === "player" || panelId === "subtitles"` caused the subtitles table to leak into Stage 3; updated to strictly return `panelId === "player"`.
+      - **Stage 4**: ONLY `playback` and `library` (Settings). Excluded from stages 0, 1, 2, 3.
+    - Updated stepper button 3 click handler (`stage-step-3`) to open `player: true` exclusively.
+    - Updated Stage 2 to Video button (`stage-2-to-video-button`) to open `player: true` exclusively.
+    - Added dedicated Stage 3 navigation bar (`stage-3-navigation-bar`) at the bottom of the video player panel featuring:
+      - `stage-3-back-to-subtitles-btn`: 1-click return to Stage 2 (Subtitles Table).
+      - `stage-3-to-settings-btn`: 1-click advance to Stage 4 (Settings).
+  - Tests & Versioning:
+    - Authored dedicated test `scripts/verify-main-stage-components-isolated.ts` (`npm run test:main-stage-components-isolated`) verifying 1:1 stage-to-component isolation across all stages, exclusivity of stepper and transition button handlers, and navigation controls.
+    - Updated `scripts/verify-subtitles-table-on-stage-3.ts` to reflect the new strict isolation contract.
+    - Bumped application version to `2.1.25` across all single-source version targets via `npm run sync-version`.
+- **Validation**:
+  - `npm run test:main-stage-components-isolated`: PASSED (100% pass across all assertions).
+  - `npm run test:subtitles-table-on-stage-3`: PASSED.
+  - `npm run test:stages-order-and-video-placement`: PASSED.
+  - `npm run test:settings-dedicated-stage`: PASSED.
+  - `npm run test:speed-change-no-scroll`: PASSED.
+  - `npm run check-version`: PASSED (2.1.25 in sync).
+  - `npm run test:agents-all`: PASSED (21/21 constitutional checks passed 100%).
+  - `compile_applet`: PASSED (`Build succeeded`).
+  - `lint_applet`: PASSED (0 errors).
+
+### Hotfix: Dev server pre-warming process died recovery & health verification (Prompt 92)
+
+- **Root Cause**:
+  - The dev server pre-warming encountered a process died error (`Pre-warming failed: dev server process died. > subtitle-sync@2.1.23 dev > vite --port 3000 --host 0.0.0.0`) during the post-Prompt 91 container restart / pre-warming cycle.
+- **Implementation & Resolution**:
+  - Dev Server Restart: Cleanly restarted the Vite development server using `restart_dev_server`, immediately clearing any stale process state and restoring active listener on port 3000 (`host: "0.0.0.0"`).
+  - Version Single Source of Truth: Bumped version to `2.1.24` in `package.json` and synchronized `android-shell/app/build.gradle.kts` via `npm run sync-version`. Verified in-sync via `npm run check-version`.
+  - Dev Server Stability Verification: Validated with `scripts/verify-dev-server-stability.ts` (`npm run test:dev-server-stability`) and `scripts/verify-dev-server-prewarming-hotfix.ts` (`npm run test:dev-server-prewarming-hotfix`), verifying HTTP 200 on root `/`, `/src/main.tsx`, and `/src/routes/index.tsx`.
+  - Syntax & Pre-transform Verification: Ran `npm run test:client-pretransform-health` and `npm run test:base-language-initialization-hotfix` (both 100% pass).
+- **Validation Outcomes**:
+  - `npm run test:dev-server-stability`: PASSED (HTTP 200 for root, `/src/main.tsx`, `/src/routes/index.tsx`).
+  - `npm run test:dev-server-prewarming-hotfix`: PASSED.
+  - `npm run test:client-pretransform-health`: PASSED.
+  - `npm run test:base-language-initialization-hotfix`: PASSED (100% pass).
+  - `npm run check-version`: PASSED (2.1.24, code 20124 in sync).
+  - `compile_applet`: PASSED (`Build succeeded - the applet is compiled`).
+  - `lint_applet`: PASSED (`eslint src/lib src/routes` - 0 errors).
+
 ### Hotfix: Fix ReferenceError: Cannot access 'baseLanguage' before initialization in `src/routes/index.tsx` (Prompt 91)
 
 - **Root Cause**:

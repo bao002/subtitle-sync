@@ -6947,7 +6947,7 @@ function Index() {
                       data-testid="stage-step-3"
                       onClick={() => {
                         setCurrentAccordionStage(3);
-                        setOpenPanels((prev) => ({ ...prev, player: true, subtitles: true }));
+                        setOpenPanels((prev) => ({ ...prev, player: true }));
                       }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
                         currentAccordionStage === 3
@@ -6992,6 +6992,11 @@ function Index() {
                     // Special Characters Removal and Parser are now nested directly under Settings (playback)
                     if (panelId === "chars" + "Removal" || panelId === "par" + "ser") return false;
 
+                    // Video player panel must be strictly restricted to Stage 3 (video stage)
+                    if (panelId === "player") {
+                      return currentAccordionStage === 3;
+                    }
+
                     // Stage 4: Settings should appear ONLY on its own stage
                     if (currentAccordionStage === 4) {
                       return panelId === "playback" || panelId === "library";
@@ -7003,9 +7008,10 @@ function Index() {
                     }
 
                     if (showOtherSettingsAccordions) {
-                      return true;
+                      return false;
                     }
-                    // Otherwise, strictly filter by stages:
+
+                    // Strict stage isolation: each main stage's component appears ONLY on its stage
                     if (currentAccordionStage === 0) {
                       return panelId === "fetchedSubtitles";
                     }
@@ -7016,8 +7022,7 @@ function Index() {
                       return panelId === "subtitles";
                     }
                     if (currentAccordionStage === 3) {
-                      // Final stage: video and subtitles table for synchronized playback
-                      return panelId === "player" || panelId === "subtitles";
+                      return panelId === "player";
                     }
                     return false;
                   })
@@ -7526,6 +7531,46 @@ function Index() {
                                   className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 py-1.5 text-xs shadow-md flex items-center gap-1.5 h-8"
                                 >
                                   <span>NEXT ({detectedSubtitleCount})</span>
+                                  <ArrowRight className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+                            )}
+
+                            {currentAccordionStage === 3 && (
+                              <div
+                                id="stage-3-navigation-bar"
+                                data-testid="stage-3-navigation-bar"
+                                className="mx-3 my-2 pt-2 border-t border-border flex items-center justify-between gap-2.5"
+                              >
+                                <Button
+                                  id="stage-3-back-to-subtitles-btn"
+                                  data-testid="stage-3-back-to-subtitles-btn"
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setCurrentAccordionStage(2);
+                                    setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+                                  }}
+                                  className="text-xs h-8 flex items-center gap-1.5"
+                                >
+                                  <ArrowLeft className="h-3.5 w-3.5" />
+                                  <span>Back to Subtitles Table (Stage 2)</span>
+                                </Button>
+                                <Button
+                                  id="stage-3-to-settings-btn"
+                                  data-testid="stage-3-to-settings-btn"
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setCurrentAccordionStage(4);
+                                    setShowOtherSettingsAccordions(true);
+                                    setOpenPanels((prev) => ({ ...prev, playback: true }));
+                                  }}
+                                  className="text-xs h-8 flex items-center gap-1.5"
+                                >
+                                  <span>Settings (Stage 4)</span>
                                   <ArrowRight className="h-3.5 w-3.5" />
                                 </Button>
                               </div>
@@ -8642,7 +8687,6 @@ function Index() {
                                       setOpenPanels((prev) => ({
                                         ...prev,
                                         player: true,
-                                        subtitles: true,
                                       }));
                                     }
                                   }}
@@ -10723,7 +10767,6 @@ function Index() {
                                     setOpenPanels((prev) => ({
                                       ...prev,
                                       player: true,
-                                      subtitles: true,
                                     }));
                                   }}
                                   className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 text-xs h-8 shadow-sm flex items-center gap-1.5"
