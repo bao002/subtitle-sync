@@ -6,7 +6,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-Task 325: Zero Knowledge in Language Mode (Prompt 90) completed, verified (100%), and migrated to [`docs/done.md`](done.md). Next active backlog task staged in [`docs/tasks.md`](tasks.md).
+Hotfix (Prompt 91): Fix ReferenceError: Cannot access 'baseLanguage' before initialization in `src/routes/index.tsx` completed and verified (100%), migrated to [`docs/done.md`](done.md). Next active backlog task staged in [`docs/tasks.md`](tasks.md).
 
 
 
