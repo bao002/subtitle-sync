@@ -1,5 +1,87 @@
 # Done tasks
 
+### Task 331 (Prompt 98): Reorganize Learning Goals so Each Ingredient Type Contains All Languages (Only Order Contains Video Bar)
+
+- **Prompt**:
+  ```
+  u didnt get it !
+
+  each type of sorting will contain all languages (only the order will contain also the video-player bard precedence)
+  ```
+- **Context & Implementation**:
+  - `docs/component_design/language_goals.md`:
+    - Updated design specification to establish an **ingredient-first** layout rather than a language-first layout.
+    - Each of the 4 ingredient types is now a distinct top-level section/card containing controls for **all active languages**:
+      1. **Ingredient Section 1: Order of Playing (with Video Precedence Bar)**: Iterates over all active languages with Earlier / Later reorder buttons and includes the in-between `VideoPlaybackPrecedenceBar` indicating exact video-playing precedence. Strictly only this section contains the video precedence controls.
+      2. **Ingredient Section 2: TTS-Play Ratio (All Languages)**: Iterates over all languages, each equipped with a continuous range slider flanked by `[-]` and `[+]` boundary buttons, proportion readout `1:{ratio}`, and quick-preset triggers.
+      3. **Ingredient Section 3: Blacklisted (All Languages)**: Responsive grid displaying all languages with dedicated sentence mute vs word pronunciation toggle buttons (`stage-2-toggle-blacklist-${langCode}`).
+      4. **Ingredient Section 4: Sentence or Word (All Languages)**: Responsive grid displaying all languages with granularity switches (`Mode: Sentence` vs `Mode: Word`) and word pick strategy options (`Longest` vs `Random`).
+  - `src/routes/index.tsx`:
+    - Refactored `#stage-2-language-ratios-container` into 4 dedicated ingredient sections (`stage-2-ingredient-order-section`, `stage-2-ingredient-ratios-section`, `stage-2-ingredient-blacklist-section`, `stage-2-ingredient-sentence-word-section`), each presenting controls for all active languages.
+    - Video playback precedence bar is rendered exclusively within the Order of Playing section.
+  - Testing & Version Sync:
+    - Dedicated test suite `scripts/verify-learning-goals-component-design.ts` updated to assert the ingredient-first structure for all 4 sections across all languages.
+    - Verified backward compatibility with `scripts/verify-learning-goals-language-ratios.ts` and `scripts/verify-no-duplicate-md-files.ts`.
+    - Single source of truth version bumped to `2.1.30` and synchronized to `android-shell/app/build.gradle.kts`.
+
+
+- **Prompt**:
+  ```
+  split this element to its ingredient types - 1 control per ingredient type:
+  1 order of playing (together with the video-playing precedenece bar)
+  2 tts-play ratio (slider control with plus/minus buttons on 2 edges)
+  3 blacklisted (a control to choose langauge to be skipped from tts-play-per-sentence but allow tts-play-per-word)
+  4 sentence or word
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3)
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - `docs/component_design/language_goals.md`:
+    - Updated design specification to formalize the split of each language item in the Learning Goals component into exactly 4 distinct ingredient types, with 1 dedicated control block per ingredient type:
+      1. **Ingredient 1: Order of Playing**: Reorder controls (earlier `ChevronUp`, later `ChevronDown`) paired seamlessly with the video-playing precedence bar anchor (`btn-place-video-before-${langCode}`).
+      2. **Ingredient 2: TTS-Play Ratio**: Continuous slider input with `[-]` and `[+]` boundary buttons on the two edges (`stage-2-ratio-decrement-${langCode}`, `stage-2-ratio-slider-${langCode}`, `stage-2-ratio-increment-${langCode}`), ratio readout (`1:{ratio}`), and quick preset buttons.
+      3. **Ingredient 3: Blacklisted**: Dedicated toggle control (`stage-2-toggle-blacklist-${langCode}`) explicitly stating `Blacklisted (Skip sentence, allow word)` or `Whitelisted (Active)`, skipping sentence TTS while leaving per-word TTS allowed.
+      4. **Ingredient 4: Sentence or Word**: Granularity switch control (`zero-knowledge-toggle-${langCode}`) configuring sentence vs word mode (`Mode: Word` vs `Mode: Sentence`) along with strategy selectors (`Longest` vs `Random`).
+  - `src/routes/index.tsx`:
+    - In `#stage-2-language-ratios-container`, refactored the per-language controls into a 4-column responsive grid (`grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3`) where each column houses exactly 1 ingredient type control card with clear headers, tooltips, and distinct borders.
+  - Parity & Testing:
+    - Maintained full parity in Beginner Mode (`src/components/beginner/PerLanguageTtsPreferences.tsx`).
+    - Dedicated automated test `scripts/verify-learning-goals-component-design.ts` verifies all 4 ingredient types, their controls, the omission of secondary language tags, and boundary clamping.
+    - Synchronized version `2.1.29` across `package.json` and `android-shell/app/build.gradle.kts`.
+
+### Task 329 (Prompt 96): Component Design for Language Goals & UI Split for Ratios, Blacklist, Play Order, and Default Source
+
+- **Prompt**:
+  ```
+  component design: docs/component_design/language_goals .md
+  currently we have those elements:
+  -1. 4. translation source - which language is the default (warning - no need to define a secondary language or to present that tag
+  )
+  list of favorite languages and a button of add language
+  split this element to its types:
+  order of playing (together with the video-playing precedenece bar)
+  tts-play ratio (slider control with plus/minus buttons on 2 edges)
+  blacklisted (a control to choose langauge to be skipped from tts-play-per-sentence but allow tts-play-per-word)
+  Apply style changes to the selected element(s).
+  ```
+- **Context & Implementation**:
+  - `docs/component_design/language_goals.md`:
+    - Documented full architectural specification for the Learning Goals component: Default Translation Source (with warning that no secondary language tag should be defined or presented), Favorite Languages list + in-place add control, and the split of per-language learning controls into three functional types.
+    - Defined Type A (Order of Playing & in-between Video-Playing Precedence Bar), Type B (TTS-Play Ratio slider with `[-]` and `[+]` edge buttons, 1:1 to 1:20), and Type C (Blacklisted control allowing word TTS while skipping sentence TTS).
+  - `src/routes/index.tsx`:
+    - In `stage-2-language-ratios-container`:
+      - Removed the `Secondary` tag/badge entirely so only the default translation source is badged (`Default Source (1x)`), fulfilling the user warning constraint.
+      - Implemented Type A: Order controls container (`data-testid="stage-2-order-controls-${langCode}"`) with reorder buttons and video precedence bar placement.
+      - Implemented Type B: Dedicated TTS-Play Ratio slider container (`data-testid="stage-2-ratio-slider-container-${langCode}"`) with minus decrement button (`data-testid="stage-2-ratio-decrement-${langCode}"`), range slider (`data-testid="stage-2-ratio-slider-${langCode}"`), plus increment button (`data-testid="stage-2-ratio-increment-${langCode}"`), ratio display (`data-testid="stage-2-ratio-display-${langCode}"`), and backward-compatible presets.
+      - Implemented Type C: Blacklist control (`data-testid="stage-2-toggle-blacklist-${langCode}"`) clearly styled and labeled `Blacklisted (Skip sentence, allow word)` with tooltips explaining that sentence narration is skipped while word TTS remains permitted.
+  - `src/components/beginner/PerLanguageTtsPreferences.tsx`:
+    - Maintained 100% parity in Beginner Mode with updated blacklist tooltip and `Blacklisted (Skip sentence, allow word)` labeling.
+  - Tests & Verification:
+    - Dedicated test `scripts/verify-learning-goals-component-design.ts` (`npm run test:learning-goals-component-design`).
+    - Verified all existing ratio tests, doc uniqueness, version synchronization (`2.1.28`), `compile_applet`, and `lint_applet` passed 100%.
+
 ### Task 328 (Prompt 95): Remove Redundant Sequence Control Banner in Learning Goals (Focus Mode)
 
 - **Prompt**:

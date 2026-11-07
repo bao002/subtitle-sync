@@ -132,14 +132,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-redundunt
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1)
-CSS 1: {
+u didnt get it !
 
-}
-[AIS_METADATA_SECTION_END]
+each type of sorting will contain all languages (only the order will contain also the video-player bard precedence)
 ```
 
 

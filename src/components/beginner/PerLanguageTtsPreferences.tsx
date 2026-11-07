@@ -209,14 +209,14 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                         }`}
                         title={
                           isBlacklisted
-                            ? `${language.name} is blacklisted from TTS (skipped from voice narration)`
-                            : `${language.name} is whitelisted for TTS (click to blacklist)`
+                            ? `${language.name} is blacklisted from sentence TTS (word TTS remains allowed). Click to whitelist.`
+                            : `Click to blacklist ${language.name} from sentence TTS (allows word TTS)`
                         }
                       >
                         {isBlacklisted ? (
                           <>
                             <VolumeX className="h-3 w-3" />
-                            <span>Blacklist</span>
+                            <span>Blacklisted (Skip sentence, allow word)</span>
                           </>
                         ) : (
                           <>

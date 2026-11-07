@@ -1,5 +1,5 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [COMPLETED]
-- **Active Task**: Task 328 (Prompt 95): Remove Redundant Sequence Control Banner in Learning Goals (Focus Mode) (Migrated to `docs/done.md`)
-- **Summary**: Removed the redundant `VideoLanguageSequenceControl` banner from Learning Goals in both Advanced Mode and Beginner Mode as requested via focus mode selection ("redundunt"). Preserved the clean in-between `VideoPlaybackPrecedenceBar` and per-language reordering controls (`ChevronUp`, `ChevronDown`, `Film` place video here). All dedicated tests, versioning, lint, and build checks passed 100%.
+- **Active Task**: Task 331 (Prompt 98): Reorganize Learning Goals so Each Ingredient Type Contains All Languages (Only Order Contains Video Bar) [MIGRATED_TO_DOCS_DONE]
+- **Current Subtask**: All subtasks completed and verified.
