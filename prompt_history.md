@@ -1262,12 +1262,40 @@ CSS 1: {
 [AIS_METADATA_SECTION_END]
 ```
 
+---
 
+### Prompt 96: Component Design for Language Goals & UI Split for Ratios, Blacklist, Play Order, and Default Source
+```
+component design: docs/component_design/language_goals .md
+currently we have those elements:
+-1. 4. translation source - which language is the default (warning - no need to define a secondary language or to present that tag
+)
+list of favorite languages and a button of add language
+split this element to its types:
+order of playing (together with the video-playing precedenece bar)
+tts-play ratio (slider control with plus/minus buttons on 2 edges)
+blacklisted (a control to choose langauge to be skipped from tts-play-per-sentence but allow tts-play-per-word)
+Apply style changes to the selected element(s).
+```
 
+---
 
+### Prompt 97: Split Learning Goals Element into 4 Ingredient Types (1 Control Per Ingredient Type)
+```
+split this element to its ingredient types - 1 control per ingredient type:
+1 order of playing (together with the video-playing precedenece bar)
+2 tts-play ratio (slider control with plus/minus buttons on 2 edges)
+3 blacklisted (a control to choose langauge to be skipped from tts-play-per-sentence but allow tts-play-per-word)
+4 sentence or word
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3)
+CSS 1: {
 
+}
+### Prompt 98: Each Ingredient Type Contains All Languages (Only Order Contains Video Bar)
+```
+u didnt get it !
 
-
-
-
-
+each type of sorting will contain all languages (only the order will contain also the video-player bard precedence)
+```
