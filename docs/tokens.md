@@ -6,7 +6,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-Task 332 (Prompt 99): Move Row Criteria Outside `subtitles-table-panel` (Hidden when Scrolling Subtitles Table View) staged in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
+Task 333 (Prompts 100 & 101): Simplify Order Controls with Arrow Buttons & Hotfix Maximum Update Depth Exceeded in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
 
 ---
 

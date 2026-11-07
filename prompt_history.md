@@ -1315,3 +1315,29 @@ CSS 1: {
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 100: Simplify Design - Use Just Arrow Buttons for Order Controls
+```
+simplify design - use just arrow buttons
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 101: Hotfix: Maximum update depth exceeded in useEffect loop
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[AIS_METADATA_SECTION_END]
+```
+
+
