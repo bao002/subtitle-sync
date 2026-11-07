@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.34",
+  "version": "2.1.37",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -18,6 +18,9 @@
     "coverage": "npm run test:coverage",
     "sync-version": "tsx scripts/sync-version.ts",
     "check-version": "tsx scripts/sync-version.ts --check",
+    "test:remove-redundant-accordion-button": "tsx scripts/verify-remove-redundant-accordion-button.ts",
+    "test:learning-goals-list-presentation-minimal-text": "tsx scripts/verify-learning-goals-list-presentation-minimal-text.ts",
+    "test:autofetch-and-log-hide-controls": "tsx scripts/verify-autofetch-and-log-hide-controls.ts",
     "test:top-menu-show-hide-and-folded-accordion": "tsx scripts/verify-top-menu-show-hide-and-folded-accordion.ts",
     "test:floating-play-pause-toggle": "tsx scripts/verify-floating-play-pause-toggle.ts",
     "test:simplified-order-arrows-and-loop-fix": "tsx scripts/verify-simplified-order-arrows-and-loop-fix.ts",

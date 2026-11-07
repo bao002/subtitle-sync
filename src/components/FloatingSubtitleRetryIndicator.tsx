@@ -40,6 +40,7 @@ export interface FloatingSubtitleRetryIndicatorProps {
   onToggleAutoRetry?: (enabled: boolean) => void;
   floating?: boolean;
   debugMode?: boolean;
+  defaultMinimized?: boolean;
 }
 
 export function FloatingSubtitleRetryIndicator({
@@ -53,6 +54,7 @@ export function FloatingSubtitleRetryIndicator({
   onToggleAutoRetry,
   floating = false,
   debugMode,
+  defaultMinimized = true,
 }: FloatingSubtitleRetryIndicatorProps) {
   // Determine if debug / developer mode is active (either via prop or developer mode setting)
   const isDebug = debugMode !== undefined ? debugMode : isDeveloperModeEnabled();
@@ -81,9 +83,9 @@ export function FloatingSubtitleRetryIndicator({
     return !track || !track.events || track.events.length === 0;
   });
 
-  // Default to retrying by default as requested
+  // Default to retrying by default as requested, folded by default
   const [isPaused, setIsPaused] = useState<boolean>(!autoRetryEnabled);
-  const [isMinimized, setIsMinimized] = useState<boolean>(false);
+  const [isMinimized, setIsMinimized] = useState<boolean>(defaultMinimized ?? true);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(minPacingSec);
   const [currentlyFetchingLang, setCurrentlyFetchingLang] = useState<string | null>(null);
 
