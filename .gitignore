@@ -70,6 +70,7 @@ gh-pages-staging/
 android-emulator-screenshot.png
 android-emulator-logcat.txt
 screenshots/
+!public/screenshots/
 public/screenshots/*.png
 public/assets/*.png
 *.mp4

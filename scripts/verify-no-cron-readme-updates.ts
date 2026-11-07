@@ -34,23 +34,23 @@ assert.ok(
 
 const appConfig = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert.ok(
-  appConfig.includes(`APP_VERSION = "${expectedVersion}"`),
-  `appConfig.ts must declare APP_VERSION ${expectedVersion}`,
+  appConfig.includes(`APP_VERSION = packageJson.version`) || appConfig.includes(`APP_VERSION = "${expectedVersion}"`),
+  `appConfig.ts must declare APP_VERSION (current: ${expectedVersion})`,
 );
 
 const apkUpdater = fs.readFileSync(path.resolve(rootDir, "src/utils/apkUpdater.ts"), "utf-8");
 assert.ok(
-  apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVersion}"`),
-  `apkUpdater.ts must declare CURRENT_APK_VERSION v${expectedVersion}`,
+  apkUpdater.includes("`v${APP_VERSION}`") || apkUpdater.includes(`CURRENT_APK_VERSION = "v${expectedVersion}"`),
+  `apkUpdater.ts must declare CURRENT_APK_VERSION (current: v${expectedVersion})`,
 );
 
 const appSettings = fs.readFileSync(path.resolve(rootDir, "src/utils/appSettings.ts"), "utf-8");
 assert.ok(
-  appSettings.includes(`version: "${expectedVersion}"`),
-  `appSettings.ts must declare version ${expectedVersion}`,
+  appSettings.includes("version: APP_VERSION") || appSettings.includes(`version: "${expectedVersion}"`),
+  `appSettings.ts must declare version (current: ${expectedVersion})`,
 );
 
-console.log("✅ PASS: Version 1.0.25 strictly aligned across all target files.");
+console.log(`✅ PASS: Version ${expectedVersion} strictly aligned across all target files.`);
 
 // 2. Verify No Workflow Runs Cron Jobs Across the Entire Repository
 console.log("\n🚫 Section 2: Prohibit Any Cron Jobs Across All GitHub Actions Workflows");

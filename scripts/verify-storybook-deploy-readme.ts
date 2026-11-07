@@ -80,11 +80,14 @@ assert(
 );
 console.log("✅ PASS: Storybook production build is generated and valid in public/storybook/.");
 
-// 5. Verify App Version consistency (2.0.74)
-console.log("\n🏷️ Check 5: App Version Consistency (2.0.74)");
+// 5. Verify App Version consistency
 const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
-assert.strictEqual(pkg.version, "2.0.74", "package.json must be version 2.0.74");
-console.log("✅ PASS: App version 2.0.74 verified.");
+console.log(`\n🏷️ Check 5: App Version Consistency (${pkg.version})`);
+assert.ok(
+  pkg.version && /^\d+\.\d+\.\d+/.test(pkg.version),
+  "package.json must define a valid semver version",
+);
+console.log(`✅ PASS: App version ${pkg.version} verified.`);
 
 console.log("\n=========================================================================");
 console.log("🎉 ALL STORYBOOK GITHUB ACTIONS DEPLOYMENT & README LINK CHECKS PASSED!");

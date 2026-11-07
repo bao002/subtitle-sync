@@ -452,6 +452,7 @@ if (statusSectionRegex.test(content)) {
   if (content.includes(marker)) {
     content = content.replace(marker, `${statusSection}\n\n---\n\n${marker}`);
   } else if (
+    ciStatus === "failure" ||
     process.env.APPEND_CI_STATUS === "true" ||
     process.env.REPORT_VIDEO_BROKEN === "true" ||
     (process.env.CI_STATUS === "success" && process.env.VIDEO_SIZE_BYTES)

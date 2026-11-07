@@ -132,15 +132,9 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-it seems that you have mis-understood me - this button use redundunt.
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(4) > button#header-toggle-accordion-button:nth-of-type(3)
-CSS 1: {
-
-}
-[AIS_METADATA_SECTION_END]
+ensure readme updated correctly
 ```
+
 
 
 
