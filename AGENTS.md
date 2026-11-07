@@ -132,10 +132,17 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-u didnt get it !
+mv this element outside because it should be hidden when scrolling the subtitles-table-view
+Apply style changes to the selected element(s).
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div#subtitles-table-panel:nth-of-type(1) > div#subtitles-table-row-criteria-container:nth-of-type(2)
+CSS 1: {
 
-each type of sorting will contain all languages (only the order will contain also the video-player bard precedence)
+}
+[AIS_METADATA_SECTION_END]
 ```
+
 
 
 

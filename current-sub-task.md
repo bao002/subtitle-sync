@@ -1,5 +1,6 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: [COMPLETED]
-- **Active Task**: Task 331 (Prompt 98): Reorganize Learning Goals so Each Ingredient Type Contains All Languages (Only Order Contains Video Bar) [MIGRATED_TO_DOCS_DONE]
-- **Current Subtask**: All subtasks completed and verified.
+- **Status**: [IN_PROGRESS]
+- **Active Task**: Task 333: Hotfix Maximum Update Depth Exceeded
+- **Current Subtask**: Diagnosing infinite re-render loop.
+

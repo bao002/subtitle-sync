@@ -6,9 +6,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-Task 331 (Prompt 98): Reorganize Learning Goals so Each Ingredient Type Contains All Languages (Only Order Type Contains Video-Player Bar Precedence) staged in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
-
-
+Task 332 (Prompt 99): Move Row Criteria Outside `subtitles-table-panel` (Hidden when Scrolling Subtitles Table View) staged in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
 
 ---
 
