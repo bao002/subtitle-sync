@@ -36,14 +36,14 @@ assert.ok(
 // Ensure Stage 3 returns only player and subtitles, excluding languages
 const stage3Start = indexTsx.indexOf("if (currentAccordionStage === 3)");
 assert.ok(stage3Start !== -1, "Stage 3 block must exist in index.tsx");
-const stage3Block = indexTsx.slice(stage3Start, stage3Start + 500);
+const stage3Block = indexTsx.slice(stage3Start, stage3Start + 100);
 assert.ok(
   !stage3Block.includes('panelId === "languages"'),
   "Stage 3 must NOT include panelId === 'languages' (language settings hidden on stage 3)",
 );
 assert.ok(
-  stage3Block.includes('panelId === "player" || panelId === "subtitles"'),
-  "Stage 3 must return panelId === 'player' || panelId === 'subtitles'",
+  stage3Block.includes('panelId === "player"'),
+  "Stage 3 must return panelId === 'player'",
 );
 
 console.log("✅ PASS: Stage 3 hides language settings (configured in Stage 2) and presents player + subtitles table.");

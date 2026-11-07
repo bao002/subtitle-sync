@@ -1299,3 +1299,19 @@ u didnt get it !
 
 each type of sorting will contain all languages (only the order will contain also the video-player bard precedence)
 ```
+
+---
+
+### Prompt 99: Move Row Criteria Outside subtitles-table-panel (Hidden when Scrolling Subtitles Table View)
+```
+mv this element outside because it should be hidden when scrolling the subtitles-table-view
+Apply style changes to the selected element(s).
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div#subtitles-table-panel:nth-of-type(1) > div#subtitles-table-row-criteria-container:nth-of-type(2)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+

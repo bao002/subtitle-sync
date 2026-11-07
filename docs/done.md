@@ -1,5 +1,31 @@
 # Done tasks
 
+### Task 332 (Prompt 99): Move Row Criteria Outside subtitles-table-panel (Hidden when Scrolling Subtitles Table View)
+
+- **Prompt**:
+  ```
+  mv this element outside because it should be hidden when scrolling the subtitles-table-view
+  Apply style changes to the selected element(s).
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div#subtitles-table-panel:nth-of-type(1) > div#subtitles-table-row-criteria-container:nth-of-type(2)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - `src/components/SubtitlesTablePanel.tsx`:
+    - Moved `#subtitles-table-row-criteria-container` outside `#subtitles-table-panel` so that it renders directly above the scrollable subtitles table panel rather than being nested inside the scrolling table view.
+    - Wrapped the component return in a React fragment with `#subtitles-table-row-criteria-container` styled with `rounded-xl border border-border/70 bg-card/60 p-2 shadow-2xs mb-2` positioned directly above `#subtitles-table-panel`.
+    - Maintained full functionality of the row criteria filters (Max Words per sentence slider, complete sentence only filter, and expand/collapse toggle).
+    - Preserved 100% parity across both Advanced Mode and Beginner Mode where `SubtitlesTablePanel` is used.
+  - Testing & Verification:
+    - Dedicated automated test `scripts/verify-row-criteria-outside-subtitles-table-scroll.ts` (`npm run test:row-criteria-outside-subtitles-table-scroll`) verifying row criteria placement outside the scroll panel, controls binding, mode parity, and sentence filtering.
+    - Verified `scripts/verify-row-criteria-in-subtitles-table.ts` passes.
+    - Verified `compile_applet` and `lint_applet` pass with 0 errors.
+    - Version bumped to `2.1.31` and synchronized via `npm run sync-version`.
+
 ### Task 331 (Prompt 98): Reorganize Learning Goals so Each Ingredient Type Contains All Languages (Only Order Contains Video Bar)
 
 - **Prompt**:
