@@ -1,5 +1,72 @@
 # Done tasks
 
+### Task 335 (Prompt 103): Top Menu Show/Hide Buttons for Log & Accordion + Accordion Folded by Default
+
+- **Prompt**:
+  ```
+  add show/hide buttons for those elements on the top menu.
+  the accordion element should be folded by default.
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > footer#bottom-log-viewer:nth-of-type(1) > div:nth-of-type(1)
+  CSS 1: {
+
+  }
+  CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1)
+  CSS 2: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - `src/routes/index.tsx`:
+    - **Folded by Default Accordions**: Updated initial state of `openPanels` so all stage accordions initialize as folded (`false`) on application load (`languages: false`, `subtitles: false`, `player: false`, `playback: false`, `fetchedSubtitles: false`).
+    - **Show/Hide Bottom Log Viewer**: Added state `showBottomLogViewer` (persisted in `localStorage.yt_show_bottom_log`) and wrapped the universal `<BottomLogViewer />` inside `<div id="bottom-log-viewer-container" data-testid="bottom-log-viewer-container" className={showBottomLogViewer ? "block" : "hidden"}>`.
+    - **Top Menu Header Buttons**: Added two dedicated toggle buttons in the sticky header action bar:
+      - `header-toggle-accordion-button` (`data-testid="header-toggle-accordion-button"`): Toggles the fold/unfold status of the active stage's accordion panel (`activeAccordionPanelId`), displaying `<ChevronUp />` when unfolded and `<ChevronDown />` when folded.
+      - `header-toggle-log-button` (`data-testid="header-toggle-log-button"`): Toggles the show/hide status of the bottom activity & state log viewer, displaying `<EyeOff />` when visible and `<Eye />` when hidden.
+  - Testing & Verification:
+    - Dedicated test script `scripts/verify-top-menu-show-hide-and-folded-accordion.ts` (`npm run test:top-menu-show-hide-and-folded-accordion`) verifying openPanels folded defaults, top menu header buttons existence, log viewer wrapper conditional display, and accordion toggle callbacks.
+    - Full regression suites verified: `npm run test:floating-play-pause-toggle`, `npm run test:universal-bottom-log`, `scripts/verify-hide-fetched-subtitles-default-and-settings-access.ts`.
+    - Synchronized version `2.1.34` across single-source version targets (`package.json`, `src/config/appConfig.ts`, `android-shell/app/build.gradle.kts`).
+    - Both `compile_applet` and `lint_applet` succeeded with zero errors.
+
+
+### Task 334 (Prompt 102): Floating Play/Pause Button State & Click Behavior (Show Play if Not Playing, Show Pause if Playing, Click Triggers Respective Action)
+
+- **Prompt**:
+  ```
+  fix it:
+
+  if the video is not playing - show a play  button or else -  show a pause button !
+  clicking on play should always trigger play 
+  clicking on pause should always trigger pause
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > button:nth-of-type(1)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - `src/components/FloatingDraggablePauseButton.tsx`:
+    - Updated the floating action button (`data-testid="floating-pause-button"`) to display a Play button (`<Play className="h-5 w-5 fill-current shrink-0 ml-0.5" />`, emerald background `bg-emerald-600`) whenever the video is not playing (`!isVideoPlaying`), and a Pause button (`<Pause className="h-5 w-5 fill-current shrink-0" />`, rose background `bg-rose-600`) whenever the video is playing (`isVideoPlaying`).
+    - Implemented deterministic click dispatch:
+      - When the button displays Play (video not playing), clicking on it always triggers play via `onPlay` (or `onTogglePlay`).
+      - When the button displays Pause (video playing), clicking on it always triggers pause via `onPause` (or `onTogglePlay`).
+    - Added dedicated auxiliary options button (`data-testid="floating-menu-toggle-btn"` with `<SlidersHorizontal />`) and right-click/double-click triggers to open the floating settings menu dock without interfering with play/pause.
+    - Preserved `aria-pressed={isSetupPaused}`, sr-only status tags (`floating-pause-status`, `floating-pause-badge`), dragging physics, position persistence in localStorage, and boundary clamping.
+  - `src/routes/index.tsx`:
+    - Added `handlePlayVideo` callback that clears setup pause (`setIsSetupPaused(false)`), resumes player playback, cancels active TTS speech, clears pause reason, and sets `isVideoPlaying(true)`.
+    - Added `handlePauseVideo` callback that pauses player and TTS via `pauseBothVideoAndTts()`.
+    - Passed `handlePlayVideo`, `handlePauseVideo`, and `handleTogglePlay` to `FloatingDraggablePauseButton`.
+  - Testing & Verification:
+    - Dedicated test `scripts/verify-floating-play-pause-toggle.ts` (`npm run test:floating-play-pause-toggle`) passed 100%.
+    - Verified full regression suite passes 100%: `scripts/verify-floating-draggable-pause.ts`, `scripts/verify-floating-dropdown-menu.ts`, `scripts/verify-single-icon-floating-button.ts`, `scripts/verify-floating-pause-button-reaction-and-reason.ts`, `scripts/verify-design-play-buttons.ts`, `scripts/verify-pause-both-video-and-tts.ts`, `scripts/verify-simplified-order-arrows-and-loop-fix.ts`.
+    - Synchronized version `2.1.33` across single-source version targets.
+    - `compile_applet` and `lint_applet` succeeded with zero errors.
+
 ### Task 333 (Prompts 100 & 101): Simplify Order Controls with Arrow Buttons & Hotfix Maximum Update Depth Exceeded
 
 - **Prompt**:

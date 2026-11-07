@@ -22,6 +22,9 @@ export interface FloatingDraggablePauseButtonProps {
   isSpeaking?: boolean;
   pauseReason?: string | null;
   className?: string;
+  onTogglePlay?: () => void;
+  onPlay?: () => void;
+  onPause?: () => void;
 }
 
 const STORAGE_KEY_POS = "yt_floating_pause_pos";
@@ -40,6 +43,9 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
   isSpeaking = false,
   pauseReason = null,
   className = "",
+  onTogglePlay,
+  onPlay,
+  onPause,
 }) => {
   const [position, setPosition] = useState<Position>(() => {
     if (typeof window !== "undefined") {
@@ -188,13 +194,32 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
     dragStartRef.current = null;
   };
 
-  const handleTriggerClick = (e: React.MouseEvent) => {
+  const handleButtonClick = (e: React.MouseEvent) => {
     if (hasMovedRef.current) {
       e.preventDefault();
       e.stopPropagation();
       return;
     }
-    setIsOpen((prev) => !prev);
+
+    if (isVideoPlaying) {
+      // clicking on pause should always trigger pause
+      if (onPause) {
+        onPause();
+      } else if (onTogglePlay) {
+        onTogglePlay();
+      } else {
+        onToggleSetupPause();
+      }
+    } else {
+      // clicking on play should always trigger play
+      if (onPlay) {
+        onPlay();
+      } else if (onTogglePlay) {
+        onTogglePlay();
+      } else {
+        onToggleSetupPause();
+      }
+    }
   };
 
   const handleToggleSetupPauseOption = (e: React.MouseEvent) => {
@@ -245,46 +270,67 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
         data-dropdown-trigger="true"
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        aria-pressed={isEffectivelyPaused}
+        aria-pressed={isSetupPaused}
         aria-label={
-          isEffectivelyPaused
-            ? `Paused${pauseReason ? `: ${pauseReason}` : ""}. Click for controls`
-            : "Playing: Click for controls"
+          !isVideoPlaying
+            ? `Play video${pauseReason ? ` (Paused: ${pauseReason})` : ""}`
+            : "Pause video"
         }
         title={
-          isEffectivelyPaused
-            ? `Paused${pauseReason ? ` (${pauseReason})` : ""} - Click for controls`
-            : "Playing - Click for controls"
+          !isVideoPlaying
+            ? `Play video${pauseReason ? ` (Paused: ${pauseReason})` : ""}`
+            : "Pause video"
         }
-        onClick={handleTriggerClick}
+        onClick={handleButtonClick}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setIsOpen((prev) => !prev);
+        }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
         className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-2xl backdrop-blur-md transition-all duration-150 active:scale-95 ${
           isDragging ? "cursor-grabbing opacity-90 scale-105" : "cursor-grab hover:scale-105"
         } ${
-          isEffectivelyPaused
-            ? "border-rose-500 bg-rose-600 text-white shadow-rose-500/40 hover:bg-rose-700 ring-2 ring-rose-400/50"
-            : "border-emerald-500 bg-emerald-600 text-white shadow-emerald-500/40 hover:bg-emerald-700 ring-2 ring-emerald-400/50"
+          !isVideoPlaying
+            ? "border-emerald-500 bg-emerald-600 text-white shadow-emerald-500/40 hover:bg-emerald-700 ring-2 ring-emerald-400/50"
+            : "border-rose-500 bg-rose-600 text-white shadow-rose-500/40 hover:bg-rose-700 ring-2 ring-rose-400/50"
         }`}
       >
         <span data-testid="floating-dropdown-trigger" className="hidden" aria-hidden="true" />
         <span data-testid="floating-pause-status" className="sr-only">
-          {isEffectivelyPaused
+          {!isVideoPlaying
             ? `Paused (OFF)${pauseReason ? ` - ${pauseReason}` : ""}`
             : isAutoScrollEnabled
               ? "Auto-Scroll ON"
               : "Playback Active (ON)"}
         </span>
         <span data-testid="floating-pause-badge" className="sr-only">
-          {isEffectivelyPaused ? "Playback Paused" : "Playback Active"}
+          {!isVideoPlaying ? "Playback Paused" : "Playback Active"}
         </span>
 
-        {/* Exactly 1 icon */}
-        {isEffectivelyPaused ? (
-          <Pause className="h-5 w-5 fill-current shrink-0" />
-        ) : isAutoScrollEnabled ? (
-          <ScrollText className="h-5 w-5 shrink-0" />
-        ) : (
+        {/* Exactly 1 icon: if the video is not playing - show a play button or else - show a pause button */}
+        {!isVideoPlaying ? (
           <Play className="h-5 w-5 fill-current shrink-0 ml-0.5" />
+        ) : (
+          <Pause className="h-5 w-5 fill-current shrink-0" />
         )}
+      </button>
+
+      {/* Auxiliary small options cog button attached to edge to open floating menu easily */}
+      <button
+        type="button"
+        data-testid="floating-menu-toggle-btn"
+        aria-label="Open floating controls menu"
+        title="Floating controls menu (or right-click/double-click play button)"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
+        className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-background border border-border text-muted-foreground shadow-sm hover:text-foreground hover:bg-muted transition-transform active:scale-90"
+      >
+        <SlidersHorizontal className="h-2.5 w-2.5" />
       </button>
 
       {/* Pause Reason Tooltip / Notification Chip attached to floating button */}

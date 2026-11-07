@@ -1,6 +1,5 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [COMPLETED]
-- **Active Task**: Task 333 (Prompts 100 & 101): Simplify Order Controls with Arrow Buttons & Hotfix Maximum Update Depth Exceeded [MIGRATED_TO_DOCS_DONE]
-- **Current Subtask**: All subtasks completed, tested, and verified.
-
+- **Completed Task**: Task 335 (Prompt 103): Top Menu Show/Hide Buttons for Log & Accordion + Accordion Folded by Default
+- **Next Step**: Awaiting next user instruction or backlog task execution.

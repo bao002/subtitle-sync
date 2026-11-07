@@ -475,5 +475,6 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-suppress-voice-to-tts-service.ts`             | Suppress Voice to TTS Service Verification Suite (Task 310, Prompt 80)             | Validates that voice parameter is suppressed from query parameters and POST request body across all TTS providers, audit records, and callers. |
 | `scripts/verify-auto-fetching-debug-experimental-stuff.ts`   | Auto-Fetching Subtitles Debug Verification Suite (Task 311, Prompt 81)            | Validates experimental fetch architecture display in FloatingSubtitleRetryIndicator: Server/Client origin badge, Session/No-Session badge, next attempt badge, and live debug toggles. |
 | `scripts/verify-learning-goals-tts-order-and-video-bar.ts`    | Learning Goals TTS Order & In-Between Video Bar Verification (Task 327, Prompt 94) | Asserts inclusion of VideoLanguageSequenceControl, VideoPlaybackPrecedenceBar, and language reordering controls in Learning Goals with 100% parity across Advanced and Beginner modes. |
+| `scripts/verify-floating-play-pause-toggle.ts`               | Floating Play/Pause Button State & Click Verification Suite (Task 334, Prompt 102) | Asserts Play button icon when not playing, Pause button icon when playing, clicking on play triggers play, clicking on pause triggers pause, and full index.tsx wiring. |
 
 

@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.32",
+  "version": "2.1.34",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -18,6 +18,8 @@
     "coverage": "npm run test:coverage",
     "sync-version": "tsx scripts/sync-version.ts",
     "check-version": "tsx scripts/sync-version.ts --check",
+    "test:top-menu-show-hide-and-folded-accordion": "tsx scripts/verify-top-menu-show-hide-and-folded-accordion.ts",
+    "test:floating-play-pause-toggle": "tsx scripts/verify-floating-play-pause-toggle.ts",
     "test:simplified-order-arrows-and-loop-fix": "tsx scripts/verify-simplified-order-arrows-and-loop-fix.ts",
     "test:row-criteria-outside-subtitles-table-scroll": "tsx scripts/verify-row-criteria-outside-subtitles-table-scroll.ts",
     "test:learning-goals-component-design": "tsx scripts/verify-learning-goals-component-design.ts",
