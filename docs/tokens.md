@@ -6,7 +6,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-Hotfix (Prompt 91): Fix ReferenceError: Cannot access 'baseLanguage' before initialization in `src/routes/index.tsx` completed and verified (100%), migrated to [`docs/done.md`](done.md). Next active backlog task staged in [`docs/tasks.md`](tasks.md).
+Task 328 (Prompt 95): Remove Redundant Sequence Control Banner in Learning Goals (Focus Mode) staged in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
 
 
 

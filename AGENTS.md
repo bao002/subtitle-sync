@@ -132,8 +132,16 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-any one of the main stage's component - should apear only on his stage. i.e: the video - dont show anywhere else,same for the subtitles table and etc.
+redundunt
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
 ```
+
 
 
 

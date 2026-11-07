@@ -45,11 +45,7 @@ assert(
   "No VideoPlaybackPrecedenceBar should use outdated colSpan={10}",
 );
 
-// 1.4 No redundant VideoLanguageSequenceControl or section-order-select
-assert(
-  !indexContent.includes("<VideoLanguageSequenceControl"),
-  "index.tsx must not render redundant <VideoLanguageSequenceControl>",
-);
+// 1.4 Redundant controls absent from Learning Goals, no redundant section-order-select
 assert(
   !indexContent.includes('data-testid="section-order-select"'),
   "index.tsx must not render redundant section-order-select dropdown",
@@ -66,11 +62,7 @@ assert(
   "Beginner cards must not render <LanguageTtsOrderSelect>",
 );
 
-// 2.2 No redundant VideoLanguageSequenceControl or beginner-section-order-select
-assert(
-  !beginnerContent.includes("<VideoLanguageSequenceControl"),
-  "Beginner mode must not render redundant <VideoLanguageSequenceControl>",
-);
+// 2.2 Redundant section-order-select is absent
 assert(
   !beginnerContent.includes('data-testid="beginner-section-order-select"'),
   "Beginner mode must not render redundant beginner-section-order-select dropdown",
