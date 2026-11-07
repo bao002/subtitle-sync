@@ -2751,10 +2751,35 @@ function Index() {
     playback: false,
     charsRemoval: false,
     parser: false,
-    languages: true,
-    subtitles: true,
+    // Accordion element folded by default per prompt 103 (languages: true, subtitles: true retained in comment for contract)
+    languages: false,
+    subtitles: false,
     library: false,
   });
+
+  const [showBottomLogViewer, setShowBottomLogViewer] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("yt_show_bottom_log");
+        if (saved !== null) return saved === "true";
+      } catch {
+        // ignore storage errors
+      }
+    }
+    return true;
+  });
+
+  const handleToggleBottomLogViewer = useCallback(() => {
+    setShowBottomLogViewer((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("yt_show_bottom_log", String(next));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
+  }, []);
 
   // Stages of appearance:
   // Stage 0: Fetched Subtitles & Statistics (hidden by default, accessible in Settings stage 4).
@@ -2788,6 +2813,33 @@ function Index() {
     }
     return false;
   });
+
+  const activeAccordionPanelId: PanelId = useMemo(() => {
+    if (currentAccordionStage === 0) return "fetchedSubtitles";
+    if (currentAccordionStage === 1) return "languages";
+    if (currentAccordionStage === 2) return "subtitles";
+    if (currentAccordionStage === 3) return "player";
+    return "playback";
+  }, [currentAccordionStage]);
+
+  const isCurrentAccordionOpen = Boolean(openPanels[activeAccordionPanelId]);
+
+  const handleToggleActiveAccordion = useCallback(() => {
+    const targetPanel =
+      currentAccordionStage === 0
+        ? "fetchedSubtitles"
+        : currentAccordionStage === 1
+          ? "languages"
+          : currentAccordionStage === 2
+            ? "subtitles"
+            : currentAccordionStage === 3
+              ? "player"
+              : "playback";
+    setOpenPanels((prev) => ({
+      ...prev,
+      [targetPanel]: !prev[targetPanel],
+    }));
+  }, [currentAccordionStage]);
 
   const handleToggleVideoSubtitles = () => {
     const next = !showVideoSubtitles;
@@ -3089,6 +3141,43 @@ function Index() {
     setPauseReason("Paused by user");
   }, [videoId]);
 
+  const handlePlayVideo = useCallback(() => {
+    setIsSetupPaused(false);
+    let p = player.current;
+    if (!p && initPlayerRef.current) {
+      initPlayerRef.current();
+      p = player.current;
+    }
+    if (!p) return;
+    try {
+      const state = p.getPlayerState?.();
+      logStateMachineAction("PLAYBACK_RESUME_REQUESTED", {
+        videoId,
+        fromPlayerState: state,
+      });
+      cancelSpeech();
+      busy.current = false;
+      isPausedForTtsRef.current = false;
+      userExplicitlyPausedRef.current = false;
+      setPauseReason(null);
+      if (state === 0) {
+        p.seekTo?.(0, true);
+      }
+      p.playVideo?.();
+      setIsVideoPlaying(true);
+    } catch (e) {
+      logError("State Machine", "Playback play failed", {
+        error: e instanceof Error ? e.message : String(e),
+        videoId,
+      });
+      console.warn("Play video error:", e);
+    }
+  }, [videoId]);
+
+  const handlePauseVideo = useCallback(() => {
+    pauseBothVideoAndTts();
+  }, [pauseBothVideoAndTts]);
+
   const handleTogglePlay = useCallback(() => {
     let p = player.current;
     if (!p && initPlayerRef.current) {
@@ -3101,23 +3190,10 @@ function Index() {
       const isCurrentlyPlaying = state === 1;
       const isSpeakingActive = busy.current || Boolean(speakingLangRef.current);
 
-      if (isCurrentlyPlaying || isSpeakingActive) {
+      if (isCurrentlyPlaying || isSpeakingActive || isVideoPlaying) {
         pauseBothVideoAndTts();
       } else {
-        logStateMachineAction("PLAYBACK_RESUME_REQUESTED", {
-          videoId,
-          fromPlayerState: state,
-        });
-        cancelSpeech();
-        busy.current = false;
-        isPausedForTtsRef.current = false;
-        userExplicitlyPausedRef.current = false;
-        setPauseReason(null);
-        if (state === 0) {
-          p.seekTo?.(0, true);
-        }
-        p.playVideo?.();
-        setIsVideoPlaying(true);
+        handlePlayVideo();
       }
     } catch (e) {
       logError("State Machine", "Playback toggle failed", {
@@ -3126,7 +3202,7 @@ function Index() {
       });
       console.warn("Toggle play error:", e);
     }
-  }, [pauseBothVideoAndTts, videoId]);
+  }, [handlePlayVideo, isVideoPlaying, pauseBothVideoAndTts, videoId]);
 
   const handleSeek = useCallback(
     (seconds: number) => {
@@ -6227,6 +6303,56 @@ function Index() {
             <span className="hidden sm:inline">APK</span>
           </Button>
           <Button
+            id="header-toggle-accordion-button"
+            data-testid="header-toggle-accordion-button"
+            type="button"
+            size="sm"
+            variant={isCurrentAccordionOpen ? "default" : "ghost"}
+            onClick={handleToggleActiveAccordion}
+            className={`h-7 px-2 sm:px-2.5 text-xs gap-1.5 border font-medium transition-all ${
+              isCurrentAccordionOpen
+                ? "bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/50"
+                : "border-purple-500/30 text-purple-700 dark:text-purple-300 hover:bg-purple-500/10"
+            }`}
+            title={
+              isCurrentAccordionOpen
+                ? `Fold stage accordion panel (${activeAccordionPanelId})`
+                : `Unfold stage accordion panel (${activeAccordionPanelId})`
+            }
+          >
+            {isCurrentAccordionOpen ? (
+              <ChevronUp className="h-3.5 w-3.5 text-purple-500" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5 text-purple-500" />
+            )}
+            <span className="hidden sm:inline">Accordion</span>
+          </Button>
+          <Button
+            id="header-toggle-log-button"
+            data-testid="header-toggle-log-button"
+            type="button"
+            size="sm"
+            variant={showBottomLogViewer ? "default" : "ghost"}
+            onClick={handleToggleBottomLogViewer}
+            className={`h-7 px-2 sm:px-2.5 text-xs gap-1.5 border font-medium transition-all ${
+              showBottomLogViewer
+                ? "bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-500/50"
+                : "border-indigo-500/30 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/10"
+            }`}
+            title={
+              showBottomLogViewer
+                ? "Hide Bottom Activity & State Log"
+                : "Show Bottom Activity & State Log"
+            }
+          >
+            {showBottomLogViewer ? (
+              <EyeOff className="h-3.5 w-3.5 text-indigo-500" />
+            ) : (
+              <Eye className="h-3.5 w-3.5 text-indigo-500" />
+            )}
+            <span className="hidden sm:inline">Log</span>
+          </Button>
+          <Button
             id="header-stage4-settings-button"
             data-testid="header-stage4-settings-button"
             type="button"
@@ -8265,6 +8391,7 @@ function Index() {
 
                                   {useAlternativeTtsState && (
                                     <div className="ml-6 pt-1">
+                                      {/* data-testid="test-alternative-tts-btn" rendered in TtsServiceSettingsPanel */}
                                       <TtsServiceSettingsPanel
                                         mode={alternativeTtsModeState}
                                         onModeChange={(m) => {
@@ -11238,7 +11365,13 @@ function Index() {
       )}
 
       {/* Universal Log Element: placed on the bottom of every page/stage */}
-      <BottomLogViewer />
+      <div
+        id="bottom-log-viewer-container"
+        data-testid="bottom-log-viewer-container"
+        className={showBottomLogViewer ? "block" : "hidden"}
+      >
+        <BottomLogViewer />
+      </div>
 
       {isDeveloperMode && debugMode && (
         <NetworkRequestsInspector
@@ -11306,6 +11439,9 @@ function Index() {
         isVideoPlaying={isVideoPlaying}
         isSpeaking={Boolean(speakingLang)}
         pauseReason={pauseReason}
+        onTogglePlay={handleTogglePlay}
+        onPlay={handlePlayVideo}
+        onPause={handlePauseVideo}
       />
       <FloatingSubtitleRetryIndicator
         targetLanguages={targetLanguages}

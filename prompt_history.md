@@ -1340,4 +1340,43 @@ error 0: Maximum update depth exceeded. This can happen when a component calls s
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 102: Floating Play/Pause Button State and Click Behavior
+```
+fix it:
+
+if the video is not playing - show a play  button or else -  show a pause button !
+clicking on play should always trigger play 
+clicking on pause should always trigger pause
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(5) > button:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 103: Top Menu Show/Hide Buttons for Log & Accordion + Accordion Folded by Default
+```
+add show/hide buttons for those elements on the top menu.
+the accordion element should be folded by default.
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > footer#bottom-log-viewer:nth-of-type(1) > div:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1)
+CSS 2: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+
+
 

@@ -132,12 +132,21 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-Fix the errors in the app
+add show/hide buttons for those elements on the top menu.
+the accordion element should be folded by default.
+Apply style changes to the selected element(s).
 [AIS_METADATA_SECTION_START]
-fix_it_trigger: manual
-error 0: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > footer#bottom-log-viewer:nth-of-type(1) > div:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(1)
+CSS 2: {
+
+}
 [AIS_METADATA_SECTION_END]
 ```
+
 
 
 
