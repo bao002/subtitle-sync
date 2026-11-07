@@ -144,11 +144,11 @@ export const VideoPlaybackPrecedenceBar: React.FC<VideoPlaybackPrecedenceBarProp
           disabled={isAtTop}
           onClick={onPlaceAtTop}
           data-testid="btn-video-bar-top"
-          className="h-6 text-[10px] px-1.5 gap-1"
+          className="h-6 w-6 p-0"
           title="Place video before all languages (Video First)"
+          aria-label="Place video before all languages (Video First)"
         >
-          <Play className="h-2.5 w-2.5" />
-          <span>Top</span>
+          <ArrowUp className="h-3 w-3" />
         </Button>
         <Button
           type="button"
@@ -157,11 +157,11 @@ export const VideoPlaybackPrecedenceBar: React.FC<VideoPlaybackPrecedenceBarProp
           disabled={isAtTop}
           onClick={onMoveUp}
           data-testid="btn-move-video-bar-up"
-          className="h-6 text-[10px] px-2 gap-1 font-medium"
+          className="h-6 w-6 p-0 font-medium"
           title="Move video precedence earlier (up by one record)"
+          aria-label="Move video precedence earlier (up by one record)"
         >
-          <ChevronUp className="h-3 w-3" />
-          <span>Move Up</span>
+          <ChevronUp className="h-3.5 w-3.5" />
         </Button>
         <Button
           type="button"
@@ -170,11 +170,11 @@ export const VideoPlaybackPrecedenceBar: React.FC<VideoPlaybackPrecedenceBarProp
           disabled={isAtBottom}
           onClick={onMoveDown}
           data-testid="btn-move-video-bar-down"
-          className="h-6 text-[10px] px-2 gap-1 font-medium"
+          className="h-6 w-6 p-0 font-medium"
           title="Move video precedence later (down by one record)"
+          aria-label="Move video precedence later (down by one record)"
         >
-          <span>Move Down</span>
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDown className="h-3.5 w-3.5" />
         </Button>
         <Button
           type="button"
@@ -183,11 +183,11 @@ export const VideoPlaybackPrecedenceBar: React.FC<VideoPlaybackPrecedenceBarProp
           disabled={isAtBottom}
           onClick={onPlaceAtBottom}
           data-testid="btn-video-bar-bottom"
-          className="h-6 text-[10px] px-1.5 gap-1"
+          className="h-6 w-6 p-0"
           title="Place video after all languages (Video Last / TTS First)"
+          aria-label="Place video after all languages (Video Last / TTS First)"
         >
-          <Volume2 className="h-2.5 w-2.5" />
-          <span>Bottom</span>
+          <ArrowDown className="h-3 w-3" />
         </Button>
       </div>
     </div>

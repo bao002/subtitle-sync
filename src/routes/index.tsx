@@ -3751,18 +3751,29 @@ function Index() {
     new Set([...getInitialFavoriteLanguages(), ...getInitialTargetLanguages()]),
   );
   useEffect(() => {
-    const missingInShown = targetLanguages.filter((l) => !shown.includes(l));
-    if (missingInShown.length > 0) {
-      setShown((prev) => Array.from(new Set([...prev, ...missingInShown])));
-    }
+    setShown((prevShown) => {
+      const missingInShown = targetLanguages.filter((l) => !prevShown.includes(l));
+      const allFavs = Array.from(new Set([...favoriteLanguages, ...targetLanguages]));
+      const newFavsToDefault = allFavs.filter((lang) => !processedDefaultFavsRef.current.has(lang));
+      const toAdd = Array.from(new Set([...missingInShown, ...newFavsToDefault]));
+      if (toAdd.length === 0) return prevShown;
+      newFavsToDefault.forEach((l) => processedDefaultFavsRef.current.add(l));
+      return Array.from(new Set([...prevShown, ...toAdd]));
+    });
+
     const allFavs = Array.from(new Set([...favoriteLanguages, ...targetLanguages]));
     const newFavsToDefault = allFavs.filter((lang) => !processedDefaultFavsRef.current.has(lang));
     if (newFavsToDefault.length > 0) {
       newFavsToDefault.forEach((l) => processedDefaultFavsRef.current.add(l));
-      setShown((prev) => Array.from(new Set([...prev, ...newFavsToDefault])));
-      setSpoken((prev) => Array.from(new Set([...prev, ...newFavsToDefault])));
+      setSpoken((prevSpoken) => {
+        const next = Array.from(new Set([...prevSpoken, ...newFavsToDefault]));
+        if (prevSpoken.length === next.length && prevSpoken.every((c, i) => c === next[i])) {
+          return prevSpoken;
+        }
+        return next;
+      });
     }
-  }, [targetLanguages, favoriteLanguages, shown]);
+  }, [targetLanguages, favoriteLanguages]);
 
   useEffect(() => {
     if (themeWasSelectedRef.current) return;
@@ -4172,7 +4183,9 @@ function Index() {
     setLanguageOrder((prev) => {
       const targetSet = new Set([...targetLanguages, ...favoriteLanguages]);
       const remaining = prev.filter((c) => !targetSet.has(c));
-      return [...Array.from(targetSet), ...remaining];
+      const next = [...Array.from(targetSet), ...remaining];
+      if (prev.length === next.length && prev.every((c, i) => c === next[i])) return prev;
+      return next;
     });
   }, [targetLanguages, favoriteLanguages]);
 
@@ -9772,15 +9785,14 @@ function Index() {
                                                           type="button"
                                                           variant="ghost"
                                                           size="sm"
-                                                          className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground border border-border/50"
+                                                          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground border border-border/50"
                                                           disabled={idx === 0}
                                                           onClick={() => moveLanguage(langCode, -1)}
                                                           title={`Move ${meta?.name || langCode} earlier in TTS playback order`}
                                                           aria-label={`Move ${meta?.name || langCode} earlier in TTS playback order`}
                                                           data-testid={`stage-2-btn-move-lang-up-${langCode}`}
                                                         >
-                                                          <ChevronUp className="h-3 w-3 mr-0.5" />
-                                                          <span>Earlier</span>
+                                                          <ChevronUp className="h-4 w-4" />
                                                         </Button>
                                                         <Button
                                                           type="button"
@@ -9798,14 +9810,13 @@ function Index() {
                                                           aria-label={`Place video playing precedence before ${meta?.name || langCode}`}
                                                           data-testid={`btn-place-video-before-${langCode}`}
                                                         >
-                                                          <Film className="h-3 w-3 mr-1" />
-                                                          <span>Video Bar</span>
+                                                          <Film className="h-3.5 w-3.5" />
                                                         </Button>
                                                         <Button
                                                           type="button"
                                                           variant="ghost"
                                                           size="sm"
-                                                          className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground border border-border/50"
+                                                          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground border border-border/50"
                                                           disabled={
                                                             idx === orderedLearningCodes.length - 1
                                                           }
@@ -9814,8 +9825,7 @@ function Index() {
                                                           aria-label={`Move ${meta?.name || langCode} later in TTS playback order`}
                                                           data-testid={`stage-2-btn-move-lang-down-${langCode}`}
                                                         >
-                                                          <span>Later</span>
-                                                          <ChevronDown className="h-3 w-3 ml-0.5" />
+                                                          <ChevronDown className="h-4 w-4" />
                                                         </Button>
                                                       </div>
                                                     </div>

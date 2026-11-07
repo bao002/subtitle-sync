@@ -1,5 +1,37 @@
 # Done tasks
 
+### Task 333 (Prompts 100 & 101): Simplify Order Controls with Arrow Buttons & Hotfix Maximum Update Depth Exceeded
+
+- **Prompt**:
+  ```
+  simplify design - use just arrow buttons
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - `src/routes/index.tsx`:
+    - **Hotfix: Maximum update depth exceeded**: Removed `shown` from the dependency array of the synchronization effect at line 3753, utilizing functional updaters for `setShown` and `setSpoken` with value equality guards returning `prev` when arrays are identical to prevent re-render loops.
+    - Added array shallow-equality guard to `setLanguageOrder` effect (`prev.length === next.length && prev.every((c, i) => c === next[i])`).
+    - **Simplified Design (Arrow Buttons)**: Updated Stage 2 Learning Goals Order of Playing controls (`stage-2-btn-move-lang-up-${langCode}` and `stage-2-btn-move-lang-down-${langCode}`) by removing verbose "Earlier" and "Later" text labels and replacing them with compact, clean square icon arrow buttons (`<ChevronUp className="h-4 w-4" />` and `<ChevronDown className="h-4 w-4" />`).
+    - Made the video bar precedence anchor button compact with `<Film className="h-3.5 w-3.5" />`.
+  - `src/components/VideoPlaybackPrecedenceBar.tsx`:
+    - Simplified action buttons in the Video Precedence Bar (`btn-video-bar-top`, `btn-move-video-bar-up`, `btn-move-video-bar-down`, `btn-video-bar-bottom`) to use compact icon buttons with arrow indicators (`<ArrowUp />`, `<ChevronUp />`, `<ChevronDown />`, `<ArrowDown />`) without bulky text labels.
+  - Testing & Verification:
+    - Dedicated test `scripts/verify-simplified-order-arrows-and-loop-fix.ts` (`npm run test:simplified-order-arrows-and-loop-fix`) passed 100%.
+    - Verified `scripts/verify-learning-goals-component-design.ts` and `scripts/verify-row-criteria-outside-subtitles-table-scroll.ts` passed cleanly.
+    - Synchronized version `2.1.32` and verified compilation and linting with zero errors.
+
 ### Task 332 (Prompt 99): Move Row Criteria Outside subtitles-table-panel (Hidden when Scrolling Subtitles Table View)
 
 - **Prompt**:

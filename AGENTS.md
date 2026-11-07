@@ -132,14 +132,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-mv this element outside because it should be hidden when scrolling the subtitles-table-view
-Apply style changes to the selected element(s).
-Apply style changes to the selected element(s).
+Fix the errors in the app
 [AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div#subtitles-table-panel:nth-of-type(1) > div#subtitles-table-row-criteria-container:nth-of-type(2)
-CSS 1: {
-
-}
+fix_it_trigger: manual
+error 0: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
 [AIS_METADATA_SECTION_END]
 ```
 
