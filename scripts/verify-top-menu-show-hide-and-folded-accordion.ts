@@ -34,17 +34,17 @@ assert.match(
 );
 console.log("✅ PASS: Accordion elements are folded by default");
 
-// Test 2: Top Menu Show/Hide Buttons exist
+// Test 2: Top Menu Show/Hide Buttons exist for autofetch and log view
 console.log("Test 2: Verifying top menu show/hide buttons in header...");
 assert.match(
   indexContent,
-  /id=["']header-toggle-accordion-button["']/,
-  "Top menu must include header-toggle-accordion-button",
+  /id=["']header-toggle-autofetch-button["']/,
+  "Top menu must include header-toggle-autofetch-button",
 );
 assert.match(
   indexContent,
-  /data-testid=["']header-toggle-accordion-button["']/,
-  "header-toggle-accordion-button must have matching data-testid",
+  /data-testid=["'][^"']*header-toggle-autofetch-button[^"']*["']/,
+  "header-toggle-autofetch-button must have matching data-testid",
 );
 assert.match(
   indexContent,
@@ -53,7 +53,7 @@ assert.match(
 );
 assert.match(
   indexContent,
-  /data-testid=["']header-toggle-log-button["']/,
+  /data-testid=["'][^"']*header-toggle-log-button[^"']*["']/,
   "header-toggle-log-button must have matching data-testid",
 );
 console.log("✅ PASS: Top menu show/hide buttons exist in header");
@@ -72,19 +72,17 @@ assert.match(
 );
 console.log("✅ PASS: Bottom log viewer show/hide container wrapper verified");
 
-// Test 4: Accordion toggle handler toggles active stage accordion
-console.log("Test 4: Verifying handleToggleActiveAccordion handler...");
-assert.match(
-  indexContent,
-  /const\s+handleToggleActiveAccordion\s*=/,
-  "handleToggleActiveAccordion callback must be defined",
+// Test 4: Redundant accordion button is removed from header
+console.log("Test 4: Verifying redundant accordion toggle button is removed from header...");
+assert.ok(
+  !indexContent.includes('id="header-toggle-accordion-button"'),
+  "header-toggle-accordion-button must be removed from header menu",
 );
-assert.match(
-  indexContent,
-  /const\s+isCurrentAccordionOpen\s*=/,
-  "isCurrentAccordionOpen must determine whether the active stage accordion is open or folded",
+assert.ok(
+  !indexContent.includes('data-testid="header-toggle-accordion-button"'),
+  "header-toggle-accordion-button data-testid must be removed",
 );
-console.log("✅ PASS: Accordion toggle handler verified");
+console.log("✅ PASS: Redundant accordion button removed from header");
 
 console.log("=========================================================================");
 console.log("🎉 ALL TESTS PASSED: Top Menu Show/Hide Buttons & Folded Accordion Default (Task 335)");

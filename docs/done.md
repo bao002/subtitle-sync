@@ -1,6 +1,86 @@
 # Done tasks
 
-### Task 335 (Prompt 103): Top Menu Show/Hide Buttons for Log & Accordion + Accordion Folded by Default
+### Task 338 (Prompt 106): Remove Redundant Header Accordion Toggle Button
+
+- **Prompt**:
+  ```
+  it seems that you have mis-understood me - this button use redundunt.
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(4) > button#header-toggle-accordion-button:nth-of-type(3)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - `src/routes/index.tsx`:
+    - Removed the redundant `button#header-toggle-accordion-button` (`data-testid="header-toggle-accordion-button"`) from the header menu.
+    - Cleaned up unused helper state and callbacks (`isCurrentAccordionOpen`, `activeAccordionPanelId`, `handleToggleActiveAccordion`).
+    - Kept exactly the 2 required control hide/show buttons on the top header menu:
+      1. `header-toggle-autofetch-button` (Auto-Fetch subtitles widget toggle)
+      2. `header-toggle-log-button` (Activity & State Log view toggle)
+  - **Testing & Verification**:
+    - Created dedicated automated test `scripts/verify-remove-redundant-accordion-button.ts` (`npm run test:remove-redundant-accordion-button`).
+    - Updated `scripts/verify-top-menu-show-hide-and-folded-accordion.ts` (`npm run test:top-menu-show-hide-and-folded-accordion`).
+    - Verified all existing regression tests pass (`test:autofetch-and-log-hide-controls`, `test:learning-goals-list-presentation-minimal-text`).
+    - Synchronized version `2.1.37` across targets via `npm run sync-version`.
+    - Code compiled (`compile_applet`) and linted (`lint_applet`) cleanly with zero errors.
+
+
+### Task 337 (Prompt 105): Stage 2 Learning Goals Card List Presentation, Minimal Text & Icons-First
+
+- **Prompt**:
+  ```
+  prefer list presentation and minimal text . prefer icons then text .
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - `src/routes/index.tsx`:
+    - Targeted `div#stage-2-learning-goals-card` strictly without affecting surrounding page structure.
+    - **List Presentation**: Replaced multi-column grid wrap containers with clean, vertical list stacks (`flex flex-col space-y-1` and `space-y-1.5`) across all sections, specifically Ingredient 3 (TTS sentence blacklist) and Ingredient 4 (Sentence vs Word mode & strategy selector).
+    - **Minimal Text**: Eliminated verbose instructional text and paragraphs (e.g. removed long descriptions of base columns, translation grids, and playback skipping), keeping concise tokens, clean badges, and clear counters.
+    - **Icons-First**: Updated all section headers, item rows, control badges, and action buttons to place icons before text labels (`<Sparkles ... /> <span>Goals &amp; Narration</span>`, `<Globe ... /> <span>1. Default Source</span>`, `<Languages ... /> <span>2. Approved Languages</span>`, `<PlusCircle ... /> <span>Extend Favorites</span>`, `<ListOrdered ... /> <span>1. Playback Order</span>`, `<Gauge ... /> <span>2. TTS Ratios</span>`, `<VolumeX ... /> <span>3. Blacklist</span>`, `<Type ... /> <span>4. Sentence or Word</span>`, etc.).
+    - Maintained 100% contract compatibility with existing test IDs and event handlers (`stage-2-learning-goals-card`, `stage-2-ingredient-blacklist-section`, `stage-2-ingredient-sentence-word-section`, `stage-2-toggle-blacklist-${langCode}`, `zero-knowledge-toggle-${langCode}`, `pick-word-strategy-*`).
+  - **Testing & Verification**:
+    - Added dedicated test script `scripts/verify-learning-goals-list-presentation-minimal-text.ts` and registered `"test:learning-goals-list-presentation-minimal-text"` in `package.json`.
+    - Verified all existing regression test suites pass (`test:learning-goals-component-design`, `test:learning-goals-tts-order-and-video-bar`, `test:autofetch-and-log-hide-controls`).
+    - Synchronized version `2.1.36` across targets via `npm run sync-version`.
+    - Code compiled (`compile_applet`) and linted (`lint_applet`) cleanly with zero errors.
+
+
+### Task 336 (Prompt 104): Auto-Fetching Subtitles Folded & Hidden by Default, Bottom Log View Hidden by Default, and Header Menu Controls for Both
+
+- **Prompt**:
+  ```
+  on page refresh "Auto-Fetching Subtitles" still not folded and not hidden and the log view is not hidden and there are no 2 control hide/show buttons on the page's header menu
+  ```
+- **Context & Implementation**:
+  - `src/components/FloatingSubtitleRetryIndicator.tsx`:
+    - Updated `defaultMinimized = true` in props and initialized `isMinimized` to `defaultMinimized ?? true` so "Auto-Fetching Subtitles" accordion is folded by default.
+  - `src/routes/index.tsx`:
+    - **Hidden by default on refresh**:
+      - `showAutoFetchSubtitles`: Initialized to `false` (hidden on page refresh), checking session/localStorage, and updated toggle handler `handleToggleAutoFetchSubtitles`.
+      - `showBottomLogViewer`: Initialized to `false` (hidden on page refresh), checking session/localStorage, and updated toggle handler `handleToggleBottomLogViewer`.
+    - **DOM Visibility Wrappers**:
+      - Wrapped `FloatingSubtitleRetryIndicator` in `<div id="autofetch-subtitles-container" data-testid="autofetch-subtitles-container" className={showAutoFetchSubtitles ? "block" : "hidden"}>` with `defaultMinimized={true}`.
+      - `BottomLogViewer` wrapped in `<div id="bottom-log-viewer-container" data-testid="bottom-log-viewer-container" className={showBottomLogViewer ? "block" : "hidden"}>`.
+    - **Top Menu Header Controls**:
+      - Added `header-toggle-autofetch-button` (`data-testid="header-toggle-autofetch-button header-toggle-autofetch-subtitles-button"`) with visible `<span>Auto-Fetch</span>` and Eye/EyeOff icons to show/hide the Auto-Fetching Subtitles widget.
+      - Added/enhanced `header-toggle-log-button` (`data-testid="header-toggle-log-button"`) with visible `<span>Log View</span>` and Eye/EyeOff icons to show/hide the bottom activity & state log viewer.
+  - **Testing & Verification**:
+    - Dedicated test script `scripts/verify-autofetch-and-log-hide-controls.ts` (`npm run test:autofetch-and-log-hide-controls`).
+    - Verified `npm run test:top-menu-show-hide-and-folded-accordion` passes.
+    - Synchronized version `2.1.35` across targets via `npm run sync-version`.
+    - Build verified with `compile_applet` and lint verified with `lint_applet` (zero errors).
+
+
 
 - **Prompt**:
   ```

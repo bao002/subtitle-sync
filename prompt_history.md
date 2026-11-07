@@ -1375,7 +1375,41 @@ CSS 2: {
 
 }
 [AIS_METADATA_SECTION_END]
+---
+
+### Prompt 104: Auto-Fetching Subtitles Folded and Hidden by Default, Log View Hidden by Default, and Header Controls
 ```
+on page refresh "Auto-Fetching Subtitles" still not folded and not hidden and the log view is not hidden and there are no 2 control hide/show buttons on the page's header menu
+```
+
+---
+
+### Prompt 105: Stage 2 Learning Goals Card List Presentation, Minimal Text & Icons-First
+```
+prefer list presentation and minimal text . prefer icons then text .
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 106: Redundant Accordion Header Toggle Button Removal
+```
+it seems that you have mis-understood me - this button use redundunt.
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(4) > button#header-toggle-accordion-button:nth-of-type(3)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
 
 
 

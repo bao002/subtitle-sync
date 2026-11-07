@@ -6,7 +6,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-Task 335 (Prompt 103): Top Menu Show/Hide Buttons for Log & Accordion + Accordion Folded by Default in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
+Task 338 (Prompt 106): Remove Redundant Header Accordion Toggle Button in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
 
 ---
 
