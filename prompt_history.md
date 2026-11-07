@@ -1241,6 +1241,29 @@ error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.23 dev
 any one of the main stage's component - should apear only on his stage. i.e: the video - dont show anywhere else,same for the subtitles table and etc.
 ```
 
+---
+
+### Prompt 94: TTS Playback Order & In-Between Video Bar in Learning Goals
+```
+learning goals - is missing the component for set the order of tts-play and the the video bar in between to set to show time for each lang
+```
+
+---
+
+### Prompt 95: Remove Redundant Sequence Control Banner in Learning Goals (Focus Mode)
+```
+redundunt
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+
+
 
 
 

@@ -22,6 +22,12 @@ Object.defineProperty(globalThis, "localStorage", {
     setItem: (key: string, value: string) => values.set(key, value),
   },
 });
+(globalThis as any).window = {
+  localStorage: {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+  },
+};
 
 // Test 1: Preferences & overrides
 console.log("\n[Test 1] Testing preference persistence and validation...");

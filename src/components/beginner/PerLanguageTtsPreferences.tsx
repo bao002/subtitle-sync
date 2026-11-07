@@ -1,5 +1,5 @@
 import React from "react";
-import { Gauge, Languages, Film, Volume2, VolumeX } from "lucide-react";
+import { Gauge, Languages, Film, Volume2, VolumeX, ChevronUp, ChevronDown } from "lucide-react";
 import { getLanguageVoices, getUniqueVoiceKey, SpeechVoiceLike } from "@/utils/speechVoiceUtils";
 import {
   getLanguageTtsRatio,
@@ -43,6 +43,7 @@ interface PerLanguageTtsPreferencesProps {
   onOrderChange: (languageCode: string, order: SectionOrder) => void;
   onDefaultOrderChange?: (order: SectionOrder) => void;
   onVoiceChange: (languageCode: string, voiceURI: string) => void;
+  onMoveLanguage?: (languageCode: string, direction: -1 | 1) => void;
 }
 
 const ratioPresets = [1, 2, 3, 4, 5, 7, 10, 15, 20];
@@ -64,6 +65,7 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
   onOrderChange,
   onDefaultOrderChange,
   onVoiceChange,
+  onMoveLanguage,
 }) => {
   const effectivePrimary = primaryLang || languages[0]?.code || "";
   const primaryLangObj = languages.find((l) => l.code === effectivePrimary);
@@ -118,6 +120,7 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
         Choose narration frequency, speed, and device voice. Secondary languages are activated
         relative to the primary language.
       </p>
+
 
       {languages.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
@@ -339,6 +342,32 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                           <option value="longest">Longest word</option>
                           <option value="random">Random word</option>
                         </select>
+                      </div>
+                    )}
+                    {onMoveLanguage && (
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => onMoveLanguage(language.code, -1)}
+                          title={`Move ${language.name} earlier in TTS playback order`}
+                          aria-label={`Move ${language.name} earlier in TTS playback order`}
+                          data-testid={`beginner-btn-move-lang-up-${language.code}`}
+                          className="p-1 rounded border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronUp className="h-3 w-3" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={index === languages.length - 1}
+                          onClick={() => onMoveLanguage(language.code, 1)}
+                          title={`Move ${language.name} later in TTS playback order`}
+                          aria-label={`Move ${language.name} later in TTS playback order`}
+                          data-testid={`beginner-btn-move-lang-down-${language.code}`}
+                          className="p-1 rounded border border-border bg-background text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <ChevronDown className="h-3 w-3" />
+                        </button>
                       </div>
                     )}
                     <button

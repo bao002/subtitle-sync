@@ -4,6 +4,8 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
+
+
 - [ ] **Task 318 (Prompt 83 - Chapter 6): State Machine Actions in Log View with Clear & Copy-to-Clipboard**
   - Subtask 318.1: Feed state machine actions into log view with Clear and Copy-to-Clipboard buttons for easy issue reporting and log inspection.
   - Subtask 318.2: Dedicated automated test `scripts/verify-state-machine-log-actions-copy-clear.ts` (`npm run test:state-machine-log-actions-copy-clear`).

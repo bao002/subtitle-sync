@@ -1,5 +1,74 @@
 # Done tasks
 
+### Task 328 (Prompt 95): Remove Redundant Sequence Control Banner in Learning Goals (Focus Mode)
+
+- **Prompt**:
+  ```
+  redundunt
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(2) > div#stage-2-language-ratios-container:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - The focused element `div#stage-2-learning-goals-card > ... > div#stage-2-language-ratios-container > div:nth-of-type(2) > div:nth-of-type(1)` targeted the large `VideoLanguageSequenceControl` banner in Stage 2 Learning Goals.
+  - As flagged by user feedback ("redundunt"), having the extra `VideoLanguageSequenceControl` banner on top was redundant with the in-between `VideoPlaybackPrecedenceBar` and the per-language reordering controls (`ChevronUp` / `ChevronDown` and `btn-place-video-before-${langCode}`).
+  - `src/routes/index.tsx`:
+    - Removed `VideoLanguageSequenceControl` banner and unused `learningSpokenLangs` from Stage 2 Learning Goals.
+    - Preserved the clean in-between `VideoPlaybackPrecedenceBar` and the per-language reordering buttons.
+  - `src/components/beginner/PerLanguageTtsPreferences.tsx`:
+    - Enforced 100% parity by removing the redundant `VideoLanguageSequenceControl` banner from Beginner Mode Learning Goals.
+    - Preserved `VideoPlaybackPrecedenceBar` and language reordering controls.
+  - Tests & Verification:
+    - Updated `scripts/verify-learning-goals-tts-order-and-video-bar.ts` and `scripts/verify-video-precedence-replaces-redundant-order-controls.ts`.
+    - Bumped application version to `2.1.27` across all 5 single-source targets via `npm run sync-version`.
+    - Executed `npm run test:learning-goals-tts-order-and-video-bar`, `npm run test:video-playing-precedence-bar`, `npm run test:tts-language-playback-order`, `npm run test:learning-goals-language-ratios`, `compile_applet`, and `lint_applet` (all passed 100%).
+
+### Task 327 (Prompt 94): Include TTS Playback Order & In-Between Video Bar in Learning Goals
+
+- **Prompt**:
+  ```
+  learning goals - is missing the component for set the order of tts-play and the the video bar in between to set to show time for each lang
+  ```
+- **Context & Implementation**:
+  - `src/routes/index.tsx`:
+    - Imported `VideoLanguageSequenceControl`.
+    - Integrated `VideoLanguageSequenceControl` into `stage-2-learning-goals-card` (`#stage-2-language-ratios-container`) in Stage 2 Learning Goals, providing:
+      - 1-click presets: "Video First", "Video In-Between" (`btn-place-video-in-between`), and "Video After (TTS First)"
+      - Interactive visual sequence timeline flow (`visual-sequence-flow-timeline`)
+      - Interactive language sequence tags to toggle individual languages before/after video
+      - Stepper buttons (`btn-move-video-earlier` and `btn-move-video-later`)
+    - Integrated movable `VideoPlaybackPrecedenceBar` into Learning Goals (`#stage-2-language-ratios-container`):
+      - Renders at `activeLearningVideoBarIndex === 0` (top of list) and dynamically at `activeLearningVideoBarIndex === idx + 1` (in-between languages)
+      - Includes "Top", "Move Up", "Move Down", "Bottom" buttons to place the video playing bar at any point in the playback sequence
+    - Added per-language controls to every language row in Learning Goals:
+      - `stage-2-btn-move-lang-up-${langCode}` (`ChevronUp`): moves language earlier in TTS playback order
+      - `btn-place-video-before-${langCode}` (`Film`): places video playing precedence immediately before this language
+      - `stage-2-btn-move-lang-down-${langCode}` (`ChevronDown`): moves language later in TTS playback order
+    - Connected `onMoveLanguage={moveLanguage}` to `<PerLanguageTtsPreferences />` in Beginner Mode view props.
+  - `src/components/beginner/PerLanguageTtsPreferences.tsx`:
+    - Enforced strict 100% parity with Advanced Mode:
+      - Imported and rendered `<VideoLanguageSequenceControl />` above the language cards
+      - Added `onMoveLanguage` prop and added `beginner-btn-move-lang-up-${language.code}` (`ChevronUp`) and `beginner-btn-move-lang-down-${language.code}` (`ChevronDown`) reordering buttons to each language card
+      - Preserved and synchronized `VideoPlaybackPrecedenceBar` and the `btn-place-video-before-${language.code}` button.
+  - Tests & Versioning:
+    - Authored dedicated test `scripts/verify-learning-goals-tts-order-and-video-bar.ts` (`npm run test:learning-goals-tts-order-and-video-bar`).
+    - Added script `"test:learning-goals-tts-order-and-video-bar"` in `package.json`.
+    - Bumped application version to `2.1.26` across all 5 single-source version targets via `npm run sync-version`.
+- **Validation**:
+  - `npm run test:learning-goals-tts-order-and-video-bar`: PASSED (100% pass across all assertions).
+  - `npm run test:learning-goals-language-ratios`: PASSED.
+  - `npm run test:video-playing-precedence-bar`: PASSED.
+  - `npm run test:tts-language-playback-order`: PASSED.
+  - `npm run test:main-stage-components-isolated`: PASSED.
+  - `npm run check-version`: PASSED (2.1.26 in sync across all targets).
+  - `npm run test:agents-all`: PASSED (21/21 constitutional checks passed 100%).
+  - `compile_applet`: PASSED.
+  - `lint_applet`: PASSED.
+
 ### Task 326 (Prompt 93): Strict Main Stage Component Isolation (Video on Stage 3 Only, Subtitles Table on Stage 2 Only)
 
 - **Prompt**:

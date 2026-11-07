@@ -474,5 +474,6 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-vite-reload-and-ts2367-hotfix.ts`             | Vite Reload & TS2367 Comparison Hotfix Suite (Prompt 78)                          | Verifies clean module transforms for all 10 target files, elimination of TS2367 comparison errors, and version 2.1.8 synchronization. |
 | `scripts/verify-suppress-voice-to-tts-service.ts`             | Suppress Voice to TTS Service Verification Suite (Task 310, Prompt 80)             | Validates that voice parameter is suppressed from query parameters and POST request body across all TTS providers, audit records, and callers. |
 | `scripts/verify-auto-fetching-debug-experimental-stuff.ts`   | Auto-Fetching Subtitles Debug Verification Suite (Task 311, Prompt 81)            | Validates experimental fetch architecture display in FloatingSubtitleRetryIndicator: Server/Client origin badge, Session/No-Session badge, next attempt badge, and live debug toggles. |
+| `scripts/verify-learning-goals-tts-order-and-video-bar.ts`    | Learning Goals TTS Order & In-Between Video Bar Verification (Task 327, Prompt 94) | Asserts inclusion of VideoLanguageSequenceControl, VideoPlaybackPrecedenceBar, and language reordering controls in Learning Goals with 100% parity across Advanced and Beginner modes. |
 
 
