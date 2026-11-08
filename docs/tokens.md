@@ -6,11 +6,8 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 116 / Prompt 117 (Tasks 348-351):
-  - Task 348 (Chapter 0) [DONE]: Learning Goals - Set TTS Speed Rate Per Language (Native & External TTS Service).
-  - Task 349 (Chapter 1) [DONE]: Default to External TTS Service If Set & Validated (Remember Access Token).
-  - Task 350 (Chapter 2) [ACTIVE]: Header Import / Export Buttons (Complete Unredacted Config).
-  - Task 351 (Chapter 3) [PENDING]: Learning Goals Profiles Full CRUD.
+- Prompt 119 (Task 354) [ACTIVE]:
+  - Task 354 [ACTIVE]: Floating Alert Button Leads to Log Element, Inspect Error Message & Stack Trace, Copy All Log to Clipboard, Timestamp & State Machine Reproduction.
 - Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
 
 ---

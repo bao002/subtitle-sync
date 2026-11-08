@@ -1515,3 +1515,19 @@ app design - add toggle button on header to make background more diverse
 ```
 go on
 ```
+
+---
+
+### Prompt 118: Go On (CRUD Learning Goals Profiles), Ensure GitHub Actions Creation of README, Ignore Changes on Other Repo's README When Syncing Git
+```
+1. go on.
+2. ensure github action creation of README
+3. ignore changes on other repo's README.md when synching git
+```
+
+---
+
+### Prompt 119: Floating Alert Button Leads to Log Element, Inspect Error Message & Stack Trace, Copy All Log to Clipboard, Timestamp & State Machine Reproduction
+```
+clicking on the floating alert button will lead to the log element, to the relevant record where the user would be able to inspect the error message and the stack trace and also to copy all log to clipboard. using timestamp and state machine actions it would be possible to reproduce the error.
+```

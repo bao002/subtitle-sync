@@ -4,16 +4,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 350 (Prompt 116 / Prompt 117 - Chapter 2) [ACTIVE]: Add Import/Export Buttons to App Header (Unredacted Config)**
-  - Subtask 350.1: Add explicit Export and Import buttons in the header action toolbar (`data-testid="header-export-settings-button"` and `data-testid="header-import-settings-button"`) in `src/routes/index.tsx`.
-  - Subtask 350.2: Ensure exported settings JSON contains 100% of details without redacting tokens, keys, profiles, or video preferences in `src/utils/settingsBackupManager.ts`.
-  - Subtask 350.3: Add automated verification test `scripts/verify-header-import-export-unredacted.ts`, bump version to `2.1.47`, compile, lint, commit, and migrate to `docs/done.md`.
-
-- [ ] **Task 351 (Prompt 116 / Prompt 117 - Chapter 3) [PENDING]: Allow to CRUD Learning Goals Profiles**
-  - Subtask 351.1: Add `updateRatioComposition` to `src/utils/ratioCompositionsManager.ts` to allow updating/renaming existing learning goals profiles.
-  - Subtask 351.2: Expand `LanguageRatioCompositionSelector` and Learning Goals card to support complete CRUD operations: Create (Save as new), Read (Select/switch profile), Update (Edit/rename and update active profile), and Delete.
-  - Subtask 351.3: Add automated verification test `scripts/verify-learning-goals-profiles-crud.ts`, bump version to `2.1.48`, compile, lint, commit, and migrate to `docs/done.md`.
-
 - [ ] **Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique**
   - Subtask 312.1: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
   - Subtask 312.2: Update `src/components/FloatingSubtitleRetryIndicator.tsx` to cycle only between `random` and `ordered` modes, removing `server_alternate` option and tooltip.

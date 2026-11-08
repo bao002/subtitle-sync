@@ -1,5 +1,105 @@
 # Done tasks
 
+### Task 354 (Prompt 119): Floating Alert Button Leads to Log Element, Focused Record with Stack Trace & Reproduction Sequence, and Copy All Log
+
+- **Prompt**:
+  ```
+  clicking on the floating alert button will lead to the log element, to the relevant record where the user would be able to inspect the error message and the stack trace and also to copy all log to clipboard. using timestamp and state machine actions it would be possible to reproduce the error.
+  ```
+- **Context & Implementation**:
+  - **1. Floating Alert Button Click Lead-To Direct Behavior**:
+    - Enhanced `FloatingErrorButton.tsx` so clicking `floating-error-button` (`data-action="floating-alert-button"`) triggers `leadToLogRecord(latestError?.id)`.
+    - Added "Inspect in Log" button (`data-testid="btn-lead-to-log-record"` / `lead-to-log-element-btn`) in each error item within the floating error dialog and dialog header.
+    - Added "Copy All Log" button (`data-testid="copy-all-log-clipboard-btn"`) in dialog header.
+  - **2. Bottom Log Viewer Expansion, Highlighting & Diagnostics**:
+    - In `src/routes/index.tsx`, added window event listener for `"lead-to-log-record"` that switches `showBottomLogViewer` to `true` and persists the state across sessions.
+    - In `src/components/BottomLogViewer.tsx`:
+      - Listens to `"lead-to-log-record"`, automatically expands the log view (`setIsExpanded(true)`), switches filter to `"ALL"`, and smoothly scrolls the targeted record into view.
+      - Focused record is highlighted with distinct ring and badge (`data-testid="bottom-log-focused-record"`).
+      - Renders exact error message (`data-testid="log-record-error-message"`), preformatted stack trace (`data-testid="log-record-stack-trace"`), and timestamp (`data-testid="log-record-timestamp"`).
+      - Displays chronological preceding state machine actions leading up to the error timestamp for step-by-step reproduction (`data-testid="log-record-reproduction-sequence"`).
+      - Added "Copy All Log to Clipboard" button (`data-testid="bottom-log-copy-all-button"`) in header bar.
+  - **3. Ring Buffer Enhancements in `src/utils/logBuffer.ts`**:
+    - Added `stack?: string` field to `LogEntry`. Automatically extracts stack trace from errors or captures stack at `logError` call site.
+    - Added `getPrecedingActions(timestamp, limit)` to extract the exact sequence of state machine transitions prior to the failure for reproduction.
+    - Added `generateTroubleshootingPrompt()` formatting complete diagnostic reports including state machine action histories and stack traces.
+    - Exported `leadToLogRecord()` and `copyAllLogToClipboard()`.
+  - **4. Verification & Testing**:
+    - Authored dedicated automated test suite `scripts/verify-floating-alert-leads-to-log.ts` (`npm run test:floating-alert-leads-to-log`). Passed 100%.
+    - Synchronized version to `v2.1.51` (code `20151`).
+    - Verified compilation (`compile_applet`) and linting (`lint_applet`).
+
+### Task 353 (Prompt 118 - Chapter 3): Ignore Changes on Other Repo's README.md When Syncing Git
+
+- **Prompt**:
+  ```
+  3. ignore changes on other repo's README.md when synching git
+  ```
+- **Context & Implementation**:
+  - **1. `.gitattributes` Merge Driver Protection**:
+    - Created `.gitattributes` in repository root defining:
+      ```gitattributes
+      README.md merge=ours
+      ```
+    - Configures Git to always favor our local repository's generated `README.md` and discard incoming changes to `README.md` whenever merging, pulling, or rebasing across branches, forks, or upstream repositories.
+  - **2. Policy Codification across Specifications**:
+    - **`AGENTS.md`**: Updated mandatory project delivery rule:
+      *"When syncing git, ignore changes on other repo's `README.md` (enforced via `.gitattributes` with `README.md merge=ours`); `README.md` MUST NOT be copied or overwritten."*
+    - **`docs/operations/ACTIONS.md` Section 4.7**: Detailed the rationale and mechanics of ignoring external `README.md` modifications during git synchronization to protect live CI status blocks and dynamic links.
+    - **`docs/self-verification.md` Sanity Check 8**: Updated to explicitly verify both the git sync exclusion policy and the merge=ours `.gitattributes` protection.
+  - **3. Verification & Testing**:
+    - Authored dedicated automated test suite `scripts/verify-ignore-other-repo-readme-on-sync.ts` (`npm run test:ignore-other-repo-readme-on-sync`). Passed 100%.
+    - Verified `npm run test:readme-git-sync-rule`. Passed 100%.
+    - Synchronized version to `v2.1.50` (code `20150`).
+    - Verified compilation (`compile_applet`).
+
+### Task 352 (Prompt 118 - Chapter 2): Ensure GitHub Action Creation of README
+
+- **Prompt**:
+  ```
+  2. ensure github action creation of README
+  ```
+- **Context & Implementation**:
+  - **1. Automatic Creation from Scratch in `scripts/update-readme.mjs`**:
+    - Reordered repository identity resolution (`targetOwner` and `targetRepo`) ahead of the file creation gate.
+    - If `README.md` is absent or untracked, `scripts/update-readme.mjs` automatically creates a fully compliant basic minimalist README meeting all requirements (<= 15 lines, < 1000 bytes, link to `./docs/`, link to GitHub Pages demo, and link to GitHub Pages Android emulator report).
+    - Fork environments correctly embed the fork's own owner and repository names directly upon creation.
+  - **2. GitHub Action Workflow Hardening in `.github/workflows/update-readme.yml`**:
+    - Guaranteed pre-generation check: `if [ ! -f README.md ]; then node scripts/update-readme.mjs; fi` so README exists before broken links validation (`test:readme-links`) executes.
+    - Updated git detection: Replaced `git diff --exit-code README.md` with `git add README.md` followed by `git diff --cached --quiet`. This ensures that newly created untracked README files are indexed, detected, committed (`chore(docs): synchronize README.md repository identity and CI status`), and pushed to origin.
+  - **3. Verification & Testing**:
+    - Authored dedicated automated test suite `scripts/verify-github-action-readme-creation.ts` (`npm run test:github-action-readme-creation`). Passed 100%.
+    - Synchronized version to `v2.1.49` (code `20149`).
+    - Verified compilation (`compile_applet`).
+
+### Task 351 (Prompt 118 - Chapter 1 / "go on"): Allow to CRUD Learning Goals Profiles
+
+- **Prompt**:
+  ```
+  1. go on.
+  (Context: 3. allow to CRUD learning goals profiles from Prompt 116)
+  ```
+- **Context & Implementation**:
+  - **1. Full CRUD in `src/utils/ratioCompositionsManager.ts`**:
+    - **Create**: `saveRatioComposition(name, ratios, profileConfig)` stores custom profile with unique ID, language ratios, speeds, sentence limits, and active status.
+    - **Read**: `getStoredRatioCompositions()` retrieves both built-in presets and user profiles; `getActiveRatioCompositionId()` retrieves current selection.
+    - **Update**: `updateRatioComposition(id, updates)` updates profile name, language ratios, per-language speech rates (`rates`), max words per sentence, and order precedence.
+    - **Delete**: `deleteRatioComposition(id)` deletes custom profiles and resets active profile cleanly to default.
+  - **2. Complete CRUD UI in `LanguageRatioCompositionSelector`**:
+    - Dropdown `<select data-testid="ratio-compositions-dropdown">` (Read / Switch).
+    - Save Profile Form: `open-save-profile-button`, `save-profile-name-input`, and `confirm-save-profile-button` (Create).
+    - Update Values Button: `update-active-profile-button` (Update settings / speech rates / ratios for current custom profile).
+    - Rename Inline Form: `edit-profile-name-button`, `edit-profile-name-input`, and `confirm-edit-profile-button` (Update name).
+    - Delete Button: `delete-custom-profile-button` (Delete custom profile).
+  - **3. Application-Wide Integration & Stage 1 Parity**:
+    - Wired `onUpdateProfile={handleUpdateRatioComposition}` across both video controls locations in `src/routes/index.tsx`.
+    - Integrated `LanguageRatioCompositionSelector` into Stage 1 Learning Goals "3. Narration & Ratios" header.
+    - Created dedicated Storybook story `src/components/LanguageRatioCompositionSelector.stories.tsx`.
+  - **4. Verification & Testing**:
+    - Implemented dedicated automated test `scripts/verify-learning-goals-profiles-crud.ts` (`npm run test:learning-goals-profiles-crud`). All steps passed 100%.
+    - Synchronized version to `v2.1.48` (code `20148`).
+    - Verified compilation (`compile_applet`).
+
 ### Task 350 (Prompt 116 / Prompt 117 - Chapter 2): Add Import/Export Buttons to App Header (Unredacted Details)
 
 - **Prompt**:

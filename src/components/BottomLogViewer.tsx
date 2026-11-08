@@ -1,6 +1,6 @@
-import React, { useState, useSyncExternalStore } from "react";
-import { Activity, AlertTriangle, Check, Copy, Trash2, ChevronUp, ChevronDown, ListFilter } from "lucide-react";
-import { getLogEntriesSnapshot, logBuffer, subscribeToLogEntries, type LogEntry } from "@/utils/logBuffer";
+import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import { Activity, AlertTriangle, Check, Copy, Trash2, ChevronUp, ChevronDown, ListFilter, Workflow } from "lucide-react";
+import { getLogEntriesSnapshot, logBuffer, subscribeToLogEntries, copyAllLogToClipboard, type LogEntry } from "@/utils/logBuffer";
 import { Button } from "@/components/ui/button";
 
 function formatDetails(details: unknown): string {
@@ -29,6 +29,43 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const [filterLevel, setFilterLevel] = useState<"ALL" | "ACTIONS_ERRORS">("ALL");
+  const [focusedEntryId, setFocusedEntryId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  // Listen for lead-to-log-record event from floating alert button or modals
+  useEffect(() => {
+    const handleLeadToLog = (event: Event) => {
+      const customEvent = event as CustomEvent<{ entryId?: string }>;
+      const targetId = customEvent.detail?.entryId;
+
+      setIsExpanded(true);
+      if (targetId) {
+        setFocusedEntryId(targetId);
+        // Switch filter to ALL so the record is guaranteed to be rendered
+        setFilterLevel("ALL");
+
+        setTimeout(() => {
+          const el = document.getElementById(`bottom-log-entry-${targetId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+          } else {
+            const viewer = document.getElementById("bottom-log-viewer");
+            viewer?.scrollIntoView({ behavior: "smooth", block: "end" });
+          }
+        }, 120);
+      } else {
+        setTimeout(() => {
+          const viewer = document.getElementById("bottom-log-viewer");
+          viewer?.scrollIntoView({ behavior: "smooth", block: "end" });
+        }, 80);
+      }
+    };
+
+    window.addEventListener("lead-to-log-record", handleLeadToLog);
+    return () => {
+      window.removeEventListener("lead-to-log-record", handleLeadToLog);
+    };
+  }, []);
 
   const visibleEntries = entries.filter((entry) => {
     if (filterLevel === "ACTIONS_ERRORS") {
@@ -41,9 +78,15 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
 
   const handleCopyAll = async () => {
     try {
-      await navigator.clipboard.writeText(logBuffer.copyAll());
-      setCopyStatus("copied");
-      setTimeout(() => setCopyStatus("idle"), 2500);
+      const ok = await copyAllLogToClipboard();
+      if (ok) {
+        setCopyStatus("copied");
+        setTimeout(() => setCopyStatus("idle"), 2500);
+      } else {
+        await navigator.clipboard.writeText(logBuffer.copyAll());
+        setCopyStatus("copied");
+        setTimeout(() => setCopyStatus("idle"), 2500);
+      }
     } catch {
       setCopyStatus("failed");
       setTimeout(() => setCopyStatus("idle"), 2500);
@@ -52,6 +95,7 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
 
   const handleClear = () => {
     logBuffer.clear();
+    setFocusedEntryId(null);
   };
 
   return (
@@ -98,7 +142,7 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
           )}
         </div>
 
-        {/* Action Controls: Copy, Clear, and Filter */}
+        {/* Action Controls: Copy All, Clear, and Filter */}
         <div className="flex items-center gap-1.5 shrink-0">
           {isExpanded && (
             <div className="flex items-center border border-border rounded-md overflow-hidden bg-background mr-1 text-[11px]">
@@ -133,22 +177,35 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
             type="button"
             size="sm"
             variant="outline"
-            data-testid="bottom-log-copy-button"
+            data-testid="bottom-log-copy-all-button"
             onClick={() => void handleCopyAll()}
-            className="h-7 px-2 text-[11px] flex items-center gap-1"
-            title="Copy log to clipboard"
+            className="h-7 px-2.5 text-[11px] flex items-center gap-1.5 font-medium border-rose-500/40 text-foreground hover:bg-rose-500/10"
+            title="Copy all activity log, timestamps, state machine actions and reproduction data to clipboard"
           >
             {copyStatus === "copied" ? (
               <>
                 <Check className="h-3 w-3 text-emerald-500" />
-                <span>Copied</span>
+                <span>Copied All!</span>
               </>
             ) : (
               <>
-                <Copy className="h-3 w-3" />
-                <span>Copy Log</span>
+                <Copy className="h-3 w-3 text-rose-500" />
+                <span>Copy All Log to Clipboard</span>
               </>
             )}
+          </Button>
+
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-testid="bottom-log-copy-button"
+            onClick={() => void handleCopyAll()}
+            className="h-7 px-2 text-[11px] hidden sm:flex items-center gap-1"
+            title="Copy log to clipboard"
+          >
+            <Copy className="h-3 w-3" />
+            <span>Copy</span>
           </Button>
 
           <Button
@@ -171,26 +228,45 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
       {isExpanded && (
         <div
           id="bottom-log-content"
+          ref={containerRef}
           data-testid="bottom-log-content"
-          className="border-t border-border/60 bg-muted/20 max-h-64 sm:max-h-80 overflow-y-auto p-2 sm:p-3 space-y-1.5 text-xs font-mono"
+          className="border-t border-border/60 bg-muted/20 max-h-80 sm:max-h-96 overflow-y-auto p-2 sm:p-3 space-y-2 text-xs font-mono"
         >
           {visibleEntries.length === 0 ? (
             <p className="text-center py-4 text-xs text-muted-foreground" data-testid="bottom-log-empty">
               No state machine or activity logs recorded yet.
             </p>
           ) : (
-            <ol className="divide-y divide-border/40" data-testid="bottom-log-list">
+            <ol className="space-y-2" data-testid="bottom-log-list">
               {[...visibleEntries].reverse().map((entry: LogEntry) => {
                 const isError = entry.level === "ERROR";
                 const isAction = entry.level === "ACTION";
+                const isFocused = focusedEntryId === entry.id;
+                const precedingActions = isError ? logBuffer.getPrecedingActions(entry.timestamp, 5) : [];
+
                 return (
-                  <li key={entry.id} className="py-1.5 px-2 hover:bg-muted/40 rounded transition-colors">
-                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                      <time className="text-[10px] text-muted-foreground">
-                        {new Date(entry.timestamp).toLocaleTimeString()}
+                  <li
+                    key={entry.id}
+                    id={`bottom-log-entry-${entry.id}`}
+                    data-testid={isFocused ? "bottom-log-focused-record" : `bottom-log-record-${entry.id}`}
+                    className={`py-2 px-2.5 rounded transition-colors border ${
+                      isFocused
+                        ? "bg-rose-500/15 border-rose-500 shadow-md ring-2 ring-rose-500/40"
+                        : isError
+                          ? "bg-rose-500/5 border-rose-500/30 hover:bg-rose-500/10"
+                          : "bg-background/60 border-border/50 hover:bg-muted/40"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                      <time
+                        data-testid="log-record-timestamp"
+                        className="text-[10px] font-mono text-muted-foreground font-semibold"
+                        title={`Timestamp: ${entry.timestamp} ms`}
+                      >
+                        {entry.formattedTime} ({entry.timestamp}ms)
                       </time>
                       <span
-                        className={`text-[9px] font-bold px-1 py-0.2 rounded uppercase ${
+                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase font-mono ${
                           isError
                             ? "bg-destructive/20 text-destructive border border-destructive/30"
                             : isAction
@@ -200,13 +276,65 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
                       >
                         {entry.level}
                       </span>
-                      <span className="text-[11px] font-semibold text-foreground">{entry.category}</span>
-                      <span className="text-[11px] text-foreground/90 break-words">{entry.message}</span>
+                      <span className="text-[11px] font-semibold text-foreground">[{entry.category}]</span>
+                      <span
+                        data-testid={isError ? "log-record-error-message" : undefined}
+                        className={`text-[11px] break-words ${
+                          isError ? "font-semibold text-destructive" : "text-foreground/90"
+                        }`}
+                      >
+                        {entry.message}
+                      </span>
+                      {isFocused && (
+                        <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-rose-500 text-white px-1.5 py-0.5 rounded">
+                          Focused Error
+                        </span>
+                      )}
                     </div>
+
+                    {/* Stack Trace block for Errors */}
+                    {isError && entry.stack && (
+                      <div className="mt-1.5">
+                        <div className="text-[10px] font-bold text-destructive flex items-center gap-1">
+                          <span>Stack Trace:</span>
+                        </div>
+                        <pre
+                          data-testid="log-record-stack-trace"
+                          className="mt-0.5 whitespace-pre-wrap break-words rounded bg-destructive/10 p-2 font-mono text-[10px] text-destructive border border-destructive/30 overflow-x-auto max-h-36"
+                        >
+                          {entry.stack}
+                        </pre>
+                      </div>
+                    )}
+
+                    {/* Preceding State Machine Actions for error reproduction */}
+                    {isError && precedingActions.length > 0 && (
+                      <div
+                        data-testid="log-record-reproduction-sequence"
+                        className="mt-2 rounded bg-sky-950/20 border border-sky-500/30 p-2 space-y-1"
+                      >
+                        <div className="text-[10px] font-bold text-sky-600 dark:text-sky-300 flex items-center gap-1.5">
+                          <Workflow className="h-3 w-3" />
+                          <span>Preceding State Machine Actions for Reproduction ({precedingActions.length} steps):</span>
+                        </div>
+                        <ol className="space-y-0.5 pl-3 list-decimal text-[10px] text-muted-foreground">
+                          {precedingActions.map((action, actIdx) => (
+                            <li key={action.id || actIdx} className="leading-tight">
+                              <span className="font-mono text-foreground font-semibold">[{action.formattedTime}]</span>{" "}
+                              <span className="text-sky-700 dark:text-sky-300 font-medium">[{action.category}]</span>{" "}
+                              <span className="text-foreground/90">{action.message}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+
                     {entry.details !== undefined && (
-                      <pre className="mt-1 whitespace-pre-wrap break-words rounded bg-background/80 p-1.5 text-[10px] text-muted-foreground border border-border/50">
-                        {formatDetails(entry.details)}
-                      </pre>
+                      <div className="mt-1">
+                        <pre className="whitespace-pre-wrap break-words rounded bg-background/80 p-1.5 text-[10px] text-muted-foreground border border-border/50">
+                          {formatDetails(entry.details)}
+                        </pre>
+                      </div>
                     )}
                   </li>
                 );
@@ -218,3 +346,4 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
     </footer>
   );
 };
+

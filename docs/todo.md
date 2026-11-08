@@ -1,6 +1,6 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
-- **Status**: [ACTIVE]
-- **Active Task**: Task 350 (Prompt 116 / Prompt 117 - Chapter 2): Add Import/Export Buttons to App Header (Unredacted Details).
-- **Active Subtask**: Subtask 350.1 - 350.3: Add header Export and Import buttons in `src/routes/index.tsx`, ensure 100% complete unredacted settings in `src/utils/settingsBackupManager.ts`, implement dedicated test `scripts/verify-header-import-export-unredacted.ts`, and migrate to docs/done.md.
-- **Next Step**: Add header buttons and unredacted backup manager fields.
+- **Status**: [IDLE - ALL PROMPT 119 TASKS COMPLETED]
+- **Completed Task**: Task 354 (Prompt 119): Floating alert button leads to log element, inspect error message and stack trace, copy all log to clipboard, timestamp and state machine reproduction sequence.
+- **Verification**: `npm run test:floating-alert-leads-to-log` (100% passed).
+- **Next Step**: Awaiting next user prompt.

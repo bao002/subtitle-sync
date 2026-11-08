@@ -81,7 +81,7 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Project-specific delivery
 
-- **README.md is to be created by GitHub Actions — do not copy it when syncing git**: `README.md` is to be created and dynamically updated by GitHub Actions (via `.github/workflows/update-readme.yml` and `scripts/update-readme.mjs`). When syncing git, **`README.md` MUST NOT be copied or overwritten**.
+- **README.md is to be created by GitHub Actions — do not copy it when syncing git**: `README.md` is to be created and dynamically updated by GitHub Actions (via `.github/workflows/update-readme.yml` and `scripts/update-readme.mjs`). When syncing git, **ignore changes on other repo's `README.md`** (enforced via `.gitattributes` with `README.md merge=ours`); **`README.md` MUST NOT be copied or overwritten**.
 - **App version updates & single source of truth**: The app version number must not stay 1.0 always; it should be updated when delivering updates for prompt response. `package.json` is the authoritative single place of truth for the application version. Downstream TypeScript files (`src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) derive `APP_VERSION` from `package.json`, and `android-shell/app/build.gradle.kts` is automatically synchronized via `npm run sync-version` and GitHub Actions (`.github/workflows/version-sync.yml`).
 - **Strict UI & Web-Demo Design Preservation Mandate**: NEVER alter, redesign, replace, re-theme, or disrupt the user interface, page layout, component structure, or web-demo design without explicit user confirmation and request. The clean, original web-demo layout MUST remain intact.
 ### Android app E2E validation, screencast video & GitHub Pages reporting
@@ -132,14 +132,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-go on
+clicking on the floating alert button will lead to the log element, to the relevant record where the user would be able to inspect the error message and the stack trace and also to copy all log to clipboard. using timestamp and state machine actions it would be possible to reproduce the error.
 ```
-
-
-
-
-
-
-
-
 

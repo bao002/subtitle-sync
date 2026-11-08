@@ -19,31 +19,8 @@ import path from "path";
  *   VIDEO_SIZE_BYTES
  */
 
-const readmePath = path.resolve(process.cwd(), "README.md");
-
-if (!fs.existsSync(readmePath)) {
-  console.warn("⚠️ README.md not found, creating default basic minimalist README.md at:", readmePath);
-  fs.writeFileSync(
-    readmePath,
-    "# Subtitle Sync\n\n1. [Docs](./docs/)\n2. [Demo Website (GitHub Pages)](https://mostuf2556.github.io/subtitle-sync/)\n3. [Report (GitHub Pages)](https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html)\n",
-    "utf8",
-  );
-}
-
-let content = fs.readFileSync(readmePath, "utf8");
-
 let targetOwner = "mostuf2556";
 let targetRepo = "subtitle-sync";
-
-// Detect from existing README badges or links if not passed
-const ownerMatch =
-  content.match(/https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)\/actions/) ||
-  content.match(/https:\/\/([a-zA-Z0-9_\-]+)\.github\.io\/([a-zA-Z0-9_\-]+)/) ||
-  content.match(/https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)/);
-if (ownerMatch && ownerMatch[1] && ownerMatch[2]) {
-  targetOwner = ownerMatch[1];
-  targetRepo = ownerMatch[2];
-}
 
 if (process.env.GITHUB_REPOSITORY) {
   const [envOwner, envRepo] = process.env.GITHUB_REPOSITORY.split("/");
@@ -65,6 +42,31 @@ if (process.argv[2]) {
 
 if (process.argv[3]) {
   targetRepo = process.argv[3];
+}
+
+const readmePath = path.resolve(process.cwd(), "README.md");
+
+if (!fs.existsSync(readmePath)) {
+  console.warn("⚠️ README.md not found, creating default basic minimalist README.md at:", readmePath);
+  fs.writeFileSync(
+    readmePath,
+    `# Subtitle Sync\n\n1. [Docs](./docs/)\n2. [Demo Website (GitHub Pages)](https://${targetOwner}.github.io/${targetRepo}/)\n3. [Report (GitHub Pages)](https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html)\n`,
+    "utf8",
+  );
+}
+
+let content = fs.readFileSync(readmePath, "utf8");
+
+// Detect from existing README badges or links if not passed
+if (!process.env.GITHUB_REPOSITORY && !process.env.GITHUB_REPOSITORY_OWNER && !process.argv[2]) {
+  const ownerMatch =
+    content.match(/https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)\/actions/) ||
+    content.match(/https:\/\/([a-zA-Z0-9_\-]+)\.github\.io\/([a-zA-Z0-9_\-]+)/) ||
+    content.match(/https:\/\/github\.com\/([a-zA-Z0-9_\-]+)\/([a-zA-Z0-9_\-]+)/);
+  if (ownerMatch && ownerMatch[1] && ownerMatch[2]) {
+    targetOwner = ownerMatch[1];
+    targetRepo = ownerMatch[2];
+  }
 }
 
 // 1. Update GitHub badge and action workflow links:
