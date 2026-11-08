@@ -64,26 +64,21 @@ const customUrl = buildLovableTtsUrl("Subtitle phrase", "es", {
 });
 const customParsed = new URL(customUrl);
 assert.equal(customParsed.searchParams.get("provider"), "lovable");
-assert.equal(customParsed.searchParams.get("voice"), "Puck");
+// Note: per Task 310 / Prompt 80 prompt policy, voice parameter is suppressed in queries to TTS service
+assert.equal(customParsed.searchParams.get("voice"), null);
 assert.equal(customParsed.searchParams.get("target_lang"), "fr");
 assert.equal(customParsed.searchParams.get("format"), "binary");
 
-// 5. Google Translate TTS URL Generation
-console.log("5. Checking Google Translate TTS URL generation...");
+// 5. Google Translate TTS URL Generation (Deprecated - returns empty string)
+console.log("5. Checking Google Translate TTS URL generation (deprecated)...");
 const gUrl = buildGoogleTranslateTtsUrl("Hello world", "en");
-assert.ok(gUrl.startsWith("https://translate.google.com/translate_tts"));
-assert.ok(gUrl.includes("tl=en"));
-assert.ok(gUrl.includes("q=Hello%20world"));
+assert.equal(gUrl, "", "Direct Google Translate TTS is deprecated and returns empty string");
 
 // 6. Alternative TTS Engine Dispatch
 console.log("6. Checking engine dispatch logic...");
-const lovableEngineUrl = buildAlternativeTtsUrl("Sample phrase", "he", "lovable");
+const lovableEngineUrl = buildAlternativeTtsUrl("Sample phrase", "he");
 assert.ok(lovableEngineUrl.startsWith("https://tts3.lovable.app/api/public/tts"));
 assert.ok(lovableEngineUrl.includes("lang=he"));
-
-const googleEngineUrl = buildAlternativeTtsUrl("Sample phrase", "he", "google_translate");
-assert.ok(googleEngineUrl.startsWith("https://translate.google.com/translate_tts"));
-assert.ok(googleEngineUrl.includes("tl=he"));
 
 // 7. Text Length Clamping (OpenAPI spec: max 5000 chars)
 console.log("7. Checking text truncation up to OpenAPI 5000 limit...");

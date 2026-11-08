@@ -108,12 +108,14 @@ assert.ok(
   "BeginnerPreferencesTab must link to LOVABLE_TTS_DOCS_URL",
 );
 
+const ttsPanelPath = path.resolve(process.cwd(), "src/components/TtsServiceSettingsPanel.tsx");
+const ttsPanelContent = fs.readFileSync(ttsPanelPath, "utf-8");
+assert.ok(
+  ttsPanelContent.includes('data-testid="lovable-tts-docs-link"'),
+  "Advanced mode settings must render lovable-tts-docs-link in TtsServiceSettingsPanel",
+);
 const indexPath = path.resolve(process.cwd(), "src/routes/index.tsx");
 const indexContent = fs.readFileSync(indexPath, "utf-8");
-assert.ok(
-  indexContent.includes('data-testid="lovable-tts-docs-link"'),
-  "Advanced mode settings must render lovable-tts-docs-link",
-);
 console.log("✅ PASS: Chapter 0 Lovable TTS Docs compliance verified.");
 
 // -----------------------------------------------------------------------------
@@ -240,14 +242,14 @@ assert.strictEqual(records[0].response.status, 200);
 assert.strictEqual(records[0].response.durationMs, 142);
 assert.strictEqual(records[0].response.headers["content-type"], "audio/mpeg");
 
-// Verify debugger panel is present in both BeginnerPreferencesTab and index.tsx
+// Verify debugger panel is present in both BeginnerPreferencesTab and Advanced mode (via TtsServiceSettingsPanel or index.tsx)
 assert.ok(
   beginnerTabContent.includes("<ExternalTtsDebuggerPanel"),
   "BeginnerPreferencesTab must render <ExternalTtsDebuggerPanel />",
 );
 assert.ok(
-  indexContent.includes("<ExternalTtsDebuggerPanel"),
-  "src/routes/index.tsx must render <ExternalTtsDebuggerPanel /> in Advanced mode",
+  ttsPanelContent.includes("<ExternalTtsDebuggerPanel") || indexContent.includes("<ExternalTtsDebuggerPanel"),
+  "Advanced mode (via TtsServiceSettingsPanel or index.tsx) must render <ExternalTtsDebuggerPanel />",
 );
 console.log("✅ PASS: Chapter 2 External TTS Debugger verified.");
 
@@ -267,7 +269,10 @@ assert.ok(gradleText.includes(`versionName = "${APP_VERSION}"`), "build.gradle.k
 
 const appSettingsPath = path.resolve(process.cwd(), "src/utils/appSettings.ts");
 const appSettingsText = fs.readFileSync(appSettingsPath, "utf-8");
-assert.ok(appSettingsText.includes(`version: "${APP_VERSION}"`), "appSettings.ts snapshot version must match APP_VERSION");
+assert.ok(
+  appSettingsText.includes(`version: APP_VERSION`) || appSettingsText.includes(`version: "${APP_VERSION}"`),
+  "appSettings.ts snapshot version must match APP_VERSION",
+);
 
 console.log(`✅ PASS: App version ${APP_VERSION} synchronized across all 5 files.`);
 

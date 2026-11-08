@@ -6,7 +6,8 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-Task 339 (Prompt 108): Ensure README Updated Correctly in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
+- Task 341 (Prompt 110 - Chapter 1): Fix Floating Play/Pause Button State & Play Click Handler in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
+- Task 342 (Prompt 110 - Chapter 2): Persist Learning Goals & Per-Language Settings Across App Init On Video Share in [`docs/tasks.md`](tasks.md).
 
 ---
 

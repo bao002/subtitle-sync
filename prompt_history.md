@@ -1421,7 +1421,18 @@ go on
 ensure readme updated correctly
 ```
 
+---
 
+### Prompt 109: Update TTS Service According to its OpenAPI Specification (openapi.json)
+```
+update tts service according its openapi.json
+```
 
+---
 
+### Prompt 110: Floating Play/Pause Button State & Video Share Learning Goals Persistence
+```
+1. the floating button should show the state of the (tts-play&video-player) player but clicking on play doent do anything.
 
+2. the learning-goals including  each language settings is doesnt seems to be remember between app init when triggering the app via a video share with the app
+```
