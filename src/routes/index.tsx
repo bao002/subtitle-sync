@@ -346,6 +346,9 @@ import {
   setTtsBlacklist,
   isLanguageTtsBlacklisted,
   extractLanguageCodeString,
+  getTtsVolumesPreference,
+  setTtsVolumePreference as saveTtsVolumePreference,
+  getLanguageTtsVolume,
   getZeroKnowledgeInLang,
   setZeroKnowledgeInLang,
   toggleZeroKnowledgeInLang,
@@ -551,12 +554,17 @@ function speak(
   voiceURI: string,
   row: number,
   onProgress: (value: SpeechProgress) => void,
+  volume?: number,
 ) {
   return new Promise<void>((res) => {
     void (async () => {
       if (!text) return res();
 
       const normalizedRate = Math.max(0.25, Math.min(2.5, rate || 1.0));
+      const normalizedVolume =
+        typeof volume === "number" && Number.isFinite(volume)
+          ? Math.max(0, Math.min(1, volume))
+          : 1.0;
       const useAltTts = typeof window !== "undefined" && getUseAlternativeTts();
       const altTtsMode = typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only";
       const altEngine = typeof window !== "undefined" ? getAlternativeTtsEngine() : "lovable";
@@ -590,6 +598,7 @@ function speak(
             {
               tts3Provider: altProvider,
               isAnonymous: typeof window !== "undefined" ? getAlternativeTtsAnonymousMode() : false,
+              volume: normalizedVolume,
             },
           );
           if (outcome !== "none") {
@@ -663,6 +672,7 @@ function speak(
                       {
                         provider: altProvider || "google",
                         speed: altSpeed,
+                        volume: normalizedVolume,
                       },
                     );
                   } catch (fallbackErr) {
@@ -708,6 +718,7 @@ function speak(
                 {
                   provider: altProvider || "google",
                   speed: altSpeed,
+                  volume: normalizedVolume,
                 },
               );
               onProgress(null);
@@ -746,6 +757,7 @@ function speak(
               {
                 provider: altProvider,
                 speed: altSpeed,
+                volume: normalizedVolume,
               },
             );
             onProgress(null);
@@ -773,6 +785,7 @@ function speak(
         }
         const u = new SpeechSynthesisUtterance(text);
         u.rate = normalizedRate;
+        u.volume = normalizedVolume;
 
         const v =
           chosenVoice ??
@@ -828,6 +841,13 @@ function speak(
 
         u.onend = () => done(false);
         u.onerror = (event) => {
+          // When playback is paused or speech is cancelled intentionally (e.g. window.speechSynthesis.cancel()),
+          // the browser standardly fires onerror with 'interrupted' or 'canceled'.
+          // Treat intentional interruption as normal completion without logging an error or triggering alternative fallback.
+          if (event.error === "interrupted" || event.error === "canceled") {
+            void done(false);
+            return;
+          }
           logError("State Machine", "Native speech synthesis failed", {
             videoId:
               (typeof window !== "undefined" &&
@@ -1274,6 +1294,12 @@ function Index() {
       ...Object.entries(getTtsRatesPreference()),
     ]),
   );
+  const [ttsVolumes, setTtsVolumes] = useState<Record<string, number>>(() =>
+    Object.fromEntries([
+      ...LANGS.map((lang) => [lang.code, 1.0] as const),
+      ...Object.entries(getTtsVolumesPreference()),
+    ]),
+  );
   const [useAlternativeTtsState, setUseAlternativeTtsState] = useState<boolean>(() =>
     typeof window !== "undefined" ? getUseAlternativeTts() : false,
   );
@@ -1358,9 +1384,10 @@ function Index() {
       const name = langMeta?.name?.split("(")[0]?.trim() || langCode;
       const rate = rates[langCode] ?? 0.8;
       const voiceURI = voiceSelections[langCode] || "";
-      void speak(name, langCode, rate, voiceURI, -1, () => {});
+      const volume = getLanguageTtsVolume(ttsVolumes, langCode);
+      void speak(name, langCode, rate, voiceURI, -1, () => {}, volume);
     },
-    [speakLanguageNameOnFetch, isAndroid, rates, voiceSelections],
+    [speakLanguageNameOnFetch, isAndroid, rates, voiceSelections, ttsVolumes],
   );
 
   const handleImportTrackFromPlayground = useCallback(
@@ -1597,7 +1624,8 @@ function Index() {
           } catch {
             // ignore
           }
-          await speak(pickedWord, lang, rate, voice, -1, () => {});
+          const vol = getLanguageTtsVolume(ttsVolumes, lang);
+          await speak(pickedWord, lang, rate, voice, -1, () => {}, vol);
           if (
             wordTranslation &&
             wordTranslation.trim().length > 0 &&
@@ -1610,14 +1638,16 @@ function Index() {
             const baseTtsLang = baseTtsMeta?.tts || baseLanguage || "en";
             const baseRate = rates[baseLanguage] ?? 0.8;
             const baseVoice = voiceSelections[baseLanguage] ?? "";
-            await speak(wordTranslation, baseTtsLang, baseRate, baseVoice, -1, () => {});
+            const baseVol = getLanguageTtsVolume(ttsVolumes, baseLanguage);
+            await speak(wordTranslation, baseTtsLang, baseRate, baseVoice, -1, () => {}, baseVol);
           }
         })();
       } else {
-        void speak(text, lang, rate, voice, -1, () => {});
+        const vol = getLanguageTtsVolume(ttsVolumes, lang);
+        void speak(text, lang, rate, voice, -1, () => {}, vol);
       }
     },
-    [rates, voiceSelections, baseLanguage, isAndroid],
+    [rates, voiceSelections, baseLanguage, isAndroid, ttsVolumes],
   );
 
   const applyCriteriaNow = useCallback(
@@ -2300,6 +2330,12 @@ function Index() {
           saveTtsRatePreference(l, r);
         }
       }
+      if (comp.volumes && Object.keys(comp.volumes).length > 0) {
+        setTtsVolumes((prev) => ({ ...prev, ...comp.volumes }));
+        for (const [l, v] of Object.entries(comp.volumes)) {
+          saveTtsVolumePreference(l, v);
+        }
+      }
       if (comp.ttsLanguageOrders && Object.keys(comp.ttsLanguageOrders).length > 0) {
         setTtsLanguageOrders((prev) => ({ ...prev, ...comp.ttsLanguageOrders }));
         saveTtsLanguageOrdersPreference(comp.ttsLanguageOrders);
@@ -2311,6 +2347,7 @@ function Index() {
           maxWordsPerSentence: comp.maxWordsPerSentence,
           skipIncompleteSentences: comp.skipIncompleteSentences,
           ttsRates: comp.rates,
+          ttsVolumes: comp.volumes,
           ttsLanguageOrders: comp.ttsLanguageOrders,
         });
       }
@@ -2329,6 +2366,7 @@ function Index() {
           skipIncompleteSentences: simpleParserConfig.skipIncompleteSentences,
           sectionOrder,
           rates,
+          volumes: ttsVolumes,
           ttsLanguageOrders,
         });
         setStoredCompositions(getStoredRatioCompositions());
@@ -2346,6 +2384,7 @@ function Index() {
       simpleParserConfig.skipIncompleteSentences,
       sectionOrder,
       rates,
+      ttsVolumes,
       ttsLanguageOrders,
     ],
   );
@@ -2357,6 +2396,7 @@ function Index() {
           ...updates,
           ratios: updates.ratios || ttsRatios,
           rates: updates.rates || rates,
+          volumes: updates.volumes || ttsVolumes,
           sectionOrder: updates.sectionOrder || sectionOrder,
           maxWordsPerSentence:
             updates.maxWordsPerSentence !== undefined
@@ -2380,6 +2420,7 @@ function Index() {
     [
       ttsRatios,
       rates,
+      ttsVolumes,
       sectionOrder,
       simpleParserConfig.maxWordsPerSentence,
       simpleParserConfig.skipIncompleteSentences,
@@ -2576,6 +2617,17 @@ function Index() {
         ...globalRates,
         ...curr,
         ...(settings?.ttsRates || {}),
+      };
+    });
+
+    const globalVolumes = getTtsVolumesPreference();
+    setTtsVolumes((curr) => {
+      const baseDefaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 1.0] as const));
+      return {
+        ...baseDefaults,
+        ...globalVolumes,
+        ...curr,
+        ...(settings?.ttsVolumes || {}),
       };
     });
 
@@ -4641,6 +4693,7 @@ function Index() {
     isSetupPaused,
     baseLanguage,
     ttsBlacklist,
+    ttsVolumes,
   });
   st.current = {
     rows,
@@ -4657,6 +4710,7 @@ function Index() {
     isSetupPaused,
     baseLanguage,
     ttsBlacklist,
+    ttsVolumes,
   };
 
   const [useAlternativePlayerView, setUseAlternativePlayerView] = useState<boolean>(() => {
@@ -4825,9 +4879,10 @@ function Index() {
       const ttsLang = langMeta?.tts || langCode;
       const rate = rates[langCode] ?? 1.0;
       const voice = voiceSelections[langCode] ?? "";
-      speak(textToSpeak, ttsLang, rate, voice, active >= 0 ? active : 0, setSpeechProgress);
+      const volume = getLanguageTtsVolume(ttsVolumes, langCode);
+      speak(textToSpeak, ttsLang, rate, voice, active >= 0 ? active : 0, setSpeechProgress, volume);
     },
-    [active, rates, voiceSelections, isAndroid],
+    [active, rates, voiceSelections, isAndroid, ttsVolumes],
   );
 
   const playerEl = useRef<HTMLDivElement>(null);
@@ -5440,6 +5495,7 @@ function Index() {
                   });
 
                   // 1. Pronounce the picked word in the target language
+                  const wordVol = getLanguageTtsVolume(st.current.ttsVolumes || ttsVolumes, l.code);
                   const speakWordPromise = speak(
                     pickedWord,
                     l.tts,
@@ -5447,6 +5503,7 @@ function Index() {
                     voiceSelections[l.code] ?? "",
                     rowIdx,
                     setSpeechProgress,
+                    wordVol,
                   );
                   await Promise.race([
                     speakWordPromise,
@@ -5466,6 +5523,10 @@ function Index() {
                     const baseTtsLang = baseTtsMeta?.tts || baseLanguage || "en";
                     const baseRate = rates[baseLanguage] ?? 1.0;
                     const baseVoice = voiceSelections[baseLanguage] ?? "";
+                    const baseVol = getLanguageTtsVolume(
+                      st.current.ttsVolumes || ttsVolumes,
+                      baseLanguage,
+                    );
 
                     const speakTransPromise = speak(
                       wordTranslation,
@@ -5474,6 +5535,7 @@ function Index() {
                       baseVoice,
                       rowIdx,
                       setSpeechProgress,
+                      baseVol,
                     );
                     await Promise.race([
                       speakTransPromise,
@@ -5481,6 +5543,7 @@ function Index() {
                     ]);
                   }
                 } else {
+                  const rowVol = getLanguageTtsVolume(st.current.ttsVolumes || ttsVolumes, l.code);
                   const speakPromise = speak(
                     rawText,
                     l.tts,
@@ -5488,6 +5551,7 @@ function Index() {
                     voiceSelections[l.code] ?? "",
                     rowIdx,
                     setSpeechProgress,
+                    rowVol,
                   );
                   await Promise.race([
                     speakPromise,
@@ -11366,6 +11430,270 @@ function Index() {
                                               })}
                                             </div>
                                           </div>
+
+                                          {/* Ingredient 6: Custom Volume per Translation (0% – 100%) */}
+                                          <div
+                                            data-testid="stage-2-ingredient-volume-section"
+                                            className="p-2.5 rounded-lg bg-card/80 border border-border/80 space-y-1.5 shadow-xs"
+                                          >
+                                            <div className="flex items-center justify-between border-b border-border/40 pb-1">
+                                              <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground uppercase tracking-wider">
+                                                <Volume2 className="h-3.5 w-3.5 text-primary" />
+                                                <span>6. Volume per Translation (0% – 100%)</span>
+                                              </div>
+                                              <span className="text-[10px] text-muted-foreground font-mono">
+                                                Custom volume
+                                              </span>
+                                            </div>
+
+                                            <div className="flex flex-col space-y-1.5 pt-0.5">
+                                              {orderedLearningCodes.map((langCode) => {
+                                                const meta =
+                                                  LANGS.find((l) => l.code === langCode) ||
+                                                  SUPPORTED_LANGUAGES_CATALOG.find(
+                                                    (l) => l.code === langCode,
+                                                  );
+                                                const currentVolume = getLanguageTtsVolume(
+                                                  ttsVolumes,
+                                                  langCode,
+                                                );
+                                                const volumePercent = Math.round(
+                                                  currentVolume * 100,
+                                                );
+                                                const isMuted = volumePercent === 0;
+
+                                                return (
+                                                  <div
+                                                    key={`volume-${langCode}`}
+                                                    data-testid={`stage-2-volume-row-${langCode}`}
+                                                    className="p-2 rounded-md bg-background/80 border border-border/60 space-y-1.5"
+                                                  >
+                                                    <div
+                                                      data-testid={`stage-2-volume-slider-container-${langCode}`}
+                                                      className="space-y-1.5"
+                                                    >
+                                                      <div className="flex items-center justify-between text-xs">
+                                                        <div className="flex items-center gap-1.5 font-medium text-foreground">
+                                                          <Languages className="h-3.5 w-3.5 text-primary shrink-0" />
+                                                          <span>
+                                                            {meta?.name || langCode.toUpperCase()}
+                                                          </span>
+                                                          <span className="text-[10px] text-muted-foreground font-mono">
+                                                            ({langCode})
+                                                          </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                          <span
+                                                            data-testid={`stage-2-volume-display-${langCode}`}
+                                                            className={`font-mono text-xs font-bold ${
+                                                              isMuted
+                                                                ? "text-destructive"
+                                                                : "text-primary"
+                                                            }`}
+                                                          >
+                                                            {isMuted
+                                                              ? "0% (Muted)"
+                                                              : `${volumePercent}%`}
+                                                          </span>
+                                                          <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            data-testid={`stage-2-volume-mute-toggle-${langCode}`}
+                                                            aria-label={`Toggle mute for ${meta?.name || langCode}`}
+                                                            title={
+                                                              isMuted
+                                                                ? "Unmute (restore to 100%)"
+                                                                : "Mute (set to 0%)"
+                                                            }
+                                                            onClick={() => {
+                                                              const nextVol = isMuted ? 1.0 : 0.0;
+                                                              const next = {
+                                                                ...ttsVolumes,
+                                                                [langCode]: nextVol,
+                                                              };
+                                                              setTtsVolumes(next);
+                                                              saveTtsVolumePreference(
+                                                                langCode,
+                                                                nextVol,
+                                                              );
+                                                              if (videoId) {
+                                                                saveVideoSettings(videoId, {
+                                                                  ttsVolumes: {
+                                                                    [langCode]: nextVol,
+                                                                  },
+                                                                });
+                                                              }
+                                                            }}
+                                                            className="h-5 w-5 rounded text-muted-foreground hover:text-foreground"
+                                                          >
+                                                            {isMuted ? (
+                                                              <VolumeX className="h-3 w-3 text-destructive" />
+                                                            ) : (
+                                                              <Volume2 className="h-3 w-3 text-emerald-500" />
+                                                            )}
+                                                          </Button>
+                                                        </div>
+                                                      </div>
+
+                                                      <div className="flex items-center gap-1.5">
+                                                        <Button
+                                                          type="button"
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          data-testid={`stage-2-volume-decrement-${langCode}`}
+                                                          aria-label={`Decrease volume for ${meta?.name || langCode}`}
+                                                          title="Decrease volume by 10%"
+                                                          disabled={currentVolume <= 0}
+                                                          onClick={() => {
+                                                            const nextVol = Math.max(
+                                                              0,
+                                                              Math.round(
+                                                                (currentVolume - 0.1) * 100,
+                                                              ) / 100,
+                                                            );
+                                                            const next = {
+                                                              ...ttsVolumes,
+                                                              [langCode]: nextVol,
+                                                            };
+                                                            setTtsVolumes(next);
+                                                            saveTtsVolumePreference(
+                                                              langCode,
+                                                              nextVol,
+                                                            );
+                                                            if (videoId) {
+                                                              saveVideoSettings(videoId, {
+                                                                ttsVolumes: { [langCode]: nextVol },
+                                                              });
+                                                            }
+                                                          }}
+                                                          className="h-6 w-6 rounded text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted"
+                                                        >
+                                                          <Minus className="h-3 w-3" />
+                                                        </Button>
+
+                                                        <input
+                                                          type="range"
+                                                          min={0}
+                                                          max={1}
+                                                          step={0.05}
+                                                          value={currentVolume}
+                                                          data-testid={`stage-2-volume-slider-${langCode}`}
+                                                          aria-label={`TTS volume slider for ${meta?.name || langCode}`}
+                                                          onChange={(e) => {
+                                                            const val = Math.max(
+                                                              0,
+                                                              Math.min(
+                                                                1,
+                                                                Math.round(
+                                                                  Number(e.target.value) * 100,
+                                                                ) / 100,
+                                                              ),
+                                                            );
+                                                            const next = {
+                                                              ...ttsVolumes,
+                                                              [langCode]: val,
+                                                            };
+                                                            setTtsVolumes(next);
+                                                            saveTtsVolumePreference(langCode, val);
+                                                            if (videoId) {
+                                                              saveVideoSettings(videoId, {
+                                                                ttsVolumes: { [langCode]: val },
+                                                              });
+                                                            }
+                                                          }}
+                                                          className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                                        />
+
+                                                        <Button
+                                                          type="button"
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          data-testid={`stage-2-volume-increment-${langCode}`}
+                                                          aria-label={`Increase volume for ${meta?.name || langCode}`}
+                                                          title="Increase volume by 10%"
+                                                          disabled={currentVolume >= 1}
+                                                          onClick={() => {
+                                                            const nextVol = Math.min(
+                                                              1,
+                                                              Math.round(
+                                                                (currentVolume + 0.1) * 100,
+                                                              ) / 100,
+                                                            );
+                                                            const next = {
+                                                              ...ttsVolumes,
+                                                              [langCode]: nextVol,
+                                                            };
+                                                            setTtsVolumes(next);
+                                                            saveTtsVolumePreference(
+                                                              langCode,
+                                                              nextVol,
+                                                            );
+                                                            if (videoId) {
+                                                              saveVideoSettings(videoId, {
+                                                                ttsVolumes: { [langCode]: nextVol },
+                                                              });
+                                                            }
+                                                          }}
+                                                          className="h-6 w-6 rounded text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted"
+                                                        >
+                                                          <Plus className="h-3 w-3" />
+                                                        </Button>
+                                                      </div>
+
+                                                      {/* Quick Volume Presets */}
+                                                      <div className="flex items-center gap-1 pt-0.5 overflow-x-auto">
+                                                        <span className="text-[9px] text-muted-foreground">
+                                                          Presets:
+                                                        </span>
+                                                        {[0.0, 0.25, 0.5, 0.75, 1.0].map(
+                                                          (volVal) => {
+                                                            const pctLabel = `${Math.round(volVal * 100)}%`;
+                                                            const isCurrent =
+                                                              Math.abs(currentVolume - volVal) <
+                                                              0.03;
+                                                            return (
+                                                              <button
+                                                                key={volVal}
+                                                                type="button"
+                                                                data-testid={`stage-2-volume-btn-${langCode}-${Math.round(volVal * 100)}`}
+                                                                onClick={() => {
+                                                                  const next = {
+                                                                    ...ttsVolumes,
+                                                                    [langCode]: volVal,
+                                                                  };
+                                                                  setTtsVolumes(next);
+                                                                  saveTtsVolumePreference(
+                                                                    langCode,
+                                                                    volVal,
+                                                                  );
+                                                                  if (videoId) {
+                                                                    saveVideoSettings(videoId, {
+                                                                      ttsVolumes: {
+                                                                        [langCode]: volVal,
+                                                                      },
+                                                                    });
+                                                                  }
+                                                                }}
+                                                                className={`px-1.5 py-0.2 rounded text-[9px] font-mono transition-colors cursor-pointer ${
+                                                                  isCurrent
+                                                                    ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                                                                    : "text-muted-foreground/70 hover:text-foreground bg-muted/30"
+                                                                }`}
+                                                                title={`Set volume to ${pctLabel}`}
+                                                              >
+                                                                {pctLabel}
+                                                              </button>
+                                                            );
+                                                          },
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
                                         </div>
                                       );
                                     })()}
@@ -11554,6 +11882,13 @@ function Index() {
                                         </th>
                                         <th
                                           className="font-normal text-center py-1.5 px-1.5"
+                                          data-testid="th-volume"
+                                          title="TTS speech volume (0% - 100%)"
+                                        >
+                                          Vol
+                                        </th>
+                                        <th
+                                          className="font-normal text-center py-1.5 px-1.5"
                                           title="Foreign subtitle TTS play frequency ratio"
                                         >
                                           TTS Ratio
@@ -11592,7 +11927,7 @@ function Index() {
                                       {activeVideoBarIndex === 0 && (
                                         <VideoPlaybackPrecedenceBar
                                           asTableRow
-                                          colSpan={9}
+                                          colSpan={10}
                                           currentPosition={0}
                                           totalRecords={orderedLangs.length}
                                           onMoveUp={() => handleSetVideoBarPosition(0)}
@@ -11748,6 +12083,37 @@ function Index() {
                                                       value={rateVal.toFixed(1)}
                                                     >
                                                       {rateVal.toFixed(1)}×
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              </td>
+                                              <td className="text-center py-1 px-1.5">
+                                                <select
+                                                  aria-label={`${lang.name} speech volume`}
+                                                  data-testid={`tts-volume-select-${lang.code}`}
+                                                  value={Math.round(
+                                                    getLanguageTtsVolume(ttsVolumes, lang.code) *
+                                                      100,
+                                                  )}
+                                                  onChange={(e) => {
+                                                    recordUserInteraction(Date.now());
+                                                    const val = Number(e.target.value) / 100;
+                                                    setTtsVolumes((current) => ({
+                                                      ...current,
+                                                      [lang.code]: val,
+                                                    }));
+                                                    saveTtsVolumePreference(lang.code, val);
+                                                    if (videoId) {
+                                                      saveVideoSettings(videoId, {
+                                                        ttsVolumes: { [lang.code]: val },
+                                                      });
+                                                    }
+                                                  }}
+                                                  className="rounded border border-input bg-background px-1.5 py-0.5 text-xs text-foreground cursor-pointer font-mono"
+                                                >
+                                                  {[100, 80, 60, 40, 20, 0].map((volPct) => (
+                                                    <option key={volPct} value={volPct}>
+                                                      {volPct}%
                                                     </option>
                                                   ))}
                                                 </select>
@@ -11999,7 +12365,7 @@ function Index() {
                                                 data-testid={`url-input-row-${lang.code}`}
                                                 className="bg-primary/5 border-y border-primary/20"
                                               >
-                                                <td colSpan={9} className="p-2.5">
+                                                <td colSpan={10} className="p-2.5">
                                                   <div className="space-y-2 max-w-xl text-xs">
                                                     <div className="flex items-center justify-between">
                                                       <span className="font-semibold text-foreground flex items-center gap-1.5">
@@ -12160,7 +12526,7 @@ function Index() {
                                             {activeVideoBarIndex === index + 1 && (
                                               <VideoPlaybackPrecedenceBar
                                                 asTableRow
-                                                colSpan={9}
+                                                colSpan={10}
                                                 currentPosition={index + 1}
                                                 totalRecords={orderedLangs.length}
                                                 onMoveUp={() => handleSetVideoBarPosition(index)}

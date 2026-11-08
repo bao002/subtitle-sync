@@ -1,5 +1,63 @@
 # Done tasks
 
+### Hotfix (Prompt 130): Handle SpeechSynthesis Utterance Interrupted and Canceled Gracefully
+
+- **Bug Report / Complaint**:
+  - Runtime diagnostic state: Speech synthesis emitted `[ERROR] [State Machine] Native speech synthesis failed | Details: {"lang":"he-IL","row":0,"error":"interrupted"}` at `u.onerror` when video/speech was paused (`PLAYBACK_PAUSE_REQUESTED` with `reason: "speech-active"`).
+- **Root Cause**:
+  - When playback is paused or speech is cancelled intentionally (`cancelSpeech()` invoking `window.speechSynthesis.cancel()`), the W3C Web Speech API standardly fires `onerror` on the active `SpeechSynthesisUtterance` with `event.error === "interrupted"` or `event.error === "canceled"`.
+  - In `src/routes/index.tsx`, `u.onerror` unconditionally called `logError("State Machine", "Native speech synthesis failed", ...)` and invoked `done(true)` (which triggered an unwanted `fallbackToAlternative()` playback after an intentional user pause).
+- **Implementation**:
+  - `src/routes/index.tsx`:
+    - Updated `u.onerror` in `speak()` to check `if (event.error === "interrupted" || event.error === "canceled")`. If interrupted or canceled, it cleanly calls `void done(false)` and returns early without logging an error and without triggering alternative TTS fallback.
+  - `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`:
+    - Updated audition `utterance.onerror` to check `if (e?.error === "interrupted" || e?.error === "canceled")`, resetting auditioning state without firing unwanted fallback audio.
+- **Testing & Verification**:
+  - Authored dedicated automated test suite `scripts/verify-speech-interrupted-graceful-handling.ts` (`npm run test:speech-interrupted-graceful-handling`) verifying graceful handling, zero error logs on pause/cancel, and correct failure delegation for genuine errors.
+  - Single source of truth version updated to `v2.1.59` (version code `20159`).
+  - Co-executed `compile_applet` and `lint_applet` passing with zero errors.
+
+### Task 361 (Prompt 128 & Prompt 129): Allow Custom Volume per Translation (Stage 2 Card)
+
+- **Prompt**:
+  ```
+  allow to set custom volume per translation
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - `src/lib/playback-preferences.ts`:
+    - Added `getTtsVolumesPreference`, `setTtsVolumePreference`, `saveTtsVolumePreference`, and `getLanguageTtsVolume` supporting custom volume (0.0 to 1.0) with localStorage key `yt_tts_volumes_v1`.
+  - `src/utils/appSettings.ts`:
+    - Added `ttsVolumes?: Record<string, number>` to `VideoSpecificSettings` and persisted per-video volume configurations in `saveVideoSettings`.
+  - `src/utils/ratioCompositionsManager.ts`:
+    - Added `volumes?: Record<string, number>` to `LanguageRatioComposition` and `LearningProfileConfig` so learning profiles save and restore custom volume per translation.
+  - `src/lib/alternative-tts.ts`:
+    - Added `volume?: number` option to `executeTtsFallbackSequence` and forwarded it to `playAlternativeTtsAudio` (`audio.volume = effectiveVolume`).
+  - `src/routes/index.tsx`:
+    - Updated `speak()` function to accept `volume?: number` and set `u.volume = normalizedVolume` for Web Speech API and forwarded volume to fallback sequences.
+    - Added Ingredient 6: Custom Volume per Translation (`data-testid="stage-2-ingredient-volume-section"`) to the Stage 2 Learning Goals card (`#stage-2-learning-goals-card`) with:
+      - `data-testid="stage-2-volume-row-${langCode}"`
+      - `data-testid="stage-2-volume-slider-container-${langCode}"`
+      - `data-testid="stage-2-volume-display-${langCode}"` (with percentage and muted indicator)
+      - `data-testid="stage-2-volume-mute-toggle-${langCode}"` (quick mute/unmute)
+      - `data-testid="stage-2-volume-decrement-${langCode}"` & `data-testid="stage-2-volume-increment-${langCode}"`
+      - `data-testid="stage-2-volume-slider-${langCode}"`
+      - `data-testid="stage-2-volume-btn-${langCode}-${volVal}"` quick preset buttons (0%, 25%, 50%, 75%, 100%)
+    - Added `Vol` column (`data-testid="th-volume"`) and volume selector (`data-testid="tts-volume-select-${lang.code}"`) in the unified languages table.
+    - Updated `st.current` ref and main playback loop (`playLanguageSequenceSection`, `speakFetchedLanguageName`, `handleSpeakCue`, `handleSpeakTextFromAlternativeView`) to pass language volume to `speak()`.
+  - `src/utils/settingsBackupManager.ts`:
+    - Included `ttsVolumes` in `createApplicationSettingsBackup` and `importApplicationSettings`.
+- **Testing & Verification**:
+  - Authored dedicated automated test suite `scripts/verify-custom-volume-per-translation.ts` (`npm run test:custom-volume-per-translation`) passing 100%.
+  - Synchronized single source of truth version to `v2.1.58` (code `20158`) across `package.json` and `android-shell/app/build.gradle.kts`.
+  - Verified `compile_applet` and `lint_applet` pass with zero errors.
+
 ### Task 360 (Prompt 127): Subtitles Table First Column Running Index
 
 - **Prompt**:

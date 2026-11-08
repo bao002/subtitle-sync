@@ -1608,3 +1608,42 @@ CSS 1: {
 }
 [AIS_METADATA_SECTION_END]
 ```
+
+---
+
+### Prompt 129: Go On (Execute Task 361 Custom Volume per Translation)
+```
+go on
+```
+
+---
+
+### Prompt 130: Bug Report & Troubleshooting - Native Speech Synthesis Interrupted
+```
+# Bug Report & Troubleshooting Prompt for AI Developer
+
+## User Complaint / Reported Issue
+> [No specific complaint text entered — complete runtime diagnostic state requested]
+
+## Diagnostic Metadata
+- **Current URL**: https://ais-dev-yrmij74sdbm5g56jwggc24-93170524797.europe-west2.run.app/?v=L2Ryrr6txwA&target_lang=en&tts=1
+- **User Agent**: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36
+- **Recorded Log Count**: 20 events (Ring Buffer, max 500)
+
+## 1. Live Application State Snapshot
+[State provider not registered]
+
+## 2. Network Activity & TimedText Requests (0 requests)
+*No external network requests recorded (using offline/demo fixtures).*
+
+## 2.5 State Machine Actions Sequence for Reproduction (8 actions)
+1. [00:29:32.186] (ts: 1794176972186) [Interception] Initializing YouTube Player iframe element | Details: {"videoId":"L2Ryrr6txwA","isInterceptorReady":true}
+2. [00:29:32.413] (ts: 1794176972413) [State Machine] PLAYBACK_PAUSE_REQUESTED | Details: {"videoId":"L2Ryrr6txwA","reason":"user"}
+3. [00:29:38.563] (ts: 1794176978563) [State Machine] PLAYER_STATE_CHANGED | Details: {"videoId":"L2Ryrr6txwA","playerState":1}
+4. [00:29:40.347] (ts: 1794176980347) [State Machine] TTS_SECTION_STARTED | Details: {"videoId":"L2Ryrr6txwA","sectionId":"80:1839","rowIndex":0,"languages":["he","it","es","fr","ru","ar","pt-BR"]}
+5. [00:29:40.443] (ts: 1794176980443) [State Machine] PLAYER_STATE_CHANGED | Details: {"videoId":"L2Ryrr6txwA","playerState":2}
+6. [00:29:47.545] (ts: 1794176987545) [State Machine] PLAYBACK_PAUSE_REQUESTED | Details: {"videoId":"L2Ryrr6txwA","reason":"speech-active"}
+7. [00:29:47.598] (ts: 1794176987598) [State Machine] Native speech synthesis failed | Details: {"lang":"he-IL","row":0,"error":"interrupted"}
+8. [00:29:47.696] (ts: 1794176987696) [State Machine] TTS_SECTION_FINISHED | Details: {"videoId":"L2Ryrr6txwA","sectionId":"80:1839","rowIndex":0,"cancelled":true}
+```
+

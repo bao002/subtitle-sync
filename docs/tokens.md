@@ -6,10 +6,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 128 ("allow to set custom volume per translation") [ACTIVE]:
-  - Executing Task 361: Custom Volume per Translation (Stage 2 Learning Goals Card) (Subtask 361.1).
-- Suspended Task: Task 359 (Prompt 126) on hold.
-- Active Backlog: Task 361 & Task 359 in [`docs/tasks.md`](tasks.md).
+- Prompt 126 (Dedicated Learning Stage with Punchable Word Balloons Exposing Translation) [ACTIVE]:
+  - Executing Task 359: Dedicated Learning Stage with Punchable Word Balloons (Subtasks 359.1 - 359.4).
+- Active Backlog: Task 359 in [`docs/tasks.md`](tasks.md).
 
 ---
 
