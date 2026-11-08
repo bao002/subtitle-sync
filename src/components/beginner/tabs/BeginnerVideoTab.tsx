@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Tv,
   Subtitles,
@@ -9,6 +9,8 @@ import {
   Database,
   Minus,
   Plus,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +53,8 @@ export interface BeginnerVideoTabProps {
   onToggleVideoSubtitles: () => void;
   useAlternativePlayerView?: boolean;
   onToggleAlternativePlayerView?: () => void;
+  isVideoFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
@@ -80,8 +84,80 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   onToggleVideoSubtitles,
   useAlternativePlayerView,
   onToggleAlternativePlayerView,
+  isVideoFullscreen,
+  onToggleFullscreen,
 }) => {
   const [inputVal, setInputVal] = useState(url);
+  const [localFullscreen, setLocalFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      const isFs = Boolean(
+        document.fullscreenElement ||
+        (document as unknown as { webkitFullscreenElement?: Element }).webkitFullscreenElement ||
+        (document as unknown as { mozFullScreenElement?: Element }).mozFullScreenElement ||
+        (document as unknown as { msFullscreenElement?: Element }).msFullscreenElement,
+      );
+      setLocalFullscreen(isFs);
+    };
+
+    document.addEventListener("fullscreenchange", handleFsChange);
+    document.addEventListener("webkitfullscreenchange", handleFsChange);
+    document.addEventListener("mozfullscreenchange", handleFsChange);
+    document.addEventListener("MSFullscreenChange", handleFsChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFsChange);
+      document.removeEventListener("webkitfullscreenchange", handleFsChange);
+      document.removeEventListener("mozfullscreenchange", handleFsChange);
+      document.removeEventListener("MSFullscreenChange", handleFsChange);
+    };
+  }, []);
+
+  const handleLocalToggleFullscreen = () => {
+    const isFs = Boolean(
+      document.fullscreenElement ||
+      (document as unknown as { webkitFullscreenElement?: Element }).webkitFullscreenElement ||
+      (document as unknown as { mozFullScreenElement?: Element }).mozFullScreenElement ||
+      (document as unknown as { msFullscreenElement?: Element }).msFullscreenElement,
+    );
+
+    if (!isFs) {
+      const target =
+        document.getElementById("beginner-player-slot-container") ||
+        document.getElementById("video-player-fullscreen-container") ||
+        document.documentElement;
+      if (target.requestFullscreen) {
+        target.requestFullscreen().catch(() => {});
+      } else if (
+        (target as unknown as { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen
+      ) {
+        (target as unknown as { webkitRequestFullscreen: () => void }).webkitRequestFullscreen();
+      } else if (
+        (target as unknown as { mozRequestFullScreen?: () => void }).mozRequestFullScreen
+      ) {
+        (target as unknown as { mozRequestFullScreen: () => void }).mozRequestFullScreen();
+      } else if ((target as unknown as { msRequestFullscreen?: () => void }).msRequestFullscreen) {
+        (target as unknown as { msRequestFullscreen: () => void }).msRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (
+        (document as unknown as { webkitExitFullscreen?: () => void }).webkitExitFullscreen
+      ) {
+        (document as unknown as { webkitExitFullscreen: () => void }).webkitExitFullscreen();
+      } else if (
+        (document as unknown as { mozCancelFullScreen?: () => void }).mozCancelFullScreen
+      ) {
+        (document as unknown as { mozCancelFullScreen: () => void }).mozCancelFullScreen();
+      } else if ((document as unknown as { msExitFullscreen?: () => void }).msExitFullscreen) {
+        (document as unknown as { msExitFullscreen: () => void }).msExitFullscreen();
+      }
+    }
+  };
+
+  const isCurrentFullscreen = isVideoFullscreen !== undefined ? isVideoFullscreen : localFullscreen;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,7 +265,8 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
         {/* Video Player Display */}
         {playerSlot && (
           <div
-            className="w-full rounded-xl overflow-hidden bg-black aspect-video border border-border shadow-md relative"
+            id="beginner-player-slot-container"
+            className="w-full rounded-xl overflow-hidden bg-black aspect-video border border-border shadow-md relative [&:fullscreen]:flex [&:fullscreen]:items-center [&:fullscreen]:justify-center [&:fullscreen]:bg-black"
             data-testid="beginner-player-slot-container"
           >
             {playerSlot}
@@ -201,6 +278,25 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2"
             data-control-category="daily-usage"
           >
+            <Button
+              type="button"
+              size="sm"
+              variant={isCurrentFullscreen ? "default" : "outline"}
+              aria-pressed={isCurrentFullscreen}
+              data-testid="video-fullscreen-toggle-btn"
+              data-control-category="daily-usage"
+              onClick={onToggleFullscreen ?? handleLocalToggleFullscreen}
+              className="h-7 shrink-0 gap-1.5 px-2.5 text-xs text-foreground"
+              title={isCurrentFullscreen ? "Exit full screen" : "Switch full screen"}
+              aria-label={isCurrentFullscreen ? "Exit full screen" : "Switch full screen"}
+            >
+              {isCurrentFullscreen ? (
+                <Minimize2 className="h-3.5 w-3.5" />
+              ) : (
+                <Maximize2 className="h-3.5 w-3.5" />
+              )}
+              <span>{isCurrentFullscreen ? "Exit full screen" : "Full screen"}</span>
+            </Button>
             {onToggleAlternativePlayerView && (
               <Button
                 type="button"

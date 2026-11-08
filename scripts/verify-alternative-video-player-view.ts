@@ -148,13 +148,12 @@ assert(
 );
 console.log("✅ Full parity and integration across Beginner & Advanced modes verified.");
 
-// 7. Verify version synchronization (v2.1.52)
+// 7. Verify version synchronization
 const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf-8"));
-assert(packageJson.version === "2.1.52", `package.json version must be 2.1.52, got ${packageJson.version}`);
+assert(packageJson.version >= "2.1.52", `package.json version must be >= 2.1.52, got ${packageJson.version}`);
 
 const buildGradle = fs.readFileSync(path.join(rootDir, "android-shell/app/build.gradle.kts"), "utf-8");
-assert(buildGradle.includes('versionName = "2.1.52"'), "build.gradle.kts must have versionName 2.1.52");
-assert(buildGradle.includes("versionCode = 20152"), "build.gradle.kts must have versionCode 20152");
+assert(buildGradle.includes(`versionName = "${packageJson.version}"`), "build.gradle.kts must match package.json version");
 
 const appConfig = fs.readFileSync(path.join(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert(

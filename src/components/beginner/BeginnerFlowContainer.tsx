@@ -55,6 +55,8 @@ export interface BeginnerFlowContainerProps {
   onOpenBackupModal?: () => void;
   activeTab?: BeginnerTabId;
   onActiveTabChange?: (tab: BeginnerTabId) => void;
+  isVideoFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
@@ -99,6 +101,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   onOpenBackupModal,
   activeTab: activeTabProp,
   onActiveTabChange,
+  isVideoFullscreen,
+  onToggleFullscreen,
 }) => {
   // Load initial settings
   const [settings, setSettings] = useState<AppSettings>(() => loadAppSettings());
@@ -211,6 +215,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             onToggleVideoSubtitles={onToggleVideoSubtitles}
             useAlternativePlayerView={useAlternativePlayerView}
             onToggleAlternativePlayerView={onToggleAlternativePlayerView}
+            isVideoFullscreen={isVideoFullscreen}
+            onToggleFullscreen={onToggleFullscreen}
           />
         </div>
 

@@ -132,6 +132,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-fix: learning goals - the view might disapear sometimes
+under the video-player add a button to switch full screen.
 ```
 

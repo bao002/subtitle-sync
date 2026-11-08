@@ -67,6 +67,8 @@ import {
   Palette,
   Download,
   Upload,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { getPlaybackSectionId } from "@/lib/playback-section-identity";
 import { Button } from "@/components/ui/button";
@@ -4682,6 +4684,75 @@ function Index() {
     });
   }, []);
 
+  const [isVideoFullscreen, setIsVideoFullscreen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFs = Boolean(
+        document.fullscreenElement ||
+        (document as unknown as { webkitFullscreenElement?: Element }).webkitFullscreenElement ||
+        (document as unknown as { mozFullScreenElement?: Element }).mozFullScreenElement ||
+        (document as unknown as { msFullscreenElement?: Element }).msFullscreenElement,
+      );
+      setIsVideoFullscreen(isFs);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("mozfullscreenchange", handleFullscreenChange);
+    document.addEventListener("MSFullscreenChange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("mozfullscreenchange", handleFullscreenChange);
+      document.removeEventListener("MSFullscreenChange", handleFullscreenChange);
+    };
+  }, []);
+
+  const handleToggleFullscreen = useCallback(() => {
+    const isFs = Boolean(
+      document.fullscreenElement ||
+      (document as unknown as { webkitFullscreenElement?: Element }).webkitFullscreenElement ||
+      (document as unknown as { mozFullScreenElement?: Element }).mozFullScreenElement ||
+      (document as unknown as { msFullscreenElement?: Element }).msFullscreenElement,
+    );
+
+    if (!isFs) {
+      const target =
+        document.getElementById("video-player-fullscreen-container") ||
+        document.getElementById("beginner-player-slot-container") ||
+        document.documentElement;
+      if (target.requestFullscreen) {
+        target.requestFullscreen().catch(() => {});
+      } else if (
+        (target as unknown as { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen
+      ) {
+        (target as unknown as { webkitRequestFullscreen: () => void }).webkitRequestFullscreen();
+      } else if (
+        (target as unknown as { mozRequestFullScreen?: () => void }).mozRequestFullScreen
+      ) {
+        (target as unknown as { mozRequestFullScreen: () => void }).mozRequestFullScreen();
+      } else if ((target as unknown as { msRequestFullscreen?: () => void }).msRequestFullscreen) {
+        (target as unknown as { msRequestFullscreen: () => void }).msRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      } else if (
+        (document as unknown as { webkitExitFullscreen?: () => void }).webkitExitFullscreen
+      ) {
+        (document as unknown as { webkitExitFullscreen: () => void }).webkitExitFullscreen();
+      } else if (
+        (document as unknown as { mozCancelFullScreen?: () => void }).mozCancelFullScreen
+      ) {
+        (document as unknown as { mozCancelFullScreen: () => void }).mozCancelFullScreen();
+      } else if ((document as unknown as { msExitFullscreen?: () => void }).msExitFullscreen) {
+        (document as unknown as { msExitFullscreen: () => void }).msExitFullscreen();
+      }
+    }
+  }, []);
+
   const [selectedAlternativeTtsLang, setSelectedAlternativeTtsLang] = useState<string>("");
 
   const currentTtsPlayLang = useMemo(() => {
@@ -6972,6 +7043,8 @@ function Index() {
             onToggleVideoSubtitles={handleToggleVideoSubtitles}
             useAlternativePlayerView={useAlternativePlayerView}
             onToggleAlternativePlayerView={handleToggleAlternativePlayerView}
+            isVideoFullscreen={isVideoFullscreen}
+            onToggleFullscreen={handleToggleFullscreen}
             playerSlot={
               <div
                 className="relative h-full w-full group"
@@ -7853,191 +7926,200 @@ function Index() {
                                 <Button type="submit">Load video</Button>
                               </form>
                             )}
-                            <VideoInstancesSwiper
-                              instances={videoInstances}
-                              activeIndex={activeSwiperIndex}
-                              onActiveIndexChange={setActiveSwiperIndex}
-                              activePlayingId={
-                                speakingLang && audioTrackMode ? `lang_${speakingLang}` : "primary"
-                              }
-                              videoId={videoId}
-                              renderPlayerContainer={(instance) => {
-                                if (instance.isPrimary) {
+                            <div
+                              id="video-player-fullscreen-container"
+                              data-testid="video-player-fullscreen-container"
+                              className="relative w-full overflow-hidden [&:fullscreen]:flex [&:fullscreen]:items-center [&:fullscreen]:justify-center [&:fullscreen]:bg-black"
+                            >
+                              <VideoInstancesSwiper
+                                instances={videoInstances}
+                                activeIndex={activeSwiperIndex}
+                                onActiveIndexChange={setActiveSwiperIndex}
+                                activePlayingId={
+                                  speakingLang && audioTrackMode
+                                    ? `lang_${speakingLang}`
+                                    : "primary"
+                                }
+                                videoId={videoId}
+                                renderPlayerContainer={(instance) => {
+                                  if (instance.isPrimary) {
+                                    return (
+                                      <div
+                                        className="relative h-full w-full group"
+                                        onMouseEnter={() => setIsPlayerHovered(true)}
+                                        onMouseLeave={() => setIsPlayerHovered(false)}
+                                      >
+                                        <div
+                                          ref={handlePlayerRef}
+                                          className={
+                                            useAlternativePlayerView
+                                              ? "absolute inset-0 opacity-0 pointer-events-none -z-10"
+                                              : "h-full w-full"
+                                          }
+                                        />
+                                        {useAlternativePlayerView ? (
+                                          <AlternativeVideoPlayerView
+                                            currentSentence={currentAlternativeSentence}
+                                            baseLanguage={baseLanguage}
+                                            baseLanguageName={baseLanguageName}
+                                            targetTtsLang={currentTtsPlayLang}
+                                            targetTtsLangName={currentTtsPlayLangName}
+                                            targetTranslation={currentAlternativeTranslation}
+                                            availableTtsLanguages={availableAlternativeTtsLanguages}
+                                            onSelectTtsLang={setSelectedAlternativeTtsLang}
+                                            speechProgress={speechProgress}
+                                            isSpeaking={Boolean(speakingLang)}
+                                            speakingLang={speakingLang}
+                                            speakingRow={speakingRow}
+                                            activeRowIndex={active}
+                                            totalRows={rows.length}
+                                            currentTimeSec={playbackCurrentTime}
+                                            durationSec={playbackDuration}
+                                            rowStartMs={
+                                              active >= 0 && rows[active] ? rows[active].start : 0
+                                            }
+                                            rowEndMs={
+                                              active >= 0 && rows[active] ? rows[active].end : 0
+                                            }
+                                            isVideoPlaying={isVideoPlaying}
+                                            onTogglePlay={handleTogglePlay}
+                                            onPrevSentence={handlePrevSection}
+                                            onNextSentence={handleNextSection}
+                                            onReplaySentence={handleReplaySection}
+                                            onCloseAlternativeView={() =>
+                                              setUseAlternativePlayerView(false)
+                                            }
+                                            onSpeakText={handleSpeakTextFromAlternativeView}
+                                          />
+                                        ) : (
+                                          <>
+                                            {/* Overlay Play/Pause Button over video (prominent on pause/stop and hover/tap) */}
+                                            <div
+                                              data-testid="video-overlay-play-pause-container"
+                                              className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
+                                                !isVideoPlaying ||
+                                                isPlayerHovered ||
+                                                Boolean(speakingLang)
+                                                  ? "opacity-100"
+                                                  : "opacity-0"
+                                              }`}
+                                            >
+                                              <button
+                                                type="button"
+                                                data-testid="video-overlay-play-pause-btn"
+                                                aria-label={
+                                                  isVideoPlaying || Boolean(speakingLang)
+                                                    ? "Pause playback"
+                                                    : "Play video"
+                                                }
+                                                title={
+                                                  isVideoPlaying || Boolean(speakingLang)
+                                                    ? "Pause playback"
+                                                    : "Play video"
+                                                }
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleTogglePlay();
+                                                }}
+                                                className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
+                                              >
+                                                {isVideoPlaying || Boolean(speakingLang) ? (
+                                                  <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
+                                                ) : (
+                                                  <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
+                                                )}
+                                              </button>
+                                            </div>
+                                            {showVideoSubtitles && (
+                                              <div
+                                                className="pointer-events-none absolute inset-x-3 top-3 text-center"
+                                                aria-live="polite"
+                                              >
+                                                <span
+                                                  data-testid="active-subtitle-language"
+                                                  className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
+                                                  style={{
+                                                    fontSize: `calc(0.75rem * ${videoSubtitleRatio})`,
+                                                  }}
+                                                >
+                                                  {(() => {
+                                                    const languageCode =
+                                                      speakingLang && speakingRow >= 0
+                                                        ? speakingLang
+                                                        : baseLanguage;
+                                                    const normalizedCode =
+                                                      languageCode === "iw" ? "he" : languageCode;
+                                                    return (
+                                                      LANGS.find(
+                                                        (language) =>
+                                                          language.code === normalizedCode,
+                                                      )?.name ?? normalizedCode.toUpperCase()
+                                                    );
+                                                  })()}
+                                                </span>
+                                                <p
+                                                  id="active-subtitle-cue-text"
+                                                  data-testid="active-subtitle-cue-text"
+                                                  dir={
+                                                    speakingLang && RTL.has(speakingLang)
+                                                      ? "rtl"
+                                                      : "ltr"
+                                                  }
+                                                  className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
+                                                  style={{
+                                                    fontSize: `calc(1rem * ${videoSubtitleRatio})`,
+                                                  }}
+                                                >
+                                                  {speakingLang && speakingRow >= 0 ? (
+                                                    <HighlightedSubtitle
+                                                      text={
+                                                        rows[speakingRow]?.texts?.[speakingLang] ??
+                                                        ""
+                                                      }
+                                                      progress={
+                                                        speechProgress?.row === speakingRow &&
+                                                        speechProgress.lang === speakingLang
+                                                          ? speechProgress
+                                                          : null
+                                                      }
+                                                    />
+                                                  ) : active >= 0 && rows[active] ? (
+                                                    <span>
+                                                      {baseLanguage &&
+                                                      rows[active]?.texts?.[baseLanguage]
+                                                        ? rows[active]?.texts?.[baseLanguage]
+                                                        : Object.values(
+                                                            rows[active]?.texts || {},
+                                                          )[0] || ""}
+                                                    </span>
+                                                  ) : (
+                                                    <span className="text-xs opacity-75">
+                                                      Subtitles active
+                                                    </span>
+                                                  )}
+                                                </p>
+                                              </div>
+                                            )}
+                                          </>
+                                        )}
+                                      </div>
+                                    );
+                                  }
                                   return (
                                     <div
-                                      className="relative h-full w-full group"
-                                      onMouseEnter={() => setIsPlayerHovered(true)}
-                                      onMouseLeave={() => setIsPlayerHovered(false)}
-                                    >
-                                      <div
-                                        ref={handlePlayerRef}
-                                        className={
-                                          useAlternativePlayerView
-                                            ? "absolute inset-0 opacity-0 pointer-events-none -z-10"
-                                            : "h-full w-full"
+                                      ref={(el) => {
+                                        if (el) {
+                                          secondaryPlayerHosts.current.set(instance.id, el);
+                                        } else {
+                                          secondaryPlayerHosts.current.delete(instance.id);
                                         }
-                                      />
-                                      {useAlternativePlayerView ? (
-                                        <AlternativeVideoPlayerView
-                                          currentSentence={currentAlternativeSentence}
-                                          baseLanguage={baseLanguage}
-                                          baseLanguageName={baseLanguageName}
-                                          targetTtsLang={currentTtsPlayLang}
-                                          targetTtsLangName={currentTtsPlayLangName}
-                                          targetTranslation={currentAlternativeTranslation}
-                                          availableTtsLanguages={availableAlternativeTtsLanguages}
-                                          onSelectTtsLang={setSelectedAlternativeTtsLang}
-                                          speechProgress={speechProgress}
-                                          isSpeaking={Boolean(speakingLang)}
-                                          speakingLang={speakingLang}
-                                          speakingRow={speakingRow}
-                                          activeRowIndex={active}
-                                          totalRows={rows.length}
-                                          currentTimeSec={playbackCurrentTime}
-                                          durationSec={playbackDuration}
-                                          rowStartMs={
-                                            active >= 0 && rows[active] ? rows[active].start : 0
-                                          }
-                                          rowEndMs={
-                                            active >= 0 && rows[active] ? rows[active].end : 0
-                                          }
-                                          isVideoPlaying={isVideoPlaying}
-                                          onTogglePlay={handleTogglePlay}
-                                          onPrevSentence={handlePrevSection}
-                                          onNextSentence={handleNextSection}
-                                          onReplaySentence={handleReplaySection}
-                                          onCloseAlternativeView={() =>
-                                            setUseAlternativePlayerView(false)
-                                          }
-                                          onSpeakText={handleSpeakTextFromAlternativeView}
-                                        />
-                                      ) : (
-                                        <>
-                                          {/* Overlay Play/Pause Button over video (prominent on pause/stop and hover/tap) */}
-                                          <div
-                                            data-testid="video-overlay-play-pause-container"
-                                            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
-                                              !isVideoPlaying ||
-                                              isPlayerHovered ||
-                                              Boolean(speakingLang)
-                                                ? "opacity-100"
-                                                : "opacity-0"
-                                            }`}
-                                          >
-                                            <button
-                                              type="button"
-                                              data-testid="video-overlay-play-pause-btn"
-                                              aria-label={
-                                                isVideoPlaying || Boolean(speakingLang)
-                                                  ? "Pause playback"
-                                                  : "Play video"
-                                              }
-                                              title={
-                                                isVideoPlaying || Boolean(speakingLang)
-                                                  ? "Pause playback"
-                                                  : "Play video"
-                                              }
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleTogglePlay();
-                                              }}
-                                              className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
-                                            >
-                                              {isVideoPlaying || Boolean(speakingLang) ? (
-                                                <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
-                                              ) : (
-                                                <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
-                                              )}
-                                            </button>
-                                          </div>
-                                          {showVideoSubtitles && (
-                                            <div
-                                              className="pointer-events-none absolute inset-x-3 top-3 text-center"
-                                              aria-live="polite"
-                                            >
-                                              <span
-                                                data-testid="active-subtitle-language"
-                                                className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
-                                                style={{
-                                                  fontSize: `calc(0.75rem * ${videoSubtitleRatio})`,
-                                                }}
-                                              >
-                                                {(() => {
-                                                  const languageCode =
-                                                    speakingLang && speakingRow >= 0
-                                                      ? speakingLang
-                                                      : baseLanguage;
-                                                  const normalizedCode =
-                                                    languageCode === "iw" ? "he" : languageCode;
-                                                  return (
-                                                    LANGS.find(
-                                                      (language) =>
-                                                        language.code === normalizedCode,
-                                                    )?.name ?? normalizedCode.toUpperCase()
-                                                  );
-                                                })()}
-                                              </span>
-                                              <p
-                                                id="active-subtitle-cue-text"
-                                                data-testid="active-subtitle-cue-text"
-                                                dir={
-                                                  speakingLang && RTL.has(speakingLang)
-                                                    ? "rtl"
-                                                    : "ltr"
-                                                }
-                                                className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
-                                                style={{
-                                                  fontSize: `calc(1rem * ${videoSubtitleRatio})`,
-                                                }}
-                                              >
-                                                {speakingLang && speakingRow >= 0 ? (
-                                                  <HighlightedSubtitle
-                                                    text={
-                                                      rows[speakingRow]?.texts?.[speakingLang] ?? ""
-                                                    }
-                                                    progress={
-                                                      speechProgress?.row === speakingRow &&
-                                                      speechProgress.lang === speakingLang
-                                                        ? speechProgress
-                                                        : null
-                                                    }
-                                                  />
-                                                ) : active >= 0 && rows[active] ? (
-                                                  <span>
-                                                    {baseLanguage &&
-                                                    rows[active]?.texts?.[baseLanguage]
-                                                      ? rows[active]?.texts?.[baseLanguage]
-                                                      : Object.values(
-                                                          rows[active]?.texts || {},
-                                                        )[0] || ""}
-                                                  </span>
-                                                ) : (
-                                                  <span className="text-xs opacity-75">
-                                                    Subtitles active
-                                                  </span>
-                                                )}
-                                              </p>
-                                            </div>
-                                          )}
-                                        </>
-                                      )}
-                                    </div>
+                                      }}
+                                      className="h-full w-full"
+                                    />
                                   );
-                                }
-                                return (
-                                  <div
-                                    ref={(el) => {
-                                      if (el) {
-                                        secondaryPlayerHosts.current.set(instance.id, el);
-                                      } else {
-                                        secondaryPlayerHosts.current.delete(instance.id);
-                                      }
-                                    }}
-                                    className="h-full w-full"
-                                  />
-                                );
-                              }}
-                            />
+                                }}
+                              />
+                            </div>
                             {/* Switchable List of Default Languages & Ratio Compositions Dropdown around Video Component */}
                             <div className="p-2 border-t border-border/60 bg-muted/20 flex flex-wrap items-center justify-between gap-2">
                               <SwitchableDefaultSubtitlesBar
@@ -8062,6 +8144,30 @@ function Index() {
                               data-testid="video-display-controls"
                               className="flex justify-end gap-2 border-t border-border bg-card/80 px-3 py-2"
                             >
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={isVideoFullscreen ? "default" : "outline"}
+                                aria-pressed={isVideoFullscreen}
+                                data-testid="video-fullscreen-toggle-btn"
+                                onClick={handleToggleFullscreen}
+                                className="h-7 gap-1.5 px-2.5 text-xs text-foreground"
+                                title={
+                                  isVideoFullscreen ? "Exit full screen" : "Switch full screen"
+                                }
+                                aria-label={
+                                  isVideoFullscreen ? "Exit full screen" : "Switch full screen"
+                                }
+                              >
+                                {isVideoFullscreen ? (
+                                  <Minimize2 className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Maximize2 className="h-3.5 w-3.5" />
+                                )}
+                                <span>
+                                  {isVideoFullscreen ? "Exit full screen" : "Full screen"}
+                                </span>
+                              </Button>
                               <Button
                                 type="button"
                                 size="sm"
@@ -10089,8 +10195,8 @@ function Index() {
                           </div>
                         )}
 
-                        {panelId === "languages" &&
-                          (currentAccordionStage === 1 || currentAccordionStage === 2 ? (
+                        {panelId === "languages" && (
+                          <>
                             <div
                               id="stage-2-learning-goals-card"
                               data-testid="stage-2-learning-goals-card"
@@ -10180,7 +10286,9 @@ function Index() {
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5 font-semibold text-foreground">
                                       <BookOpen className="h-3.5 w-3.5 text-primary" />
-                                      <span>2. Approved Learning Languages ({targetLanguages.length})</span>
+                                      <span>
+                                        2. Approved Learning Languages ({targetLanguages.length})
+                                      </span>
                                     </div>
                                     <span className="text-muted-foreground text-[10px] font-mono truncate max-w-48">
                                       {targetLanguages.join(", ") || "None"}
@@ -11209,870 +11317,847 @@ function Index() {
                                 </div>
                               </div>
                             </div>
-                          ) : (
-                            /* Regular Languages Accordion Content (Stage 3, Stage 4, or direct view) */
-                            /* panelId === "languages" */
-                            <>
-                              <div className="mb-4 space-y-3 border-b border-border pb-4">
-                                {!isAndroid && (
-                                  <div
-                                    data-testid="demo-languages-disclaimer"
-                                    className="rounded-md border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-900 dark:text-amber-200 space-y-1"
-                                  >
-                                    <div className="flex items-center gap-1.5 font-semibold">
-                                      <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                                      <span>Demo Mode Caption Limitation Note</span>
-                                    </div>
-                                    <p className="text-[11px] leading-relaxed">
-                                      In this web demonstration, authentic subtitle captions are
-                                      strictly limited to the verified fixture files for example
-                                      video{" "}
-                                      <code className="font-mono font-semibold">L2Ryrr6txwA</code>{" "}
-                                      (available in English, Hebrew, Arabic, Spanish, Italian,
-                                      Russian, and Portuguese). In native Android mode, caption
-                                      streams for any YouTube video are intercepted dynamically
-                                      during playback.
-                                    </p>
-                                  </div>
-                                )}
 
-                                <LanguageBoxesSelector
-                                  catalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
-                                  selectedLanguages={targetLanguages}
-                                  onSelectionChange={handleTargetLanguagesChange}
-                                  isAndroid={isAndroid}
-                                  favoriteLanguages={favoriteLanguages}
-                                  currentVideoId={videoId}
-                                  loadedTracks={tracks}
-                                  onSaveSubtitleUrl={handleSaveTrackFromUrl}
-                                />
-                                <GlobalFavoriteLanguagesPanel
-                                  catalog={SUPPORTED_LANGUAGES_CATALOG}
-                                  favoriteLanguages={favoriteLanguages}
-                                  targetLanguages={targetLanguages}
-                                  videoId={videoId}
-                                  onFavoriteLanguagesChange={handleUpdateFavoriteLanguages}
-                                  onApplyFavoritesToVideo={handleResetVideoToFavorites}
-                                  onSaveCurrentSelectionAsFavorites={handleSaveCurrentAsFavorites}
-                                />
-                                <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
-                                  <div className="space-y-0.5">
-                                    <label
-                                      htmlFor="auto-speak-on-fetch-toggle"
-                                      className="text-xs font-medium text-foreground cursor-pointer"
-                                    >
-                                      Auto speak language upon fetching
-                                    </label>
-                                    <div className="text-[11px] text-muted-foreground">
-                                      Automatically enable the "Speak" checkbox for languages when
-                                      their subtitles are loaded
-                                    </div>
+                            {/* Regular Languages Accordion Content */}
+                            <div className="mb-4 space-y-3 border-b border-border pb-4">
+                              {!isAndroid && (
+                                <div
+                                  data-testid="demo-languages-disclaimer"
+                                  className="rounded-md border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-900 dark:text-amber-200 space-y-1"
+                                >
+                                  <div className="flex items-center gap-1.5 font-semibold">
+                                    <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                    <span>Demo Mode Caption Limitation Note</span>
                                   </div>
-                                  <input
-                                    type="checkbox"
-                                    id="auto-speak-on-fetch-toggle"
-                                    data-testid="auto-speak-on-fetch-toggle"
-                                    checked={autoSpeakOnFetch}
-                                    onChange={(e) => {
-                                      setAutoSpeakOnFetch(e.target.checked);
-                                      setAutoSpeakOnFetchSetting(e.target.checked);
-                                    }}
-                                    className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
-                                  />
-                                </div>
-                                <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
-                                  <div className="space-y-0.5">
-                                    <label
-                                      htmlFor="speak-language-name-on-fetch-toggle"
-                                      className="text-xs font-medium text-foreground cursor-pointer"
-                                    >
-                                      TTS-play language name upon fetching
-                                    </label>
-                                    <div className="text-[11px] text-muted-foreground">
-                                      When a new subtitle is fetched, speak aloud the name of the
-                                      language used to fetch
-                                    </div>
-                                  </div>
-                                  <input
-                                    type="checkbox"
-                                    id="speak-language-name-on-fetch-toggle"
-                                    data-testid="speak-language-name-on-fetch-toggle"
-                                    checked={speakLanguageNameOnFetch}
-                                    onChange={(e) => {
-                                      setSpeakLanguageNameOnFetchState(e.target.checked);
-                                      setSpeakLanguageNameOnFetchSetting(e.target.checked);
-                                    }}
-                                    className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
-                                  />
-                                </div>
-                                <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
-                                  <div className="space-y-0.5">
-                                    <label
-                                      htmlFor="fetch-window-seconds-input"
-                                      className="text-xs font-medium text-foreground"
-                                    >
-                                      Subtitle fetch window pacing
-                                    </label>
-                                    <div className="text-[11px] text-muted-foreground">
-                                      Never try to fetch more than 1 subtitle within this window
-                                      frame (seconds)
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    <input
-                                      type="number"
-                                      id="fetch-window-seconds-input"
-                                      data-testid="fetch-window-seconds-input"
-                                      min={1}
-                                      max={60}
-                                      value={fetchWindowSeconds}
-                                      onChange={(e) => {
-                                        const val = Math.max(1, parseInt(e.target.value, 10) || 1);
-                                        setFetchWindowSecondsState(val);
-                                        setSubtitleFetchWindowSeconds(val);
-                                        subtitleRequestQueue.setWindowSeconds(val);
-                                      }}
-                                      className="w-16 rounded border border-input bg-background px-2 py-1 text-xs text-right"
-                                    />
-                                    <span className="text-xs text-muted-foreground">sec</span>
-                                  </div>
-                                </div>
-                              </div>
-                              {spoken.length > 1 && (
-                                <div className="flex items-center justify-between pb-1 text-xs">
-                                  <span className="text-[11px] text-muted-foreground">
-                                    Primary leads; secondary languages speak relative to primary
-                                    (absolute parent defined by Is-Primary column, ratio 1:
-                                    {getLanguageTtsRatio(ttsRatios, primaryTtsLang)}).
-                                  </span>
+                                  <p className="text-[11px] leading-relaxed">
+                                    In this web demonstration, authentic subtitle captions are
+                                    strictly limited to the verified fixture files for example video{" "}
+                                    <code className="font-mono font-semibold">L2Ryrr6txwA</code>{" "}
+                                    (available in English, Hebrew, Arabic, Spanish, Italian,
+                                    Russian, and Portuguese). In native Android mode, caption
+                                    streams for any YouTube video are intercepted dynamically during
+                                    playback.
+                                  </p>
                                 </div>
                               )}
-                              {(() => {
-                                const activeVideoBarIndex = getVideoBarIndex(
+
+                              <LanguageBoxesSelector
+                                catalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
+                                selectedLanguages={targetLanguages}
+                                onSelectionChange={handleTargetLanguagesChange}
+                                isAndroid={isAndroid}
+                                favoriteLanguages={favoriteLanguages}
+                                currentVideoId={videoId}
+                                loadedTracks={tracks}
+                                onSaveSubtitleUrl={handleSaveTrackFromUrl}
+                              />
+                              <GlobalFavoriteLanguagesPanel
+                                catalog={SUPPORTED_LANGUAGES_CATALOG}
+                                favoriteLanguages={favoriteLanguages}
+                                targetLanguages={targetLanguages}
+                                videoId={videoId}
+                                onFavoriteLanguagesChange={handleUpdateFavoriteLanguages}
+                                onApplyFavoritesToVideo={handleResetVideoToFavorites}
+                                onSaveCurrentSelectionAsFavorites={handleSaveCurrentAsFavorites}
+                              />
+                              <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                                <div className="space-y-0.5">
+                                  <label
+                                    htmlFor="auto-speak-on-fetch-toggle"
+                                    className="text-xs font-medium text-foreground cursor-pointer"
+                                  >
+                                    Auto speak language upon fetching
+                                  </label>
+                                  <div className="text-[11px] text-muted-foreground">
+                                    Automatically enable the "Speak" checkbox for languages when
+                                    their subtitles are loaded
+                                  </div>
+                                </div>
+                                <input
+                                  type="checkbox"
+                                  id="auto-speak-on-fetch-toggle"
+                                  data-testid="auto-speak-on-fetch-toggle"
+                                  checked={autoSpeakOnFetch}
+                                  onChange={(e) => {
+                                    setAutoSpeakOnFetch(e.target.checked);
+                                    setAutoSpeakOnFetchSetting(e.target.checked);
+                                  }}
+                                  className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                                />
+                              </div>
+                              <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                                <div className="space-y-0.5">
+                                  <label
+                                    htmlFor="speak-language-name-on-fetch-toggle"
+                                    className="text-xs font-medium text-foreground cursor-pointer"
+                                  >
+                                    TTS-play language name upon fetching
+                                  </label>
+                                  <div className="text-[11px] text-muted-foreground">
+                                    When a new subtitle is fetched, speak aloud the name of the
+                                    language used to fetch
+                                  </div>
+                                </div>
+                                <input
+                                  type="checkbox"
+                                  id="speak-language-name-on-fetch-toggle"
+                                  data-testid="speak-language-name-on-fetch-toggle"
+                                  checked={speakLanguageNameOnFetch}
+                                  onChange={(e) => {
+                                    setSpeakLanguageNameOnFetchState(e.target.checked);
+                                    setSpeakLanguageNameOnFetchSetting(e.target.checked);
+                                  }}
+                                  className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                                />
+                              </div>
+                              <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                                <div className="space-y-0.5">
+                                  <label
+                                    htmlFor="fetch-window-seconds-input"
+                                    className="text-xs font-medium text-foreground"
+                                  >
+                                    Subtitle fetch window pacing
+                                  </label>
+                                  <div className="text-[11px] text-muted-foreground">
+                                    Never try to fetch more than 1 subtitle within this window frame
+                                    (seconds)
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="number"
+                                    id="fetch-window-seconds-input"
+                                    data-testid="fetch-window-seconds-input"
+                                    min={1}
+                                    max={60}
+                                    value={fetchWindowSeconds}
+                                    onChange={(e) => {
+                                      const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                                      setFetchWindowSecondsState(val);
+                                      setSubtitleFetchWindowSeconds(val);
+                                      subtitleRequestQueue.setWindowSeconds(val);
+                                    }}
+                                    className="w-16 rounded border border-input bg-background px-2 py-1 text-xs text-right"
+                                  />
+                                  <span className="text-xs text-muted-foreground">sec</span>
+                                </div>
+                              </div>
+                            </div>
+                            {spoken.length > 1 && (
+                              <div className="flex items-center justify-between pb-1 text-xs">
+                                <span className="text-[11px] text-muted-foreground">
+                                  Primary leads; secondary languages speak relative to primary
+                                  (absolute parent defined by Is-Primary column, ratio 1:
+                                  {getLanguageTtsRatio(ttsRatios, primaryTtsLang)}).
+                                </span>
+                              </div>
+                            )}
+                            {(() => {
+                              const activeVideoBarIndex = getVideoBarIndex(
+                                orderedLangs.map((l) => l.code),
+                                ttsLanguageOrders,
+                                sectionOrder,
+                              );
+                              const handleSetVideoBarPosition = (newIndex: number) => {
+                                const {
+                                  sectionOrder: nextSectionOrder,
+                                  languageOrders: nextLanguageOrders,
+                                } = updatePrecedenceFromVideoBarIndex(
                                   orderedLangs.map((l) => l.code),
-                                  ttsLanguageOrders,
-                                  sectionOrder,
+                                  newIndex,
                                 );
-                                const handleSetVideoBarPosition = (newIndex: number) => {
-                                  const {
-                                    sectionOrder: nextSectionOrder,
-                                    languageOrders: nextLanguageOrders,
-                                  } = updatePrecedenceFromVideoBarIndex(
-                                    orderedLangs.map((l) => l.code),
-                                    newIndex,
-                                  );
-                                  handleSectionOrderChange(nextSectionOrder);
-                                  for (const [code, ord] of Object.entries(nextLanguageOrders)) {
-                                    handleTtsLanguageOrderChange(code, ord);
-                                  }
-                                };
+                                handleSectionOrderChange(nextSectionOrder);
+                                for (const [code, ord] of Object.entries(nextLanguageOrders)) {
+                                  handleTtsLanguageOrderChange(code, ord);
+                                }
+                              };
 
-                                return (
-                                  <div className="overflow-x-auto">
-                                    <table
-                                      className="w-full text-xs"
-                                      data-testid="unified-languages-table"
-                                    >
-                                      <thead>
-                                        <tr className="text-xs text-muted-foreground border-b border-border">
-                                          <th className="text-left font-normal py-1.5 px-2">
-                                            Language
-                                          </th>
-                                          <th
-                                            className="font-normal text-center py-1.5 px-1.5"
-                                            data-testid="th-is-primary"
-                                            title="The only way to define the TTS-ratio absolute parent"
-                                          >
-                                            Is Primary
-                                          </th>
-                                          <th
-                                            className="font-normal text-center py-1.5 px-1.5"
-                                            title="Speech rate (0.5x - 1.0x)"
-                                          >
-                                            Rate
-                                          </th>
-                                          <th
-                                            className="font-normal text-center py-1.5 px-1.5"
-                                            title="Foreign subtitle TTS play frequency ratio"
-                                          >
-                                            TTS Ratio
-                                          </th>
-                                          <th
-                                            className="font-normal text-center py-1.5 px-1.5"
-                                            title="TTS-play (speak subtitle during playback)"
-                                          >
-                                            TTS-Play
-                                          </th>
-                                          <th
-                                            className="font-normal text-center py-1.5 px-1.5"
-                                            title="Present in table (show subtitle column in table)"
-                                          >
-                                            Present in Table
-                                          </th>
-                                          <th
-                                            className="font-normal text-center py-1.5 px-1.5"
-                                            data-testid="th-json3"
-                                            title="Direct JSON3 subtitle status and manual video player caption toggle indication"
-                                          >
-                                            JSON3
-                                          </th>
-                                          <th
-                                            className="font-normal text-center py-1.5 px-1.5"
-                                            title="1 input per 1 favorite language for subtitle URL"
-                                          >
-                                            Subtitle URL
-                                          </th>
-                                          <th className="font-normal text-center py-1.5 px-1.5">
-                                            Order
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {activeVideoBarIndex === 0 && (
-                                          <VideoPlaybackPrecedenceBar
-                                            asTableRow
-                                            colSpan={9}
-                                            currentPosition={0}
-                                            totalRecords={orderedLangs.length}
-                                            onMoveUp={() => handleSetVideoBarPosition(0)}
-                                            onMoveDown={() => handleSetVideoBarPosition(1)}
-                                            onPlaceAtTop={() => handleSetVideoBarPosition(0)}
-                                            onPlaceAtBottom={() =>
-                                              handleSetVideoBarPosition(orderedLangs.length)
-                                            }
-                                          />
-                                        )}
-                                        {orderedLangs.map((lang, index) => {
-                                          const isSpoken = isLanguageSpoken(lang.code, spoken);
-                                          const ratio = getLanguageTtsRatio(ttsRatios, lang.code);
-                                          const isFavorite = favoriteLanguages.includes(lang.code);
-                                          const isExpanded = expandedTableUrlLang === lang.code;
-                                          const cueCount = tracks?.[lang.code]?.events?.length;
-                                          const status = tableFetchStatus[lang.code];
-                                          const languageVoices = getLanguageVoices(
-                                            voices,
-                                            lang.tts,
-                                            true,
-                                          );
-                                          const isPrimary = lang.code === primaryTtsLang;
-                                          const isPlayerToggled =
-                                            activePlayerCaptionLang === lang.code ||
-                                            playerToggledLanguages.includes(lang.code);
-                                          const primaryLangObj = orderedLangs.find(
-                                            (l) => l.code === (primaryTtsLang || spoken[0] || ""),
-                                          );
+                              return (
+                                <div className="overflow-x-auto">
+                                  <table
+                                    className="w-full text-xs"
+                                    data-testid="unified-languages-table"
+                                  >
+                                    <thead>
+                                      <tr className="text-xs text-muted-foreground border-b border-border">
+                                        <th className="text-left font-normal py-1.5 px-2">
+                                          Language
+                                        </th>
+                                        <th
+                                          className="font-normal text-center py-1.5 px-1.5"
+                                          data-testid="th-is-primary"
+                                          title="The only way to define the TTS-ratio absolute parent"
+                                        >
+                                          Is Primary
+                                        </th>
+                                        <th
+                                          className="font-normal text-center py-1.5 px-1.5"
+                                          title="Speech rate (0.5x - 1.0x)"
+                                        >
+                                          Rate
+                                        </th>
+                                        <th
+                                          className="font-normal text-center py-1.5 px-1.5"
+                                          title="Foreign subtitle TTS play frequency ratio"
+                                        >
+                                          TTS Ratio
+                                        </th>
+                                        <th
+                                          className="font-normal text-center py-1.5 px-1.5"
+                                          title="TTS-play (speak subtitle during playback)"
+                                        >
+                                          TTS-Play
+                                        </th>
+                                        <th
+                                          className="font-normal text-center py-1.5 px-1.5"
+                                          title="Present in table (show subtitle column in table)"
+                                        >
+                                          Present in Table
+                                        </th>
+                                        <th
+                                          className="font-normal text-center py-1.5 px-1.5"
+                                          data-testid="th-json3"
+                                          title="Direct JSON3 subtitle status and manual video player caption toggle indication"
+                                        >
+                                          JSON3
+                                        </th>
+                                        <th
+                                          className="font-normal text-center py-1.5 px-1.5"
+                                          title="1 input per 1 favorite language for subtitle URL"
+                                        >
+                                          Subtitle URL
+                                        </th>
+                                        <th className="font-normal text-center py-1.5 px-1.5">
+                                          Order
+                                        </th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {activeVideoBarIndex === 0 && (
+                                        <VideoPlaybackPrecedenceBar
+                                          asTableRow
+                                          colSpan={9}
+                                          currentPosition={0}
+                                          totalRecords={orderedLangs.length}
+                                          onMoveUp={() => handleSetVideoBarPosition(0)}
+                                          onMoveDown={() => handleSetVideoBarPosition(1)}
+                                          onPlaceAtTop={() => handleSetVideoBarPosition(0)}
+                                          onPlaceAtBottom={() =>
+                                            handleSetVideoBarPosition(orderedLangs.length)
+                                          }
+                                        />
+                                      )}
+                                      {orderedLangs.map((lang, index) => {
+                                        const isSpoken = isLanguageSpoken(lang.code, spoken);
+                                        const ratio = getLanguageTtsRatio(ttsRatios, lang.code);
+                                        const isFavorite = favoriteLanguages.includes(lang.code);
+                                        const isExpanded = expandedTableUrlLang === lang.code;
+                                        const cueCount = tracks?.[lang.code]?.events?.length;
+                                        const status = tableFetchStatus[lang.code];
+                                        const languageVoices = getLanguageVoices(
+                                          voices,
+                                          lang.tts,
+                                          true,
+                                        );
+                                        const isPrimary = lang.code === primaryTtsLang;
+                                        const isPlayerToggled =
+                                          activePlayerCaptionLang === lang.code ||
+                                          playerToggledLanguages.includes(lang.code);
+                                        const primaryLangObj = orderedLangs.find(
+                                          (l) => l.code === (primaryTtsLang || spoken[0] || ""),
+                                        );
 
-                                          return (
-                                            <Fragment key={lang.code}>
-                                              <tr
-                                                data-testid={`language-row-${lang.code}`}
-                                                className="border-b border-border/40 hover:bg-muted/10"
-                                              >
-                                                <td className="py-1.5 px-2">
-                                                  <div
-                                                    data-testid={`tts-settings-card-${lang.code}`}
-                                                    className="flex flex-wrap sm:flex-nowrap items-center gap-2 sr-only"
-                                                  />
-                                                  <span className="flex items-center gap-1 font-medium">
-                                                    {isSpoken ? (
-                                                      isPrimary ? (
-                                                        <span className="flex items-center gap-1 font-semibold text-primary">
-                                                          <span
-                                                            data-testid={`tts-switch-primary-${lang.code}`}
-                                                            title={`Click to set ${lang.name} as Primary`}
-                                                          >
-                                                            {lang.name}
-                                                          </span>
-                                                          <span
-                                                            data-testid={`tts-role-badge-${lang.code}`}
-                                                            className="rounded bg-primary/20 text-primary border border-primary/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
-                                                          >
-                                                            Primary
-                                                          </span>
-                                                        </span>
-                                                      ) : (
-                                                        <span className="flex items-center gap-1 font-medium text-foreground">
-                                                          <span
-                                                            data-testid={`tts-switch-primary-${lang.code}`}
-                                                            title={`Click to set ${lang.name} as Primary`}
-                                                          >
-                                                            {lang.name}
-                                                          </span>
-                                                          <span
-                                                            data-testid={`tts-role-badge-${lang.code}`}
-                                                            className="rounded bg-muted text-muted-foreground px-1 py-0.2 text-[9px] font-normal uppercase tracking-wider"
-                                                          >
-                                                            Secondary
-                                                          </span>
-                                                        </span>
-                                                      )
-                                                    ) : (
-                                                      <span>{lang.name}</span>
-                                                    )}
-                                                    {isSharedLanguageForVideo(
-                                                      videoId,
-                                                      lang.code,
-                                                    ) && (
-                                                      <span
-                                                        data-testid={`shared-lang-badge-${lang.code}`}
-                                                        className="rounded bg-blue-500/20 text-blue-400 border border-blue-500/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
-                                                      >
-                                                        (shared)
-                                                      </span>
-                                                    )}
-                                                    {isFavorite && (
-                                                      <span
-                                                        title="Saved language"
-                                                        className="sr-only"
-                                                        data-testid={`fav-table-star-${lang.code}`}
-                                                      >
-                                                        Saved
-                                                      </span>
-                                                    )}
-                                                    <button
-                                                      type="button"
-                                                      data-testid={`fav-table-toggle-${lang.code}`}
-                                                      onClick={() =>
-                                                        handleToggleFavoriteLanguage(lang.code)
-                                                      }
-                                                      className="sr-only"
-                                                      aria-hidden="true"
-                                                      tabIndex={-1}
-                                                    >
-                                                      {isFavorite ? "Saved" : "Add"}
-                                                    </button>
-                                                  </span>
-                                                </td>
-                                                <td
-                                                  className="text-center py-1 px-1.5"
-                                                  data-testid={`col-is-primary-${lang.code}`}
-                                                >
-                                                  <div className="flex items-center justify-center">
-                                                    <input
-                                                      type="radio"
-                                                      name="is-primary-tts-parent"
-                                                      id={`radio-is-primary-${lang.code}`}
-                                                      data-testid={`radio-is-primary-${lang.code}`}
-                                                      aria-label={`Is primary parent: ${lang.name}`}
-                                                      title={`Set ${lang.name} as TTS-ratio absolute parent`}
-                                                      checked={isPrimary}
-                                                      onChange={() =>
-                                                        handlePrimaryTtsLangChange(lang.code)
-                                                      }
-                                                      className="h-4 w-4 text-primary focus:ring-primary cursor-pointer accent-primary"
-                                                    />
-                                                  </div>
-                                                </td>
-                                                <td className="text-center py-1 px-1.5">
-                                                  <select
-                                                    aria-label={`${lang.name} speech rate`}
-                                                    data-testid={`tts-rate-select-${lang.code}`}
-                                                    value={(rates[lang.code] ?? 0.5).toFixed(1)}
-                                                    onChange={(e) => {
-                                                      recordUserInteraction(Date.now());
-                                                      const val = Number(e.target.value);
-                                                      setRates((current) => ({
-                                                        ...current,
-                                                        [lang.code]: val,
-                                                      }));
-                                                      saveTtsRatePreference(lang.code, val);
-                                                      if (videoId) {
-                                                        saveVideoSettings(videoId, {
-                                                          ttsRates: { [lang.code]: val },
-                                                        });
-                                                      }
-                                                    }}
-                                                    className="rounded border border-input bg-background px-1.5 py-0.5 text-xs text-foreground cursor-pointer font-mono"
-                                                  >
-                                                    {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map(
-                                                      (rateVal) => (
-                                                        <option
-                                                          key={rateVal}
-                                                          value={rateVal.toFixed(1)}
-                                                        >
-                                                          {rateVal.toFixed(1)}×
-                                                        </option>
-                                                      ),
-                                                    )}
-                                                  </select>
-                                                </td>
-                                                <td className="text-center py-1 px-1.5">
+                                        return (
+                                          <Fragment key={lang.code}>
+                                            <tr
+                                              data-testid={`language-row-${lang.code}`}
+                                              className="border-b border-border/40 hover:bg-muted/10"
+                                            >
+                                              <td className="py-1.5 px-2">
+                                                <div
+                                                  data-testid={`tts-settings-card-${lang.code}`}
+                                                  className="flex flex-wrap sm:flex-nowrap items-center gap-2 sr-only"
+                                                />
+                                                <span className="flex items-center gap-1 font-medium">
                                                   {isSpoken ? (
-                                                    <div className="flex items-center justify-center gap-1">
-                                                      <select
-                                                        aria-label={`${lang.name} TTS sentence ratio`}
-                                                        data-testid={`tts-ratio-slider-${lang.code}`}
-                                                        value={ratio}
-                                                        onChange={(e) => {
-                                                          const val = Math.max(
-                                                            1,
-                                                            Math.min(20, Number(e.target.value)),
-                                                          );
-                                                          setTtsRatios((curr) => ({
-                                                            ...curr,
-                                                            [lang.code]: val,
-                                                          }));
-                                                          saveTtsRatioPreference(lang.code, val);
-                                                          if (videoId)
-                                                            saveVideoSettings(videoId, {
-                                                              ttsRatios: { [lang.code]: val },
-                                                            });
-                                                        }}
-                                                        className="rounded border border-input bg-background px-1 py-0.5 text-xs"
-                                                      >
-                                                        {[1, 2, 3, 4, 5, 7, 10, 15, 20].map((n) => (
-                                                          <option
-                                                            key={n}
-                                                            value={n}
-                                                            data-testid={`tts-ratio-preset-${lang.code}-${n}`}
-                                                          >
-                                                            1:{n}
-                                                            {isPrimary
-                                                              ? " (Primary)"
-                                                              : ` (rel. ${orderedLangs.find((l) => l.code === (primaryTtsLang || spoken[0]))?.name || "Primary"})`}
-                                                          </option>
-                                                        ))}
-                                                      </select>
-                                                      <span
-                                                        data-testid={`tts-ratio-badge-${lang.code}`}
-                                                        className="sr-only"
-                                                      >
-                                                        1:{ratio}
+                                                    isPrimary ? (
+                                                      <span className="flex items-center gap-1 font-semibold text-primary">
+                                                        <span
+                                                          data-testid={`tts-switch-primary-${lang.code}`}
+                                                          title={`Click to set ${lang.name} as Primary`}
+                                                        >
+                                                          {lang.name}
+                                                        </span>
+                                                        <span
+                                                          data-testid={`tts-role-badge-${lang.code}`}
+                                                          className="rounded bg-primary/20 text-primary border border-primary/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
+                                                        >
+                                                          Primary
+                                                        </span>
                                                       </span>
-                                                      <span
-                                                        data-testid={`tts-ratio-label-${lang.code}`}
-                                                        className="sr-only"
-                                                      >
-                                                        1:{ratio} ({Math.round(100 / ratio)}% of
-                                                        sentences)
+                                                    ) : (
+                                                      <span className="flex items-center gap-1 font-medium text-foreground">
+                                                        <span
+                                                          data-testid={`tts-switch-primary-${lang.code}`}
+                                                          title={`Click to set ${lang.name} as Primary`}
+                                                        >
+                                                          {lang.name}
+                                                        </span>
+                                                        <span
+                                                          data-testid={`tts-role-badge-${lang.code}`}
+                                                          className="rounded bg-muted text-muted-foreground px-1 py-0.2 text-[9px] font-normal uppercase tracking-wider"
+                                                        >
+                                                          Secondary
+                                                        </span>
                                                       </span>
-                                                    </div>
+                                                    )
                                                   ) : (
-                                                    <span className="text-[10px] text-muted-foreground">
+                                                    <span>{lang.name}</span>
+                                                  )}
+                                                  {isSharedLanguageForVideo(videoId, lang.code) && (
+                                                    <span
+                                                      data-testid={`shared-lang-badge-${lang.code}`}
+                                                      className="rounded bg-blue-500/20 text-blue-400 border border-blue-500/40 px-1 py-0.2 text-[9px] font-bold uppercase tracking-wider"
+                                                    >
+                                                      (shared)
+                                                    </span>
+                                                  )}
+                                                  {isFavorite && (
+                                                    <span
+                                                      title="Saved language"
+                                                      className="sr-only"
+                                                      data-testid={`fav-table-star-${lang.code}`}
+                                                    >
+                                                      Saved
+                                                    </span>
+                                                  )}
+                                                  <button
+                                                    type="button"
+                                                    data-testid={`fav-table-toggle-${lang.code}`}
+                                                    onClick={() =>
+                                                      handleToggleFavoriteLanguage(lang.code)
+                                                    }
+                                                    className="sr-only"
+                                                    aria-hidden="true"
+                                                    tabIndex={-1}
+                                                  >
+                                                    {isFavorite ? "Saved" : "Add"}
+                                                  </button>
+                                                </span>
+                                              </td>
+                                              <td
+                                                className="text-center py-1 px-1.5"
+                                                data-testid={`col-is-primary-${lang.code}`}
+                                              >
+                                                <div className="flex items-center justify-center">
+                                                  <input
+                                                    type="radio"
+                                                    name="is-primary-tts-parent"
+                                                    id={`radio-is-primary-${lang.code}`}
+                                                    data-testid={`radio-is-primary-${lang.code}`}
+                                                    aria-label={`Is primary parent: ${lang.name}`}
+                                                    title={`Set ${lang.name} as TTS-ratio absolute parent`}
+                                                    checked={isPrimary}
+                                                    onChange={() =>
+                                                      handlePrimaryTtsLangChange(lang.code)
+                                                    }
+                                                    className="h-4 w-4 text-primary focus:ring-primary cursor-pointer accent-primary"
+                                                  />
+                                                </div>
+                                              </td>
+                                              <td className="text-center py-1 px-1.5">
+                                                <select
+                                                  aria-label={`${lang.name} speech rate`}
+                                                  data-testid={`tts-rate-select-${lang.code}`}
+                                                  value={(rates[lang.code] ?? 0.5).toFixed(1)}
+                                                  onChange={(e) => {
+                                                    recordUserInteraction(Date.now());
+                                                    const val = Number(e.target.value);
+                                                    setRates((current) => ({
+                                                      ...current,
+                                                      [lang.code]: val,
+                                                    }));
+                                                    saveTtsRatePreference(lang.code, val);
+                                                    if (videoId) {
+                                                      saveVideoSettings(videoId, {
+                                                        ttsRates: { [lang.code]: val },
+                                                      });
+                                                    }
+                                                  }}
+                                                  className="rounded border border-input bg-background px-1.5 py-0.5 text-xs text-foreground cursor-pointer font-mono"
+                                                >
+                                                  {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
+                                                    <option
+                                                      key={rateVal}
+                                                      value={rateVal.toFixed(1)}
+                                                    >
+                                                      {rateVal.toFixed(1)}×
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              </td>
+                                              <td className="text-center py-1 px-1.5">
+                                                {isSpoken ? (
+                                                  <div className="flex items-center justify-center gap-1">
+                                                    <select
+                                                      aria-label={`${lang.name} TTS sentence ratio`}
+                                                      data-testid={`tts-ratio-slider-${lang.code}`}
+                                                      value={ratio}
+                                                      onChange={(e) => {
+                                                        const val = Math.max(
+                                                          1,
+                                                          Math.min(20, Number(e.target.value)),
+                                                        );
+                                                        setTtsRatios((curr) => ({
+                                                          ...curr,
+                                                          [lang.code]: val,
+                                                        }));
+                                                        saveTtsRatioPreference(lang.code, val);
+                                                        if (videoId)
+                                                          saveVideoSettings(videoId, {
+                                                            ttsRatios: { [lang.code]: val },
+                                                          });
+                                                      }}
+                                                      className="rounded border border-input bg-background px-1 py-0.5 text-xs"
+                                                    >
+                                                      {[1, 2, 3, 4, 5, 7, 10, 15, 20].map((n) => (
+                                                        <option
+                                                          key={n}
+                                                          value={n}
+                                                          data-testid={`tts-ratio-preset-${lang.code}-${n}`}
+                                                        >
+                                                          1:{n}
+                                                          {isPrimary
+                                                            ? " (Primary)"
+                                                            : ` (rel. ${orderedLangs.find((l) => l.code === (primaryTtsLang || spoken[0]))?.name || "Primary"})`}
+                                                        </option>
+                                                      ))}
+                                                    </select>
+                                                    <span
+                                                      data-testid={`tts-ratio-badge-${lang.code}`}
+                                                      className="sr-only"
+                                                    >
+                                                      1:{ratio}
+                                                    </span>
+                                                    <span
+                                                      data-testid={`tts-ratio-label-${lang.code}`}
+                                                      className="sr-only"
+                                                    >
+                                                      1:{ratio} ({Math.round(100 / ratio)}% of
+                                                      sentences)
+                                                    </span>
+                                                  </div>
+                                                ) : (
+                                                  <span className="text-[10px] text-muted-foreground">
+                                                    —
+                                                  </span>
+                                                )}
+                                              </td>
+                                              <td className="text-center py-1 px-1.5">
+                                                <div className="flex items-center justify-center gap-1">
+                                                  <input
+                                                    type="checkbox"
+                                                    data-testid={`checkbox-tts-play-${lang.code}`}
+                                                    aria-label={`TTS-play: ${lang.name}`}
+                                                    title={`TTS-play: ${lang.name}`}
+                                                    checked={
+                                                      isSpoken &&
+                                                      !isLanguageTtsBlacklisted(
+                                                        lang.code,
+                                                        ttsBlacklist,
+                                                      )
+                                                    }
+                                                    onChange={() =>
+                                                      toggle(spoken, setSpoken, lang.code)
+                                                    }
+                                                  />
+                                                  <button
+                                                    type="button"
+                                                    data-testid={`tts-blacklist-toggle-${lang.code}`}
+                                                    aria-label={`Toggle TTS blacklist for ${lang.name}`}
+                                                    title={
+                                                      isLanguageTtsBlacklisted(
+                                                        lang.code,
+                                                        ttsBlacklist,
+                                                      )
+                                                        ? `${lang.name} is BLACKLISTED from TTS-play (click to whitelist)`
+                                                        : `Click to blacklist ${lang.name} from TTS-play`
+                                                    }
+                                                    onClick={() =>
+                                                      handleToggleTtsBlacklist(lang.code)
+                                                    }
+                                                    className={`p-1 rounded text-xs transition-colors cursor-pointer ${
+                                                      isLanguageTtsBlacklisted(
+                                                        lang.code,
+                                                        ttsBlacklist,
+                                                      )
+                                                        ? "bg-destructive/20 text-destructive border border-destructive/40"
+                                                        : "text-muted-foreground hover:text-foreground"
+                                                    }`}
+                                                  >
+                                                    {isLanguageTtsBlacklisted(
+                                                      lang.code,
+                                                      ttsBlacklist,
+                                                    ) ? (
+                                                      <VolumeX className="h-3.5 w-3.5" />
+                                                    ) : (
+                                                      <Volume2 className="h-3.5 w-3.5" />
+                                                    )}
+                                                  </button>
+                                                </div>
+                                              </td>
+                                              <td className="text-center py-1 px-1.5">
+                                                <input
+                                                  type="checkbox"
+                                                  data-testid={`checkbox-present-in-table-${lang.code}`}
+                                                  aria-label={`Present in table: ${lang.name}`}
+                                                  title={`Present in table: ${lang.name}`}
+                                                  checked={shown.includes(lang.code)}
+                                                  onChange={() =>
+                                                    toggle(shown, setShown, lang.code)
+                                                  }
+                                                />
+                                              </td>
+                                              <td
+                                                className="text-center py-1 px-1.5"
+                                                data-testid={`col-json3-${lang.code}`}
+                                              >
+                                                <div className="flex flex-col items-center justify-center gap-1">
+                                                  {cueCount && cueCount > 0 ? (
+                                                    <span
+                                                      data-testid={`json3-badge-${lang.code}`}
+                                                      className="inline-flex items-center rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-1 py-0.2 text-[9px] font-semibold"
+                                                      title={`Direct JSON3 fetched: ${cueCount} cues`}
+                                                    >
+                                                      JSON3 ({cueCount})
+                                                    </span>
+                                                  ) : (
+                                                    <span
+                                                      data-testid={`json3-badge-${lang.code}`}
+                                                      className="text-[10px] text-muted-foreground"
+                                                      title="No direct JSON3 loaded yet"
+                                                    >
                                                       —
                                                     </span>
                                                   )}
-                                                </td>
-                                                <td className="text-center py-1 px-1.5">
-                                                  <div className="flex items-center justify-center gap-1">
-                                                    <input
-                                                      type="checkbox"
-                                                      data-testid={`checkbox-tts-play-${lang.code}`}
-                                                      aria-label={`TTS-play: ${lang.name}`}
-                                                      title={`TTS-play: ${lang.name}`}
-                                                      checked={
-                                                        isSpoken &&
-                                                        !isLanguageTtsBlacklisted(
-                                                          lang.code,
-                                                          ttsBlacklist,
-                                                        )
-                                                      }
-                                                      onChange={() =>
-                                                        toggle(spoken, setSpoken, lang.code)
-                                                      }
-                                                    />
-                                                    <button
-                                                      type="button"
-                                                      data-testid={`tts-blacklist-toggle-${lang.code}`}
-                                                      aria-label={`Toggle TTS blacklist for ${lang.name}`}
-                                                      title={
-                                                        isLanguageTtsBlacklisted(
-                                                          lang.code,
-                                                          ttsBlacklist,
-                                                        )
-                                                          ? `${lang.name} is BLACKLISTED from TTS-play (click to whitelist)`
-                                                          : `Click to blacklist ${lang.name} from TTS-play`
-                                                      }
-                                                      onClick={() =>
-                                                        handleToggleTtsBlacklist(lang.code)
-                                                      }
-                                                      className={`p-1 rounded text-xs transition-colors cursor-pointer ${
-                                                        isLanguageTtsBlacklisted(
-                                                          lang.code,
-                                                          ttsBlacklist,
-                                                        )
-                                                          ? "bg-destructive/20 text-destructive border border-destructive/40"
-                                                          : "text-muted-foreground hover:text-foreground"
-                                                      }`}
-                                                    >
-                                                      {isLanguageTtsBlacklisted(
-                                                        lang.code,
-                                                        ttsBlacklist,
-                                                      ) ? (
-                                                        <VolumeX className="h-3.5 w-3.5" />
-                                                      ) : (
-                                                        <Volume2 className="h-3.5 w-3.5" />
-                                                      )}
-                                                    </button>
-                                                  </div>
-                                                </td>
-                                                <td className="text-center py-1 px-1.5">
-                                                  <input
-                                                    type="checkbox"
-                                                    data-testid={`checkbox-present-in-table-${lang.code}`}
-                                                    aria-label={`Present in table: ${lang.name}`}
-                                                    title={`Present in table: ${lang.name}`}
-                                                    checked={shown.includes(lang.code)}
-                                                    onChange={() =>
-                                                      toggle(shown, setShown, lang.code)
-                                                    }
-                                                  />
-                                                </td>
-                                                <td
-                                                  className="text-center py-1 px-1.5"
-                                                  data-testid={`col-json3-${lang.code}`}
-                                                >
-                                                  <div className="flex flex-col items-center justify-center gap-1">
-                                                    {cueCount && cueCount > 0 ? (
-                                                      <span
-                                                        data-testid={`json3-badge-${lang.code}`}
-                                                        className="inline-flex items-center rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-1 py-0.2 text-[9px] font-semibold"
-                                                        title={`Direct JSON3 fetched: ${cueCount} cues`}
-                                                      >
-                                                        JSON3 ({cueCount})
-                                                      </span>
-                                                    ) : (
-                                                      <span
-                                                        data-testid={`json3-badge-${lang.code}`}
-                                                        className="text-[10px] text-muted-foreground"
-                                                        title="No direct JSON3 loaded yet"
-                                                      >
-                                                        —
-                                                      </span>
-                                                    )}
-                                                    <Button
-                                                      type="button"
-                                                      variant={
-                                                        isPlayerToggled ? "default" : "outline"
-                                                      }
-                                                      size="sm"
-                                                      id={`btn-toggle-player-json3-${lang.code}`}
-                                                      data-testid={`btn-toggle-player-json3-${lang.code}`}
-                                                      onClick={() =>
-                                                        handleTogglePlayerCaptionTrack(lang.code)
-                                                      }
-                                                      className={`h-5 px-1.5 text-[9px] gap-0.5 ${
-                                                        isPlayerToggled
-                                                          ? "bg-primary text-primary-foreground font-semibold"
-                                                          : "text-muted-foreground"
-                                                      }`}
-                                                      title={`Toggle ${lang.name} captions on video player (indicates direct fetching)`}
-                                                    >
-                                                      <span
-                                                        data-testid={`player-caption-status-${lang.code}`}
-                                                      >
-                                                        {isPlayerToggled
-                                                          ? "Player: ON"
-                                                          : "Player: OFF"}
-                                                      </span>
-                                                    </Button>
-                                                  </div>
-                                                </td>
-                                                <td className="text-center py-1 px-1.5">
                                                   <Button
                                                     type="button"
-                                                    variant={isExpanded ? "default" : "outline"}
-                                                    size="sm"
-                                                    id={`table-btn-subtitle-url-${lang.code}`}
-                                                    data-testid={`table-btn-subtitle-url-${lang.code}`}
-                                                    aria-expanded={isExpanded}
-                                                    onClick={() =>
-                                                      setExpandedTableUrlLang((cur) =>
-                                                        cur === lang.code ? null : lang.code,
-                                                      )
+                                                    variant={
+                                                      isPlayerToggled ? "default" : "outline"
                                                     }
-                                                    className="h-6 px-1.5 text-[11px] gap-1"
-                                                    title={`Supply subtitle URL for ${lang.name}`}
+                                                    size="sm"
+                                                    id={`btn-toggle-player-json3-${lang.code}`}
+                                                    data-testid={`btn-toggle-player-json3-${lang.code}`}
+                                                    onClick={() =>
+                                                      handleTogglePlayerCaptionTrack(lang.code)
+                                                    }
+                                                    className={`h-5 px-1.5 text-[9px] gap-0.5 ${
+                                                      isPlayerToggled
+                                                        ? "bg-primary text-primary-foreground font-semibold"
+                                                        : "text-muted-foreground"
+                                                    }`}
+                                                    title={`Toggle ${lang.name} captions on video player (indicates direct fetching)`}
                                                   >
-                                                    <Link2 className="h-3 w-3" />
-                                                    <span>
-                                                      {cueCount ? `${cueCount} cues` : "URL"}
+                                                    <span
+                                                      data-testid={`player-caption-status-${lang.code}`}
+                                                    >
+                                                      {isPlayerToggled
+                                                        ? "Player: ON"
+                                                        : "Player: OFF"}
                                                     </span>
                                                   </Button>
-                                                </td>
-                                                <td className="py-1 px-1.5">
-                                                  <div className="flex justify-center items-center gap-0.5">
-                                                    <Button
-                                                      type="button"
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-6 w-6"
-                                                      disabled={index === 0}
-                                                      onClick={() => moveLanguage(lang.code, -1)}
-                                                      title={`Move ${lang.name} earlier`}
-                                                      aria-label={`Move ${lang.name} earlier`}
-                                                    >
-                                                      <ChevronUp
-                                                        className="h-3 w-3"
-                                                        aria-hidden="true"
+                                                </div>
+                                              </td>
+                                              <td className="text-center py-1 px-1.5">
+                                                <Button
+                                                  type="button"
+                                                  variant={isExpanded ? "default" : "outline"}
+                                                  size="sm"
+                                                  id={`table-btn-subtitle-url-${lang.code}`}
+                                                  data-testid={`table-btn-subtitle-url-${lang.code}`}
+                                                  aria-expanded={isExpanded}
+                                                  onClick={() =>
+                                                    setExpandedTableUrlLang((cur) =>
+                                                      cur === lang.code ? null : lang.code,
+                                                    )
+                                                  }
+                                                  className="h-6 px-1.5 text-[11px] gap-1"
+                                                  title={`Supply subtitle URL for ${lang.name}`}
+                                                >
+                                                  <Link2 className="h-3 w-3" />
+                                                  <span>
+                                                    {cueCount ? `${cueCount} cues` : "URL"}
+                                                  </span>
+                                                </Button>
+                                              </td>
+                                              <td className="py-1 px-1.5">
+                                                <div className="flex justify-center items-center gap-0.5">
+                                                  <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6"
+                                                    disabled={index === 0}
+                                                    onClick={() => moveLanguage(lang.code, -1)}
+                                                    title={`Move ${lang.name} earlier`}
+                                                    aria-label={`Move ${lang.name} earlier`}
+                                                  >
+                                                    <ChevronUp
+                                                      className="h-3 w-3"
+                                                      aria-hidden="true"
+                                                    />
+                                                  </Button>
+                                                  <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className={`h-6 w-6 ${activeVideoBarIndex === index ? "text-primary bg-primary/10 border border-primary/30" : "text-muted-foreground hover:text-foreground"}`}
+                                                    onClick={() => handleSetVideoBarPosition(index)}
+                                                    title={`Place video playing precedence before ${lang.name}`}
+                                                    aria-label={`Place video playing precedence before ${lang.name}`}
+                                                    data-testid={`btn-place-video-before-${lang.code}`}
+                                                  >
+                                                    <Film className="h-3 w-3" aria-hidden="true" />
+                                                  </Button>
+                                                  <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6"
+                                                    disabled={index === orderedLangs.length - 1}
+                                                    onClick={() => moveLanguage(lang.code, 1)}
+                                                    title={`Move ${lang.name} later`}
+                                                    aria-label={`Move ${lang.name} later`}
+                                                  >
+                                                    <ChevronDown
+                                                      className="h-3 w-3"
+                                                      aria-hidden="true"
+                                                    />
+                                                  </Button>
+                                                </div>
+                                              </td>
+                                            </tr>
+                                            {isExpanded && (
+                                              <tr
+                                                key={`${lang.code}-url-drawer`}
+                                                data-testid={`url-input-row-${lang.code}`}
+                                                className="bg-primary/5 border-y border-primary/20"
+                                              >
+                                                <td colSpan={9} className="p-2.5">
+                                                  <div className="space-y-2 max-w-xl text-xs">
+                                                    <div className="flex items-center justify-between">
+                                                      <span className="font-semibold text-foreground flex items-center gap-1.5">
+                                                        <Link2 className="h-3.5 w-3.5 text-primary" />
+                                                        <span>
+                                                          Subtitle URL for {lang.name} ({lang.code})
+                                                        </span>
+                                                      </span>
+                                                      <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                          setExpandedTableUrlLang(null)
+                                                        }
+                                                        className="text-muted-foreground hover:text-foreground text-[11px]"
+                                                      >
+                                                        ✕ Close
+                                                      </button>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                      <input
+                                                        type="text"
+                                                        id={`table-url-input-${lang.code}`}
+                                                        data-testid={`table-url-input-${lang.code}`}
+                                                        value={tableUrlInputs[lang.code] ?? ""}
+                                                        onChange={(e) =>
+                                                          setTableUrlInputs((prev) => ({
+                                                            ...prev,
+                                                            [lang.code]: e.target.value,
+                                                          }))
+                                                        }
+                                                        placeholder={`e.g. /fixtures/${videoId || "L2Ryrr6txwA"}/${lang.code}.json or https://...`}
+                                                        className="flex-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary"
                                                       />
-                                                    </Button>
-                                                    <Button
-                                                      type="button"
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className={`h-6 w-6 ${activeVideoBarIndex === index ? "text-primary bg-primary/10 border border-primary/30" : "text-muted-foreground hover:text-foreground"}`}
-                                                      onClick={() =>
-                                                        handleSetVideoBarPosition(index)
-                                                      }
-                                                      title={`Place video playing precedence before ${lang.name}`}
-                                                      aria-label={`Place video playing precedence before ${lang.name}`}
-                                                      data-testid={`btn-place-video-before-${lang.code}`}
-                                                    >
-                                                      <Film
-                                                        className="h-3 w-3"
-                                                        aria-hidden="true"
-                                                      />
-                                                    </Button>
-                                                    <Button
-                                                      type="button"
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-6 w-6"
-                                                      disabled={index === orderedLangs.length - 1}
-                                                      onClick={() => moveLanguage(lang.code, 1)}
-                                                      title={`Move ${lang.name} later`}
-                                                      aria-label={`Move ${lang.name} later`}
-                                                    >
-                                                      <ChevronDown
-                                                        className="h-3 w-3"
-                                                        aria-hidden="true"
-                                                      />
-                                                    </Button>
+                                                      <Button
+                                                        type="button"
+                                                        size="sm"
+                                                        id={`table-fetch-url-${lang.code}`}
+                                                        data-testid={`table-fetch-url-${lang.code}`}
+                                                        disabled={
+                                                          status?.loading ||
+                                                          !(tableUrlInputs[lang.code] || "").trim()
+                                                        }
+                                                        onClick={() =>
+                                                          handleFetchTableUrl(lang.code, lang.name)
+                                                        }
+                                                        className="h-7 text-xs px-2.5 shrink-0"
+                                                      >
+                                                        {status?.loading ? (
+                                                          <>
+                                                            <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                                            Loading…
+                                                          </>
+                                                        ) : (
+                                                          "Fetch Subtitles"
+                                                        )}
+                                                      </Button>
+                                                    </div>
+
+                                                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                          const sample = `/fixtures/${videoId || "L2Ryrr6txwA"}/${lang.code}.json`;
+                                                          setTableUrlInputs((prev) => ({
+                                                            ...prev,
+                                                            [lang.code]: sample,
+                                                          }));
+                                                        }}
+                                                        className="text-primary hover:underline flex items-center gap-1"
+                                                      >
+                                                        <FileText className="h-3 w-3" />
+                                                        <span>Use sample fixture</span>
+                                                      </button>
+                                                      {cueCount ? (
+                                                        <span className="text-muted-foreground font-mono">
+                                                          Active track: {cueCount} cues
+                                                        </span>
+                                                      ) : null}
+                                                    </div>
+
+                                                    {/* Voice selection */}
+                                                    <div className="flex items-center gap-2 pt-1.5 border-t border-border/50 text-xs">
+                                                      <span className="text-muted-foreground shrink-0">
+                                                        Voice:
+                                                      </span>
+                                                      <select
+                                                        aria-label={`${lang.name} voice`}
+                                                        value={voiceSelections[lang.code] ?? ""}
+                                                        onChange={(e) => {
+                                                          const value = e.target.value;
+                                                          setVoiceSelections((current) => {
+                                                            const next = {
+                                                              ...current,
+                                                              [lang.code]: value,
+                                                            };
+                                                            try {
+                                                              localStorage.setItem(
+                                                                "yt_tts_voice_selections_v1",
+                                                                JSON.stringify(next),
+                                                              );
+                                                            } catch {
+                                                              // ignore storage write errors
+                                                            }
+                                                            return next;
+                                                          });
+                                                        }}
+                                                        disabled={languageVoices.length === 0}
+                                                        className="w-full sm:w-64 truncate rounded border border-input bg-background px-1.5 py-0.5 text-xs disabled:opacity-60"
+                                                      >
+                                                        <option value="">
+                                                          {languageVoices.length === 0
+                                                            ? "Device voice"
+                                                            : "Default voice"}
+                                                        </option>
+                                                        {languageVoices.map((voice, voiceIndex) => (
+                                                          <option
+                                                            key={getUniqueVoiceKey(
+                                                              voice,
+                                                              voiceIndex,
+                                                            )}
+                                                            value={voice.voiceURI || voice.name}
+                                                          >
+                                                            {voice.name}{" "}
+                                                            {voice.lang ? `(${voice.lang})` : ""}
+                                                          </option>
+                                                        ))}
+                                                      </select>
+                                                    </div>
+
+                                                    {status?.message && (
+                                                      <div
+                                                        data-testid={`table-url-status-${lang.code}`}
+                                                        className={`p-2 rounded text-[11px] flex items-start gap-1.5 border ${
+                                                          status.type === "success"
+                                                            ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
+                                                            : status.type === "error"
+                                                              ? "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800"
+                                                              : "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800"
+                                                        }`}
+                                                      >
+                                                        {status.type === "success" ? (
+                                                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                                                        ) : status.type === "error" ? (
+                                                          <AlertCircle className="h-3.5 w-3.5 text-rose-600 shrink-0 mt-0.5" />
+                                                        ) : (
+                                                          <RefreshCw className="h-3.5 w-3.5 text-blue-600 animate-spin shrink-0 mt-0.5" />
+                                                        )}
+                                                        <span className="flex-1">
+                                                          {status.message}
+                                                        </span>
+                                                      </div>
+                                                    )}
                                                   </div>
                                                 </td>
                                               </tr>
-                                              {isExpanded && (
-                                                <tr
-                                                  key={`${lang.code}-url-drawer`}
-                                                  data-testid={`url-input-row-${lang.code}`}
-                                                  className="bg-primary/5 border-y border-primary/20"
-                                                >
-                                                  <td colSpan={9} className="p-2.5">
-                                                    <div className="space-y-2 max-w-xl text-xs">
-                                                      <div className="flex items-center justify-between">
-                                                        <span className="font-semibold text-foreground flex items-center gap-1.5">
-                                                          <Link2 className="h-3.5 w-3.5 text-primary" />
-                                                          <span>
-                                                            Subtitle URL for {lang.name} (
-                                                            {lang.code})
-                                                          </span>
-                                                        </span>
-                                                        <button
-                                                          type="button"
-                                                          onClick={() =>
-                                                            setExpandedTableUrlLang(null)
-                                                          }
-                                                          className="text-muted-foreground hover:text-foreground text-[11px]"
-                                                        >
-                                                          ✕ Close
-                                                        </button>
-                                                      </div>
-
-                                                      <div className="flex items-center gap-2">
-                                                        <input
-                                                          type="text"
-                                                          id={`table-url-input-${lang.code}`}
-                                                          data-testid={`table-url-input-${lang.code}`}
-                                                          value={tableUrlInputs[lang.code] ?? ""}
-                                                          onChange={(e) =>
-                                                            setTableUrlInputs((prev) => ({
-                                                              ...prev,
-                                                              [lang.code]: e.target.value,
-                                                            }))
-                                                          }
-                                                          placeholder={`e.g. /fixtures/${videoId || "L2Ryrr6txwA"}/${lang.code}.json or https://...`}
-                                                          className="flex-1 rounded-md border border-input bg-background px-2.5 py-1 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-primary"
-                                                        />
-                                                        <Button
-                                                          type="button"
-                                                          size="sm"
-                                                          id={`table-fetch-url-${lang.code}`}
-                                                          data-testid={`table-fetch-url-${lang.code}`}
-                                                          disabled={
-                                                            status?.loading ||
-                                                            !(
-                                                              tableUrlInputs[lang.code] || ""
-                                                            ).trim()
-                                                          }
-                                                          onClick={() =>
-                                                            handleFetchTableUrl(
-                                                              lang.code,
-                                                              lang.name,
-                                                            )
-                                                          }
-                                                          className="h-7 text-xs px-2.5 shrink-0"
-                                                        >
-                                                          {status?.loading ? (
-                                                            <>
-                                                              <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                                              Loading…
-                                                            </>
-                                                          ) : (
-                                                            "Fetch Subtitles"
-                                                          )}
-                                                        </Button>
-                                                      </div>
-
-                                                      <div className="flex flex-wrap items-center justify-between gap-2 text-[11px]">
-                                                        <button
-                                                          type="button"
-                                                          onClick={() => {
-                                                            const sample = `/fixtures/${videoId || "L2Ryrr6txwA"}/${lang.code}.json`;
-                                                            setTableUrlInputs((prev) => ({
-                                                              ...prev,
-                                                              [lang.code]: sample,
-                                                            }));
-                                                          }}
-                                                          className="text-primary hover:underline flex items-center gap-1"
-                                                        >
-                                                          <FileText className="h-3 w-3" />
-                                                          <span>Use sample fixture</span>
-                                                        </button>
-                                                        {cueCount ? (
-                                                          <span className="text-muted-foreground font-mono">
-                                                            Active track: {cueCount} cues
-                                                          </span>
-                                                        ) : null}
-                                                      </div>
-
-                                                      {/* Voice selection */}
-                                                      <div className="flex items-center gap-2 pt-1.5 border-t border-border/50 text-xs">
-                                                        <span className="text-muted-foreground shrink-0">
-                                                          Voice:
-                                                        </span>
-                                                        <select
-                                                          aria-label={`${lang.name} voice`}
-                                                          value={voiceSelections[lang.code] ?? ""}
-                                                          onChange={(e) => {
-                                                            const value = e.target.value;
-                                                            setVoiceSelections((current) => {
-                                                              const next = {
-                                                                ...current,
-                                                                [lang.code]: value,
-                                                              };
-                                                              try {
-                                                                localStorage.setItem(
-                                                                  "yt_tts_voice_selections_v1",
-                                                                  JSON.stringify(next),
-                                                                );
-                                                              } catch {
-                                                                // ignore storage write errors
-                                                              }
-                                                              return next;
-                                                            });
-                                                          }}
-                                                          disabled={languageVoices.length === 0}
-                                                          className="w-full sm:w-64 truncate rounded border border-input bg-background px-1.5 py-0.5 text-xs disabled:opacity-60"
-                                                        >
-                                                          <option value="">
-                                                            {languageVoices.length === 0
-                                                              ? "Device voice"
-                                                              : "Default voice"}
-                                                          </option>
-                                                          {languageVoices.map(
-                                                            (voice, voiceIndex) => (
-                                                              <option
-                                                                key={getUniqueVoiceKey(
-                                                                  voice,
-                                                                  voiceIndex,
-                                                                )}
-                                                                value={voice.voiceURI || voice.name}
-                                                              >
-                                                                {voice.name}{" "}
-                                                                {voice.lang
-                                                                  ? `(${voice.lang})`
-                                                                  : ""}
-                                                              </option>
-                                                            ),
-                                                          )}
-                                                        </select>
-                                                      </div>
-
-                                                      {status?.message && (
-                                                        <div
-                                                          data-testid={`table-url-status-${lang.code}`}
-                                                          className={`p-2 rounded text-[11px] flex items-start gap-1.5 border ${
-                                                            status.type === "success"
-                                                              ? "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-200 dark:border-emerald-800"
-                                                              : status.type === "error"
-                                                                ? "bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-200 dark:border-rose-800"
-                                                                : "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-200 dark:border-blue-800"
-                                                          }`}
-                                                        >
-                                                          {status.type === "success" ? (
-                                                            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                                                          ) : status.type === "error" ? (
-                                                            <AlertCircle className="h-3.5 w-3.5 text-rose-600 shrink-0 mt-0.5" />
-                                                          ) : (
-                                                            <RefreshCw className="h-3.5 w-3.5 text-blue-600 animate-spin shrink-0 mt-0.5" />
-                                                          )}
-                                                          <span className="flex-1">
-                                                            {status.message}
-                                                          </span>
-                                                        </div>
-                                                      )}
-                                                    </div>
-                                                  </td>
-                                                </tr>
-                                              )}
-                                              {activeVideoBarIndex === index + 1 && (
-                                                <VideoPlaybackPrecedenceBar
-                                                  asTableRow
-                                                  colSpan={9}
-                                                  currentPosition={index + 1}
-                                                  totalRecords={orderedLangs.length}
-                                                  onMoveUp={() => handleSetVideoBarPosition(index)}
-                                                  onMoveDown={() =>
-                                                    handleSetVideoBarPosition(
-                                                      Math.min(orderedLangs.length, index + 2),
-                                                    )
-                                                  }
-                                                  onPlaceAtTop={() => handleSetVideoBarPosition(0)}
-                                                  onPlaceAtBottom={() =>
-                                                    handleSetVideoBarPosition(orderedLangs.length)
-                                                  }
-                                                />
-                                              )}
-                                            </Fragment>
-                                          );
-                                        })}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                );
-                              })()}
-                              {(() => {
-                                const pendingFetchAgainLangs =
-                                  activeFailedToFetch.length > 0
-                                    ? activeFailedToFetch
-                                    : failedLangs.length > 0
-                                      ? languagesToFetchNext
-                                      : [];
-                                if (pendingFetchAgainLangs.length === 0) return null;
-                                return (
-                                  <div
-                                    id="subtitles-failed-fetch-alert"
-                                    data-testid="subtitles-failed-fetch-alert"
-                                    className="mt-3 flex items-center justify-between p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-xs"
+                                            )}
+                                            {activeVideoBarIndex === index + 1 && (
+                                              <VideoPlaybackPrecedenceBar
+                                                asTableRow
+                                                colSpan={9}
+                                                currentPosition={index + 1}
+                                                totalRecords={orderedLangs.length}
+                                                onMoveUp={() => handleSetVideoBarPosition(index)}
+                                                onMoveDown={() =>
+                                                  handleSetVideoBarPosition(
+                                                    Math.min(orderedLangs.length, index + 2),
+                                                  )
+                                                }
+                                                onPlaceAtTop={() => handleSetVideoBarPosition(0)}
+                                                onPlaceAtBottom={() =>
+                                                  handleSetVideoBarPosition(orderedLangs.length)
+                                                }
+                                              />
+                                            )}
+                                          </Fragment>
+                                        );
+                                      })}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              );
+                            })()}
+                            {(() => {
+                              const pendingFetchAgainLangs =
+                                activeFailedToFetch.length > 0
+                                  ? activeFailedToFetch
+                                  : failedLangs.length > 0
+                                    ? languagesToFetchNext
+                                    : [];
+                              if (pendingFetchAgainLangs.length === 0) return null;
+                              return (
+                                <div
+                                  id="subtitles-failed-fetch-alert"
+                                  data-testid="subtitles-failed-fetch-alert"
+                                  className="mt-3 flex items-center justify-between p-2.5 rounded-lg border border-destructive/30 bg-destructive/10 text-xs"
+                                >
+                                  <span className="text-destructive font-medium">
+                                    Failed to fetch subtitles: {pendingFetchAgainLangs.join(", ")}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    data-testid="subtitles-manual-fetch"
+                                    onClick={manualFetchFailed}
+                                    className="inline-flex items-center gap-1 rounded bg-destructive/20 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/30 cursor-pointer"
                                   >
-                                    <span className="text-destructive font-medium">
-                                      Failed to fetch subtitles: {pendingFetchAgainLangs.join(", ")}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      data-testid="subtitles-manual-fetch"
-                                      onClick={manualFetchFailed}
-                                      className="inline-flex items-center gap-1 rounded bg-destructive/20 px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/30 cursor-pointer"
-                                    >
-                                      <RefreshCw className="h-3 w-3" />
-                                      Fetch again ({pendingFetchAgainLangs.join(", ")})
-                                    </button>
-                                  </div>
-                                );
-                              })()}
-                            </>
-                          ))}
+                                    <RefreshCw className="h-3 w-3" />
+                                    Fetch again ({pendingFetchAgainLangs.join(", ")})
+                                  </button>
+                                </div>
+                              );
+                            })()}
+                          </>
+                        )}
 
                         {panelId === "subtitles" && (
                           <section
