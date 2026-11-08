@@ -1,5 +1,100 @@
 # Done tasks
 
+### Task 343 (Prompt 112 - Chapter 0): Playback Expectation Scenario Explanation
+
+- **Prompt**:
+  ```
+  0. what expected when the user clicks on play? show a quick scenario which will explain what is going to happend based on the language setup selection: 
+
+  for example:
+  play italian on subtitles-record-id:3 - tts play a word
+  play english on subtitles-record-id:3 - tts play a word
+  play the video for X seconds
+  play hebrew language on subtitles-record-id:4 - tts play a word
+  play russian on subtitles-record-id:6 - tts play a sentence because sentence-section(ending with ",") is lower then 8 words
+  ```
+- **Context & Implementation**:
+  - Documented the exact execution workflow of the multi-language audio/video state machine when the user hits "Play".
+  - Outlined how language setup selections (language learning ratios, zero-knowledge word-picking vs full sentences, sentence length filters, playback sequence orders, speech rates) dictate the precise sequence of pauses, word pronunciations with translations, video segments, and full sentence TTS.
+
+### Task 344 (Prompt 112 - Chapter 1): Learning Goals Profile Save & Switch Dropdown Next to Video Player
+
+- **Prompt**:
+  ```
+  1. learning goals - save profile.
+  the user should be able to setup learning profile and then change between them by selecting a profile from a dropdown menu next to the video-player
+  ```
+- **Context & Implementation**:
+  - `src/utils/ratioCompositionsManager.ts`:
+    - Extended `LanguageRatioComposition` and `LearningProfileConfig` interfaces to store full learning profile attributes: `maxWordsPerSentence`, `skipIncompleteSentences`, `sectionOrder`, `rates`, and `ttsLanguageOrders` alongside language learning ratios.
+    - Updated `saveRatioComposition` to accept `profileConfig?: LearningProfileConfig` and serialize complete profile preferences into localStorage (`yt_language_ratio_compositions_v1`).
+  - `src/components/LanguageRatioCompositionSelector.tsx`:
+    - Updated `div#ratio-compositions-selector-container` located immediately underneath/next to the video player (`CSS selector 1` & `CSS selector 2`).
+    - Added an inline "+ Save Profile" action with profile name input and Enter/Escape keyboard shortcuts.
+    - Added a delete button (`<Trash2 />`) for custom saved profiles (while protecting built-in presets).
+  - `src/routes/index.tsx`:
+    - Enhanced `handleSaveComposition` to capture current `ttsRatios`, `simpleParserConfig.maxWordsPerSentence`, `simpleParserConfig.skipIncompleteSentences`, `sectionOrder`, `rates`, and `ttsLanguageOrders`.
+    - Enhanced `handleSelectRatioComposition` to restore all profile attributes when a profile is selected from the dropdown: immediately applying ratios, word count limits, complete sentence filters, section order, speech rates, and playback orders.
+    - Passed `onSaveProfile` and `onDeleteProfile` to `<LanguageRatioCompositionSelector>` in both Beginner Mode and Advanced Mode, ensuring 100% parity.
+- **Testing & Verification**:
+  - Authored dedicated test suite `scripts/verify-learning-profile-save-and-switch.ts` (`npm run test:learning-profile-save-and-switch`).
+  - Verified test suite passes 100%.
+  - Verified `compile_applet` and `lint_applet` pass with zero errors.
+  - Bumped version to `2.1.42` via `npx tsx scripts/sync-version.ts 2.1.42`.
+
+### Task 341 (Prompt 110 - Chapter 1): Floating Button Play/Pause State & Play Click Handler
+
+- **Prompt**:
+  ```
+  1. the floating button should show the state of the (tts-play&video-player) player but clicking on play doent do anything.
+  ```
+- **Context & Implementation**:
+  - `src/components/FloatingDraggablePauseButton.tsx`:
+    - Updated playback active calculation to reflect the combined `(tts-play & video-player)` state: `isPlaybackActive = Boolean(isVideoPlaying || isSpeaking)`.
+    - Switched button presentation (Play vs Pause icon, green/emerald vs red/rose styling, aria-label, and title) to accurately indicate whether the combined player is active (`<Pause />` when video or speech is playing; `<Play />` when paused).
+    - Updated click action dispatcher to check `isPlayingCombined = Boolean(isVideoPlaying || isSpeaking)`: dispatches `onPause()` when playing, and `onPlay()` when paused.
+    - Raised dragging distance discrimination threshold to `Math.hypot(dx, dy) > 10` (from 4px) to ensure standard touch taps and mouse clicks are not cancelled as accidental drag operations.
+  - `src/routes/index.tsx`:
+    - Hardened `handlePlayVideo`:
+      - Synchronously sets `st.current.isSetupPaused = false` so the 100ms interval playback loop does not skip.
+      - Resolves player instance from `player.current` or `multiVideoPlayerRegistry.get("primary")`.
+      - Cancels speech, clears pause reason and explicit pause flags (`userExplicitlyPausedRef.current = false`, `isPausedForTtsRef.current = false`).
+      - Calls `p.playVideo?.()` with follow-up kicks at 100ms and 300ms to overcome browser autoplay/transition delays.
+      - Dispatches direct `playVideo` command via `postMessage` to YouTube iframe as fallback.
+    - Updated `handleTogglePlay` to check combined active state (`isCurrentlyPlaying || isSpeakingActive || isVideoPlaying`) and toggle accordingly.
+- **Testing & Verification**:
+  - Authored dedicated test suite `scripts/verify-floating-play-pause-button-state-and-action.ts` (`npm run test:floating-play-pause-action`) passing 100%.
+  - Verified `npm run test:floating-play-pause-toggle`, `npm run test:floating-draggable-pause`, `npm run test:floating-pause-button-reaction-and-reason`, and `npm run test:single-icon-floating-button` pass with zero regressions.
+
+### Task 342 (Prompt 110 - Chapter 2): Persist Learning Goals & Per-Language Settings Across App Init On Video Share
+
+- **Prompt**:
+  ```
+  2. the learning-goals including  each language settings is doesnt seems to be remember between app init when triggering the app via a video share with the app
+  ```
+- **Context & Implementation**:
+  - `src/utils/appSettings.ts`:
+    - Extended `VideoSpecificSettings` interface to include `maxWordsPerSentence`, `skipIncompleteSentences`, `ttsLanguageOrders`, and `voiceSelections`.
+    - Updated `saveVideoSettings` to deeply merge existing and incoming `ttsLanguageOrders` and `voiceSelections` alongside `ttsRates` and `ttsRatios`.
+  - `src/routes/index.tsx`:
+    - In `useEffect([videoId])`, when loading a new or shared video with no prior per-video overrides, automatically restore all user learning goals and language settings from global preferences:
+      - Learning goals word limit (`maxWordsPerSentence` via `getLearningGoalsMaxWords()`).
+      - Learning goals complete sentences filter (`skipIncompleteSentences` via `getLearningGoalsSkipIncomplete()`).
+      - Learning goals ratios (`ttsRatios` via `getTtsRatiosPreference()`).
+      - Per-language speech rates/speeds (`rates` via `getTtsRatesPreference()`).
+      - Per-language TTS blacklist (`ttsBlacklist` via `getTtsBlacklist()`).
+      - Per-language playback sequence (`ttsLanguageOrders` via `getTtsLanguageOrdersPreference()`).
+      - Per-language voice selections (`voiceSelections` via `yt_tts_voice_selections_v1`).
+      - Target languages: safely preserves shared target language parameter (`target_lang`) alongside global favorite languages.
+    - In `openLink`:
+      - Parsed URL parameters from shared links (`target_lang`, `lang`, `subtitles_url`, `sub_url`).
+      - Registered shared target language for the video via `recordSharedLanguageForVideo(id, clean)`.
+      - Automatically added shared target language to `favoriteLanguages`, `targetLanguages`, `shown`, and `spoken` states.
+- **Testing & Verification**:
+  - Authored dedicated test suite `scripts/verify-learning-goals-persist-on-video-share.ts` (`npm run test:learning-goals-video-share-persist`) passing 100%.
+  - Verified `npm run test:single-source-version`, `npm run test:learning-goals-component-design`, and `npm run test:learning-goals-tts-order-and-video-bar` pass cleanly.
+  - Synchronized single-source version `v2.1.41` (code: 20141) across `package.json` and `android-shell/app/build.gradle.kts`.
+
 ### Task 340 (Prompt 109): Update TTS Service According to its OpenAPI Specification (openapi.json)
 
 - **Prompt**:

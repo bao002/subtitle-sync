@@ -4,15 +4,12 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 341 (Prompt 110 - Chapter 1): Floating Button Play/Pause State & Play Click Handler**
-  - Subtask 341.1: Audit `FloatingDraggablePauseButton.tsx` and callers in `src/routes/index.tsx` and `BeginnerPlayerTab.tsx` to ensure floating button properly reflects combined `(tts-play & video-player)` playback state, and that clicking Play when paused triggers full playback resumption (video playback and TTS coordination).
-  - Subtask 341.2: Implement dedicated automated test `scripts/verify-floating-play-pause-button-state-and-action.ts` (`npm run test:floating-play-pause-action`).
-  - Subtask 341.3: Synchronize version, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate Task 341 to `docs/done.md`.
-
-- [ ] **Task 342 (Prompt 110 - Chapter 2): Persist Learning Goals & Per-Language Settings Across App Init On Video Share**
-  - Subtask 342.1: Audit video share initialization (`?v=`, `?url=`, `?target_lang=`, deep links, Android `SEND` intent handler) and state restoration in `src/routes/index.tsx`, `src/utils/appSettings.ts`, `src/lib/playback-preferences.ts`, and `src/components/beginner/tabs/BeginnerVideoTab.tsx` / `BeginnerPreferencesTab.tsx`. Ensure user-defined learning goals (favorite languages, target languages, speed, per-language TTS preferences/blacklist/ratio) are preserved from global/existing preferences rather than wiped or reset to defaults when a new video is shared.
-  - Subtask 342.2: Implement dedicated automated test `scripts/verify-learning-goals-persist-on-video-share.ts` (`npm run test:learning-goals-video-share-persist`).
-  - Subtask 342.3: Synchronize version, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate Task 342 to `docs/done.md`.
+- [ ] **Task 345 (Prompt 113): Floating Play Button Playtime Tooltip on Hover / Long Press**
+  - Subtask 345.1: Add `currentTimeSec` and `durationSec` props to `FloatingDraggablePauseButtonProps`, supporting dynamic formatted playtime display (`MM:SS / MM:SS` or `H:MM:SS / H:MM:SS`).
+  - Subtask 345.2: Implement hover tooltip state (`isHovered`) on mouse enter/leave, and mobile touch long-press (>= 400ms) or toggle mechanism with auto-dismiss (3s), styled cleanly with backdrop blur and border.
+  - Subtask 345.3: Pass `currentTimeSec={playbackCurrentTime}` and `durationSec={playbackDuration}` to `<FloatingDraggablePauseButton>` in `src/routes/index.tsx` and Storybook workbench.
+  - Subtask 345.4: Authored dedicated automated test suite `scripts/verify-floating-pause-button-playtime-tooltip.ts` (`npm run test:floating-playtime-tooltip`).
+  - Subtask 345.5: Bump version to `v2.1.43`, run `sync-version`, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate to `docs/done.md`.
 
 - [ ] **Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique**
   - Subtask 312.1: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.

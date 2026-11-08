@@ -1436,3 +1436,47 @@ update tts service according its openapi.json
 
 2. the learning-goals including  each language settings is doesnt seems to be remember between app init when triggering the app via a video share with the app
 ```
+
+---
+
+### Prompt 111: Go On (Continue Prompt 110 Implementation)
+```
+go on
+```
+
+---
+
+### Prompt 112: Playback Expectation Scenario & Learning Goals Save Profile Dropdown
+```
+0. what expected when the user clicks on play? show a quick scenario which will explain what is going to happend based on the language setup selection: 
+
+for example:
+play italian on subtitles-record-id:3 - tts play a word
+play english on subtitles-record-id:3 - tts play a word
+play the video for X seconds
+play hebrew language on subtitles-record-id:4 - tts play a word
+play russian on subtitles-record-id:6 - tts play a sentence because sentence-section(ending with ",") is lower then 8 words
+
+
+1. learning goals - save profile.
+the user should be able to setup learning profile and then change between them by selecting a profile from a dropdown menu next to the video-player
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div#ratio-compositions-selector-container:nth-of-type(2)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3)
+CSS 2: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 113: Floating Play Button Playtime Tooltip on Hover / Long Press
+```
+after clicking on the floating play button - mouse hover (or equivilant operation on mobile) should show a tooltip with the play time
+```
+

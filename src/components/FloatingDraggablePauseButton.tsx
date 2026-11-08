@@ -25,6 +25,22 @@ export interface FloatingDraggablePauseButtonProps {
   onTogglePlay?: () => void;
   onPlay?: () => void;
   onPause?: () => void;
+  currentTimeSec?: number;
+  durationSec?: number;
+}
+
+export function formatPlaytimeSeconds(seconds: number): string {
+  if (isNaN(seconds) || seconds < 0) return "0:00";
+  const totalSec = Math.floor(seconds);
+  const hrs = Math.floor(totalSec / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = totalSec % 60;
+  const padSec = secs < 10 ? `0${secs}` : `${secs}`;
+  if (hrs > 0) {
+    const padMin = mins < 10 ? `0${mins}` : `${mins}`;
+    return `${hrs}:${padMin}:${padSec}`;
+  }
+  return `${mins}:${padSec}`;
 }
 
 const STORAGE_KEY_POS = "yt_floating_pause_pos";
@@ -46,6 +62,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
   onTogglePlay,
   onPlay,
   onPause,
+  currentTimeSec = 0,
+  durationSec = 0,
 }) => {
   const [position, setPosition] = useState<Position>(() => {
     if (typeof window !== "undefined") {
@@ -73,6 +91,10 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
     null,
   );
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [showPlaytimeMobile, setShowPlaytimeMobile] = useState(false);
+  const mobileTooltipTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const dragStartRef = useRef<{ clientX: number; clientY: number } | null>(null);
   const startPosRef = useRef<Position>({ x: 0, y: 0 });
   const hasMovedRef = useRef<boolean>(false);
@@ -141,7 +163,7 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
       const dx = e.clientX - dragStartRef.current.clientX;
       const dy = e.clientY - dragStartRef.current.clientY;
 
-      if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+      if (Math.hypot(dx, dy) > 10) {
         hasMovedRef.current = true;
       }
 
@@ -172,6 +194,16 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
     startPosRef.current = { ...position };
     hasMovedRef.current = false;
     setIsDragging(true);
+
+    // On mobile: long-press (>= 400ms) reveals the playtime tooltip
+    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    longPressTimerRef.current = setTimeout(() => {
+      if (!hasMovedRef.current) {
+        setShowPlaytimeMobile(true);
+        if (mobileTooltipTimerRef.current) clearTimeout(mobileTooltipTimerRef.current);
+        mobileTooltipTimerRef.current = setTimeout(() => setShowPlaytimeMobile(false), 3500);
+      }
+    }, 400);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -180,8 +212,12 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
     const dx = touch.clientX - dragStartRef.current.clientX;
     const dy = touch.clientY - dragStartRef.current.clientY;
 
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
+    if (Math.hypot(dx, dy) > 10) {
       hasMovedRef.current = true;
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+        longPressTimerRef.current = null;
+      }
     }
 
     const nextX = startPosRef.current.x + dx;
@@ -192,16 +228,22 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
   const handleTouchEnd = () => {
     setIsDragging(false);
     dragStartRef.current = null;
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
   };
 
-  const handleButtonClick = (e: React.MouseEvent) => {
+  const handleButtonClick = (e?: React.MouseEvent) => {
     if (hasMovedRef.current) {
-      e.preventDefault();
-      e.stopPropagation();
+      e?.preventDefault();
+      e?.stopPropagation();
       return;
     }
 
-    if (isVideoPlaying) {
+    // Active state of combined (tts-play & video-player) player
+    const isPlayingCombined = Boolean(isVideoPlaying || isSpeaking);
+    if (isPlayingCombined) {
       // clicking on pause should always trigger pause
       if (onPause) {
         onPause();
@@ -219,6 +261,10 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
       } else {
         onToggleSetupPause();
       }
+      // On mobile / tap: briefly show playtime tooltip when clicked
+      setShowPlaytimeMobile(true);
+      if (mobileTooltipTimerRef.current) clearTimeout(mobileTooltipTimerRef.current);
+      mobileTooltipTimerRef.current = setTimeout(() => setShowPlaytimeMobile(false), 3000);
     }
   };
 
@@ -244,6 +290,14 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
   const isPlaybackActive = isVideoPlaying || isSpeaking;
   const isEffectivelyPaused = isSetupPaused || !isPlaybackActive;
 
+  const shouldShowPlaytimeTooltip =
+    !isOpen && (isHovered || showPlaytimeMobile) && !isDragging;
+  const formattedCurrentTime = formatPlaytimeSeconds(currentTimeSec);
+  const formattedDuration = durationSec > 0 ? formatPlaytimeSeconds(durationSec) : null;
+  const playtimeLabel = formattedDuration
+    ? `${formattedCurrentTime} / ${formattedDuration}`
+    : formattedCurrentTime;
+
   return (
     <div
       ref={containerRef}
@@ -262,6 +316,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Floating Trigger Button: 1 floating button of 1 icon */}
       <button
@@ -272,14 +328,14 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
         aria-expanded={isOpen}
         aria-pressed={isSetupPaused}
         aria-label={
-          !isVideoPlaying
+          !isPlaybackActive
             ? `Play video${pauseReason ? ` (Paused: ${pauseReason})` : ""}`
             : "Pause video"
         }
         title={
-          !isVideoPlaying
-            ? `Play video${pauseReason ? ` (Paused: ${pauseReason})` : ""}`
-            : "Pause video"
+          !isPlaybackActive
+            ? `Play video - Time: ${playtimeLabel}${pauseReason ? ` (Paused: ${pauseReason})` : ""}`
+            : `Pause video - Time: ${playtimeLabel}`
         }
         onClick={handleButtonClick}
         onContextMenu={(e) => {
@@ -293,25 +349,25 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
         className={`flex h-12 w-12 items-center justify-center rounded-full border shadow-2xl backdrop-blur-md transition-all duration-150 active:scale-95 ${
           isDragging ? "cursor-grabbing opacity-90 scale-105" : "cursor-grab hover:scale-105"
         } ${
-          !isVideoPlaying
+          !isPlaybackActive
             ? "border-emerald-500 bg-emerald-600 text-white shadow-emerald-500/40 hover:bg-emerald-700 ring-2 ring-emerald-400/50"
             : "border-rose-500 bg-rose-600 text-white shadow-rose-500/40 hover:bg-rose-700 ring-2 ring-rose-400/50"
         }`}
       >
         <span data-testid="floating-dropdown-trigger" className="hidden" aria-hidden="true" />
         <span data-testid="floating-pause-status" className="sr-only">
-          {!isVideoPlaying
+          {!isPlaybackActive
             ? `Paused (OFF)${pauseReason ? ` - ${pauseReason}` : ""}`
             : isAutoScrollEnabled
               ? "Auto-Scroll ON"
               : "Playback Active (ON)"}
         </span>
         <span data-testid="floating-pause-badge" className="sr-only">
-          {!isVideoPlaying ? "Playback Paused" : "Playback Active"}
+          {!isPlaybackActive ? "Playback Paused" : "Playback Active"}
         </span>
 
-        {/* Exactly 1 icon: if the video is not playing - show a play button or else - show a pause button */}
-        {!isVideoPlaying ? (
+        {/* Exactly 1 icon: if the (tts-play & video-player) player is not playing - show a play button or else - show a pause button */}
+        {!isPlaybackActive ? (
           <Play className="h-5 w-5 fill-current shrink-0 ml-0.5" />
         ) : (
           <Pause className="h-5 w-5 fill-current shrink-0" />
@@ -333,8 +389,23 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
         <SlidersHorizontal className="h-2.5 w-2.5" />
       </button>
 
+      {/* Playtime Tooltip on Hover / Long Press / After Click */}
+      {shouldShowPlaytimeTooltip && (
+        <div
+          data-testid="floating-playtime-tooltip"
+          role="tooltip"
+          aria-live="polite"
+          className={`absolute pointer-events-none z-50 rounded-md bg-neutral-900/90 text-white px-2 py-1 text-[11px] font-mono font-medium shadow-lg backdrop-blur-md border border-neutral-700/80 whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 ${
+            opensUpward ? "bottom-full mb-2" : "top-full mt-2"
+          } ${alignsRight ? "right-0" : "left-0"}`}
+        >
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>{playtimeLabel}</span>
+        </div>
+      )}
+
       {/* Pause Reason Tooltip / Notification Chip attached to floating button */}
-      {isEffectivelyPaused && pauseReason && !isOpen && (
+      {isEffectivelyPaused && pauseReason && !isOpen && !shouldShowPlaytimeTooltip && (
         <div
           data-testid="floating-pause-reason-chip"
           className={`absolute pointer-events-none rounded-md bg-black/85 text-white px-2 py-1 text-[10px] font-medium shadow-md backdrop-blur-sm border border-white/20 whitespace-nowrap max-w-xs truncate transition-all duration-200 ${

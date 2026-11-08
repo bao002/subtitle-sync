@@ -6,8 +6,8 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Task 341 (Prompt 110 - Chapter 1): Fix Floating Play/Pause Button State & Play Click Handler in [`current-sub-task.md`](../current-sub-task.md) and [`docs/tasks.md`](tasks.md).
-- Task 342 (Prompt 110 - Chapter 2): Persist Learning Goals & Per-Language Settings Across App Init On Video Share in [`docs/tasks.md`](tasks.md).
+- Prompt 113 (Task 345): Floating play button playtime tooltip on hover (desktop) and tap/hold (mobile).
+- Active Task: Task 345. Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
 
 ---
 

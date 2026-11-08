@@ -522,6 +522,8 @@ export const StorybookWorkbench: React.FC = () => {
                   onToggleSetupPause={() => setIsSetupPaused((p) => !p)}
                   isAutoScrollEnabled={isAutoScrollEnabled}
                   onToggleAutoScroll={() => setIsAutoScrollEnabled((s) => !s)}
+                  currentTimeSec={42}
+                  durationSec={180}
                 />
               </div>
             )}
