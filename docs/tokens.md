@@ -6,8 +6,8 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 114 (Task 346): Floating Play Button Triggers Video & Video Stage Activation from Any Stage.
-- Active Task: Task 346. Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
+- Prompt 115 (Task 347): Subtitles table play trigger, floating error button, per-language cell colors, header background diversity toggle [COMPLETED - v2.1.44].
+- Active Task: Completed Prompt 115. Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
 
 ---
 

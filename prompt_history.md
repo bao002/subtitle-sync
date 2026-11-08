@@ -1487,4 +1487,16 @@ after clicking on the floating play button - mouse hover (or equivilant operatio
 should click on the floating play button trigger the video. currently it works only when the video stage is activated
 ```
 
+---
+
+### Prompt 115: Subtitles Table Play Trigger, Floating Error Button, Cell Language Colors, Background Diversity Toggle
+```
+clicking on the subtitles-table should trigger playing. 
+show a floating error button in any error rising.
+subtitles-table - cell coloring per language.
+
+app design - add toggle button on header to make background more diverse
+```
+
+
 

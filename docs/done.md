@@ -1,5 +1,40 @@
 # Done tasks
 
+### Task 347 (Prompt 115): Subtitles Table Play Trigger, Floating Error Button, Cell Language Colors, Background Diversity Toggle
+
+- **Prompt**:
+  ```
+  clicking on the subtitles-table should trigger playing. 
+  show a floating error button in any error rising.
+  subtitles-table - cell coloring per language.
+
+  app design - add toggle button on header to make background more diverse
+  ```
+- **Context & Implementation**:
+  - **1. Subtitles Table Play Trigger**:
+    - Updated `src/components/SubtitlesTablePanel.tsx`: Added `onTablePlay` prop to `SubtitlesTablePanelProps`, wired click handler on `<table data-testid="subtitles-table">` ignoring interactive child button/input clicks.
+    - Updated `seek` in `src/routes/index.tsx`: Calls `handlePlayVideo()` to ensure player activates, unpauses, and starts playing when a subtitle row or cell is clicked.
+    - Passed `onTablePlay={handlePlayVideo}` to `<SubtitlesTablePanel>` across both Beginner Mode and Advanced Mode with 100% parity.
+  - **2. Floating Error Button**:
+    - Created `src/components/FloatingErrorButton.tsx`: Draggable floating button with high z-index (9998) that monitors `logBuffer` ERROR entries, window `error` events, and `unhandledrejection` events.
+    - Remains completely hidden when error count is 0 (`errors.length === 0`).
+    - Dynamically appears when any error arises with an animated alert icon, error count badge (`data-testid="floating-error-count-badge"`), and click-to-open inspector modal (`data-testid="floating-error-modal"`).
+    - Features full error inspection, copy errors to clipboard (`copy-floating-errors-btn`), and clear errors (`clear-floating-errors-btn`).
+    - Created Storybook stories `src/components/FloatingErrorButton.stories.tsx` (WithActiveErrors, WithoutErrorsHidden).
+    - Mounted `<FloatingErrorButton />` near other floating controls in `src/routes/index.tsx`.
+  - **3. Subtitles Table Cell & Column Coloring Per Language**:
+    - Created `src/utils/languageColors.ts`: Maps language codes to distinct, accessible color palettes (`cellBg`, `cellActiveBg`, `headerBg`, `headerBorder`, `dot`, `badgeBg`).
+    - Updated `src/components/SubtitleRow.tsx`: Applied semantic cell backgrounds and borders with `data-lang-cell={l.code}`.
+    - Updated `src/components/SubtitlesTablePanel.tsx`: Applied semantic header backgrounds, bottom borders, colored dot indicators, and `data-lang-col={l.code}`.
+  - **4. App Design - Header Background Diversity Toggle**:
+    - Added header toggle button `<Button data-testid="header-bg-diversity-toggle">` with `Palette` icon in `src/routes/index.tsx`.
+    - Added `data-bg-diversity` attribute and ambient multi-stop background gradient classes (`bg-gradient-to-br from-slate-950 via-indigo-950/40 to-slate-900 bg-fixed`) on the root container.
+    - Persisted preference to `localStorage.getItem("yt_bg_diversity_mode")`.
+  - **Testing & Verification**:
+    - Authored dedicated automated test suite `scripts/verify-prompt-115-features.ts` (`npm run test:prompt-115-features`). Passed 100%.
+    - Synchronized version to `v2.1.44` (code `20144`).
+    - Ran all constitutional agent contract checks (`npm run test:agents-all`). Passed 21/21 (100%).
+
 ### Task 346 (Prompt 114): Floating Play Button Triggers Video & Video Stage Activation
 
 - **Prompt**:

@@ -132,7 +132,11 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-should click on the floating play button trigger the video. currently it works only when the video stage is activated
+clicking on the subtitles-table should trigger playing. 
+show a floating error button in any error rising.
+subtitles-table - cell coloring per language.
+
+app design - add toggle button on header to make background more diverse
 ```
 
 

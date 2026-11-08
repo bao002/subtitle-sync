@@ -9,6 +9,7 @@ import {
   shouldHighlightSentenceForTtsWithRole,
 } from "@/lib/playback-preferences";
 import { HighlightedSubtitle, type SpeechProgress } from "@/components/HighlightedSubtitle";
+import { getLanguageColorPalette } from "@/utils/languageColors";
 
 export interface SubtitleColumn {
   code: string;
@@ -97,22 +98,26 @@ export const SubtitleRow = memo(function SubtitleRow({
           blacklist,
         });
         const isPrimary = primaryTtsLang ? l.code === primaryTtsLang : false;
+        const palette = getLanguageColorPalette(l.code);
         return (
           <td
             key={l.code}
             dir={RTL.has(l.code) ? "rtl" : "ltr"}
             data-language-column={l.code}
+            data-lang-cell={l.code}
             data-testid={`subtitle-cell-${actualIndex}-${l.code}`}
             data-tts-pronounced={isPronouncedHighlight ? "true" : undefined}
             data-tts-eligible={isEligible ? "true" : "false"}
             data-tts-role={isPrimary ? "primary" : primaryTtsLang ? "secondary" : undefined}
-            className={`px-3.5 py-2.5 text-sm leading-relaxed transition-colors min-w-[12rem] ${
+            className={`px-3.5 py-2.5 text-sm leading-relaxed transition-colors min-w-[12rem] border-r border-border/40 ${
               freezeColumns && isFirstCol
                 ? `sticky left-28 z-10 ${isActive ? "bg-accent/95 backdrop-blur-xs font-medium text-foreground" : "bg-card/95"} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]`
                 : ""
             } ${
+              isActive ? palette.cellActiveBg : palette.cellBg
+            } ${
               isPronouncedHighlight
-                ? "bg-primary/10 dark:bg-primary/15"
+                ? "ring-1 ring-inset ring-primary/40 font-medium"
                 : ""
             }`}
           >

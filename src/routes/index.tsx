@@ -64,6 +64,7 @@ import {
   X,
   Globe,
   Shuffle,
+  Palette,
 } from "lucide-react";
 import { getPlaybackSectionId } from "@/lib/playback-section-identity";
 import { Button } from "@/components/ui/button";
@@ -248,6 +249,7 @@ import {
 import { VideoInstancesSwiper } from "@/components/VideoInstancesSwiper";
 import { VideoPlaybackControls } from "@/components/VideoPlaybackControls";
 import { FloatingDraggablePauseButton } from "@/components/FloatingDraggablePauseButton";
+import { FloatingErrorButton } from "@/components/FloatingErrorButton";
 import { trackNetworkRequest, useNetworkRequests } from "@/utils/networkTracker";
 import { NetworkRequestsInspector } from "@/components/NetworkRequestsInspector";
 import {
@@ -2624,6 +2626,31 @@ function Index() {
       setDebugModeSetting(next);
       if (!next) {
         setNetworkInspectorOpen(false);
+      }
+      return next;
+    });
+  }, []);
+
+  const [bgDiversity, setBgDiversity] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem("yt_bg_diversity_mode") === "true";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  const handleToggleBgDiversity = useCallback(() => {
+    setBgDiversity((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("yt_bg_diversity_mode", String(next));
+        } catch {
+          // ignore
+        }
       }
       return next;
     });
@@ -5538,8 +5565,14 @@ function Index() {
     resetTtsPlaybackProgress(getPlaybackSectionId(r));
     lastMs.current = r.start;
     setActive(i);
-    player.current?.seekTo(r.start / 1000, true);
-    player.current?.playVideo();
+    if (workflowMode === "beginner" && beginnerActiveTab !== "video") {
+      setBeginnerActiveTab("video");
+    }
+    pendingPlayRequestedRef.current = true;
+    handlePlayVideo();
+    const p = player.current || multiVideoPlayerRegistry.get("primary");
+    p?.seekTo(r.start / 1000, true);
+    p?.playVideo();
   };
 
   const toggle = (list: string[], set: (v: string[]) => void, c: string) =>
@@ -6199,7 +6232,15 @@ function Index() {
   );
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-background text-foreground">
+    <div
+      data-testid="app-root-container"
+      data-bg-diversity={bgDiversity ? "enabled" : "disabled"}
+      className={`min-h-screen w-full max-w-full overflow-x-hidden text-foreground transition-all duration-300 ${
+        bgDiversity
+          ? "bg-gradient-to-br from-slate-950 via-indigo-950/40 to-slate-900 bg-fixed selection:bg-purple-500/30"
+          : "bg-background"
+      }`}
+    >
       <header
         className="sticky top-0 z-40 flex flex-wrap items-center gap-3 sm:gap-4 border-b border-border/70 bg-background/85 backdrop-blur-md px-4 py-3 sm:px-6 shadow-2xs transition-colors"
         data-app-hydrated={isHydrated ? "true" : undefined}
@@ -6274,6 +6315,29 @@ function Index() {
                 className={`h-3 w-3 ${debugMode ? "text-amber-500 dark:text-amber-400" : "text-muted-foreground"}`}
               />
               <span>Debug {debugMode ? "ON" : "OFF"}</span>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              id="header-bg-diversity-toggle"
+              data-testid="header-bg-diversity-toggle"
+              onClick={handleToggleBgDiversity}
+              className={`h-6 px-2 text-[11px] font-medium rounded-full border flex items-center gap-1 transition-all shrink-0 ${
+                bgDiversity
+                  ? "bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-500/50 shadow-xs ring-1 ring-purple-500/30"
+                  : "bg-muted/40 text-muted-foreground border-border/80 hover:text-foreground hover:bg-muted"
+              }`}
+              title={
+                bgDiversity
+                  ? "Diverse background styling is active. Click to switch to standard background."
+                  : "Switch to diverse background styling (subtle ambient gradient and contrast)."
+              }
+            >
+              <Palette
+                className={`h-3 w-3 ${bgDiversity ? "text-purple-500 dark:text-purple-400" : "text-muted-foreground"}`}
+              />
+              <span>Theme {bgDiversity ? "Diverse" : "Standard"}</span>
             </Button>
             <Button
               type="button"
@@ -7097,6 +7161,7 @@ function Index() {
                 onScrollToActivePosition={handleScrollToActivePosition}
                 onSpeakCue={handleSpeakCue}
                 blacklist={ttsBlacklist}
+                onTablePlay={handlePlayVideo}
               />
             }
           />
@@ -11535,6 +11600,7 @@ function Index() {
                               onScrollToActivePosition={handleScrollToActivePosition}
                               onSpeakCue={handleSpeakCue}
                               blacklist={ttsBlacklist}
+                              onTablePlay={handlePlayVideo}
                             />
                             {currentAccordionStage === 2 && (
                               <div
@@ -11677,6 +11743,7 @@ function Index() {
         currentTimeSec={playbackCurrentTime}
         durationSec={playbackDuration}
       />
+      <FloatingErrorButton />
       {/* Auto-Fetching Subtitles widget: folded and hidden by default on refresh */}
       <div
         id="autofetch-subtitles-container"
