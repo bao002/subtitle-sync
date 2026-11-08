@@ -8,6 +8,7 @@ import { NewSubtitlesParserBar } from "@/components/NewSubtitlesParserBar";
 import { SimpleParserConfig, DEFAULT_SIMPLE_PARSER_CONFIG } from "@/utils/newSubtitlesParser";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import { getZeroKnowledgeInLang, getPickWordStrategy } from "@/lib/playback-preferences";
+import { getLanguageColorPalette } from "@/utils/languageColors";
 
 export interface SubtitlesTablePanelProps {
   isAndroid: boolean;
@@ -36,6 +37,7 @@ export interface SubtitlesTablePanelProps {
   parserConfig?: SimpleParserConfig;
   onParserConfigChange?: (config: SimpleParserConfig) => void;
   onScrollToActivePosition?: () => void;
+  onTablePlay?: () => void;
 }
 
 export function SubtitlesTablePanel({
@@ -64,6 +66,7 @@ export function SubtitlesTablePanel({
   onSpeakCue,
   parserConfig: externalParserConfig,
   onParserConfigChange,
+  onTablePlay,
 }: SubtitlesTablePanelProps) {
   const [localParserConfig, setLocalParserConfig] = React.useState<SimpleParserConfig>(
     DEFAULT_SIMPLE_PARSER_CONFIG,
@@ -321,7 +324,20 @@ export function SubtitlesTablePanel({
           </div>
         </div>
       )}
-      <table data-testid="subtitles-table" className="w-full border-collapse text-sm">
+      <table
+        data-testid="subtitles-table"
+        onClick={(e) => {
+          if (
+            (e.target as HTMLElement).closest("button") ||
+            (e.target as HTMLElement).closest("input") ||
+            (e.target as HTMLElement).closest("select")
+          ) {
+            return;
+          }
+          onTablePlay?.();
+        }}
+        className="w-full border-collapse text-sm cursor-pointer"
+      >
         <thead data-testid="subtitles-table-head" className="sticky top-0 z-20 bg-secondary/95 backdrop-blur-md shadow-xs border-b border-border/70">
           <tr>
             <th
@@ -335,18 +351,21 @@ export function SubtitlesTablePanel({
             {cols.map((l, idx) => {
               const isFirstCol = idx === 0;
               const isDefault = l.code === baseLanguage || (isFirstCol && !baseLanguage);
+              const palette = getLanguageColorPalette(l.code);
               return (
                 <th
                   key={l.code}
                   data-testid={`table-header-col-${l.code}`}
-                  className={`px-3 py-2.5 text-left font-semibold text-xs text-foreground min-w-[12rem] ${
+                  data-lang-col={l.code}
+                  className={`px-3 py-2.5 text-left font-semibold text-xs min-w-[12rem] border-b-2 ${palette.headerBorder} ${palette.headerBg} ${palette.headerText} ${
                     shouldFreezeColumns && isFirstCol
-                      ? "sticky left-28 z-30 bg-secondary/95 backdrop-blur-md shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]"
+                      ? "sticky left-28 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]"
                       : ""
                   }`}
                 >
                   <div className="flex items-center justify-between gap-1.5 flex-wrap">
                     <span className="inline-flex items-center gap-1.5 font-medium">
+                      <span className={`inline-block w-2 h-2 rounded-full ${palette.dot}`} aria-hidden="true" />
                       {subtitleColumnName(l.code, l.name)}
                       {l.isYouTubeOrJson && (
                         <span title="Parsed from YouTube subtitles or .json artifact">

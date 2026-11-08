@@ -478,6 +478,11 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-floating-play-pause-toggle.ts`               | Floating Play/Pause Button State & Click Verification Suite (Task 334, Prompt 102) | Asserts Play button icon when not playing, Pause button icon when playing, clicking on play triggers play, clicking on pause triggers pause, and full index.tsx wiring. |
 | `scripts/verify-floating-pause-button-playtime-tooltip.ts`   | Floating Play Button Playtime Tooltip Verification Suite (Task 345, Prompt 113)    | Asserts playtime seconds formatting, hover/touch long-press tooltip, and wiring of currentTimeSec/durationSec in src/routes/index.tsx. |
 | `scripts/verify-floating-play-triggers-video-stage.ts`       | Floating Play Button Video Stage Activation Verification Suite (Task 346, Prompt 114)| Asserts clicking floating play triggers video and activates Stage 3 in expert mode or video tab in beginner mode, with player mount queuing. |
+| `src/utils/languageColors.ts`                                 | Semantic Language Color Palette Mapping (Task 347, Prompt 115)                     | Generates distinctive, accessible semantic color palettes per language code for subtitle table columns, cells, dots, and borders. |
+| `src/components/FloatingErrorButton.tsx`                      | Floating Draggable Error Button & Modal (Task 347, Prompt 115)                     | Draggable floating button dynamically surfacing application errors rising in real-time, error count badge, and full inspect/copy/clear modal. |
+| `src/components/FloatingErrorButton.stories.tsx`              | Storybook Stories for FloatingErrorButton (Task 347, Prompt 115)                   | Storybook stories showcasing FloatingErrorButton in WithActiveErrors and WithoutErrorsHidden states. |
+| `scripts/verify-prompt-115-features.ts`                       | Prompt 115 Full Features Verification Suite (Task 347, Prompt 115)                 | Validates table playback triggering, floating error button, per-language cell coloring, and header background diversity toggle. |
+
 
 
 
