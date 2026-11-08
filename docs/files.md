@@ -482,6 +482,11 @@ This document serves as the master catalog and directory of all repository docum
 | `src/components/FloatingErrorButton.tsx`                      | Floating Draggable Error Button & Modal (Task 347, Prompt 115)                     | Draggable floating button dynamically surfacing application errors rising in real-time, error count badge, and full inspect/copy/clear modal. |
 | `src/components/FloatingErrorButton.stories.tsx`              | Storybook Stories for FloatingErrorButton (Task 347, Prompt 115)                   | Storybook stories showcasing FloatingErrorButton in WithActiveErrors and WithoutErrorsHidden states. |
 | `scripts/verify-prompt-115-features.ts`                       | Prompt 115 Full Features Verification Suite (Task 347, Prompt 115)                 | Validates table playback triggering, floating error button, per-language cell coloring, and header background diversity toggle. |
+| `scripts/verify-learning-goals-tts-speed-per-language.ts`     | Learning Goals Per-Language TTS Speed Rate Verification (Task 348, Prompt 116/117) | Validates per-language speed rate controls in Learning Goals, propagation to native and external TTS service, and range 0.25x-2.5x. |
+| `scripts/verify-default-external-tts-validated.ts`            | Default External TTS When Validated Verification (Task 349, Prompt 116/117)        | Validates external TTS automatically defaulting to active and remembering access tokens permanently upon successful validation. |
+| `scripts/verify-header-import-export-unredacted.ts`          | Header Import/Export Unredacted Settings Verification (Task 350, Prompt 116/117)   | Validates header Export & Import buttons, unredacted JSON backup containing 100% of tokens, keys, speeds, and profiles. |
+
+
 
 
 

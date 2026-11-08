@@ -36,6 +36,32 @@ import {
   setPickWordStrategy,
   PickWordStrategy,
 } from "../lib/playback-preferences";
+import {
+  getSpeakApiToken,
+  setSpeakApiToken,
+  getProviderApiKey,
+  setProviderApiKey,
+  getUseAlternativeTts,
+  setUseAlternativeTts,
+  getAlternativeTtsMode,
+  setAlternativeTtsMode,
+  getTtsFallbackOrder,
+  setTtsFallbackOrder,
+  TtsFallbackOrder,
+  STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN,
+  STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY,
+  STORAGE_KEY_USE_ALTERNATIVE_TTS,
+  STORAGE_KEY_ALTERNATIVE_TTS_MODE,
+  STORAGE_KEY_TTS_FALLBACK_ORDER,
+} from "../lib/alternative-tts";
+import {
+  getStoredRatioCompositions,
+  getActiveRatioCompositionId,
+  setActiveRatioCompositionId,
+  LanguageRatioComposition,
+  RATIO_COMPOSITIONS_STORAGE_KEY,
+  ACTIVE_RATIO_COMPOSITION_KEY,
+} from "./ratioCompositionsManager";
 import { loadAppSettings, saveAppSettings, AppSettings } from "./appSettings";
 
 export interface ApplicationSettingsBackup {
@@ -111,6 +137,13 @@ export function createApplicationSettingsBackup(): ApplicationSettingsBackup {
     ttsCustomEndpoint: getTtsCustomEndpointPreference() ?? undefined,
     zeroKnowledgeInLang: getAllZeroKnowledgeInLang(),
     pickWordStrategy: getPickWordStrategy(),
+    speakApiToken: getSpeakApiToken(),
+    providerApiKey: getProviderApiKey(),
+    useAlternativeTts: getUseAlternativeTts(),
+    alternativeTtsMode: getAlternativeTtsMode(),
+    ttsFallbackOrder: getTtsFallbackOrder(),
+    storedRatioCompositions: getStoredRatioCompositions(),
+    activeRatioCompositionId: getActiveRatioCompositionId(),
     appSettings: loadAppSettings(),
   };
 
@@ -125,6 +158,25 @@ export function createApplicationSettingsBackup(): ApplicationSettingsBackup {
         if (val !== null) {
           rawLocalStorage[k] = val;
         }
+      }
+    }
+  }
+
+  // Ensure explicit storage keys are included without omission or redaction
+  const explicitStorageKeys = [
+    STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN,
+    STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY,
+    STORAGE_KEY_USE_ALTERNATIVE_TTS,
+    STORAGE_KEY_ALTERNATIVE_TTS_MODE,
+    STORAGE_KEY_TTS_FALLBACK_ORDER,
+    RATIO_COMPOSITIONS_STORAGE_KEY,
+    ACTIVE_RATIO_COMPOSITION_KEY,
+  ];
+  for (const k of explicitStorageKeys) {
+    if (!rawLocalStorage[k]) {
+      const v = s?.getItem(k);
+      if (v !== null && v !== undefined) {
+        rawLocalStorage[k] = v;
       }
     }
   }
@@ -329,6 +381,38 @@ export function importApplicationSettings(jsonOrObj: string | unknown): ImportSe
       }
       if (prefs.appSettings && typeof prefs.appSettings === "object") {
         saveAppSettings(prefs.appSettings as AppSettings);
+        count++;
+      }
+      if (typeof prefs.speakApiToken === "string") {
+        setSpeakApiToken(prefs.speakApiToken);
+        count++;
+      }
+      if (typeof prefs.providerApiKey === "string") {
+        setProviderApiKey(prefs.providerApiKey);
+        count++;
+      }
+      if (typeof prefs.useAlternativeTts === "boolean") {
+        setUseAlternativeTts(prefs.useAlternativeTts);
+        count++;
+      }
+      if (typeof prefs.alternativeTtsMode === "string") {
+        setAlternativeTtsMode(prefs.alternativeTtsMode as any);
+        count++;
+      }
+      if (typeof prefs.ttsFallbackOrder === "string") {
+        setTtsFallbackOrder(prefs.ttsFallbackOrder as TtsFallbackOrder);
+        count++;
+      }
+      if (Array.isArray(prefs.storedRatioCompositions)) {
+        try {
+          s?.setItem(RATIO_COMPOSITIONS_STORAGE_KEY, JSON.stringify(prefs.storedRatioCompositions));
+          count++;
+        } catch {
+          // ignore
+        }
+      }
+      if (typeof prefs.activeRatioCompositionId === "string") {
+        setActiveRatioCompositionId(prefs.activeRatioCompositionId);
         count++;
       }
     }

@@ -57,15 +57,27 @@ export const BUILT_IN_COMPOSITIONS: LanguageRatioComposition[] = [
   },
 ];
 
+function getCompositionsStorage(): Storage | null {
+  if (typeof window !== "undefined" && window.localStorage) return window.localStorage;
+  if (
+    typeof globalThis !== "undefined" &&
+    (globalThis as unknown as { localStorage?: Storage }).localStorage
+  ) {
+    return (globalThis as unknown as { localStorage: Storage }).localStorage;
+  }
+  return null;
+}
+
 /**
  * Returns all stored language ratio compositions including built-in presets and user-created presets.
  */
 export function getStoredRatioCompositions(): LanguageRatioComposition[] {
-  if (typeof window === "undefined") {
+  const s = getCompositionsStorage();
+  if (!s) {
     return BUILT_IN_COMPOSITIONS;
   }
   try {
-    const raw = window.localStorage.getItem(RATIO_COMPOSITIONS_STORAGE_KEY);
+    const raw = s.getItem(RATIO_COMPOSITIONS_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -116,11 +128,12 @@ export function saveRatioComposition(
       : undefined,
   };
 
-  if (typeof window !== "undefined") {
+  const s = getCompositionsStorage();
+  if (s) {
     try {
       const current = getStoredRatioCompositions().filter((c) => !c.isBuiltIn);
       const updated = [...current, newComposition];
-      window.localStorage.setItem(RATIO_COMPOSITIONS_STORAGE_KEY, JSON.stringify(updated));
+      s.setItem(RATIO_COMPOSITIONS_STORAGE_KEY, JSON.stringify(updated));
       setActiveRatioCompositionId(id);
     } catch {
       // ignore storage error
@@ -131,14 +144,65 @@ export function saveRatioComposition(
 }
 
 /**
+ * Updates an existing custom ratio composition / learning profile by ID.
+ * Supports updating name, ratios, speech rates, and other profile config options.
+ */
+export function updateRatioComposition(
+  id: string,
+  updates: Partial<Omit<LanguageRatioComposition, "id" | "isBuiltIn" | "createdAt">>,
+): LanguageRatioComposition | null {
+  const s = getCompositionsStorage();
+  if (!s) return null;
+  try {
+    const raw = s.getItem(RATIO_COMPOSITIONS_STORAGE_KEY);
+    if (!raw) return null;
+    const list: LanguageRatioComposition[] = JSON.parse(raw);
+    const index = list.findIndex((c) => c.id === id);
+    if (index === -1) return null;
+
+    const existing = list[index];
+    const updated: LanguageRatioComposition = {
+      ...existing,
+      name:
+        updates.name !== undefined && updates.name.trim()
+          ? updates.name.trim()
+          : existing.name,
+      ratios: updates.ratios !== undefined ? { ...updates.ratios } : existing.ratios,
+      rates: updates.rates !== undefined ? { ...updates.rates } : existing.rates,
+      maxWordsPerSentence:
+        updates.maxWordsPerSentence !== undefined
+          ? updates.maxWordsPerSentence
+          : existing.maxWordsPerSentence,
+      skipIncompleteSentences:
+        updates.skipIncompleteSentences !== undefined
+          ? updates.skipIncompleteSentences
+          : existing.skipIncompleteSentences,
+      sectionOrder:
+        updates.sectionOrder !== undefined ? updates.sectionOrder : existing.sectionOrder,
+      ttsLanguageOrders:
+        updates.ttsLanguageOrders !== undefined
+          ? { ...updates.ttsLanguageOrders }
+          : existing.ttsLanguageOrders,
+    };
+
+    list[index] = updated;
+    s.setItem(RATIO_COMPOSITIONS_STORAGE_KEY, JSON.stringify(list));
+    return updated;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Deletes a user-saved ratio composition by ID. Built-in compositions cannot be deleted.
  */
 export function deleteRatioComposition(id: string): boolean {
-  if (typeof window === "undefined") return false;
+  const s = getCompositionsStorage();
+  if (!s) return false;
   try {
     const current = getStoredRatioCompositions().filter((c) => !c.isBuiltIn);
     const updated = current.filter((c) => c.id !== id);
-    window.localStorage.setItem(RATIO_COMPOSITIONS_STORAGE_KEY, JSON.stringify(updated));
+    s.setItem(RATIO_COMPOSITIONS_STORAGE_KEY, JSON.stringify(updated));
     if (getActiveRatioCompositionId() === id) {
       setActiveRatioCompositionId(BUILT_IN_COMPOSITIONS[0].id);
     }
@@ -152,10 +216,11 @@ export function deleteRatioComposition(id: string): boolean {
  * Gets the active ratio composition ID.
  */
 export function getActiveRatioCompositionId(): string {
-  if (typeof window === "undefined") return BUILT_IN_COMPOSITIONS[0].id;
+  const s = getCompositionsStorage();
+  if (!s) return BUILT_IN_COMPOSITIONS[0].id;
   try {
     return (
-      window.localStorage.getItem(ACTIVE_RATIO_COMPOSITION_KEY) ||
+      s.getItem(ACTIVE_RATIO_COMPOSITION_KEY) ||
       BUILT_IN_COMPOSITIONS[0].id
     );
   } catch {
@@ -167,9 +232,10 @@ export function getActiveRatioCompositionId(): string {
  * Sets the active ratio composition ID.
  */
 export function setActiveRatioCompositionId(id: string): void {
-  if (typeof window === "undefined") return;
+  const s = getCompositionsStorage();
+  if (!s) return;
   try {
-    window.localStorage.setItem(ACTIVE_RATIO_COMPOSITION_KEY, id);
+    s.setItem(ACTIVE_RATIO_COMPOSITION_KEY, id);
   } catch {
     // ignore
   }

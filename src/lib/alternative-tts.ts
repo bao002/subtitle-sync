@@ -23,8 +23,8 @@ export const LOVABLE_TTS_REPORT_USAGE_URL = "https://tts3.lovable.app/api/report
 export const LOVABLE_TTS_SHARED_KEYS_URL = "https://tts3.lovable.app/api/public/openrouter-keys";
 export const GOOGLE_TRANSLATE_TTS_ENDPOINT = "https://translate.google.com/translate_tts";
 
-const STORAGE_KEY_USE_ALTERNATIVE_TTS = "yt_use_alternative_tts_v1";
-const STORAGE_KEY_ALTERNATIVE_TTS_MODE = "yt_alternative_tts_mode_v1";
+export const STORAGE_KEY_USE_ALTERNATIVE_TTS = "yt_use_alternative_tts_v1";
+export const STORAGE_KEY_ALTERNATIVE_TTS_MODE = "yt_alternative_tts_mode_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_ENGINE = "yt_alternative_tts_engine_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_PROVIDER = "yt_alternative_tts_lovable_provider_v1";
 const STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_VOICE = "yt_alternative_tts_lovable_voice_v1";
@@ -416,9 +416,11 @@ export function normalizeLanguageCode(lang: string): string {
  * Retrieves the configured Speak API Personal Token (spk_... or tts_...).
  */
 export function getSpeakApiToken(): string {
-  if (typeof window === "undefined") return "";
   try {
-    const directToken = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN);
+    const directToken =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN)
+        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN];
     if (directToken && directToken.trim()) {
       let t = directToken.trim();
       if (t.toLowerCase().startsWith("bearer ")) {
@@ -426,7 +428,10 @@ export function getSpeakApiToken(): string {
       }
       return t;
     }
-    const legacyKey = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY);
+    const legacyKey =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY)
+        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY];
     if (legacyKey && isSpeakApiPersonalToken(legacyKey)) {
       let t = legacyKey.trim();
       if (t.toLowerCase().startsWith("bearer ")) {
@@ -434,9 +439,9 @@ export function getSpeakApiToken(): string {
       }
       return t;
     }
-    return "";
+    return memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN] || "";
   } catch {
-    return "";
+    return memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN] || "";
   }
 }
 
@@ -444,16 +449,18 @@ export function getSpeakApiToken(): string {
  * Persists the Speak API Personal Token to localStorage.
  */
 export function setSpeakApiToken(token: string): void {
-  if (typeof window === "undefined") return;
   let clean = token.trim();
   if (clean.toLowerCase().startsWith("bearer ")) {
     clean = clean.slice(7).trim();
   }
+  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN] = clean;
   try {
-    if (clean) {
-      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN, clean);
-    } else {
-      localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN);
+    if (typeof localStorage !== "undefined") {
+      if (clean) {
+        localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN, clean);
+      } else {
+        localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN);
+      }
     }
   } catch (err) {
     console.warn("Failed to persist Speak API token:", err);
@@ -471,16 +478,20 @@ export function hasCustomSpeakApiToken(): boolean {
  * Retrieves the upstream Provider API key (sk_..., sk-or-..., AIza...).
  */
 export function getProviderApiKey(): string {
-  if (typeof window === "undefined") return "";
   try {
-    const directKey = localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY);
+    const directKey =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY)
+        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY];
     if (directKey && directKey.trim()) {
       return directKey.trim();
     }
     const legacyKey =
-      localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY) ||
-      localStorage.getItem("yt_openrouter_api_key_v1") ||
-      localStorage.getItem("yt_openrouter_api_key");
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY) ||
+          localStorage.getItem("yt_openrouter_api_key_v1") ||
+          localStorage.getItem("yt_openrouter_api_key")
+        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_LOVABLE_API_KEY];
     if (legacyKey && isUpstreamProviderApiKey(legacyKey)) {
       return legacyKey.trim();
     }
@@ -494,17 +505,19 @@ export function getProviderApiKey(): string {
  * Persists the upstream Provider API key to localStorage.
  */
 export function setProviderApiKey(apiKey: string): void {
-  if (typeof window === "undefined") return;
   const clean = apiKey.trim();
+  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY] = clean;
   try {
-    if (clean) {
-      localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY, clean);
-      localStorage.setItem("yt_openrouter_api_key_v1", clean);
-      localStorage.setItem("yt_openrouter_api_key", clean);
-    } else {
-      localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY);
-      localStorage.removeItem("yt_openrouter_api_key_v1");
-      localStorage.removeItem("yt_openrouter_api_key");
+    if (typeof localStorage !== "undefined") {
+      if (clean) {
+        localStorage.setItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY, clean);
+        localStorage.setItem("yt_openrouter_api_key_v1", clean);
+        localStorage.setItem("yt_openrouter_api_key", clean);
+      } else {
+        localStorage.removeItem(STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY);
+        localStorage.removeItem("yt_openrouter_api_key_v1");
+        localStorage.removeItem("yt_openrouter_api_key");
+      }
     }
   } catch (err) {
     console.warn("Failed to persist Provider API key:", err);
@@ -1407,6 +1420,8 @@ export async function validateRemoteTtsService(
           timestamp: Date.now(),
         };
         setLastValidationResult("lovable", result);
+        setUseAlternativeTts(true);
+        setAlternativeTtsMode("always");
         return result;
       }
 
@@ -1606,10 +1621,19 @@ export function getUseAlternativeTts(): boolean {
       typeof localStorage !== "undefined"
         ? localStorage.getItem(STORAGE_KEY_USE_ALTERNATIVE_TTS)
         : memoryFallbackStore[STORAGE_KEY_USE_ALTERNATIVE_TTS];
-    return stored === "true";
+    if (stored !== null && stored !== undefined) {
+      return stored === "true";
+    }
   } catch {
-    return false;
+    // ignore
   }
+  // By default use external TTS service if it is already set and validated
+  const hasToken = Boolean(getSpeakApiToken() || getProviderApiKey());
+  const lastVal = getLastValidationResult("lovable");
+  if (hasToken && lastVal?.ok) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -1641,6 +1665,12 @@ export function getAlternativeTtsMode(): AlternativeTtsMode {
     }
   } catch {
     // ignore
+  }
+  // By default use external TTS service if it is already set and validated
+  const hasToken = Boolean(getSpeakApiToken() || getProviderApiKey());
+  const lastVal = getLastValidationResult("lovable");
+  if (hasToken && lastVal?.ok) {
+    return "always";
   }
   return "fallback_only";
 }

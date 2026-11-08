@@ -295,7 +295,7 @@ export const getTtsRatesPreference = (): Record<string, number> => {
     return Object.fromEntries(
       Object.entries(parsed).filter(
         ([, rate]) =>
-          typeof rate === "number" && Number.isFinite(rate) && rate >= 0.3 && rate <= 1.5,
+          typeof rate === "number" && Number.isFinite(rate) && rate >= 0.25 && rate <= 2.5,
       ),
     );
   } catch {
@@ -307,12 +307,13 @@ export const setTtsRatePreference = (langCode: string, rate: number) => {
   if (typeof window === "undefined" || !Number.isFinite(rate)) return;
   try {
     const existing = getTtsRatesPreference();
-    existing[langCode] = Math.max(0.5, Math.min(1.0, Math.round(rate * 10) / 10));
+    existing[langCode] = Math.max(0.25, Math.min(2.5, Math.round(rate * 100) / 100));
     window.localStorage.setItem(KEYS.ttsRates, JSON.stringify(existing));
   } catch {
     // ignore storage errors
   }
 };
+export const saveTtsRatePreference = setTtsRatePreference;
 
 /**
  * Normalizes language codes to lookup the configured TTS ratio.

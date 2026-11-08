@@ -1,5 +1,70 @@
 # Done tasks
 
+### Task 350 (Prompt 116 / Prompt 117 - Chapter 2): Add Import/Export Buttons to App Header (Unredacted Details)
+
+- **Prompt**:
+  ```
+  2. add import/export buttons to the app's header (it shouldn't reduct any details)
+  ```
+- **Context & Implementation**:
+  - **1. Header Export and Import Buttons**:
+    - Added `<Button data-testid="header-export-settings-button" id="header-export-settings-button">` with `Download` icon to the header actions cluster in `src/routes/index.tsx`.
+    - Added `<Button data-testid="header-import-settings-button" id="header-import-settings-button">` with `Upload` icon to the header actions cluster in `src/routes/index.tsx`.
+    - Wired them to `handleOpenHeaderExport` and `handleOpenHeaderImport`, opening `<SettingsBackupModal>` directly into `export` or `import` mode.
+  - **2. Unredacted Settings Export & Import**:
+    - Enhanced `src/utils/settingsBackupManager.ts`:
+      - `createApplicationSettingsBackup`: Includes 100% of details without redactions—`speakApiToken`, `providerApiKey`, `useAlternativeTts`, `alternativeTtsMode`, `ttsFallbackOrder`, `storedRatioCompositions`, `activeRatioCompositionId`, all per-language speech rates (`ttsRates`), and all `rawLocalStorage` items.
+      - `importApplicationSettings`: Restores all tokens, keys, speeds, modes, and compositions completely into application state and localStorage.
+  - **3. SettingsBackupModal initialTab Synchronization**:
+    - Enhanced `src/components/SettingsBackupModal.tsx`: Added `initialTab?: "export" | "import"` prop and synchronized tab selection upon modal opening.
+  - **4. Verification & Testing**:
+    - Authored dedicated automated test suite `scripts/verify-header-import-export-unredacted.ts` (`npm run test:header-import-export-unredacted`). Passed 100%.
+    - Synchronized version to `v2.1.47` (code `20147`).
+    - Verified build compilation (`compile_applet`) and linting (`lint_applet`).
+
+### Task 349 (Prompt 116 / Prompt 117 - Chapter 1): Default to External TTS Service If Set & Validated (Remember Access Token)
+
+- **Prompt**:
+  ```
+  1. by default use the external tts-service if it is already set and validated (should remember the access token)
+  ```
+- **Context & Implementation**:
+  - **1. Permanent Token Memory & Persistence**:
+    - Updated `src/lib/alternative-tts.ts`: Enhanced `getSpeakApiToken()`, `setSpeakApiToken()`, `getProviderApiKey()`, and `setProviderApiKey()` to use `memoryFallbackStore` alongside `localStorage` so access tokens and keys are permanently remembered across sessions, SSR/CLI execution, and page lifecycles.
+    - Exported `STORAGE_KEY_USE_ALTERNATIVE_TTS` and `STORAGE_KEY_ALTERNATIVE_TTS_MODE`.
+  - **2. Automatic External TTS Defaulting When Validated**:
+    - Updated `getUseAlternativeTts()` and `getAlternativeTtsMode()`: If an access token/key is set and the last validation result succeeded (`getLastValidationResult()?.ok === true`), default to `true` (enabled) and mode `"always"`.
+    - In `validateRemoteTtsService()`, upon successful validation response (`validation.ok === true`), automatically sets `setUseAlternativeTts(true)` and `setAlternativeTtsMode("always")`.
+    - In `src/routes/index.tsx`, updated `handleValidateRemoteService()` to synchronously update component state (`setUseAlternativeTtsState(true)`, `setAlternativeTtsModeState("always")`) when validation succeeds.
+  - **3. Verification & Testing**:
+    - Authored dedicated automated test suite `scripts/verify-default-external-tts-validated.ts` (`npm run test:default-external-tts-validated`). Passed 100%.
+    - Synchronized version to `v2.1.46` (code `20146`).
+    - Verified build compilation (`compile_applet`) and linting (`lint_applet`).
+
+### Task 348 (Prompt 116 / Prompt 117 - Chapter 0): Learning Goals - Set TTS Speed Rate Per Language (Native & External TTS Service)
+
+- **Prompt**:
+  ```
+  0. learning goals - allow to set tts speed rate per language ( it should be effective for both native and external-tts-service)
+  ```
+- **Context & Implementation**:
+  - **1. Per-Language Speed Preferences & Storage**:
+    - Updated `src/lib/playback-preferences.ts`: Expanded rate bounds to `0.25x – 2.5x` in `getTtsRatesPreference()` and `setTtsRatePreference()`, and exported `saveTtsRatePreference`.
+  - **2. Stage 1 Learning Goals Speed Controls (Advanced Mode)**:
+    - Added dedicated "5. Speech Rate (Native & External TTS)" section (`data-testid="stage-2-ingredient-speed-section"`) in `src/routes/index.tsx` under Stage 1 Learning Goals Narration & Ratios.
+    - Each row (`data-testid="stage-2-speed-row-${langCode}"`) features language metadata, rate display (`data-testid="stage-2-speed-display-${langCode}"`), minus/plus buttons (`data-testid="stage-2-speed-decrement-${langCode}"`, `data-testid="stage-2-speed-increment-${langCode}"`), smooth slider (`data-testid="stage-2-speed-slider-${langCode}"`, range 0.25-2.5), and quick presets (0.5x, 0.75x, 1.0x, 1.25x, 1.5x, 2.0x).
+    - Persists selections to `saveTtsRatePreference` and video settings (`saveVideoSettings`).
+  - **3. Native & External TTS Propagation**:
+    - Updated `speak()` in `src/routes/index.tsx`: Normalized speed rate up to 2.5x (`Math.max(0.25, Math.min(2.5, rate || 1.0))`), passing `altSpeed = normalizedRate` to `executeTtsFallbackSequence` and `window.AndroidNativeShell.speak`.
+    - In `src/lib/alternative-tts.ts`: Confirmed `executeTtsFallbackSequence` passes `speed: rate` into `playAlternativeTtsAudio`, which sets query parameter `speed` and JSON body `speed` for the external TTS service (Lovable / TTS3 Speak API).
+  - **4. Beginner Mode Parity**:
+    - Updated `src/components/beginner/PerLanguageTtsPreferences.tsx`: Expanded speed options to `[0.5, 0.6, 0.75, 0.8, 0.9, 1.0, 1.25, 1.5, 2.0]`.
+  - **5. Testing & Verification**:
+    - Created dedicated verification test `scripts/verify-learning-goals-tts-speed-per-language.ts` (`npm run test:learning-goals-tts-speed-per-language`). Passed 100%.
+    - Synchronized version to `v2.1.45` (code `20145`).
+    - Verified compilation (`compile_applet`) and zero lint errors (`lint_applet`).
+    - All 21 constitutional agent contract checks passed 100%.
+
 ### Task 347 (Prompt 115): Subtitles Table Play Trigger, Floating Error Button, Cell Language Colors, Background Diversity Toggle
 
 - **Prompt**:
