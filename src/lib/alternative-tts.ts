@@ -16,6 +16,11 @@ export const LOVABLE_TTS_BASE_URL = "https://tts3.lovable.app";
 export const LOVABLE_TTS_ENDPOINT = "https://tts3.lovable.app/api/public/tts";
 export const LOVABLE_TTS_DOCS_URL = "https://tts3.lovable.app/docs";
 export const LOVABLE_TTS_OPENAPI_URL = "https://tts3.lovable.app/api/public/openapi.json";
+export const LOVABLE_TTS_INFO_URL = "https://tts3.lovable.app/api/public/info";
+export const LOVABLE_TTS_ACCESS_TOKEN_URL = "https://tts3.lovable.app/api/public/access-token";
+export const LOVABLE_TTS_USAGE_URL = "https://tts3.lovable.app/api/public/usage";
+export const LOVABLE_TTS_REPORT_USAGE_URL = "https://tts3.lovable.app/api/report/usage";
+export const LOVABLE_TTS_SHARED_KEYS_URL = "https://tts3.lovable.app/api/public/openrouter-keys";
 export const GOOGLE_TRANSLATE_TTS_ENDPOINT = "https://translate.google.com/translate_tts";
 
 const STORAGE_KEY_USE_ALTERNATIVE_TTS = "yt_use_alternative_tts_v1";
@@ -122,11 +127,15 @@ export const GEMINI_VOICES = ["Kore", "Puck", "Charon", "Fenrir", "Aoede"] as co
 export const OPENAI_VOICES = [
   "coral",
   "alloy",
+  "ash",
+  "ballad",
   "echo",
   "fable",
-  "onyx",
   "nova",
+  "onyx",
+  "sage",
   "shimmer",
+  "verse",
 ] as const;
 
 export const OPENROUTER_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
@@ -301,11 +310,60 @@ export function extractResponseHeaders(res: Response): Record<string, string> {
   return headers;
 }
 
+export interface LovableTtsVoicesMap {
+  openrouter?: string;
+  lovable?: string;
+  gemini?: string;
+  openai?: string;
+  elevenlabs?: string;
+  deepgram?: string;
+  [provider: string]: string | undefined;
+}
+
+export interface LovableTtsProviderOptions {
+  model?: string;
+  instructions?: string;
+  voice_id?: string;
+  encoding?: string;
+  container?: string;
+  sample_rate?: number;
+  bit_rate?: number;
+  mip_opt_out?: boolean;
+  [key: string]: unknown;
+}
+
+export interface PublicServiceInfo {
+  status: string;
+  app: string;
+  storage?: string;
+  available_providers?: Array<{
+    service: LovableTtsProvider;
+    credentials_required: boolean;
+    server_keys_configured?: boolean;
+  }>;
+  api_capabilities?: Record<string, boolean>;
+  temporary_tokens?: {
+    active: number;
+    expires_after_seconds: number;
+    lost_on_server_restart: boolean;
+  };
+  database_required_for?: string[];
+}
+
+export interface TemporaryAccessTokenResponse {
+  token?: string;
+  expires_at?: string;
+  expires_in?: number;
+  error?: string;
+  message?: string;
+}
+
 export interface LovableTtsOptions {
   provider?: LovableTtsProvider;
   voice?: string;
+  voices?: LovableTtsVoicesMap;
   speed?: number;
-  options?: Record<string, unknown> | string;
+  options?: LovableTtsProviderOptions | Record<string, unknown> | string;
   format?: LovableTtsFormat;
   target_lang?: string;
   apiKey?: string;
@@ -322,8 +380,9 @@ export interface LovableTtsRequestBody {
   provider?: LovableTtsProvider;
   api_key?: string;
   voice?: string;
+  voices?: LovableTtsVoicesMap;
   speed?: number;
-  options?: Record<string, unknown>;
+  options?: LovableTtsProviderOptions | Record<string, unknown>;
   format?: LovableTtsFormat;
   debug?: boolean;
 }
@@ -573,6 +632,10 @@ export function buildLovableTtsUrl(
   // Voice parameter is explicitly suppressed from being passed to the remote TTS service
   url.searchParams.delete("voice");
 
+  if (options?.voices && Object.keys(options.voices).length > 0) {
+    url.searchParams.set("voices", JSON.stringify(options.voices));
+  }
+
   const speed = options?.speed ?? getLovableTtsSpeed();
   if (typeof speed === "number" && !isNaN(speed) && speed !== 1) {
     const clampedSpeed = Math.max(0.25, Math.min(4, Math.round(speed * 100) / 100));
@@ -638,6 +701,10 @@ export function buildLovableTtsRequestBody(
   }
 
   // Voice parameter is explicitly suppressed from being passed to the remote TTS service
+
+  if (options?.voices && Object.keys(options.voices).length > 0) {
+    body.voices = options.voices;
+  }
 
   if (typeof speed === "number" && !isNaN(speed) && speed !== 1) {
     body.speed = Math.max(0.25, Math.min(4, Math.round(speed * 100) / 100));
@@ -1449,6 +1516,84 @@ export async function validateRemoteTtsService(
     };
     setLastValidationResult("lovable", result);
     return result;
+  }
+}
+
+/**
+ * Fetches non-secret public service capabilities and provider availability from /api/public/info
+ * according to the OpenAPI 3.1.0 specification.
+ */
+export async function fetchSpeakApiInfo(
+  timeoutMs: number = 5000,
+): Promise<PublicServiceInfo | null> {
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    const res = await fetch(LOVABLE_TTS_INFO_URL, {
+      method: "GET",
+      signal: controller?.signal,
+    });
+    if (timeoutId) clearTimeout(timeoutId);
+    if (res.ok) {
+      return (await res.json()) as PublicServiceInfo;
+    }
+    return null;
+  } catch {
+    if (timeoutId) clearTimeout(timeoutId);
+    return null;
+  }
+}
+
+/**
+ * Creates a temporary access token without an account at /api/public/access-token
+ * according to the OpenAPI 3.1.0 specification.
+ */
+export async function createTemporaryAccessToken(
+  providerKeys: Record<string, string[]>,
+  timeoutMs: number = 5000,
+): Promise<TemporaryAccessTokenResponse | null> {
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    const res = await fetch(LOVABLE_TTS_ACCESS_TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider_keys: providerKeys }),
+      signal: controller?.signal,
+    });
+    if (timeoutId) clearTimeout(timeoutId);
+    if (res.ok) {
+      return (await res.json()) as TemporaryAccessTokenResponse;
+    }
+    return null;
+  } catch {
+    if (timeoutId) clearTimeout(timeoutId);
+    return null;
+  }
+}
+
+/**
+ * Revokes the current temporary access token at /api/public/access-token
+ * according to the OpenAPI 3.1.0 specification.
+ */
+export async function revokeTemporaryAccessToken(
+  token: string,
+  timeoutMs: number = 5000,
+): Promise<boolean> {
+  if (!token) return false;
+  const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  try {
+    const res = await fetch(LOVABLE_TTS_ACCESS_TOKEN_URL, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller?.signal,
+    });
+    if (timeoutId) clearTimeout(timeoutId);
+    return res.ok;
+  } catch {
+    if (timeoutId) clearTimeout(timeoutId);
+    return false;
   }
 }
 

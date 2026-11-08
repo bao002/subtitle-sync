@@ -6,7 +6,7 @@ import packageJson from "../../package.json";
  * Single Source of Truth: package.json
  */
 
-export const APP_VERSION = "2.1.34";
+export const APP_VERSION = packageJson.version;
 export const APP_COMMIT_ID =
   (typeof process !== "undefined" && process.env?.VITE_COMMIT_SHA) ||
   (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_COMMIT_SHA) ||

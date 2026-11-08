@@ -132,15 +132,11 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-it seems that you have mis-understood me - this button use redundunt.
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-type(1) > div:nth-of-type(4) > button#header-toggle-accordion-button:nth-of-type(3)
-CSS 1: {
+1. the floating button should show the state of the (tts-play&video-player) player but clicking on play doent do anything.
 
-}
-[AIS_METADATA_SECTION_END]
+2. the learning-goals including  each language settings is doesnt seems to be remember between app init when triggering the app via a video share with the app
 ```
+
 
 
 

@@ -1,5 +1,92 @@
 # Done tasks
 
+### Task 340 (Prompt 109): Update TTS Service According to its OpenAPI Specification (openapi.json)
+
+- **Prompt**:
+  ```
+  update tts service according its openapi.json
+  ```
+- **Context & Implementation**:
+  - `src/lib/alternative-tts.ts`:
+    - Inspected and aligned with live OpenAPI 3.1.0 specification at `https://tts3.lovable.app/api/public/openapi.json`.
+    - Exported all canonical endpoints:
+      - `LOVABLE_TTS_BASE_URL = "https://tts3.lovable.app"`
+      - `LOVABLE_TTS_ENDPOINT = "https://tts3.lovable.app/api/public/tts"`
+      - `LOVABLE_TTS_DOCS_URL = "https://tts3.lovable.app/docs"`
+      - `LOVABLE_TTS_OPENAPI_URL = "https://tts3.lovable.app/api/public/openapi.json"`
+      - `LOVABLE_TTS_INFO_URL = "https://tts3.lovable.app/api/public/info"`
+      - `LOVABLE_TTS_ACCESS_TOKEN_URL = "https://tts3.lovable.app/api/public/access-token"`
+      - `LOVABLE_TTS_USAGE_URL = "https://tts3.lovable.app/api/public/usage"`
+      - `LOVABLE_TTS_REPORT_USAGE_URL = "https://tts3.lovable.app/api/report/usage"`
+      - `LOVABLE_TTS_SHARED_KEYS_URL = "https://tts3.lovable.app/api/public/openrouter-keys"`
+    - Provider & Voice Catalogs:
+      - Supported providers: `auto`, `google`, `lovable`, `openrouter`, `gemini`, `openai`, `elevenlabs`, `deepgram`.
+      - Expanded `OPENAI_VOICES` to include all 11 voices: `coral`, `alloy`, `ash`, `ballad`, `echo`, `fable`, `nova`, `onyx`, `sage`, `shimmer`, `verse`.
+    - Typed Schemas & Request Serialization:
+      - Added `LovableTtsVoicesMap` (`Record<LovableTtsProvider, string>`) for provider voice overrides (especially for `provider=auto`).
+      - Added `LovableTtsProviderOptions` schema (`model`, `instructions`, `voice_id`, `encoding`, `container`, `sample_rate`, `bit_rate`, `mip_opt_out`).
+      - Added `PublicServiceInfo` and `TemporaryAccessTokenResponse` interfaces.
+      - Updated `buildLovableTtsUrl` and `buildLovableTtsRequestBody` to serialize `voices` mapping when provided while honoring the voice suppression policy for single voice parameter.
+      - Added public helper functions: `fetchSpeakApiInfo()`, `createTemporaryAccessToken()`, and `revokeTemporaryAccessToken()`.
+  - **Testing & Verification**:
+    - Authored dedicated test suite `scripts/verify-tts-service-openapi-compliance.ts` (`npm run test:tts-service-openapi-compliance`) passing 100%.
+    - Verified all related test suites pass: `npm run test:tts3-docs-parity`, `npm run test:suppress-voice-to-tts-service`, `npm run test:lovable-alternative-tts`, `npm run test:remove-direct-google-tts-option`, `npm run test:basic-readme`, `npm run test:readme-links`, `npm run test:single-source-version`.
+    - Synchronized version `2.1.40` (code: 20140) across `package.json` and `android-shell/app/build.gradle.kts`.
+    - App compilation (`compile_applet`) and code linting (`lint_applet`) passed with zero errors.
+
+### Task 339 (Prompt 108): Ensure README Updated Correctly & All 10 README Suites Passing
+
+- **Prompt**:
+  ```
+  ensure readme updated correctly
+  ```
+- **Context & Implementation**:
+  - `README.md`:
+    - Verified strict adherence to the minimal, clean, non-bloated specification (7 lines, <1000 bytes).
+    - Contains all required links: Docs (`docs/`), Demo Website on GitHub Pages (`https://mostuf25561.github.io/subtitle-sync/`), Android Emulator E2E Report (`https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html`), Test Coverage (`https://mostuf25561.github.io/subtitle-sync/coverage/`), Storybook (`https://mostuf25561.github.io/subtitle-sync/storybook/`), and All Releases & APK Downloads (`https://github.com/mostuf25561/subtitle-sync/releases`).
+  - `scripts/update-readme.mjs`:
+    - Verified link rewriting and fork synchronization.
+    - Updated to inject CI status / AI FIX PROMPT block whenever `ciStatus === "failure"`, ensuring immediate actionable error reporting on broken links.
+  - `public/android-emulator-report.html`:
+    - Updated fallback container to include `Screencast Video Lifecycle` section matching `public/android/index.html`.
+  - `.gitignore` & `.env.example`:
+    - Created `.env.example` template with required keys (`GITHUB_REPOSITORY`, `VITE_SUPABASE_URL`).
+    - Added `!public/screenshots/` before `public/screenshots/*.png` in `.gitignore` to satisfy repo hygiene.
+  - **Testing & Verification**:
+    - All 10 README and versioning test suites pass 100%:
+      1. `npm run test:basic-readme` (PASS)
+      2. `npm run test:readme-links` (PASS)
+      3. `npm run test:readme-git-sync-rule` (PASS)
+      4. `npm run test:actions-readme-sync-docs` (PASS)
+      5. `npm run test:no-cron-readme` (PASS)
+      6. `npm run test:fork-readme-links` (PASS)
+      7. `npm run test:storybook-deploy-readme` (PASS)
+      8. `npm run test:readme-error-indicator` (PASS)
+      9. `npm run test:report-video-links` (PASS)
+      10. `npm run test:single-source-version` (PASS)
+    - Synchronized version `2.1.39` across targets via `npm run sync-version`.
+    - Code compiled (`compile_applet`) and linted (`lint_applet`) cleanly with zero errors.
+
+### Task 318 (Prompt 83 - Chapter 6 / Prompt 107): State Machine Actions in Log View with Clear & Copy-to-Clipboard
+
+- **Prompt**:
+  ```
+  6. the log view should show any state machine action. the app should use state machine in order to be able to easily debug it and effeciently use the log element to identify issues - add a clear option and a copy to clipboard so that it would be easier to report an issue after removing records which are not relevant)
+  ```
+- **Context & Implementation**:
+  - `src/components/BottomLogViewer.tsx`:
+    - Renders all diagnostic log entries from `logBuffer` across every stage with timestamp, level badge (`ACTION` in sky, `ERROR` in red/destructive, `INFO`, etc.), category, message, and formatted details.
+    - Integrated **Copy Log** button (`data-testid="bottom-log-copy-button"`) invoking `logBuffer.copyAll()`, copying a structured diagnostic markdown report to clipboard.
+    - Integrated **Clear** button (`data-testid="bottom-log-clear-button"`) invoking `logBuffer.clear()` to clear all entries.
+    - Integrated **Actions/Errors** filter toggle (`data-testid="bottom-log-filter-actions-errors"`) to easily isolate state-machine transitions and errors for issue reporting.
+  - `src/routes/index.tsx`:
+    - Real-time logging of state machine transitions via `logStateMachineAction` (`PLAYBACK_PAUSE_REQUESTED`, `PLAYBACK_RESUME_REQUESTED`, `PLAYBACK_SEEK_REQUESTED`, `PLAYER_STATE_CHANGED`, `TTS_SECTION_STARTED`, `TTS_SECTION_FINISHED`, `TTS_BLACKLIST_SKIPPED`, `TTS_RATIO_SKIPPED`, `ZERO_KNOWLEDGE_WORD_SPOKEN`, `CHANGED_ALL_SPEED`, `ZERO_KNOWLEDGE_TOGGLED`).
+  - **Testing & Verification**:
+    - Created dedicated automated test `scripts/verify-state-machine-log-actions-copy-clear.ts` (`npm run test:state-machine-log-actions-copy-clear`).
+    - Verified all existing regression tests pass (`test:state-machine-action-logs`, `test:universal-bottom-log`, `test:autofetch-and-log-hide-controls`).
+    - Synchronized version `2.1.38` across targets via `npm run sync-version`.
+    - Code compiled (`compile_applet`) and linted (`lint_applet`) cleanly with zero errors.
+
 ### Task 338 (Prompt 106): Remove Redundant Header Accordion Toggle Button
 
 - **Prompt**:

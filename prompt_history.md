@@ -1407,10 +1407,32 @@ CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > header:nth-of-typ
 CSS 1: {
 
 }
-[AIS_METADATA_SECTION_END]
+---
+
+### Prompt 107: Go On (Continue Active Tasks - Task 318)
+```
+go on
 ```
 
+---
 
+### Prompt 108: Ensure README Updated Correctly
+```
+ensure readme updated correctly
+```
 
+---
 
+### Prompt 109: Update TTS Service According to its OpenAPI Specification (openapi.json)
+```
+update tts service according its openapi.json
+```
 
+---
+
+### Prompt 110: Floating Play/Pause Button State & Video Share Learning Goals Persistence
+```
+1. the floating button should show the state of the (tts-play&video-player) player but clicking on play doent do anything.
+
+2. the learning-goals including  each language settings is doesnt seems to be remember between app init when triggering the app via a video share with the app
+```

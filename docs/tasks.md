@@ -4,10 +4,15 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 318 (Prompt 83 - Chapter 6): State Machine Actions in Log View with Clear & Copy-to-Clipboard**
-  - Subtask 318.1: Feed state machine actions into log view with Clear and Copy-to-Clipboard buttons for easy issue reporting and log inspection.
-  - Subtask 318.2: Dedicated automated test `scripts/verify-state-machine-log-actions-copy-clear.ts` (`npm run test:state-machine-log-actions-copy-clear`).
-  - Subtask 318.3: Version bump, compile, lint, commit, migrate Task 318 to `docs/done.md`.
+- [ ] **Task 341 (Prompt 110 - Chapter 1): Floating Button Play/Pause State & Play Click Handler**
+  - Subtask 341.1: Audit `FloatingDraggablePauseButton.tsx` and callers in `src/routes/index.tsx` and `BeginnerPlayerTab.tsx` to ensure floating button properly reflects combined `(tts-play & video-player)` playback state, and that clicking Play when paused triggers full playback resumption (video playback and TTS coordination).
+  - Subtask 341.2: Implement dedicated automated test `scripts/verify-floating-play-pause-button-state-and-action.ts` (`npm run test:floating-play-pause-action`).
+  - Subtask 341.3: Synchronize version, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate Task 341 to `docs/done.md`.
+
+- [ ] **Task 342 (Prompt 110 - Chapter 2): Persist Learning Goals & Per-Language Settings Across App Init On Video Share**
+  - Subtask 342.1: Audit video share initialization (`?v=`, `?url=`, `?target_lang=`, deep links, Android `SEND` intent handler) and state restoration in `src/routes/index.tsx`, `src/utils/appSettings.ts`, `src/lib/playback-preferences.ts`, and `src/components/beginner/tabs/BeginnerVideoTab.tsx` / `BeginnerPreferencesTab.tsx`. Ensure user-defined learning goals (favorite languages, target languages, speed, per-language TTS preferences/blacklist/ratio) are preserved from global/existing preferences rather than wiped or reset to defaults when a new video is shared.
+  - Subtask 342.2: Implement dedicated automated test `scripts/verify-learning-goals-persist-on-video-share.ts` (`npm run test:learning-goals-video-share-persist`).
+  - Subtask 342.3: Synchronize version, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate Task 342 to `docs/done.md`.
 
 - [ ] **Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique**
   - Subtask 312.1: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
