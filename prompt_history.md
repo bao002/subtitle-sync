@@ -1587,3 +1587,24 @@ CSS 1: {
 ```
 create a stage dedicated to learning where instead of showing the video-player the user whould be able to view the words as a set of baloon and each baloon can be punched and then its expose he translation of that word
 ```
+
+---
+
+### Prompt 127: Subtitles Table First Column Running Index
+```
+subtitles-table: the first columns should be the running index
+```
+
+---
+
+### Prompt 128: Allow Custom Volume per Translation (Stage 2 Learning Goals Card)
+```
+allow to set custom volume per translation
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```

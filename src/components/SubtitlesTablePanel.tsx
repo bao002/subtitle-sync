@@ -341,9 +341,18 @@ export function SubtitlesTablePanel({
         <thead data-testid="subtitles-table-head" className="sticky top-0 z-20 bg-secondary/95 backdrop-blur-md shadow-xs border-b border-border/70">
           <tr>
             <th
+              data-testid="table-header-index"
+              className={`w-14 min-w-[3.5rem] max-w-[3.5rem] px-2.5 py-2.5 text-center font-semibold text-xs tracking-wider uppercase text-muted-foreground ${
+                shouldFreezeColumns ? "sticky left-0 z-30 bg-secondary/95 backdrop-blur-md shadow-[1px_0_0_0_rgba(0,0,0,0.1)]" : ""
+              }`}
+              title="Sentence Running Index"
+            >
+              #
+            </th>
+            <th
               data-testid="table-header-time"
               className={`w-28 min-w-[7rem] max-w-[7rem] px-3 py-2.5 text-left font-semibold text-xs tracking-wider uppercase text-muted-foreground ${
-                shouldFreezeColumns ? "sticky left-0 z-30 bg-secondary/95 backdrop-blur-md shadow-[1px_0_0_0_rgba(0,0,0,0.1)]" : ""
+                shouldFreezeColumns ? "sticky left-14 z-30 bg-secondary/95 backdrop-blur-md shadow-[1px_0_0_0_rgba(0,0,0,0.1)]" : ""
               }`}
             >
               Time
@@ -359,7 +368,7 @@ export function SubtitlesTablePanel({
                   data-lang-col={l.code}
                   className={`px-3 py-2.5 text-left font-semibold text-xs min-w-[12rem] border-b-2 ${palette.headerBorder} ${palette.headerBg} ${palette.headerText} ${
                     shouldFreezeColumns && isFirstCol
-                      ? "sticky left-28 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]"
+                      ? "sticky left-42 z-30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.15)]"
                       : ""
                   }`}
                 >
@@ -437,7 +446,7 @@ export function SubtitlesTablePanel({
           {displayedRows.length === 0 ? (
             <tr>
               <td
-                colSpan={Math.max(1, cols.length + 1)}
+                colSpan={Math.max(1, cols.length + 2)}
                 className="py-12 text-center text-sm text-muted-foreground"
                 data-testid="subtitles-table-empty-notice"
               >

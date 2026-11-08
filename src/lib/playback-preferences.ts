@@ -61,6 +61,7 @@ const KEYS = {
   zeroKnowledgeInLang: "yt_zero_knowledge_in_lang_v1",
   pickWordStrategy: "yt_pick_word_strategy_v1",
   perLangPickWordStrategy: "yt_per_lang_pick_word_strategy_v1",
+  ttsVolumes: "yt_tts_volumes_v1",
 } as const;
 
 const memoryStorage = new Map<string, string>();
@@ -314,6 +315,58 @@ export const setTtsRatePreference = (langCode: string, rate: number) => {
   }
 };
 export const saveTtsRatePreference = setTtsRatePreference;
+
+export const getTtsVolumesPreference = (): Record<string, number> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(KEYS.ttsVolumes);
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+    return Object.fromEntries(
+      Object.entries(parsed).filter(
+        ([, vol]) =>
+          typeof vol === "number" && Number.isFinite(vol) && vol >= 0 && vol <= 1,
+      ),
+    );
+  } catch {
+    return {};
+  }
+};
+
+export const setTtsVolumePreference = (langCode: string, volume: number) => {
+  if (typeof window === "undefined" || !Number.isFinite(volume)) return;
+  try {
+    const existing = getTtsVolumesPreference();
+    existing[langCode] = Math.max(0, Math.min(1, Math.round(volume * 100) / 100));
+    window.localStorage.setItem(KEYS.ttsVolumes, JSON.stringify(existing));
+  } catch {
+    // ignore storage errors
+  }
+};
+export const saveTtsVolumePreference = setTtsVolumePreference;
+
+export const getLanguageTtsVolume = (
+  volumes: Record<string, number> | undefined | null,
+  langCode: unknown,
+): number => {
+  if (!volumes || !langCode) return 1.0;
+  const targetCode = extractLanguageCodeString(langCode);
+  if (!targetCode) return 1.0;
+  if (typeof volumes[targetCode] === "number" && Number.isFinite(volumes[targetCode])) {
+    return Math.max(0, Math.min(1, volumes[targetCode]));
+  }
+  const clean = targetCode.toLowerCase();
+  if (typeof volumes[clean] === "number" && Number.isFinite(volumes[clean])) {
+    return Math.max(0, Math.min(1, volumes[clean]));
+  }
+  if (clean === "iw" || clean === "il") {
+    if (typeof volumes["he"] === "number" && Number.isFinite(volumes["he"])) {
+      return Math.max(0, Math.min(1, volumes["he"]));
+    }
+  }
+  return 1.0;
+};
 
 /**
  * Normalizes language codes to lookup the configured TTS ratio.

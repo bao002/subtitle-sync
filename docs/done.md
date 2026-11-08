@@ -1,5 +1,26 @@
 # Done tasks
 
+### Task 360 (Prompt 127): Subtitles Table First Column Running Index
+
+- **Prompt**:
+  ```
+  subtitles-table: the first columns should be the running index
+  ```
+- **Context & Implementation**:
+  - `src/components/SubtitlesTablePanel.tsx`:
+    - Added `#` running index column as the very first column (`<th data-testid="table-header-index">#</th>`) ahead of Time (`<th data-testid="table-header-time">Time</th>`).
+    - Integrated with column freezing: `#` column is positioned at `sticky left-0`, Time column at `sticky left-14`, and first language column at `sticky left-42`.
+    - Updated empty notice `colSpan` to `Math.max(1, cols.length + 2)` to cleanly cover the new running index column.
+  - `src/components/SubtitleRow.tsx`:
+    - Added `<td data-testid="cue-row-index">` as the very first table cell in each cue row, rendering 1-based running index `{actualIndex + 1}`.
+    - Configured cell styling with `w-14 min-w-[3.5rem] max-w-[3.5rem] text-center tabular-nums font-mono text-xs text-muted-foreground`.
+    - Integrated row cell column freezing: `#` index cell at `sticky left-0`, Time cell at `sticky left-14`, and first language cell at `sticky left-42`.
+- **Testing & Verification**:
+  - Authored dedicated automated test suite `scripts/verify-subtitles-table-running-index-first-column.ts` (`npm run test:subtitles-table-running-index`) passing 100%.
+  - Updated and verified regression test `npm run test:ui-languages-and-subtitles-table` passing 100%.
+  - Synchronized single-source-of-truth version to `v2.1.57` (code `20157`) across `package.json` and `android-shell/app/build.gradle.kts`.
+  - Verified `compile_applet` and `lint_applet` pass with zero errors.
+
 ### Task 358 (Prompt 125): Learning Goals Profile Name Set on Top
 
 - **Prompt**:

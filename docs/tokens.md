@@ -6,9 +6,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 126 ("create a stage dedicated to learning where instead of showing the video-player the user whould be able to view the words as a set of baloon and each baloon can be punched and then its expose he translation of that word") [ACTIVE]:
-  - Executing Task 359: Dedicated Learning Stage with Punchable Word Balloons Exposing Translation (Subtask 359.1).
-- Active Backlog: Task 359 in [`docs/tasks.md`](tasks.md).
+- Prompt 128 ("allow to set custom volume per translation") [ACTIVE]:
+  - Executing Task 361: Custom Volume per Translation (Stage 2 Learning Goals Card) (Subtask 361.1).
+- Suspended Task: Task 359 (Prompt 126) on hold.
+- Active Backlog: Task 361 & Task 359 in [`docs/tasks.md`](tasks.md).
 
 ---
 

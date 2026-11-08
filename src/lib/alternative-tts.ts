@@ -363,6 +363,7 @@ export interface LovableTtsOptions {
   voice?: string;
   voices?: LovableTtsVoicesMap;
   speed?: number;
+  volume?: number;
   options?: LovableTtsProviderOptions | Record<string, unknown> | string;
   format?: LovableTtsFormat;
   target_lang?: string;
@@ -2121,6 +2122,15 @@ export async function playAlternativeTtsAudio(
     if (isAnonymous) {
       audio.crossOrigin = "anonymous";
     }
+    const effectiveVolume =
+      typeof optionsOverride?.volume === "number" && Number.isFinite(optionsOverride.volume)
+        ? Math.max(0, Math.min(1, optionsOverride.volume))
+        : 1.0;
+    try {
+      audio.volume = effectiveVolume;
+    } catch {
+      // ignore volume set error
+    }
     activeAlternativeAudio = audio;
 
     let hasEnded = false;
@@ -2169,6 +2179,7 @@ export async function playAlternativeTtsAudio(
           const u = new SpeechSynthesisUtterance(text);
           u.lang = normalizeLanguageCode(lang);
           u.rate = Math.max(0.3, Math.min(1.5, rate || 0.5));
+          u.volume = effectiveVolume;
           u.onend = () => cleanup();
           u.onerror = () => cleanup();
           window.speechSynthesis.speak(u);

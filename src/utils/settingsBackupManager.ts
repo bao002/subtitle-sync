@@ -8,6 +8,7 @@ import {
   getTtsBlacklist,
   getRatioCompositionsPreference,
   getTtsRatesPreference,
+  getTtsVolumesPreference,
   getTtsVoicesPreference,
   getTtsLanguageOrdersPreference,
   getSubtitleRequestModePreference,
@@ -23,6 +24,7 @@ import {
   setTtsBlacklist,
   saveRatioCompositionPreference,
   setTtsRatePreference,
+  setTtsVolumePreference,
   setTtsVoicePreference,
   setTtsLanguageOrderPreference,
   setSubtitleRequestModePreference,
@@ -77,6 +79,7 @@ export interface ApplicationSettingsBackup {
     ttsBlacklist?: string[];
     ratioCompositions?: Record<string, Record<string, number>>;
     ttsRates?: Record<string, number>;
+    ttsVolumes?: Record<string, number>;
     ttsVoices?: Record<string, string>;
     ttsLanguageOrders?: Record<string, string>;
     subtitleRequestMode?: string;
@@ -128,6 +131,7 @@ export function createApplicationSettingsBackup(): ApplicationSettingsBackup {
     ttsBlacklist: getTtsBlacklist(),
     ratioCompositions: getRatioCompositionsPreference(),
     ttsRates: getTtsRatesPreference(),
+    ttsVolumes: getTtsVolumesPreference(),
     ttsVoices: getTtsVoicesPreference(),
     ttsLanguageOrders: getTtsLanguageOrdersPreference(),
     subtitleRequestMode: getSubtitleRequestModePreference(),
@@ -328,6 +332,14 @@ export function importApplicationSettings(jsonOrObj: string | unknown): ImportSe
         for (const [lang, rate] of Object.entries(prefs.ttsRates)) {
           if (typeof rate === "number") {
             setTtsRatePreference(lang, rate);
+            count++;
+          }
+        }
+      }
+      if (prefs.ttsVolumes && typeof prefs.ttsVolumes === "object") {
+        for (const [lang, vol] of Object.entries(prefs.ttsVolumes)) {
+          if (typeof vol === "number") {
+            setTtsVolumePreference(lang, vol);
             count++;
           }
         }
