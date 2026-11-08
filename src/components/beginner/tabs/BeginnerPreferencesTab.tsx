@@ -328,7 +328,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         }
       }
       utterance.onend = () => setIsAuditioning(false);
-      utterance.onerror = () => {
+      utterance.onerror = (e) => {
+        if (e?.error === "interrupted" || e?.error === "canceled") {
+          setIsAuditioning(false);
+          return;
+        }
         if (useAltTts) {
           playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
             provider: lovableTtsProviderState,

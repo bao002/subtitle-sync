@@ -2260,12 +2260,17 @@ export async function executeTtsFallbackSequence(
     tts3Voice?: string;
     isAnonymous?: boolean;
     onNativeSpeak?: () => Promise<boolean>;
+    volume?: number;
   },
 ): Promise<"tts3" | "native" | "none"> {
   const order = orderOverride || getTtsFallbackOrder();
   const isAnonymous = options?.isAnonymous ?? getAlternativeTtsAnonymousMode();
   const provider = options?.tts3Provider || "auto";
   const voice = options?.tts3Voice;
+  const volume =
+    typeof options?.volume === "number" && Number.isFinite(options.volume)
+      ? Math.max(0, Math.min(1, options.volume))
+      : 1.0;
 
   // Derive steps array from order
   const steps: Array<"tts3" | "native"> = [];
@@ -2286,6 +2291,7 @@ export async function executeTtsFallbackSequence(
           voice,
           speed: rate,
           isAnonymous,
+          volume,
         });
         return "tts3";
       } catch (err) {

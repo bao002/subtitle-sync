@@ -325,8 +325,7 @@ export const getTtsVolumesPreference = (): Record<string, number> => {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
     return Object.fromEntries(
       Object.entries(parsed).filter(
-        ([, vol]) =>
-          typeof vol === "number" && Number.isFinite(vol) && vol >= 0 && vol <= 1,
+        ([, vol]) => typeof vol === "number" && Number.isFinite(vol) && vol >= 0 && vol <= 1,
       ),
     );
   } catch {
