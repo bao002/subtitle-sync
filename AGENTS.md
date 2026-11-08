@@ -132,18 +132,8 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-0. learning goals - allow to set tts speed rate per language ( it should be effective for both native and external-tts-service)
-
-1. by default use the external tts-service if it is already set and validated (should remember the access token)
-2. add import/export buttons to the app's header (it shouldn't reduct any details)
-3. allow to CRUD learning goals profiles.
+go on
 ```
-
-
-
-
-
-
 
 
 

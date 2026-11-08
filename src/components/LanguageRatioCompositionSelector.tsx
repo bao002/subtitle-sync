@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Sliders, BookmarkCheck, Plus, Check, Trash2, X } from "lucide-react";
+import { Sliders, BookmarkCheck, Plus, Check, Trash2, X, Edit2, RotateCw } from "lucide-react";
 import {
   type LanguageRatioComposition,
   getStoredRatioCompositions,
@@ -9,6 +9,7 @@ export interface LanguageRatioCompositionSelectorProps {
   activeCompositionId: string;
   onSelectComposition: (composition: LanguageRatioComposition) => void;
   onSaveProfile?: (name: string) => void;
+  onUpdateProfile?: (id: string, updates: Partial<LanguageRatioComposition>) => void;
   onDeleteProfile?: (id: string) => void;
   compositions?: LanguageRatioComposition[];
   className?: string;
@@ -20,7 +21,7 @@ export interface LanguageRatioCompositionSelectorProps {
  *
  * An easy dropdown list located next/around the video player that allows users
  * to quickly switch between stored language ratio & learning goal profiles,
- * and save new profiles with a single click.
+ * save new profiles, update existing profiles, rename them, and delete them.
  */
 export const LanguageRatioCompositionSelector: React.FC<
   LanguageRatioCompositionSelectorProps
@@ -28,6 +29,7 @@ export const LanguageRatioCompositionSelector: React.FC<
   activeCompositionId,
   onSelectComposition,
   onSaveProfile,
+  onUpdateProfile,
   onDeleteProfile,
   compositions: propCompositions,
   className = "",
@@ -35,6 +37,8 @@ export const LanguageRatioCompositionSelector: React.FC<
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [profileName, setProfileName] = useState("");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
 
   const compositions = propCompositions || getStoredRatioCompositions();
   const activeComp =
@@ -48,6 +52,21 @@ export const LanguageRatioCompositionSelector: React.FC<
     }
     setProfileName("");
     setIsAdding(false);
+  };
+
+  const handleConfirmEditName = () => {
+    const trimmed = editedName.trim();
+    if (!trimmed || !activeComp) return;
+    if (onUpdateProfile) {
+      onUpdateProfile(activeComp.id, { name: trimmed });
+    }
+    setIsEditingName(false);
+    setEditedName("");
+  };
+
+  const handleUpdateCurrentProfile = () => {
+    if (!activeComp || activeComp.isBuiltIn || !onUpdateProfile) return;
+    onUpdateProfile(activeComp.id, {});
   };
 
   return (
@@ -89,8 +108,84 @@ export const LanguageRatioCompositionSelector: React.FC<
         </select>
       </div>
 
+      {/* Update & Rename controls for custom profiles */}
+      {!activeComp?.isBuiltIn && onUpdateProfile && !isEditingName && (
+        <>
+          <button
+            type="button"
+            data-testid="update-active-profile-button"
+            onClick={handleUpdateCurrentProfile}
+            className="p-1 rounded hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors shrink-0"
+            title={`Update profile "${activeComp.name}" with current settings & speech rates`}
+            aria-label={`Update profile ${activeComp.name} with current settings`}
+          >
+            <RotateCw className="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            data-testid="edit-profile-name-button"
+            onClick={() => {
+              setEditedName(activeComp.name);
+              setIsEditingName(true);
+            }}
+            className="p-1 rounded hover:bg-primary/20 text-muted-foreground hover:text-primary transition-colors shrink-0"
+            title={`Rename profile "${activeComp.name}"`}
+            aria-label={`Rename profile ${activeComp.name}`}
+          >
+            <Edit2 className="h-3 w-3" />
+          </button>
+        </>
+      )}
+
+      {/* Inline Rename Form */}
+      {isEditingName && (
+        <div
+          data-testid="edit-profile-name-form"
+          className="inline-flex items-center gap-1 bg-background/90 px-1.5 py-0.5 rounded border border-border"
+        >
+          <input
+            type="text"
+            data-testid="edit-profile-name-input"
+            value={editedName}
+            autoFocus
+            onChange={(e) => setEditedName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleConfirmEditName();
+              if (e.key === "Escape") {
+                setIsEditingName(false);
+                setEditedName("");
+              }
+            }}
+            className="h-6 w-28 px-1.5 text-[11px] rounded bg-muted/30 border-none focus:outline-hidden focus:ring-1 focus:ring-primary"
+          />
+          <button
+            type="button"
+            data-testid="confirm-edit-profile-button"
+            onClick={handleConfirmEditName}
+            disabled={!editedName.trim()}
+            className="p-1 rounded bg-primary/20 text-primary hover:bg-primary/30 transition-colors disabled:opacity-40"
+            title="Confirm Rename"
+            aria-label="Confirm rename profile"
+          >
+            <Check className="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setIsEditingName(false);
+              setEditedName("");
+            }}
+            className="p-1 rounded text-muted-foreground hover:bg-muted transition-colors"
+            title="Cancel"
+            aria-label="Cancel rename profile"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
       {/* Delete custom profile button */}
-      {!activeComp?.isBuiltIn && onDeleteProfile && (
+      {!activeComp?.isBuiltIn && onDeleteProfile && !isEditingName && (
         <button
           type="button"
           data-testid="delete-custom-profile-button"

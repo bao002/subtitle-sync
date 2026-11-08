@@ -65,6 +65,8 @@ import {
   Globe,
   Shuffle,
   Palette,
+  Download,
+  Upload,
 } from "lucide-react";
 import { getPlaybackSectionId } from "@/lib/playback-section-identity";
 import { Button } from "@/components/ui/button";
@@ -416,6 +418,7 @@ import {
   type LanguageRatioComposition,
   getStoredRatioCompositions,
   saveRatioComposition,
+  updateRatioComposition,
   deleteRatioComposition,
   getActiveRatioCompositionId,
   setActiveRatioCompositionId,
@@ -550,7 +553,7 @@ function speak(
     void (async () => {
       if (!text) return res();
 
-      const normalizedRate = Math.max(0.3, Math.min(1.5, rate || 0.5));
+      const normalizedRate = Math.max(0.25, Math.min(2.5, rate || 1.0));
       const useAltTts = typeof window !== "undefined" && getUseAlternativeTts();
       const altTtsMode = typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only";
       const altEngine = typeof window !== "undefined" ? getAlternativeTtsEngine() : "lovable";
@@ -1523,6 +1526,10 @@ function Index() {
         isAnonymous: alternativeTtsAnonymousState,
       });
       setRemoteValidationResult(res);
+      if (res.ok) {
+        setUseAlternativeTtsState(true);
+        setAlternativeTtsModeState("always");
+      }
     } catch (err: unknown) {
       setRemoteValidationResult({
         ok: false,
@@ -1764,6 +1771,17 @@ function Index() {
   const [apkModalOpen, setApkModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [isSettingsBackupModalOpen, setIsSettingsBackupModalOpen] = useState(false);
+  const [settingsBackupModalTab, setSettingsBackupModalTab] = useState<"export" | "import">(
+    "export",
+  );
+  const handleOpenHeaderExport = useCallback(() => {
+    setSettingsBackupModalTab("export");
+    setIsSettingsBackupModalOpen(true);
+  }, []);
+  const handleOpenHeaderImport = useCallback(() => {
+    setSettingsBackupModalTab("import");
+    setIsSettingsBackupModalOpen(true);
+  }, []);
   const handleSettingsImported = useCallback(() => {
     if (typeof window !== "undefined") {
       window.location.reload();
@@ -2325,6 +2343,43 @@ function Index() {
       simpleParserConfig.skipIncompleteSentences,
       sectionOrder,
       rates,
+      ttsLanguageOrders,
+    ],
+  );
+
+  const handleUpdateRatioComposition = useCallback(
+    (id: string, updates: Partial<LanguageRatioComposition>) => {
+      try {
+        const payload: Parameters<typeof updateRatioComposition>[1] = {
+          ...updates,
+          ratios: updates.ratios || ttsRatios,
+          rates: updates.rates || rates,
+          sectionOrder: updates.sectionOrder || sectionOrder,
+          maxWordsPerSentence:
+            updates.maxWordsPerSentence !== undefined
+              ? updates.maxWordsPerSentence
+              : simpleParserConfig.maxWordsPerSentence,
+          skipIncompleteSentences:
+            updates.skipIncompleteSentences !== undefined
+              ? updates.skipIncompleteSentences
+              : simpleParserConfig.skipIncompleteSentences,
+          ttsLanguageOrders: updates.ttsLanguageOrders || ttsLanguageOrders,
+        };
+        const updated = updateRatioComposition(id, payload);
+        if (updated) {
+          setStoredCompositions(getStoredRatioCompositions());
+          notifySubtitleFetch("completed", `Updated profile "${updated.name}"!`, updated.id);
+        }
+      } catch (err: unknown) {
+        console.warn("Update learning profile error:", err);
+      }
+    },
+    [
+      ttsRatios,
+      rates,
+      sectionOrder,
+      simpleParserConfig.maxWordsPerSentence,
+      simpleParserConfig.skipIncompleteSentences,
       ttsLanguageOrders,
     ],
   );
@@ -5198,7 +5253,7 @@ function Index() {
                   const speakWordPromise = speak(
                     pickedWord,
                     l.tts,
-                    rates[l.code] ?? 0.5,
+                    rates[l.code] ?? 1.0,
                     voiceSelections[l.code] ?? "",
                     rowIdx,
                     setSpeechProgress,
@@ -5219,7 +5274,7 @@ function Index() {
                       (x) => x.code === baseLanguage,
                     );
                     const baseTtsLang = baseTtsMeta?.tts || baseLanguage || "en";
-                    const baseRate = rates[baseLanguage] ?? 0.8;
+                    const baseRate = rates[baseLanguage] ?? 1.0;
                     const baseVoice = voiceSelections[baseLanguage] ?? "";
 
                     const speakTransPromise = speak(
@@ -5239,7 +5294,7 @@ function Index() {
                   const speakPromise = speak(
                     rawText,
                     l.tts,
-                    rates[l.code] ?? 0.5,
+                    rates[l.code] ?? 1.0,
                     voiceSelections[l.code] ?? "",
                     rowIdx,
                     setSpeechProgress,
@@ -6338,6 +6393,32 @@ function Index() {
                 className={`h-3 w-3 ${bgDiversity ? "text-purple-500 dark:text-purple-400" : "text-muted-foreground"}`}
               />
               <span>Theme {bgDiversity ? "Diverse" : "Standard"}</span>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              id="header-export-settings-button"
+              data-testid="header-export-settings-button"
+              onClick={handleOpenHeaderExport}
+              className="h-6 px-2 text-[11px] font-medium rounded-full border flex items-center gap-1 transition-all shrink-0 bg-muted/40 text-muted-foreground border-border/80 hover:text-foreground hover:bg-muted"
+              title="Export all application settings, tokens, learning goals, and preferences (unredacted)"
+            >
+              <Download className="h-3 w-3 text-sky-500 dark:text-sky-400" />
+              <span>Export</span>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              id="header-import-settings-button"
+              data-testid="header-import-settings-button"
+              onClick={handleOpenHeaderImport}
+              className="h-6 px-2 text-[11px] font-medium rounded-full border flex items-center gap-1 transition-all shrink-0 bg-muted/40 text-muted-foreground border-border/80 hover:text-foreground hover:bg-muted"
+              title="Import application settings, tokens, learning goals, and preferences"
+            >
+              <Upload className="h-3 w-3 text-emerald-500 dark:text-emerald-400" />
+              <span>Import</span>
             </Button>
             <Button
               type="button"
@@ -10691,6 +10772,203 @@ function Index() {
                                               })}
                                             </div>
                                           </div>
+
+                                          {/* Ingredient 5: TTS Speed Rate Per Language (Effective for both Native & External TTS) */}
+                                          <div
+                                            data-testid="stage-2-ingredient-speed-section"
+                                            className="p-2.5 rounded-lg bg-card/80 border border-border/80 space-y-1.5 shadow-xs"
+                                          >
+                                            <div className="flex items-center justify-between border-b border-border/40 pb-1">
+                                              <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground uppercase tracking-wider">
+                                                <Gauge className="h-3.5 w-3.5 text-primary" />
+                                                <span>
+                                                  5. Speech Rate (Native &amp; External TTS)
+                                                </span>
+                                              </div>
+                                              <span className="text-[10px] text-muted-foreground font-mono">
+                                                0.25x – 2.5x
+                                              </span>
+                                            </div>
+
+                                            <div className="flex flex-col space-y-1.5 pt-0.5">
+                                              {orderedLearningCodes.map((langCode) => {
+                                                const meta =
+                                                  LANGS.find((l) => l.code === langCode) ||
+                                                  SUPPORTED_LANGUAGES_CATALOG.find(
+                                                    (l) => l.code === langCode,
+                                                  );
+                                                const currentRate = rates[langCode] ?? 1.0;
+
+                                                return (
+                                                  <div
+                                                    key={`speed-${langCode}`}
+                                                    data-testid={`stage-2-speed-row-${langCode}`}
+                                                    className="p-2 rounded-md bg-background/80 border border-border/60 space-y-1.5"
+                                                  >
+                                                    <div
+                                                      data-testid={`stage-2-speed-slider-container-${langCode}`}
+                                                      className="space-y-1.5"
+                                                    >
+                                                      <div className="flex items-center justify-between text-xs">
+                                                        <div className="flex items-center gap-1.5 font-medium text-foreground">
+                                                          <Languages className="h-3.5 w-3.5 text-primary shrink-0" />
+                                                          <span>
+                                                            {meta?.name || langCode.toUpperCase()}
+                                                          </span>
+                                                          <span className="text-[10px] text-muted-foreground font-mono">
+                                                            ({langCode})
+                                                          </span>
+                                                        </div>
+                                                        <span
+                                                          data-testid={`stage-2-speed-display-${langCode}`}
+                                                          className="font-mono text-xs font-bold text-primary"
+                                                        >
+                                                          {currentRate.toFixed(2)}x
+                                                        </span>
+                                                      </div>
+
+                                                      <div className="flex items-center gap-1.5">
+                                                        <Button
+                                                          type="button"
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          data-testid={`stage-2-speed-decrement-${langCode}`}
+                                                          aria-label={`Decrease speed for ${meta?.name || langCode}`}
+                                                          title="Decrease speed by 0.1x"
+                                                          disabled={currentRate <= 0.25}
+                                                          onClick={() => {
+                                                            const nextRate = Math.max(
+                                                              0.25,
+                                                              Math.round(
+                                                                (currentRate - 0.1) * 100,
+                                                              ) / 100,
+                                                            );
+                                                            const next = {
+                                                              ...rates,
+                                                              [langCode]: nextRate,
+                                                            };
+                                                            setRates(next);
+                                                            saveTtsRatePreference(
+                                                              langCode,
+                                                              nextRate,
+                                                            );
+                                                            if (videoId)
+                                                              saveVideoSettings(videoId, {
+                                                                rates: { [langCode]: nextRate },
+                                                              });
+                                                          }}
+                                                          className="h-6 w-6 rounded text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted"
+                                                        >
+                                                          <Minus className="h-3 w-3" />
+                                                        </Button>
+
+                                                        <input
+                                                          type="range"
+                                                          min={0.25}
+                                                          max={2.5}
+                                                          step={0.05}
+                                                          value={currentRate}
+                                                          data-testid={`stage-2-speed-slider-${langCode}`}
+                                                          aria-label={`TTS speed slider for ${meta?.name || langCode}`}
+                                                          onChange={(e) => {
+                                                            const val = Math.max(
+                                                              0.25,
+                                                              Math.min(2.5, Number(e.target.value)),
+                                                            );
+                                                            const next = {
+                                                              ...rates,
+                                                              [langCode]: val,
+                                                            };
+                                                            setRates(next);
+                                                            saveTtsRatePreference(langCode, val);
+                                                            if (videoId)
+                                                              saveVideoSettings(videoId, {
+                                                                rates: { [langCode]: val },
+                                                              });
+                                                          }}
+                                                          className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                                                        />
+
+                                                        <Button
+                                                          type="button"
+                                                          variant="ghost"
+                                                          size="icon"
+                                                          data-testid={`stage-2-speed-increment-${langCode}`}
+                                                          aria-label={`Increase speed for ${meta?.name || langCode}`}
+                                                          title="Increase speed by 0.1x"
+                                                          disabled={currentRate >= 2.5}
+                                                          onClick={() => {
+                                                            const nextRate = Math.min(
+                                                              2.5,
+                                                              Math.round(
+                                                                (currentRate + 0.1) * 100,
+                                                              ) / 100,
+                                                            );
+                                                            const next = {
+                                                              ...rates,
+                                                              [langCode]: nextRate,
+                                                            };
+                                                            setRates(next);
+                                                            saveTtsRatePreference(
+                                                              langCode,
+                                                              nextRate,
+                                                            );
+                                                            if (videoId)
+                                                              saveVideoSettings(videoId, {
+                                                                rates: { [langCode]: nextRate },
+                                                              });
+                                                          }}
+                                                          className="h-6 w-6 rounded text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted"
+                                                        >
+                                                          <Plus className="h-3 w-3" />
+                                                        </Button>
+                                                      </div>
+
+                                                      {/* Quick Speed Presets */}
+                                                      <div className="flex items-center gap-1 pt-0.5 overflow-x-auto">
+                                                        <span className="text-[9px] text-muted-foreground">
+                                                          Presets:
+                                                        </span>
+                                                        {[0.5, 0.75, 1.0, 1.25, 1.5, 2.0].map(
+                                                          (rateVal) => (
+                                                            <button
+                                                              key={rateVal}
+                                                              type="button"
+                                                              data-testid={`stage-2-speed-btn-${langCode}-${rateVal}`}
+                                                              onClick={() => {
+                                                                const next = {
+                                                                  ...rates,
+                                                                  [langCode]: rateVal,
+                                                                };
+                                                                setRates(next);
+                                                                saveTtsRatePreference(
+                                                                  langCode,
+                                                                  rateVal,
+                                                                );
+                                                                if (videoId)
+                                                                  saveVideoSettings(videoId, {
+                                                                    rates: { [langCode]: rateVal },
+                                                                  });
+                                                              }}
+                                                              className={`px-1.5 py-0.2 rounded text-[9px] font-mono transition-colors cursor-pointer ${
+                                                                Math.abs(currentRate - rateVal) <
+                                                                0.03
+                                                                  ? "bg-primary text-primary-foreground font-bold shadow-xs"
+                                                                  : "text-muted-foreground/70 hover:text-foreground bg-muted/30"
+                                                              }`}
+                                                              title={`Set speed to ${rateVal}x`}
+                                                            >
+                                                              {rateVal}x
+                                                            </button>
+                                                          ),
+                                                        )}
+                                                      </div>
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
                                         </div>
                                       );
                                     })()}
@@ -11721,6 +11999,7 @@ function Index() {
       />
       <SettingsBackupModal
         isOpen={isSettingsBackupModalOpen}
+        initialTab={settingsBackupModalTab}
         onClose={() => setIsSettingsBackupModalOpen(false)}
         onSettingsImported={handleSettingsImported}
       />

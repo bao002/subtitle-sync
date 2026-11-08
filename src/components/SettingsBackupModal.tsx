@@ -12,17 +12,31 @@ interface SettingsBackupModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSettingsImported?: () => void;
+  initialTab?: "export" | "import";
 }
 
 export const SettingsBackupModal: React.FC<SettingsBackupModalProps> = ({
   isOpen,
   onClose,
   onSettingsImported,
+  initialTab = "export",
 }) => {
-  const [activeTab, setActiveTab] = useState<"export" | "import">("export");
+  const [activeTab, setActiveTab] = useState<"export" | "import">(initialTab);
   const [jsonText, setJsonText] = useState<string>("");
   const [copied, setCopied] = useState<boolean>(false);
   const [importStatus, setImportStatus] = useState<ImportSettingsResult | null>(null);
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setActiveTab(initialTab);
+      if (initialTab === "export") {
+        setJsonText(exportApplicationSettingsJson(true));
+      } else {
+        setJsonText("");
+      }
+      setImportStatus(null);
+    }
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 
@@ -146,8 +160,8 @@ export const SettingsBackupModal: React.FC<SettingsBackupModalProps> = ({
           {activeTab === "export" ? (
             <div className="space-y-3">
               <p className="text-muted-foreground">
-                Export all your application settings, learning goals, favorite languages, narration ratios,
-                TTS blacklist, and preferences to a portable JSON backup file.
+                Export all your application settings, learning goals, favorite languages, narration
+                ratios, TTS blacklist, and preferences to a portable JSON backup file.
               </p>
 
               <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -198,7 +212,8 @@ export const SettingsBackupModal: React.FC<SettingsBackupModalProps> = ({
           ) : (
             <div className="space-y-3">
               <p className="text-muted-foreground">
-                Import settings from a previously exported JSON backup file or paste JSON content directly.
+                Import settings from a previously exported JSON backup file or paste JSON content
+                directly.
               </p>
 
               <div className="space-y-2">

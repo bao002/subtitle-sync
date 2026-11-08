@@ -121,7 +121,6 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
         relative to the primary language.
       </p>
 
-
       {languages.length === 0 ? (
         <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
           Add a favorite language below to configure its TTS settings.
@@ -271,9 +270,9 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
                       }}
                       className="rounded border border-input bg-background px-1.5 py-1 text-xs font-mono"
                     >
-                      {[0.5, 0.6, 0.7, 0.8, 0.9, 1.0].map((rateVal) => (
-                        <option key={rateVal} value={rateVal.toFixed(1)}>
-                          {rateVal.toFixed(1)}×
+                      {[0.5, 0.6, 0.75, 0.8, 0.9, 1.0, 1.25, 1.5, 2.0].map((rateVal) => (
+                        <option key={rateVal} value={rateVal.toFixed(2)}>
+                          {rateVal}×
                         </option>
                       ))}
                     </select>
