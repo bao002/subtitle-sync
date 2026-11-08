@@ -6,8 +6,12 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 115 (Task 347): Subtitles table play trigger, floating error button, per-language cell colors, header background diversity toggle [COMPLETED - v2.1.44].
-- Active Task: Completed Prompt 115. Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
+- Prompt 116 (Tasks 348-351):
+  - Task 348 (Chapter 0) [ACTIVE]: Learning Goals - Set TTS Speed Rate Per Language (Native & External TTS Service).
+  - Task 349 (Chapter 1) [PENDING]: Default to External TTS Service If Set & Validated (Remember Access Token).
+  - Task 350 (Chapter 2) [PENDING]: Header Import / Export Buttons (Complete Unredacted Config).
+  - Task 351 (Chapter 3) [PENDING]: Learning Goals Profiles Full CRUD.
+- Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
 
 ---
 

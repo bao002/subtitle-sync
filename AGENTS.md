@@ -132,11 +132,11 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-clicking on the subtitles-table should trigger playing. 
-show a floating error button in any error rising.
-subtitles-table - cell coloring per language.
+0. learning goals - allow to set tts speed rate per language ( it should be effective for both native and external-tts-service)
 
-app design - add toggle button on header to make background more diverse
+1. by default use the external tts-service if it is already set and validated (should remember the access token)
+2. add import/export buttons to the app's header (it shouldn't reduct any details)
+3. allow to CRUD learning goals profiles.
 ```
 
 
