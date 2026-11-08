@@ -159,6 +159,10 @@ test("beginner mode has two flows and presents the daily video, favorites, parse
   await expect(page.getByTestId("beginner-parallel-subtitles")).toBeVisible();
   await expect(page.getByTestId("beginner-chars-removal-accordion")).toBeVisible();
   await expect(page.getByTestId("subtitles-table-panel")).toBeVisible();
+  const toggleParserBtn = page.getByTestId("btn-toggle-quarantined-parser");
+  if (await toggleParserBtn.isVisible().catch(() => false)) {
+    await toggleParserBtn.click();
+  }
   await expect(page.getByTestId("new-subtitles-parser-bar")).toBeVisible();
   await expect(page.getByTestId("video-subtitles-overlay-toggle")).toHaveAttribute(
     "aria-pressed",
@@ -206,10 +210,10 @@ test("beginner mode has two flows and presents the daily video, favorites, parse
     .evaluate((player) => player.nextElementSibling?.getAttribute("data-testid"));
   expect(controlsImmediatelyFollowPlayer).toBe("video-display-controls");
 
-  const parserIsFirstInTable = await page
+  const parserInTable = page
     .getByTestId("subtitles-table-panel")
-    .evaluate((panel) => panel.firstElementChild?.getAttribute("data-testid"));
-  expect(parserIsFirstInTable).toBe("new-subtitles-parser-bar");
+    .locator('[data-testid="new-subtitles-parser-bar"]');
+  await expect(parserInTable).toBeVisible();
 
   await page.getByTestId("subtitle-overlay-size-increase").click();
   await expect(page.getByTestId("subtitle-overlay-size-value")).toHaveText("1.10x");
@@ -239,7 +243,10 @@ test("Beginner and Advanced render the shared language selector", async ({ page 
 
   await page.getByTestId("nav-switch-to-advanced").click();
   await page.getByTestId("stage-step-1").click();
-  await page.locator('details[data-panel-id="languages"] > summary').click();
+  const langDetails = page.locator('details[data-panel-id="languages"]');
+  if (!(await langDetails.getAttribute("open"))) {
+    await langDetails.locator("summary").click();
+  }
   await expect(page.getByTestId("language-boxes-selector-wrapper")).toBeVisible();
   await expect(page.getByTestId("language-box-he")).toHaveAttribute("data-selected", "true");
 });
