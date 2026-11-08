@@ -132,7 +132,7 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-after clicking on the floating play button - mouse hover (or equivilant operation on mobile) should show a tooltip with the play time
+should click on the floating play button trigger the video. currently it works only when the video stage is activated
 ```
 
 

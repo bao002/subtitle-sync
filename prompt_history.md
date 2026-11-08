@@ -1480,3 +1480,11 @@ CSS 2: {
 after clicking on the floating play button - mouse hover (or equivilant operation on mobile) should show a tooltip with the play time
 ```
 
+---
+
+### Prompt 114: Floating Play Button Triggers Video & Video Stage Activation
+```
+should click on the floating play button trigger the video. currently it works only when the video stage is activated
+```
+
+

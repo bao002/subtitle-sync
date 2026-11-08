@@ -4,13 +4,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 345 (Prompt 113): Floating Play Button Playtime Tooltip on Hover / Long Press**
-  - Subtask 345.1: Add `currentTimeSec` and `durationSec` props to `FloatingDraggablePauseButtonProps`, supporting dynamic formatted playtime display (`MM:SS / MM:SS` or `H:MM:SS / H:MM:SS`).
-  - Subtask 345.2: Implement hover tooltip state (`isHovered`) on mouse enter/leave, and mobile touch long-press (>= 400ms) or toggle mechanism with auto-dismiss (3s), styled cleanly with backdrop blur and border.
-  - Subtask 345.3: Pass `currentTimeSec={playbackCurrentTime}` and `durationSec={playbackDuration}` to `<FloatingDraggablePauseButton>` in `src/routes/index.tsx` and Storybook workbench.
-  - Subtask 345.4: Authored dedicated automated test suite `scripts/verify-floating-pause-button-playtime-tooltip.ts` (`npm run test:floating-playtime-tooltip`).
-  - Subtask 345.5: Bump version to `v2.1.43`, run `sync-version`, compile (`compile_applet`), lint (`lint_applet`), commit, and migrate to `docs/done.md`.
-
 - [ ] **Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique**
   - Subtask 312.1: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
   - Subtask 312.2: Update `src/components/FloatingSubtitleRetryIndicator.tsx` to cycle only between `random` and `ordered` modes, removing `server_alternate` option and tooltip.

@@ -476,5 +476,8 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-auto-fetching-debug-experimental-stuff.ts`   | Auto-Fetching Subtitles Debug Verification Suite (Task 311, Prompt 81)            | Validates experimental fetch architecture display in FloatingSubtitleRetryIndicator: Server/Client origin badge, Session/No-Session badge, next attempt badge, and live debug toggles. |
 | `scripts/verify-learning-goals-tts-order-and-video-bar.ts`    | Learning Goals TTS Order & In-Between Video Bar Verification (Task 327, Prompt 94) | Asserts inclusion of VideoLanguageSequenceControl, VideoPlaybackPrecedenceBar, and language reordering controls in Learning Goals with 100% parity across Advanced and Beginner modes. |
 | `scripts/verify-floating-play-pause-toggle.ts`               | Floating Play/Pause Button State & Click Verification Suite (Task 334, Prompt 102) | Asserts Play button icon when not playing, Pause button icon when playing, clicking on play triggers play, clicking on pause triggers pause, and full index.tsx wiring. |
+| `scripts/verify-floating-pause-button-playtime-tooltip.ts`   | Floating Play Button Playtime Tooltip Verification Suite (Task 345, Prompt 113)    | Asserts playtime seconds formatting, hover/touch long-press tooltip, and wiring of currentTimeSec/durationSec in src/routes/index.tsx. |
+| `scripts/verify-floating-play-triggers-video-stage.ts`       | Floating Play Button Video Stage Activation Verification Suite (Task 346, Prompt 114)| Asserts clicking floating play triggers video and activates Stage 3 in expert mode or video tab in beginner mode, with player mount queuing. |
+
 
 

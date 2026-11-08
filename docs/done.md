@@ -1,5 +1,42 @@
 # Done tasks
 
+### Task 346 (Prompt 114): Floating Play Button Triggers Video & Video Stage Activation
+
+- **Prompt**:
+  ```
+  should click on the floating play button trigger the video. currently it works only when the video stage is activated
+  ```
+- **Context & Implementation**:
+  - Addressed why clicking the floating play button previously only worked when the video stage was activated: under stage isolation, the YouTube player iframe was mounted strictly inside Stage 3 (or the Beginner video tab); on stages 0, 1, 2, or 4 (or preferences tab), the player was unmounted, so clicking play found no active player instance.
+  - `src/components/beginner/BeginnerFlowContainer.tsx`:
+    - Added controlled `activeTab?: BeginnerTabId` and `onActiveTabChange?: (tab: BeginnerTabId) => void` support with 100% backward compatibility and parity.
+  - `src/routes/index.tsx`:
+    - Updated `handlePlayVideo` so clicking the floating play button from any stage/tab activates the video stage (`setCurrentAccordionStage(3)` and `openPanels.player = true` in Advanced/Expert Mode; `setBeginnerActiveTab("video")` in Beginner Mode).
+    - Added `pendingPlayRequestedRef` queue so that if the player was unmounted or mounting during a stage transition, `onReady` and the monitoring interval automatically start playback (`playVideo()`) as soon as the player mounts and becomes ready.
+    - Preserved pause functionality via `pauseBothVideoAndTts`, clearing any pending play requests.
+  - Testing & Verification:
+    - Authored dedicated automated test suite `scripts/verify-floating-play-triggers-video-stage.ts` (`npm run test:floating-play-triggers-video-stage`). Passed 100%.
+    - Verified all existing tests (`test:floating-playtime-tooltip`, `test:floating-play-pause-action`, `test:main-stage-components-isolated`, `test:agents-all`) pass 100%.
+
+
+### Task 345 (Prompt 113): Floating Play Button Playtime Tooltip on Hover / Long Press
+
+- **Prompt**:
+  ```
+  after clicking on the floating play button - mouse hover (or equivilant operation on mobile) should show a tooltip with the play time
+  ```
+- **Context & Implementation**:
+  - `src/components/FloatingDraggablePauseButton.tsx`:
+    - Added `currentTimeSec` and `durationSec` props to `FloatingDraggablePauseButtonProps`.
+    - Added `formatPlaytimeSeconds` helper for formatted time display (`MM:SS / MM:SS` or `H:MM:SS / H:MM:SS`).
+    - Added hover detection (`isHovered`) on mouse enter/leave and mobile long-press detection (>= 400ms) with auto-dismiss timers.
+    - Added playtime tooltip element (`floating-playtime-tooltip`) styled with backdrop blur, border, pulsed active indicator, and viewport-aware directional positioning.
+  - `src/routes/index.tsx`:
+    - Passed `currentTimeSec={playbackCurrentTime}` and `durationSec={playbackDuration}` to `<FloatingDraggablePauseButton>`.
+  - Testing & Verification:
+    - Authored dedicated automated test suite `scripts/verify-floating-pause-button-playtime-tooltip.ts` (`npm run test:floating-playtime-tooltip`). Passed 100%.
+
+
 ### Task 343 (Prompt 112 - Chapter 0): Playback Expectation Scenario Explanation
 
 - **Prompt**:
