@@ -51,6 +51,8 @@ export interface BeginnerFlowContainerProps {
   onSaveCurrentSelectionAsFavorites?: () => void;
   onSwitchToAdvanced?: () => void;
   onOpenBackupModal?: () => void;
+  activeTab?: BeginnerTabId;
+  onActiveTabChange?: (tab: BeginnerTabId) => void;
 }
 
 export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
@@ -91,13 +93,16 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   onSaveCurrentSelectionAsFavorites,
   onSwitchToAdvanced,
   onOpenBackupModal,
+  activeTab: activeTabProp,
+  onActiveTabChange,
 }) => {
   // Load initial settings
   const [settings, setSettings] = useState<AppSettings>(() => loadAppSettings());
 
-  const [activeTab, setActiveTab] = useState<BeginnerTabId>(
+  const [internalActiveTab, setInternalActiveTab] = useState<BeginnerTabId>(
     settings.beginnerActiveTab === "video" ? "video" : "preferences",
   );
+  const activeTab = activeTabProp !== undefined ? activeTabProp : internalActiveTab;
   const [ttsSpeed, setTtsSpeed] = useState<number>(settings.beginnerTtsSpeed ?? 1.0);
   const [ttsVoice, setTtsVoice] = useState<string>(settings.beginnerTtsVoice ?? "");
   const [subtitlesRatio, setSubtitlesRatio] = useState<number>(
@@ -151,8 +156,9 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   }, [observedTracks, hasObservedBaseLanguage, onBaseLangChange]);
 
   const handleTabChange = (newTab: BeginnerTabId) => {
-    setActiveTab(newTab);
+    setInternalActiveTab(newTab);
     updateSettings({ beginnerActiveTab: newTab });
+    onActiveTabChange?.(newTab);
   };
 
   return (

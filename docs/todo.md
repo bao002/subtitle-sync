@@ -1,6 +1,7 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
-- **Status**: [ACTIVE]
-- **Active Task**: Task 345 (Prompt 113) - Floating Play Button Playtime Tooltip on Hover / Long Press
-- **Active Subtask**: Subtask 345.1: Extend `FloatingDraggablePauseButton.tsx` with `currentTimeSec` and `durationSec`, hover/long-press tooltip, and pass playback times from `src/routes/index.tsx`.
-- **Next Step**: Update `FloatingDraggablePauseButton.tsx` and `src/routes/index.tsx`.
+- **Status**: [PENDING]
+- **Active Task**: Task 312 (Prompt 82) - Remove Non-Working Alternating Fetch Plan Technique
+- **Active Subtask**: Subtask 312.1: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`.
+- **Next Step**: Wait for user instructions or proceed with backlog.
+

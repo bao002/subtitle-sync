@@ -283,6 +283,7 @@ import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceMod
 import { useIsElementEnabled } from "@/utils/performanceModeManager";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
+import { type BeginnerTabId } from "@/components/beginner/BeginnerTabNav";
 import { PerLanguageTtsPreferences } from "@/components/beginner/PerLanguageTtsPreferences";
 import {
   BeginnerTtsServiceControl,
@@ -2972,6 +2973,11 @@ function Index() {
     return false;
   });
 
+  const [beginnerActiveTab, setBeginnerActiveTab] = useState<BeginnerTabId>(() => {
+    const s = loadAppSettings();
+    return s.beginnerActiveTab === "video" ? "video" : "preferences";
+  });
+
   const handleToggleVideoSubtitles = () => {
     const next = !showVideoSubtitles;
     setShowVideoSubtitles(next);
@@ -3249,8 +3255,10 @@ function Index() {
   const [subtitlesLimit, setSubtitlesLimit] = useState<number>(() => (isAndroid ? 10 : 0));
   const [subtitlesPage, setSubtitlesPage] = useState<number>(1);
   const initPlayerRef = useRef<(() => void) | null>(null);
+  const pendingPlayRequestedRef = useRef<boolean>(false);
 
   const pauseBothVideoAndTts = useCallback(() => {
+    pendingPlayRequestedRef.current = false;
     logStateMachineAction("PLAYBACK_PAUSE_REQUESTED", {
       videoId,
       reason: busy.current || Boolean(speakingLangRef.current) ? "speech-active" : "user",
@@ -3277,6 +3285,21 @@ function Index() {
     if (st.current) {
       st.current.isSetupPaused = false;
     }
+
+    // Activate the video stage so the player is mounted and visible
+    if (workflowMode === "expert") {
+      if (currentAccordionStage !== 3) {
+        setCurrentAccordionStage(3);
+        setOpenPanels((prev) => ({ ...prev, player: true }));
+      } else if (!openPanels.player) {
+        setOpenPanels((prev) => ({ ...prev, player: true }));
+      }
+    } else if (workflowMode === "beginner") {
+      setBeginnerActiveTab("video");
+    }
+
+    pendingPlayRequestedRef.current = true;
+
     let p = player.current || multiVideoPlayerRegistry.get("primary");
     if (!p && initPlayerRef.current) {
       initPlayerRef.current();
@@ -3294,6 +3317,7 @@ function Index() {
     setIsVideoPlaying(true);
 
     if (p) {
+      pendingPlayRequestedRef.current = false;
       try {
         const state = p.getPlayerState?.();
         logStateMachineAction("PLAYBACK_RESUME_REQUESTED", {
@@ -3343,7 +3367,7 @@ function Index() {
     if (htmlVideo) {
       htmlVideo.play().catch(() => {});
     }
-  }, [videoId]);
+  }, [videoId, workflowMode, currentAccordionStage, openPanels.player]);
 
   const handlePauseVideo = useCallback(() => {
     pauseBothVideoAndTts();
@@ -4783,7 +4807,7 @@ function Index() {
         height: "100%",
         playerVars: {
           rel: 0,
-          autoplay: isAndroid ? 1 : 0,
+          autoplay: isAndroid || pendingPlayRequestedRef.current ? 1 : 0,
           cc_load_policy: 1,
           playsinline: 1,
           origin: window.location.origin,
@@ -4802,14 +4826,19 @@ function Index() {
                 if (restoreSnapshot?.videoId === videoId) {
                   const restoreSeconds = Math.max(0, restoreSnapshot.seconds);
                   if (restoreSeconds > 0) player.current.seekTo(restoreSeconds, true);
-                  if (restoreSnapshot.wasPlaying) {
+                  if (restoreSnapshot.wasPlaying || pendingPlayRequestedRef.current) {
                     player.current.playVideo();
+                    setIsVideoPlaying(true);
                   } else {
                     player.current.pauseVideo();
                   }
                   setPlaybackCurrentTime(restoreSeconds);
-                  setIsVideoPlaying(restoreSnapshot.wasPlaying);
+                  setIsVideoPlaying(restoreSnapshot.wasPlaying || pendingPlayRequestedRef.current);
+                } else if (pendingPlayRequestedRef.current) {
+                  player.current.playVideo();
+                  setIsVideoPlaying(true);
                 }
+                pendingPlayRequestedRef.current = false;
                 const enriched = enrichMetadataWithPlayer(videoId, player.current);
                 if (enriched) setVideoMetadata({ ...enriched });
               } catch {
@@ -4899,6 +4928,15 @@ function Index() {
         init();
       }
       const p = player.current;
+      if (pendingPlayRequestedRef.current && p?.playVideo) {
+        pendingPlayRequestedRef.current = false;
+        try {
+          p.playVideo();
+          setIsVideoPlaying(true);
+        } catch {
+          // ignore
+        }
+      }
       if (!p?.getCurrentTime || busy.current || st.current.isSetupPaused) return;
       if (activeTopTabRef.current === "playground") return;
       const ms = p.getCurrentTime() * 1000;
@@ -6638,6 +6676,8 @@ function Index() {
             </Button>
           </div>
           <BeginnerFlowContainer
+            activeTab={beginnerActiveTab}
+            onActiveTabChange={setBeginnerActiveTab}
             url={videoInput || (videoId ? `https://www.youtube.com/watch?v=${videoId}` : "")}
             videoId={videoId}
             isAndroid={isAndroid}
