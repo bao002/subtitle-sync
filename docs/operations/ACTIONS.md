@@ -303,7 +303,8 @@ To prevent infinite workflow recursion:
 ### 4.7 README.md Created by GitHub Actions — Do Not Copy When Syncing Git
 
 - **Dynamic Creation & Management**: `README.md` is strictly generated, formatted, and updated dynamically by GitHub Actions (`update-readme.yml` and `scripts/update-readme.mjs`). It embeds repository-specific badges, Actions workflow links, verified screencast video URLs, file sizes, and dynamic CI status indicators.
-- **Git Sync Exclusion Mandate**: When syncing git (e.g., merging, pulling, cherry-picking, or copying changes from baseline/upstream repositories such as `mostuf2556/Youtubenet6`, or syncing across different forks and branches), `README.md` **MUST NOT be copied or overwritten**.
+- **Git Sync Exclusion Mandate**: When syncing git (e.g., merging, pulling, cherry-picking, or copying changes from baseline/upstream repositories such as `mostuf2556/Youtubenet6`, or syncing across different forks and branches), `README.md` **MUST NOT be copied or overwritten**, and changes on other repo's `README.md` must be ignored.
+- **Automated Merge Protection via `.gitattributes`**: The repository defines `.gitattributes` with `README.md merge=ours`. When merging or syncing from another repository or branch, git automatically ignores upstream or other repo changes to `README.md` and preserves the current repository's generated file intact.
 - **Rationale**: Overwriting `README.md` during git synchronization wipes out active repository metadata, replaces valid fork links with upstream links, destroys live CI status blocks, and breaks automated screencast video telemetry. GitHub Actions is the sole authoritative generator of `README.md`.
 
 ### 4.8 Strict Prohibition of Scheduled / Cron GitHub Actions Workflows

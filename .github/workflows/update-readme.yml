@@ -53,6 +53,11 @@ jobs:
               export CI_STATUS="success"
             fi
           fi
+          # Ensure README.md is generated first if it does not exist
+          if [ ! -f README.md ]; then
+            echo "README.md not found. Generating default README.md via scripts/update-readme.mjs..."
+            node scripts/update-readme.mjs
+          fi
           # Active broken links and documentation validation
           if ! npm run test:readme-links 2>/dev/null; then
             export CI_STATUS="failure"
@@ -78,9 +83,9 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          if ! git diff --exit-code README.md; then
-            echo "README.md has been updated. Committing changes..."
-            git add README.md
+          git add README.md
+          if ! git diff --cached --quiet; then
+            echo "README.md has been created or updated. Committing changes..."
             git commit -m "chore(docs): synchronize README.md repository identity and CI status for ${{ github.repository }}"
             git push origin ${{ github.ref_name }}
           else

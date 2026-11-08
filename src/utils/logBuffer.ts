@@ -13,6 +13,7 @@ export interface LogEntry {
   category: string;
   message: string;
   details?: any;
+  stack?: string;
   truncatedResponseBody?: string;
   responseBodyPreview15?: string;
   url?: string;
@@ -82,12 +83,27 @@ class LogRingBuffer {
     category: string;
     message: string;
     details?: any;
+    stack?: string;
     responseBody?: any;
     url?: string;
     status?: number;
     duration?: number;
   }): LogEntry {
     const now = Date.now();
+    let stack = entry.stack;
+    if (!stack && entry.details) {
+      if (entry.details instanceof Error) {
+        stack = entry.details.stack;
+      } else if (typeof entry.details?.stack === "string") {
+        stack = entry.details.stack;
+      } else if (entry.details?.error instanceof Error) {
+        stack = entry.details.error.stack;
+      }
+    }
+    if (!stack && entry.level === "ERROR") {
+      stack = new Error(entry.message).stack;
+    }
+
     const newEntry: LogEntry = {
       id: `log-${now}-${Math.random().toString(36).substring(2, 6)}`,
       timestamp: now,
@@ -96,6 +112,7 @@ class LogRingBuffer {
       category: entry.category,
       message: entry.message,
       details: entry.details,
+      stack,
       truncatedResponseBody: this.truncateBody(entry.responseBody),
       responseBodyPreview15: this.extractBodyPreview15(entry.responseBody),
       url: entry.url,
@@ -107,6 +124,12 @@ class LogRingBuffer {
 
     this.notify();
     return newEntry;
+  }
+
+  public getPrecedingActions(timestamp: number, limit: number = 6): LogEntry[] {
+    return this.buffer
+      .filter((e) => (e.level === "ACTION" || e.category === "State Machine") && e.timestamp <= timestamp)
+      .slice(-limit);
   }
 
   public getEntries(): LogEntry[] {
@@ -138,12 +161,11 @@ class LogRingBuffer {
     );
     lines.push("");
     lines.push("## Diagnostic Metadata");
-    lines.push(`- **Report Timestamp**: ${new Date().toISOString()} (${this.formatTime()})`);
     lines.push(
-      `- **Current URL**: ${typeof window !== "undefined" ? window.location.href : "N/A"}`,
+      `- **Current URL**: ${typeof window !== "undefined" && window?.location?.href ? window.location.href : "N/A"}`,
     );
     lines.push(
-      `- **User Agent**: ${typeof navigator !== "undefined" ? navigator.userAgent : "N/A"}`,
+      `- **User Agent**: ${typeof navigator !== "undefined" && navigator?.userAgent ? navigator.userAgent : "N/A"}`,
     );
     lines.push(`- **Recorded Log Count**: ${this.buffer.length} events (Ring Buffer, max 500)`);
     lines.push("");
@@ -183,6 +205,22 @@ class LogRingBuffer {
     }
     lines.push("");
 
+    // State Machine Actions Sequence for Error Reproduction
+    const actionLogs = this.buffer.filter((e) => e.level === "ACTION" || e.category === "State Machine");
+    lines.push(`## 2.5 State Machine Actions Sequence for Reproduction (${actionLogs.length} actions)`);
+    if (actionLogs.length === 0) {
+      lines.push("*No state machine actions recorded.*");
+    } else {
+      actionLogs.forEach((act, idx) => {
+        lines.push(
+          `${idx + 1}. [${act.formattedTime}] (ts: ${act.timestamp}) [${act.category}] ${act.message}${
+            act.details ? ` | Details: ${JSON.stringify(act.details)}` : ""
+          }`,
+        );
+      });
+    }
+    lines.push("");
+
     // Chronological Logs
     lines.push(`## 3. Chronological Event & Network Logs (${this.buffer.length} records)`);
     lines.push("```log");
@@ -190,7 +228,7 @@ class LogRingBuffer {
       lines.push(`[${this.formatTime()}] [INFO] [System] Log buffer is currently empty.`);
     } else {
       this.buffer.forEach((entry) => {
-        let line = `[${entry.formattedTime}] [${entry.level}] [${entry.category}] ${entry.message}`;
+        let line = `[${entry.formattedTime}] (ts: ${entry.timestamp}) [${entry.level}] [${entry.category}] ${entry.message}`;
         if (entry.url) {
           line += ` | URL: ${entry.url} (status=${entry.status ?? "pending"}${entry.duration !== undefined ? `, ${entry.duration}ms` : ""})`;
         }
@@ -201,6 +239,9 @@ class LogRingBuffer {
           try {
             line += ` | Details: ${typeof entry.details === "string" ? entry.details : JSON.stringify(entry.details)}`;
           } catch {}
+        }
+        if (entry.stack) {
+          line += `\n  Stack Trace:\n    ${entry.stack.replace(/\n/g, "\n    ")}`;
         }
         if (entry.truncatedResponseBody && !entry.responseBodyPreview15) {
           line += ` | Response: ${entry.truncatedResponseBody}`;
@@ -329,3 +370,32 @@ export const registerAppStateProvider = (provider: AppStateProvider) =>
 
 export const subscribeToLogEntries = (listener: () => void) => logBuffer.subscribe(listener);
 export const getLogEntriesSnapshot = () => logBuffer.getSnapshot();
+
+/**
+ * Directs the view to the universal log element (#bottom-log-viewer), reveals and
+ * expands it, and scrolls smoothly to the relevant record for inspection.
+ */
+export function leadToLogRecord(entryId?: string): void {
+  try {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("yt_show_bottom_log", "true");
+      localStorage.setItem("yt_show_bottom_log", "true");
+      window.dispatchEvent(
+        new CustomEvent("lead-to-log-record", {
+          detail: { entryId },
+        }),
+      );
+    }
+  } catch (err) {
+    console.warn("leadToLogRecord error:", err);
+  }
+}
+
+/**
+ * Copies the complete log buffer, timestamps, state machine actions sequence,
+ * and error details/stack traces to clipboard for error reproduction.
+ */
+export async function copyAllLogToClipboard(userComplaint?: string): Promise<boolean> {
+  return copyBugReportToClipboard(userComplaint);
+}
+

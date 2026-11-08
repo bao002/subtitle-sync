@@ -2984,6 +2984,22 @@ function Index() {
     return false;
   });
 
+  useEffect(() => {
+    const handleLeadToLog = () => {
+      setShowBottomLogViewer(true);
+      try {
+        sessionStorage.setItem("yt_show_bottom_log", "true");
+        localStorage.setItem("yt_show_bottom_log", "true");
+      } catch {
+        // ignore storage errors
+      }
+    };
+    window.addEventListener("lead-to-log-record", handleLeadToLog);
+    return () => {
+      window.removeEventListener("lead-to-log-record", handleLeadToLog);
+    };
+  }, []);
+
   const handleToggleBottomLogViewer = useCallback(() => {
     setShowBottomLogViewer((prev) => {
       const next = !prev;
@@ -6948,6 +6964,7 @@ function Index() {
                     activeCompositionId={activeRatioCompositionId}
                     onSelectComposition={handleSelectRatioComposition}
                     onSaveProfile={handleSaveComposition}
+                    onUpdateProfile={handleUpdateRatioComposition}
                     onDeleteProfile={handleDeleteRatioComposition}
                     compositions={storedCompositions}
                   />
@@ -7839,6 +7856,7 @@ function Index() {
                                 activeCompositionId={activeRatioCompositionId}
                                 onSelectComposition={handleSelectRatioComposition}
                                 onSaveProfile={handleSaveComposition}
+                                onUpdateProfile={handleUpdateRatioComposition}
                                 onDeleteProfile={handleDeleteRatioComposition}
                                 compositions={storedCompositions}
                               />
@@ -10158,14 +10176,19 @@ function Index() {
                                   data-testid="stage-2-language-ratios-container"
                                   className="space-y-2 bg-card/60 p-2.5 rounded-lg border border-border"
                                 >
-                                  <div className="flex items-center justify-between">
+                                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
                                     <div className="flex items-center gap-1.5 font-semibold text-foreground text-xs">
                                       <Sliders className="h-3.5 w-3.5 text-primary" />
                                       <span>3. Narration &amp; Ratios</span>
                                     </div>
-                                    <span className="text-[10px] text-muted-foreground font-mono">
-                                      1:1 – 1:20
-                                    </span>
+                                    <LanguageRatioCompositionSelector
+                                      activeCompositionId={activeRatioCompositionId}
+                                      onSelectComposition={handleSelectRatioComposition}
+                                      onSaveProfile={handleSaveComposition}
+                                      onUpdateProfile={handleUpdateRatioComposition}
+                                      onDeleteProfile={handleDeleteRatioComposition}
+                                      compositions={storedCompositions}
+                                    />
                                   </div>
 
                                   <div className="space-y-2 pt-0.5">

@@ -485,6 +485,12 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-learning-goals-tts-speed-per-language.ts`     | Learning Goals Per-Language TTS Speed Rate Verification (Task 348, Prompt 116/117) | Validates per-language speed rate controls in Learning Goals, propagation to native and external TTS service, and range 0.25x-2.5x. |
 | `scripts/verify-default-external-tts-validated.ts`            | Default External TTS When Validated Verification (Task 349, Prompt 116/117)        | Validates external TTS automatically defaulting to active and remembering access tokens permanently upon successful validation. |
 | `scripts/verify-header-import-export-unredacted.ts`          | Header Import/Export Unredacted Settings Verification (Task 350, Prompt 116/117)   | Validates header Export & Import buttons, unredacted JSON backup containing 100% of tokens, keys, speeds, and profiles. |
+| `src/components/LanguageRatioCompositionSelector.stories.tsx` | Storybook Stories for LanguageRatioCompositionSelector (Task 351, Prompt 118)      | Storybook stories showcasing full CRUD operations on Learning Goals profiles and ratio compositions. |
+| `scripts/verify-learning-goals-profiles-crud.ts`              | Learning Goals Profiles Full CRUD Verification Suite (Task 351, Prompt 118)        | Asserts full Create, Read, Update (rename and value edit), and Delete operations for Learning Goals profiles across storage and UI. |
+| `scripts/verify-github-action-readme-creation.ts`            | GitHub Action Creation of README Verification (Task 352, Prompt 118)                | Validates automatic creation of README.md from scratch via update-readme.mjs and update-readme.yml workflow staging and commit. |
+| `.gitattributes`                                             | Git Attributes Configuration (Task 353, Prompt 118)                                 | Enforces `README.md merge=ours` so git merge/sync ignores other repository's README.md changes. |
+| `scripts/verify-ignore-other-repo-readme-on-sync.ts`         | Ignore Other Repo README on Sync Verification (Task 353, Prompt 118)                | Asserts .gitattributes merge=ours rule, AGENTS.md, ACTIONS.md, and simulated git sync preservation. |
+| `scripts/verify-floating-alert-leads-to-log.ts`              | Floating Alert Leads to Log & Reproduction Suite (Task 354, Prompt 119)            | Asserts clicking floating alert button navigates to log element, highlights record with stack trace and preceding state machine actions, and copies all log to clipboard. |
 
 
 

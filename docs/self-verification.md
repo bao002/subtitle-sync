@@ -165,9 +165,10 @@ Before declaring any task or prompt complete, all 6 sanity checks must be passed
 
 ### Sanity Check 8: README.md Git Sync Exclusion Policy
 
-- **Rule**: `README.md` is strictly created and managed by GitHub Actions (`update-readme.yml` and `scripts/update-readme.mjs`). When syncing git across upstream repositories (such as `mostuf2556/Youtubenet6`), branches, or forks, `README.md` must NOT be copied or overwritten.
+- **Rule**: `README.md` is strictly created and managed by GitHub Actions (`update-readme.yml` and `scripts/update-readme.mjs`). When syncing git across upstream repositories (such as `mostuf2556/Youtubenet6`), branches, or forks, `README.md` must NOT be copied or overwritten, and changes on other repo's `README.md` must be ignored (enforced via `.gitattributes` with `README.md merge=ours`).
 - **Verification**:
   - `npm run test:readme-git-sync-rule`
+  - `npm run test:ignore-other-repo-readme-on-sync`
   - See full architectural specification in [`docs/operations/ACTIONS.md`](./operations/ACTIONS.md) Section 4.7.
 
 ### Sanity Check 9: Android E2E Specification & Milestone Screenshot Pipeline
