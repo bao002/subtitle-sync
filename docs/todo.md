@@ -1,8 +1,8 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
-- **Status**: [PENDING]
-- **Active Task**: Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique
-  - **Subtask 312.1**: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
-  - **Subtask 312.2**: Update `src/components/FloatingSubtitleRetryIndicator.tsx` to cycle only between `random` and `ordered` modes, removing `server_alternate` option and tooltip.
-  - **Subtask 312.3**: Update `src/components/AttemptOrderSettings.tsx` to remove `server_alternate` from strategy select dropdown and remove obsolete `useServerAlternate` checkbox.
-  - **Subtask 312.4**: Update test suite, bump version, compile, lint, commit, and migrate Task 312 to `docs/done.md`.
+- **Status**: [ACTIVE]
+- **Active Task**: Task 359 (Prompt 126): Dedicated Learning Stage with Punchable Word Balloons Exposing Translation
+  - **Subtask 359.1** [ACTIVE]: Create dedicated component `src/components/WordBalloonLearningView.tsx` with floating balloon styling, punch/pop animations, Web Audio pop sound effect, word translation exposure, score tracking, TTS pronunciation, and sentence navigation.
+  - **Subtask 359.2** [PENDING]: Integrate the dedicated learning stage (Stage 5 "Word Balloons Learning" / `#stage-step-learning`) in `src/routes/index.tsx` stage stepper, and add a toggle button in `video-display-controls` to switch between Video player and Word Balloon Learning view instead of the video player.
+  - **Subtask 359.3** [PENDING]: Ensure 100% parity in Beginner Mode (`BeginnerVideoTab.tsx` / `BeginnerFlowContainer.tsx`) with toggle in `video-display-controls` to view Word Balloons Learning instead of the video player.
+  - **Subtask 359.4** [PENDING]: Add dedicated automated test `scripts/verify-word-balloon-learning-stage.ts` (`npm run test:word-balloon-learning`), bump version to `2.1.57` (code `20157`), compile, lint, commit, and migrate Task 359 to `docs/done.md`.

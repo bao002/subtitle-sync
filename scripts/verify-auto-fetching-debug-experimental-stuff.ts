@@ -82,6 +82,7 @@ async function runTests() {
         onFetchLanguage: async () => {},
         isFetching: false,
         debugMode: true,
+        defaultMinimized: false,
       })
     );
 
@@ -145,6 +146,7 @@ async function runTests() {
         onFetchLanguage: async () => {},
         isFetching: false,
         debugMode: true,
+        defaultMinimized: false,
       })
     );
 
@@ -172,7 +174,6 @@ async function runTests() {
       allowAnon: true,
       allowTlang: true,
       allowLang: true,
-      useServerAlternate: false,
       windowSeconds: 5,
     });
     // With allowSession: false, all attempts must have send === 'anon'

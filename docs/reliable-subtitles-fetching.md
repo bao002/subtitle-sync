@@ -96,11 +96,9 @@ The application exposes flexible subtitle fetching strategies and granular switc
 
 - **Ordered Fallback (Deterministic 1→4)**: Attempts are executed strictly in the configured sequential priority order (`tlang/session` → `lang/session` → `tlang/anon` → `lang/anon`). Stops immediately upon the first good response.
 - **First-Random Strategy (Anti-Bot Fingerprint)**: Randomly shuffles the active attempts on each fetch. Distributing the request signatures prevents automated scraping fingerprint detection by YouTube's edge gateways.
-- **Server Alternate Mode**: Alternates request dispatch between the local Android WebView client (with session cookies) and the external server proxy, balancing traffic origins.
 
 ### 2. Granular configuration options & toggles
 
-- **`server:alternate` (on/off)**: When enabled, interleaves direct device requests with server proxy requests.
 - **`session` (yes/no)**: Enables or disables requests utilizing captured embedded player headers and cookies (`lastObservedHeaders`).
 - **`anon` (yes/no)**: Enables or disables bare URL requests without session cookies (link-only mode).
 - **`tlang` (on/off)**: Enables or disables machine-translation mode (`tlang=<lang>` with original video language preserved).

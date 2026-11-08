@@ -118,6 +118,8 @@ export interface BeginnerPreferencesTabProps {
   onDisableScrollingChange?: (disabled: boolean) => void;
   disableAutoFocus?: boolean;
   onDisableAutoFocusChange?: (disabled: boolean) => void;
+  profileSelectorSlot?: React.ReactNode;
+  activeProfileName?: string;
 }
 
 export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
@@ -149,6 +151,8 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   onDisableScrollingChange,
   disableAutoFocus,
   onDisableAutoFocusChange,
+  profileSelectorSlot,
+  activeProfileName,
 }) => {
   const [voices, setVoices] = useState<SpeechVoiceLike[]>(() => getCachedVoices());
   const ttsDebuggerEnabled = useIsElementEnabled("tts_debugger");
@@ -385,6 +389,36 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Top Learning Goals Profile Container (Set on top) */}
+      {(profileSelectorSlot || activeProfileName) && (
+        <div
+          id="beginner-top-profile-container"
+          data-testid="beginner-top-profile-container"
+          className="flex flex-wrap items-center justify-between gap-2 bg-card border border-primary/25 rounded-xl p-3 shadow-xs"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+              <Sliders className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col min-w-0">
+              <span
+                data-testid="beginner-profile-top-label"
+                className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Profile Name:
+              </span>
+              <span
+                data-testid="beginner-active-profile-name"
+                className="font-bold text-xs sm:text-sm text-foreground truncate"
+              >
+                {activeProfileName || "Standard (Even)"}
+              </span>
+            </div>
+          </div>
+          {profileSelectorSlot}
+        </div>
+      )}
 
       <label className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3.5 text-xs">
         <span className="flex items-center gap-2 font-medium text-foreground">

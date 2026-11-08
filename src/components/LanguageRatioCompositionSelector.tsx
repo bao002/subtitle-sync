@@ -73,40 +73,58 @@ export const LanguageRatioCompositionSelector: React.FC<
     <div
       data-testid="ratio-compositions-selector-container"
       id="ratio-compositions-selector-container"
-      className={`inline-flex items-center flex-wrap gap-1.5 px-2.5 py-1.5 rounded-lg border border-border/80 bg-card/85 text-xs shadow-xs backdrop-blur-xs ${className}`}
+      className={`inline-flex flex-col gap-1 p-2 rounded-lg border border-border/80 bg-card/85 text-xs shadow-xs backdrop-blur-xs ${className}`}
     >
-      <div className="flex items-center gap-1.5 text-muted-foreground shrink-0">
-        <Sliders className="h-3.5 w-3.5 text-primary shrink-0" />
-        {!compact && (
-          <span className="font-semibold text-foreground text-[11px] hidden sm:inline">
-            Learning Profile:
+      {/* Profile Name Set On Top */}
+      <div
+        data-testid="profile-name-top-bar"
+        className="flex items-center justify-between gap-1.5 border-b border-border/40 pb-1 w-full"
+      >
+        <div className="flex items-center gap-1.5 text-muted-foreground min-w-0">
+          <Sliders className="h-3 w-3 text-primary shrink-0" />
+          <span
+            data-testid="profile-name-top-label"
+            className="font-semibold text-foreground text-[10px] uppercase tracking-wider"
+          >
+            Profile:
           </span>
-        )}
+          <span
+            data-testid="active-profile-name-text"
+            className="font-bold text-xs text-primary truncate max-w-[180px]"
+            title={activeComp?.name}
+          >
+            {activeComp?.name || "Standard (Even)"}
+          </span>
+        </div>
+        <span className="text-[9px] font-mono font-medium px-1.5 py-0.2 rounded bg-primary/10 text-primary shrink-0">
+          {activeComp?.isBuiltIn ? "Preset" : "Custom"}
+        </span>
       </div>
 
-      <div className="relative inline-flex items-center">
-        <select
-          data-testid="ratio-compositions-dropdown"
-          id="ratio-compositions-dropdown"
-          aria-label="Language learning profiles and ratio compositions dropdown"
-          value={activeComp?.id || ""}
-          onChange={(e) => {
-            const selected = compositions.find((c) => c.id === e.target.value);
-            if (selected) {
-              onSelectComposition(selected);
-            }
-          }}
-          className="rounded-md border border-input bg-background/95 hover:bg-background px-2.5 py-1 pr-6 text-xs font-medium text-foreground transition-colors shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary cursor-pointer max-w-[210px] truncate"
-        >
-          {compositions.map((comp) => {
-            return (
-              <option key={comp.id} value={comp.id}>
-                {comp.name} {comp.isBuiltIn ? "(Preset)" : "(Custom Profile)"}
-              </option>
-            );
-          })}
-        </select>
-      </div>
+      <div className="flex items-center flex-wrap gap-1.5">
+        <div className="relative inline-flex items-center">
+          <select
+            data-testid="ratio-compositions-dropdown"
+            id="ratio-compositions-dropdown"
+            aria-label="Language learning profiles and ratio compositions dropdown"
+            value={activeComp?.id || ""}
+            onChange={(e) => {
+              const selected = compositions.find((c) => c.id === e.target.value);
+              if (selected) {
+                onSelectComposition(selected);
+              }
+            }}
+            className="rounded-md border border-input bg-background/95 hover:bg-background px-2.5 py-1 pr-6 text-xs font-medium text-foreground transition-colors shadow-2xs focus:outline-hidden focus:ring-1 focus:ring-primary cursor-pointer max-w-[210px] truncate"
+          >
+            {compositions.map((comp) => {
+              return (
+                <option key={comp.id} value={comp.id}>
+                  {comp.name} {comp.isBuiltIn ? "(Preset)" : "(Custom Profile)"}
+                </option>
+              );
+            })}
+          </select>
+        </div>
 
       {/* Update & Rename controls for custom profiles */}
       {!activeComp?.isBuiltIn && onUpdateProfile && !isEditingName && (
@@ -272,6 +290,7 @@ export const LanguageRatioCompositionSelector: React.FC<
           <span>Active</span>
         </span>
       )}
+      </div>
     </div>
   );
 };

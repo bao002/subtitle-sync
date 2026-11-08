@@ -57,6 +57,8 @@ export interface BeginnerFlowContainerProps {
   onActiveTabChange?: (tab: BeginnerTabId) => void;
   isVideoFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  profileSelectorSlot?: React.ReactNode;
+  activeProfileName?: string;
 }
 
 export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
@@ -103,6 +105,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   onActiveTabChange,
   isVideoFullscreen,
   onToggleFullscreen,
+  profileSelectorSlot,
+  activeProfileName,
 }) => {
   // Load initial settings
   const [settings, setSettings] = useState<AppSettings>(() => loadAppSettings());
@@ -254,6 +258,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             onApplyFavoritesToVideo={onApplyFavoritesToVideo}
             onSaveCurrentSelectionAsFavorites={onSaveCurrentSelectionAsFavorites}
             onOpenBackupModal={onOpenBackupModal}
+            profileSelectorSlot={profileSelectorSlot}
+            activeProfileName={activeProfileName}
           />
         </div>
       </main>
