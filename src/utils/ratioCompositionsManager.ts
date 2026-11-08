@@ -5,12 +5,26 @@
  * language ratio compositions (presets) for language learning goals.
  */
 
+export interface LearningProfileConfig {
+  maxWordsPerSentence?: number;
+  skipIncompleteSentences?: boolean;
+  sectionOrder?: "video-first" | "tts-first" | "in-between";
+  rates?: Record<string, number>;
+  ttsLanguageOrders?: Record<string, number>;
+}
+
 export interface LanguageRatioComposition {
   id: string;
   name: string;
   ratios: Record<string, number>;
   isBuiltIn?: boolean;
   createdAt?: number;
+  // Learning Profile extensions
+  maxWordsPerSentence?: number;
+  skipIncompleteSentences?: boolean;
+  sectionOrder?: "video-first" | "tts-first" | "in-between";
+  rates?: Record<string, number>;
+  ttsLanguageOrders?: Record<string, number>;
 }
 
 export const RATIO_COMPOSITIONS_STORAGE_KEY = "yt_language_ratio_compositions_v1";
@@ -67,11 +81,12 @@ export function getStoredRatioCompositions(): LanguageRatioComposition[] {
 }
 
 /**
- * Saves a new named language ratio composition.
+ * Saves a new named language learning profile composition.
  */
 export function saveRatioComposition(
   name: string,
   ratios: Record<string, number>,
+  profileConfig?: LearningProfileConfig,
 ): LanguageRatioComposition {
   const cleanName = name.trim();
   if (!cleanName) {
@@ -92,6 +107,13 @@ export function saveRatioComposition(
     ratios: cleanRatios,
     isBuiltIn: false,
     createdAt: Date.now(),
+    maxWordsPerSentence: profileConfig?.maxWordsPerSentence,
+    skipIncompleteSentences: profileConfig?.skipIncompleteSentences,
+    sectionOrder: profileConfig?.sectionOrder,
+    rates: profileConfig?.rates ? { ...profileConfig.rates } : undefined,
+    ttsLanguageOrders: profileConfig?.ttsLanguageOrders
+      ? { ...profileConfig.ttsLanguageOrders }
+      : undefined,
   };
 
   if (typeof window !== "undefined") {

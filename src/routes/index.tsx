@@ -2227,6 +2227,8 @@ function Index() {
     [videoId],
   );
 
+  const [sectionOrder, setSectionOrderState] = useState<SectionOrder>("video-first");
+
   const [activeRatioCompositionId, setActiveRatioCompositionIdState] = useState<string>(() =>
     getActiveRatioCompositionId(),
   );
@@ -2247,26 +2249,82 @@ function Index() {
       for (const [lang, ratio] of Object.entries(nextRatios)) {
         saveTtsRatioPreference(lang, ratio);
       }
-      if (videoId) {
-        saveVideoSettings(videoId, { ttsRatios: nextRatios });
+
+      // Restore profile extensions if present
+      if (typeof comp.maxWordsPerSentence === "number" && comp.maxWordsPerSentence > 0) {
+        setSimpleParserConfig((prev) => ({
+          ...prev,
+          maxWordsPerSentence: comp.maxWordsPerSentence!,
+        }));
+        saveLearningGoalsMaxWords(comp.maxWordsPerSentence);
       }
-      notifySubtitleFetch("completed", `Applied "${comp.name}" ratio composition`, comp.id);
+      if (typeof comp.skipIncompleteSentences === "boolean") {
+        setSimpleParserConfig((prev) => ({
+          ...prev,
+          skipIncompleteSentences: comp.skipIncompleteSentences!,
+        }));
+        saveLearningGoalsSkipIncomplete(comp.skipIncompleteSentences);
+      }
+      if (comp.sectionOrder) {
+        setSectionOrderState(comp.sectionOrder);
+        st.current.sectionOrder = comp.sectionOrder;
+        saveSectionOrderPreference(comp.sectionOrder);
+      }
+      if (comp.rates && Object.keys(comp.rates).length > 0) {
+        setRates((prev) => ({ ...prev, ...comp.rates }));
+        for (const [l, r] of Object.entries(comp.rates)) {
+          saveTtsRatePreference(l, r);
+        }
+      }
+      if (comp.ttsLanguageOrders && Object.keys(comp.ttsLanguageOrders).length > 0) {
+        setTtsLanguageOrders((prev) => ({ ...prev, ...comp.ttsLanguageOrders }));
+        saveTtsLanguageOrdersPreference(comp.ttsLanguageOrders);
+      }
+
+      if (videoId) {
+        saveVideoSettings(videoId, {
+          ttsRatios: nextRatios,
+          maxWordsPerSentence: comp.maxWordsPerSentence,
+          skipIncompleteSentences: comp.skipIncompleteSentences,
+          ttsRates: comp.rates,
+          ttsLanguageOrders: comp.ttsLanguageOrders,
+        });
+      }
+      notifySubtitleFetch("completed", `Applied profile "${comp.name}"`, comp.id);
     },
     [baseLanguage, primaryTtsLangState, targetLanguages, videoId],
   );
 
-  const handleSaveComposition = useCallback(() => {
-    if (!newCompositionName.trim()) return;
-    try {
-      const saved = saveRatioComposition(newCompositionName, ttsRatios);
-      setStoredCompositions(getStoredRatioCompositions());
-      setActiveRatioCompositionIdState(saved.id);
-      setNewCompositionName("");
-      notifySubtitleFetch("completed", `Saved composition "${saved.name}"!`, saved.id);
-    } catch (err: unknown) {
-      console.warn("Save ratio composition error:", err);
-    }
-  }, [newCompositionName, ttsRatios]);
+  const handleSaveComposition = useCallback(
+    (customName?: string) => {
+      const targetName = (customName || newCompositionName).trim();
+      if (!targetName) return;
+      try {
+        const saved = saveRatioComposition(targetName, ttsRatios, {
+          maxWordsPerSentence: simpleParserConfig.maxWordsPerSentence,
+          skipIncompleteSentences: simpleParserConfig.skipIncompleteSentences,
+          sectionOrder,
+          rates,
+          ttsLanguageOrders,
+        });
+        setStoredCompositions(getStoredRatioCompositions());
+        setActiveRatioCompositionIdState(saved.id);
+        setNewCompositionName("");
+        notifySubtitleFetch("completed", `Saved profile "${saved.name}"!`, saved.id);
+      } catch (err: unknown) {
+        console.warn("Save learning profile error:", err);
+      }
+    },
+    [
+      newCompositionName,
+      ttsRatios,
+      simpleParserConfig.maxWordsPerSentence,
+      simpleParserConfig.skipIncompleteSentences,
+      sectionOrder,
+      rates,
+      ttsLanguageOrders,
+    ],
+  );
 
   const handleDeleteRatioComposition = useCallback(
     (id: string) => {
@@ -2407,31 +2465,98 @@ function Index() {
     } else {
       const favs = getFavoriteLanguages();
       if (favs.length > 0) {
-        setTargetLanguages(favs);
+        setTargetLanguages((curr) => {
+          const urlParams =
+            typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+          const urlTarget = urlParams?.get("target_lang") || urlParams?.get("lang");
+          if (urlTarget) {
+            const clean = urlTarget.toLowerCase().trim();
+            if (clean && !favs.includes(clean)) {
+              return [clean, ...favs];
+            }
+          }
+          const currExtras = curr.filter((c) => !favs.includes(c));
+          if (currExtras.length > 0) {
+            return Array.from(new Set([...currExtras, ...favs]));
+          }
+          return favs;
+        });
       }
     }
-    if (settings?.ttsBlacklist && Array.isArray(settings.ttsBlacklist)) {
+
+    // Preserve learning goals & per-language settings from global preferences
+    const globalBlacklist = getTtsBlacklist();
+    if (
+      settings?.ttsBlacklist &&
+      Array.isArray(settings.ttsBlacklist) &&
+      settings.ttsBlacklist.length > 0
+    ) {
       setTtsBlacklistState(settings.ttsBlacklist);
+    } else {
+      setTtsBlacklistState(globalBlacklist);
     }
-    if (settings?.ttsRatios) {
-      setTtsRatios((curr) => ({
+
+    const globalRatios = getTtsRatiosPreference();
+    setTtsRatios((curr) => {
+      const baseDefaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 1]));
+      return {
+        ...baseDefaults,
+        ...globalRatios,
         ...curr,
-        ...settings.ttsRatios,
-      }));
-    }
-    if (settings?.ttsRates) {
-      setRates((curr) => ({
+        ...(settings?.ttsRatios || {}),
+      };
+    });
+
+    const globalRates = getTtsRatesPreference();
+    setRates((curr) => {
+      const baseDefaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 0.5] as const));
+      return {
+        ...baseDefaults,
+        ...globalRates,
         ...curr,
-        ...settings.ttsRates,
-      }));
+        ...(settings?.ttsRates || {}),
+      };
+    });
+
+    const globalOrders = getTtsLanguageOrdersPreference();
+    if (settings?.ttsLanguageOrders) {
+      setTtsLanguageOrders((curr) => ({ ...globalOrders, ...settings.ttsLanguageOrders }));
+    } else {
+      setTtsLanguageOrders(globalOrders);
     }
+
+    try {
+      const savedVoices = JSON.parse(localStorage.getItem("yt_tts_voice_selections_v1") || "{}");
+      if (savedVoices && typeof savedVoices === "object") {
+        setVoiceSelections((curr) => ({
+          ...curr,
+          ...savedVoices,
+          ...(settings?.voiceSelections || {}),
+        }));
+      }
+    } catch {
+      // ignore
+    }
+
+    const savedMaxWords = getLearningGoalsMaxWords();
+    const savedSkipIncomplete = getLearningGoalsSkipIncomplete();
+    setSimpleParserConfig((prev) => ({
+      ...prev,
+      maxWordsPerSentence:
+        typeof settings?.maxWordsPerSentence === "number"
+          ? settings.maxWordsPerSentence
+          : (savedMaxWords ?? prev.maxWordsPerSentence),
+      skipIncompleteSentences:
+        typeof settings?.skipIncompleteSentences === "boolean"
+          ? settings.skipIncompleteSentences
+          : (savedSkipIncomplete ?? prev.skipIncompleteSentences),
+    }));
   }, [videoId]);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [theme, setTheme] = useState<Theme>("dark-blue");
   const themeWasSelectedRef = useRef(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [pauseMode, setPauseMode] = useState(true);
-  const [sectionOrder, setSectionOrderState] = useState<SectionOrder>("video-first");
   const [audioTrackMode, setAudioTrackModeState] = useState(() =>
     typeof window !== "undefined" ? getAudioTrackMode() : false,
   );
@@ -3149,34 +3274,74 @@ function Index() {
 
   const handlePlayVideo = useCallback(() => {
     setIsSetupPaused(false);
-    let p = player.current;
+    if (st.current) {
+      st.current.isSetupPaused = false;
+    }
+    let p = player.current || multiVideoPlayerRegistry.get("primary");
     if (!p && initPlayerRef.current) {
       initPlayerRef.current();
-      p = player.current;
+      p = player.current || multiVideoPlayerRegistry.get("primary");
     }
-    if (!p) return;
-    try {
-      const state = p.getPlayerState?.();
-      logStateMachineAction("PLAYBACK_RESUME_REQUESTED", {
-        videoId,
-        fromPlayerState: state,
-      });
-      cancelSpeech();
-      busy.current = false;
-      isPausedForTtsRef.current = false;
-      userExplicitlyPausedRef.current = false;
-      setPauseReason(null);
-      if (state === 0) {
-        p.seekTo?.(0, true);
+    multiVideoPlayerRegistry.unmuteOnly("primary");
+    cancelSpeech();
+    busy.current = false;
+    isPausedForTtsRef.current = false;
+    userExplicitlyPausedRef.current = false;
+    setSpeakingLang(null);
+    setSpeakingRow(-1);
+    setSpeechProgress(null);
+    setPauseReason(null);
+    setIsVideoPlaying(true);
+
+    if (p) {
+      try {
+        const state = p.getPlayerState?.();
+        logStateMachineAction("PLAYBACK_RESUME_REQUESTED", {
+          videoId,
+          fromPlayerState: state,
+        });
+        if (state === 0) {
+          p.seekTo?.(0, true);
+        }
+        p.playVideo?.();
+      } catch (e) {
+        logError("State Machine", "Playback play failed", {
+          error: e instanceof Error ? e.message : String(e),
+          videoId,
+        });
+        console.warn("Play video error:", e);
       }
-      p.playVideo?.();
-      setIsVideoPlaying(true);
-    } catch (e) {
-      logError("State Machine", "Playback play failed", {
-        error: e instanceof Error ? e.message : String(e),
-        videoId,
-      });
-      console.warn("Play video error:", e);
+      setTimeout(() => {
+        try {
+          if (!busy.current && p.getPlayerState?.() !== 1) {
+            p.playVideo?.();
+          }
+        } catch {
+          // ignore
+        }
+      }, 100);
+      setTimeout(() => {
+        try {
+          if (!busy.current && p.getPlayerState?.() !== 1) {
+            p.playVideo?.();
+          }
+        } catch {
+          // ignore
+        }
+      }, 300);
+    }
+
+    const iframe = p?.getIframe?.() || playerEl.current?.querySelector("iframe");
+    if (iframe?.contentWindow) {
+      try {
+        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', "*");
+      } catch {
+        // ignore
+      }
+    }
+    const htmlVideo = playerEl.current?.querySelector("video");
+    if (htmlVideo) {
+      htmlVideo.play().catch(() => {});
     }
   }, [videoId]);
 
@@ -3185,14 +3350,13 @@ function Index() {
   }, [pauseBothVideoAndTts]);
 
   const handleTogglePlay = useCallback(() => {
-    let p = player.current;
+    let p = player.current || multiVideoPlayerRegistry.get("primary");
     if (!p && initPlayerRef.current) {
       initPlayerRef.current();
-      p = player.current;
+      p = player.current || multiVideoPlayerRegistry.get("primary");
     }
-    if (!p) return;
     try {
-      const state = p.getPlayerState?.();
+      const state = p?.getPlayerState?.();
       const isCurrentlyPlaying = state === 1;
       const isSpeakingActive = busy.current || Boolean(speakingLangRef.current);
 
@@ -3363,6 +3527,32 @@ function Index() {
           id,
           originalUrl: link.startsWith("http") ? link : `https://www.youtube.com/watch?v=${id}`,
         });
+
+        // Parse any target language or subtitles parameter provided in the shared link
+        try {
+          const rawUrl = link.startsWith("http")
+            ? link
+            : `https://youtube.com/watch?${link.includes("?") ? link.split("?")[1] : `v=${link}`}`;
+          const parsedParams = new URL(rawUrl).searchParams;
+          const sharedTarget = parsedParams.get("target_lang") || parsedParams.get("lang");
+          if (sharedTarget) {
+            const clean = sharedTarget.toLowerCase().trim();
+            if (clean) {
+              recordSharedLanguageForVideo(id, clean);
+              setFavoriteLanguagesState((prev) => Array.from(new Set([clean, ...prev])));
+              setTargetLanguages((prev) => Array.from(new Set([clean, ...prev])));
+              setShown((prev) => Array.from(new Set([clean, ...prev])));
+              setSpoken((prev) => Array.from(new Set([clean, ...prev])));
+            }
+          }
+          const sharedSubUrl = parsedParams.get("subtitles_url") || parsedParams.get("sub_url");
+          if (sharedSubUrl) {
+            setObservedUrl(sharedSubUrl);
+          }
+        } catch {
+          // ignore parsing error
+        }
+
         setVideoId((prevId) => {
           if (id !== prevId) {
             setTracks(null);
@@ -6572,6 +6762,8 @@ function Index() {
                   <LanguageRatioCompositionSelector
                     activeCompositionId={activeRatioCompositionId}
                     onSelectComposition={handleSelectRatioComposition}
+                    onSaveProfile={handleSaveComposition}
+                    onDeleteProfile={handleDeleteRatioComposition}
                     compositions={storedCompositions}
                   />
                 </div>
@@ -7460,6 +7652,8 @@ function Index() {
                               <LanguageRatioCompositionSelector
                                 activeCompositionId={activeRatioCompositionId}
                                 onSelectComposition={handleSelectRatioComposition}
+                                onSaveProfile={handleSaveComposition}
+                                onDeleteProfile={handleDeleteRatioComposition}
                                 compositions={storedCompositions}
                               />
                             </div>
@@ -11440,6 +11634,8 @@ function Index() {
         onTogglePlay={handleTogglePlay}
         onPlay={handlePlayVideo}
         onPause={handlePauseVideo}
+        currentTimeSec={playbackCurrentTime}
+        durationSec={playbackDuration}
       />
       {/* Auto-Fetching Subtitles widget: folded and hidden by default on refresh */}
       <div

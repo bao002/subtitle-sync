@@ -339,6 +339,10 @@ export interface VideoSpecificSettings {
   ttsRates?: Record<string, number>; // langCode -> rate
   ttsRatios?: Record<string, number>; // langCode -> ratio (1 in N sentences)
   ttsBlacklist?: string[];
+  ttsLanguageOrders?: Record<string, string>;
+  voiceSelections?: Record<string, string>;
+  maxWordsPerSentence?: number;
+  skipIncompleteSentences?: boolean;
   playOrder?: "video_first" | "tts_first";
   sourceLang?: string;
   activeTargetLang?: string;
@@ -374,6 +378,14 @@ export function saveVideoSettings(videoId: string, settings: Partial<VideoSpecif
       ttsRatios: {
         ...(existing.ttsRatios || {}),
         ...(settings.ttsRatios || {}),
+      },
+      ttsLanguageOrders: {
+        ...(existing.ttsLanguageOrders || {}),
+        ...(settings.ttsLanguageOrders || {}),
+      },
+      voiceSelections: {
+        ...(existing.voiceSelections || {}),
+        ...(settings.voiceSelections || {}),
       },
       lastUpdated: Date.now(),
     };
