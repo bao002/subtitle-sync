@@ -357,7 +357,10 @@ import {
   setPickWordStrategy,
   ZERO_KNOWLEDGE_EVENT,
   PICK_WORD_STRATEGY_EVENT,
+  saveSectionOrderPreference,
+  saveTtsLanguageOrdersPreference,
   type SectionOrder,
+  type TtsLanguageOrders,
   type SubtitleRequestMode,
   type PickWordStrategy,
 } from "@/lib/playback-preferences";
@@ -2244,7 +2247,7 @@ function Index() {
     const defaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 1]));
     return { ...defaults, ...saved };
   });
-  const [ttsLanguageOrders, setTtsLanguageOrders] = useState(() =>
+  const [ttsLanguageOrders, setTtsLanguageOrders] = useState<TtsLanguageOrders>(() =>
     getTtsLanguageOrdersPreference(),
   );
   const [primaryTtsLangState, setPrimaryTtsLangState] = useState<string>(() => {
@@ -2633,7 +2636,10 @@ function Index() {
 
     const globalOrders = getTtsLanguageOrdersPreference();
     if (settings?.ttsLanguageOrders) {
-      setTtsLanguageOrders((curr) => ({ ...globalOrders, ...settings.ttsLanguageOrders }));
+      setTtsLanguageOrders((curr) => ({
+        ...globalOrders,
+        ...(settings.ttsLanguageOrders as TtsLanguageOrders),
+      }));
     } else {
       setTtsLanguageOrders(globalOrders);
     }
@@ -3013,7 +3019,7 @@ function Index() {
     }
   };
 
-  const [panelOrder, setPanelOrder] = useState<PanelId[]>(() => PANELS.map((panel) => panel.id));
+  const [panelOrder, setPanelOrder] = useState<string[]>(() => PANELS.map((panel) => panel.id));
   const [subtitlesPanelWide, setSubtitlesPanelWide] = useState(true);
   const [openPanels, setOpenPanels] = useState<Record<PanelId, boolean>>({
     fetchedSubtitles: false,
@@ -3125,6 +3131,26 @@ function Index() {
     }
     return false;
   });
+
+  // Guarantee that whenever currentAccordionStage changes, its corresponding panel is open
+  useEffect(() => {
+    if (currentAccordionStage === 0) {
+      setOpenPanels((prev) => ({ ...prev, fetchedSubtitles: true }));
+      setShowOtherSettingsAccordions(false);
+    } else if (currentAccordionStage === 1) {
+      setOpenPanels((prev) => ({ ...prev, languages: true }));
+      setShowOtherSettingsAccordions(false);
+    } else if (currentAccordionStage === 2) {
+      setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+      setShowOtherSettingsAccordions(false);
+    } else if (currentAccordionStage === 3) {
+      setOpenPanels((prev) => ({ ...prev, player: true }));
+      setShowOtherSettingsAccordions(false);
+    } else if (currentAccordionStage === 4) {
+      setOpenPanels((prev) => ({ ...prev, playback: true, library: true }));
+      setShowOtherSettingsAccordions(true);
+    }
+  }, [currentAccordionStage]);
 
   const [beginnerActiveTab, setBeginnerActiveTab] = useState<BeginnerTabId>(() => {
     const s = loadAppSettings();
@@ -7737,6 +7763,7 @@ function Index() {
                       id="stage-step-0"
                       data-testid="stage-step-0"
                       onClick={() => {
+                        setShowOtherSettingsAccordions(false);
                         setCurrentAccordionStage(0);
                         setOpenPanels((prev) => ({ ...prev, fetchedSubtitles: true }));
                       }}
@@ -7758,6 +7785,7 @@ function Index() {
                       id="stage-step-1"
                       data-testid="stage-step-1"
                       onClick={() => {
+                        setShowOtherSettingsAccordions(false);
                         setCurrentAccordionStage(1);
                         setOpenPanels((prev) => ({ ...prev, languages: true }));
                       }}
@@ -7777,6 +7805,7 @@ function Index() {
                       id="stage-step-2"
                       data-testid="stage-step-2"
                       onClick={() => {
+                        setShowOtherSettingsAccordions(false);
                         setCurrentAccordionStage(2);
                         setOpenPanels((prev) => ({ ...prev, subtitles: true }));
                       }}
@@ -7796,6 +7825,7 @@ function Index() {
                       id="stage-step-3"
                       data-testid="stage-step-3"
                       onClick={() => {
+                        setShowOtherSettingsAccordions(false);
                         setCurrentAccordionStage(3);
                         setOpenPanels((prev) => ({ ...prev, player: true }));
                       }}
@@ -7817,7 +7847,7 @@ function Index() {
                       onClick={() => {
                         setCurrentAccordionStage(4);
                         setShowOtherSettingsAccordions(true);
-                        setOpenPanels((prev) => ({ ...prev, playback: true }));
+                        setOpenPanels((prev) => ({ ...prev, playback: true, library: true }));
                       }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
                         currentAccordionStage === 4
@@ -7838,7 +7868,7 @@ function Index() {
 
               <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">
                 {panelOrder
-                  .filter((panelId) => {
+                  .filter((panelId: any) => {
                     // Special Characters Removal and Parser are now nested directly under Settings (playback)
                     if (panelId === "chars" + "Removal" || panelId === "par" + "ser") return false;
 
@@ -7858,7 +7888,9 @@ function Index() {
                     }
 
                     if (showOtherSettingsAccordions) {
-                      return false;
+                      if (currentAccordionStage === 4) {
+                        return panelId === "playback" || panelId === "library";
+                      }
                     }
 
                     // Strict stage isolation: each main stage's component appears ONLY on its stage
@@ -7876,7 +7908,7 @@ function Index() {
                     }
                     return false;
                   })
-                  .map((panelId, panelIndex) => {
+                  .map((panelId: PanelId, panelIndex) => {
                     const panel = PANELS.find((candidate) => candidate.id === panelId);
                     if (!panel) return null;
                     const panelTitle =
@@ -7890,7 +7922,7 @@ function Index() {
                         id={panelId}
                         title={panelTitle}
                         videoId={videoId}
-                        open={openPanels[panelId]}
+                        open={openPanels[panelId] ?? true}
                         onOpenChange={(open) =>
                           setOpenPanels((current) => ({ ...current, [panelId]: open }))
                         }
@@ -7937,7 +7969,11 @@ function Index() {
                               );
                             }}
                             onProceedToStage={(stage) => {
+                              setShowOtherSettingsAccordions(false);
                               setCurrentAccordionStage(stage as 0 | 1 | 2 | 3);
+                              if (stage === 0) {
+                                setOpenPanels((prev) => ({ ...prev, fetchedSubtitles: true }));
+                              }
                               if (stage === 1) {
                                 setOpenPanels((prev) => ({ ...prev, languages: true }));
                               }
@@ -7948,7 +7984,6 @@ function Index() {
                                 setOpenPanels((prev) => ({
                                   ...prev,
                                   player: true,
-                                  subtitles: true,
                                 }));
                               }
                             }}
@@ -8474,8 +8509,9 @@ function Index() {
                                   data-testid="stage-1-next-button"
                                   type="button"
                                   onClick={() => {
+                                    setShowOtherSettingsAccordions(false);
                                     setCurrentAccordionStage(2);
-                                    setOpenPanels((prev) => ({ ...prev, languages: true }));
+                                    setOpenPanels((prev) => ({ ...prev, subtitles: true }));
                                   }}
                                   className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 py-1.5 text-xs shadow-md flex items-center gap-1.5 h-8"
                                 >
@@ -8498,6 +8534,7 @@ function Index() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => {
+                                    setShowOtherSettingsAccordions(false);
                                     setCurrentAccordionStage(2);
                                     setOpenPanels((prev) => ({ ...prev, subtitles: true }));
                                   }}
@@ -8515,7 +8552,7 @@ function Index() {
                                   onClick={() => {
                                     setCurrentAccordionStage(4);
                                     setShowOtherSettingsAccordions(true);
-                                    setOpenPanels((prev) => ({ ...prev, playback: true }));
+                                    setOpenPanels((prev) => ({ ...prev, playback: true, library: true }));
                                   }}
                                   className="text-xs h-8 flex items-center gap-1.5"
                                 >
@@ -11315,7 +11352,7 @@ function Index() {
                                                             );
                                                             if (videoId)
                                                               saveVideoSettings(videoId, {
-                                                                rates: { [langCode]: nextRate },
+                                                                ttsRates: { [langCode]: nextRate },
                                                               });
                                                           }}
                                                           className="h-6 w-6 rounded text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -11344,7 +11381,7 @@ function Index() {
                                                             saveTtsRatePreference(langCode, val);
                                                             if (videoId)
                                                               saveVideoSettings(videoId, {
-                                                                rates: { [langCode]: val },
+                                                                ttsRates: { [langCode]: val },
                                                               });
                                                           }}
                                                           className="flex-1 h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
@@ -11376,7 +11413,7 @@ function Index() {
                                                             );
                                                             if (videoId)
                                                               saveVideoSettings(videoId, {
-                                                                rates: { [langCode]: nextRate },
+                                                                ttsRates: { [langCode]: nextRate },
                                                               });
                                                           }}
                                                           className="h-6 w-6 rounded text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -11408,7 +11445,9 @@ function Index() {
                                                                 );
                                                                 if (videoId)
                                                                   saveVideoSettings(videoId, {
-                                                                    rates: { [langCode]: rateVal },
+                                                                    ttsRates: {
+                                                                      [langCode]: rateVal,
+                                                                    },
                                                                   });
                                                               }}
                                                               className={`px-1.5 py-0.2 rounded text-[9px] font-mono transition-colors cursor-pointer ${
@@ -12631,6 +12670,7 @@ function Index() {
                                   variant="outline"
                                   size="sm"
                                   onClick={() => {
+                                    setShowOtherSettingsAccordions(false);
                                     setCurrentAccordionStage(1);
                                     setOpenPanels((prev) => ({ ...prev, languages: true }));
                                   }}
@@ -12645,6 +12685,7 @@ function Index() {
                                   type="button"
                                   size="sm"
                                   onClick={() => {
+                                    setShowOtherSettingsAccordions(false);
                                     setCurrentAccordionStage(3);
                                     setOpenPanels((prev) => ({
                                       ...prev,

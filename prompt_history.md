@@ -1647,3 +1647,24 @@ go on
 8. [00:29:47.696] (ts: 1794176987696) [State Machine] TTS_SECTION_FINISHED | Details: {"videoId":"L2Ryrr6txwA","sectionId":"80:1839","rowIndex":0,"cancelled":true}
 ```
 
+---
+
+### Prompt 131: Fix the errors in the app
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 11:01:36 PM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/ApkReleaseModal.tsx, /src/components/ShareStateModal.tsx, /src/components/FloatingErrorButton.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+error 1: 11:01:36 PM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 132: Fix Stage View Visibility When Clicking on a Stage
+```
+when clicking on a stage - its view sometimes not visible
+```
+
+
+

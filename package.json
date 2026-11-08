@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.59",
+  "version": "2.1.60",
   "private": true,
   "sideEffects": false,
   "type": "module",

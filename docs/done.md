@@ -1,5 +1,45 @@
 # Done tasks
 
+### Hotfix (Prompt 131): Fix TypeScript Compiler & Dev Server Module Errors
+
+- **Issue / Trigger**:
+  - Manual fix trigger reported errors in app modules during Vite HMR reload (`styles.css`, `routes/index.tsx`, `FloatingErrorButton.tsx`, `SubtitlesTablePanel.tsx`).
+  - Running `npx tsc --noEmit` / `npm run test:type-safety` revealed 20 TypeScript compiler errors:
+    1. `SubtitlesTablePanel.tsx`: `Property 'dot' does not exist on type 'LanguageColorPalette'`.
+    2. `routes/index.tsx`: `Property 'tts' does not exist on type '{ code: string; name: string; }'` when inspecting language metadata across `(isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS)`.
+    3. `routes/index.tsx`: `SectionOrder` type mismatch ("in-between" vs `SectionOrder`), missing `saveSectionOrderPreference` and `saveTtsLanguageOrdersPreference`.
+    4. `routes/index.tsx`: `TtsLanguageOrders` vs `Record<string, number>` in learning profile configurations.
+    5. `routes/index.tsx`: TS2367 unintentional comparison with `'player'` due to earlier filtering branch narrowing.
+    6. `routes/index.tsx`: TS2353 `rates` does not exist in `Partial<VideoSpecificSettings>` (should be `ttsRates`).
+- **Root Cause**:
+  - Incomplete interface extensions across `LanguageColorPalette`, `SUPPORTED_LANGUAGES_CATALOG`, and `VideoSpecificSettings`, coupled with missing preference aliases and TypeScript narrowing anomalies in `routes/index.tsx`.
+- **Implementation**:
+  - `src/utils/languageColors.ts`:
+    - Added optional `dot?: string` to `LanguageColorPalette` interface.
+  - `src/components/SubtitlesTablePanel.tsx`:
+    - Updated column header bullet dot to safely fallback: `${palette.dot || palette.accentBar}`.
+  - `src/lib/playback-preferences.ts`:
+    - Extended `SectionOrder` union to include `"in-between"`.
+    - Exported `saveSectionOrderPreference = setSectionOrder`.
+    - Exported `saveTtsLanguageOrdersPreference = (orders: TtsLanguageOrders) => void write(KEYS.ttsLanguageOrders, JSON.stringify(orders))`.
+  - `src/utils/ratioCompositionsManager.ts`:
+    - Imported `SectionOrder` and `TtsLanguageOrders` from `@/lib/playback-preferences`.
+    - Updated `LearningProfileConfig` and `LanguageRatioComposition` to type `sectionOrder?: SectionOrder` and `ttsLanguageOrders?: TtsLanguageOrders`.
+  - `src/utils/appSettings.ts`:
+    - Added optional `tts?: string` to `SUPPORTED_LANGUAGES_CATALOG` items.
+    - Added `rates?: Record<string, number>` and `ttsLanguageOrders?: Record<string, any>` to `VideoSpecificSettings`.
+    - Updated `saveVideoSettings` to support both `ttsRates` and `rates`.
+  - `src/routes/index.tsx`:
+    - Imported `saveSectionOrderPreference`, `saveTtsLanguageOrdersPreference`, `type TtsLanguageOrders`, and `PICK_WORD_STRATEGY_EVENT`.
+    - Typed `ttsLanguageOrders` state with `<TtsLanguageOrders>`.
+    - Cast `settings.ttsLanguageOrders as TtsLanguageOrders`.
+    - Cast `(panelId as string) === "player"` to satisfy TypeScript narrowing.
+    - Updated `saveVideoSettings` rate calls to use `ttsRates`.
+- **Testing & Verification**:
+  - Verified with `npm run test:type-safety` (`npx tsc --noEmit` and dev server HTTP 200 module loading): 0 errors, 100% pass.
+  - Verified `compile_applet` and `lint_applet` pass with 0 errors.
+  - Single source of truth version bumped to `v2.1.60` (code `20160`) and synchronized with `android-shell/app/build.gradle.kts`.
+
 ### Hotfix (Prompt 130): Handle SpeechSynthesis Utterance Interrupted and Canceled Gracefully
 
 - **Bug Report / Complaint**:
