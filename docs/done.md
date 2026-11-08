@@ -1,5 +1,58 @@
 # Done tasks
 
+### Task 358 (Prompt 125): Learning Goals Profile Name Set on Top
+
+- **Prompt**:
+  ```
+  the profile name should be set on top
+  ```
+  *Focus Mode target element*: `div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1)`
+- **Context & Implementation**:
+  - **1. Learning Goals Profile Name Positioned on Top**:
+    - Added `#stage-2-top-profile-container` (`data-testid="stage-2-top-profile-container"`) prominently at the top of the Learning Goals card (`#stage-2-learning-goals-card`) in `src/routes/index.tsx`, directly beneath the section header and preceding item `1. Default Source Language`.
+    - Integrated `data-testid="stage-2-active-profile-name"` with a styled badge displaying the active profile name dynamically alongside a "Learning Profile" label and bookmark icon.
+    - Rendered the interactive `LanguageRatioCompositionSelector` profile manager directly within `#stage-2-top-profile-container`.
+  - **2. LanguageRatioCompositionSelector Top Profile Name Bar**:
+    - Enhanced `src/components/LanguageRatioCompositionSelector.tsx` with a prominent top bar (`data-testid="profile-name-top-bar"`) rendering `data-testid="profile-name-top-label"` ("Active Profile:") and `data-testid="active-profile-name-text"` displaying the selected profile name in bold high-contrast styling.
+    - Preserved all CRUD operations (Save, Create new, Delete custom profile, Reset to standard ratios) and test IDs intact.
+  - **3. Absolute Parity in Beginner Mode**:
+    - Wired `profileSelectorSlot` and `activeProfileName` props from `src/routes/index.tsx` through `BeginnerFlowContainer` to `BeginnerPreferencesTab`.
+    - Rendered `#beginner-top-profile-container` (`data-testid="beginner-top-profile-container"`) prominently at the top of Beginner Mode's Learning Goals tab with an identical styled profile badge (`data-testid="beginner-active-profile-name"`).
+  - **4. Single Source Versioning & Automated Verification**:
+    - Synchronized version `v2.1.56` (code `20156`) across `package.json` and `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+    - Added dedicated automated test `scripts/verify-learning-goals-profile-name-on-top.ts` (`npm run test:profile-name-on-top`) verifying top containers, top profile labels, active text, and Beginner Mode parity.
+    - Successfully passed all automated test suites:
+      - `npm run test:profile-name-on-top` (PASS 100%)
+      - `npm run test:learning-goals-profiles-crud` (PASS 100%)
+      - `npm run test:learning-goals-persistent-visibility` (PASS 100%)
+      - `npx tsx scripts/verify-named-ratio-compositions-dropdown.ts` (PASS 100%)
+      - `npx tsx scripts/verify-single-source-version-architecture.ts` (PASS 100%)
+    - Build succeeded (`compile_applet`) and zero lint errors (`lint_applet`).
+
+### Task 312 (Prompt 82 & Prompt 124): Remove Non-Working Alternating Fetch Plan Technique
+
+- **Prompt**:
+  ```
+  go on
+  ```
+- **Context & Implementation**:
+  - **1. Subtitle Fetch Plan Strategy Cleanup**:
+    - Removed non-working `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`.
+    - Typed `FetchStrategyMode` as `"ordered" | "random"`, with `DEFAULT_FETCH_STRATEGY_CONFIG` cleaned up without alternating server toggles.
+  - **2. UI Component Parity & Strategy Cycling**:
+    - Updated `src/components/FloatingSubtitleRetryIndicator.tsx` to cycle strictly between `random` and `ordered` modes, eliminating obsolete `server_alternate` mode and badges.
+    - Updated `src/components/AttemptOrderSettings.tsx` to remove `server_alternate` dropdown selection and obsolete `useServerAlternate` controls.
+  - **3. Documentation & Test Suite Alignment**:
+    - Updated `docs/reliable-subtitles-fetching.md` to remove obsolete `Server Alternate Mode` and `server:alternate` specifications.
+    - Updated `scripts/verify-auto-fetching-debug-experimental-stuff.ts` and `scripts/verify-fetch-strategy-and-defaults.ts` to reflect the clean strategy modes and single source of truth versioning.
+  - **4. Verification & Testing**:
+    - Verified dedicated automated tests:
+      - `npx tsx scripts/verify-auto-fetching-debug-experimental-stuff.ts` (PASS 100%)
+      - `npx tsx scripts/verify-fetch-strategy-and-defaults.ts` (PASS 100%)
+      - `npx tsx scripts/verify-single-source-version-architecture.ts` (PASS 100%)
+    - Bumped application version to `v2.1.55` (code `20155`) across single source of truth files.
+    - Successfully compiled (`compile_applet`) and passed linting (`lint_applet`) with 0 errors.
+
 ### Task 357 (Prompt 123): Under Video Player Add Button to Switch Full Screen
 
 - **Prompt**:

@@ -132,6 +132,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-under the video-player add a button to switch full screen.
+create a stage dedicated to learning where instead of showing the video-player the user whould be able to view the words as a set of baloon and each baloon can be punched and then its expose he translation of that word
 ```
 

@@ -6,9 +6,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 123 (Task 357) [COMPLETED]:
-  - Task 357 [COMPLETED]: Added full screen toggle button under the video player across Advanced and Beginner modes.
-- Active Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
+- Prompt 126 ("create a stage dedicated to learning where instead of showing the video-player the user whould be able to view the words as a set of baloon and each baloon can be punched and then its expose he translation of that word") [ACTIVE]:
+  - Executing Task 359: Dedicated Learning Stage with Punchable Word Balloons Exposing Translation (Subtask 359.1).
+- Active Backlog: Task 359 in [`docs/tasks.md`](tasks.md).
 
 ---
 

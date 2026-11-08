@@ -1559,3 +1559,31 @@ go on
 ```
 under the video-player add a button to switch full screen.
 ```
+
+---
+
+### Prompt 124: Go On (Finalize Task 312 & Clear Active Backlog)
+```
+go on
+```
+
+---
+
+### Prompt 125: Learning Goals Profile Name Should Be Set on Top
+```
+the profile name should be set on top
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 126: Dedicated Learning Stage with Punchable Word Balloons Exposing Translation
+```
+create a stage dedicated to learning where instead of showing the video-player the user whould be able to view the words as a set of baloon and each baloon can be punched and then its expose he translation of that word
+```

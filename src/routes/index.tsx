@@ -7435,6 +7435,20 @@ function Index() {
               }
             }}
             onSwitchToAdvanced={() => handleWorkflowModeChange("expert")}
+            profileSelectorSlot={
+              <LanguageRatioCompositionSelector
+                activeCompositionId={activeRatioCompositionId}
+                onSelectComposition={handleSelectRatioComposition}
+                onSaveProfile={handleSaveComposition}
+                onUpdateProfile={handleUpdateRatioComposition}
+                onDeleteProfile={handleDeleteRatioComposition}
+                compositions={storedCompositions}
+              />
+            }
+            activeProfileName={
+              storedCompositions.find((c) => c.id === activeRatioCompositionId)?.name ||
+              "Standard (Even)"
+            }
             charsRemovalSlot={
               <BeginnerCharsRemovalAccordion>
                 {specialCharactersRemovalPanel}
@@ -10213,6 +10227,48 @@ function Index() {
                                   <Filter className="h-3 w-3" />
                                   <span>1 / 3</span>
                                 </span>
+                              </div>
+
+                              {/* Active Profile Name & Switcher set on top */}
+                              <div
+                                id="stage-2-top-profile-container"
+                                data-testid="stage-2-top-profile-container"
+                                className="flex flex-wrap items-center justify-between gap-2 bg-card/85 p-2.5 rounded-lg border border-primary/25 shadow-xs"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <div className="h-8 w-8 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+                                    <Sliders className="h-4 w-4" />
+                                  </div>
+                                  <div className="flex flex-col min-w-0">
+                                    <span
+                                      data-testid="stage-2-profile-top-label"
+                                      className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground"
+                                    >
+                                      Profile Name:
+                                    </span>
+                                    <span
+                                      data-testid="stage-2-active-profile-name"
+                                      className="font-bold text-xs sm:text-sm text-foreground truncate"
+                                      title={
+                                        storedCompositions.find(
+                                          (c) => c.id === activeRatioCompositionId,
+                                        )?.name || "Standard (Even)"
+                                      }
+                                    >
+                                      {storedCompositions.find(
+                                        (c) => c.id === activeRatioCompositionId,
+                                      )?.name || "Standard (Even)"}
+                                    </span>
+                                  </div>
+                                </div>
+                                <LanguageRatioCompositionSelector
+                                  activeCompositionId={activeRatioCompositionId}
+                                  onSelectComposition={handleSelectRatioComposition}
+                                  onSaveProfile={handleSaveComposition}
+                                  onUpdateProfile={handleUpdateRatioComposition}
+                                  onDeleteProfile={handleDeleteRatioComposition}
+                                  compositions={storedCompositions}
+                                />
                               </div>
 
                               <div className="space-y-2 text-xs">
