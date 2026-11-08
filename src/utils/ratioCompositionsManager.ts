@@ -10,6 +10,7 @@ export interface LearningProfileConfig {
   skipIncompleteSentences?: boolean;
   sectionOrder?: "video-first" | "tts-first" | "in-between";
   rates?: Record<string, number>;
+  volumes?: Record<string, number>;
   ttsLanguageOrders?: Record<string, number>;
 }
 
@@ -24,6 +25,7 @@ export interface LanguageRatioComposition {
   skipIncompleteSentences?: boolean;
   sectionOrder?: "video-first" | "tts-first" | "in-between";
   rates?: Record<string, number>;
+  volumes?: Record<string, number>;
   ttsLanguageOrders?: Record<string, number>;
 }
 
@@ -123,6 +125,7 @@ export function saveRatioComposition(
     skipIncompleteSentences: profileConfig?.skipIncompleteSentences,
     sectionOrder: profileConfig?.sectionOrder,
     rates: profileConfig?.rates ? { ...profileConfig.rates } : undefined,
+    volumes: profileConfig?.volumes ? { ...profileConfig.volumes } : undefined,
     ttsLanguageOrders: profileConfig?.ttsLanguageOrders
       ? { ...profileConfig.ttsLanguageOrders }
       : undefined,
@@ -145,7 +148,7 @@ export function saveRatioComposition(
 
 /**
  * Updates an existing custom ratio composition / learning profile by ID.
- * Supports updating name, ratios, speech rates, and other profile config options.
+ * Supports updating name, ratios, speech rates, volumes, and other profile config options.
  */
 export function updateRatioComposition(
   id: string,
@@ -169,6 +172,7 @@ export function updateRatioComposition(
           : existing.name,
       ratios: updates.ratios !== undefined ? { ...updates.ratios } : existing.ratios,
       rates: updates.rates !== undefined ? { ...updates.rates } : existing.rates,
+      volumes: updates.volumes !== undefined ? { ...updates.volumes } : existing.volumes,
       maxWordsPerSentence:
         updates.maxWordsPerSentence !== undefined
           ? updates.maxWordsPerSentence

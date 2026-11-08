@@ -65,10 +65,20 @@ export const SubtitleRow = memo(function SubtitleRow({
       }`}
     >
       <td
+        data-testid="cue-row-index"
+        className={`whitespace-nowrap px-2.5 py-2.5 text-center tabular-nums text-xs font-mono text-muted-foreground w-14 min-w-[3.5rem] max-w-[3.5rem] transition-colors ${
+          freezeColumns
+            ? `sticky left-0 z-10 ${isActive ? "bg-accent/95 backdrop-blur-xs font-semibold text-foreground" : "bg-card/95"} shadow-[1px_0_0_0_rgba(0,0,0,0.06)]`
+            : ""
+        }`}
+      >
+        {actualIndex + 1}
+      </td>
+      <td
         data-testid="cue-row-timestamp"
         className={`whitespace-nowrap px-3 py-2.5 tabular-nums text-xs font-mono text-muted-foreground w-28 min-w-[7rem] max-w-[7rem] transition-colors ${
           freezeColumns
-            ? `sticky left-0 z-10 ${isActive ? "bg-accent/95 backdrop-blur-xs font-semibold text-foreground" : "bg-card/95"} shadow-[1px_0_0_0_rgba(0,0,0,0.06)]`
+            ? `sticky left-14 z-10 ${isActive ? "bg-accent/95 backdrop-blur-xs font-semibold text-foreground" : "bg-card/95"} shadow-[1px_0_0_0_rgba(0,0,0,0.06)]`
             : ""
         }`}
       >
@@ -111,7 +121,7 @@ export const SubtitleRow = memo(function SubtitleRow({
             data-tts-role={isPrimary ? "primary" : primaryTtsLang ? "secondary" : undefined}
             className={`px-3.5 py-2.5 text-sm leading-relaxed transition-colors min-w-[12rem] border-r border-border/40 ${
               freezeColumns && isFirstCol
-                ? `sticky left-28 z-10 ${isActive ? "bg-accent/95 backdrop-blur-xs font-medium text-foreground" : "bg-card/95"} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]`
+                ? `sticky left-42 z-10 ${isActive ? "bg-accent/95 backdrop-blur-xs font-medium text-foreground" : "bg-card/95"} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]`
                 : ""
             } ${
               isActive ? palette.cellActiveBg : palette.cellBg

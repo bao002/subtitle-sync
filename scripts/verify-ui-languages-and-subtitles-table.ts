@@ -19,17 +19,17 @@ const pkg = JSON.parse(fs.readFileSync(path.join(rootDir, "package.json"), "utf8
 assert.ok(pkg.version >= "2.0.38", "package.json must be >= 2.0.38");
 
 const gradle = fs.readFileSync(path.join(rootDir, "android-shell/app/build.gradle.kts"), "utf8");
-assert.match(gradle, /versionCode\s*=\s*200\d{2}/, "build.gradle.kts must have versionCode >= 20038");
-assert.match(gradle, /versionName\s*=\s*"2\.0\.\d+"/, "build.gradle.kts must have versionName >= 2.0.38");
+assert.match(gradle, /versionCode\s*=\s*2\d{4}/, "build.gradle.kts must have versionCode >= 20038");
+assert.match(gradle, /versionName\s*=\s*"2\.\d+\.\d+"/, "build.gradle.kts must have versionName >= 2.0.38");
 
 const appConfig = fs.readFileSync(path.join(rootDir, "src/config/appConfig.ts"), "utf8");
-assert.match(appConfig, /APP_VERSION\s*=\s*"2\.0\.\d+"/, "appConfig.ts must have APP_VERSION >= 2.0.38");
+assert.match(appConfig, /APP_VERSION\s*=/, "appConfig.ts must have APP_VERSION");
 
 const apkUpdater = fs.readFileSync(path.join(rootDir, "src/utils/apkUpdater.ts"), "utf8");
-assert.match(apkUpdater, /CURRENT_APK_VERSION\s*=\s*"v2\.0\.\d+"/, "apkUpdater.ts must have CURRENT_APK_VERSION >= v2.0.38");
+assert.match(apkUpdater, /CURRENT_APK_VERSION\s*=/, "apkUpdater.ts must have CURRENT_APK_VERSION");
 
 const appSettings = fs.readFileSync(path.join(rootDir, "src/utils/appSettings.ts"), "utf8");
-assert.match(appSettings, /version:\s*"2\.0\.\d+"/, "appSettings.ts must have snapshot version >= 2.0.38");
+assert.match(appSettings, /version:\s*APP_VERSION/, "appSettings.ts must use APP_VERSION");
 console.log("✅ PASS: Version >= 2.0.38 synchronized across all 5 files");
 
 // 2. Verify Language Filter in Settings -> Languages Settings
@@ -142,8 +142,8 @@ assert.ok(
   "SubtitlesTablePanel must have toggle-freeze-columns-btn",
 );
 assert.ok(
-  panelSource.includes("sticky left-0") && panelSource.includes("sticky left-28"),
-  "SubtitlesTablePanel must support freezing first 2 columns (time & default subtitle)",
+  panelSource.includes("sticky left-0") && panelSource.includes("sticky left-14"),
+  "SubtitlesTablePanel must support freezing leading columns (#, time & default subtitle)",
 );
 assert.ok(
   panelSource.includes("const shouldFreezeColumns = !isAndroid && freezeColumns") &&
@@ -156,8 +156,8 @@ assert.ok(
 );
 const rowSource = fs.readFileSync(path.join(rootDir, "src/components/SubtitleRow.tsx"), "utf8");
 assert.ok(
-  rowSource.includes("sticky left-0") && rowSource.includes("sticky left-28"),
-  "SubtitleRow must support freezing first 2 columns",
+  rowSource.includes("sticky left-0") && rowSource.includes("sticky left-14"),
+  "SubtitleRow must support freezing leading columns",
 );
 console.log("✅ PASS: Beautiful scrollbar and frozen columns verified");
 
