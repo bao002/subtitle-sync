@@ -39,6 +39,7 @@ import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFilt
 import { VideoPlaybackPrecedenceBar } from "@/components/VideoPlaybackPrecedenceBar";
 import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceModeSettingsPanel";
 import { FetchedSubtitlesStagePanel } from "@/components/FetchedSubtitlesStagePanel";
+import { AlternativeVideoPlayerView } from "@/components/AlternativeVideoPlayerView";
 import {
   addExternalTtsAuditRecord,
   type AlternativeTtsEngine,
@@ -61,7 +62,8 @@ type ComponentKey =
   | "learning_filters"
   | "precedence_bar"
   | "performance_mode"
-  | "fetched_subtitles";
+  | "fetched_subtitles"
+  | "alternative_player_view";
 
 export const StorybookWorkbench: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<ComponentKey>("tts_service");
@@ -284,6 +286,7 @@ export const StorybookWorkbench: React.FC = () => {
             { id: "precedence_bar", label: "Precedence Bar", icon: Film },
             { id: "performance_mode", label: "Fast/Slow Mode", icon: Zap },
             { id: "fetched_subtitles", label: "Fetched Subtitles", icon: Subtitles },
+            { id: "alternative_player_view", label: "Alternative Player View", icon: Subtitles },
           ].map((c) => {
             const Icon = c.icon;
             const isSelected = selectedComponent === c.id;
@@ -441,6 +444,7 @@ export const StorybookWorkbench: React.FC = () => {
                 {selectedComponent === "precedence_bar" && "VideoPlaybackPrecedenceBar"}
                 {selectedComponent === "performance_mode" && "PerformanceModeSettingsPanel"}
                 {selectedComponent === "fetched_subtitles" && "FetchedSubtitlesStagePanel"}
+                {selectedComponent === "alternative_player_view" && "AlternativeVideoPlayerView"}
               </h1>
               <p className="text-xs text-muted-foreground">
                 Active Component Catalog:{" "}
@@ -769,6 +773,46 @@ export const StorybookWorkbench: React.FC = () => {
                   onSelectBaseLanguage={() => {}}
                   defaultLanguages={["en", "es"]}
                   isAndroid={false}
+                />
+              </div>
+            )}
+
+            {selectedComponent === "alternative_player_view" && (
+              <div className="max-w-3xl mx-auto">
+                <AlternativeVideoPlayerView
+                  currentSentence="Here we have the parallel subtitles pipeline processing the timed text."
+                  baseLanguage="en"
+                  baseLanguageName="English"
+                  targetTtsLang="es"
+                  targetTtsLangName="Spanish"
+                  targetTranslation="Aquí tenemos el pipeline de subtítulos paralelos procesando el texto temporizado."
+                  availableTtsLanguages={[
+                    { code: "es", name: "Spanish" },
+                    { code: "he", name: "Hebrew" },
+                  ]}
+                  onSelectTtsLang={() => {}}
+                  speechProgress={{
+                    lang: "es",
+                    row: 2,
+                    start: 0,
+                    end: 12,
+                  }}
+                  isSpeaking={false}
+                  speakingLang={null}
+                  speakingRow={2}
+                  activeRowIndex={2}
+                  totalRows={10}
+                  currentTimeSec={14.5}
+                  durationSec={120}
+                  rowStartMs={11000}
+                  rowEndMs={18000}
+                  isVideoPlaying={true}
+                  onTogglePlay={() => {}}
+                  onPrevSentence={() => {}}
+                  onNextSentence={() => {}}
+                  onReplaySentence={() => {}}
+                  onCloseAlternativeView={() => {}}
+                  onSpeakText={() => {}}
                 />
               </div>
             )}

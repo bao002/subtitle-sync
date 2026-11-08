@@ -23,7 +23,11 @@ function collectMarkdownFiles(dir: string): string[] {
         entry.name === "node_modules" ||
         entry.name === "dist" ||
         entry.name === ".git" ||
-        entry.name === ".next"
+        entry.name === ".next" ||
+        entry.name === "playwright-report" ||
+        entry.name === "test-results" ||
+        entry.name === "cypress" ||
+        entry.name === ".aistudio"
       ) {
         continue;
       }

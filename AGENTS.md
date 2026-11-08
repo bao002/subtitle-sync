@@ -132,6 +132,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-clicking on the floating alert button will lead to the log element, to the relevant record where the user would be able to inspect the error message and the stack trace and also to copy all log to clipboard. using timestamp and state machine actions it would be possible to reproduce the error.
+fix: learning goals - the view might disapear sometimes
 ```
 

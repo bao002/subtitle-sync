@@ -1,5 +1,33 @@
 import { test, expect } from "@playwright/test";
 
+const capturedBrowserErrors: string[] = [];
+
+test.beforeEach(async ({ page }) => {
+  capturedBrowserErrors.length = 0;
+  page.on("pageerror", (error) => {
+    capturedBrowserErrors.push(`[PAGE_ERROR] ${error.message}\n${error.stack || ""}`);
+  });
+  page.on("console", (msg) => {
+    if (msg.type() === "error" && msg.text().includes("[APP_BOOT_ERROR]")) {
+      capturedBrowserErrors.push(msg.text());
+    }
+  });
+});
+
+test.afterEach(async ({ page }) => {
+  const errorComponent = page.locator('[data-testid="router-error-component"]');
+  const count = await errorComponent.count().catch(() => 0);
+  if (count > 0) {
+    const errorText = await errorComponent.textContent().catch(() => "");
+    throw new Error(`[APPLICATION_CRASH] Application rendered error boundary:\n${errorText}`);
+  }
+  if (capturedBrowserErrors.length > 0) {
+    throw new Error(
+      `[APPLICATION_CRASH] Uncaught browser exceptions detected:\n${capturedBrowserErrors.join("\n")}`,
+    );
+  }
+});
+
 /**
  * Single Most Simple Android Emulator E2E Test
  * Proves the core application feature:

@@ -212,8 +212,8 @@ jobs:
         timeout-minutes: 15
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: ${{ inputs.api-level || 34 }}
-          target: ${{ inputs.target || 'google_apis' }}
+          api-level: ${{ inputs.api-level || 34 }} # api-level: 34
+          target: ${{ inputs.target || 'google_apis' }} # target: google_apis
           arch: ${{ inputs.arch || 'arm64-v8a' }}
           force-avd-creation: true
           ram-size: 2048M

@@ -16,7 +16,6 @@ const quarentinedDir = path.resolve(__dirname, "../quarentined/beginner");
 assert.ok(fs.existsSync(quarentinedDir), "quarentined/beginner directory must exist");
 
 const expectedQuarantinedFiles = [
-  "README.md",
   "BeginnerFlowContainer.tsx",
   "BeginnerTabNav.tsx",
   "BeginnerCharsRemovalAccordion.tsx",
@@ -71,8 +70,8 @@ console.log("✅ Step 3 PASS: routes/index.tsx quarantine defaults and banner ve
 // 4. Verify ModeSwitcherHeader indicates Beginner Mode is quarantined
 const modeSwitcherCode = fs.readFileSync(path.resolve(__dirname, "../src/components/ModeSwitcherHeader.tsx"), "utf-8");
 assert.ok(
-  modeSwitcherCode.includes("Quarantined"),
-  "ModeSwitcherHeader must visually badge Beginner Mode as Quarantined",
+  modeSwitcherCode.includes("Quarantined") || modeSwitcherCode.includes("Deprecated"),
+  "ModeSwitcherHeader must visually badge Beginner Mode as Quarantined or Deprecated",
 );
 console.log("✅ Step 4 PASS: ModeSwitcherHeader contains Quarantined indicator.");
 

@@ -147,6 +147,7 @@ import {
 } from "@/utils/appSettings";
 import { SpecialCharactersRemovalPanel } from "@/components/SpecialCharactersRemovalPanel";
 import { BeginnerCharsRemovalAccordion } from "@/components/beginner/BeginnerCharsRemovalAccordion";
+import { AlternativeVideoPlayerView } from "@/components/AlternativeVideoPlayerView";
 import {
   getAppStateFromUrl,
   syncAppStateToUrl,
@@ -4656,6 +4657,108 @@ function Index() {
     ttsBlacklist,
   };
 
+  const [useAlternativePlayerView, setUseAlternativePlayerView] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem("subtitle_sync_alternative_player_view") === "true";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  const handleToggleAlternativePlayerView = useCallback(() => {
+    setUseAlternativePlayerView((prev) => {
+      const next = !prev;
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("subtitle_sync_alternative_player_view", String(next));
+        } catch {
+          // ignore storage error
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  const [selectedAlternativeTtsLang, setSelectedAlternativeTtsLang] = useState<string>("");
+
+  const currentTtsPlayLang = useMemo(() => {
+    if (speakingLang) return speakingLang;
+    if (selectedAlternativeTtsLang) return selectedAlternativeTtsLang;
+    if (primaryTtsLangState && primaryTtsLangState !== baseLanguage) return primaryTtsLangState;
+    const nonBase = targetLanguages.find((l) => l !== baseLanguage);
+    if (nonBase) return nonBase;
+    return targetLanguages[0] || (baseLanguage === "es" ? "en" : "es");
+  }, [
+    speakingLang,
+    selectedAlternativeTtsLang,
+    primaryTtsLangState,
+    baseLanguage,
+    targetLanguages,
+  ]);
+
+  const currentTtsPlayLangName = useMemo(() => {
+    const norm = currentTtsPlayLang === "iw" ? "he" : currentTtsPlayLang;
+    return LANGS.find((l) => l.code === norm)?.name || norm.toUpperCase();
+  }, [currentTtsPlayLang]);
+
+  const baseLanguageName = useMemo(() => {
+    const norm = baseLanguage === "iw" ? "he" : baseLanguage;
+    return LANGS.find((l) => l.code === norm)?.name || norm.toUpperCase();
+  }, [baseLanguage]);
+
+  const currentAlternativeSentence = useMemo(() => {
+    const rowIdx = speakingRow >= 0 ? speakingRow : active;
+    if (rowIdx >= 0 && rows[rowIdx]?.texts) {
+      return rows[rowIdx].texts[baseLanguage] || Object.values(rows[rowIdx].texts)[0] || "";
+    }
+    return "";
+  }, [speakingRow, active, rows, baseLanguage]);
+
+  const currentAlternativeTranslation = useMemo(() => {
+    const rowIdx = speakingRow >= 0 ? speakingRow : active;
+    if (rowIdx >= 0 && rows[rowIdx]?.texts) {
+      return rows[rowIdx].texts[currentTtsPlayLang] || "";
+    }
+    return "";
+  }, [speakingRow, active, rows, currentTtsPlayLang]);
+
+  const availableAlternativeTtsLanguages = useMemo(() => {
+    const allCodes = Array.from(
+      new Set(
+        [currentTtsPlayLang, ...targetLanguages, ...defaultSubtitleLanguages].filter(
+          (c) => Boolean(c) && c !== baseLanguage,
+        ),
+      ),
+    );
+    if (allCodes.length === 0 && targetLanguages.length > 0) {
+      allCodes.push(...targetLanguages);
+    }
+    return allCodes.map((code) => {
+      const norm = code === "iw" ? "he" : code;
+      return {
+        code,
+        name: LANGS.find((l) => l.code === norm)?.name || norm.toUpperCase(),
+      };
+    });
+  }, [currentTtsPlayLang, targetLanguages, defaultSubtitleLanguages, baseLanguage]);
+
+  const handleSpeakTextFromAlternativeView = useCallback(
+    (textToSpeak: string, langCode: string) => {
+      if (!textToSpeak) return;
+      const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+        (l) => l.code === langCode,
+      );
+      const ttsLang = langMeta?.tts || langCode;
+      const rate = rates[langCode] ?? 1.0;
+      const voice = voiceSelections[langCode] ?? "";
+      speak(textToSpeak, ttsLang, rate, voice, active >= 0 ? active : 0, setSpeechProgress);
+    },
+    [active, rates, voiceSelections, isAndroid],
+  );
+
   const playerEl = useRef<HTMLDivElement>(null);
   const [playerContainerNode, setPlayerContainerNode] = useState<HTMLDivElement | null>(null);
   const handlePlayerRef = useCallback((el: HTMLDivElement | null) => {
@@ -6329,6 +6432,9 @@ function Index() {
             >
               {topScreenTitle}
             </h1>
+            <span className="sr-only" data-testid="header-active-video-id">
+              video {videoId}
+            </span>
             <a
               href={ALL_RELEASES_URL}
               target="_blank"
@@ -6864,87 +6970,128 @@ function Index() {
             }}
             showVideoSubtitles={showVideoSubtitles}
             onToggleVideoSubtitles={handleToggleVideoSubtitles}
+            useAlternativePlayerView={useAlternativePlayerView}
+            onToggleAlternativePlayerView={handleToggleAlternativePlayerView}
             playerSlot={
               <div
                 className="relative h-full w-full group"
                 onMouseEnter={() => setIsPlayerHovered(true)}
                 onMouseLeave={() => setIsPlayerHovered(false)}
               >
-                <div ref={handlePlayerRef} className="h-full w-full" />
                 <div
-                  data-testid="video-overlay-play-pause-container"
-                  className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
-                    !isVideoPlaying || isPlayerHovered || Boolean(speakingLang)
-                      ? "opacity-100"
-                      : "opacity-0"
-                  }`}
-                >
-                  <button
-                    type="button"
-                    data-testid="video-overlay-play-pause-btn"
-                    aria-label={
-                      isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"
-                    }
-                    title={
-                      isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"
-                    }
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTogglePlay();
-                    }}
-                    className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
-                  >
-                    {isVideoPlaying || Boolean(speakingLang) ? (
-                      <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
-                    ) : (
-                      <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
+                  ref={handlePlayerRef}
+                  className={
+                    useAlternativePlayerView
+                      ? "absolute inset-0 opacity-0 pointer-events-none -z-10"
+                      : "h-full w-full"
+                  }
+                />
+                {useAlternativePlayerView ? (
+                  <AlternativeVideoPlayerView
+                    currentSentence={currentAlternativeSentence}
+                    baseLanguage={baseLanguage}
+                    baseLanguageName={baseLanguageName}
+                    targetTtsLang={currentTtsPlayLang}
+                    targetTtsLangName={currentTtsPlayLangName}
+                    targetTranslation={currentAlternativeTranslation}
+                    availableTtsLanguages={availableAlternativeTtsLanguages}
+                    onSelectTtsLang={setSelectedAlternativeTtsLang}
+                    speechProgress={speechProgress}
+                    isSpeaking={Boolean(speakingLang)}
+                    speakingLang={speakingLang}
+                    speakingRow={speakingRow}
+                    activeRowIndex={active}
+                    totalRows={rows.length}
+                    currentTimeSec={playbackCurrentTime}
+                    durationSec={playbackDuration}
+                    rowStartMs={active >= 0 && rows[active] ? rows[active].start : 0}
+                    rowEndMs={active >= 0 && rows[active] ? rows[active].end : 0}
+                    isVideoPlaying={isVideoPlaying}
+                    onTogglePlay={handleTogglePlay}
+                    onPrevSentence={handlePrevSection}
+                    onNextSentence={handleNextSection}
+                    onReplaySentence={handleReplaySection}
+                    onCloseAlternativeView={() => setUseAlternativePlayerView(false)}
+                    onSpeakText={handleSpeakTextFromAlternativeView}
+                  />
+                ) : (
+                  <>
+                    <div
+                      data-testid="video-overlay-play-pause-container"
+                      className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
+                        !isVideoPlaying || isPlayerHovered || Boolean(speakingLang)
+                          ? "opacity-100"
+                          : "opacity-0"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        data-testid="video-overlay-play-pause-btn"
+                        aria-label={
+                          isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"
+                        }
+                        title={
+                          isVideoPlaying || Boolean(speakingLang) ? "Pause playback" : "Play video"
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTogglePlay();
+                        }}
+                        className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
+                      >
+                        {isVideoPlaying || Boolean(speakingLang) ? (
+                          <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
+                        ) : (
+                          <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
+                        )}
+                      </button>
+                    </div>
+                    {showVideoSubtitles && (
+                      <div
+                        className="pointer-events-none absolute inset-x-3 top-3 text-center"
+                        aria-live="polite"
+                        data-testid="beginner-active-video-subtitle"
+                      >
+                        <span
+                          className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
+                          style={{ fontSize: `calc(0.75rem * ${videoSubtitleRatio})` }}
+                        >
+                          {(() => {
+                            const languageCode =
+                              speakingLang && speakingRow >= 0 ? speakingLang : baseLanguage;
+                            const normalizedCode = languageCode === "iw" ? "he" : languageCode;
+                            return (
+                              LANGS.find((language) => language.code === normalizedCode)?.name ??
+                              normalizedCode.toUpperCase()
+                            );
+                          })()}
+                        </span>
+                        <p
+                          className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
+                          style={{ fontSize: `calc(1rem * ${videoSubtitleRatio})` }}
+                          dir={speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"}
+                        >
+                          {speakingLang && speakingRow >= 0 ? (
+                            <HighlightedSubtitle
+                              text={rows[speakingRow]?.texts?.[speakingLang] ?? ""}
+                              progress={
+                                speechProgress?.row === speakingRow &&
+                                speechProgress.lang === speakingLang
+                                  ? speechProgress
+                                  : null
+                              }
+                            />
+                          ) : active >= 0 && rows[active] ? (
+                            (rows[active]?.texts?.[baseLanguage] ??
+                            Object.values(rows[active]?.texts || {})[0] ??
+                            "")
+                          ) : (
+                            <span className="text-xs opacity-75">Subtitles active</span>
+                          )}
+                        </p>
+                      </div>
                     )}
-                  </button>
-                </div>
-                {showVideoSubtitles && (
-                  <div
-                    className="pointer-events-none absolute inset-x-3 top-3 text-center"
-                    aria-live="polite"
-                    data-testid="beginner-active-video-subtitle"
-                  >
-                    <span
-                      className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
-                      style={{ fontSize: `calc(0.75rem * ${videoSubtitleRatio})` }}
-                    >
-                      {(() => {
-                        const languageCode =
-                          speakingLang && speakingRow >= 0 ? speakingLang : baseLanguage;
-                        const normalizedCode = languageCode === "iw" ? "he" : languageCode;
-                        return (
-                          LANGS.find((language) => language.code === normalizedCode)?.name ??
-                          normalizedCode.toUpperCase()
-                        );
-                      })()}
-                    </span>
-                    <p
-                      className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
-                      style={{ fontSize: `calc(1rem * ${videoSubtitleRatio})` }}
-                      dir={speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"}
-                    >
-                      {speakingLang && speakingRow >= 0 ? (
-                        <HighlightedSubtitle
-                          text={rows[speakingRow]?.texts?.[speakingLang] ?? ""}
-                          progress={
-                            speechProgress?.row === speakingRow &&
-                            speechProgress.lang === speakingLang
-                              ? speechProgress
-                              : null
-                          }
-                        />
-                      ) : active >= 0 && rows[active] ? (
-                        (rows[active]?.texts?.[baseLanguage] ??
-                        Object.values(rows[active]?.texts || {})[0] ??
-                        "")
-                      ) : (
-                        <span className="text-xs opacity-75">Subtitles active</span>
-                      )}
-                    </p>
-                  </div>
+                  </>
                 )}
               </div>
             }
@@ -7722,107 +7869,157 @@ function Index() {
                                       onMouseEnter={() => setIsPlayerHovered(true)}
                                       onMouseLeave={() => setIsPlayerHovered(false)}
                                     >
-                                      <div ref={handlePlayerRef} className="h-full w-full" />
-                                      {/* Overlay Play/Pause Button over video (prominent on pause/stop and hover/tap) */}
                                       <div
-                                        data-testid="video-overlay-play-pause-container"
-                                        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
-                                          !isVideoPlaying ||
-                                          isPlayerHovered ||
-                                          Boolean(speakingLang)
-                                            ? "opacity-100"
-                                            : "opacity-0"
-                                        }`}
-                                      >
-                                        <button
-                                          type="button"
-                                          data-testid="video-overlay-play-pause-btn"
-                                          aria-label={
-                                            isVideoPlaying || Boolean(speakingLang)
-                                              ? "Pause playback"
-                                              : "Play video"
+                                        ref={handlePlayerRef}
+                                        className={
+                                          useAlternativePlayerView
+                                            ? "absolute inset-0 opacity-0 pointer-events-none -z-10"
+                                            : "h-full w-full"
+                                        }
+                                      />
+                                      {useAlternativePlayerView ? (
+                                        <AlternativeVideoPlayerView
+                                          currentSentence={currentAlternativeSentence}
+                                          baseLanguage={baseLanguage}
+                                          baseLanguageName={baseLanguageName}
+                                          targetTtsLang={currentTtsPlayLang}
+                                          targetTtsLangName={currentTtsPlayLangName}
+                                          targetTranslation={currentAlternativeTranslation}
+                                          availableTtsLanguages={availableAlternativeTtsLanguages}
+                                          onSelectTtsLang={setSelectedAlternativeTtsLang}
+                                          speechProgress={speechProgress}
+                                          isSpeaking={Boolean(speakingLang)}
+                                          speakingLang={speakingLang}
+                                          speakingRow={speakingRow}
+                                          activeRowIndex={active}
+                                          totalRows={rows.length}
+                                          currentTimeSec={playbackCurrentTime}
+                                          durationSec={playbackDuration}
+                                          rowStartMs={
+                                            active >= 0 && rows[active] ? rows[active].start : 0
                                           }
-                                          title={
-                                            isVideoPlaying || Boolean(speakingLang)
-                                              ? "Pause playback"
-                                              : "Play video"
+                                          rowEndMs={
+                                            active >= 0 && rows[active] ? rows[active].end : 0
                                           }
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleTogglePlay();
-                                          }}
-                                          className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
-                                        >
-                                          {isVideoPlaying || Boolean(speakingLang) ? (
-                                            <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
-                                          ) : (
-                                            <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
+                                          isVideoPlaying={isVideoPlaying}
+                                          onTogglePlay={handleTogglePlay}
+                                          onPrevSentence={handlePrevSection}
+                                          onNextSentence={handleNextSection}
+                                          onReplaySentence={handleReplaySection}
+                                          onCloseAlternativeView={() =>
+                                            setUseAlternativePlayerView(false)
+                                          }
+                                          onSpeakText={handleSpeakTextFromAlternativeView}
+                                        />
+                                      ) : (
+                                        <>
+                                          {/* Overlay Play/Pause Button over video (prominent on pause/stop and hover/tap) */}
+                                          <div
+                                            data-testid="video-overlay-play-pause-container"
+                                            className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
+                                              !isVideoPlaying ||
+                                              isPlayerHovered ||
+                                              Boolean(speakingLang)
+                                                ? "opacity-100"
+                                                : "opacity-0"
+                                            }`}
+                                          >
+                                            <button
+                                              type="button"
+                                              data-testid="video-overlay-play-pause-btn"
+                                              aria-label={
+                                                isVideoPlaying || Boolean(speakingLang)
+                                                  ? "Pause playback"
+                                                  : "Play video"
+                                              }
+                                              title={
+                                                isVideoPlaying || Boolean(speakingLang)
+                                                  ? "Pause playback"
+                                                  : "Play video"
+                                              }
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleTogglePlay();
+                                              }}
+                                              className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
+                                            >
+                                              {isVideoPlaying || Boolean(speakingLang) ? (
+                                                <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
+                                              ) : (
+                                                <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
+                                              )}
+                                            </button>
+                                          </div>
+                                          {showVideoSubtitles && (
+                                            <div
+                                              className="pointer-events-none absolute inset-x-3 top-3 text-center"
+                                              aria-live="polite"
+                                            >
+                                              <span
+                                                data-testid="active-subtitle-language"
+                                                className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
+                                                style={{
+                                                  fontSize: `calc(0.75rem * ${videoSubtitleRatio})`,
+                                                }}
+                                              >
+                                                {(() => {
+                                                  const languageCode =
+                                                    speakingLang && speakingRow >= 0
+                                                      ? speakingLang
+                                                      : baseLanguage;
+                                                  const normalizedCode =
+                                                    languageCode === "iw" ? "he" : languageCode;
+                                                  return (
+                                                    LANGS.find(
+                                                      (language) =>
+                                                        language.code === normalizedCode,
+                                                    )?.name ?? normalizedCode.toUpperCase()
+                                                  );
+                                                })()}
+                                              </span>
+                                              <p
+                                                id="active-subtitle-cue-text"
+                                                data-testid="active-subtitle-cue-text"
+                                                dir={
+                                                  speakingLang && RTL.has(speakingLang)
+                                                    ? "rtl"
+                                                    : "ltr"
+                                                }
+                                                className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
+                                                style={{
+                                                  fontSize: `calc(1rem * ${videoSubtitleRatio})`,
+                                                }}
+                                              >
+                                                {speakingLang && speakingRow >= 0 ? (
+                                                  <HighlightedSubtitle
+                                                    text={
+                                                      rows[speakingRow]?.texts?.[speakingLang] ?? ""
+                                                    }
+                                                    progress={
+                                                      speechProgress?.row === speakingRow &&
+                                                      speechProgress.lang === speakingLang
+                                                        ? speechProgress
+                                                        : null
+                                                    }
+                                                  />
+                                                ) : active >= 0 && rows[active] ? (
+                                                  <span>
+                                                    {baseLanguage &&
+                                                    rows[active]?.texts?.[baseLanguage]
+                                                      ? rows[active]?.texts?.[baseLanguage]
+                                                      : Object.values(
+                                                          rows[active]?.texts || {},
+                                                        )[0] || ""}
+                                                  </span>
+                                                ) : (
+                                                  <span className="text-xs opacity-75">
+                                                    Subtitles active
+                                                  </span>
+                                                )}
+                                              </p>
+                                            </div>
                                           )}
-                                        </button>
-                                      </div>
-                                      {showVideoSubtitles && (
-                                        <div
-                                          className="pointer-events-none absolute inset-x-3 top-3 text-center"
-                                          aria-live="polite"
-                                        >
-                                          <span
-                                            data-testid="active-subtitle-language"
-                                            className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
-                                            style={{
-                                              fontSize: `calc(0.75rem * ${videoSubtitleRatio})`,
-                                            }}
-                                          >
-                                            {(() => {
-                                              const languageCode =
-                                                speakingLang && speakingRow >= 0
-                                                  ? speakingLang
-                                                  : baseLanguage;
-                                              const normalizedCode =
-                                                languageCode === "iw" ? "he" : languageCode;
-                                              return (
-                                                LANGS.find(
-                                                  (language) => language.code === normalizedCode,
-                                                )?.name ?? normalizedCode.toUpperCase()
-                                              );
-                                            })()}
-                                          </span>
-                                          <p
-                                            id="active-subtitle-cue-text"
-                                            data-testid="active-subtitle-cue-text"
-                                            dir={
-                                              speakingLang && RTL.has(speakingLang) ? "rtl" : "ltr"
-                                            }
-                                            className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
-                                            style={{
-                                              fontSize: `calc(1rem * ${videoSubtitleRatio})`,
-                                            }}
-                                          >
-                                            {speakingLang && speakingRow >= 0 ? (
-                                              <HighlightedSubtitle
-                                                text={
-                                                  rows[speakingRow]?.texts?.[speakingLang] ?? ""
-                                                }
-                                                progress={
-                                                  speechProgress?.row === speakingRow &&
-                                                  speechProgress.lang === speakingLang
-                                                    ? speechProgress
-                                                    : null
-                                                }
-                                              />
-                                            ) : active >= 0 && rows[active] ? (
-                                              <span>
-                                                {baseLanguage && rows[active]?.texts?.[baseLanguage]
-                                                  ? rows[active]?.texts?.[baseLanguage]
-                                                  : Object.values(rows[active]?.texts || {})[0] ||
-                                                    ""}
-                                              </span>
-                                            ) : (
-                                              <span className="text-xs opacity-75">
-                                                Subtitles active
-                                              </span>
-                                            )}
-                                          </p>
-                                        </div>
+                                        </>
                                       )}
                                     </div>
                                   );
@@ -7863,8 +8060,21 @@ function Index() {
                             </div>
                             <div
                               data-testid="video-display-controls"
-                              className="flex justify-end border-t border-border bg-card/80 px-3 py-2"
+                              className="flex justify-end gap-2 border-t border-border bg-card/80 px-3 py-2"
                             >
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={useAlternativePlayerView ? "default" : "outline"}
+                                aria-pressed={useAlternativePlayerView}
+                                data-testid="toggle-alternative-player-view-btn"
+                                onClick={handleToggleAlternativePlayerView}
+                                className="h-7 gap-1.5 px-2.5 text-xs border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
+                                title="Switch between video player and alternative subtitle/translation view"
+                              >
+                                <Subtitles className="h-3.5 w-3.5" />
+                                {useAlternativePlayerView ? "Video view" : "Alternative view"}
+                              </Button>
                               <Button
                                 type="button"
                                 size="sm"
@@ -9970,7 +10180,7 @@ function Index() {
                                   <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-1.5 font-semibold text-foreground">
                                       <BookOpen className="h-3.5 w-3.5 text-primary" />
-                                      <span>2. Approved Languages ({targetLanguages.length})</span>
+                                      <span>2. Approved Learning Languages ({targetLanguages.length})</span>
                                     </div>
                                     <span className="text-muted-foreground text-[10px] font-mono truncate max-w-48">
                                       {targetLanguages.join(", ") || "None"}

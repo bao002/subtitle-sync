@@ -1531,3 +1531,17 @@ go on
 ```
 clicking on the floating alert button will lead to the log element, to the relevant record where the user would be able to inspect the error message and the stack trace and also to copy all log to clipboard. using timestamp and state machine actions it would be possible to reproduce the error.
 ```
+
+---
+
+### Prompt 120: Alternative View to Video Player for Current Subtitles, Part Sentence, Part Word & TTS Translation
+```
+1. add an alternative view to the video-player where the user can view the current subtitles/part sentence/part word and the translation to the current tts-play lang.
+```
+
+---
+
+### Prompt 121: Fix Learning Goals View Disappearing Sometimes
+```
+fix: learning goals - the view might disapear sometimes
+```

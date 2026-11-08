@@ -6,8 +6,8 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 119 (Task 354) [ACTIVE]:
-  - Task 354 [ACTIVE]: Floating Alert Button Leads to Log Element, Inspect Error Message & Stack Trace, Copy All Log to Clipboard, Timestamp & State Machine Reproduction.
+- Prompt 121 (Task 356) [ACTIVE]:
+  - Task 356 [ACTIVE]: Fix learning goals view disappearing when video plays or stage changes away from stage 1/2.
 - Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
 
 ---

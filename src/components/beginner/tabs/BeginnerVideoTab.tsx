@@ -49,6 +49,8 @@ export interface BeginnerVideoTabProps {
   onSubtitlesRatioChange: (ratio: number) => void;
   showVideoSubtitles: boolean;
   onToggleVideoSubtitles: () => void;
+  useAlternativePlayerView?: boolean;
+  onToggleAlternativePlayerView?: () => void;
 }
 
 export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
@@ -76,6 +78,8 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   onSubtitlesRatioChange,
   showVideoSubtitles,
   onToggleVideoSubtitles,
+  useAlternativePlayerView,
+  onToggleAlternativePlayerView,
 }) => {
   const [inputVal, setInputVal] = useState(url);
 
@@ -197,6 +201,22 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2"
             data-control-category="daily-usage"
           >
+            {onToggleAlternativePlayerView && (
+              <Button
+                type="button"
+                size="sm"
+                variant={useAlternativePlayerView ? "default" : "outline"}
+                aria-pressed={useAlternativePlayerView}
+                data-testid="toggle-alternative-player-view-btn"
+                data-control-category="daily-usage"
+                onClick={onToggleAlternativePlayerView}
+                className="h-7 shrink-0 gap-1.5 px-2.5 text-xs border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
+                title="Switch between video player and alternative subtitle/translation view"
+              >
+                <Subtitles className="h-3.5 w-3.5" />
+                {useAlternativePlayerView ? "Video view" : "Alternative view"}
+              </Button>
+            )}
             <Button
               type="button"
               size="sm"

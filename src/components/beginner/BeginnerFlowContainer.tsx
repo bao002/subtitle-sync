@@ -42,6 +42,8 @@ export interface BeginnerFlowContainerProps {
   webDemoUrlsSlot?: React.ReactNode;
   showVideoSubtitles: boolean;
   onToggleVideoSubtitles: () => void;
+  useAlternativePlayerView?: boolean;
+  onToggleAlternativePlayerView?: () => void;
   onTtsSpeedChange?: (speed: number) => void;
   onTtsVoiceChange?: (voiceURI: string) => void;
   onSubtitlesRatioChange?: (ratio: number) => void;
@@ -84,6 +86,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   webDemoUrlsSlot,
   showVideoSubtitles,
   onToggleVideoSubtitles,
+  useAlternativePlayerView,
+  onToggleAlternativePlayerView,
   onTtsSpeedChange,
   onTtsVoiceChange,
   onSubtitlesRatioChange,
@@ -205,6 +209,8 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             }}
             showVideoSubtitles={showVideoSubtitles}
             onToggleVideoSubtitles={onToggleVideoSubtitles}
+            useAlternativePlayerView={useAlternativePlayerView}
+            onToggleAlternativePlayerView={onToggleAlternativePlayerView}
           />
         </div>
 

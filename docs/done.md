@@ -1,5 +1,41 @@
 # Done tasks
 
+### Task 355 (Prompt 120): Alternative View to Video Player for Current Subtitles, Part Sentence, Part Word & Translation to Current TTS-Play Lang
+
+- **Prompt**:
+  ```
+  1. add an alternative view to the video-player where the user can view the current subtitles/part sentence/part word and the translation to the current tts-play lang.
+  ```
+- **Context & Implementation**:
+  - **1. Dedicated Modular Component `src/components/AlternativeVideoPlayerView.tsx`**:
+    - Created high-clarity alternative display that seamlessly replaces the video player viewport while keeping audio, player events, and timestamps synchronized in the background.
+    - **Current Subtitle & Part-Sentence / Part-Word Progress**:
+      - Displays the full base language subtitle (`data-testid="alternative-view-base-subtitle-card"`).
+      - Tokenizes sentence into interactive word tokens (`data-testid="alternative-view-base-words"`).
+      - Real-time word-level highlighting during video playback (`active-base-word`) matching current time within sentence duration.
+      - Sentence progress bar (`data-testid="alternative-sentence-progress-bar"`) showing completion percentage.
+      - Interactive word click: user can click any part/word to pronounce or inspect.
+    - **Translation to Current TTS-Play Language**:
+      - Displays target sentence translation (`data-testid="alternative-view-tts-translation-card"`, `data-testid="alternative-view-translation-words"`).
+      - Language selector / indicator (`data-testid="alternative-view-tts-lang-select"`) to inspect and switch target TTS languages.
+      - Real-time spoken word / part-sentence highlight during TTS playback (`data-testid="tts-spoken-word-highlight"`) bound to `speechProgress`.
+      - Text direction support (RTL for Hebrew, Arabic, etc.).
+    - **Controls & Navigation**:
+      - Transport buttons (Play/Pause, Prev Sentence, Next Sentence, Replay Sentence).
+      - "Show Video" button (`data-testid="switch-to-standard-video-btn"`) to toggle back to standard video player.
+      - Copy current sentence and translation to clipboard (`data-testid="copy-alternative-subtitles-btn"`).
+  - **2. Storybook-First Component Workflow**:
+    - Implemented Storybook story `src/components/AlternativeVideoPlayerView.stories.tsx` documenting Interactive, VideoPlayingState, TtsSpeakingState, and HebrewRtlTranslation states.
+    - Registered `alternative_player_view` in `src/storybook/StorybookWorkbench.tsx` with full interactive workbench preview.
+  - **3. Parity Integration across Beginner and Advanced Modes**:
+    - **Advanced Mode**: Integrated in `VideoInstancesSwiper.renderPlayerContainer` and added `toggle-alternative-player-view-btn` in `video-display-controls`.
+    - **Beginner Mode**: Supported in `BeginnerFlowContainer` and `BeginnerVideoTab`, with `toggle-alternative-player-view-btn` in `video-display-controls`.
+    - **State Preservation**: The YouTube player iframe element (`handlePlayerRef`) remains mounted in DOM with opacity 0 and pointer-events none while alternative view is active, ensuring continuous audio playback and real-time timestamp updates without unmounting or restarting.
+  - **4. Verification & Testing**:
+    - Authored dedicated automated test suite `scripts/verify-alternative-video-player-view.ts` (`npm run test:alternative-video-player-view`). Passed 100%.
+    - Synchronized version to `v2.1.52` (code `20152`).
+    - Verified compilation (`compile_applet`) and linting (`lint_applet`).
+
 ### Task 354 (Prompt 119): Floating Alert Button Leads to Log Element, Focused Record with Stack Trace & Reproduction Sequence, and Copy All Log
 
 - **Prompt**:
