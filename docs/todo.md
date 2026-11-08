@@ -1,7 +1,8 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
-- **Status**: [ACTIVE]
-- **Active Task**: Task 356 (Prompt 121): Fix Learning Goals View Disappearing Sometimes
-  - **Subtask 356.1**: Remove restrictive stage conditions in `src/routes/index.tsx` so `#stage-2-learning-goals-card` is permanently visible whenever the Languages panel is viewed or opened.
-  - **Subtask 356.2**: Verify Beginner Mode learning goals parity and persistence across playback states.
-  - **Subtask 356.3**: Implement dedicated automated test script `scripts/verify-learning-goals-persistent-visibility.ts`, bump version to `2.1.53`, sync version, compile, lint, commit, and migrate to `docs/done.md`.
+- **Status**: [PENDING]
+- **Active Task**: Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique
+  - **Subtask 312.1**: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
+  - **Subtask 312.2**: Update `src/components/FloatingSubtitleRetryIndicator.tsx` to cycle only between `random` and `ordered` modes, removing `server_alternate` option and tooltip.
+  - **Subtask 312.3**: Update `src/components/AttemptOrderSettings.tsx` to remove `server_alternate` from strategy select dropdown and remove obsolete `useServerAlternate` checkbox.
+  - **Subtask 312.4**: Update test suite, bump version, compile, lint, commit, and migrate Task 312 to `docs/done.md`.

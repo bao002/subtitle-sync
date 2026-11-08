@@ -1545,3 +1545,17 @@ clicking on the floating alert button will lead to the log element, to the relev
 ```
 fix: learning goals - the view might disapear sometimes
 ```
+
+---
+
+### Prompt 122: Go On (Execute Task 356)
+```
+go on
+```
+
+---
+
+### Prompt 123: Under Video Player Add Button to Switch Full Screen
+```
+under the video-player add a button to switch full screen.
+```

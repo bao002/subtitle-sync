@@ -1,5 +1,60 @@
 # Done tasks
 
+### Task 357 (Prompt 123): Under Video Player Add Button to Switch Full Screen
+
+- **Prompt**:
+  ```
+  under the video-player add a button to switch full screen.
+  ```
+- **Context & Implementation**:
+  - **1. Dedicated Full Screen Button in `video-display-controls`**:
+    - Added `video-fullscreen-toggle-btn` directly under the video player in `video-display-controls` (`data-testid="video-fullscreen-toggle-btn"`).
+    - Integrated `Maximize2` (when in normal mode) and `Minimize2` (when in fullscreen mode) icons with dynamic text label ("Full screen" / "Exit full screen") and accessibility attributes (`aria-pressed`, `aria-label`, and `title`).
+    - Styled with clean, modern variant outline/default states matching design system conventions.
+  - **2. Cross-Browser Fullscreen API Implementation**:
+    - Wrapped the video player container in Advanced mode (`#video-player-fullscreen-container` / `data-testid="video-player-fullscreen-container"`) with Tailwind `[&:fullscreen]:flex [&:fullscreen]:items-center [&:fullscreen]:justify-center [&:fullscreen]:bg-black` styling for smooth letterboxing.
+    - Implemented `handleToggleFullscreen` supporting standard `requestFullscreen` / `exitFullscreen` and cross-browser vendor prefixes (`webkit`, `moz`, `ms`).
+    - Added global event listeners for `fullscreenchange`, `webkitfullscreenchange`, `mozfullscreenchange`, and `MSFullscreenChange` to synchronize `isVideoFullscreen` state in real-time on entering or exiting full screen (including Escape key exit).
+  - **3. 100% Parity in Beginner Mode**:
+    - Integrated `video-fullscreen-toggle-btn` in `src/components/beginner/tabs/BeginnerVideoTab.tsx` inside `video-display-controls` directly under the player slot.
+    - Added `id="beginner-player-slot-container"` with `[&:fullscreen]` styling.
+    - Wired `isVideoFullscreen` and `onToggleFullscreen` props through `BeginnerFlowContainer` to `BeginnerVideoTab`, with self-contained fallback for standalone usage.
+  - **4. Verification & Testing**:
+    - Created dedicated automated test `scripts/verify-video-fullscreen-button.ts` (`npm run test:video-fullscreen-button`) validating button presence, icons, Fullscreen API logic, events, Beginner Mode parity, and version synchronization.
+    - Verified all existing regression test suites pass 100%.
+    - Synchronized version across all 5 single-source files to `v2.1.54` (code `20154`).
+    - Verified compilation (`compile_applet`) and linting (`lint_applet`) with 0 errors.
+
+### Task 356 (Prompt 121 & 122): Fix Learning Goals View Disappearing Sometimes
+
+- **Prompt**:
+  ```
+  fix: learning goals - the view might disapear sometimes
+  ```
+- **Context & Implementation**:
+  - **1. Permanent & Unconditional Rendering in Languages Panel (`src/routes/index.tsx`)**:
+    - Identified that `stage-2-learning-goals-card` was conditionally rendered using a restrictive ternary `(currentAccordionStage === 1 || currentAccordionStage === 2 ? ... : ...)`.
+    - When video playback started (`currentAccordionStage === 3`) or user navigated to Settings (`currentAccordionStage === 4`), or during seeking/playback state transitions, the entire Learning Goals card (`#stage-2-learning-goals-card`) would disappear and be replaced by the regular languages view.
+    - Removed the conditional ternary so `#stage-2-learning-goals-card` is permanently and unconditionally rendered inside `panelId === "languages"`.
+    - Preserved additional languages accordion controls and `unified-languages-table` below the learning goals card for complete functionality.
+  - **2. Full Ingredient Integrity & Interactive Controls**:
+    - Verified all 7 core learning goals sections remain intact, functional, and permanently accessible:
+      - 1. Default Source Language selection (`stage-2-default-lang-${langCode}`)
+      - 2. Approved Learning Languages selection & filter (`stage-2-learning-lang-${code}`)
+      - 3. Playback Order section (`stage-2-ingredient-order-section`) with `VideoPlaybackPrecedenceBar`
+      - 4. TTS-Play Ratio sliders (`stage-2-ingredient-ratios-section`) with plus/minus increment/decrement and presets
+      - 5. Blacklisted languages controls (`stage-2-ingredient-blacklist-section`)
+      - 6. Word vs Sentence granularity (`stage-2-ingredient-sentence-word-section`)
+      - 7. Speech Rate sliders (`stage-2-ingredient-speed-section`) with speed presets and plus/minus controls
+  - **3. Beginner Mode Parity & State Persistence**:
+    - Confirmed Beginner Mode in `src/components/beginner/tabs/BeginnerPreferencesTab.tsx` maintains full parity with `#beginner-learning-goals-ratios-container` and `#beginner-learning-goals-filters-container`.
+    - Confirmed `VideoSpecificSettings` in `src/utils/appSettings.ts` and `src/lib/playback-preferences.ts` persist learning goals, ratios, and rates across playback transitions and shared links.
+  - **4. Verification & Testing**:
+    - Implemented dedicated automated test script `scripts/verify-learning-goals-persistent-visibility.ts` (`npm run test:learning-goals-persistent-visibility`).
+    - Verified all regression suites (`verify-accordion-stages-of-appearance.ts`, `verify-learning-goals-language-ratios.ts`, `verify-learning-goals-tts-order-and-video-bar.ts`, `verify-learning-goals-list-presentation-minimal-text.ts`, `verify-main-stage-components-isolated.ts`) pass 100%.
+    - Synchronized version to `v2.1.53` (code `20153`) across all 5 single-source version files.
+    - Successfully compiled (`compile_applet`) and passed linting (`lint_applet`) with 0 errors.
+
 ### Task 355 (Prompt 120): Alternative View to Video Player for Current Subtitles, Part Sentence, Part Word & Translation to Current TTS-Play Lang
 
 - **Prompt**:

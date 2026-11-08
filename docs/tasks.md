@@ -4,11 +4,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 356 (Prompt 121): Fix Learning Goals View Disappearing Sometimes**
-  - Subtask 356.1: Diagnose and resolve conditional rendering logic in `src/routes/index.tsx` so `#stage-2-learning-goals-card` is permanently rendered inside the Languages panel without being dependent on `currentAccordionStage === 1 || currentAccordionStage === 2`.
-  - Subtask 356.2: Ensure Learning Goals view and controls (Default Source Language, Approved Languages, Language Ratios, Word vs Sentence granularity, Speech Rate, and Precedence Bar) remain visible, intact, and interactive across all playback transitions (e.g. stage 3 playback, seeking, pausing) and across Beginner Mode preferences/video tabs.
-  - Subtask 356.3: Implement dedicated automated verification script `scripts/verify-learning-goals-persistent-visibility.ts` (`npm run test:learning-goals-persistent-visibility`), bump app version to `2.1.53`, run `sync-version`, compile, lint, commit, and migrate Task 356 to `docs/done.md`.
-
 - [ ] **Task 312 (Prompt 82): Remove Non-Working Alternating Fetch Plan Technique**
   - Subtask 312.1: Remove `server_alternate` mode and alternating plan references from `src/lib/subtitle-fetch-plan.ts`, updating `FetchStrategyMode` to `"ordered" | "random"`, and cleaning up `DEFAULT_FETCH_STRATEGY_CONFIG`.
   - Subtask 312.2: Update `src/components/FloatingSubtitleRetryIndicator.tsx` to cycle only between `random` and `ordered` modes, removing `server_alternate` option and tooltip.

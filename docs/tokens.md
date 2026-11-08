@@ -6,9 +6,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 121 (Task 356) [ACTIVE]:
-  - Task 356 [ACTIVE]: Fix learning goals view disappearing when video plays or stage changes away from stage 1/2.
-- Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
+- Prompt 123 (Task 357) [COMPLETED]:
+  - Task 357 [COMPLETED]: Added full screen toggle button under the video player across Advanced and Beginner modes.
+- Active Backlog: Task 312 (Prompt 82) in [`docs/tasks.md`](tasks.md).
 
 ---
 
