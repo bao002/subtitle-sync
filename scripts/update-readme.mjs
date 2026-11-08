@@ -22,8 +22,12 @@ import path from "path";
 const readmePath = path.resolve(process.cwd(), "README.md");
 
 if (!fs.existsSync(readmePath)) {
-  console.error("❌ README.md file not found at:", readmePath);
-  process.exit(1);
+  console.warn("⚠️ README.md not found, creating default basic minimalist README.md at:", readmePath);
+  fs.writeFileSync(
+    readmePath,
+    "# Subtitle Sync\n\n1. [Docs](./docs/)\n2. [Demo Website (GitHub Pages)](https://mostuf2556.github.io/subtitle-sync/)\n3. [Report (GitHub Pages)](https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html)\n",
+    "utf8",
+  );
 }
 
 let content = fs.readFileSync(readmePath, "utf8");

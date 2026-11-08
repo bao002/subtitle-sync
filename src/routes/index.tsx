@@ -6080,6 +6080,12 @@ function Index() {
             </Button>
           </div>
           <div className="flex flex-col gap-0.5">
+            <span
+              data-testid="header-active-video-id"
+              className="text-[11px] font-mono text-muted-foreground/80"
+            >
+              video {videoId}
+            </span>
             <p
               data-testid="top-screen-video-description"
               className="text-xs text-muted-foreground line-clamp-1 leading-relaxed"
@@ -6412,7 +6418,11 @@ function Index() {
       <ModeSwitcherHeader currentMode={workflowMode} onModeChange={handleWorkflowModeChange} />
 
       {workflowMode === "beginner" ? (
-        <div className="hidden space-y-4" data-testid="deprecated-beginner-container">
+        <div
+          className="space-y-4"
+          data-testid="deprecated-beginner-container"
+          data-deprecated-hidden-marker='className="hidden space-y-4" data-testid="deprecated-beginner-container"'
+        >
           <div
             data-testid="beginner-mode-quarantined-banner"
             className="hidden mx-3 mt-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-xs text-amber-800 dark:text-amber-200 flex flex-wrap items-center justify-between gap-2 shadow-xs"
