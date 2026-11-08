@@ -5,13 +5,15 @@
  * language ratio compositions (presets) for language learning goals.
  */
 
+import type { SectionOrder, TtsLanguageOrders } from "@/lib/playback-preferences";
+
 export interface LearningProfileConfig {
   maxWordsPerSentence?: number;
   skipIncompleteSentences?: boolean;
-  sectionOrder?: "video-first" | "tts-first" | "in-between";
+  sectionOrder?: SectionOrder;
   rates?: Record<string, number>;
   volumes?: Record<string, number>;
-  ttsLanguageOrders?: Record<string, number>;
+  ttsLanguageOrders?: TtsLanguageOrders;
 }
 
 export interface LanguageRatioComposition {
@@ -23,10 +25,10 @@ export interface LanguageRatioComposition {
   // Learning Profile extensions
   maxWordsPerSentence?: number;
   skipIncompleteSentences?: boolean;
-  sectionOrder?: "video-first" | "tts-first" | "in-between";
+  sectionOrder?: SectionOrder;
   rates?: Record<string, number>;
   volumes?: Record<string, number>;
-  ttsLanguageOrders?: Record<string, number>;
+  ttsLanguageOrders?: TtsLanguageOrders;
 }
 
 export const RATIO_COMPOSITIONS_STORAGE_KEY = "yt_language_ratio_compositions_v1";

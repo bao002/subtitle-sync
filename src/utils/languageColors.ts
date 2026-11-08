@@ -16,6 +16,7 @@ export interface LanguageColorPalette {
   badgeBg: string;
   badgeText: string;
   accentBar: string;
+  dot?: string;
 }
 
 export const LANGUAGE_COLOR_MAP: Record<string, LanguageColorPalette> = {

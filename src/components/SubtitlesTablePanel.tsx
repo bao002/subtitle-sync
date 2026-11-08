@@ -374,7 +374,7 @@ export function SubtitlesTablePanel({
                 >
                   <div className="flex items-center justify-between gap-1.5 flex-wrap">
                     <span className="inline-flex items-center gap-1.5 font-medium">
-                      <span className={`inline-block w-2 h-2 rounded-full ${palette.dot}`} aria-hidden="true" />
+                      <span className={`inline-block w-2 h-2 rounded-full ${palette.dot || palette.accentBar}`} aria-hidden="true" />
                       {subtitleColumnName(l.code, l.name)}
                       {l.isYouTubeOrJson && (
                         <span title="Parsed from YouTube subtitles or .json artifact">

@@ -2,7 +2,7 @@
 import { recordLanguageRatioUpdated } from "../utils/languageUsageTracker";
 
 export type SubtitleRequestMode = "tlang" | "lang";
-export type SectionOrder = "video-first" | "tts-first" | "video-middle";
+export type SectionOrder = "video-first" | "tts-first" | "video-middle" | "in-between";
 export type TtsLanguageOrders = Record<string, SectionOrder>;
 
 /**
@@ -213,6 +213,11 @@ export const setTtsLanguageOrderPreference = (languageCode: string, order: Secti
   if (!normalizedCode) return;
   const orders = getTtsLanguageOrdersPreference();
   orders[normalizedCode] = order;
+  write(KEYS.ttsLanguageOrders, JSON.stringify(orders));
+};
+
+export const saveSectionOrderPreference = setSectionOrder;
+export const saveTtsLanguageOrdersPreference = (orders: TtsLanguageOrders) => {
   write(KEYS.ttsLanguageOrders, JSON.stringify(orders));
 };
 

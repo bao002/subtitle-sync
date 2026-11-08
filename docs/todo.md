@@ -1,6 +1,6 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [ACTIVE]
-- **Active Task**: Task 359 (Prompt 126) - Dedicated Learning Stage with Punchable Word Balloons Exposing Translation
-- **Active Subtask**: Subtask 359.1: Create dedicated component `src/components/WordBalloonLearningView.tsx` with floating balloon styling, punch/pop animations, Web Audio pop sound effect, word translation exposure, score tracking, TTS pronunciation, and sentence navigation.
-- **Next Step**: Implement `src/components/WordBalloonLearningView.tsx`.
+- **Active Task**: Task 362 (Prompt 132) - Fix Stage View Visibility When Clicking on a Stage
+- **Active Subtask**: Subtask 362.1: Fix stage view visibility in `src/routes/index.tsx` so clicking any stage tab, stepper button, or in-panel navigation button immediately makes its view visible, sets its panel to open in `openPanels`, and clears `showOtherSettingsAccordions` when leaving Stage 4.
+- **Next Step**: Update `src/routes/index.tsx` stage navigation handlers and panel filter condition.

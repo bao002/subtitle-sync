@@ -114,7 +114,7 @@ export interface AppSettings {
   maxRetries: number; // Max retry limit to X=2 (Step 2.3)
 }
 
-export const SUPPORTED_LANGUAGES_CATALOG: { code: string; name: string }[] = [
+export const SUPPORTED_LANGUAGES_CATALOG: { code: string; name: string; tts?: string }[] = [
   { code: "en", name: "English" },
   { code: "es", name: "Spanish (Español)" },
   { code: "fr", name: "French (Français)" },
@@ -337,10 +337,11 @@ export function saveAppSettings(settings: AppSettings): void {
 export interface VideoSpecificSettings {
   targetLanguages?: any[];
   ttsRates?: Record<string, number>; // langCode -> rate
+  rates?: Record<string, number>; // alias for ttsRates
   ttsRatios?: Record<string, number>; // langCode -> ratio (1 in N sentences)
   ttsVolumes?: Record<string, number>; // langCode -> volume (0.0 to 1.0)
   ttsBlacklist?: string[];
-  ttsLanguageOrders?: Record<string, string>;
+  ttsLanguageOrders?: Record<string, any>;
   voiceSelections?: Record<string, string>;
   maxWordsPerSentence?: number;
   skipIncompleteSentences?: boolean;
@@ -375,6 +376,7 @@ export function saveVideoSettings(videoId: string, settings: Partial<VideoSpecif
       ttsRates: {
         ...(existing.ttsRates || {}),
         ...(settings.ttsRates || {}),
+        ...(settings.rates || {}),
       },
       ttsRatios: {
         ...(existing.ttsRatios || {}),

@@ -6,9 +6,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 126 (Dedicated Learning Stage with Punchable Word Balloons Exposing Translation) [ACTIVE]:
-  - Executing Task 359: Dedicated Learning Stage with Punchable Word Balloons (Subtasks 359.1 - 359.4).
-- Active Backlog: Task 359 in [`docs/tasks.md`](tasks.md).
+- Prompt 132 (when clicking on a stage - its view sometimes not visible) [ACTIVE]:
+  - Task 362: Fix stage view visibility when clicking on stage tabs/steppers and in-panel navigation buttons by ensuring `showOtherSettingsAccordions` is reset on non-settings stages and target accordion panels are opened reliably.
+- Prior Hotfix: Prompt 131 completed and verified in docs/done.md.
+- Active Backlog: Task 362, Task 359 in [`docs/tasks.md`](tasks.md).
 
 ---
 
