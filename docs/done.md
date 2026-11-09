@@ -1,8 +1,25 @@
 # Done tasks
 
-### Task 364 (Prompt 134): Programmatic Caption Triggering Before Fallback Notification & Automation Guide
+### Task 366 (Prompt 136): GitHub Import Migration & Environment Harmonization
 
 - **Prompt**:
+  ```
+  This app was imported from GitHub repository bao002/subtitle-sync.
+  ```
+- **Context & Implementation**:
+  - **1. Skill Check & Architecture Classification**:
+    - Consulted `/skills/system_skills/github_import_migration/SKILL.md` and routed to Category C: Web / Node.js Compatible (`references/web.md`).
+  - **2. Package Manager & Script Cleanliness**:
+    - Cleaned up forbidden lockfile (`bun.lock`) and ensured zero non-npm lockfiles or configs remain.
+    - Updated `package.json` dev script from `"dev": "vite"` to `"dev": "vite --host 0.0.0.0 --port 3000"` to strictly bind to port 3000 on host 0.0.0.0 according to AI Studio web constraints.
+  - **3. Environment Variables Configuration**:
+    - Created root `.env.example` declaring all required and scanned variables: `GITHUB_REPOSITORY`, `GITHUB_REPOSITORY_OWNER`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_OPENROUTER_API_KEY`, and `VITE_COMMIT_SHA`.
+  - **4. Single Source Versioning**:
+    - Synchronized version across all single-source files to `v2.1.63` (code `20163`) via `npm run sync-version`.
+- **Testing & Verification**:
+  - Verified dedicated automated test suite `scripts/verify-github-import-migration.ts` (`npm run test:github-import-migration`) passing 100%.
+  - Verified `compile_applet` and `lint_applet` co-executed with zero errors.
+
   ```
   1. clicking on default language triggers on the  caption  so better try to trigger it before the fallback of showing the "caption required" notification in order to reduce noise .
 

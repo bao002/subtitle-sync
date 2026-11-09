@@ -1,11 +1,11 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.62",
+  "version": "2.1.63",
   "private": true,
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0 --port 3000",
     "start": "vite preview --host 0.0.0.0 --port 3000",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build -o public/storybook",
