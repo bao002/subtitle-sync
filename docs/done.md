@@ -1,5 +1,64 @@
 # Done tasks
 
+### Task 365 (Prompt 135 - Chapter 2 & Prompt 137): Allow Switching Between Subtitle Table Display/Update Using 1 Table or Multiple Tables
+
+- **Prompt**:
+  ```
+  2. allow to switch between update using 1 table or multipe tables
+  ```
+- **Context & Implementation**:
+  - **1. State Management & Playback Preferences**:
+    - Added `TableDisplayMode` (`"single"` | `"multiple"`), `KEYS.tableDisplayMode` (`"yt_table_display_mode_v1"`), `getTableDisplayModePreference()`, and `setTableDisplayModePreference()` to `src/lib/playback-preferences.ts`.
+    - Added `tableDisplayMode` to `AppSettings`, `DEFAULT_APP_SETTINGS`, and `VideoSpecificSettings` in `src/utils/appSettings.ts`.
+  - **2. SubtitlesTablePanel Dual-Mode Rendering**:
+    - Enhanced `SubtitlesTablePanel.tsx` with display mode switch controls (`data-testid="table-display-mode-controls"`):
+      - `data-testid="btn-table-mode-single"`: "1 Table" displays all language tracks in one unified parallel table (`data-testid="subtitles-table"`).
+      - `data-testid="btn-table-mode-multiple"`: "Multiple Tables" displays separate dedicated tables for each language track (`data-testid="subtitles-multiple-tables-container"`).
+      - `data-testid="toggle-table-display-mode-btn"`: Quick toggle button switching between single and multiple tables.
+    - Implemented multiple tables rendering where each column receives a dedicated card (`data-testid={`subtitles-single-lang-card-${col.code}`}`) and individual `<table>` (`data-testid={`subtitles-table-${col.code}`}`).
+    - Reused `<SubtitleRow cols={[col]} ... />` for each individual table row, guaranteeing instantaneous row synchronization, timestamp rendering, running index `#`, active row highlighting, and audio/speech synchronization across all tables without code duplication.
+  - **3. Parity in Advanced & Beginner Modes**:
+    - In `src/routes/index.tsx`, initialized persistent `tableDisplayMode` state and `handleTableDisplayModeChange` handler.
+    - Wired `tableDisplayMode` and `onTableDisplayModeChange` to both the Beginner mode (`subtitlesTableSlot`) and Advanced mode (`panelId === "subtitles"`), satisfying 100% functional parity.
+  - **4. Storybook Stories**:
+    - Created `src/components/SubtitlesTablePanel.stories.tsx` documenting `SingleTableMode`, `MultipleTablesMode`, and `Interactive` stories.
+  - **5. Single Source Versioning**:
+    - Bumped application version to `v2.1.65` (code `20165`) synchronized across `package.json` and `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+- **Testing & Verification**:
+  - Created dedicated automated test script `scripts/verify-single-vs-multiple-subtitles-tables.ts` (`npm run test:single-vs-multiple-tables`) passing 100%.
+  - Verified regression test suites `npm run test:word-balloon-learning` and `npm run test:github-import-migration` passing 100%.
+  - Verified `compile_applet` and `lint_applet` with zero errors.
+
+
+### Task 359 (Prompt 135 - Chapter 1 & Prompt 137): Dedicated Learning Stage with Punchable Word Balloons Exposing Translation
+
+- **Prompt**:
+  ```
+  1. go on.
+  ```
+- **Context & Implementation**:
+  - **1. Dedicated Modular Component `src/components/WordBalloonLearningView.tsx`**:
+    - Created high-engagement interactive learning arena (`#word-balloon-learning-view`) replacing standard video viewport.
+    - Each word in the active sentence is rendered as a floating balloon (`data-testid="word-balloons-container"`, `balloon-card-${index}`).
+    - Punch / pop interaction: Clicking a balloon pops it with CSS scale/pop animation, triggers realistic pop sound effect synthesized dynamically via Web Audio API (`AudioContext`), reveals word translation (`data-testid="balloon-translation-${index}"`), and pronounces the word via TTS.
+    - Progress tracking: Real-time counter of punched vs remaining balloons (`balloon-progress-text`) and progress bar (`balloon-progress-bar`).
+    - Sentence navigation & controls: Previous sentence, next sentence, replay sentence, sound toggle (mute/unmute pop sounds), punch all balloons, and reset balloons.
+    - Translation language switcher (`balloon-target-lang-select`) allowing live switching of target languages with RTL support.
+  - **2. Storybook Coverage**:
+    - Added comprehensive Storybook stories in `src/components/WordBalloonLearningView.stories.tsx` covering `Default`, `Interactive`, and `HebrewTargetRTL`.
+  - **3. Advanced Mode Integration & Stage 5 Stepper**:
+    - Integrated Stage 5 "Word Balloons" stepper button (`data-testid="stage-step-learning"`) in `src/routes/index.tsx` within `#accordion-stages-stepper`.
+    - Added `<Button data-testid="toggle-word-balloon-learning-btn">` in `video-display-controls` to toggle seamlessly between standard video playback and Word Balloons view.
+    - Handled `currentAccordionStage === 5` with strict stage isolation and persistence.
+  - **4. 100% Parity in Beginner Mode**:
+    - Integrated `<Button data-testid="toggle-word-balloon-learning-btn">` in `video-display-controls` within `BeginnerVideoTab.tsx`.
+    - Forwarded props through `BeginnerFlowContainer.tsx` to maintain complete functional parity.
+  - **5. Single Source Versioning**:
+    - Bumped application version to `v2.1.64` (code `20164`) synchronized across all single-source files via `npm run sync-version`.
+- **Testing & Verification**:
+  - Authored dedicated automated test suite `scripts/verify-word-balloon-learning-stage.ts` (`npm run test:word-balloon-learning`) passing 100%.
+  - Verified `compile_applet` and `lint_applet` passing with zero errors.
+
 ### Task 366 (Prompt 136): GitHub Import Migration & Environment Harmonization
 
 - **Prompt**:

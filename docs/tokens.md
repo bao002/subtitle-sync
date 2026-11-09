@@ -6,9 +6,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 136 (GitHub Import Migration & Environment Harmonization) [ACTIVE]:
-  - Task 366: GitHub Import Migration & Environment Harmonization following `/skills/system_skills/github_import_migration/SKILL.md`.
-- Active Backlog: Task 366, Task 359, and Task 365 in [`docs/tasks.md`](tasks.md).
+- Prompt 137 (Serial Execution: Task 359 Word Balloons Learning Stage [COMPLETED], Task 365 Switch between 1 table or multiple tables [COMPLETED]):
+  - Task 359: [COMPLETED] Dedicated learning stage with punchable word balloons exposing translation in `src/routes/index.tsx`, `video-display-controls`, Beginner mode, and test verification.
+  - Task 365: [COMPLETED] Allow switching between updating/rendering 1 table vs multiple tables.
+- Active Backlog: Empty (all tasks completed and archived in `docs/done.md`).
 
 ---
 

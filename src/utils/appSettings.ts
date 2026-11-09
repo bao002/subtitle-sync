@@ -76,6 +76,9 @@ export interface AppSettings {
     offlineLocalCache: boolean;
   };
 
+  // Subtitle table display: 1 table vs multiple tables
+  tableDisplayMode?: "single" | "multiple";
+
   // Playback Order
   playOrder: "video_then_tts" | "tts_then_video";
 
@@ -261,6 +264,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   },
 
   playOrder: "video_then_tts",
+  tableDisplayMode: "single",
   enableOnDemandTranslation: true,
   onDemandTranslationSentencesAhead: 10,
   openRouterModel: "openrouter/auto:free",
@@ -346,6 +350,7 @@ export interface VideoSpecificSettings {
   maxWordsPerSentence?: number;
   skipIncompleteSentences?: boolean;
   playOrder?: "video_first" | "tts_first";
+  tableDisplayMode?: "single" | "multiple";
   sourceLang?: string;
   activeTargetLang?: string;
   lastUpdated?: number;

@@ -360,6 +360,9 @@ import {
   PICK_WORD_STRATEGY_EVENT,
   saveSectionOrderPreference,
   saveTtsLanguageOrdersPreference,
+  getTableDisplayModePreference,
+  setTableDisplayModePreference,
+  type TableDisplayMode,
   type SectionOrder,
   type TtsLanguageOrders,
   type SubtitleRequestMode,
@@ -1456,6 +1459,15 @@ function Index() {
     maxTtsWordsRef.current = simpleParserConfig.maxWordsPerSentence;
     skipIncompleteRef.current = Boolean(simpleParserConfig.skipIncompleteSentences);
   }, [simpleParserConfig.maxWordsPerSentence, simpleParserConfig.skipIncompleteSentences]);
+
+  const [tableDisplayMode, setTableDisplayMode] = useState<TableDisplayMode>(() => {
+    return getTableDisplayModePreference();
+  });
+
+  const handleTableDisplayModeChange = useCallback((mode: TableDisplayMode) => {
+    setTableDisplayMode(mode);
+    setTableDisplayModePreference(mode);
+  }, []);
 
   const setBaseLanguage = useCallback((lang: string) => {
     // The default language can only be one of those languages their subtitles have been successfully fetched already
@@ -7681,6 +7693,8 @@ function Index() {
                 onSpeakCue={handleSpeakCue}
                 blacklist={ttsBlacklist}
                 onTablePlay={handlePlayVideo}
+                tableDisplayMode={tableDisplayMode}
+                onTableDisplayModeChange={handleTableDisplayModeChange}
               />
             }
           />
@@ -8413,6 +8427,19 @@ function Index() {
                               >
                                 <Subtitles className="h-3.5 w-3.5" />
                                 {useAlternativePlayerView ? "Video view" : "Alternative view"}
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={showWordBalloonLearningView ? "default" : "outline"}
+                                aria-pressed={showWordBalloonLearningView}
+                                data-testid="toggle-word-balloon-learning-btn"
+                                onClick={handleToggleWordBalloonLearningView}
+                                className="h-7 gap-1.5 px-2.5 text-xs border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
+                                title="Switch between video player and interactive punchable word balloons learning view"
+                              >
+                                <Sparkles className="h-3.5 w-3.5" />
+                                {showWordBalloonLearningView ? "Video view" : "Word Balloons"}
                               </Button>
                               <Button
                                 type="button"
@@ -12798,6 +12825,8 @@ function Index() {
                               onSpeakCue={handleSpeakCue}
                               blacklist={ttsBlacklist}
                               onTablePlay={handlePlayVideo}
+                              tableDisplayMode={tableDisplayMode}
+                              onTableDisplayModeChange={handleTableDisplayModeChange}
                             />
                             {currentAccordionStage === 2 && (
                               <div

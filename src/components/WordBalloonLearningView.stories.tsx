@@ -88,6 +88,10 @@ export const Default: Story = {
   render: () => <InteractiveStoryWrapper />,
 };
 
+export const Interactive: Story = {
+  render: () => <InteractiveStoryWrapper />,
+};
+
 export const HebrewTargetRTL: Story = {
   render: () => <InteractiveStoryWrapper targetLanguage="he" />,
 };
