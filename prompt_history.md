@@ -1709,3 +1709,17 @@ This app was imported from GitHub repository bao002/subtitle-sync.
 go on
 ```
 
+---
+
+### Prompt 138: GitHub Import Migration & Environment Harmonization
+```
+This app was imported from GitHub repository brownman556/subtitle-sync.
+```
+
+---
+
+### Prompt 139: Fix GitHub Pages Deployment and README.md Links
+```
+fix github pages deployment and README.md links
+```
+

@@ -6,10 +6,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 137 (Serial Execution: Task 359 Word Balloons Learning Stage [COMPLETED], Task 365 Switch between 1 table or multiple tables [COMPLETED]):
-  - Task 359: [COMPLETED] Dedicated learning stage with punchable word balloons exposing translation in `src/routes/index.tsx`, `video-display-controls`, Beginner mode, and test verification.
-  - Task 365: [COMPLETED] Allow switching between updating/rendering 1 table vs multiple tables.
-- Active Backlog: Empty (all tasks completed and archived in `docs/done.md`).
+- Prompt 139 (Fix GitHub Pages Deployment and README.md Links):
+  - Task 368: [COMPLETED] Fixed GitHub Pages deployment configuration, added .nojekyll, ensured README.md contains Storybook & Report links, synchronized update-readme.mjs, and verified all related tests.
+- Active Backlog: Empty (all prompt tasks completed and archived in `docs/done.md`).
 
 ---
 

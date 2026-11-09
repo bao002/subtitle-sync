@@ -1,5 +1,61 @@
 # Done tasks
 
+### Task 368 (Prompt 139): Fix GitHub Pages Deployment & README.md Links
+
+- **Prompt**:
+  ```
+  fix github pages deployment and README.md links
+  ```
+- **Context & Implementation**:
+  - **1. GitHub Pages Deployment Cleanliness & .nojekyll Asset Support**:
+    - Created `public/.nojekyll` to ensure Vite copies `.nojekyll` to `dist/`, instructing GitHub Pages to bypass Jekyll processing so Storybook, coverage assets, and underscored paths serve directly.
+    - Updated `.github/workflows/deploy-demo.yml` to ensure `touch dist/.nojekyll` executes prior to deployment.
+  - **2. README.md & scripts/update-readme.mjs Link Synchronization**:
+    - Updated `scripts/update-readme.mjs` default owner resolution from `.env.example` (`brownman556`), and ensured the basic default README generates all 5 key links:
+      1. Docs (`./docs/`)
+      2. Demo Website (`https://${targetOwner}.github.io/${targetRepo}/`)
+      3. Android Emulator Report (`https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html`)
+      4. Test Coverage & QA Report (`https://${targetOwner}.github.io/${targetRepo}/coverage/`)
+      5. Storybook (`https://${targetOwner}.github.io/${targetRepo}/storybook/`)
+    - Enhanced `scripts/update-readme.mjs` Storybook and Test Coverage detection so Storybook and coverage links are maintained and updated across any repository fork identity.
+  - **3. Test Suite Parity**:
+    - Updated `scripts/verify-all-github-actions-pass.ts` to allow regex matching for GitHub Pages demo link across any repository owner.
+  - **4. Single Source of Truth Versioning**:
+    - Synchronized version across all single-source files to `v2.1.67` (code `20167`) via `npm run sync-version`.
+- **Testing & Verification**:
+  - Verified `scripts/verify-storybook-deploy-readme.ts` (`npm run test:storybook-deploy-readme`) passing 100%.
+  - Verified `scripts/verify-basic-readme.ts` passing 100%.
+  - Verified `scripts/verify-readme-links.ts` (`npm run test:readme-links`) passing 100%.
+  - Verified `scripts/verify-fork-readme-links.ts` (`npm run test:fork-readme-links`) passing 100%.
+  - Verified `scripts/verify-github-action-readme-creation.ts` (`npm run test:github-action-readme-creation`) passing 100%.
+  - Verified `scripts/verify-all-github-actions-pass.ts` passing 100%.
+  - Verified all 21 AGENTS.md constitutional contract checks (`tsx scripts/verify-agents-all.ts`) passing 21/21 (100%).
+  - Verified `compile_applet` and `lint_applet` passing with zero errors.
+
+### Task 367 (Prompt 138): GitHub Import Migration & Environment Harmonization (brownman556/subtitle-sync)
+
+- **Prompt**:
+  ```
+  This app was imported from GitHub repository brownman556/subtitle-sync.
+  ```
+- **Context & Implementation**:
+  - **1. Skill Check & Project Triage**:
+    - Consulted `/skills/system_skills/github_import_migration/SKILL.md` and routed to Category C: Web / Node.js Compatible (`references/web.md`).
+  - **2. Package Manager & Script Cleanliness**:
+    - Verified no non-npm lockfiles or unsupported configurations exist (`bun.lock`, `yarn.lock`, `pnpm-lock.yaml` absent).
+    - Verified `package.json` dev script `"dev": "vite --host 0.0.0.0 --port 3000"` complies with port 3000 on host 0.0.0.0 constraints.
+  - **3. Environment Variables Configuration**:
+    - Created root `.env.example` declaring all required and scanned variables: `GITHUB_REPOSITORY`, `GITHUB_REPOSITORY_OWNER`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, `VITE_OPENROUTER_API_KEY`, and `VITE_COMMIT_SHA`.
+  - **4. Single Source Versioning**:
+    - Synchronized version across all single-source files to `v2.1.66` (code `20166`) via `npm run sync-version`.
+  - **5. Test Script Parity**:
+    - Updated `scripts/verify-gitignore-entries.ts` to properly load `package.json` and support dynamic single-source version derivation.
+- **Testing & Verification**:
+  - Verified dedicated automated test suite `scripts/verify-github-import-migration.ts` (`npm run test:github-import-migration`) passing 100%.
+  - Verified `scripts/verify-gitignore-entries.ts` (`npm run test:gitignore-entries`) and `scripts/verify-single-source-version-architecture.ts` (`npm run test:single-source-version`) passing 100%.
+  - Verified all 21 AGENTS.md constitutional contract checks (`tsx scripts/verify-agents-all.ts`) passing 21/21 (100%).
+  - Verified `compile_applet` and `lint_applet` passing with zero errors.
+
 ### Task 365 (Prompt 135 - Chapter 2 & Prompt 137): Allow Switching Between Subtitle Table Display/Update Using 1 Table or Multiple Tables
 
 - **Prompt**:

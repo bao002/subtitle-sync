@@ -19,7 +19,7 @@ import path from "path";
  *   VIDEO_SIZE_BYTES
  */
 
-let targetOwner = "mostuf2556";
+let targetOwner = "brownman556";
 let targetRepo = "subtitle-sync";
 
 if (process.env.GITHUB_REPOSITORY) {
@@ -28,6 +28,14 @@ if (process.env.GITHUB_REPOSITORY) {
   if (envRepo) targetRepo = envRepo;
 } else if (process.env.GITHUB_REPOSITORY_OWNER) {
   targetOwner = process.env.GITHUB_REPOSITORY_OWNER;
+} else if (fs.existsSync(path.resolve(process.cwd(), ".env.example"))) {
+  const envContent = fs.readFileSync(path.resolve(process.cwd(), ".env.example"), "utf8");
+  const repoMatch = envContent.match(/GITHUB_REPOSITORY=([^\s]+)/);
+  if (repoMatch && repoMatch[1].includes("/")) {
+    const [scannedOwner, scannedRepo] = repoMatch[1].split("/");
+    if (scannedOwner) targetOwner = scannedOwner;
+    if (scannedRepo) targetRepo = scannedRepo;
+  }
 }
 
 if (process.argv[2]) {
@@ -50,7 +58,7 @@ if (!fs.existsSync(readmePath)) {
   console.warn("⚠️ README.md not found, creating default basic minimalist README.md at:", readmePath);
   fs.writeFileSync(
     readmePath,
-    `# Subtitle Sync\n\n1. [Docs](./docs/)\n2. [Demo Website (GitHub Pages)](https://${targetOwner}.github.io/${targetRepo}/)\n3. [Report (GitHub Pages)](https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html)\n`,
+    `# Subtitle Sync\n\n1. [Docs](./docs/)\n2. [Demo Website (GitHub Pages)](https://${targetOwner}.github.io/${targetRepo}/)\n3. [Report (GitHub Pages)](https://${targetOwner}.github.io/${targetRepo}/android-emulator-report.html)\n4. [Test Coverage & QA Report (GitHub Pages)](https://${targetOwner}.github.io/${targetRepo}/coverage/)\n5. [Storybook (GitHub Pages)](https://${targetOwner}.github.io/${targetRepo}/storybook/)\n`,
     "utf8",
   );
 }
@@ -93,18 +101,37 @@ content = content.replace(
   `https://${targetOwner}.github.io/${targetRepo}/`,
 );
 
-// 5. Update or Ensure Storybook GitHub Pages link:
+// 5. Update or Ensure Storybook & Coverage GitHub Pages links:
+const storybookUrl = `https://${targetOwner}.github.io/${targetRepo}/storybook/`;
+const coverageUrl = `https://${targetOwner}.github.io/${targetRepo}/coverage/`;
+
 if (!/\[.*Storybook.*\]\(https:\/\/[a-zA-Z0-9_\-.]+\.github\.io\/[a-zA-Z0-9_\-.]+\/storybook\/?\)/i.test(content)) {
-  const storybookUrl = `https://${targetOwner}.github.io/${targetRepo}/storybook/`;
   if (content.includes("coverage")) {
     content = content.replace(
       /(\d+\.\s*\[Test Coverage [^\]]+\]\([^\)]+\)\n)/,
       `$15. [Storybook (GitHub Pages)](${storybookUrl})\n`,
     );
-    let itemIndex = 1;
-    content = content.replace(/^(\d+)\.\s*(\[[^\]]+\]\([^\)]+\))/gm, (_m, _num, rest) => `${itemIndex++}. ${rest}`);
+  } else if (content.includes("android-emulator-report.html")) {
+    content = content.replace(
+      /(\d+\.\s*\[Report [^\]]+\]\([^\)]+\)\n)/,
+      `$14. [Test Coverage & QA Report (GitHub Pages)](${coverageUrl})\n5. [Storybook (GitHub Pages)](${storybookUrl})\n`,
+    );
+  } else {
+    content += `\n4. [Test Coverage & QA Report (GitHub Pages)](${coverageUrl})\n5. [Storybook (GitHub Pages)](${storybookUrl})\n`;
   }
+  let itemIndex = 1;
+  content = content.replace(/^(\d+)\.\s*(\[[^\]]+\]\([^\)]+\))/gm, (_m, _num, rest) => `${itemIndex++}. ${rest}`);
+} else {
+  content = content.replace(
+    /https:\/\/[a-zA-Z0-9_\-.]+\.github\.io\/[a-zA-Z0-9_\-.]+\/storybook\/?/g,
+    storybookUrl,
+  );
 }
+
+content = content.replace(
+  /https:\/\/[a-zA-Z0-9_\-.]+\.github\.io\/[a-zA-Z0-9_\-.]+\/coverage\/?/g,
+  coverageUrl,
+);
 
 // 6. Fallback replacement for historical username patterns:
 content = content.replace(/mostuf\d+/g, targetOwner);

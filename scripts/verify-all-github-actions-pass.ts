@@ -83,7 +83,11 @@ const readmePath = path.join(rootDir, "README.md");
 assert.ok(fs.existsSync(readmePath), "README.md must exist in root");
 const readmeContent = fs.readFileSync(readmePath, "utf-8");
 assert.ok(readmeContent.split("\n").length <= 15, "README.md must be concise (<= 15 lines)");
-assert.ok(readmeContent.includes("https://mostuf2556.github.io/subtitle-sync/"), "README.md must contain demo link");
+assert.ok(
+  /https:\/\/[a-zA-Z0-9_\-.]+\.github\.io\/(subtitle-sync|Youtubenet6)\/?/.test(readmeContent) ||
+    readmeContent.includes("https://mostuf2556.github.io/subtitle-sync/"),
+  "README.md must contain demo link",
+);
 assert.ok(readmeContent.includes("android-emulator-report.html"), "README.md must contain report link");
 assert.ok(readmeContent.includes("docs/"), "README.md must link to docs");
 execSync("node scripts/update-readme.mjs mostuf2556 subtitle-sync", {
