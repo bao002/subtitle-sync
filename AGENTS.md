@@ -132,7 +132,10 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-when clicking on a stage - its view sometimes not visible
+1. clicking on default language triggers on the  caption  so better try to trigger it before the fallback of showing the "caption required" notification in order to reduce noise .
+
+ describe how triggering caption is achived without using the native youtube caption icon  on automation_enable_captions.md
 ```
+
 
 

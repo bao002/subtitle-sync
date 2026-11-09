@@ -1666,5 +1666,28 @@ error 1: 11:01:36 PM [vite] (client) hmr update /src/styles.css, /src/components
 when clicking on a stage - its view sometimes not visible
 ```
 
+---
+
+### Prompt 133: Fix the errors in the app
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 11:36:05 PM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/ApkReleaseModal.tsx, /src/components/ShareStateModal.tsx, /src/components/FloatingErrorButton.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+error 1: 11:36:05 PM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 134: Auto-Enable Captions Programmatically Before Showing Captions Required Notification
+```
+1. clicking on default language triggers on the  caption  so better try to trigger it before the fallback of showing the "caption required" notification in order to reduce noise .
+
+ describe how triggering caption is achived without using the native youtube caption icon  on automation_enable_captions.md
+```
+
+
+
 
 

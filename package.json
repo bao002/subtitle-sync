@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.60",
+  "version": "2.1.62",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -252,6 +252,9 @@
     "test:subtitle-api-fallback": "tsx scripts/verify-subtitle-api-fallback.ts",
     "test:playwright-locators": "tsx scripts/verify-playwright-locators.ts",
     "test:hotfix": "tsx scripts/verify-hotfix-links-and-actions.ts",
+    "test:hotfix-index-lint": "tsx scripts/verify-hotfix-index-lint-errors.ts",
+    "test:stage-click-view-visibility": "tsx scripts/verify-stage-click-view-visibility.ts",
+    "test:auto-enable-captions": "tsx scripts/verify-auto-enable-captions-before-alert.ts",
     "test:hotfix-dev-exports": "tsx scripts/verify-hotfix-dev-exports-and-logger.ts",
     "test:hotfix-rows-init": "tsx scripts/verify-hotfix-rows-initialization.ts",
     "test:fork-readme-links": "tsx scripts/verify-fork-readme-links.ts",

@@ -6,10 +6,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 132 (when clicking on a stage - its view sometimes not visible) [ACTIVE]:
-  - Task 362: Fix stage view visibility when clicking on stage tabs/steppers and in-panel navigation buttons by ensuring `showOtherSettingsAccordions` is reset on non-settings stages and target accordion panels are opened reliably.
-- Prior Hotfix: Prompt 131 completed and verified in docs/done.md.
-- Active Backlog: Task 362, Task 359 in [`docs/tasks.md`](tasks.md).
+- Prompt 134 (Auto-enable captions before fallback notification & document automation) [COMPLETED]:
+  - Task 364: Implemented programmatic caption track triggering via `player.loadModule("captions")` and `setOption("captions", "track", ...)` with a 3.5s quiet grace window before displaying fallback "Captions Required" notification to eliminate noise; authored comprehensive architectural guide in `docs/automation_enable_captions.md`. Verified with `npm run test:auto-enable-captions`.
+- Completed & Migrated to `docs/done.md`. Version synchronized to `v2.1.62` (code `20162`).
+- Active Backlog: Task 359 in [`docs/tasks.md`](tasks.md).
 
 ---
 

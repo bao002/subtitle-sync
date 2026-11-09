@@ -1,5 +1,83 @@
 # Done tasks
 
+### Task 364 (Prompt 134): Programmatic Caption Triggering Before Fallback Notification & Automation Guide
+
+- **Prompt**:
+  ```
+  1. clicking on default language triggers on the  caption  so better try to trigger it before the fallback of showing the "caption required" notification in order to reduce noise .
+
+   describe how triggering caption is achived without using the native youtube caption icon  on automation_enable_captions.md
+  ```
+- **Context & Implementation**:
+  - **1. Programmatic Caption Activation & Noise Reduction**:
+    - Created `triggerProgrammaticCaptions` callback in `src/routes/index.tsx` that uses `player.loadModule?.("captions")` and `player.setOption?.("captions", "track", { languageCode: targetLang })` to command YouTube's caption module directly through code without requiring user interaction with the player chrome.
+    - Updated `handleSelectDefaultSubtitle` and `onReady` to trigger programmatic caption activation immediately upon default language selection or player readiness.
+    - Added `captionsAlertGraceActive` state and effect providing a quiet grace window (3.5s) on video change or Stage 1 entry.
+    - Suppressed the intrusive floating red "Captions Required" alert (`floating-no-captions-alert`) while `captionsAlertGraceActive` is active, allowing automated caption fetching to succeed silently and eliminating premature UI noise.
+    - Updated `video-accordion-red-instruction` to show non-alarming status during the grace window and added a manual on-demand button `<Button data-testid="btn-auto-trigger-captions">Auto-Enable CC</Button>`.
+  - **2. Automation Guide Documentation (`docs/automation_enable_captions.md`)**:
+    - Created comprehensive architectural guide `docs/automation_enable_captions.md` under `docs/*.md` (following strict location & zero duplicate policies).
+    - Described how triggering captions is achieved without using the native YouTube caption icon:
+      - `playerVars: { cc_load_policy: 1, cc_lang_pref: ... }`
+      - `player.loadModule("captions")`
+      - `player.setOption("captions", "track", { languageCode })`
+      - The `timedtext` HTTP network request interception pipeline on Android native shell (`shouldInterceptRequest`) and Web.
+      - How clicking default language coordinates with the primary player registry to trigger authentic timedtext streams.
+      - Quiet grace window architecture and noise reduction strategy.
+  - **3. Single Source of Truth Versioning**:
+    - Synchronized version across all 5 single-source files to `v2.1.62` (code `20162`) via `npm run sync-version`.
+- **Testing & Verification**:
+  - Authored dedicated automated test suite `scripts/verify-auto-enable-captions-before-alert.ts` (`npm run test:auto-enable-captions`) passing 100%.
+  - Verified `npm run test:accordion-stages-of-appearance` passing 100%.
+  - Verified `npm run test:single-source-version` passing 100%.
+  - Verified all 21 AGENTS.md constitutional contract checks (`npm run test:agents-all`) passing 21/21 (100%).
+  - Verified `compile_applet` and `lint_applet` passing with zero errors.
+
+### Hotfix (Prompt 133): Fix TypeScript and Prettier Lint Errors in src/routes/index.tsx
+
+- **Issue / Trigger**:
+  - Manual fix trigger reported errors in app modules during Vite HMR reload (`styles.css`, `routes/index.tsx`, `FloatingErrorButton.tsx`, etc.).
+  - Running `npm run lint` (`eslint src/lib src/routes`) identified 2 lint failures in `src/routes/index.tsx`:
+    1. Line 7871: `@typescript-eslint/no-explicit-any` on `.filter((panelId: any) => {`.
+    2. Line 8555: `prettier/prettier` error requiring multiline argument formatting on `setOpenPanels`.
+- **Root Cause**:
+  - `panelId` in `panelOrder.filter(...)` was untyped/typed as `any` rather than `PanelId`.
+  - Single-line `setOpenPanels((prev) => ({ ...prev, playback: true, library: true }))` exceeded Prettier column width formatting rules.
+- **Implementation**:
+  - In `src/routes/index.tsx`:
+    - Updated `.filter((panelId: PanelId) => {` to strictly type `panelId` as `PanelId`.
+    - Formatted `setOpenPanels` with multiline properties conforming to Prettier rules.
+    - Ensured `setShowOtherSettingsAccordions(false)` is explicitly invoked in `settings-open-stage-0-btn` and `onProceedToStage`.
+- **Testing & Verification**:
+  - Authored dedicated automated test suite `scripts/verify-hotfix-index-lint-errors.ts` (`npm run test:hotfix-index-lint`).
+  - Verified `lint_applet` (`npm run lint`) passes with 0 errors.
+  - Verified `compile_applet` passes with 0 errors.
+
+### Task 362 (Prompt 132): Fix Stage View Visibility When Clicking on a Stage
+
+- **Prompt**:
+  ```
+  when clicking on a stage - its view sometimes not visible
+  ```
+- **Context & Implementation**:
+  - **1. Automatic Stage Panel Expansion Guarantee**:
+    - Added an active `useEffect` in `src/routes/index.tsx` listening to `currentAccordionStage` changes.
+    - Whenever `currentAccordionStage` changes (via stage stepper buttons, next/back navigation buttons, header settings toggle, or query parameters), the corresponding stage accordion is automatically set to `open: true` in `openPanels`:
+      - Stage 0: `setOpenPanels((prev) => ({ ...prev, fetchedSubtitles: true }))` and `setShowOtherSettingsAccordions(false)`
+      - Stage 1: `setOpenPanels((prev) => ({ ...prev, languages: true }))` and `setShowOtherSettingsAccordions(false)`
+      - Stage 2: `setOpenPanels((prev) => ({ ...prev, subtitles: true }))` and `setShowOtherSettingsAccordions(false)`
+      - Stage 3: `setOpenPanels((prev) => ({ ...prev, player: true }))` and `setShowOtherSettingsAccordions(false)`
+      - Stage 4: `setOpenPanels((prev) => ({ ...prev, playback: true, library: true }))` and `setShowOtherSettingsAccordions(true)`
+  - **2. In-Panel Navigation Synchronization**:
+    - Synchronized all stage jump buttons (`stage-1-next-button`, `stage-2-to-video-button`, `stage-3-back-to-subtitles-btn`, `stage-3-to-settings-btn`, `settings-open-stage-0-btn`, and `onProceedToStage`) to ensure both `currentAccordionStage` and `openPanels` are updated immediately.
+  - **3. Single Source of Truth Versioning**:
+    - Synchronized version across all 5 single-source files to `v2.1.61` (code `20161`) via `npm run sync-version`.
+- **Testing & Verification**:
+  - Authored dedicated automated test suite `scripts/verify-stage-click-view-visibility.ts` (`npm run test:stage-click-view-visibility`) passing 100%.
+  - Verified `npm run test:accordion-stages-of-appearance` passing 100%.
+  - Verified `npm run test:agents-all` passing 21/21 checks 100%.
+  - Verified `compile_applet` and `lint_applet` passing with zero errors.
+
 ### Hotfix (Prompt 131): Fix TypeScript Compiler & Dev Server Module Errors
 
 - **Issue / Trigger**:

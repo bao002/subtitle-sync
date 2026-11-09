@@ -1493,6 +1493,7 @@ function Index() {
       });
       try {
         const primaryPlayer = multiVideoPlayerRegistry.get("primary");
+        primaryPlayer?.loadModule?.("captions");
         primaryPlayer?.setOption?.("captions", "track", { languageCode: langCode });
       } catch {
         // ignore
@@ -4932,6 +4933,49 @@ function Index() {
   const handledVideoFirstSections = useRef<Set<string>>(new Set());
   const [playedRecordsCount, setPlayedRecordsCount] = useState(0);
 
+  // Quiet grace period for programmatic caption activation before showing "Captions Required" notification
+  const [captionsAlertGraceActive, setCaptionsAlertGraceActive] = useState<boolean>(true);
+
+  const triggerProgrammaticCaptions = useCallback(
+    (preferredLang?: string) => {
+      const targetLang =
+        preferredLang ||
+        baseLanguage ||
+        (defaultSubtitleLanguages.length > 0 ? defaultSubtitleLanguages[0] : "") ||
+        (favoriteLanguages.length > 0 ? favoriteLanguages[0] : "") ||
+        "en";
+      try {
+        const p = player.current || multiVideoPlayerRegistry.get("primary");
+        if (p) {
+          p.loadModule?.("captions");
+          p.setOption?.("captions", "track", { languageCode: targetLang });
+          logInterception("Programmatically triggered caption track before alert fallback", {
+            videoId,
+            targetLang,
+          });
+        }
+      } catch (err: unknown) {
+        logError("Interception", "Programmatic caption activation error", {
+          videoId,
+          error: String(err),
+        });
+      }
+    },
+    [baseLanguage, defaultSubtitleLanguages, favoriteLanguages, videoId],
+  );
+
+  useEffect(() => {
+    // When videoId changes, or when entering Stage 1, start the quiet grace window and trigger captions
+    setCaptionsAlertGraceActive(true);
+    triggerProgrammaticCaptions();
+
+    const timer = setTimeout(() => {
+      setCaptionsAlertGraceActive(false);
+    }, 3500);
+
+    return () => clearTimeout(timer);
+  }, [videoId, currentAccordionStage, triggerProgrammaticCaptions]);
+
   const resetTtsPlaybackProgress = (sectionId?: string) => {
     if (sectionId) {
       playedTtsRecords.current.delete(sectionId);
@@ -5194,6 +5238,7 @@ function Index() {
                 pendingPlayRequestedRef.current = false;
                 const enriched = enrichMetadataWithPlayer(videoId, player.current);
                 if (enriched) setVideoMetadata({ ...enriched });
+                triggerProgrammaticCaptions();
               } catch {
                 // ignore
               }
@@ -7722,32 +7767,34 @@ function Index() {
                 </div>
               )}
 
-              {/* Floating Red-Text Instruction: Appears in Stage 1 when no subtitles are detected */}
-              {currentAccordionStage === 1 && detectedSubtitleCount === 0 && (
-                <aside
-                  id="floating-no-captions-alert"
-                  data-testid="floating-no-captions-alert"
-                  role="status"
-                  aria-live="polite"
-                  className="fixed bottom-6 right-6 z-50 max-w-sm rounded-xl border-2 border-red-500 bg-red-950/95 p-4 text-red-200 shadow-2xl backdrop-blur-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
-                >
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5 animate-pulse" />
-                    <div className="space-y-1">
-                      <h4 className="font-bold text-red-100 text-xs tracking-wide uppercase">
-                        Captions Required
-                      </h4>
-                      <p className="text-xs text-red-200 font-medium leading-relaxed">
-                        No subtitles detected yet. Please play the video and turn on captions (
-                        <span className="font-bold text-white underline underline-offset-2">
-                          CC
-                        </span>
-                        ) or switch subtitle tracks in the player.
-                      </p>
+              {/* Floating Red-Text Instruction: Appears in Stage 1 when no subtitles are detected after quiet grace window */}
+              {currentAccordionStage === 1 &&
+                detectedSubtitleCount === 0 &&
+                !captionsAlertGraceActive && (
+                  <aside
+                    id="floating-no-captions-alert"
+                    data-testid="floating-no-captions-alert"
+                    role="status"
+                    aria-live="polite"
+                    className="fixed bottom-6 right-6 z-50 max-w-sm rounded-xl border-2 border-red-500 bg-red-950/95 p-4 text-red-200 shadow-2xl backdrop-blur-md transition-all duration-300 animate-in fade-in slide-in-from-bottom-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-400 shrink-0 mt-0.5 animate-pulse" />
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-red-100 text-xs tracking-wide uppercase">
+                          Captions Required
+                        </h4>
+                        <p className="text-xs text-red-200 font-medium leading-relaxed">
+                          No subtitles detected yet. Please play the video and turn on captions (
+                          <span className="font-bold text-white underline underline-offset-2">
+                            CC
+                          </span>
+                          ) or switch subtitle tracks in the player.
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </aside>
-              )}
+                  </aside>
+                )}
 
               {/* Accordion Stages Stepper & Stage 4 Settings Toggle */}
               <div className="px-4 md:px-6 pt-3">
@@ -7868,7 +7915,7 @@ function Index() {
 
               <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">
                 {panelOrder
-                  .filter((panelId: any) => {
+                  .filter((panelId: PanelId) => {
                     // Special Characters Removal and Parser are now nested directly under Settings (playback)
                     if (panelId === "chars" + "Removal" || panelId === "par" + "ser") return false;
 
@@ -8471,24 +8518,39 @@ function Index() {
                                 <div className="flex items-center gap-2">
                                   <AlertCircle className="h-4 w-4 text-red-500 shrink-0 animate-pulse" />
                                   <span>
-                                    No subtitles detected yet. Turn on captions ([CC]) in the player
-                                    above or select a track.
+                                    {captionsAlertGraceActive
+                                      ? "Auto-activating captions for default language... ([CC] fallback available)"
+                                      : "No subtitles detected yet. Turn on captions ([CC]) in the player above or select a track."}
                                   </span>
                                 </div>
-                                <Button
-                                  type="button"
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => {
-                                    if (!isVideoPlaying) {
-                                      handleTogglePlay();
-                                    }
-                                  }}
-                                  className="h-7 text-xs border-red-500/40 text-red-700 dark:text-red-200 hover:bg-red-500/20"
-                                >
-                                  <Play className="h-3 w-3 mr-1" />
-                                  Play to Detect
-                                </Button>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    data-testid="btn-auto-trigger-captions"
+                                    onClick={() => triggerProgrammaticCaptions()}
+                                    className="h-7 text-xs border-red-500/40 text-red-700 dark:text-red-200 hover:bg-red-500/20 gap-1"
+                                    title="Programmatically trigger YouTube caption stream without native CC button"
+                                  >
+                                    <Subtitles className="h-3 w-3" />
+                                    <span>Auto-Enable CC</span>
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => {
+                                      if (!isVideoPlaying) {
+                                        handleTogglePlay();
+                                      }
+                                    }}
+                                    className="h-7 text-xs border-red-500/40 text-red-700 dark:text-red-200 hover:bg-red-500/20"
+                                  >
+                                    <Play className="h-3 w-3 mr-1" />
+                                    Play to Detect
+                                  </Button>
+                                </div>
                               </div>
                             ) : (
                               <div
@@ -8551,8 +8613,11 @@ function Index() {
                                   size="sm"
                                   onClick={() => {
                                     setCurrentAccordionStage(4);
-                                    setShowOtherSettingsAccordions(true);
-                                    setOpenPanels((prev) => ({ ...prev, playback: true, library: true }));
+                                    setOpenPanels((prev) => ({
+                                      ...prev,
+                                      playback: true,
+                                      library: true,
+                                    }));
                                   }}
                                   className="text-xs h-8 flex items-center gap-1.5"
                                 >
@@ -9623,6 +9688,7 @@ function Index() {
                                     variant="outline"
                                     data-testid="settings-open-stage-0-btn"
                                     onClick={() => {
+                                      setShowOtherSettingsAccordions(false);
                                       setCurrentAccordionStage(0);
                                       setOpenPanels((prev) => ({
                                         ...prev,
@@ -9665,6 +9731,7 @@ function Index() {
                                     );
                                   }}
                                   onProceedToStage={(stage) => {
+                                    setShowOtherSettingsAccordions(false);
                                     setCurrentAccordionStage(stage as 0 | 1 | 2 | 3);
                                     if (stage === 1) {
                                       setOpenPanels((prev) => ({ ...prev, languages: true }));
