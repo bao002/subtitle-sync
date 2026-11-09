@@ -1687,6 +1687,14 @@ error 1: 11:36:05 PM [vite] (client) hmr update /src/styles.css, /src/components
  describe how triggering caption is achived without using the native youtube caption icon  on automation_enable_captions.md
 ```
 
+---
+
+### Prompt 135: Continue Task and Allow Switch Between 1 Table or Multiple Tables
+```
+1. go on.
+2. allow to switch between update using 1 table or multipe tables
+```
+
 
 
 

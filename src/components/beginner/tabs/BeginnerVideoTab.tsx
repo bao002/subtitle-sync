@@ -53,6 +53,8 @@ export interface BeginnerVideoTabProps {
   onToggleVideoSubtitles: () => void;
   useAlternativePlayerView?: boolean;
   onToggleAlternativePlayerView?: () => void;
+  showWordBalloonLearningView?: boolean;
+  onToggleWordBalloonLearningView?: () => void;
   isVideoFullscreen?: boolean;
   onToggleFullscreen?: () => void;
 }
@@ -84,6 +86,8 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   onToggleVideoSubtitles,
   useAlternativePlayerView,
   onToggleAlternativePlayerView,
+  showWordBalloonLearningView,
+  onToggleWordBalloonLearningView,
   isVideoFullscreen,
   onToggleFullscreen,
 }) => {
@@ -311,6 +315,22 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
               >
                 <Subtitles className="h-3.5 w-3.5" />
                 {useAlternativePlayerView ? "Video view" : "Alternative view"}
+              </Button>
+            )}
+            {onToggleWordBalloonLearningView && (
+              <Button
+                type="button"
+                size="sm"
+                variant={showWordBalloonLearningView ? "default" : "outline"}
+                aria-pressed={showWordBalloonLearningView}
+                data-testid="toggle-word-balloon-learning-btn"
+                data-control-category="daily-usage"
+                onClick={onToggleWordBalloonLearningView}
+                className="h-7 shrink-0 gap-1.5 px-2.5 text-xs border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
+                title="Switch between video player and interactive punchable word balloons learning view"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                {showWordBalloonLearningView ? "Video view" : "Word Balloons"}
               </Button>
             )}
             <Button
