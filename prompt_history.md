@@ -1695,7 +1695,17 @@ error 1: 11:36:05 PM [vite] (client) hmr update /src/styles.css, /src/components
 2. allow to switch between update using 1 table or multipe tables
 ```
 
+---
 
+### Prompt 136: GitHub Import Migration & Environment Harmonization
+```
+This app was imported from GitHub repository bao002/subtitle-sync.
+```
 
+---
 
+### Prompt 137: Go On (Task 359 & Task 365)
+```
+go on
+```
 

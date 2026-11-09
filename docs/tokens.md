@@ -6,10 +6,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 135 (Serial Execution: Chapter 1 "go on" -> Complete Task 359, then Chapter 2 -> Task 365 Switch between 1 table or multiple tables) [ACTIVE]:
-  - Task 359 (Chapter 1): Complete dedicated learning stage with punchable word balloons exposing translation in `src/routes/index.tsx`, `BeginnerVideoTab.tsx`, and test verification.
-  - Task 365 (Chapter 2): Allow switching between updating/rendering 1 table vs multiple tables.
-- Active Backlog: Task 359 and Task 365 in [`docs/tasks.md`](tasks.md).
+- Prompt 137 (Serial Execution: Task 359 Word Balloons Learning Stage [COMPLETED], Task 365 Switch between 1 table or multiple tables [COMPLETED]):
+  - Task 359: [COMPLETED] Dedicated learning stage with punchable word balloons exposing translation in `src/routes/index.tsx`, `video-display-controls`, Beginner mode, and test verification.
+  - Task 365: [COMPLETED] Allow switching between updating/rendering 1 table vs multiple tables.
+- Active Backlog: Empty (all tasks completed and archived in `docs/done.md`).
 
 ---
 

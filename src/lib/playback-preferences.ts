@@ -42,6 +42,7 @@ export function extractLanguageCodeList(val: unknown): string[] {
   return [];
 }
 
+export type TableDisplayMode = "single" | "multiple";
 export type PickWordStrategy = "longest" | "random";
 
 const KEYS = {
@@ -62,6 +63,7 @@ const KEYS = {
   pickWordStrategy: "yt_pick_word_strategy_v1",
   perLangPickWordStrategy: "yt_per_lang_pick_word_strategy_v1",
   ttsVolumes: "yt_tts_volumes_v1",
+  tableDisplayMode: "yt_table_display_mode_v1",
 } as const;
 
 const memoryStorage = new Map<string, string>();
@@ -1096,6 +1098,32 @@ export function setPickWordStrategy(strategy: PickWordStrategy, langCode?: unkno
       window.dispatchEvent(
         new CustomEvent(PICK_WORD_STRATEGY_EVENT, { detail: { langCode: code, strategy } }),
       );
+    }
+  } catch {
+    // ignore
+  }
+}
+
+export const TABLE_DISPLAY_MODE_EVENT = "yt-table-display-mode-changed";
+
+export function getTableDisplayModePreference(): TableDisplayMode {
+  const s = getStorage();
+  try {
+    const val = s.getItem(KEYS.tableDisplayMode);
+    if (val === "multiple" || val === "single") return val;
+  } catch {
+    // ignore
+  }
+  return "single";
+}
+
+export function setTableDisplayModePreference(mode: TableDisplayMode): void {
+  if (mode !== "single" && mode !== "multiple") return;
+  const s = getStorage();
+  try {
+    s.setItem(KEYS.tableDisplayMode, mode);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(TABLE_DISPLAY_MODE_EVENT, { detail: mode }));
     }
   } catch {
     // ignore
