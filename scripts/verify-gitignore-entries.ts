@@ -55,6 +55,7 @@ console.log("✅ PASS: .env.example template file is intact");
 
 // 4. Verify Version 1.0.40+ Parity Across All 5 Targets
 console.log("\n🔢 Section 4: Version 1.0.40+ Parity Verification");
+const pkg = JSON.parse(fs.readFileSync(path.resolve(rootDir, "package.json"), "utf-8"));
 const [maj, min, patch] = pkg.version.split(".").map(Number);
 assert(
   maj > 1 || (maj === 1 && (min > 0 || (min === 0 && patch >= 40))),
@@ -73,7 +74,8 @@ assert(gradleContent.includes("versionCode = "), "build.gradle.kts versionCode m
 
 const appConfigContent = fs.readFileSync(path.resolve(rootDir, "src/config/appConfig.ts"), "utf-8");
 assert(
-  appConfigContent.includes(`APP_VERSION = "${pkg.version}"`),
+  appConfigContent.includes("APP_VERSION = packageJson.version") ||
+    appConfigContent.includes(`APP_VERSION = "${pkg.version}"`),
   "appConfig.ts APP_VERSION must match package.json",
 );
 
@@ -82,7 +84,8 @@ const apkUpdaterContent = fs.readFileSync(
   "utf-8",
 );
 assert(
-  apkUpdaterContent.includes(`CURRENT_APK_VERSION = "v${pkg.version}"`),
+  apkUpdaterContent.includes("CURRENT_APK_VERSION = `v${APP_VERSION}`") ||
+    apkUpdaterContent.includes(`CURRENT_APK_VERSION = "v${pkg.version}"`),
   "apkUpdater.ts CURRENT_APK_VERSION must match package.json",
 );
 
@@ -91,7 +94,8 @@ const appSettingsContent = fs.readFileSync(
   "utf-8",
 );
 assert(
-  appSettingsContent.includes(`version: "${pkg.version}"`),
+  appSettingsContent.includes("version: APP_VERSION") ||
+    appSettingsContent.includes(`version: "${pkg.version}"`),
   "appSettings.ts snapshot version must match package.json",
 );
 console.log(`✅ PASS: All 5 version targets synchronized at ${pkg.version}`);
