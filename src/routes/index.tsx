@@ -8304,6 +8304,35 @@ function Index() {
                                                     );
                                                   })()}
                                                 </span>
+                                                {speakingLang && speakingRow >= 0 && (
+                                                  <div className="pointer-events-auto mb-1 flex justify-center">
+                                                    <button
+                                                      type="button"
+                                                      data-testid="tts-source-badge"
+                                                      title="Customize this voice (Stage 1 → Learning goals)"
+                                                      onClick={() => {
+                                                        setShowOtherSettingsAccordions(false);
+                                                        setCurrentAccordionStage(1);
+                                                        setOpenPanels((prev) => ({ ...prev, languages: true }));
+                                                      }}
+                                                      className="inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium text-foreground shadow"
+                                                    >
+                                                      <Volume2 className="h-3 w-3" />
+                                                      <span>
+                                                        {useAlternativeTtsState && alternativeTtsModeState === "always"
+                                                          ? "Alternative TTS"
+                                                          : isAndroid
+                                                            ? "Android TTS"
+                                                            : "Browser TTS"}
+                                                        {" · "}
+                                                        {voices.find((v) => v.voiceURI === voiceSelections[speakingLang])?.name || "default voice"}
+                                                        {" · "}
+                                                        {(rates[speakingLang] ?? 1).toFixed(1)}x
+                                                      </span>
+                                                      <Settings2 className="h-3 w-3" />
+                                                    </button>
+                                                  </div>
+                                                )}
                                                 <p
                                                   id="active-subtitle-cue-text"
                                                   data-testid="active-subtitle-cue-text"
@@ -9801,50 +9830,7 @@ function Index() {
                                     <span>Open Stage View</span>
                                   </Button>
                                 </div>
-                                <FetchedSubtitlesStagePanel
-                                  videoId={videoId}
-                                  videoInput={videoInput}
-                                  onVideoInputChange={setVideoInput}
-                                  onSubmitVideoUrl={(url) => {
-                                    const parsed = parseVideoId(url);
-                                    const newId = parsed || url.trim();
-                                    handleSelectLibraryVideo(newId, url);
-                                  }}
-                                  observedUrl={observedUrl}
-                                  onObservedUrlChange={setObservedUrl}
-                                  tracks={tracks}
-                                  onTracksChange={(newTracks) => setTracks(newTracks)}
-                                  baseLanguage={baseLanguage}
-                                  onSelectBaseLanguage={handleSelectDefaultSubtitle}
-                                  defaultLanguages={defaultSubtitleLanguages}
-                                  isAndroid={isAndroid}
-                                  onLoadSampleSubtitles={() => {
-                                    const validEntries = Object.entries(JSON3_RAW_MAP)
-                                      .map(([code, raw]) => {
-                                        const j = parseJson3(raw);
-                                        return j ? ([code, j] as const) : null;
-                                      })
-                                      .filter((entry): entry is [string, Json3] => entry !== null);
-                                    setTracks(Object.fromEntries(validEntries));
-                                    setObservedUrl(
-                                      "https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3",
-                                    );
-                                  }}
-                                  onProceedToStage={(stage) => {
-                                    setShowOtherSettingsAccordions(false);
-                                    setCurrentAccordionStage(stage as 0 | 1 | 2 | 3);
-                                    if (stage === 1) {
-                                      setOpenPanels((prev) => ({ ...prev, languages: true }));
-                                    } else if (stage === 2) {
-                                      setOpenPanels((prev) => ({ ...prev, subtitles: true }));
-                                    } else if (stage === 3) {
-                                      setOpenPanels((prev) => ({
-                                        ...prev,
-                                        player: true,
-                                      }));
-                                    }
-                                  }}
-                                />
+                                <p className="text-xs text-muted-foreground" data-testid="settings-fetched-subtitles-moved">Fetched subtitles live only on Stage 0 — use “Open Stage View”.</p>
                               </div>
                             </details>
                           </div>
