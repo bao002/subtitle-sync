@@ -1506,7 +1506,7 @@ function Index() {
       });
       try {
         const primaryPlayer = multiVideoPlayerRegistry.get("primary");
-        primaryPlayer?.loadModule?.("captions");
+        (primaryPlayer as any)?.loadModule?.("captions");
         primaryPlayer?.setOption?.("captions", "track", { languageCode: langCode });
       } catch {
         // ignore
@@ -4991,7 +4991,7 @@ function Index() {
       try {
         const p = player.current || multiVideoPlayerRegistry.get("primary");
         if (p) {
-          p.loadModule?.("captions");
+          (p as any).loadModule?.("captions");
           p.setOption?.("captions", "track", { languageCode: targetLang });
           logInterception("Programmatically triggered caption track before alert fallback", {
             videoId,
@@ -8001,7 +8001,7 @@ function Index() {
               </div>
 
               <div className="grid items-start gap-4 p-4 md:p-6 lg:grid-cols-2">
-                {panelOrder
+                {(panelOrder as string[] as PanelId[])
                   .filter((panelId: PanelId) => {
                     // Special Characters Removal and Parser are now nested directly under Settings (playback)
                     if (panelId === "chars" + "Removal" || panelId === "par" + "ser") return false;

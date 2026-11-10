@@ -24,9 +24,9 @@ export default meta;
 type Story = StoryObj<typeof SubtitlesTablePanel>;
 
 const sampleCols: SubtitleColumn[] = [
-  { code: "en", name: "English", isYouTubeOrJson: true },
-  { code: "es", name: "Spanish", isOnDemandTranslation: true },
-  { code: "he", name: "Hebrew", isYouTubeTranslated: true },
+  { code: "en", tts: "en", name: "English", isYouTubeOrJson: true },
+  { code: "es", tts: "es", name: "Spanish", isOnDemandTranslation: true },
+  { code: "he", tts: "he", name: "Hebrew", isYouTubeTranslated: true },
 ];
 
 const sampleRows: Row[] = [
@@ -78,7 +78,7 @@ const InteractiveWrapper: React.FC<Partial<SubtitlesTablePanelProps>> = (props) 
         active={activeIdx}
         allFavoritesAligned={true}
         targetLanguages={["es", "he"]}
-        speechProgress={{}}
+        speechProgress={null}
         tracks={null}
         onSeek={(_r, idx) => setActiveIdx(idx)}
         spokenLangs={["en", "es", "he"]}
