@@ -8021,12 +8021,6 @@ function Index() {
                       return false;
                     }
 
-                    if (showOtherSettingsAccordions) {
-                      if (currentAccordionStage === 4) {
-                        return panelId === "playback" || panelId === "library";
-                      }
-                    }
-
                     // Strict stage isolation: each main stage's component appears ONLY on its stage
                     if (currentAccordionStage === 0) {
                       return panelId === "fetchedSubtitles";
@@ -8036,9 +8030,6 @@ function Index() {
                     }
                     if (currentAccordionStage === 2) {
                       return panelId === "subtitles";
-                    }
-                    if (currentAccordionStage === 3 || currentAccordionStage === 5) {
-                      return panelId === "player";
                     }
                     return false;
                   })
