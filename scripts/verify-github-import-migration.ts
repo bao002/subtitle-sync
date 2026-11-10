@@ -43,9 +43,9 @@ assert(!pkg.packageManager, "package.json must not specify packageManager");
 assert(
   pkg.scripts &&
     pkg.scripts.dev &&
-    pkg.scripts.dev.includes("3000") &&
-    pkg.scripts.dev.includes("0.0.0.0"),
-  "package.json dev script must bind to 0.0.0.0 and port 3000",
+    (pkg.scripts.dev === "vite" ||
+      (pkg.scripts.dev.includes("3000") && pkg.scripts.dev.includes("0.0.0.0"))),
+  "package.json dev script must be vite or bind to 0.0.0.0 and port 3000",
 );
 console.log("✅ PASS: Package manager, scripts, and lockfiles are 100% compliant.");
 

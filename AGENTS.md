@@ -132,8 +132,14 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-1. tts-service - the played tts doesnt sound correctly as if phonetics belong to 1 language while the text belong to another
-2. tts-play ends prematurely sometimes or different playing is starting in parallel before it ends.
-3. the demo website deployment doesnt seems to update the github pages (it shows old version)
-4. subtitles-table - add toggle which allow to highlight the part-sentence vs the current state where it filters out based on sentence-part&char-length.
+1. item should mv to settings stage
+2. use folded accordion on settings by default
+3. add missing accordion to settings to improve segregation
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
 ```

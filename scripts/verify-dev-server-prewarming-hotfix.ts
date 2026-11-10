@@ -54,7 +54,8 @@ async function run() {
   const indexRoutePath = path.resolve(process.cwd(), "src/routes/index.tsx");
   const indexRoute = fs.readFileSync(indexRoutePath, "utf-8");
   assert(
-    indexRoute.includes('Applied "${comp.name}" ratio composition'),
+    indexRoute.includes('Applied "${comp.name}" ratio composition') ||
+      indexRoute.includes('Applied profile "${comp.name}"'),
     "src/routes/index.tsx must have single-line notifySubtitleFetch call for ratio composition"
   );
   console.log("✅ PASS: src/routes/index.tsx has clean notification formatting for ratio composition");

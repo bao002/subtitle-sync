@@ -11976,6 +11976,7 @@ function Index() {
                               )}
 
                               <LanguageBoxesSelector
+                                className="hidden"
                                 catalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
                                 selectedLanguages={targetLanguages}
                                 onSelectionChange={handleTargetLanguagesChange}
@@ -11986,6 +11987,7 @@ function Index() {
                                 onSaveSubtitleUrl={handleSaveTrackFromUrl}
                               />
                               <GlobalFavoriteLanguagesPanel
+                                className="hidden"
                                 catalog={SUPPORTED_LANGUAGES_CATALOG}
                                 favoriteLanguages={favoriteLanguages}
                                 targetLanguages={targetLanguages}
@@ -11994,7 +11996,7 @@ function Index() {
                                 onApplyFavoritesToVideo={handleResetVideoToFavorites}
                                 onSaveCurrentSelectionAsFavorites={handleSaveCurrentAsFavorites}
                               />
-                              <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                              <div className="hidden items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
                                 <div className="space-y-0.5">
                                   <label
                                     htmlFor="auto-speak-on-fetch-toggle"
@@ -12019,7 +12021,7 @@ function Index() {
                                   className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
                                 />
                               </div>
-                              <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                              <div className="hidden items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
                                 <div className="space-y-0.5">
                                   <label
                                     htmlFor="speak-language-name-on-fetch-toggle"
@@ -12107,68 +12109,68 @@ function Index() {
                               };
 
                               return (
-                                <div className="overflow-x-auto">
+                                <div className="overflow-x-auto hidden">
                                   <table
-                                    className="w-full text-xs"
+                                    className="w-full text-xs hidden"
                                     data-testid="unified-languages-table"
                                   >
                                     <thead>
                                       <tr className="text-xs text-muted-foreground border-b border-border">
-                                        <th className="text-left font-normal py-1.5 px-2">
+                                        <th className="text-left font-normal py-1.5 px-2 hidden">
                                           Language
                                         </th>
                                         <th
-                                          className="font-normal text-center py-1.5 px-1.5"
+                                          className="font-normal text-center py-1.5 px-1.5 hidden"
                                           data-testid="th-is-primary"
                                           title="The only way to define the TTS-ratio absolute parent"
                                         >
                                           Is Primary
                                         </th>
                                         <th
-                                          className="font-normal text-center py-1.5 px-1.5"
+                                          className="font-normal text-center py-1.5 px-1.5 hidden"
                                           title="Speech rate (0.5x - 1.0x)"
                                         >
                                           Rate
                                         </th>
                                         <th
-                                          className="font-normal text-center py-1.5 px-1.5"
+                                          className="font-normal text-center py-1.5 px-1.5 hidden"
                                           data-testid="th-volume"
                                           title="TTS speech volume (0% - 100%)"
                                         >
                                           Vol
                                         </th>
                                         <th
-                                          className="font-normal text-center py-1.5 px-1.5"
+                                          className="font-normal text-center py-1.5 px-1.5 hidden"
                                           title="Foreign subtitle TTS play frequency ratio"
                                         >
                                           TTS Ratio
                                         </th>
                                         <th
-                                          className="font-normal text-center py-1.5 px-1.5"
+                                          className="font-normal text-center py-1.5 px-1.5 hidden"
                                           title="TTS-play (speak subtitle during playback)"
                                         >
                                           TTS-Play
                                         </th>
                                         <th
-                                          className="font-normal text-center py-1.5 px-1.5"
+                                          className="font-normal text-center py-1.5 px-1.5 hidden"
                                           title="Present in table (show subtitle column in table)"
                                         >
                                           Present in Table
                                         </th>
                                         <th
-                                          className="font-normal text-center py-1.5 px-1.5"
+                                          className="font-normal text-center py-1.5 px-1.5 hidden"
                                           data-testid="th-json3"
                                           title="Direct JSON3 subtitle status and manual video player caption toggle indication"
                                         >
                                           JSON3
                                         </th>
                                         <th
-                                          className="font-normal text-center py-1.5 px-1.5"
+                                          className="font-normal text-center py-1.5 px-1.5 hidden"
                                           title="1 input per 1 favorite language for subtitle URL"
                                         >
                                           Subtitle URL
                                         </th>
-                                        <th className="font-normal text-center py-1.5 px-1.5">
+                                        <th className="font-normal text-center py-1.5 px-1.5 hidden">
                                           Order
                                         </th>
                                       </tr>
@@ -12177,7 +12179,7 @@ function Index() {
                                       {activeVideoBarIndex === 0 && (
                                         <VideoPlaybackPrecedenceBar
                                           asTableRow
-                                          colSpan={10}
+                                          colSpan={9}
                                           currentPosition={0}
                                           totalRecords={orderedLangs.length}
                                           onMoveUp={() => handleSetVideoBarPosition(0)}
@@ -12615,7 +12617,7 @@ function Index() {
                                                 data-testid={`url-input-row-${lang.code}`}
                                                 className="bg-primary/5 border-y border-primary/20"
                                               >
-                                                <td colSpan={10} className="p-2.5">
+                                                <td colSpan={9} className="p-2.5">
                                                   <div className="space-y-2 max-w-xl text-xs">
                                                     <div className="flex items-center justify-between">
                                                       <span className="font-semibold text-foreground flex items-center gap-1.5">
@@ -12776,7 +12778,7 @@ function Index() {
                                             {activeVideoBarIndex === index + 1 && (
                                               <VideoPlaybackPrecedenceBar
                                                 asTableRow
-                                                colSpan={10}
+                                                colSpan={9}
                                                 currentPosition={index + 1}
                                                 totalRecords={orderedLangs.length}
                                                 onMoveUp={() => handleSetVideoBarPosition(index)}

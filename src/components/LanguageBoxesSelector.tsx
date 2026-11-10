@@ -37,6 +37,7 @@ export interface LanguageBoxesSelectorProps {
   currentVideoId?: string;
   loadedTracks?: Record<string, Json3> | null;
   onSaveSubtitleUrl?: (langCode: string, track: Json3, url?: string) => void;
+  className?: string;
 }
 
 /**
@@ -55,6 +56,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
   currentVideoId = "",
   loadedTracks = null,
   onSaveSubtitleUrl,
+  className,
 }) => {
   const [displayMode, setDisplayMode] = useState<LanguageDisplayMode>(() =>
     getLanguageDisplayModeSetting(),
@@ -256,11 +258,11 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
 
   return (
     <div
-      className="space-y-3 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3"
+      className={`space-y-3 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3 ${className || ""}`.trim()}
       data-testid="language-boxes-selector-wrapper"
       data-control-category="daily-usage"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className={`flex flex-wrap items-center justify-between gap-2 ${className?.includes("hidden") ? "hidden" : ""}`.trim()}>
         <div className="flex items-center gap-2">
           <label htmlFor="target-language-select" className="text-sm font-medium text-foreground">
             Language Boxes
