@@ -19,8 +19,8 @@
 - **Repository**: ofer-shaham/subtitle-sync
 - **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
 - **Failing Step**: Broken Video Link Detection in android-emulator-report.html
-- **Report URL**: https://ofer-shaham.github.io/subtitle-sync/android-emulator-report.html
-- **Run URL**: https://github.com/ofer-shaham/subtitle-sync/actions/runs/42749813666
+- **Report URL**: https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html
+- **Run URL**: https://github.com/mostuf2556/subtitle-sync/actions/runs/42750050104
 
 ### Failure Log & Diagnosis:
 Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).
