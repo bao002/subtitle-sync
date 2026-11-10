@@ -17,4 +17,10 @@
 - **UI Visibility:** Deprecated components (header mode toggle button `header-mode-toggle`, mode switcher header button `btn-mode-beginner`, and beginner mode flow container) are hidden from the UI with utility styling (`hidden`) per user request (Prompt 88).
 - **Deprecated:** 2026-11-05 (Prompt 85).
 
+## Relative TTS Ratio using Primary and Secondary Languages (Deprecated)
 
+- **Deprecated:** Relative TTS ratio calculation where secondary languages speak relative to primary language activations.
+- **Replacement:** Absolute / direct per-language TTS ratios and learning goals in Stage 1 (Learning Goals) and Stage 2 (Parallel Subtitles Table).
+- **Compatibility:** Backward compatibility maintained for existing ratios; UI marked with a visible `[Deprecated]` badge (`data-testid="tts-primary-secondary-deprecated-badge"`).
+- **Reason:** User request to deprecate ratio using primary and secondary languages in favor of direct, per-language learning goals and ratio controls.
+- **Deprecated:** 2026-11-09 (Prompt 145).

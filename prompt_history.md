@@ -1836,3 +1836,46 @@ CSS 1: {
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 145: Move Settings to Accordion, Disclaimer to Settings Footer, Deprecate Relative TTS Ratio
+```
+there are 3 elements:
+1. settings should be moved to settings and be  under relevant accrodions and folded by default
+2. disclaimer - mv to the settings' foolter
+3. ratio using primary and secondary langs - depracated
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+CSS 2: {
+
+}
+CSS selector 3: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(1)
+CSS 3: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 146: Focus Mode - Hide Deprecated Relative Ratio Elements
+```
+those elements are not needed
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(2)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(1)
+CSS 2: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+

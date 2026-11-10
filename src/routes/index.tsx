@@ -8816,7 +8816,6 @@ function Index() {
                             {/* Sub-Accordion 1: General Playback & Audio Settings */}
                             <details
                               className="group rounded-xl border border-border bg-card/60 overflow-hidden shadow-xs"
-                              open
                               data-testid="settings-playback-accordion"
                             >
                               <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-foreground hover:bg-muted/40 transition">
@@ -9891,6 +9890,152 @@ function Index() {
                                 </p>
                               </div>
                             </details>
+
+                            {/* Sub-Accordion 5: Subtitle Fetch & Automation Settings */}
+                            <details
+                              className="group rounded-xl border border-indigo-500/30 bg-card/60 overflow-hidden shadow-xs"
+                              data-testid="settings-subtitle-fetching-accordion"
+                            >
+                              <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition">
+                                <div className="flex items-center gap-2">
+                                  <Sliders className="h-4 w-4 text-indigo-500" />
+                                  <span>Subtitle Fetch &amp; Automation Settings</span>
+                                  <Badge
+                                    variant="outline"
+                                    className="text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30"
+                                  >
+                                    Fetch &amp; Pacing
+                                  </Badge>
+                                </div>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+                              </summary>
+                              <div
+                                className="p-3 pt-0 border-t border-border/40 space-y-3"
+                                data-testid="settings-subtitle-fetching-container"
+                              >
+                                <div className="pt-2">
+                                  <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                                    Subtitle Request Pacing &amp; Language Automation
+                                  </h3>
+                                  <p className="text-xs text-muted-foreground">
+                                    Configure request frequency windows and automatic speech actions
+                                    for loaded subtitles.
+                                  </p>
+                                </div>
+
+                                <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                                  <div className="space-y-0.5">
+                                    <label
+                                      htmlFor="settings-fetch-window-seconds-input"
+                                      className="text-xs font-medium text-foreground cursor-pointer"
+                                    >
+                                      Subtitle fetch window pacing
+                                    </label>
+                                    <div className="text-[11px] text-muted-foreground">
+                                      Never try to fetch more than 1 subtitle within this window
+                                      frame (seconds)
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    <input
+                                      type="number"
+                                      id="settings-fetch-window-seconds-input"
+                                      data-testid="settings-fetch-window-seconds-input"
+                                      min={1}
+                                      max={60}
+                                      value={fetchWindowSeconds}
+                                      onChange={(e) => {
+                                        const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                                        setFetchWindowSecondsState(val);
+                                        setSubtitleFetchWindowSeconds(val);
+                                        subtitleRequestQueue.setWindowSeconds(val);
+                                      }}
+                                      className="w-16 rounded border border-input bg-background px-2 py-1 text-xs text-right"
+                                    />
+                                    <span className="text-xs text-muted-foreground">sec</span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                                  <div className="space-y-0.5">
+                                    <label
+                                      htmlFor="settings-auto-speak-on-fetch-toggle"
+                                      className="text-xs font-medium text-foreground cursor-pointer"
+                                    >
+                                      Auto speak language upon fetching
+                                    </label>
+                                    <div className="text-[11px] text-muted-foreground">
+                                      Automatically enable the "Speak" checkbox for languages when
+                                      their subtitles are loaded
+                                    </div>
+                                  </div>
+                                  <input
+                                    type="checkbox"
+                                    id="settings-auto-speak-on-fetch-toggle"
+                                    data-testid="settings-auto-speak-on-fetch-toggle"
+                                    checked={autoSpeakOnFetch}
+                                    onChange={(e) => {
+                                      setAutoSpeakOnFetch(e.target.checked);
+                                      setAutoSpeakOnFetchSetting(e.target.checked);
+                                    }}
+                                    className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                                  />
+                                </div>
+
+                                <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                                  <div className="space-y-0.5">
+                                    <label
+                                      htmlFor="settings-speak-language-name-on-fetch-toggle"
+                                      className="text-xs font-medium text-foreground cursor-pointer"
+                                    >
+                                      TTS-play language name upon fetching
+                                    </label>
+                                    <div className="text-[11px] text-muted-foreground">
+                                      When a new subtitle is fetched, speak aloud the name of the
+                                      language used to fetch
+                                    </div>
+                                  </div>
+                                  <input
+                                    type="checkbox"
+                                    id="settings-speak-language-name-on-fetch-toggle"
+                                    data-testid="settings-speak-language-name-on-fetch-toggle"
+                                    checked={speakLanguageNameOnFetch}
+                                    onChange={(e) => {
+                                      setSpeakLanguageNameOnFetchState(e.target.checked);
+                                      setSpeakLanguageNameOnFetchSetting(e.target.checked);
+                                    }}
+                                    className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
+                                  />
+                                </div>
+                              </div>
+                            </details>
+
+                            {/* Settings Footer: Demo Mode Caption Limitation Note */}
+                            {!isAndroid && (
+                              <footer
+                                data-testid="settings-footer"
+                                className="mt-4 pt-3 border-t border-border/50"
+                              >
+                                <div
+                                  data-testid="demo-languages-disclaimer"
+                                  className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200 space-y-1 shadow-xs"
+                                >
+                                  <div className="flex items-center gap-1.5 font-semibold">
+                                    <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                    <span>Demo Mode Caption Limitation Note</span>
+                                  </div>
+                                  <p className="text-[11px] leading-relaxed">
+                                    In this web demonstration, authentic subtitle captions are
+                                    strictly limited to the verified fixture files for example video{" "}
+                                    <code className="font-mono font-semibold">L2Ryrr6txwA</code>{" "}
+                                    (available in English, Hebrew, Arabic, Spanish, Italian,
+                                    Russian, and Portuguese). In native Android mode, caption
+                                    streams for any YouTube video are intercepted dynamically during
+                                    playback.
+                                  </p>
+                                </div>
+                              </footer>
+                            )}
                           </div>
                         )}
 
@@ -11954,27 +12099,6 @@ function Index() {
 
                             {/* Regular Languages Accordion Content */}
                             <div className="mb-4 space-y-3 border-b border-border pb-4">
-                              {!isAndroid && (
-                                <div
-                                  data-testid="demo-languages-disclaimer"
-                                  className="rounded-md border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs text-amber-900 dark:text-amber-200 space-y-1"
-                                >
-                                  <div className="flex items-center gap-1.5 font-semibold">
-                                    <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                                    <span>Demo Mode Caption Limitation Note</span>
-                                  </div>
-                                  <p className="text-[11px] leading-relaxed">
-                                    In this web demonstration, authentic subtitle captions are
-                                    strictly limited to the verified fixture files for example video{" "}
-                                    <code className="font-mono font-semibold">L2Ryrr6txwA</code>{" "}
-                                    (available in English, Hebrew, Arabic, Spanish, Italian,
-                                    Russian, and Portuguese). In native Android mode, caption
-                                    streams for any YouTube video are intercepted dynamically during
-                                    playback.
-                                  </p>
-                                </div>
-                              )}
-
                               <LanguageBoxesSelector
                                 className="hidden"
                                 catalog={isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS}
@@ -12046,7 +12170,7 @@ function Index() {
                                   className="h-4 w-4 rounded border-input text-primary focus:ring-primary cursor-pointer"
                                 />
                               </div>
-                              <div className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
+                              <div className="hidden items-center justify-between p-2.5 rounded-lg border border-border bg-muted/20">
                                 <div className="space-y-0.5">
                                   <label
                                     htmlFor="fetch-window-seconds-input"
@@ -12080,12 +12204,32 @@ function Index() {
                               </div>
                             </div>
                             {spoken.length > 1 && (
-                              <div className="flex items-center justify-between pb-1 text-xs">
-                                <span className="text-[11px] text-muted-foreground">
-                                  Primary leads; secondary languages speak relative to primary
-                                  (absolute parent defined by Is-Primary column, ratio 1:
-                                  {getLanguageTtsRatio(ttsRatios, primaryTtsLang)}).
+                              <div className="hidden items-center justify-between pb-1 text-xs">
+                                <span
+                                  className="hidden text-[11px] text-muted-foreground flex-wrap items-center gap-1.5"
+                                  data-testid="tts-primary-secondary-ratio-note"
+                                >
+                                  <span
+                                    data-testid="tts-primary-secondary-deprecated-badge"
+                                    className="hidden px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 uppercase tracking-wider"
+                                  >
+                                    [Deprecated]
+                                  </span>
+                                  <span className="hidden">
+                                    Primary leads; secondary languages speak relative to primary
+                                    (absolute parent defined by Is-Primary column, ratio 1:
+                                    {getLanguageTtsRatio(ttsRatios, primaryTtsLang)}).
+                                  </span>
                                 </span>
+                                <button
+                                  type="button"
+                                  data-testid="tts-switch-roles-button-advanced"
+                                  className="hidden"
+                                  aria-hidden="true"
+                                  onClick={() => {}}
+                                >
+                                  ⇄ Switch Primary/Secondary
+                                </button>
                               </div>
                             )}
                             {(() => {

@@ -1,5 +1,84 @@
 # Done tasks
 
+### Task 377 (Prompt 146 - Focus Mode): Hide Deprecated Relative Ratio Elements
+
+- **Prompt**:
+  ```
+  those elements are not needed
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(2)
+  CSS 1: {
+
+  }
+  CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(1) > span:nth-of-type(1)
+  CSS 2: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - Focus Mode identified two targeted elements inside the deprecated relative ratio notice on Stage 1 (Languages accordion):
+    - CSS selector 1: `span:nth-of-type(2)` containing the relative ratio explanation text (`"Primary leads; secondary languages speak relative to primary..."`).
+    - CSS selector 2: `span:nth-of-type(1)` containing the `[Deprecated]` badge (`data-testid="tts-primary-secondary-deprecated-badge"`).
+  - Applied the `hidden` class directly to both selected elements as well as the container `span` (`data-testid="tts-primary-secondary-ratio-note"`) and parent wrapper `div`, cleanly eliminating them from the UI while preserving all internal test and accessibility contract IDs.
+  - Bumped single-source version to `v2.1.74` (code `20174`) synchronized with Android build configuration.
+- **Testing & Verification**:
+  - `npm run test:focus-mode-hide-deprecated-ratio-note` (`scripts/verify-focus-mode-hide-deprecated-ratio-note.ts`): Verified both selected elements and container span are styled with `hidden`.
+  - `npm run test:settings-moved-and-folded`: Verified Settings stage sub-accordions and default folded state.
+  - `npm run test:disclaimer-in-settings-footer`: Verified disclaimer placement in Settings footer.
+  - `npm run test:primary-secondary-ratio-deprecated`: Verified deprecation documentation and test ID preservation.
+  - `npx tsx scripts/verify-unified-languages-table.ts`: Verified 2.x version and table contracts.
+  - `compile_applet`: Build succeeded with 0 errors.
+  - `lint_applet`: ESLint completed successfully with 0 errors.
+
+### Task 376 (Prompt 145 - Focus Mode & Architecture): Move Settings to Folded Sub-Accordions, Disclaimer to Settings Footer, Deprecate Relative TTS Ratio
+
+- **Prompt**:
+  ```
+  there are 3 elements:
+  1. settings should be moved to settings and be  under relevant accrodions and folded by default
+  2. disclaimer - mv to the settings' foolter
+  3. ratio using primary and secondary langs - depracated
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)
+  CSS 1: {
+
+  }
+  CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(5)
+  CSS 2: {
+
+  }
+  CSS selector 3: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > span:nth-of-type(1)
+  CSS 3: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - **1. Chapter 1 (Task 376.1): Move Settings to Settings Stage under Relevant Sub-Accordion Folded by Default**:
+    - Relocated subtitle fetch pacing (`fetch-window-seconds-input`), auto-speak on fetch (`auto-speak-on-fetch-toggle`), and TTS language name on fetch (`speak-language-name-on-fetch-toggle`) controls from Stage 1 (Languages stage) to Stage 4 (Settings stage).
+    - Hosted these controls in a dedicated sub-accordion `settings-subtitle-fetching-accordion` ("Subtitle Fetch & Automation Settings") under Settings stage.
+    - Folded all sub-accordions in Settings stage by default: removed `open` attribute from `settings-playback-accordion`, ensuring every nested accordion starts folded/collapsed.
+    - Kept Stage 1 clean by hiding the remaining pacing container row with `hidden`.
+  - **2. Chapter 2 (Task 376.2): Move Disclaimer to Settings Footer**:
+    - Relocated the caption limitation disclaimer (`data-testid="demo-languages-disclaimer"`) from the Stage 1 Languages accordion to the footer of Settings stage (`data-testid="settings-footer"`).
+    - Preserved authentic fixture disclosure notes and example video ID `L2Ryrr6txwA` citation.
+  - **3. Chapter 3 (Task 376.3): Deprecate Relative TTS Ratio using Primary and Secondary Languages**:
+    - Marked the primary/secondary relative TTS ratio explanation banner in the UI with a distinct `[Deprecated]` badge (`data-testid="tts-primary-secondary-deprecated-badge"`).
+    - Documented the deprecation in `docs/deprecated.md` explaining the shift towards direct per-language ratios in Stage 1 & Stage 2.
+    - Synchronized single-source application version to `v2.1.73` (code `20173`) across `package.json` and `android-shell/app/build.gradle.kts`.
+- **Testing & Verification**:
+  - `npm run test:settings-moved-and-folded` (`scripts/verify-settings-moved-and-folded.ts`): Verified settings exist in Settings stage and all sub-accordions are folded by default.
+  - `npm run test:disclaimer-in-settings-footer` (`scripts/verify-disclaimer-in-settings-footer.ts`): Verified disclaimer exists in Settings footer and was cleanly removed from Stage 1.
+  - `npm run test:primary-secondary-ratio-deprecated` (`scripts/verify-primary-secondary-ratio-deprecated.ts`): Verified `[Deprecated]` badge and documentation in `docs/deprecated.md`.
+  - `npx tsx scripts/verify-unified-languages-table.ts`: Verified table contracts and 2.x version compatibility.
+  - `npx tsx scripts/verify-focus-mode-hide-fetch-toggles.ts`: Verified focus mode regressions.
+  - `npx tsx scripts/verify-language-accordion-ux.ts`: Verified language accordion UX.
+  - `compile_applet`: Built cleanly with 0 TypeScript/build errors.
+  - `lint_applet`: ESLint passed with 0 errors.
+
 ### Task 374 (Prompt 143 - Focus Mode): Hide Redundant Auto-Speak and TTS Language Name Toggles
 
 - **Prompt**:
