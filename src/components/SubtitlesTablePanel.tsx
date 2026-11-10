@@ -148,7 +148,7 @@ export function SubtitlesTablePanel({
             )}
           </button>
         </div>
-        {showRowCriteria && (
+        {false && showRowCriteria && (
           <LearningGoalsFiltersPanel
             maxWords={activeParserConfig.maxWordsPerSentence ?? 10}
             onMaxWordsChange={(val) => {
