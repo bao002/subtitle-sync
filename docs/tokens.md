@@ -6,9 +6,12 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 139 (Fix GitHub Pages Deployment and README.md Links):
-  - Task 368: [COMPLETED] Fixed GitHub Pages deployment configuration, added .nojekyll, ensured README.md contains Storybook & Report links, synchronized update-readme.mjs, and verified all related tests.
-- Active Backlog: Empty (all prompt tasks completed and archived in `docs/done.md`).
+- Prompt 140 (Serial Execution: Chapter 1 -> Task 369, Chapter 2 -> Task 370, Chapter 3 -> Task 371, Chapter 4 -> Task 372) [ACTIVE]:
+  - Task 369 (Chapter 1) [ACTIVE]: TTS Service Language Phonetic Alignment - Prevent cross-language phonetic mismatch in remote TTS service & Web Speech voice selection.
+  - Task 370 (Chapter 2): TTS Playback Coordination & Overlap Prevention - Eliminate premature cutoff and prevent parallel speech overlaps via dynamic timeout and speech mutex.
+  - Task 371 (Chapter 3): Fix GitHub Pages Demo Deployment - Ensure cache-busting, fresh web distribution build, and eliminate stale version caching.
+  - Task 372 (Chapter 4): Subtitles-Table Highlight vs Filter Toggle - Allow toggling between highlighting matching sentence-parts vs filtering them out.
+- Active Backlog: Tasks 369, 370, 371, 372 in [`docs/tasks.md`](tasks.md).
 
 ---
 

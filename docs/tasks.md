@@ -4,7 +4,17 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-*No active tasks pending in current sprint.*
+- [ ] **Task 371 (Prompt 140 - Chapter 3): Fix GitHub Pages Demo Deployment**
+  - [ ] Subtask 371.1: Add HTTP no-cache meta tags to `index.html` preventing browsers from caching stale bundles.
+  - [ ] Subtask 371.2: Update `.github/workflows/deploy-demo.yml` so that `dist` is cleanly published to `gh-pages` without stale file retention masking updates (`keep_files: false`).
+  - [ ] Subtask 371.3: Add dedicated automated test `scripts/verify-github-pages-deployment-freshness.ts` (`npm run test:gh-pages-freshness`), bump version, verify compile/lint, commit, and migrate Task 371 to `docs/done.md`.
+
+- [ ] **Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle**
+  - [ ] Subtask 372.1: Add `criteriaMatchAction` ("filter" | "highlight") with persistent preference in playback preferences and settings.
+  - [ ] Subtask 372.2: Add visual toggle button ("Filter Out" vs "Highlight Matching") to `SubtitlesTablePanel.tsx` row criteria header.
+  - [ ] Subtask 372.3: In "highlight" mode, display all sentences in `SubtitlesTablePanel.tsx` while highlighting matching sentences with distinct visual styling and test IDs (`data-testid="row-criteria-highlighted"`).
+  - [ ] Subtask 372.4: Ensure 100% parity across Advanced Mode and Beginner Mode.
+  - [ ] Subtask 372.5: Add dedicated automated test `scripts/verify-subtitles-table-highlight-toggle.ts` (`npm run test:subtitles-highlight-toggle`), bump version, verify compile/lint, commit, and migrate Task 372 to `docs/done.md`.
 
 ## Later Tasks
 

@@ -142,3 +142,39 @@ export function getUniqueVoiceKey(voice: SpeechVoiceLike, index: number): string
   const identifier = voice.voiceURI || voice.name || "voice";
   return `${identifier}__idx_${index}`;
 }
+
+/**
+ * Returns authentic, native-language sample text for voice testing and auditioning.
+ * Prevents phonetic mismatch where English text ("Hello world") is pronounced by
+ * foreign-language TTS engines with unnatural phonetics.
+ */
+export function getSampleTextForLanguage(lang: string): string {
+  const code = (lang || "en").split(/[-_]/)[0].toLowerCase();
+  switch (code) {
+    case "he":
+    case "iw":
+      return "שלום, זוהי בדיקת קול עבור כתוביות.";
+    case "es":
+      return "Hola, esta es una prueba de voz para subtítulos.";
+    case "ar":
+      return "مرحباً، هذه تجربة صوتية للترجمة.";
+    case "it":
+      return "Ciao, questa è un'anteprima vocale dei sottotitoli.";
+    case "ru":
+      return "Здравствуйте, это проверка голоса для субтитров.";
+    case "pt":
+      return "Olá, este é um teste de voz para legendas.";
+    case "fr":
+      return "Bonjour, ceci est un test vocal pour les sous-titres.";
+    case "de":
+      return "Hallo, dies ist eine Sprachprüfung für Untertitel.";
+    case "ja":
+      return "こんにちは、これは字幕の音声テストです。";
+    case "ko":
+      return "안녕하세요, 자막 음성 테스트입니다.";
+    case "zh":
+      return "你好，这是字幕语音测试。";
+    default:
+      return "Hello, this is a subtitle voice preview.";
+  }
+}

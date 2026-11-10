@@ -199,6 +199,7 @@ import {
   setCachedVoices,
   getCachedVoices,
   findVoiceByUriOrName,
+  getSampleTextForLanguage,
 } from "@/utils/speechVoiceUtils";
 import {
   getUseAlternativeTts,
@@ -554,6 +555,8 @@ const getFixturesUrl = (video: string, lang: string) => {
   return `./fixtures/${video}/${lang}.json`;
 };
 
+let activeSpeechJobId = 0;
+
 function speak(
   text: string,
   lang: string,
@@ -563,9 +566,34 @@ function speak(
   onProgress: (value: SpeechProgress) => void,
   volume?: number,
 ) {
+  const currentJobId = ++activeSpeechJobId;
   return new Promise<void>((res) => {
     void (async () => {
       if (!text) return res();
+
+      // Cancel any ongoing parallel audio playback before starting new speech
+      if (typeof window !== "undefined") {
+        cancelAlternativeTtsAudio();
+        if ("speechSynthesis" in window && window.speechSynthesis.speaking) {
+          try {
+            window.speechSynthesis.cancel();
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      const safeProgress = (val: SpeechProgress) => {
+        if (currentJobId === activeSpeechJobId) {
+          onProgress(val);
+        }
+      };
+
+      const safeRes = () => {
+        if (currentJobId === activeSpeechJobId) {
+          res();
+        }
+      };
 
       const normalizedRate = Math.max(0.25, Math.min(2.5, rate || 1.0));
       const normalizedVolume =
@@ -624,8 +652,12 @@ function speak(
           : [];
       const voices = cached.length > 0 ? cached : systemVoices;
 
-      const chosenVoice =
+      const rawChosenVoice =
         voiceURI && voices.length > 0 ? findVoiceByUriOrName(voices, voiceURI) : undefined;
+      const chosenVoice =
+        rawChosenVoice && matchesLanguageCode(rawChosenVoice.lang, lang)
+          ? rawChosenVoice
+          : undefined;
 
       if (typeof window !== "undefined" && window.AndroidNativeShell?.speak) {
         try {
@@ -693,8 +725,8 @@ function speak(
               }
             };
             const estDurationMs = Math.max(
-              800,
-              (text.length / 10) * (1000 / (normalizedRate || 0.5)),
+              16000,
+              (text.length / 3) * (1000 / (normalizedRate || 0.5)) + 8000,
             );
             timer = setTimeout(finish, estDurationMs);
             return;
@@ -796,12 +828,14 @@ function speak(
 
         const v =
           chosenVoice ??
-          voices.find((x) => x.voiceURI === voiceURI || x.name === voiceURI) ??
+          voices.find(
+            (x) =>
+              (x.voiceURI === voiceURI || x.name === voiceURI) && matchesLanguageCode(x.lang, lang),
+          ) ??
           voices.find((x) => matchesLanguageCode(x.lang, lang));
 
-        if (v) {
+        if (v && matchesLanguageCode(v.lang, lang)) {
           u.voice = v;
-          // Align u.lang with chosen voice's lang to avoid voice override on Chromium/WebKit
           u.lang = v.lang || lang;
         } else {
           u.lang = lang;
@@ -867,8 +901,8 @@ function speak(
           void done(true);
         };
         const timeoutMs = Math.max(
-          3000,
-          (text.length / 5) * (1000 / (normalizedRate || 0.5)) + 3000,
+          16000,
+          (text.length / 3) * (1000 / (normalizedRate || 0.5)) + 8000,
         );
         safetyTimer = setTimeout(() => done(false), timeoutMs);
         if (typeof window !== "undefined") {
@@ -1506,7 +1540,9 @@ function Index() {
       });
       try {
         const primaryPlayer = multiVideoPlayerRegistry.get("primary");
-        (primaryPlayer as any)?.loadModule?.("captions");
+        (primaryPlayer as unknown as { loadModule?: (mod: string) => void })?.loadModule?.(
+          "captions",
+        );
         primaryPlayer?.setOption?.("captions", "track", { languageCode: langCode });
       } catch {
         // ignore
@@ -4991,7 +5027,7 @@ function Index() {
       try {
         const p = player.current || multiVideoPlayerRegistry.get("primary");
         if (p) {
-          (p as any).loadModule?.("captions");
+          (p as unknown as { loadModule?: (mod: string) => void }).loadModule?.("captions");
           p.setOption?.("captions", "track", { languageCode: targetLang });
           logInterception("Programmatically triggered caption track before alert fallback", {
             videoId,
@@ -5620,9 +5656,14 @@ function Index() {
                     setSpeechProgress,
                     wordVol,
                   );
+                  const wordSpeed = Math.max(0.25, rates[l.code] ?? 1.0);
+                  const wordWaitMs = Math.max(
+                    12000,
+                    (pickedWord.length / 3) * (1000 / wordSpeed) + 6000,
+                  );
                   await Promise.race([
                     speakWordPromise,
-                    new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+                    new Promise<void>((resolve) => setTimeout(resolve, wordWaitMs)),
                   ]);
 
                   // 2. Pronounce the translation in base language
@@ -5652,9 +5693,14 @@ function Index() {
                       setSpeechProgress,
                       baseVol,
                     );
+                    const transSpeed = Math.max(0.25, baseRate || 1.0);
+                    const transWaitMs = Math.max(
+                      12000,
+                      (wordTranslation.length / 3) * (1000 / transSpeed) + 6000,
+                    );
                     await Promise.race([
                       speakTransPromise,
-                      new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+                      new Promise<void>((resolve) => setTimeout(resolve, transWaitMs)),
                     ]);
                   }
                 } else {
@@ -5668,9 +5714,14 @@ function Index() {
                     setSpeechProgress,
                     rowVol,
                   );
+                  const textSpeed = Math.max(0.25, rates[l.code] ?? 1.0);
+                  const textWaitMs = Math.max(
+                    16000,
+                    (rawText.length / 3) * (1000 / textSpeed) + 8000,
+                  );
                   await Promise.race([
                     speakPromise,
-                    new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+                    new Promise<void>((resolve) => setTimeout(resolve, textWaitMs)),
                   ]);
                 }
               }
@@ -8304,19 +8355,27 @@ function Index() {
                                                       onClick={() => {
                                                         setShowOtherSettingsAccordions(false);
                                                         setCurrentAccordionStage(1);
-                                                        setOpenPanels((prev) => ({ ...prev, languages: true }));
+                                                        setOpenPanels((prev) => ({
+                                                          ...prev,
+                                                          languages: true,
+                                                        }));
                                                       }}
                                                       className="inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium text-foreground shadow"
                                                     >
                                                       <Volume2 className="h-3 w-3" />
                                                       <span>
-                                                        {useAlternativeTtsState && alternativeTtsModeState === "always"
+                                                        {useAlternativeTtsState &&
+                                                        alternativeTtsModeState === "always"
                                                           ? "Alternative TTS"
                                                           : isAndroid
                                                             ? "Android TTS"
                                                             : "Browser TTS"}
                                                         {" · "}
-                                                        {voices.find((v) => v.voiceURI === voiceSelections[speakingLang])?.name || "default voice"}
+                                                        {voices.find(
+                                                          (v) =>
+                                                            v.voiceURI ===
+                                                            voiceSelections[speakingLang],
+                                                        )?.name || "default voice"}
                                                         {" · "}
                                                         {(rates[speakingLang] ?? 1).toFixed(1)}x
                                                       </span>
@@ -9485,9 +9544,12 @@ function Index() {
                                         onTestAudio={async () => {
                                           setIsTestingAlternativeTts(true);
                                           const testRate = rates[baseLanguage || "en"] ?? 0.5;
+                                          const sampleText = getSampleTextForLanguage(
+                                            baseLanguage || "en",
+                                          );
                                           try {
                                             await playAlternativeTtsAudio(
-                                              "Hello world",
+                                              sampleText,
                                               baseLanguage || "en",
                                               testRate,
                                               undefined,
@@ -9821,7 +9883,12 @@ function Index() {
                                     <span>Open Stage View</span>
                                   </Button>
                                 </div>
-                                <p className="text-xs text-muted-foreground" data-testid="settings-fetched-subtitles-moved">Fetched subtitles live only on Stage 0 — use “Open Stage View”.</p>
+                                <p
+                                  className="text-xs text-muted-foreground"
+                                  data-testid="settings-fetched-subtitles-moved"
+                                >
+                                  Fetched subtitles live only on Stage 0 — use “Open Stage View”.
+                                </p>
                               </div>
                             </details>
                           </div>

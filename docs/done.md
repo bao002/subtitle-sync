@@ -1,5 +1,49 @@
 # Done tasks
 
+### Task 370 (Prompt 140 - Chapter 2): TTS Playback Coordination & Overlap Prevention
+
+- **Prompt**:
+  ```
+  2. tts-play ends prematurely sometimes or different playing is starting in parallel before it ends.
+  ```
+- **Context & Implementation**:
+  - **1. Elimination of Premature Static 8000ms Timeouts**:
+    - Removed arbitrary `setTimeout(resolve, 8000)` timeouts in `speakRow` within `src/routes/index.tsx`.
+    - Introduced rate-aware dynamic timeouts (`textWaitMs`, `wordWaitMs`, `transWaitMs`) scaling dynamically with sentence/word character length and speech playback rate (`Math.max(16000, (length / 3) * (1000 / rate) + 8000)`), preventing sentences from being truncated prematurely.
+  - **2. Speech Mutex & Parallel Overlap Prevention**:
+    - Implemented `activeSpeechJobId` mutex in `src/routes/index.tsx`.
+    - Before initiating any new utterance, actively cancelled any running alternative audio (`cancelAlternativeTtsAudio()`) and active Web Speech synthesis (`window.speechSynthesis.cancel()`), preventing two speeches from running concurrently.
+    - Attached `safeProgress` and `safeRes` guards ensuring that stale or cancelled async callbacks cannot overwrite active progress indicators or race ahead.
+  - **3. Alternative TTS Watchdog Scaling**:
+    - Updated `playAlternativeTtsAudio` watchdog timer in `src/lib/alternative-tts.ts` from `Math.max(8000, ...)` to `Math.max(16000, (text.length / 3) * (1000 / effectiveRate) + 8000)`, guaranteeing adequate buffering and playback time for slower speech rates.
+  - **4. Single Source Versioning**:
+    - Bumped application version to `v2.1.69` (code `20169`) synchronized across `package.json` and `android-shell/app/build.gradle.kts`.
+- **Testing & Verification**:
+  - Authored dedicated automated test suite `scripts/verify-tts-playback-coordination.ts` (`npm run test:tts-playback-coordination`) passing 100%.
+  - Verified `compile_applet` and `lint_applet` with zero errors.
+
+### Task 369 (Prompt 140 - Chapter 1): TTS Service Language Phonetic Alignment
+
+- **Prompt**:
+  ```
+  1. tts-service - the played tts doesnt sound correctly as if phonetics belong to 1 language while the text belong to another
+  ```
+- **Context & Implementation**:
+  - **1. Remote TTS Request Cleansing (`buildLovableTtsUrl` & `buildLovableTtsRequestBody`)**:
+    - Disallowed injecting the global `localStorage` target language into general TTS audio requests (`options?.target_lang ?? getLovableTtsTargetLang()`).
+    - Enforced that `target_lang` is only attached when explicitly requested in options for that specific utterance AND when it differs from the source text language `normalizedLang`.
+  - **2. Language-Matched Sample Sentences (`getSampleTextForLanguage`)**:
+    - Created and exported `getSampleTextForLanguage(lang)` in `src/utils/speechVoiceUtils.ts`, providing authentic native text for Spanish, Hebrew, Arabic, Russian, Italian, Portuguese, French, German, Japanese, Korean, Chinese, and English.
+    - Updated audio test buttons in `src/routes/index.tsx` and `BeginnerPreferencesTab.tsx` so non-English languages receive authentic native words instead of hardcoded English `"Hello world"`.
+  - **3. Web Speech API Voice-to-Language Guard**:
+    - Guarded `chosenVoice` and `v` in `speak(...)` (`src/routes/index.tsx`) with `matchesLanguageCode(voice.lang, lang)`, strictly preventing voices of another language (e.g. English voice) from being assigned to pronounce text in foreign languages (e.g. Hebrew or Spanish).
+  - **4. Single Source Versioning**:
+    - Synchronized version to `v2.1.68` (code `20168`) across `package.json` and `android-shell/app/build.gradle.kts`.
+- **Testing & Verification**:
+  - Authored dedicated automated test `scripts/verify-tts-language-phonetics-alignment.ts` (`npm run test:tts-phonetics-alignment`) passing 100%.
+  - Verified `npm run test:tts-service-openapi-compliance`, `npm run test:lovable-alternative-tts`, and `npm run test:single-vs-multiple-tables` passing 100%.
+  - Verified `compile_applet` and `lint_applet` with zero errors.
+
 ### Task 368 (Prompt 139): Fix GitHub Pages Deployment & README.md Links
 
 - **Prompt**:

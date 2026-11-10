@@ -1723,3 +1723,13 @@ This app was imported from GitHub repository brownman556/subtitle-sync.
 fix github pages deployment and README.md links
 ```
 
+---
+
+### Prompt 140: TTS Phonetics, Playback Coordination, Demo Deployment, Subtitles-Table Highlight Toggle
+```
+1. tts-service - the played tts doesnt sound correctly as if phonetics belong to 1 language while the text belong to another
+2. tts-play ends prematurely sometimes or different playing is starting in parallel before it ends.
+3. the demo website deployment doesnt seems to update the github pages (it shows old version)
+4. subtitles-table - add toggle which allow to highlight the part-sentence vs the current state where it filters out based on sentence-part&char-length.
+```
+

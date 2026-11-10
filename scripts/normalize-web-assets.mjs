@@ -21,7 +21,14 @@ html = html
   .replaceAll('"/favicon.ico"', '"./favicon.ico"');
 fs.writeFileSync(indexPath, html);
 
-console.log(`Normalized web asset paths in ${path.relative(process.cwd(), indexPath)}`);
+// Generate version.json in dist for GitHub Pages cache invalidation & freshness checking
+const packageJson = JSON.parse(fs.readFileSync(path.resolve("package.json"), "utf8"));
+const versionInfo = {
+  version: packageJson.version,
+  buildTime: new Date().toISOString(),
+};
+fs.writeFileSync(path.join(outputDir, "version.json"), JSON.stringify(versionInfo, null, 2), "utf8");
+console.log(`Generated version.json (v${packageJson.version}) in ${path.relative(process.cwd(), outputDir)}`);
 
 // Stage web application into dist/demo/ so /demo serves the web app on GitHub Pages
 const demoDir = path.join(outputDir, "demo");

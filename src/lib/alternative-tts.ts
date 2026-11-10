@@ -665,8 +665,15 @@ export function buildLovableTtsUrl(
     }
   }
 
-  const targetLang = options?.target_lang ?? getLovableTtsTargetLang();
-  if (targetLang && targetLang.trim()) {
+  // Only set target_lang when explicitly requested for this specific utterance
+  // and when it differs from the text's own native language.
+  // Never default to a global localStorage target_lang which pollutes other languages with mismatched phonetics.
+  const targetLang = options?.target_lang;
+  if (
+    targetLang &&
+    targetLang.trim() &&
+    targetLang.trim().toLowerCase() !== normalizedLang.toLowerCase()
+  ) {
     url.searchParams.set("target_lang", targetLang.trim());
   }
 
@@ -701,7 +708,8 @@ export function buildLovableTtsRequestBody(
   const provider = options?.provider || getLovableTtsProvider();
   const speed = options?.speed ?? getLovableTtsSpeed();
   const rawOptions = options?.options ?? getLovableTtsOptions();
-  const targetLang = options?.target_lang ?? getLovableTtsTargetLang();
+  // Only set target_lang when explicitly requested and different from text language
+  const targetLang = options?.target_lang;
   const { providerApiKey } = resolveTtsCredentials(options);
   const format = options?.format || getLovableTtsFormat();
 
@@ -712,6 +720,14 @@ export function buildLovableTtsRequestBody(
   };
   if (provider) {
     body.provider = provider;
+  }
+
+  if (
+    targetLang &&
+    targetLang.trim() &&
+    targetLang.trim().toLowerCase() !== normalizedLang.toLowerCase()
+  ) {
+    body.target_lang = targetLang.trim();
   }
 
   // Voice parameter is explicitly suppressed from being passed to the remote TTS service
@@ -2159,7 +2175,8 @@ export async function playAlternativeTtsAudio(
       resolve();
     };
 
-    const maxTimeoutMs = Math.max(8000, (text.length / 5) * 1000 + 4000);
+    const effectiveRate = Math.max(0.25, typeof rate === "number" && rate > 0 ? rate : 1.0);
+    const maxTimeoutMs = Math.max(16000, (text.length / 3) * (1000 / effectiveRate) + 8000);
     watchdogTimer = setTimeout(() => {
       console.warn(
         `[AlternativeTTS] Audio playback watchdog timer expired after ${maxTimeoutMs}ms`,

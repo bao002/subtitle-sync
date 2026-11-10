@@ -32,6 +32,7 @@ import {
   getLanguageVoices,
   getCachedVoices,
   SpeechVoiceLike,
+  getSampleTextForLanguage,
 } from "@/utils/speechVoiceUtils";
 import {
   ALL_KNOWN_LANGUAGES,
@@ -261,10 +262,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
 
   const handleTestVoice = () => {
     if (typeof window === "undefined") return;
-    const text =
-      baseLanguage === "he"
-        ? "שלום, זו בדיקת קול עבור כתוביות"
-        : "Hello, this is a subtitle voice preview.";
+    const text = getSampleTextForLanguage(baseLanguage);
 
     const useAltTts = getUseAlternativeTts();
     const altMode = getAlternativeTtsMode();
@@ -1017,7 +1015,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                         setIsTestingAlternativeTts(true);
                         try {
                           await playAlternativeTtsAudio(
-                            "Hello world",
+                            getSampleTextForLanguage(baseLanguage || "en"),
                             baseLanguage || "en",
                             ttsSpeed,
                             undefined,
