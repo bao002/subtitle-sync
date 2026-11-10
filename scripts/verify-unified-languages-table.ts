@@ -94,9 +94,9 @@ assert.ok(
 );
 console.log("✅ PASS: ⇄ Switch Primary/Secondary button is preserved");
 
-// Test 6: App version is 2.0.x
-console.log("\n[Test 6] Verifying version 2.0.x synchronization...");
-assert.ok(APP_VERSION.startsWith("2.0."), "APP_VERSION must start with 2.0.");
+// Test 6: App version is 2.x
+console.log("\n[Test 6] Verifying version 2.x synchronization...");
+assert.ok(APP_VERSION.startsWith("2."), "APP_VERSION must start with 2.");
 console.log(`✅ PASS: APP_VERSION is ${APP_VERSION}`);
 
 console.log("\n=========================================================================");

@@ -6,12 +6,9 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 144 (Move Pacing Item to Settings, Fold Settings Accordions by Default, Add Missing Settings Accordion) [ACTIVE]:
-  - Task 375 [ACTIVE]: Move subtitle fetch pacing control (`fetch-window-seconds-input`, selector 1) from Languages to Settings, fold Settings accordions by default, and add missing `settings-subtitle-fetching-accordion` ("Subtitle Fetching & Pacing Settings") to Settings stage for clean segregation.
-  - Held Tasks (Prompt 140 - Chapters 3 & 4) [ON HOLD]:
-    - Task 371: Fix GitHub Pages Demo Deployment [ON HOLD].
-    - Task 372: Subtitles-Table Highlight vs Filter Toggle [PENDING].
-- Active Backlog: Task 375 [ACTIVE], Task 371 [ON HOLD], Task 372 in [`docs/tasks.md`](tasks.md).
+- Prompt 146 (Focus Mode: Hide Deprecated Relative Ratio Elements) [COMPLETED]:
+  - Task 377 [COMPLETED]: Hid deprecated relative ratio elements (`span:nth-of-type(1)` and `span:nth-of-type(2)`) via `hidden` styling.
+- Resumed Active Backlog: Task 371 [ACTIVE], Task 372 [PENDING] in [`docs/tasks.md`](tasks.md).
 
 ---
 

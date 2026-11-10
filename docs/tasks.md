@@ -4,13 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 375 (Prompt 144 - Focus Mode & Architecture): Move Pacing Item to Settings, Fold Settings Accordions by Default, Add Missing Settings Accordion**
-  - [ ] Subtask 375.1: Apply style change (`hidden`) to selector 1 (`fetch-window-seconds-input` row in `panelId === "languages"`).
-  - [ ] Subtask 375.2: Fold sub-accordions on Settings stage by default (remove `open` attribute from `settings-playback-accordion`, `settings-chars-removal-accordion`, `settings-parser-accordion`).
-  - [ ] Subtask 375.3: Add dedicated missing accordion `settings-subtitle-fetching-accordion` ("Subtitle Fetching & Pacing Settings") on Settings stage with `fetch-window-seconds-input`, subtitle request mode, and pacing controls.
-  - [ ] Subtask 375.4: Add dedicated automated test `scripts/verify-settings-segregation-and-pacing-move.ts`, bump single-source version to `v2.1.73`, verify tests, compile/lint, commit, and migrate Task 375 to `docs/done.md`.
-
-- [ ] **Task 371 (Prompt 140 - Chapter 3): Fix GitHub Pages Demo Deployment [ON HOLD]**
+- [ ] **Task 371 (Prompt 140 - Chapter 3): Fix GitHub Pages Demo Deployment [ACTIVE]**
   - [x] Subtask 371.1: Add HTTP no-cache meta tags to `index.html` preventing browsers from caching stale bundles.
   - [ ] Subtask 371.2: Update `.github/workflows/deploy-demo.yml` so that `dist` is cleanly published to `gh-pages` without stale file retention masking updates (`keep_files: false`).
   - [ ] Subtask 371.3: Add dedicated automated test `scripts/verify-github-pages-deployment-freshness.ts` (`npm run test:gh-pages-freshness`), bump version, verify compile/lint, commit, and migrate Task 371 to `docs/done.md`.
