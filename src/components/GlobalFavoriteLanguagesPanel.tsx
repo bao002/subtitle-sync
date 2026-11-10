@@ -9,6 +9,7 @@ export interface GlobalFavoriteLanguagesPanelProps {
   onFavoriteLanguagesChange: (languages: string[]) => void;
   onApplyFavoritesToVideo: () => void;
   onSaveCurrentSelectionAsFavorites: () => void;
+  className?: string;
 }
 
 export function GlobalFavoriteLanguagesPanel({
@@ -19,6 +20,7 @@ export function GlobalFavoriteLanguagesPanel({
   onFavoriteLanguagesChange,
   onApplyFavoritesToVideo,
   onSaveCurrentSelectionAsFavorites,
+  className,
 }: GlobalFavoriteLanguagesPanelProps) {
   const [filter, setFilter] = useState("");
   const availableLanguages = catalog.filter((language) => {
@@ -40,7 +42,7 @@ export function GlobalFavoriteLanguagesPanel({
 
   return (
     <section
-      className="space-y-3 border-b border-border pb-4"
+      className={`space-y-3 border-b border-border pb-4 ${className || ""}`.trim()}
       data-testid="global-favorite-languages-panel"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">

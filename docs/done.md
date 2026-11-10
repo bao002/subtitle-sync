@@ -1,5 +1,102 @@
 # Done tasks
 
+### Task 374 (Prompt 143 - Focus Mode): Hide Redundant Auto-Speak and TTS Language Name Toggles
+
+- **Prompt**:
+  ```
+  those are the same. redundunt
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(3)
+  CSS 1: {
+
+  }
+  CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(4)
+  CSS 2: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - **1. Style Changes on Redundant Toggle Elements**:
+    - Focus Mode selection identified two redundant toggle elements in the Advanced Mode Languages accordion:
+      - CSS selector 1: `auto-speak-on-fetch-toggle` row container.
+      - CSS selector 2: `speak-language-name-on-fetch-toggle` row container.
+    - Applied the `hidden` class directly to both container `div`s in `src/routes/index.tsx`, cleanly hiding them from the UI while preserving the underlying state and contracts.
+  - **2. Single Source Versioning**:
+    - Bumped application version to `v2.1.72` (code `20172`) synchronized across `package.json` and `android-shell/app/build.gradle.kts`.
+- **Testing & Verification**:
+  - Verified `scripts/verify-focus-mode-hide-fetch-toggles.ts` (`npm run test:focus-mode-hide-fetch-toggles`) passing 100%.
+  - Verified `scripts/verify-focus-mode-hide-redundant-languages-items.ts` passing 100%.
+  - Verified `scripts/verify-auto-speak-on-fetch.ts` passing 100%.
+  - Verified `scripts/verify-dev-server-stability.ts` passing 100%.
+  - Verified `compile_applet` and `lint_applet` passing with zero errors.
+
+### Task 373 (Prompt 142 - Focus Mode): Hide Redundant Language Elements in Languages Accordion
+
+- **Prompt**:
+  ```
+  no need those redundunt items
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(4) > table:nth-of-type(1) > thead:nth-of-type(1) > tr:nth-of-type(1) > th:nth-of-type(1)
+  ...
+  CSS selector 10: ... > th:nth-of-type(10)
+  CSS selector 11: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > div:nth-of-type(1)
+  CSS selector 12: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > section:nth-of-type(1)
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - **1. Hide Redundant Language Selection & Unified Table**:
+    - Focus Mode selection identified 12 redundant elements in the Advanced Mode Languages accordion:
+      - Selectors 1–10: All 10 `<th>` headers of `unified-languages-table` (`Language`, `Is Primary`, `Rate`, `Vol`, `TTS Ratio`, `TTS-Play`, `Present in Table`, `JSON3`, `Subtitle URL`, `Order`).
+      - Selector 11: `LanguageBoxesSelector` container/header.
+      - Selector 12: `GlobalFavoriteLanguagesPanel`.
+    - These elements duplicated functionality already cleanly centralized in `#stage-2-learning-goals-card` (`LearningGoalsFiltersPanel`), which manages base source language, approved learning target languages, in-place favorite extension, precedence bar ordering, ratios, blacklist, speech rate, and volume.
+  - **2. Style Changes & Parity**:
+    - Enhanced `LanguageBoxesSelector.tsx` and `GlobalFavoriteLanguagesPanel.tsx` with optional `className?: string` prop and forwarded it to their root wrappers/headers.
+    - In `src/routes/index.tsx`, applied `className="hidden"` to `<LanguageBoxesSelector />` and `<GlobalFavoriteLanguagesPanel />`.
+    - Applied `hidden` to `unified-languages-table` and its container `<div className="overflow-x-auto hidden">` and to each of the 10 `<th>` elements.
+    - Updated `VideoPlaybackPrecedenceBar` in `unified-languages-table` to `colSpan={9}`.
+  - **3. Single Source Versioning**:
+    - Bumped application version to `v2.1.71` (code `20171`) synchronized across `package.json` and `android-shell/app/build.gradle.kts`.
+- **Testing & Verification**:
+  - Verified `scripts/verify-focus-mode-hide-redundant-languages-items.ts` (`npm run test:focus-mode-hide-redundant-languages-items`) passing 100%.
+  - Verified `scripts/verify-video-precedence-replaces-redundant-order-controls.ts` passing 100%.
+  - Verified `scripts/verify-ui-languages-and-subtitles-table.ts` passing 100%.
+  - Verified `scripts/verify-advanced-mode-favorite-language-boxes.ts` passing 100%.
+  - Verified `scripts/verify-dev-server-stability.ts` passing 100%.
+  - Verified `compile_applet` and `lint_applet` passing with zero errors.
+
+### Hotfix: Resolve Dev Server Prewarming Process Death & Redundant Vite CLI Flags
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.69 dev > vite --host 0.0.0.0 --port 3000 --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1913 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Context & Implementation**:
+  - **1. Clean Dev Script in package.json**:
+    - AI Studio runner invokes `npm run dev -- --port 3000 --host 0.0.0.0`.
+    - Hardcoded flags in `"dev": "vite --host 0.0.0.0 --port 3000"` resulted in duplicate arguments `vite --host 0.0.0.0 --port 3000 --port 3000 --host 0.0.0.0`, conflicting with Vite 8 CLI parser during pre-warming initialization.
+    - Updated `package.json` dev script cleanly to `"dev": "vite"`. `vite.config.ts` explicitly binds host `0.0.0.0`, port `3000`, and `strictPort: true`.
+  - **2. Harmonize Test Assertions**:
+    - Updated `scripts/verify-github-import-migration.ts` to allow `"vite"` while verifying Vite config binds to `0.0.0.0:3000`.
+    - Updated `scripts/verify-dev-server-prewarming-hotfix.ts` to support both notification string variations in `src/routes/index.tsx`.
+  - **3. Single Source Versioning**:
+    - Synchronized version to `v2.1.70` (code `20170`) across `package.json` and `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+- **Testing & Verification**:
+  - Verified `scripts/verify-dev-server-prewarming-hotfix.ts` (`npm run test:dev-server-prewarming-hotfix`) passing 100%.
+  - Verified `scripts/verify-github-import-migration.ts` (`npm run test:github-import-migration`) passing 100%.
+  - Verified `scripts/verify-dev-server-stability.ts` (`npm run test:dev-server-stability`) passing 100%.
+  - Verified `scripts/verify-single-source-version-architecture.ts` (`npm run test:single-source-version`) passing 100%.
+  - Verified `scripts/verify-client-pretransform-health.ts` (`npm run test:client-pretransform-health`) passing 100%.
+  - Verified all 21 AGENTS.md constitutional contract checks (`tsx scripts/verify-agents-all.ts`) passing 21/21 (100%).
+  - Verified `compile_applet` and `lint_applet` passing with zero errors.
+
 ### Task 370 (Prompt 140 - Chapter 2): TTS Playback Coordination & Overlap Prevention
 
 - **Prompt**:
