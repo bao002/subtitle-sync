@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { logNetwork } from "./logBuffer";
 
 export interface NetworkRequestRecord {
   id: string;
@@ -95,6 +96,19 @@ export function trackNetworkRequest(
             }
           : req,
       );
+      try {
+        logNetwork({
+          category: type === "timedtext_interception" ? "Interception" : "Network",
+          url,
+          method,
+          status,
+          duration,
+          responseBody: preview,
+          message: `${method} ${url} (${status})`,
+        });
+      } catch {
+        // ignore log error
+      }
       notify();
     },
     fail: (error: string, status?: number, responseBody?: unknown) => {
@@ -123,6 +137,19 @@ export function trackNetworkRequest(
             }
           : req,
       );
+      try {
+        logNetwork({
+          category: type === "timedtext_interception" ? "Interception" : "Network",
+          url,
+          method,
+          status: status !== undefined && status > 0 ? status : 500,
+          duration,
+          responseBody: preview || error,
+          message: `${method} ${url} FAILED: ${error}`,
+        });
+      } catch {
+        // ignore log error
+      }
       notify();
     },
   };

@@ -6,6 +6,12 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
+- Prompt 158 (Resume Backlog - Learning Goals Folded Accordions & Row-Criteria Per Language):
+  - Task 386 [COMPLETED & VERIFIED]: Chapter 1 (from Prompt 154) - Learning Goals Folded Accordions with Timeout (`LearningGoalAccordion` with `defaultOpen={false}`, 10s auto-fold hourglass indicator, pin toggle, 100% parity across Advanced and Beginner modes).
+  - Task 387 [ACTIVE]: Chapter 2 (from Prompt 154) - Learning Goals Row-Criteria Per Language (max words limit, complete sentence punctuation filter per language, reset options, 100% parity across modes).
+  - Task 388 [PENDING]: Chapter 3 (from Prompt 154) - Subtitles Table View Visible Global Row-Criteria with Default Language Filtering.
+- Prompt 157 (Bug Report / Diagnostic Error Log: Register State Provider, Prioritize Errors & Cap Reproduction Sequence):
+  - Hotfix [COMPLETED & VERIFIED]: Fixed `[State provider not registered]` by registering live app state provider in `src/routes/index.tsx`, prioritized active errors at `## 0. Active Errors & Failures` at top of diagnostic report in `src/utils/logBuffer.ts`, capped reproduction sequence to prevent clipboard truncation (>65KB), mirrored network requests into `logBuffer`, bumped version to 2.1.82.
 - Prompt 156 (Replace Word Balloons Stage with Subtitles Sentence & Word Learning Game):
   - Task 390 [COMPLETED & VERIFIED]: Replace Word Balloons Stage with interactive Subtitles Sentence & Word Learning Game (Sentence Builder, Word Match, Missing Word, and Word Discovery) driven by current subtitles, with zero video distraction.
 - Prompt 155 (Hotfix: Vite Reload Failure & Undeclared Identifiers in index.tsx):

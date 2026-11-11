@@ -60,6 +60,7 @@ const KEYS = {
   learningGoalsMaxWords: "yt_learning_goals_max_words_v1",
   learningGoalsLangMaxWords: "yt_learning_goals_lang_max_words_v1",
   learningGoalsSkipIncomplete: "yt_learning_goals_skip_incomplete_v1",
+  learningGoalsLangSkipIncomplete: "yt_learning_goals_lang_skip_incomplete_v1",
   zeroKnowledgeInLang: "yt_zero_knowledge_in_lang_v1",
   pickWordStrategy: "yt_pick_word_strategy_v1",
   perLangPickWordStrategy: "yt_per_lang_pick_word_strategy_v1",
@@ -815,6 +816,59 @@ export const getEffectiveLanguageMaxWords = (
   }
   const stored = getLearningGoalsLanguageMaxWords();
   if (typeof stored[langCode] === "number" && stored[langCode] > 0) {
+    return stored[langCode];
+  }
+};
+
+export const getLearningGoalsLanguageSkipIncomplete = (): Record<string, boolean> => {
+  const s = getStorage();
+  if (!s) return {};
+  try {
+    const raw = s.getItem(KEYS.learningGoalsLangSkipIncomplete);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
+    const result: Record<string, boolean> = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      if (typeof v === "boolean") {
+        result[k] = v;
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+};
+
+export const setLearningGoalsLanguageSkipIncomplete = (
+  langCode: string,
+  skip: boolean | undefined,
+): Record<string, boolean> => {
+  const current = getLearningGoalsLanguageSkipIncomplete();
+  const next = { ...current };
+  if (typeof skip === "boolean") {
+    next[langCode] = skip;
+  } else {
+    delete next[langCode];
+  }
+  write(KEYS.learningGoalsLangSkipIncomplete, JSON.stringify(next));
+  return next;
+};
+
+export const saveAllLearningGoalsLanguageSkipIncomplete = (map: Record<string, boolean>): void => {
+  write(KEYS.learningGoalsLangSkipIncomplete, JSON.stringify(map));
+};
+
+export const getEffectiveLanguageSkipIncomplete = (
+  langCode: string,
+  langMap?: Record<string, boolean> | null,
+  fallback = false,
+): boolean => {
+  if (langMap && typeof langMap[langCode] === "boolean") {
+    return langMap[langCode];
+  }
+  const stored = getLearningGoalsLanguageSkipIncomplete();
+  if (typeof stored[langCode] === "boolean") {
     return stored[langCode];
   }
   return fallback;

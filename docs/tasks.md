@@ -3,14 +3,8 @@
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
 ## Active Tasks
- 
-- [ ] **Task 386 (Prompt 154 - Chapter 1): Learning Goals Folded Accordions with Timeout [ACTIVE]**
-  - [ ] Subtask 386.1: Audit Stage 2 Learning Goals layout and accordion structure in `src/routes/index.tsx` and related components.
-  - [ ] Subtask 386.2: Wrap Learning Goals sub-panels/sections in `AccordionSection` with `foldedByDefault={true}` and auto-folded timeout as used across the application.
-  - [ ] Subtask 386.3: Ensure 100% parity across Advanced Mode and Beginner Mode.
-  - [ ] Subtask 386.4: Verify with dedicated test `scripts/verify-learning-goals-folded-accordions.ts`, verify compilation and linting, commit, and migrate Task 386 to `docs/done.md`.
 
-- [ ] **Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language [PENDING]**
+- [ ] **Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language [ACTIVE]**
   - [ ] Subtask 387.1: Add per-language row-criteria (max words per sentence limit, complete sentence punctuation filter) preferences in `src/lib/playback-preferences.ts`.
   - [ ] Subtask 387.2: Update `LearningGoalsFiltersPanel.tsx` to provide per-language row-criteria controls with reset options and active status.
   - [ ] Subtask 387.3: Integrate per-language row-criteria into translation and TTS processing in `src/routes/index.tsx`.

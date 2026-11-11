@@ -268,6 +268,7 @@ import {
   logSubtitlePopulation,
   logForeignTrack,
   copyBugReportToClipboard,
+  registerAppStateProvider,
 } from "@/utils/logBuffer";
 import { AccordionSection } from "@/components/AccordionSection";
 import { StateMachineActionLogsInspector } from "@/components/StateMachineActionLogsInspector";
@@ -348,6 +349,12 @@ import {
   setLearningGoalsMaxWords as saveLearningGoalsMaxWords,
   getLearningGoalsSkipIncomplete,
   setLearningGoalsSkipIncomplete as saveLearningGoalsSkipIncomplete,
+  getLearningGoalsLanguageMaxWords,
+  setLearningGoalsLanguageMaxWords as saveLearningGoalsLanguageMaxWords,
+  getLearningGoalsLanguageSkipIncomplete,
+  setLearningGoalsLanguageSkipIncomplete as saveLearningGoalsLanguageSkipIncomplete,
+  getEffectiveLanguageMaxWords,
+  getEffectiveLanguageSkipIncomplete,
   getTtsBlacklist,
   setTtsBlacklist,
   isLanguageTtsBlacklisted,
@@ -1497,6 +1504,41 @@ function Index() {
     maxTtsWordsRef.current = simpleParserConfig.maxWordsPerSentence;
     skipIncompleteRef.current = Boolean(simpleParserConfig.skipIncompleteSentences);
   }, [simpleParserConfig.maxWordsPerSentence, simpleParserConfig.skipIncompleteSentences]);
+
+  const [languageMaxWords, setLanguageMaxWords] = useState<Record<string, number>>(() => {
+    return getLearningGoalsLanguageMaxWords();
+  });
+  const [languageSkipIncomplete, setLanguageSkipIncomplete] = useState<Record<string, boolean>>(() => {
+    return getLearningGoalsLanguageSkipIncomplete();
+  });
+  const languageMaxWordsRef = useRef<Record<string, number>>(languageMaxWords);
+  const languageSkipIncompleteRef = useRef<Record<string, boolean>>(languageSkipIncomplete);
+
+  useEffect(() => {
+    languageMaxWordsRef.current = languageMaxWords;
+  }, [languageMaxWords]);
+
+  useEffect(() => {
+    languageSkipIncompleteRef.current = languageSkipIncomplete;
+  }, [languageSkipIncomplete]);
+
+  const handleLanguageMaxWordsChange = useCallback(
+    (langCode: string, val: number | undefined) => {
+      const next = saveLearningGoalsLanguageMaxWords(langCode, val);
+      setLanguageMaxWords(next);
+      languageMaxWordsRef.current = next;
+    },
+    [],
+  );
+
+  const handleLanguageSkipIncompleteChange = useCallback(
+    (langCode: string, val: boolean | undefined) => {
+      const next = saveLearningGoalsLanguageSkipIncomplete(langCode, val);
+      setLanguageSkipIncomplete(next);
+      languageSkipIncompleteRef.current = next;
+    },
+    [],
+  );
 
   const [tableDisplayMode, setTableDisplayMode] = useState<TableDisplayMode>(() => {
     return getTableDisplayModePreference();
@@ -4664,10 +4706,20 @@ function Index() {
         sentencesAhead: onDemandAheadCount,
         isSentenceEligibleForTts: (idx) => {
           const sent = sourceSentences[idx] || "";
-          if (!isSentenceWithinWordLimit(sent, simpleParserConfig.maxWordsPerSentence)) {
+          const langMaxWords = getEffectiveLanguageMaxWords(
+            targetLang,
+            languageMaxWordsRef.current,
+            simpleParserConfig.maxWordsPerSentence,
+          );
+          if (!isSentenceWithinWordLimit(sent, langMaxWords)) {
             return false;
           }
-          if (simpleParserConfig.skipIncompleteSentences && !isCompleteSentence(sent)) {
+          const langSkipIncomplete = getEffectiveLanguageSkipIncomplete(
+            targetLang,
+            languageSkipIncompleteRef.current,
+            Boolean(simpleParserConfig.skipIncompleteSentences),
+          );
+          if (langSkipIncomplete && !isCompleteSentence(sent)) {
             return false;
           }
           const ratio = getLanguageTtsRatio(ttsRatios, targetLang);
@@ -4740,6 +4792,57 @@ function Index() {
       return next;
     });
   }, [targetLanguages, favoriteLanguages]);
+
+  // Register live application state provider for diagnostic reports and troubleshooting exports
+  useEffect(() => {
+    registerAppStateProvider(() => {
+      let playerStateNum: number | undefined;
+      let playerCurrentSec: number | undefined;
+      try {
+        playerStateNum = player.current?.getPlayerState?.();
+        playerCurrentSec = player.current?.getCurrentTime?.();
+      } catch {
+        // ignore iframe access error
+      }
+      return {
+        videoId,
+        mode: workflowMode,
+        stage: workflowMode === "beginner" ? beginnerActiveTab : currentAccordionStage,
+        isVideoPlaying,
+        pauseReason,
+        playerState: playerStateNum,
+        currentTime: playerCurrentSec,
+        baseLanguage,
+        targetLanguages,
+        favoriteLanguages,
+        loadedTracks: Object.keys(tracks || {}),
+        rowsCount: rows?.length || 0,
+        speakingRow,
+        speakingLang,
+        isZeroKnowledgeActive: Object.values(zeroKnowledgeMap || {}).some(Boolean),
+        zeroKnowledgeLanguages: Object.entries(zeroKnowledgeMap || {})
+          .filter(([, v]) => v)
+          .map(([k]) => k),
+        isAudioTrackMode,
+        timestamp: new Date().toISOString(),
+      };
+    });
+  }, [
+    videoId,
+    workflowMode,
+    beginnerActiveTab,
+    currentAccordionStage,
+    isVideoPlaying,
+    pauseReason,
+    baseLanguage,
+    targetLanguages,
+    favoriteLanguages,
+    tracks,
+    rows,
+    speakingRow,
+    speakingLang,
+    zeroKnowledgeMap,
+  ]);
 
   // Main screen presents favorite languages and intercepted tracks for show/hide, speech toggles, ordering, and per-language TTS controls
   const orderedLangs = useMemo(() => {
@@ -5520,21 +5623,35 @@ function Index() {
         if (rowIdx < 0 || playedTtsRecords.current.has(getPlaybackSectionId(rows[rowIdx]!)))
           return [];
         const baseText = st.current.rows[rowIdx]?.texts[st.current.baseLanguage] ?? "";
-        if (!isSentenceWithinWordLimit(baseText, maxTtsWordsRef.current)) return [];
-        if (skipIncompleteRef.current && !isCompleteSentence(baseText)) return [];
         let eligibleLanguages = orderedLangs.filter(
-          (l) =>
-            !isLanguageTtsBlacklisted(l.code, currentTtsBlacklist) &&
-            isTtsSpeakableLanguage(l.code, currentBaseLanguage, currentTtsBlacklist) &&
-            isLanguageSpoken(l.code, spoken) &&
-            isLanguageEligibleForTtsWithRole({
-              rowIdx,
-              langCode: l.code,
-              ratio: getLanguageTtsRatio(currentTtsRatios, l.code),
-              primaryLang: effectivePrimary,
-              primaryRatio,
-              blacklist: currentTtsBlacklist,
-            }),
+          (l) => {
+            const langMaxWords = getEffectiveLanguageMaxWords(
+              l.code,
+              languageMaxWordsRef.current,
+              maxTtsWordsRef.current,
+            );
+            if (!isSentenceWithinWordLimit(baseText, langMaxWords)) return false;
+            const langSkipIncomplete = getEffectiveLanguageSkipIncomplete(
+              l.code,
+              languageSkipIncompleteRef.current,
+              skipIncompleteRef.current,
+            );
+            if (langSkipIncomplete && !isCompleteSentence(baseText)) return false;
+
+            return (
+              !isLanguageTtsBlacklisted(l.code, currentTtsBlacklist) &&
+              isTtsSpeakableLanguage(l.code, currentBaseLanguage, currentTtsBlacklist) &&
+              isLanguageSpoken(l.code, spoken) &&
+              isLanguageEligibleForTtsWithRole({
+                rowIdx,
+                langCode: l.code,
+                ratio: getLanguageTtsRatio(currentTtsRatios, l.code),
+                primaryLang: effectivePrimary,
+                primaryRatio,
+                blacklist: currentTtsBlacklist,
+              })
+            );
+          },
         );
         if (eligibleLanguages.length === 0 && isAudioTrackMode && spoken.length === 0) {
           const fallbackLang =
@@ -7695,6 +7812,17 @@ function Index() {
                     // ignore storage errors
                   }
                 }}
+                learningLanguages={targetLanguages.map((code) => ({
+                  code,
+                  name:
+                    LANGS.find((l) => l.code === code)?.name ||
+                    SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code === code)?.name ||
+                    code.toUpperCase(),
+                }))}
+                languageMaxWords={languageMaxWords}
+                onLanguageMaxWordsChange={handleLanguageMaxWordsChange}
+                languageSkipIncomplete={languageSkipIncomplete}
+                onLanguageSkipIncompleteChange={handleLanguageSkipIncompleteChange}
               />
             }
             maxWordsPerSentence={simpleParserConfig.maxWordsPerSentence}
@@ -10795,7 +10923,7 @@ function Index() {
                                 </div>
                                 <span className="text-[10px] font-mono font-medium bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1">
                                   <Filter className="h-3 w-3" />
-                                  <span>1 / 3</span>
+                                  <span>1 / 4</span>
                                 </span>
                               </div>
 
@@ -10843,12 +10971,11 @@ function Index() {
 
                               <div className="space-y-2 text-xs">
                                 {/* 1. Set Default Source Language from Successfully Fetched Subtitles */}
-                                <div className="space-y-1.5 bg-card/60 p-2.5 rounded-lg border border-border">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-1.5 font-semibold text-foreground">
-                                      <Globe className="h-3.5 w-3.5 text-primary" />
-                                      <span>1. Default Source Language</span>
-                                    </div>
+                                <LearningGoalAccordion
+                                  id="default-source-lang"
+                                  title="1. Default Source Language"
+                                  icon={<Globe className="h-3.5 w-3.5 text-primary" />}
+                                  badge={
                                     <span className="text-primary font-mono text-[11px] font-medium flex items-center gap-1">
                                       <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                                       <span>
@@ -10857,7 +10984,10 @@ function Index() {
                                           "Awaiting fetch"}
                                       </span>
                                     </span>
-                                  </div>
+                                  }
+                                  defaultOpen={false}
+                                  autoTimeout={true}
+                                >
                                   <div className="flex flex-col space-y-1 pt-0.5">
                                     {fetchedSubtitleLanguages.length > 0 ? (
                                       fetchedSubtitleLanguages.map((langCode) => {
@@ -10905,21 +11035,21 @@ function Index() {
                                       </div>
                                     )}
                                   </div>
-                                </div>
+                                </LearningGoalAccordion>
 
                                 {/* 2. Approve Favorite Languages to Learn */}
-                                <div className="space-y-1.5 bg-card/60 p-2.5 rounded-lg border border-border">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-1.5 font-semibold text-foreground">
-                                      <BookOpen className="h-3.5 w-3.5 text-primary" />
-                                      <span>
-                                        2. Approved Learning Languages ({targetLanguages.length})
-                                      </span>
-                                    </div>
+                                <LearningGoalAccordion
+                                  id="approved-languages"
+                                  title={`2. Approved Learning Languages (${targetLanguages.length})`}
+                                  icon={<BookOpen className="h-3.5 w-3.5 text-primary" />}
+                                  badge={
                                     <span className="text-muted-foreground text-[10px] font-mono truncate max-w-48">
                                       {targetLanguages.join(", ") || "None"}
                                     </span>
-                                  </div>
+                                  }
+                                  defaultOpen={false}
+                                  autoTimeout={true}
+                                >
                                   <div className="flex flex-col space-y-1 max-h-48 overflow-y-auto divide-y divide-border/40 border border-border/50 rounded-md bg-background/60 p-1">
                                     {(favoriteLanguages.length > 0
                                       ? favoriteLanguages
@@ -11112,30 +11242,34 @@ function Index() {
                                       </div>
                                     )}
                                   </div>
-                                </div>
+                                </LearningGoalAccordion>
 
                                 {/* 3. Language Ratios (Learning Goals Frequency) - Located at end of Stage 2 Learning Goals */}
-                                <div
-                                  id="stage-2-language-ratios-container"
-                                  data-testid="stage-2-language-ratios-container"
-                                  className="space-y-2 bg-card/60 p-2.5 rounded-lg border border-border"
-                                >
-                                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/40 pb-2">
-                                    <div className="flex items-center gap-1.5 font-semibold text-foreground text-xs">
-                                      <Sliders className="h-3.5 w-3.5 text-primary" />
-                                      <span>3. Narration &amp; Ratios</span>
+                                <LearningGoalAccordion
+                                  id="narration-ratios"
+                                  title="3. Narration & Ratios"
+                                  icon={<Sliders className="h-3.5 w-3.5 text-primary" />}
+                                  badge={
+                                    <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                                      <LanguageRatioCompositionSelector
+                                        activeCompositionId={activeRatioCompositionId}
+                                        onSelectComposition={handleSelectRatioComposition}
+                                        onSaveProfile={handleSaveComposition}
+                                        onUpdateProfile={handleUpdateRatioComposition}
+                                        onDeleteProfile={handleDeleteRatioComposition}
+                                        compositions={storedCompositions}
+                                      />
                                     </div>
-                                    <LanguageRatioCompositionSelector
-                                      activeCompositionId={activeRatioCompositionId}
-                                      onSelectComposition={handleSelectRatioComposition}
-                                      onSaveProfile={handleSaveComposition}
-                                      onUpdateProfile={handleUpdateRatioComposition}
-                                      onDeleteProfile={handleDeleteRatioComposition}
-                                      compositions={storedCompositions}
-                                    />
-                                  </div>
-
-                                  <div className="space-y-2 pt-0.5">
+                                  }
+                                  defaultOpen={false}
+                                  autoTimeout={true}
+                                  className="w-full"
+                                >
+                                  <div
+                                    id="stage-2-language-ratios-container"
+                                    data-testid="stage-2-language-ratios-container"
+                                    className="space-y-2 pt-0.5"
+                                  >
                                     {(() => {
                                       const learningLangCodes = Array.from(
                                         new Set(
@@ -12205,8 +12339,60 @@ function Index() {
                                         </div>
                                       );
                                     })()}
+                                </LearningGoalAccordion>
+
+                                {/* 4. Subtitle Row Criteria & Filters (Global & Per-Language) */}
+                                <LearningGoalAccordion
+                                  id="learning-goals-row-criteria"
+                                  title="4. Row Criteria & Filters"
+                                  icon={<Filter className="h-3.5 w-3.5 text-primary" />}
+                                  badge={
+                                    <span className="text-primary font-mono text-[10px] font-bold bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
+                                      {simpleParserConfig.maxWordsPerSentence}w max
+                                    </span>
+                                  }
+                                  defaultOpen={false}
+                                  autoTimeout={true}
+                                  className="w-full"
+                                >
+                                  <div className="pt-0.5">
+                                    <LearningGoalsFiltersPanel
+                                      maxWords={simpleParserConfig.maxWordsPerSentence}
+                                      onMaxWordsChange={(val) => {
+                                        const next = { ...simpleParserConfig, maxWordsPerSentence: val };
+                                        setSimpleParserConfig(next);
+                                        saveLearningGoalsMaxWords(val);
+                                        try {
+                                          localStorage.setItem("yt_simple_parser_config", JSON.stringify(next));
+                                        } catch {
+                                          // ignore storage errors
+                                        }
+                                      }}
+                                      skipIncompleteSentences={Boolean(simpleParserConfig.skipIncompleteSentences)}
+                                      onSkipIncompleteSentencesChange={(val) => {
+                                        const next = { ...simpleParserConfig, skipIncompleteSentences: val };
+                                        setSimpleParserConfig(next);
+                                        saveLearningGoalsSkipIncomplete(val);
+                                        try {
+                                          localStorage.setItem("yt_simple_parser_config", JSON.stringify(next));
+                                        } catch {
+                                          // ignore storage errors
+                                        }
+                                      }}
+                                      learningLanguages={targetLanguages.map((code) => ({
+                                        code,
+                                        name:
+                                          LANGS.find((l) => l.code === code)?.name ||
+                                          SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code === code)?.name ||
+                                          code.toUpperCase(),
+                                      }))}
+                                      languageMaxWords={languageMaxWords}
+                                      onLanguageMaxWordsChange={handleLanguageMaxWordsChange}
+                                      languageSkipIncomplete={languageSkipIncomplete}
+                                      onLanguageSkipIncompleteChange={handleLanguageSkipIncompleteChange}
+                                    />
                                   </div>
-                                </div>
+                                </LearningGoalAccordion>
                               </div>
                             </div>
 

@@ -1994,6 +1994,25 @@ error 9: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. T
 word baloon stage - replace it with a game of sentences and word based on current subtitles.
 ```
 
+---
+
+### Prompt 157: Bug Report / Diagnostic Error Log: Register State Provider, Prioritize Errors & Cap Reproduction Sequence
+```
+error log:
+[AIS_METADATA_SECTION_START]
+Media attachment: User sent attachment: /assets/aistudio/Paste_November_11__2026_-_6_36AM_dbb3dc2a (saved in workspace at /public/assets/aistudio/Paste_November_11__2026_-_6_36AM_dbb3dc2a). Read it with view_file at that path; in shell commands, which run from the workspace root, use the relative path public/assets/aistudio/Paste_November_11__2026_-_6_36AM_dbb3dc2a. When displaying or embedding this asset in code, reference this local file path directly. Only invoke image generation tools if the user explicitly requests creating or modifying an image.
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 158: Resume Backlog - Learning Goals Folded Accordions with Timeout
+```
+go on
+```
+
+
+
 
 
 
