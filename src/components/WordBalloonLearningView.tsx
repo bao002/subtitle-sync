@@ -1,22 +1,31 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   Sparkles,
   Volume2,
+  VolumeX,
   RotateCcw,
   SkipBack,
   SkipForward,
   Tv,
   CheckCircle2,
-  VolumeX,
-  Languages,
   Check,
   Award,
   Gamepad2,
-  Maximize2,
+  Flame,
+  Shuffle,
+  Languages,
+  BookOpen,
+  HelpCircle,
+  Puzzle,
+  Layers,
+  Target,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RTL } from "@/lib/subtitles";
 import { CanvasBalloonGame } from "@/components/CanvasBalloonGame";
+
+export type LearningGameMode = "sentence_builder" | "word_match" | "missing_word" | "word_balloons";
 
 export interface WordBalloonLearningViewProps {
   /** Current base language sentence */
@@ -51,6 +60,8 @@ export interface WordBalloonLearningViewProps {
   onCloseLearningView?: () => void;
   /** Launch canvas balloon game on full screen callback */
   onOpenCanvasGame?: () => void;
+  /** Full subtitle rows for multi-sentence vocabulary pooling */
+  subtitleRows?: Array<{ texts?: Record<string, string>; text?: string }>;
   /** Custom wrapper styles */
   className?: string;
 }
@@ -160,7 +171,6 @@ function playWebAudioPopSound(): void {
     const gain = ctx.createGain();
 
     osc.type = "sine";
-    // Quick energetic pitch pop from 380Hz up to 920Hz
     const now = ctx.currentTime;
     osc.frequency.setValueAtTime(380, now);
     osc.frequency.exponentialRampToValueAtTime(920, now + 0.07);
@@ -175,6 +185,72 @@ function playWebAudioPopSound(): void {
     osc.stop(now + 0.09);
   } catch {
     // Audio context may be restricted before user gesture
+  }
+}
+
+/**
+ * Synthesizes a bright success chime on correct answer / match
+ */
+function playWebAudioSuccessChime(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioCtxClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtxClass) return;
+    const ctx = new AudioCtxClass();
+    const now = ctx.currentTime;
+
+    // Two-tone arpeggio (E5 -> B5)
+    [659.25, 987.77].forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+
+      gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + idx * 0.08);
+      osc.stop(now + idx * 0.08 + 0.25);
+    });
+  } catch {
+    // AudioContext fallback
+  }
+}
+
+/**
+ * Synthesizes a soft error tone on mismatch
+ */
+function playWebAudioErrorTone(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioCtxClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtxClass) return;
+    const ctx = new AudioCtxClass();
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.linearRampToValueAtTime(130, now + 0.12);
+
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.14);
+  } catch {
+    // AudioContext fallback
   }
 }
 
@@ -197,6 +273,18 @@ function sanitizeWord(rawWord: string): string {
   );
 }
 
+/**
+ * Fisher-Yates array shuffle.
+ */
+function shuffleArray<T>(arr: T[]): T[] {
+  const result = [...arr];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = ({
   currentSentence,
   baseLanguage,
@@ -214,42 +302,316 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   onSpeakText,
   onCloseLearningView,
   onOpenCanvasGame,
+  subtitleRows = [],
   className = "",
 }) => {
+  // Game mode: Sentence Builder, Word Match, Missing Word, or Word Balloons
+  const [gameMode, setGameMode] = useState<LearningGameMode>("sentence_builder");
+
   // Toggle for full screen Canvas Balloon Game mode
   const [internalShowCanvasGame, setInternalShowCanvasGame] = useState<boolean>(false);
-  // Set of punched balloon indices for the active sentence
-  const [punchedIndices, setPunchedIndices] = useState<Set<number>>(new Set());
-  // Toggle for audio pop sound effect
+  // Sound FX toggle
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
-  // Recently punched balloon index for burst highlight animation
+
+  // Gamification stats
+  const [score, setScore] = useState<number>(0);
+  const [streak, setStreak] = useState<number>(0);
+  const [completedSentencesCount, setCompletedSentencesCount] = useState<number>(0);
+
+  // -------------------------------------------------------------
+  // Mode 1: Sentence Builder State
+  // -------------------------------------------------------------
+  const baseWords = useMemo(() => extractWords(currentSentence), [currentSentence]);
+  const translationWords = useMemo(() => extractWords(targetTranslation), [targetTranslation]);
+
+  // Which language the player is unscrambling (defaults to base language or target if specified)
+  const targetWordsForBuilder = useMemo(() => {
+    // If target translation is available, build the base or target words
+    return baseWords.map((word, idx) => ({
+      id: `w-${idx}-${word}`,
+      originalIndex: idx,
+      word,
+      cleanWord: sanitizeWord(word),
+    }));
+  }, [baseWords]);
+
+  const [availableTiles, setAvailableTiles] = useState<
+    Array<{ id: string; originalIndex: number; word: string; cleanWord: string }>
+  >([]);
+  const [placedTiles, setPlacedTiles] = useState<
+    Array<{ id: string; originalIndex: number; word: string; cleanWord: string }>
+  >([]);
+  const [builderStatus, setBuilderStatus] = useState<"idle" | "correct" | "incorrect">("idle");
+
+  // Reset Sentence Builder when active sentence changes
+  useEffect(() => {
+    if (targetWordsForBuilder.length > 0) {
+      setAvailableTiles(shuffleArray(targetWordsForBuilder));
+      setPlacedTiles([]);
+      setBuilderStatus("idle");
+    }
+  }, [targetWordsForBuilder, activeRowIndex]);
+
+  const handleTileClick = useCallback(
+    (tile: { id: string; originalIndex: number; word: string; cleanWord: string }) => {
+      if (soundEnabled) playWebAudioPopSound();
+      if (builderStatus === "correct") return;
+
+      // Move from available to placed
+      setAvailableTiles((prev) => prev.filter((t) => t.id !== tile.id));
+      setPlacedTiles((prev) => {
+        const next = [...prev, tile];
+        // If all tiles placed, check automatically
+        if (next.length === targetWordsForBuilder.length) {
+          const isCorrect = next.every((t, i) => t.originalIndex === i);
+          if (isCorrect) {
+            if (soundEnabled) playWebAudioSuccessChime();
+            setBuilderStatus("correct");
+            setScore((s) => s + 50);
+            setStreak((st) => st + 1);
+            setCompletedSentencesCount((c) => c + 1);
+            if (onSpeakText && currentSentence) {
+              onSpeakText(currentSentence, baseLanguage);
+            }
+          } else {
+            if (soundEnabled) playWebAudioErrorTone();
+            setBuilderStatus("incorrect");
+            setStreak(0);
+          }
+        }
+        return next;
+      });
+    },
+    [
+      soundEnabled,
+      builderStatus,
+      targetWordsForBuilder.length,
+      currentSentence,
+      baseLanguage,
+      onSpeakText,
+    ],
+  );
+
+  const handlePlacedTileClick = useCallback(
+    (tile: { id: string; originalIndex: number; word: string; cleanWord: string }) => {
+      if (builderStatus === "correct") return;
+      if (soundEnabled) playWebAudioPopSound();
+
+      // Return to available
+      setPlacedTiles((prev) => prev.filter((t) => t.id !== tile.id));
+      setAvailableTiles((prev) => [...prev, tile]);
+      setBuilderStatus("idle");
+    },
+    [builderStatus, soundEnabled],
+  );
+
+  const handleGiveHint = useCallback(() => {
+    if (builderStatus === "correct") return;
+    const nextExpectedIndex = placedTiles.length;
+    if (nextExpectedIndex >= targetWordsForBuilder.length) return;
+
+    const neededTile = targetWordsForBuilder[nextExpectedIndex];
+    if (!neededTile) return;
+
+    if (soundEnabled) playWebAudioPopSound();
+    setAvailableTiles((prev) => prev.filter((t) => t.id !== neededTile.id));
+    setPlacedTiles((prev) => {
+      const next = [...prev, neededTile];
+      if (next.length === targetWordsForBuilder.length) {
+        setBuilderStatus("correct");
+        setScore((s) => s + 25);
+        if (soundEnabled) playWebAudioSuccessChime();
+      }
+      return next;
+    });
+  }, [builderStatus, placedTiles.length, targetWordsForBuilder, soundEnabled]);
+
+  const handleResetBuilder = useCallback(() => {
+    setAvailableTiles(shuffleArray(targetWordsForBuilder));
+    setPlacedTiles([]);
+    setBuilderStatus("idle");
+  }, [targetWordsForBuilder]);
+
+  // -------------------------------------------------------------
+  // Mode 2: Word Match State (Vocabulary Pairs)
+  // -------------------------------------------------------------
+  const matchPairs = useMemo(() => {
+    if (baseWords.length === 0) return [];
+    const minLen = Math.min(baseWords.length, translationWords.length, 6);
+    const pairs: Array<{ id: string; base: string; target: string }> = [];
+
+    for (let i = 0; i < minLen; i++) {
+      const b = sanitizeWord(baseWords[i]);
+      const t = sanitizeWord(translationWords[i] || "");
+      if (b && t && b.length > 1) {
+        pairs.push({ id: `pair-${i}`, base: b, target: t });
+      }
+    }
+    return pairs;
+  }, [baseWords, translationWords]);
+
+  const [selectedBaseWord, setSelectedBaseWord] = useState<string | null>(null);
+  const [selectedTargetWord, setSelectedTargetWord] = useState<string | null>(null);
+  const [matchedPairIds, setMatchedPairIds] = useState<Set<string>>(new Set());
+
+  // Shuffled target choices for word matching
+  const shuffledTargetPairs = useMemo(() => {
+    return shuffleArray(matchPairs);
+  }, [matchPairs, activeRowIndex]);
+
+  useEffect(() => {
+    setSelectedBaseWord(null);
+    setSelectedTargetWord(null);
+    setMatchedPairIds(new Set());
+  }, [activeRowIndex, currentSentence]);
+
+  const handleBaseWordSelect = (word: string) => {
+    if (soundEnabled) playWebAudioPopSound();
+    setSelectedBaseWord(word);
+    if (onSpeakText) onSpeakText(word, baseLanguage);
+
+    if (selectedTargetWord) {
+      checkMatch(word, selectedTargetWord);
+    }
+  };
+
+  const handleTargetWordSelect = (word: string) => {
+    if (soundEnabled) playWebAudioPopSound();
+    setSelectedTargetWord(word);
+    if (onSpeakText) onSpeakText(word, targetLanguage);
+
+    if (selectedBaseWord) {
+      checkMatch(selectedBaseWord, word);
+    }
+  };
+
+  const checkMatch = (baseW: string, targetW: string) => {
+    const matchingPair = matchPairs.find(
+      (p) =>
+        p.base.toLowerCase() === baseW.toLowerCase() &&
+        p.target.toLowerCase() === targetW.toLowerCase(),
+    );
+
+    if (matchingPair) {
+      if (soundEnabled) playWebAudioSuccessChime();
+      setMatchedPairIds((prev) => new Set([...prev, matchingPair.id]));
+      setScore((s) => s + 20);
+      setStreak((st) => st + 1);
+    } else {
+      if (soundEnabled) playWebAudioErrorTone();
+      setStreak(0);
+    }
+    setSelectedBaseWord(null);
+    setSelectedTargetWord(null);
+  };
+
+  // -------------------------------------------------------------
+  // Mode 3: Missing Word State (Fill in the blank)
+  // -------------------------------------------------------------
+  const missingWordIndex = useMemo(() => {
+    if (baseWords.length <= 1) return 0;
+    // Choose the longest word in the sentence as the blank target
+    let longestIdx = 0;
+    let maxLen = 0;
+    baseWords.forEach((w, idx) => {
+      const clean = sanitizeWord(w);
+      if (clean.length > maxLen) {
+        maxLen = clean.length;
+        longestIdx = idx;
+      }
+    });
+    return longestIdx;
+  }, [baseWords]);
+
+  const missingWordOptions = useMemo(() => {
+    if (baseWords.length === 0) return [];
+    const correctWord = baseWords[missingWordIndex];
+    const correctClean = sanitizeWord(correctWord);
+
+    // Collect distractors from subtitle vocabulary or fallback catalog
+    const distractorPool = new Set<string>();
+    subtitleRows.forEach((r) => {
+      if (r.text) {
+        extractWords(r.text).forEach((w) => {
+          const c = sanitizeWord(w);
+          if (c && c.toLowerCase() !== correctClean.toLowerCase() && c.length > 2) {
+            distractorPool.add(c);
+          }
+        });
+      }
+    });
+
+    const fallbackDistractors = [
+      "learning",
+      "practice",
+      "adventure",
+      "subtitles",
+      "knowledge",
+      "together",
+      "explore",
+    ];
+    fallbackDistractors.forEach((d) => distractorPool.add(d));
+
+    const distractors = shuffleArray(Array.from(distractorPool))
+      .filter((w) => w.toLowerCase() !== correctClean.toLowerCase())
+      .slice(0, 3);
+
+    return shuffleArray([correctWord, ...distractors]);
+  }, [baseWords, missingWordIndex, subtitleRows]);
+
+  const [selectedMissingOption, setSelectedMissingOption] = useState<string | null>(null);
+  const [missingWordFeedback, setMissingWordFeedback] = useState<"idle" | "correct" | "incorrect">(
+    "idle",
+  );
+
+  useEffect(() => {
+    setSelectedMissingOption(null);
+    setMissingWordFeedback("idle");
+  }, [activeRowIndex, currentSentence]);
+
+  const handleSelectMissingWord = (option: string) => {
+    setSelectedMissingOption(option);
+    const correctWord = baseWords[missingWordIndex];
+    const isCorrect =
+      sanitizeWord(option).toLowerCase() === sanitizeWord(correctWord).toLowerCase();
+
+    if (isCorrect) {
+      if (soundEnabled) playWebAudioSuccessChime();
+      setMissingWordFeedback("correct");
+      setScore((s) => s + 35);
+      setStreak((st) => st + 1);
+      if (onSpeakText && currentSentence) {
+        onSpeakText(currentSentence, baseLanguage);
+      }
+    } else {
+      if (soundEnabled) playWebAudioErrorTone();
+      setMissingWordFeedback("incorrect");
+      setStreak(0);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // Mode 4: Word Balloons State (Backwards Compatibility & Discovery)
+  // -------------------------------------------------------------
+  const [punchedIndices, setPunchedIndices] = useState<Set<number>>(new Set());
   const [justPunchedIndex, setJustPunchedIndex] = useState<number | null>(null);
 
-  // Reset punched indices whenever active sentence changes
   useEffect(() => {
     setPunchedIndices(new Set());
     setJustPunchedIndex(null);
   }, [activeRowIndex, currentSentence]);
 
-  // Tokenize base words and target translation words
-  const baseWords = useMemo(() => extractWords(currentSentence), [currentSentence]);
-  const translationWords = useMemo(() => extractWords(targetTranslation), [targetTranslation]);
-
-  // Formulate balloon items with aligned word translations
   const balloons = useMemo<WordBalloonItem[]>(() => {
     if (baseWords.length === 0) return [];
-
     return baseWords.map((word, index) => {
       const cleanWord = sanitizeWord(word);
       const colorScheme = BALLOON_COLOR_PALETTES[index % BALLOON_COLOR_PALETTES.length];
 
-      // Proportional word alignment to target translation words
       let wordTranslation = "";
       if (translationWords.length > 0) {
         if (baseWords.length === translationWords.length) {
           wordTranslation = translationWords[index];
         } else {
-          // Map index proportionally across translation words
           const targetIndex = Math.min(
             translationWords.length - 1,
             Math.floor((index / baseWords.length) * translationWords.length),
@@ -258,7 +620,6 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
         }
       }
 
-      // If translation text is empty or unavailable, fallback gracefully
       if (!wordTranslation) {
         wordTranslation = `[${cleanWord || word}]`;
       }
@@ -274,17 +635,13 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
     });
   }, [baseWords, translationWords]);
 
-  // Handle punch interaction on a balloon
   const handlePunchBalloon = useCallback(
     (index: number, balloon: WordBalloonItem) => {
-      if (soundEnabled) {
-        playWebAudioPopSound();
-      }
+      if (soundEnabled) playWebAudioPopSound();
 
       setPunchedIndices((prev) => {
         const next = new Set(prev);
         if (next.has(index)) {
-          // If already punched, tapping again speaks the translated word
           if (onSpeakText && balloon.translation) {
             onSpeakText(balloon.translation, targetLanguage);
           }
@@ -292,8 +649,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
           next.add(index);
           setJustPunchedIndex(index);
           setTimeout(() => setJustPunchedIndex(null), 600);
-
-          // Pronounce the revealed translation
+          setScore((s) => s + 5);
           if (onSpeakText && balloon.translation) {
             onSpeakText(balloon.translation, targetLanguage);
           }
@@ -304,16 +660,12 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
     [soundEnabled, onSpeakText, targetLanguage],
   );
 
-  // Punch all balloons
   const handlePunchAll = useCallback(() => {
-    if (soundEnabled) {
-      playWebAudioPopSound();
-    }
+    if (soundEnabled) playWebAudioPopSound();
     const allIndices = new Set(balloons.map((_, i) => i));
     setPunchedIndices(allIndices);
   }, [balloons, soundEnabled]);
 
-  // Reset / Re-inflate all balloons
   const handleResetBalloons = useCallback(() => {
     setPunchedIndices(new Set());
     setJustPunchedIndex(null);
@@ -355,278 +707,654 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
     <div
       data-testid="word-balloon-learning-view"
       id="word-balloon-learning-view"
-      className={`relative flex flex-col justify-between overflow-hidden rounded-xl border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-950/20 via-background to-card p-3 sm:p-5 text-foreground shadow-xl transition-all ${className}`}
-      style={{ minHeight: "420px" }}
+      className={`relative flex flex-col justify-between overflow-hidden rounded-xl border-2 border-indigo-500/30 bg-card p-4 sm:p-6 text-foreground shadow-xl transition-all ${className}`}
+      style={{ minHeight: "480px" }}
     >
-      {/* 1. Header Toolbar: Stage Badge, Target Language Selector, Sound & Mode Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-border/70 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-bold text-white shadow-xs">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Interactive Learning Stage</span>
+      {/* 1. Header Toolbar: Title, Game Mode Switcher, Score & Stats */}
+      <div className="flex flex-col gap-3 border-b border-border/80 pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2.5">
+          {/* Game Title & Sentence Index */}
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1 text-xs font-bold text-white shadow-xs">
+              <Sparkles className="h-4 w-4" />
+              <span>Subtitles Sentence &amp; Word Game</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span
+                data-testid="balloon-sentence-counter"
+                className="font-semibold text-foreground"
+              >
+                {activeRowIndex >= 0
+                  ? `Sentence ${activeRowIndex + 1} of ${totalRows}`
+                  : "No subtitles loaded"}
+              </span>
+              <span aria-hidden="true">·</span>
+              <span className="font-medium">
+                {baseLanguageName} → {targetLanguageName}
+              </span>
+            </div>
           </div>
 
-          <span
-            data-testid="balloon-sentence-counter"
-            className="text-xs font-semibold text-muted-foreground"
-          >
-            {activeRowIndex >= 0
-              ? `Sentence ${activeRowIndex + 1} of ${totalRows}`
-              : "No sentence loaded"}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Target Language Selector */}
-          {availableTargetLanguages.length > 1 && onSelectTargetLanguage && (
-            <div className="flex items-center gap-1 bg-card border border-border/80 px-2 py-1 rounded-md text-xs">
-              <Languages className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <select
-                data-testid="balloon-target-lang-select"
-                aria-label="Select Target Language"
-                value={targetLanguage}
-                onChange={(e) => onSelectTargetLanguage(e.target.value)}
-                className="bg-transparent font-medium text-xs text-foreground focus:outline-hidden cursor-pointer"
-                title="Select learning target language"
-              >
-                {availableTargetLanguages.map((lang) => (
-                  <option
-                    key={lang.code}
-                    value={lang.code}
-                    className="bg-popover text-popover-foreground"
+          {/* Gamification Bar: Score, Streak, Sound Toggle, Full Screen & Back to Video */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Score & Streak Counters */}
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-muted/60 text-xs font-semibold">
+              <span data-testid="game-xp-score" className="text-indigo-600 dark:text-indigo-400">
+                {score} XP
+              </span>
+              {streak > 1 && (
+                <>
+                  <span aria-hidden="true" className="text-muted-foreground">
+                    ·
+                  </span>
+                  <span
+                    data-testid="game-streak-counter"
+                    className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-bold"
                   >
-                    {lang.name} ({lang.code})
-                  </option>
-                ))}
-              </select>
+                    <Flame className="h-3.5 w-3.5 fill-current" />
+                    {streak} Streak
+                  </span>
+                </>
+              )}
             </div>
-          )}
 
-          {/* Sound Effects Toggle */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            data-testid="balloon-sound-toggle"
-            onClick={() => setSoundEnabled((prev) => !prev)}
-            className={`h-7 px-2 text-xs gap-1 border-border ${
-              soundEnabled ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground"
-            }`}
-            title={soundEnabled ? "Mute pop sound effects" : "Enable pop sound effects"}
-          >
-            {soundEnabled ? (
-              <>
-                <Volume2 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Sound ON</span>
-              </>
-            ) : (
-              <>
-                <VolumeX className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Sound OFF</span>
-              </>
+            {/* Target Language Selector */}
+            {availableTargetLanguages.length > 1 && onSelectTargetLanguage && (
+              <div className="flex items-center gap-1 bg-card border border-border/80 px-2 py-1 rounded-md text-xs">
+                <Languages className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                <select
+                  data-testid="balloon-target-lang-select"
+                  aria-label="Select Target Language"
+                  value={targetLanguage}
+                  onChange={(e) => onSelectTargetLanguage(e.target.value)}
+                  className="bg-transparent font-medium text-xs text-foreground focus:outline-hidden cursor-pointer"
+                  title="Select target language for learning"
+                >
+                  {availableTargetLanguages.map((lang) => (
+                    <option
+                      key={lang.code}
+                      value={lang.code}
+                      className="bg-popover text-popover-foreground"
+                    >
+                      {lang.name} ({lang.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
-          </Button>
 
-          {/* Play Canvas Balloon Game in Full Screen */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            data-testid="balloon-play-canvas-game-btn"
-            onClick={() => {
-              if (onOpenCanvasGame) {
-                onOpenCanvasGame();
-              } else {
-                setInternalShowCanvasGame(true);
-              }
-            }}
-            className="h-7 px-2.5 text-xs gap-1.5 border-indigo-500/50 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-semibold"
-            title="Play Canvas Balloon Game on full screen (without video)"
-          >
-            <Gamepad2 className="h-3.5 w-3.5" />
-            <span>Canvas Game (Full Screen)</span>
-          </Button>
-
-          {/* Switch back to Video Player */}
-          {onCloseLearningView && (
+            {/* Sound Toggle */}
             <Button
               type="button"
               variant="outline"
               size="sm"
-              data-testid="balloon-back-to-video-btn"
-              onClick={onCloseLearningView}
-              className="h-7 px-2.5 text-xs gap-1.5 border-border bg-card hover:bg-muted text-foreground"
-              title="Return to video player"
+              data-testid="balloon-sound-toggle"
+              onClick={() => setSoundEnabled((prev) => !prev)}
+              className={`h-7 px-2 text-xs gap-1 border-border ${
+                soundEnabled ? "text-indigo-600 dark:text-indigo-400" : "text-muted-foreground"
+              }`}
+              title={soundEnabled ? "Mute game sounds" : "Enable game sounds"}
             >
-              <Tv className="h-3.5 w-3.5" />
-              <span>Back to Video</span>
+              {soundEnabled ? (
+                <>
+                  <Volume2 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Audio ON</span>
+                </>
+              ) : (
+                <>
+                  <VolumeX className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Muted</span>
+                </>
+              )}
             </Button>
-          )}
+
+            {/* Canvas Game Full Screen */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              data-testid="balloon-play-canvas-game-btn"
+              onClick={() => {
+                if (onOpenCanvasGame) {
+                  onOpenCanvasGame();
+                } else {
+                  setInternalShowCanvasGame(true);
+                }
+              }}
+              className="h-7 px-2.5 text-xs gap-1.5 border-indigo-500/50 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-semibold"
+              title="Play Canvas Balloon Game on full screen (without video)"
+            >
+              <Gamepad2 className="h-3.5 w-3.5" />
+              <span className="hidden md:inline">Full Screen Game</span>
+            </Button>
+
+            {/* Return to Video Button */}
+            {onCloseLearningView && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid="balloon-back-to-video-btn"
+                onClick={onCloseLearningView}
+                className="h-7 px-2.5 text-xs gap-1.5 border-border bg-card hover:bg-muted text-foreground"
+                title="Return to video player"
+              >
+                <Tv className="h-3.5 w-3.5" />
+                <span>Back to Video</span>
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Game Mode Segmented Selector */}
+        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-muted/50 rounded-lg">
+          <button
+            type="button"
+            data-testid="game-mode-sentence-builder"
+            onClick={() => setGameMode("sentence_builder")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              gameMode === "sentence_builder"
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Puzzle className="h-3.5 w-3.5" />
+            <span>Sentence Builder</span>
+          </button>
+
+          <button
+            type="button"
+            data-testid="game-mode-word-match"
+            onClick={() => setGameMode("word_match")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              gameMode === "word_match"
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Layers className="h-3.5 w-3.5" />
+            <span>Word Match</span>
+          </button>
+
+          <button
+            type="button"
+            data-testid="game-mode-missing-word"
+            onClick={() => setGameMode("missing_word")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              gameMode === "missing_word"
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Target className="h-3.5 w-3.5" />
+            <span>Missing Word</span>
+          </button>
+
+          <button
+            type="button"
+            data-testid="game-mode-word-balloons"
+            onClick={() => setGameMode("word_balloons")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+              gameMode === "word_balloons"
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Word Balloons</span>
+          </button>
         </div>
       </div>
 
-      {/* 2. Interactive Learning Area: Score & Balloon Field */}
+      {/* 2. Main Interactive Workspace (Per Game Mode) */}
       <div className="my-auto py-4 space-y-4">
-        {/* Punch Progress & Action Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-1">
-          <div className="flex items-center gap-2">
-            <span
-              data-testid="balloon-progress-text"
-              className="text-xs font-semibold text-foreground flex items-center gap-1.5"
-            >
-              {isAllPunched ? (
-                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
-                  <Award className="h-4 w-4" />
-                  All balloons punched! Great job!
-                </span>
-              ) : (
-                <span>
-                  Punch the balloons to reveal translations:{" "}
-                  <strong className="text-indigo-600 dark:text-indigo-400">
-                    {punchedCount}/{totalBalloons}
-                  </strong>{" "}
-                  ({Math.round(progressRatio * 100)}%)
-                </span>
-              )}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              data-testid="punch-all-balloons-btn"
-              onClick={handlePunchAll}
-              disabled={isAllPunched || totalBalloons === 0}
-              className="h-6 px-2 text-[11px] gap-1 border-border"
-              title="Punch and reveal all balloons in this sentence"
-            >
-              <Sparkles className="h-3 w-3 text-indigo-500" />
-              <span>Punch All</span>
-            </Button>
-
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              data-testid="reset-balloons-btn"
-              onClick={handleResetBalloons}
-              disabled={punchedCount === 0}
-              className="h-6 px-2 text-[11px] gap-1 text-muted-foreground hover:text-foreground"
-              title="Re-inflate all balloons"
-            >
-              <RotateCcw className="h-3 w-3" />
-              <span>Re-inflate</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/60">
-          <div
-            data-testid="balloon-progress-bar"
-            className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-300"
-            style={{ width: `${progressRatio * 100}%` }}
-          />
-        </div>
-
-        {/* Word Balloons Grid / Floating Cluster */}
-        <div
-          data-testid="word-balloons-container"
-          dir={isBaseRtl ? "rtl" : "ltr"}
-          className="min-h-[160px] flex flex-wrap items-center justify-center gap-3 sm:gap-4 p-4 rounded-xl border border-indigo-500/20 bg-card/40 backdrop-blur-xs"
-        >
-          {balloons.length > 0 ? (
-            balloons.map((balloon) => {
-              const isPunched = punchedIndices.has(balloon.index);
-              const isJustPunched = justPunchedIndex === balloon.index;
-              const { colorScheme } = balloon;
-
-              return (
+        {/* ============================================================== */}
+        {/* MODE 1: SENTENCE BUILDER (UNSCRAMBLE SENTENCE)                  */}
+        {/* ============================================================== */}
+        {gameMode === "sentence_builder" && (
+          <div data-testid="sentence-builder-workspace" className="space-y-4">
+            {/* Guide Prompt / Target Translation */}
+            <div className="p-3.5 rounded-lg border border-border/80 bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+              <div className="space-y-1">
+                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  Target Translation Meaning:
+                </div>
                 <div
-                  key={balloon.id}
-                  data-testid={`balloon-card-${balloon.index}`}
-                  className="flex flex-col items-center select-none group"
+                  dir={isTargetRtl ? "rtl" : "ltr"}
+                  className="text-base font-semibold text-foreground leading-relaxed"
                 >
-                  <button
-                    type="button"
-                    data-testid={`balloon-punch-btn-${balloon.index}`}
-                    data-balloon-state={isPunched ? "punched" : "unpunched"}
-                    onClick={() => handlePunchBalloon(balloon.index, balloon)}
-                    aria-label={
-                      isPunched
-                        ? `Punched balloon ${balloon.cleanWord}: reveals ${balloon.translation}`
-                        : `Punch balloon for word ${balloon.cleanWord}`
-                    }
-                    className={`relative min-w-[80px] sm:min-w-[100px] max-w-[170px] min-h-[85px] sm:min-h-[96px] p-2.5 rounded-[30px] rounded-b-[24px] border-2 flex flex-col items-center justify-center text-center transition-all duration-200 cursor-pointer shadow-md active:scale-95 ${
-                      isPunched
-                        ? `${colorScheme.punchedBg} ${colorScheme.punchedBorder} scale-102`
-                        : `${colorScheme.unpunchedBg} ${colorScheme.unpunchedBorder} ${colorScheme.unpunchedText} ${colorScheme.unpunchedHover} hover:-translate-y-1 hover:shadow-lg`
-                    } ${isJustPunched ? "animate-bounce scale-110" : ""}`}
-                  >
-                    {/* Balloon highlight glare reflection on top right */}
-                    <div className="absolute top-2 right-3 w-3 h-1.5 rounded-full bg-white/40 pointer-events-none transform -rotate-45" />
+                  {targetTranslation || currentSentence}
+                </div>
+              </div>
 
-                    {isPunched ? (
-                      /* Punched State: Translation Exposed */
-                      <div className="flex flex-col items-center justify-center w-full space-y-1">
-                        <span className="text-[10px] uppercase font-bold tracking-wider opacity-85 line-through">
-                          {balloon.cleanWord}
-                        </span>
-                        <span
-                          data-testid={`balloon-translation-${balloon.index}`}
-                          dir={isTargetRtl ? "rtl" : "ltr"}
-                          className="text-base sm:text-lg font-extrabold tracking-wide drop-shadow-xs"
+              {onSpeakText && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    onSpeakText(
+                      targetTranslation || currentSentence,
+                      targetLanguage || baseLanguage,
+                    )
+                  }
+                  className="h-7 text-xs gap-1 border-border shrink-0"
+                >
+                  <Volume2 className="h-3.5 w-3.5" />
+                  <span>Listen</span>
+                </Button>
+              )}
+            </div>
+
+            {/* Workspace: Placed Sentence Slot */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+                <span>Click tiles below to build the grammatical sentence in order:</span>
+                <span className="font-mono">
+                  {placedTiles.length} / {targetWordsForBuilder.length} words
+                </span>
+              </div>
+
+              <div
+                dir={isBaseRtl ? "rtl" : "ltr"}
+                className={`min-h-[70px] p-3.5 rounded-xl border-2 flex flex-wrap items-center gap-2 transition-all ${
+                  builderStatus === "correct"
+                    ? "border-emerald-500 bg-emerald-500/10"
+                    : builderStatus === "incorrect"
+                      ? "border-rose-500 bg-rose-500/10"
+                      : "border-dashed border-border/80 bg-card/60"
+                }`}
+              >
+                {placedTiles.length > 0 ? (
+                  placedTiles.map((tile, idx) => (
+                    <button
+                      key={`placed-${tile.id}`}
+                      type="button"
+                      onClick={() => handlePlacedTileClick(tile)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all shadow-xs cursor-pointer ${
+                        builderStatus === "correct"
+                          ? "bg-emerald-600 text-white"
+                          : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                      }`}
+                      title="Click to remove word back to bank"
+                    >
+                      {tile.word}
+                    </button>
+                  ))
+                ) : (
+                  <span className="text-sm text-muted-foreground italic select-none">
+                    Empty slot — tap words below to place them here...
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Word Bank: Available Shuffled Tiles */}
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+                <span className="text-xs font-semibold text-muted-foreground">Word Bank:</span>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleGiveHint}
+                    disabled={builderStatus === "correct" || availableTiles.length === 0}
+                    className="h-6 px-2 text-[11px] gap-1 border-border"
+                  >
+                    <HelpCircle className="h-3 w-3 text-amber-500" />
+                    <span>Hint</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleResetBuilder}
+                    className="h-6 px-2 text-[11px] gap-1 text-muted-foreground hover:text-foreground"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    <span>Reset</span>
+                  </Button>
+                </div>
+              </div>
+
+              <div
+                dir={isBaseRtl ? "rtl" : "ltr"}
+                className="flex flex-wrap items-center gap-2 p-3 rounded-lg border border-border/60 bg-muted/20 min-h-[56px]"
+              >
+                {availableTiles.length > 0 ? (
+                  availableTiles.map((tile) => (
+                    <button
+                      key={`avail-${tile.id}`}
+                      type="button"
+                      onClick={() => handleTileClick(tile)}
+                      className="px-3 py-1.5 rounded-lg text-sm font-medium border border-border bg-card hover:border-indigo-500 hover:bg-indigo-500/10 text-foreground transition-all shadow-xs active:scale-95 cursor-pointer"
+                    >
+                      {tile.word}
+                    </button>
+                  ))
+                ) : builderStatus === "correct" ? (
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm py-1">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span>Perfect! Sentence assembled correctly (+50 XP)!</span>
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground italic py-1">
+                    All words placed in sentence slot.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* MODE 2: WORD MATCH (VOCABULARY PAIRS)                          */}
+        {/* ============================================================== */}
+        {gameMode === "word_match" && (
+          <div data-testid="word-match-grid" className="space-y-4">
+            <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+              <span>
+                Match words in {baseLanguageName} with translations in {targetLanguageName}:
+              </span>
+              <span className="font-mono">
+                {matchedPairIds.size} / {matchPairs.length} pairs matched
+              </span>
+            </div>
+
+            {matchPairs.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                {/* Base Language Words Column */}
+                <div className="space-y-2">
+                  <div className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-wider">
+                    {baseLanguageName}
+                  </div>
+                  <div className="space-y-2">
+                    {matchPairs.map((pair) => {
+                      const isMatched = matchedPairIds.has(pair.id);
+                      const isSelected = selectedBaseWord === pair.base;
+
+                      return (
+                        <button
+                          key={`base-${pair.id}`}
+                          type="button"
+                          onClick={() => !isMatched && handleBaseWordSelect(pair.base)}
+                          disabled={isMatched}
+                          className={`w-full p-2.5 rounded-lg border text-sm font-semibold text-left transition-all flex items-center justify-between ${
+                            isMatched
+                              ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 opacity-60"
+                              : isSelected
+                                ? "border-indigo-500 bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                                : "border-border bg-card hover:border-indigo-500/50 hover:bg-muted text-foreground"
+                          }`}
                         >
-                          {balloon.translation}
-                        </span>
-                        <div className="flex items-center gap-1 text-[10px] font-semibold opacity-90 mt-0.5">
-                          <Check className="h-3 w-3 stroke-[3]" />
-                          <span>Punched</span>
-                        </div>
-                      </div>
-                    ) : (
-                      /* Unpunched State: Word Visible, Punch Prompt */
-                      <div className="flex flex-col items-center justify-center w-full space-y-1">
+                          <span>{pair.base}</span>
+                          {isMatched && <Check className="h-4 w-4 text-emerald-500" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Target Language Words Column */}
+                <div className="space-y-2">
+                  <div className="text-xs font-semibold text-muted-foreground px-1 uppercase tracking-wider">
+                    {targetLanguageName}
+                  </div>
+                  <div className="space-y-2">
+                    {shuffledTargetPairs.map((pair) => {
+                      const isMatched = matchedPairIds.has(pair.id);
+                      const isSelected = selectedTargetWord === pair.target;
+
+                      return (
+                        <button
+                          key={`target-${pair.id}`}
+                          type="button"
+                          dir={isTargetRtl ? "rtl" : "ltr"}
+                          onClick={() => !isMatched && handleTargetWordSelect(pair.target)}
+                          disabled={isMatched}
+                          className={`w-full p-2.5 rounded-lg border text-sm font-semibold transition-all flex items-center justify-between ${
+                            isMatched
+                              ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 opacity-60"
+                              : isSelected
+                                ? "border-indigo-500 bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                                : "border-border bg-card hover:border-indigo-500/50 hover:bg-muted text-foreground"
+                          }`}
+                        >
+                          <span>{pair.target}</span>
+                          {isMatched && <Check className="h-4 w-4 text-emerald-500" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                Insufficient subtitle words for pair matching. Advance to the next sentence below.
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* MODE 3: MISSING WORD (FILL-IN-THE-BLANK)                       */}
+        {/* ============================================================== */}
+        {gameMode === "missing_word" && (
+          <div data-testid="missing-word-container" className="space-y-5 py-2">
+            {/* Incomplete Sentence Prompt */}
+            <div className="p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2">
+              <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Complete the Subtitle Sentence:
+              </div>
+              <p
+                dir={isBaseRtl ? "rtl" : "ltr"}
+                className="text-base sm:text-lg font-medium text-foreground leading-relaxed"
+              >
+                {baseWords.map((word, idx) => {
+                  if (idx === missingWordIndex) {
+                    return (
+                      <span
+                        key={idx}
+                        className={`inline-block mx-1.5 px-3 py-0.5 rounded-md border-b-2 font-bold ${
+                          missingWordFeedback === "correct"
+                            ? "border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
+                            : selectedMissingOption
+                              ? "border-rose-500 text-rose-500 bg-rose-500/10"
+                              : "border-indigo-500 text-indigo-600 dark:text-indigo-400 bg-indigo-500/10"
+                        }`}
+                      >
+                        {selectedMissingOption ? selectedMissingOption : "[ ______ ]"}
+                      </span>
+                    );
+                  }
+                  return <span key={idx}>{word} </span>;
+                })}
+              </p>
+
+              {/* Translation Hint */}
+              <div
+                dir={isTargetRtl ? "rtl" : "ltr"}
+                className="text-xs text-muted-foreground pt-1 border-t border-border/40"
+              >
+                <strong className="text-foreground">Meaning:</strong> {targetTranslation}
+              </div>
+            </div>
+
+            {/* Multiple Choice Options */}
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-muted-foreground px-1">
+                Choose the correct missing word:
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {missingWordOptions.map((opt, idx) => {
+                  const isSelected = selectedMissingOption === opt;
+                  const isCorrectWord =
+                    sanitizeWord(opt).toLowerCase() ===
+                    sanitizeWord(baseWords[missingWordIndex] || "").toLowerCase();
+
+                  let btnStyle = "border-border bg-card hover:border-indigo-500 hover:bg-muted";
+                  if (isSelected) {
+                    btnStyle = isCorrectWord
+                      ? "border-emerald-500 bg-emerald-600 text-white font-bold"
+                      : "border-rose-500 bg-rose-600 text-white";
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectMissingWord(opt)}
+                      className={`p-3 rounded-lg border text-sm font-semibold transition-all text-center shadow-xs cursor-pointer ${btnStyle}`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* MODE 4: WORD BALLOONS (POPPABLE VOCABULARY DISCOVERY)          */}
+        {/* ============================================================== */}
+        {gameMode === "word_balloons" && (
+          <div className="space-y-4">
+            {/* Progress and Actions */}
+            <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+              <span
+                data-testid="balloon-progress-text"
+                className="text-xs font-semibold text-foreground flex items-center gap-1.5"
+              >
+                {isAllPunched ? (
+                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+                    <Award className="h-4 w-4" />
+                    All balloons punched! Great job!
+                  </span>
+                ) : (
+                  <span>
+                    Punch balloons to reveal translations:{" "}
+                    <strong className="text-indigo-600 dark:text-indigo-400">
+                      {punchedCount}/{totalBalloons}
+                    </strong>{" "}
+                    ({Math.round(progressRatio * 100)}%)
+                  </span>
+                )}
+              </span>
+
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-testid="punch-all-balloons-btn"
+                  onClick={handlePunchAll}
+                  disabled={isAllPunched || totalBalloons === 0}
+                  className="h-6 px-2 text-[11px] gap-1 border-border"
+                >
+                  <Sparkles className="h-3 w-3 text-indigo-500" />
+                  <span>Punch All</span>
+                </Button>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  data-testid="reset-balloons-btn"
+                  onClick={handleResetBalloons}
+                  disabled={punchedCount === 0}
+                  className="h-6 px-2 text-[11px] gap-1 text-muted-foreground hover:text-foreground"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  <span>Re-inflate</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted/60">
+              <div
+                data-testid="balloon-progress-bar"
+                className="h-full bg-gradient-to-r from-indigo-500 to-emerald-500 transition-all duration-300"
+                style={{ width: `${progressRatio * 100}%` }}
+              />
+            </div>
+
+            {/* Word Balloons Grid */}
+            <div
+              data-testid="word-balloons-container"
+              dir={isBaseRtl ? "rtl" : "ltr"}
+              className="min-h-[160px] flex flex-wrap items-center justify-center gap-3 sm:gap-4 p-4 rounded-xl border border-indigo-500/20 bg-card/40 backdrop-blur-xs"
+            >
+              {balloons.length > 0 ? (
+                balloons.map((balloon) => {
+                  const isPunched = punchedIndices.has(balloon.index);
+                  const isJustPunched = justPunchedIndex === balloon.index;
+                  const { colorScheme } = balloon;
+
+                  return (
+                    <div
+                      key={balloon.id}
+                      data-testid={`balloon-card-${balloon.index}`}
+                      className="flex flex-col items-center select-none group"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handlePunchBalloon(balloon.index, balloon)}
+                        className={`relative flex min-w-[76px] sm:min-w-[92px] flex-col items-center justify-center px-3 py-2.5 rounded-2xl border-2 transition-all duration-200 cursor-pointer active:scale-95 shadow-md ${
+                          isPunched
+                            ? `${colorScheme.punchedBg} ${colorScheme.punchedBorder}`
+                            : `${colorScheme.unpunchedBg} ${colorScheme.unpunchedBorder} ${colorScheme.unpunchedHover}`
+                        } ${isJustPunched ? "scale-110 ring-4 ring-indigo-400" : ""}`}
+                      >
                         <span
-                          data-testid={`balloon-word-${balloon.index}`}
-                          className="text-base sm:text-lg font-bold tracking-tight"
+                          className={`font-bold text-sm tracking-wide ${
+                            isPunched ? colorScheme.punchedText : colorScheme.unpunchedText
+                          }`}
                         >
                           {balloon.word}
                         </span>
-                        <span className="text-[10px] font-semibold opacity-75 flex items-center gap-0.5">
-                          🥊 <span>Punch</span>
-                        </span>
+
+                        <div className="mt-1 text-[11px] font-medium leading-tight">
+                          {isPunched ? (
+                            <span dir={isTargetRtl ? "rtl" : "ltr"} className="opacity-95">
+                              {balloon.translation}
+                            </span>
+                          ) : (
+                            <span className="opacity-60 text-[10px] italic">tap to pop</span>
+                          )}
+                        </div>
+                      </button>
+
+                      {/* Balloon String */}
+                      <div className="flex flex-col items-center pointer-events-none mt-0.5">
+                        <div
+                          className={`w-2 h-1 rounded-full ${
+                            isPunched ? "bg-foreground/70" : "bg-muted-foreground/60"
+                          }`}
+                        />
+                        <div className="w-0.5 h-2.5 bg-muted-foreground/30" />
                       </div>
-                    )}
-                  </button>
-
-                  {/* Balloon Knot & String */}
-                  <div className="flex flex-col items-center pointer-events-none mt-0.5">
-                    <div
-                      className={`w-2.5 h-1.5 rounded-full ${
-                        isPunched ? "bg-foreground/70" : "bg-muted-foreground/60"
-                      }`}
-                    />
-                    <div className="w-0.5 h-3 bg-muted-foreground/30" />
-                  </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-center py-6 text-muted-foreground italic text-sm">
+                  No sentence words available. Advance to next sentence below.
                 </div>
-              );
-            })
-          ) : (
-            <div className="text-center py-6 text-muted-foreground italic text-sm">
-              No sentence words available to inflate into balloons. Select a sentence below.
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* 3. Reference Sentence & Translation Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+        {/* 3. Reference Sentence & Translation Cards (Always Accessible) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs pt-2">
           {/* Base Sentence Card */}
           <div
             data-testid="balloon-base-sentence-card"
-            className="p-3 rounded-lg border border-border/80 bg-card/60 flex flex-col justify-between"
+            className="p-3 rounded-lg border border-border/80 bg-card flex flex-col justify-between"
           >
             <div className="flex items-center justify-between text-muted-foreground mb-1">
               <span className="font-semibold text-foreground uppercase tracking-wide">
@@ -635,9 +1363,10 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               {onSpeakText && currentSentence && (
                 <button
                   type="button"
+                  data-testid="balloon-speak-btn"
                   onClick={() => onSpeakText(currentSentence, baseLanguage)}
-                  className="hover:text-foreground flex items-center gap-1 text-[11px]"
-                  title="Hear full sentence"
+                  className="hover:text-foreground flex items-center gap-1 text-[11px] cursor-pointer"
+                  title="Pronounce full sentence"
                 >
                   <Volume2 className="h-3 w-3" />
                   <span>Pronounce</span>
@@ -655,18 +1384,18 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
           {/* Target Translation Sentence Card */}
           <div
             data-testid="balloon-target-translation-card"
-            className="p-3 rounded-lg border border-border/80 bg-card/60 flex flex-col justify-between"
+            className="p-3 rounded-lg border border-border/80 bg-card flex flex-col justify-between"
           >
             <div className="flex items-center justify-between text-muted-foreground mb-1">
               <span className="font-semibold text-foreground uppercase tracking-wide">
-                {targetLanguageName} ({targetLanguage}) · Exposed Target
+                {targetLanguageName} ({targetLanguage})
               </span>
               {onSpeakText && targetTranslation && (
                 <button
                   type="button"
                   onClick={() => onSpeakText(targetTranslation, targetLanguage)}
-                  className="hover:text-foreground flex items-center gap-1 text-[11px] text-indigo-500"
-                  title="Hear target sentence"
+                  className="hover:text-foreground flex items-center gap-1 text-[11px] text-indigo-500 cursor-pointer"
+                  title="Pronounce target translation"
                 >
                   <Volume2 className="h-3 w-3" />
                   <span>Pronounce</span>
@@ -684,7 +1413,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
       </div>
 
       {/* 4. Footer Controls: Sentence Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/70 pt-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/80 pt-3 mt-2">
         <div className="flex items-center gap-2">
           {onPrevSentence && (
             <Button
@@ -695,7 +1424,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               onClick={onPrevSentence}
               disabled={activeRowIndex <= 0}
               className="h-8 px-2.5 text-xs gap-1 border-border text-foreground"
-              title="Previous sentence"
+              title="Previous subtitle sentence"
             >
               <SkipBack className="h-3.5 w-3.5" />
               <span>Prev Sentence</span>
@@ -710,7 +1439,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               data-testid="balloon-replay-sentence-btn"
               onClick={onReplaySentence}
               className="h-8 px-2.5 text-xs gap-1 border-border text-foreground"
-              title="Reset current sentence"
+              title="Reset current sentence game"
             >
               <RotateCcw className="h-3.5 w-3.5" />
               <span>Replay</span>
@@ -725,8 +1454,8 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               data-testid="balloon-next-sentence-btn"
               onClick={onNextSentence}
               disabled={activeRowIndex >= totalRows - 1}
-              className="h-8 px-2.5 text-xs gap-1 border-border text-foreground"
-              title="Next sentence"
+              className="h-8 px-2.5 text-xs gap-1 border-border text-foreground font-semibold"
+              title="Next subtitle sentence"
             >
               <span>Next Sentence</span>
               <SkipForward className="h-3.5 w-3.5" />
@@ -735,7 +1464,10 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
         </div>
 
         <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-          <span>Tap any balloon to punch it &amp; reveal the word translation</span>
+          <BookOpen className="h-3 w-3" />
+          <span>
+            Interactive Subtitles Learning Mode · Master words and sentences directly from video
+          </span>
         </div>
       </div>
     </div>

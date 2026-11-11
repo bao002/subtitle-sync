@@ -6,12 +6,16 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
+- Prompt 156 (Replace Word Balloons Stage with Subtitles Sentence & Word Learning Game):
+  - Task 390 [COMPLETED & VERIFIED]: Replace Word Balloons Stage with interactive Subtitles Sentence & Word Learning Game (Sentence Builder, Word Match, Missing Word, and Word Discovery) driven by current subtitles, with zero video distraction.
+- Prompt 155 (Hotfix: Vite Reload Failure & Undeclared Identifiers in index.tsx):
+  - Hotfix [COMPLETED & VERIFIED]: Resolved undeclared identifiers `isPlaying` and `handlePause` in `src/routes/index.tsx`, verified dev server transforms, clean module imports, bumped version to 2.1.80.
 - Prompt 154 (Disable Readme Flow, Learning Goals Folded Accordions with Timeout, Per-Language Row-Criteria, Subtitles Table Global Row-Criteria Default Lang Filter, Word Balloons Stage Video Removal):
-  - Task 385 [ACTIVE]: Chapter 0 - Disable GitHub Actions Readme Workflow (`update-readme.yml`).
-  - Task 386 [PENDING]: Chapter 1 - Learning Goals Folded Accordions with Timeout (`AccordionSection`).
+  - Task 385 [COMPLETED & VERIFIED]: Chapter 0 - Disable GitHub Actions Readme Workflow (`update-readme.yml`).
+  - Task 386 [ACTIVE]: Chapter 1 - Learning Goals Folded Accordions with Timeout (`AccordionSection`).
   - Task 387 [PENDING]: Chapter 2 - Learning Goals Row-Criteria Per Language.
   - Task 388 [PENDING]: Chapter 3 - Subtitles Table View Visible Global Row-Criteria with Default Language Filtering.
-  - Task 389 [PENDING]: Chapter 4 - Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game.
+  - Task 389 [SUPERSEDED by Task 390]: Chapter 4 - Word Balloons Stage Video Removal.
 - Prompt 153 (Hotfix: Fix Maximum Update Depth Exceeded in React Components):
   - Hotfix [COMPLETED & VERIFIED]: Fixed recursive `useEffect` / `setState` triggering "Maximum update depth exceeded" in `src/routes/index.tsx`.
 - Prompt 152 (Fix GitHub Actions Demo Website Deployment):

@@ -7340,6 +7340,7 @@ function Index() {
                     onCloseLearningView={() => setShowWordBalloonLearningView(false)}
                     onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
                     onSpeakText={handleSpeakTextFromAlternativeView}
+                    subtitleRows={rows}
                   />
                 ) : useAlternativePlayerView ? (
                   <AlternativeVideoPlayerView
@@ -7451,108 +7452,110 @@ function Index() {
               </div>
             }
             playbackControlsSlot={
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <SwitchableDefaultSubtitlesBar
-                    videoId={videoId}
-                    defaultLanguages={defaultSubtitleLanguages}
-                    activeLanguage={baseLanguage}
-                    onSelectLanguage={handleSelectDefaultSubtitle}
-                    tracks={tracks}
-                    detectedTracks={detectedPlaygroundTracks}
-                    className="flex-1 min-w-[260px]"
-                  />
-                  <LanguageRatioCompositionSelector
-                    activeCompositionId={activeRatioCompositionId}
-                    onSelectComposition={handleSelectRatioComposition}
-                    onSaveProfile={handleSaveComposition}
-                    onUpdateProfile={handleUpdateRatioComposition}
-                    onDeleteProfile={handleDeleteRatioComposition}
-                    compositions={storedCompositions}
-                  />
-                </div>
-                <VideoPlaybackControls
-                  isPlaying={isVideoPlaying}
-                  currentTimeSec={playbackCurrentTime}
-                  durationSec={playbackDuration}
-                  playbackRate={playbackRate}
-                  activeSectionIndex={active}
-                  totalSections={rows.length}
-                  isPausedForSpeech={Boolean(speakingLang)}
-                  speakingLangName={
-                    speakingLang
-                      ? (LANGS.find((l) => l.code === speakingLang)?.name ??
-                        speakingLang.toUpperCase())
-                      : undefined
-                  }
-                  pauseReason={pauseReason}
-                  onTogglePlay={handleTogglePlay}
-                  onSeek={handleSeek}
-                  onRewind={(sec = 5) => handleSeek(Math.max(0, playbackCurrentTime - sec))}
-                  onFastForward={(sec = 5) =>
-                    handleSeek(Math.min(playbackDuration, playbackCurrentTime + sec))
-                  }
-                  onPrevSection={() => {
-                    const prevIdx = active > 0 ? active - 1 : 0;
-                    if (rows[prevIdx]) {
-                      seek(rows[prevIdx], prevIdx);
-                    }
-                  }}
-                  onNextSection={() => {
-                    const nextIdx = active < rows.length - 1 ? active + 1 : rows.length - 1;
-                    if (rows[nextIdx]) {
-                      seek(rows[nextIdx], nextIdx);
-                    }
-                  }}
-                  onReplaySection={() => {
-                    if (active >= 0 && rows[active]) {
-                      seek(rows[active], active);
-                    }
-                  }}
-                  onStop={() => {
-                    try {
-                      player.current?.pauseVideo();
-                      player.current?.seekTo(0, true);
-                      setIsVideoPlaying(false);
-                      setPauseReason("Stopped by user");
-                    } catch {
-                      // ignore
-                    }
-                  }}
-                  onRateChange={(rate) => {
-                    try {
-                      player.current?.setPlaybackRate?.(rate);
-                      setPlaybackRate(rate);
-                    } catch {
-                      // ignore
-                    }
-                  }}
-                  globalSpeed={rates[baseLanguage || "en"] ?? 1.0}
-                  onChangeAllSpeed={handleChangeAllSpeed}
-                />
-                <div className="pt-2">
-                  <TtsFallbackOrderSwitch
-                    currentOrder={ttsFallbackOrderState}
-                    onOrderChange={(newOrder) => {
-                      setTtsFallbackOrderState(newOrder);
-                      setTtsFallbackOrder(newOrder);
-                    }}
-                    onNavigateToSetup={handleNavigateToTtsSetup}
-                    tts3TokenConfigured={Boolean(openRouterKeyInput || getSpeakApiToken())}
-                    tts3Provider={lovableTtsProviderState}
-                  />
-                </div>
-                {!isVideoPlaying && pauseReason && (
-                  <div
-                    data-testid="video-pause-reason-banner"
-                    className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 mt-1"
-                  >
-                    <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                    <span className="font-semibold">Pause explanation:</span>
-                    <span className="truncate">{pauseReason}</span>
+              showWordBalloonLearningView ? null : (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <SwitchableDefaultSubtitlesBar
+                      videoId={videoId}
+                      defaultLanguages={defaultSubtitleLanguages}
+                      activeLanguage={baseLanguage}
+                      onSelectLanguage={handleSelectDefaultSubtitle}
+                      tracks={tracks}
+                      detectedTracks={detectedPlaygroundTracks}
+                      className="flex-1 min-w-[260px]"
+                    />
+                    <LanguageRatioCompositionSelector
+                      activeCompositionId={activeRatioCompositionId}
+                      onSelectComposition={handleSelectRatioComposition}
+                      onSaveProfile={handleSaveComposition}
+                      onUpdateProfile={handleUpdateRatioComposition}
+                      onDeleteProfile={handleDeleteRatioComposition}
+                      compositions={storedCompositions}
+                    />
                   </div>
-                )}
-              </div>
+                  <VideoPlaybackControls
+                    isPlaying={isVideoPlaying}
+                    currentTimeSec={playbackCurrentTime}
+                    durationSec={playbackDuration}
+                    playbackRate={playbackRate}
+                    activeSectionIndex={active}
+                    totalSections={rows.length}
+                    isPausedForSpeech={Boolean(speakingLang)}
+                    speakingLangName={
+                      speakingLang
+                        ? (LANGS.find((l) => l.code === speakingLang)?.name ??
+                          speakingLang.toUpperCase())
+                        : undefined
+                    }
+                    pauseReason={pauseReason}
+                    onTogglePlay={handleTogglePlay}
+                    onSeek={handleSeek}
+                    onRewind={(sec = 5) => handleSeek(Math.max(0, playbackCurrentTime - sec))}
+                    onFastForward={(sec = 5) =>
+                      handleSeek(Math.min(playbackDuration, playbackCurrentTime + sec))
+                    }
+                    onPrevSection={() => {
+                      const prevIdx = active > 0 ? active - 1 : 0;
+                      if (rows[prevIdx]) {
+                        seek(rows[prevIdx], prevIdx);
+                      }
+                    }}
+                    onNextSection={() => {
+                      const nextIdx = active < rows.length - 1 ? active + 1 : rows.length - 1;
+                      if (rows[nextIdx]) {
+                        seek(rows[nextIdx], nextIdx);
+                      }
+                    }}
+                    onReplaySection={() => {
+                      if (active >= 0 && rows[active]) {
+                        seek(rows[active], active);
+                      }
+                    }}
+                    onStop={() => {
+                      try {
+                        player.current?.pauseVideo();
+                        player.current?.seekTo(0, true);
+                        setIsVideoPlaying(false);
+                        setPauseReason("Stopped by user");
+                      } catch {
+                        // ignore
+                      }
+                    }}
+                    onRateChange={(rate) => {
+                      try {
+                        player.current?.setPlaybackRate?.(rate);
+                        setPlaybackRate(rate);
+                      } catch {
+                        // ignore
+                      }
+                    }}
+                    globalSpeed={rates[baseLanguage || "en"] ?? 1.0}
+                    onChangeAllSpeed={handleChangeAllSpeed}
+                  />
+                  <div className="pt-2">
+                    <TtsFallbackOrderSwitch
+                      currentOrder={ttsFallbackOrderState}
+                      onOrderChange={(newOrder) => {
+                        setTtsFallbackOrderState(newOrder);
+                        setTtsFallbackOrder(newOrder);
+                      }}
+                      onNavigateToSetup={handleNavigateToTtsSetup}
+                      tts3TokenConfigured={Boolean(openRouterKeyInput || getSpeakApiToken())}
+                      tts3Provider={lovableTtsProviderState}
+                    />
+                  </div>
+                  {!isVideoPlaying && pauseReason && (
+                    <div
+                      data-testid="video-pause-reason-banner"
+                      className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 mt-1"
+                    >
+                      <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                      <span className="font-semibold">Pause explanation:</span>
+                      <span className="truncate">{pauseReason}</span>
+                    </div>
+                  )}
+                </div>
+              )
             }
             webDemoUrlsSlot={
               showQuickLoader && !isAndroid ? (
@@ -8075,7 +8078,7 @@ function Index() {
                       <span className="h-4 w-4 rounded-full bg-background/20 flex items-center justify-center text-[10px] font-bold">
                         5
                       </span>
-                      <span>Word Balloons</span>
+                      <span>Sentence &amp; Word Game</span>
                     </button>
                   </div>
 
@@ -8120,10 +8123,13 @@ function Index() {
                     const panel = PANELS.find((candidate) => candidate.id === panelId);
                     if (!panel) return null;
                     const panelTitle =
-                      panelId === "languages" &&
-                      (currentAccordionStage === 1 || currentAccordionStage === 2)
-                        ? "Learning goals"
-                        : panel.title;
+                      panelId === "player" &&
+                      (currentAccordionStage === 5 || showWordBalloonLearningView)
+                        ? "Sentence & Word Game"
+                        : panelId === "languages" &&
+                            (currentAccordionStage === 1 || currentAccordionStage === 2)
+                          ? "Learning goals"
+                          : panel.title;
                     return (
                       <AccordionSection
                         key={panelId}
@@ -8206,660 +8212,706 @@ function Index() {
                         )}
                         {panelId === "player" && (
                           <div>
-                            {isAndroid && (
-                              <form
-                                className="flex gap-2 p-3"
-                                onSubmit={(event) => {
-                                  event.preventDefault();
-                                  const id = parseVideoId(videoInput);
-                                  if (id) {
-                                    if (id !== videoId) {
-                                      setTracks(null);
-                                      setObservedUrl("");
-                                      setDefaultCaptionsLoaded(false);
-                                      setActive(-1);
-                                      setSpeakingLang(null);
-                                      setSpeakingRow(-1);
-                                      setSpeechProgress(null);
-                                      cancelSpeech();
-                                      setCurrentAccordionStage(1);
-                                      if (typeof window !== "undefined") {
-                                        const currentSearch = new URLSearchParams(
-                                          window.location.search,
-                                        );
-                                        if (currentSearch.get("v") !== id) {
-                                          currentSearch.set("v", id);
-                                          window.history.pushState(
-                                            { videoId: id },
-                                            "",
-                                            `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
-                                          );
-                                        }
-                                      }
+                            {showWordBalloonLearningView || currentAccordionStage === 5 ? (
+                              <div className="p-3 sm:p-5">
+                                <WordBalloonLearningView
+                                  currentSentence={currentAlternativeSentence}
+                                  baseLanguage={baseLanguage}
+                                  baseLanguageName={baseLanguageName}
+                                  targetLanguage={currentTtsPlayLang || targetLanguages[0] || "he"}
+                                  targetLanguageName={currentTtsPlayLangName || "Target"}
+                                  targetTranslation={currentAlternativeTranslation}
+                                  availableTargetLanguages={availableAlternativeTtsLanguages}
+                                  onSelectTargetLanguage={setSelectedAlternativeTtsLang}
+                                  activeRowIndex={active >= 0 ? active : 0}
+                                  totalRows={rows.length}
+                                  onPrevSentence={handlePrevSection}
+                                  onNextSentence={handleNextSection}
+                                  onReplaySentence={handleReplaySection}
+                                  onCloseLearningView={() => {
+                                    setShowWordBalloonLearningView(false);
+                                    if (currentAccordionStage === 5) {
+                                      setCurrentAccordionStage(3);
                                     }
-                                    setVideoId(id);
-                                  } else {
-                                    setCaptionStatus("Enter a valid YouTube link or video ID.");
-                                  }
-                                }}
-                              >
-                                <input
-                                  aria-label="YouTube video URL or ID"
-                                  value={videoInput}
-                                  onChange={(event) => setVideoInput(event.target.value)}
-                                  placeholder="YouTube link or video ID"
-                                  className="min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1"
-                                />
-                                <Button type="submit">Load video</Button>
-                              </form>
-                            )}
-                            <div
-                              id="video-player-fullscreen-container"
-                              data-testid="video-player-fullscreen-container"
-                              className="relative w-full overflow-hidden [&:fullscreen]:flex [&:fullscreen]:items-center [&:fullscreen]:justify-center [&:fullscreen]:bg-black"
-                            >
-                              <VideoInstancesSwiper
-                                instances={videoInstances}
-                                activeIndex={activeSwiperIndex}
-                                onActiveIndexChange={setActiveSwiperIndex}
-                                activePlayingId={
-                                  speakingLang && audioTrackMode
-                                    ? `lang_${speakingLang}`
-                                    : "primary"
-                                }
-                                videoId={videoId}
-                                renderPlayerContainer={(instance) => {
-                                  if (instance.isPrimary) {
-                                    return (
-                                      <div
-                                        className="relative h-full w-full group"
-                                        onMouseEnter={() => setIsPlayerHovered(true)}
-                                        onMouseLeave={() => setIsPlayerHovered(false)}
-                                      >
-                                        <div
-                                          ref={handlePlayerRef}
-                                          className={
-                                            useAlternativePlayerView
-                                              ? "absolute inset-0 opacity-0 pointer-events-none -z-10"
-                                              : "h-full w-full"
-                                          }
-                                        />
-                                        {useAlternativePlayerView ? (
-                                          <AlternativeVideoPlayerView
-                                            currentSentence={currentAlternativeSentence}
-                                            baseLanguage={baseLanguage}
-                                            baseLanguageName={baseLanguageName}
-                                            targetTtsLang={currentTtsPlayLang}
-                                            targetTtsLangName={currentTtsPlayLangName}
-                                            targetTranslation={currentAlternativeTranslation}
-                                            availableTtsLanguages={availableAlternativeTtsLanguages}
-                                            onSelectTtsLang={setSelectedAlternativeTtsLang}
-                                            speechProgress={speechProgress}
-                                            isSpeaking={Boolean(speakingLang)}
-                                            speakingLang={speakingLang}
-                                            speakingRow={speakingRow}
-                                            activeRowIndex={active}
-                                            totalRows={rows.length}
-                                            currentTimeSec={playbackCurrentTime}
-                                            durationSec={playbackDuration}
-                                            rowStartMs={
-                                              active >= 0 && rows[active] ? rows[active].start : 0
-                                            }
-                                            rowEndMs={
-                                              active >= 0 && rows[active] ? rows[active].end : 0
-                                            }
-                                            isVideoPlaying={isVideoPlaying}
-                                            onTogglePlay={handleTogglePlay}
-                                            onPrevSentence={handlePrevSection}
-                                            onNextSentence={handleNextSection}
-                                            onReplaySentence={handleReplaySection}
-                                            onCloseAlternativeView={() =>
-                                              setUseAlternativePlayerView(false)
-                                            }
-                                            onSpeakText={handleSpeakTextFromAlternativeView}
-                                          />
-                                        ) : (
-                                          <>
-                                            {/* Overlay Play/Pause Button over video (prominent on pause/stop and hover/tap) */}
-                                            <div
-                                              data-testid="video-overlay-play-pause-container"
-                                              className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
-                                                !isVideoPlaying ||
-                                                isPlayerHovered ||
-                                                Boolean(speakingLang)
-                                                  ? "opacity-100"
-                                                  : "opacity-0"
-                                              }`}
-                                            >
-                                              <button
-                                                type="button"
-                                                data-testid="video-overlay-play-pause-btn"
-                                                aria-label={
-                                                  isVideoPlaying || Boolean(speakingLang)
-                                                    ? "Pause playback"
-                                                    : "Play video"
-                                                }
-                                                title={
-                                                  isVideoPlaying || Boolean(speakingLang)
-                                                    ? "Pause playback"
-                                                    : "Play video"
-                                                }
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  handleTogglePlay();
-                                                }}
-                                                className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
-                                              >
-                                                {isVideoPlaying || Boolean(speakingLang) ? (
-                                                  <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
-                                                ) : (
-                                                  <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
-                                                )}
-                                              </button>
-                                            </div>
-                                            {showVideoSubtitles && (
-                                              <div
-                                                className="pointer-events-none absolute inset-x-3 top-3 text-center"
-                                                aria-live="polite"
-                                              >
-                                                <span
-                                                  data-testid="active-subtitle-language"
-                                                  className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
-                                                  style={{
-                                                    fontSize: `calc(0.75rem * ${videoSubtitleRatio})`,
-                                                  }}
-                                                >
-                                                  {(() => {
-                                                    const languageCode =
-                                                      speakingLang && speakingRow >= 0
-                                                        ? speakingLang
-                                                        : baseLanguage;
-                                                    const normalizedCode =
-                                                      languageCode === "iw" ? "he" : languageCode;
-                                                    return (
-                                                      LANGS.find(
-                                                        (language) =>
-                                                          language.code === normalizedCode,
-                                                      )?.name ?? normalizedCode.toUpperCase()
-                                                    );
-                                                  })()}
-                                                </span>
-                                                {speakingLang && speakingRow >= 0 && (
-                                                  <div className="pointer-events-auto mb-1 flex justify-center">
-                                                    <button
-                                                      type="button"
-                                                      data-testid="tts-source-badge"
-                                                      title="Customize this voice (Stage 1 → Learning goals)"
-                                                      onClick={() => {
-                                                        setShowOtherSettingsAccordions(false);
-                                                        setCurrentAccordionStage(1);
-                                                        setOpenPanels((prev) => ({
-                                                          ...prev,
-                                                          languages: true,
-                                                        }));
-                                                      }}
-                                                      className="inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium text-foreground shadow"
-                                                    >
-                                                      <Volume2 className="h-3 w-3" />
-                                                      <span>
-                                                        {useAlternativeTtsState &&
-                                                        alternativeTtsModeState === "always"
-                                                          ? "Alternative TTS"
-                                                          : isAndroid
-                                                            ? "Android TTS"
-                                                            : "Browser TTS"}
-                                                        {" · "}
-                                                        {voices.find(
-                                                          (v) =>
-                                                            v.voiceURI ===
-                                                            voiceSelections[speakingLang],
-                                                        )?.name || "default voice"}
-                                                        {" · "}
-                                                        {(rates[speakingLang] ?? 1).toFixed(1)}x
-                                                      </span>
-                                                      <Settings2 className="h-3 w-3" />
-                                                    </button>
-                                                  </div>
-                                                )}
-                                                <p
-                                                  id="active-subtitle-cue-text"
-                                                  data-testid="active-subtitle-cue-text"
-                                                  dir={
-                                                    speakingLang && RTL.has(speakingLang)
-                                                      ? "rtl"
-                                                      : "ltr"
-                                                  }
-                                                  className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
-                                                  style={{
-                                                    fontSize: `calc(1rem * ${videoSubtitleRatio})`,
-                                                  }}
-                                                >
-                                                  {speakingLang && speakingRow >= 0 ? (
-                                                    <HighlightedSubtitle
-                                                      text={
-                                                        rows[speakingRow]?.texts?.[speakingLang] ??
-                                                        ""
-                                                      }
-                                                      progress={
-                                                        speechProgress?.row === speakingRow &&
-                                                        speechProgress.lang === speakingLang
-                                                          ? speechProgress
-                                                          : null
-                                                      }
-                                                    />
-                                                  ) : active >= 0 && rows[active] ? (
-                                                    <span>
-                                                      {baseLanguage &&
-                                                      rows[active]?.texts?.[baseLanguage]
-                                                        ? rows[active]?.texts?.[baseLanguage]
-                                                        : Object.values(
-                                                            rows[active]?.texts || {},
-                                                          )[0] || ""}
-                                                    </span>
-                                                  ) : (
-                                                    <span className="text-xs opacity-75">
-                                                      Subtitles active
-                                                    </span>
-                                                  )}
-                                                </p>
-                                              </div>
-                                            )}
-                                          </>
-                                        )}
-                                      </div>
-                                    );
-                                  }
-                                  return (
-                                    <div
-                                      ref={(el) => {
-                                        if (el) {
-                                          secondaryPlayerHosts.current.set(instance.id, el);
-                                        } else {
-                                          secondaryPlayerHosts.current.delete(instance.id);
-                                        }
-                                      }}
-                                      className="h-full w-full"
-                                    />
-                                  );
-                                }}
-                              />
-                            </div>
-                            {/* Switchable List of Default Languages & Ratio Compositions Dropdown around Video Component */}
-                            <div className="p-2 border-t border-border/60 bg-muted/20 flex flex-wrap items-center justify-between gap-2">
-                              <SwitchableDefaultSubtitlesBar
-                                videoId={videoId}
-                                defaultLanguages={defaultSubtitleLanguages}
-                                activeLanguage={baseLanguage}
-                                onSelectLanguage={handleSelectDefaultSubtitle}
-                                tracks={tracks}
-                                detectedTracks={detectedPlaygroundTracks}
-                                className="flex-1 min-w-[260px]"
-                              />
-                              <LanguageRatioCompositionSelector
-                                activeCompositionId={activeRatioCompositionId}
-                                onSelectComposition={handleSelectRatioComposition}
-                                onSaveProfile={handleSaveComposition}
-                                onUpdateProfile={handleUpdateRatioComposition}
-                                onDeleteProfile={handleDeleteRatioComposition}
-                                compositions={storedCompositions}
-                              />
-                            </div>
-                            <div
-                              data-testid="video-display-controls"
-                              className="flex justify-end gap-2 border-t border-border bg-card/80 px-3 py-2"
-                            >
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant={isVideoFullscreen ? "default" : "outline"}
-                                aria-pressed={isVideoFullscreen}
-                                data-testid="video-fullscreen-toggle-btn"
-                                onClick={handleToggleFullscreen}
-                                className="h-7 gap-1.5 px-2.5 text-xs text-foreground"
-                                title={
-                                  isVideoFullscreen ? "Exit full screen" : "Switch full screen"
-                                }
-                                aria-label={
-                                  isVideoFullscreen ? "Exit full screen" : "Switch full screen"
-                                }
-                              >
-                                {isVideoFullscreen ? (
-                                  <Minimize2 className="h-3.5 w-3.5" />
-                                ) : (
-                                  <Maximize2 className="h-3.5 w-3.5" />
-                                )}
-                                <span>
-                                  {isVideoFullscreen ? "Exit full screen" : "Full screen"}
-                                </span>
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant={useAlternativePlayerView ? "default" : "outline"}
-                                aria-pressed={useAlternativePlayerView}
-                                data-testid="toggle-alternative-player-view-btn"
-                                onClick={handleToggleAlternativePlayerView}
-                                className="h-7 gap-1.5 px-2.5 text-xs border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
-                                title="Switch between video player and alternative subtitle/translation view"
-                              >
-                                <Subtitles className="h-3.5 w-3.5" />
-                                {useAlternativePlayerView ? "Video view" : "Alternative view"}
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant={showWordBalloonLearningView ? "default" : "outline"}
-                                aria-pressed={showWordBalloonLearningView}
-                                data-testid="toggle-word-balloon-learning-btn"
-                                onClick={handleToggleWordBalloonLearningView}
-                                className="h-7 gap-1.5 px-2.5 text-xs border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
-                                title="Switch between video player and interactive punchable word balloons learning view"
-                              >
-                                <Sparkles className="h-3.5 w-3.5" />
-                                {showWordBalloonLearningView ? "Video view" : "Word Balloons"}
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant={showCanvasBalloonGame ? "default" : "outline"}
-                                aria-pressed={showCanvasBalloonGame}
-                                data-testid="launch-canvas-balloon-game-btn"
-                                onClick={() => {
-                                  if (isPlaying) {
-                                    handlePause();
-                                  }
-                                  setShowCanvasBalloonGame((prev) => !prev);
-                                }}
-                                className="h-7 gap-1.5 px-2.5 text-xs border-indigo-500/50 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 font-semibold"
-                                title="Play interactive Canvas Balloon Game on full screen (without video)"
-                              >
-                                <Gamepad2 className="h-3.5 w-3.5" />
-                                <span>{showCanvasBalloonGame ? "Exit Game" : "Balloon Game"}</span>
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant={showVideoSubtitles ? "default" : "outline"}
-                                aria-pressed={showVideoSubtitles}
-                                data-testid="video-subtitles-overlay-toggle"
-                                onClick={handleToggleVideoSubtitles}
-                                className="h-7 gap-1.5 px-2.5 text-xs"
-                                title="Toggle spoken subtitles over the video"
-                              >
-                                <Subtitles className="h-3.5 w-3.5" />
-                                {showVideoSubtitles ? "Overlay on" : "Overlay off"}
-                              </Button>
-                            </div>
-                            {/* Video metadata card (Client-side title & channel author) */}
-                            {videoMetadata && (
-                              <div
-                                data-testid="video-metadata-card"
-                                className="flex items-center justify-between gap-2.5 px-3 py-1.5 text-xs text-muted-foreground bg-muted/20 border-b border-border/40"
-                              >
-                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                                  {videoMetadata.thumbnailUrl && (
-                                    <img
-                                      src={videoMetadata.thumbnailUrl}
-                                      alt={videoMetadata.title}
-                                      className="h-7 w-12 rounded object-cover border border-border/50 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
-                                      onClick={() => setVideoMetadataModalOpen(true)}
-                                      onError={(e) => {
-                                        (e.currentTarget as HTMLImageElement).style.display =
-                                          "none";
-                                      }}
-                                    />
-                                  )}
-                                  <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-1.5 truncate">
-                                      <p
-                                        data-testid="video-metadata-title"
-                                        className="font-medium text-foreground truncate leading-tight cursor-pointer hover:underline"
-                                        title={videoMetadata.title}
-                                        onClick={() => setVideoMetadataModalOpen(true)}
-                                      >
-                                        {videoMetadata.title}
-                                      </p>
-                                      {videoMetadata.durationFormatted && (
-                                        <span
-                                          data-testid="video-metadata-duration-badge"
-                                          className="text-[10px] bg-muted text-foreground px-1 py-0.5 rounded font-mono shrink-0"
-                                        >
-                                          {videoMetadata.durationFormatted}
-                                        </span>
-                                      )}
-                                    </div>
-                                    {videoMetadata.authorName && (
-                                      <p
-                                        data-testid="video-metadata-author"
-                                        className="text-[11px] text-muted-foreground truncate"
-                                      >
-                                        {videoMetadata.authorUrl ? (
-                                          <a
-                                            href={videoMetadata.authorUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="hover:underline text-primary/90"
-                                          >
-                                            {videoMetadata.authorName}
-                                          </a>
-                                        ) : (
-                                          videoMetadata.authorName
-                                        )}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="h-7 px-2 text-[11px] gap-1 shrink-0 text-muted-foreground hover:text-foreground"
-                                  onClick={() => setVideoMetadataModalOpen(true)}
-                                  data-testid="open-video-metadata-modal-button"
-                                  title="Inspect video description, duration, thumbnails, and caption tracks"
-                                >
-                                  <Info className="w-3.5 h-3.5 text-primary" />
-                                  <span className="hidden sm:inline">Details</span>
-                                </Button>
-                              </div>
-                            )}
-                            {/* Video playback buttons under the presented video */}
-                            <div className="p-3 pt-2">
-                              <VideoPlaybackControls
-                                isPlaying={isVideoPlaying}
-                                currentTimeSec={playbackCurrentTime}
-                                durationSec={playbackDuration}
-                                playbackRate={playbackRate}
-                                activeSectionIndex={active}
-                                totalSections={rows.length}
-                                isPausedForSpeech={Boolean(speakingLang)}
-                                speakingLangName={
-                                  speakingLang
-                                    ? (getLanguageMeta(speakingLang).name ?? speakingLang)
-                                    : undefined
-                                }
-                                pauseReason={pauseReason}
-                                onTogglePlay={handleTogglePlay}
-                                onSeek={handleSeek}
-                                onRewind={handleRewind}
-                                onFastForward={handleFastForward}
-                                onPrevSection={handlePrevSection}
-                                onNextSection={handleNextSection}
-                                onReplaySection={handleReplaySection}
-                                onStop={handleStop}
-                                onRateChange={handleRateChange}
-                              />
-                              <div className="pt-2">
-                                <TtsFallbackOrderSwitch
-                                  currentOrder={ttsFallbackOrderState}
-                                  onOrderChange={(newOrder) => {
-                                    setTtsFallbackOrderState(newOrder);
-                                    setTtsFallbackOrder(newOrder);
                                   }}
-                                  onNavigateToSetup={handleNavigateToTtsSetup}
-                                  tts3TokenConfigured={Boolean(
-                                    openRouterKeyInput || getSpeakApiToken(),
-                                  )}
-                                  tts3Provider={lovableTtsProviderState}
+                                  onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
+                                  onSpeakText={handleSpeakTextFromAlternativeView}
+                                  subtitleRows={rows}
                                 />
-                              </div>
-                              <div className="pt-2">
-                                <BeginnerTtsServiceControl
-                                  service={
-                                    useAlternativeTtsState && alternativeTtsModeState === "always"
-                                      ? "google"
-                                      : "native"
-                                  }
-                                  onServiceChange={(service: BeginnerTtsService) => {
-                                    if (service === "google") {
-                                      setAlternativeTtsEngineState("lovable");
-                                      setAlternativeTtsEngine("lovable");
-                                      setAlternativeTtsModeState("always");
-                                      setAlternativeTtsMode("always");
-                                      setLovableTtsProvider("google");
-                                      setLovableTtsProviderState("google");
-                                      setUseAlternativeTtsState(true);
-                                      setUseAlternativeTts(true);
-                                      return;
-                                    }
-                                    setUseAlternativeTtsState(false);
-                                    setUseAlternativeTts(false);
-                                  }}
-                                />
-                              </div>
-                              {!isVideoPlaying && pauseReason && (
-                                <div
-                                  data-testid="video-pause-reason-banner"
-                                  className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 mt-2"
-                                >
-                                  <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                                  <span className="font-semibold">Pause explanation:</span>
-                                  <span className="truncate">{pauseReason}</span>
-                                </div>
-                              )}
-                            </div>
-                            {isAndroid && (
-                              <p role="status" className="px-3 py-2 text-sm text-muted-foreground">
-                                {captionStatus}
-                              </p>
-                            )}
-
-                            {/* Stage 1: Captions Detection Status & Actions */}
-                            {detectedSubtitleCount === 0 ? (
-                              <div
-                                id="video-accordion-red-instruction"
-                                data-testid="video-accordion-red-instruction"
-                                className="mx-3 my-2 rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-red-600 dark:text-red-300 text-xs font-semibold flex flex-wrap items-center justify-between gap-2.5 shadow-sm"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <AlertCircle className="h-4 w-4 text-red-500 shrink-0 animate-pulse" />
-                                  <span>
-                                    {captionsAlertGraceActive
-                                      ? "Auto-activating captions for default language... ([CC] fallback available)"
-                                      : "No subtitles detected yet. Turn on captions ([CC]) in the player above or select a track."}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    data-testid="btn-auto-trigger-captions"
-                                    onClick={() => triggerProgrammaticCaptions()}
-                                    className="h-7 text-xs border-red-500/40 text-red-700 dark:text-red-200 hover:bg-red-500/20 gap-1"
-                                    title="Programmatically trigger YouTube caption stream without native CC button"
-                                  >
-                                    <Subtitles className="h-3 w-3" />
-                                    <span>Auto-Enable CC</span>
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => {
-                                      if (!isVideoPlaying) {
-                                        handleTogglePlay();
-                                      }
-                                    }}
-                                    className="h-7 text-xs border-red-500/40 text-red-700 dark:text-red-200 hover:bg-red-500/20"
-                                  >
-                                    <Play className="h-3 w-3 mr-1" />
-                                    Play to Detect
-                                  </Button>
-                                </div>
                               </div>
                             ) : (
-                              <div
-                                id="stage-1-detected-subtitles-bar"
-                                data-testid="stage-1-detected-subtitles-bar"
-                                className="mx-3 my-2 pt-2 border-t border-border flex flex-wrap items-center justify-between gap-2.5"
-                              >
-                                <div className="flex items-center gap-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                                  <CheckCircle2 className="h-4 w-4" />
-                                  <span>
-                                    {detectedSubtitleCount} subtitle{" "}
-                                    {detectedSubtitleCount === 1 ? "track" : "tracks"} detected (
-                                    {detectedLanguagesList.join(", ")})
-                                  </span>
+                              <>
+                                {isAndroid && (
+                                  <form
+                                    className="flex gap-2 p-3"
+                                    onSubmit={(event) => {
+                                      event.preventDefault();
+                                      const id = parseVideoId(videoInput);
+                                      if (id) {
+                                        if (id !== videoId) {
+                                          setTracks(null);
+                                          setObservedUrl("");
+                                          setDefaultCaptionsLoaded(false);
+                                          setActive(-1);
+                                          setSpeakingLang(null);
+                                          setSpeakingRow(-1);
+                                          setSpeechProgress(null);
+                                          cancelSpeech();
+                                          setCurrentAccordionStage(1);
+                                          if (typeof window !== "undefined") {
+                                            const currentSearch = new URLSearchParams(
+                                              window.location.search,
+                                            );
+                                            if (currentSearch.get("v") !== id) {
+                                              currentSearch.set("v", id);
+                                              window.history.pushState(
+                                                { videoId: id },
+                                                "",
+                                                `${window.location.pathname}?${currentSearch.toString()}${window.location.hash}`,
+                                              );
+                                            }
+                                          }
+                                        }
+                                        setVideoId(id);
+                                      } else {
+                                        setCaptionStatus("Enter a valid YouTube link or video ID.");
+                                      }
+                                    }}
+                                  >
+                                    <input
+                                      aria-label="YouTube video URL or ID"
+                                      value={videoInput}
+                                      onChange={(event) => setVideoInput(event.target.value)}
+                                      placeholder="YouTube link or video ID"
+                                      className="min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1"
+                                    />
+                                    <Button type="submit">Load video</Button>
+                                  </form>
+                                )}
+                                <div
+                                  id="video-player-fullscreen-container"
+                                  data-testid="video-player-fullscreen-container"
+                                  className="relative w-full overflow-hidden [&:fullscreen]:flex [&:fullscreen]:items-center [&:fullscreen]:justify-center [&:fullscreen]:bg-black"
+                                >
+                                  <VideoInstancesSwiper
+                                    instances={videoInstances}
+                                    activeIndex={activeSwiperIndex}
+                                    onActiveIndexChange={setActiveSwiperIndex}
+                                    activePlayingId={
+                                      speakingLang && audioTrackMode
+                                        ? `lang_${speakingLang}`
+                                        : "primary"
+                                    }
+                                    videoId={videoId}
+                                    renderPlayerContainer={(instance) => {
+                                      if (instance.isPrimary) {
+                                        return (
+                                          <div
+                                            className="relative h-full w-full group"
+                                            onMouseEnter={() => setIsPlayerHovered(true)}
+                                            onMouseLeave={() => setIsPlayerHovered(false)}
+                                          >
+                                            <div
+                                              ref={handlePlayerRef}
+                                              className={
+                                                useAlternativePlayerView
+                                                  ? "absolute inset-0 opacity-0 pointer-events-none -z-10"
+                                                  : "h-full w-full"
+                                              }
+                                            />
+                                            {useAlternativePlayerView ? (
+                                              <AlternativeVideoPlayerView
+                                                currentSentence={currentAlternativeSentence}
+                                                baseLanguage={baseLanguage}
+                                                baseLanguageName={baseLanguageName}
+                                                targetTtsLang={currentTtsPlayLang}
+                                                targetTtsLangName={currentTtsPlayLangName}
+                                                targetTranslation={currentAlternativeTranslation}
+                                                availableTtsLanguages={
+                                                  availableAlternativeTtsLanguages
+                                                }
+                                                onSelectTtsLang={setSelectedAlternativeTtsLang}
+                                                speechProgress={speechProgress}
+                                                isSpeaking={Boolean(speakingLang)}
+                                                speakingLang={speakingLang}
+                                                speakingRow={speakingRow}
+                                                activeRowIndex={active}
+                                                totalRows={rows.length}
+                                                currentTimeSec={playbackCurrentTime}
+                                                durationSec={playbackDuration}
+                                                rowStartMs={
+                                                  active >= 0 && rows[active]
+                                                    ? rows[active].start
+                                                    : 0
+                                                }
+                                                rowEndMs={
+                                                  active >= 0 && rows[active] ? rows[active].end : 0
+                                                }
+                                                isVideoPlaying={isVideoPlaying}
+                                                onTogglePlay={handleTogglePlay}
+                                                onPrevSentence={handlePrevSection}
+                                                onNextSentence={handleNextSection}
+                                                onReplaySentence={handleReplaySection}
+                                                onCloseAlternativeView={() =>
+                                                  setUseAlternativePlayerView(false)
+                                                }
+                                                onSpeakText={handleSpeakTextFromAlternativeView}
+                                              />
+                                            ) : (
+                                              <>
+                                                {/* Overlay Play/Pause Button over video (prominent on pause/stop and hover/tap) */}
+                                                <div
+                                                  data-testid="video-overlay-play-pause-container"
+                                                  className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${
+                                                    !isVideoPlaying ||
+                                                    isPlayerHovered ||
+                                                    Boolean(speakingLang)
+                                                      ? "opacity-100"
+                                                      : "opacity-0"
+                                                  }`}
+                                                >
+                                                  <button
+                                                    type="button"
+                                                    data-testid="video-overlay-play-pause-btn"
+                                                    aria-label={
+                                                      isVideoPlaying || Boolean(speakingLang)
+                                                        ? "Pause playback"
+                                                        : "Play video"
+                                                    }
+                                                    title={
+                                                      isVideoPlaying || Boolean(speakingLang)
+                                                        ? "Pause playback"
+                                                        : "Play video"
+                                                    }
+                                                    onClick={(e) => {
+                                                      e.stopPropagation();
+                                                      handleTogglePlay();
+                                                    }}
+                                                    className="pointer-events-auto flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-black/65 hover:bg-black/85 text-white shadow-2xl backdrop-blur-sm border-2 border-white/30 transition-transform active:scale-95 hover:scale-105"
+                                                  >
+                                                    {isVideoPlaying || Boolean(speakingLang) ? (
+                                                      <Pause className="h-8 w-8 sm:h-10 sm:w-10 fill-current" />
+                                                    ) : (
+                                                      <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-current ml-1" />
+                                                    )}
+                                                  </button>
+                                                </div>
+                                                {showVideoSubtitles && (
+                                                  <div
+                                                    className="pointer-events-none absolute inset-x-3 top-3 text-center"
+                                                    aria-live="polite"
+                                                  >
+                                                    <span
+                                                      data-testid="active-subtitle-language"
+                                                      className="mb-1 inline-block rounded-full bg-foreground/90 px-2.5 py-1 font-semibold text-background shadow-lg"
+                                                      style={{
+                                                        fontSize: `calc(0.75rem * ${videoSubtitleRatio})`,
+                                                      }}
+                                                    >
+                                                      {(() => {
+                                                        const languageCode =
+                                                          speakingLang && speakingRow >= 0
+                                                            ? speakingLang
+                                                            : baseLanguage;
+                                                        const normalizedCode =
+                                                          languageCode === "iw"
+                                                            ? "he"
+                                                            : languageCode;
+                                                        return (
+                                                          LANGS.find(
+                                                            (language) =>
+                                                              language.code === normalizedCode,
+                                                          )?.name ?? normalizedCode.toUpperCase()
+                                                        );
+                                                      })()}
+                                                    </span>
+                                                    {speakingLang && speakingRow >= 0 && (
+                                                      <div className="pointer-events-auto mb-1 flex justify-center">
+                                                        <button
+                                                          type="button"
+                                                          data-testid="tts-source-badge"
+                                                          title="Customize this voice (Stage 1 → Learning goals)"
+                                                          onClick={() => {
+                                                            setShowOtherSettingsAccordions(false);
+                                                            setCurrentAccordionStage(1);
+                                                            setOpenPanels((prev) => ({
+                                                              ...prev,
+                                                              languages: true,
+                                                            }));
+                                                          }}
+                                                          className="inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-[10px] font-medium text-foreground shadow"
+                                                        >
+                                                          <Volume2 className="h-3 w-3" />
+                                                          <span>
+                                                            {useAlternativeTtsState &&
+                                                            alternativeTtsModeState === "always"
+                                                              ? "Alternative TTS"
+                                                              : isAndroid
+                                                                ? "Android TTS"
+                                                                : "Browser TTS"}
+                                                            {" · "}
+                                                            {voices.find(
+                                                              (v) =>
+                                                                v.voiceURI ===
+                                                                voiceSelections[speakingLang],
+                                                            )?.name || "default voice"}
+                                                            {" · "}
+                                                            {(rates[speakingLang] ?? 1).toFixed(1)}x
+                                                          </span>
+                                                          <Settings2 className="h-3 w-3" />
+                                                        </button>
+                                                      </div>
+                                                    )}
+                                                    <p
+                                                      id="active-subtitle-cue-text"
+                                                      data-testid="active-subtitle-cue-text"
+                                                      dir={
+                                                        speakingLang && RTL.has(speakingLang)
+                                                          ? "rtl"
+                                                          : "ltr"
+                                                      }
+                                                      className="inline-block max-w-[92%] rounded-md bg-foreground/90 px-3 py-2 font-medium text-background shadow-lg"
+                                                      style={{
+                                                        fontSize: `calc(1rem * ${videoSubtitleRatio})`,
+                                                      }}
+                                                    >
+                                                      {speakingLang && speakingRow >= 0 ? (
+                                                        <HighlightedSubtitle
+                                                          text={
+                                                            rows[speakingRow]?.texts?.[
+                                                              speakingLang
+                                                            ] ?? ""
+                                                          }
+                                                          progress={
+                                                            speechProgress?.row === speakingRow &&
+                                                            speechProgress.lang === speakingLang
+                                                              ? speechProgress
+                                                              : null
+                                                          }
+                                                        />
+                                                      ) : active >= 0 && rows[active] ? (
+                                                        <span>
+                                                          {baseLanguage &&
+                                                          rows[active]?.texts?.[baseLanguage]
+                                                            ? rows[active]?.texts?.[baseLanguage]
+                                                            : Object.values(
+                                                                rows[active]?.texts || {},
+                                                              )[0] || ""}
+                                                        </span>
+                                                      ) : (
+                                                        <span className="text-xs opacity-75">
+                                                          Subtitles active
+                                                        </span>
+                                                      )}
+                                                    </p>
+                                                  </div>
+                                                )}
+                                              </>
+                                            )}
+                                          </div>
+                                        );
+                                      }
+                                      return (
+                                        <div
+                                          ref={(el) => {
+                                            if (el) {
+                                              secondaryPlayerHosts.current.set(instance.id, el);
+                                            } else {
+                                              secondaryPlayerHosts.current.delete(instance.id);
+                                            }
+                                          }}
+                                          className="h-full w-full"
+                                        />
+                                      );
+                                    }}
+                                  />
                                 </div>
-                                <Button
-                                  id="stage-1-next-button"
-                                  data-testid="stage-1-next-button"
-                                  type="button"
-                                  onClick={() => {
-                                    setShowOtherSettingsAccordions(false);
-                                    setCurrentAccordionStage(2);
-                                    setOpenPanels((prev) => ({ ...prev, subtitles: true }));
-                                  }}
-                                  className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 py-1.5 text-xs shadow-md flex items-center gap-1.5 h-8"
+                                {/* Switchable List of Default Languages & Ratio Compositions Dropdown around Video Component */}
+                                <div className="p-2 border-t border-border/60 bg-muted/20 flex flex-wrap items-center justify-between gap-2">
+                                  <SwitchableDefaultSubtitlesBar
+                                    videoId={videoId}
+                                    defaultLanguages={defaultSubtitleLanguages}
+                                    activeLanguage={baseLanguage}
+                                    onSelectLanguage={handleSelectDefaultSubtitle}
+                                    tracks={tracks}
+                                    detectedTracks={detectedPlaygroundTracks}
+                                    className="flex-1 min-w-[260px]"
+                                  />
+                                  <LanguageRatioCompositionSelector
+                                    activeCompositionId={activeRatioCompositionId}
+                                    onSelectComposition={handleSelectRatioComposition}
+                                    onSaveProfile={handleSaveComposition}
+                                    onUpdateProfile={handleUpdateRatioComposition}
+                                    onDeleteProfile={handleDeleteRatioComposition}
+                                    compositions={storedCompositions}
+                                  />
+                                </div>
+                                <div
+                                  data-testid="video-display-controls"
+                                  className="flex justify-end gap-2 border-t border-border bg-card/80 px-3 py-2"
                                 >
-                                  <span>NEXT ({detectedSubtitleCount})</span>
-                                  <ArrowRight className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
-                            )}
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={isVideoFullscreen ? "default" : "outline"}
+                                    aria-pressed={isVideoFullscreen}
+                                    data-testid="video-fullscreen-toggle-btn"
+                                    onClick={handleToggleFullscreen}
+                                    className="h-7 gap-1.5 px-2.5 text-xs text-foreground"
+                                    title={
+                                      isVideoFullscreen ? "Exit full screen" : "Switch full screen"
+                                    }
+                                    aria-label={
+                                      isVideoFullscreen ? "Exit full screen" : "Switch full screen"
+                                    }
+                                  >
+                                    {isVideoFullscreen ? (
+                                      <Minimize2 className="h-3.5 w-3.5" />
+                                    ) : (
+                                      <Maximize2 className="h-3.5 w-3.5" />
+                                    )}
+                                    <span>
+                                      {isVideoFullscreen ? "Exit full screen" : "Full screen"}
+                                    </span>
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={useAlternativePlayerView ? "default" : "outline"}
+                                    aria-pressed={useAlternativePlayerView}
+                                    data-testid="toggle-alternative-player-view-btn"
+                                    onClick={handleToggleAlternativePlayerView}
+                                    className="h-7 gap-1.5 px-2.5 text-xs border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
+                                    title="Switch between video player and alternative subtitle/translation view"
+                                  >
+                                    <Subtitles className="h-3.5 w-3.5" />
+                                    {useAlternativePlayerView ? "Video view" : "Alternative view"}
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={showWordBalloonLearningView ? "default" : "outline"}
+                                    aria-pressed={showWordBalloonLearningView}
+                                    data-testid="toggle-word-balloon-learning-btn"
+                                    onClick={handleToggleWordBalloonLearningView}
+                                    className="h-7 gap-1.5 px-2.5 text-xs border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
+                                    title="Switch between video player and interactive sentence & word learning game"
+                                  >
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                    {showWordBalloonLearningView
+                                      ? "Video view"
+                                      : "Sentence & Word Game"}
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={showCanvasBalloonGame ? "default" : "outline"}
+                                    aria-pressed={showCanvasBalloonGame}
+                                    data-testid="launch-canvas-balloon-game-btn"
+                                    onClick={() => {
+                                      if (isVideoPlaying) {
+                                        pauseBothVideoAndTts();
+                                      }
+                                      setShowCanvasBalloonGame((prev) => !prev);
+                                    }}
+                                    className="h-7 gap-1.5 px-2.5 text-xs border-indigo-500/50 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 font-semibold"
+                                    title="Play interactive Canvas Balloon Game on full screen (without video)"
+                                  >
+                                    <Gamepad2 className="h-3.5 w-3.5" />
+                                    <span>
+                                      {showCanvasBalloonGame ? "Exit Game" : "Balloon Game"}
+                                    </span>
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant={showVideoSubtitles ? "default" : "outline"}
+                                    aria-pressed={showVideoSubtitles}
+                                    data-testid="video-subtitles-overlay-toggle"
+                                    onClick={handleToggleVideoSubtitles}
+                                    className="h-7 gap-1.5 px-2.5 text-xs"
+                                    title="Toggle spoken subtitles over the video"
+                                  >
+                                    <Subtitles className="h-3.5 w-3.5" />
+                                    {showVideoSubtitles ? "Overlay on" : "Overlay off"}
+                                  </Button>
+                                </div>
+                                {/* Video metadata card (Client-side title & channel author) */}
+                                {videoMetadata && (
+                                  <div
+                                    data-testid="video-metadata-card"
+                                    className="flex items-center justify-between gap-2.5 px-3 py-1.5 text-xs text-muted-foreground bg-muted/20 border-b border-border/40"
+                                  >
+                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                      {videoMetadata.thumbnailUrl && (
+                                        <img
+                                          src={videoMetadata.thumbnailUrl}
+                                          alt={videoMetadata.title}
+                                          className="h-7 w-12 rounded object-cover border border-border/50 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+                                          onClick={() => setVideoMetadataModalOpen(true)}
+                                          onError={(e) => {
+                                            (e.currentTarget as HTMLImageElement).style.display =
+                                              "none";
+                                          }}
+                                        />
+                                      )}
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-1.5 truncate">
+                                          <p
+                                            data-testid="video-metadata-title"
+                                            className="font-medium text-foreground truncate leading-tight cursor-pointer hover:underline"
+                                            title={videoMetadata.title}
+                                            onClick={() => setVideoMetadataModalOpen(true)}
+                                          >
+                                            {videoMetadata.title}
+                                          </p>
+                                          {videoMetadata.durationFormatted && (
+                                            <span
+                                              data-testid="video-metadata-duration-badge"
+                                              className="text-[10px] bg-muted text-foreground px-1 py-0.5 rounded font-mono shrink-0"
+                                            >
+                                              {videoMetadata.durationFormatted}
+                                            </span>
+                                          )}
+                                        </div>
+                                        {videoMetadata.authorName && (
+                                          <p
+                                            data-testid="video-metadata-author"
+                                            className="text-[11px] text-muted-foreground truncate"
+                                          >
+                                            {videoMetadata.authorUrl ? (
+                                              <a
+                                                href={videoMetadata.authorUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="hover:underline text-primary/90"
+                                              >
+                                                {videoMetadata.authorName}
+                                              </a>
+                                            ) : (
+                                              videoMetadata.authorName
+                                            )}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-7 px-2 text-[11px] gap-1 shrink-0 text-muted-foreground hover:text-foreground"
+                                      onClick={() => setVideoMetadataModalOpen(true)}
+                                      data-testid="open-video-metadata-modal-button"
+                                      title="Inspect video description, duration, thumbnails, and caption tracks"
+                                    >
+                                      <Info className="w-3.5 h-3.5 text-primary" />
+                                      <span className="hidden sm:inline">Details</span>
+                                    </Button>
+                                  </div>
+                                )}
+                                {/* Video playback buttons under the presented video */}
+                                <div className="p-3 pt-2">
+                                  <VideoPlaybackControls
+                                    isPlaying={isVideoPlaying}
+                                    currentTimeSec={playbackCurrentTime}
+                                    durationSec={playbackDuration}
+                                    playbackRate={playbackRate}
+                                    activeSectionIndex={active}
+                                    totalSections={rows.length}
+                                    isPausedForSpeech={Boolean(speakingLang)}
+                                    speakingLangName={
+                                      speakingLang
+                                        ? (getLanguageMeta(speakingLang).name ?? speakingLang)
+                                        : undefined
+                                    }
+                                    pauseReason={pauseReason}
+                                    onTogglePlay={handleTogglePlay}
+                                    onSeek={handleSeek}
+                                    onRewind={handleRewind}
+                                    onFastForward={handleFastForward}
+                                    onPrevSection={handlePrevSection}
+                                    onNextSection={handleNextSection}
+                                    onReplaySection={handleReplaySection}
+                                    onStop={handleStop}
+                                    onRateChange={handleRateChange}
+                                  />
+                                  <div className="pt-2">
+                                    <TtsFallbackOrderSwitch
+                                      currentOrder={ttsFallbackOrderState}
+                                      onOrderChange={(newOrder) => {
+                                        setTtsFallbackOrderState(newOrder);
+                                        setTtsFallbackOrder(newOrder);
+                                      }}
+                                      onNavigateToSetup={handleNavigateToTtsSetup}
+                                      tts3TokenConfigured={Boolean(
+                                        openRouterKeyInput || getSpeakApiToken(),
+                                      )}
+                                      tts3Provider={lovableTtsProviderState}
+                                    />
+                                  </div>
+                                  <div className="pt-2">
+                                    <BeginnerTtsServiceControl
+                                      service={
+                                        useAlternativeTtsState &&
+                                        alternativeTtsModeState === "always"
+                                          ? "google"
+                                          : "native"
+                                      }
+                                      onServiceChange={(service: BeginnerTtsService) => {
+                                        if (service === "google") {
+                                          setAlternativeTtsEngineState("lovable");
+                                          setAlternativeTtsEngine("lovable");
+                                          setAlternativeTtsModeState("always");
+                                          setAlternativeTtsMode("always");
+                                          setLovableTtsProvider("google");
+                                          setLovableTtsProviderState("google");
+                                          setUseAlternativeTtsState(true);
+                                          setUseAlternativeTts(true);
+                                          return;
+                                        }
+                                        setUseAlternativeTtsState(false);
+                                        setUseAlternativeTts(false);
+                                      }}
+                                    />
+                                  </div>
+                                  {!isVideoPlaying && pauseReason && (
+                                    <div
+                                      data-testid="video-pause-reason-banner"
+                                      className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 mt-2"
+                                    >
+                                      <Info className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                                      <span className="font-semibold">Pause explanation:</span>
+                                      <span className="truncate">{pauseReason}</span>
+                                    </div>
+                                  )}
+                                </div>
+                                {isAndroid && (
+                                  <p
+                                    role="status"
+                                    className="px-3 py-2 text-sm text-muted-foreground"
+                                  >
+                                    {captionStatus}
+                                  </p>
+                                )}
 
-                            {currentAccordionStage === 3 && (
-                              <div
-                                id="stage-3-navigation-bar"
-                                data-testid="stage-3-navigation-bar"
-                                className="mx-3 my-2 pt-2 border-t border-border flex items-center justify-between gap-2.5"
-                              >
-                                <Button
-                                  id="stage-3-back-to-subtitles-btn"
-                                  data-testid="stage-3-back-to-subtitles-btn"
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setShowOtherSettingsAccordions(false);
-                                    setCurrentAccordionStage(2);
-                                    setOpenPanels((prev) => ({ ...prev, subtitles: true }));
-                                  }}
-                                  className="text-xs h-8 flex items-center gap-1.5"
-                                >
-                                  <ArrowLeft className="h-3.5 w-3.5" />
-                                  <span>Back to Subtitles Table (Stage 2)</span>
-                                </Button>
-                                <Button
-                                  id="stage-3-to-settings-btn"
-                                  data-testid="stage-3-to-settings-btn"
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setCurrentAccordionStage(4);
-                                    setOpenPanels((prev) => ({
-                                      ...prev,
-                                      playback: true,
-                                      library: true,
-                                    }));
-                                  }}
-                                  className="text-xs h-8 flex items-center gap-1.5"
-                                >
-                                  <span>Settings (Stage 4)</span>
-                                  <ArrowRight className="h-3.5 w-3.5" />
-                                </Button>
-                              </div>
+                                {/* Stage 1: Captions Detection Status & Actions */}
+                                {detectedSubtitleCount === 0 ? (
+                                  <div
+                                    id="video-accordion-red-instruction"
+                                    data-testid="video-accordion-red-instruction"
+                                    className="mx-3 my-2 rounded-lg border border-red-500/50 bg-red-500/10 p-3 text-red-600 dark:text-red-300 text-xs font-semibold flex flex-wrap items-center justify-between gap-2.5 shadow-sm"
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <AlertCircle className="h-4 w-4 text-red-500 shrink-0 animate-pulse" />
+                                      <span>
+                                        {captionsAlertGraceActive
+                                          ? "Auto-activating captions for default language... ([CC] fallback available)"
+                                          : "No subtitles detected yet. Turn on captions ([CC]) in the player above or select a track."}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        data-testid="btn-auto-trigger-captions"
+                                        onClick={() => triggerProgrammaticCaptions()}
+                                        className="h-7 text-xs border-red-500/40 text-red-700 dark:text-red-200 hover:bg-red-500/20 gap-1"
+                                        title="Programmatically trigger YouTube caption stream without native CC button"
+                                      >
+                                        <Subtitles className="h-3 w-3" />
+                                        <span>Auto-Enable CC</span>
+                                      </Button>
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => {
+                                          if (!isVideoPlaying) {
+                                            handleTogglePlay();
+                                          }
+                                        }}
+                                        className="h-7 text-xs border-red-500/40 text-red-700 dark:text-red-200 hover:bg-red-500/20"
+                                      >
+                                        <Play className="h-3 w-3 mr-1" />
+                                        Play to Detect
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div
+                                    id="stage-1-detected-subtitles-bar"
+                                    data-testid="stage-1-detected-subtitles-bar"
+                                    className="mx-3 my-2 pt-2 border-t border-border flex flex-wrap items-center justify-between gap-2.5"
+                                  >
+                                    <div className="flex items-center gap-2 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                      <CheckCircle2 className="h-4 w-4" />
+                                      <span>
+                                        {detectedSubtitleCount} subtitle{" "}
+                                        {detectedSubtitleCount === 1 ? "track" : "tracks"} detected
+                                        ({detectedLanguagesList.join(", ")})
+                                      </span>
+                                    </div>
+                                    <Button
+                                      id="stage-1-next-button"
+                                      data-testid="stage-1-next-button"
+                                      type="button"
+                                      onClick={() => {
+                                        setShowOtherSettingsAccordions(false);
+                                        setCurrentAccordionStage(2);
+                                        setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+                                      }}
+                                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold px-4 py-1.5 text-xs shadow-md flex items-center gap-1.5 h-8"
+                                    >
+                                      <span>NEXT ({detectedSubtitleCount})</span>
+                                      <ArrowRight className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                )}
+
+                                {currentAccordionStage === 3 && (
+                                  <div
+                                    id="stage-3-navigation-bar"
+                                    data-testid="stage-3-navigation-bar"
+                                    className="mx-3 my-2 pt-2 border-t border-border flex items-center justify-between gap-2.5"
+                                  >
+                                    <Button
+                                      id="stage-3-back-to-subtitles-btn"
+                                      data-testid="stage-3-back-to-subtitles-btn"
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setShowOtherSettingsAccordions(false);
+                                        setCurrentAccordionStage(2);
+                                        setOpenPanels((prev) => ({ ...prev, subtitles: true }));
+                                      }}
+                                      className="text-xs h-8 flex items-center gap-1.5"
+                                    >
+                                      <ArrowLeft className="h-3.5 w-3.5" />
+                                      <span>Back to Subtitles Table (Stage 2)</span>
+                                    </Button>
+                                    <Button
+                                      id="stage-3-to-settings-btn"
+                                      data-testid="stage-3-to-settings-btn"
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => {
+                                        setCurrentAccordionStage(4);
+                                        setOpenPanels((prev) => ({
+                                          ...prev,
+                                          playback: true,
+                                          library: true,
+                                        }));
+                                      }}
+                                      className="text-xs h-8 flex items-center gap-1.5"
+                                    >
+                                      <span>Settings (Stage 4)</span>
+                                      <ArrowRight className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
                         )}

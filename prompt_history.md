@@ -1967,6 +1967,34 @@ row-criteria should use the defualt language and filter out subtitles records wi
 4. word balloons stage - it doent looks like a learning words game! why it has a video ? wtf?
 ```
 
+---
+
+### Prompt 155: Hotfix: Vite Reload Failure & Undeclared Identifiers in index.tsx
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 1: [vite] SyntaxError: The requested module '/src/lib/playback-preferences.ts' does not provide an export named 'getDefaultLanguageTtsRate'
+error 2: [vite] Failed to reload /src/components/beginner/PerLanguageTtsPreferences.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 3: [vite] SyntaxError: The requested module '/src/utils/speechVoiceUtils.ts' does not provide an export named 'getSampleTextForLanguage'
+error 4: [vite] Failed to reload /src/components/beginner/tabs/BeginnerPreferencesTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 5: [vite] Failed to reload /src/components/TtsServiceSettingsPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 6: [vite] Failed to reload /src/components/ExperimentalSubtitleFetchPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 7: [vite] Failed to reload /src/components/AiSubtitlePunctuationTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 8: [vite] Failed to reload /src/components/FetchedSubtitlesStagePanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 9: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 156: Replace Word Balloons Stage with Game of Sentences and Words Based on Current Subtitles
+```
+word baloon stage - replace it with a game of sentences and word based on current subtitles.
+```
+
+
 
 
 
