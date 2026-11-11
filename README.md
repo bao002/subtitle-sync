@@ -21,7 +21,7 @@
 - **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
 - **Failing Step**: Broken Video Link Detection in android-emulator-report.html
 - **Report URL**: https://mostuf25563.github.io/subtitle-sync/android-emulator-report.html
-- **Run URL**: https://github.com/mostuf25563/subtitle-sync/actions/runs/42943479531
+- **Run URL**: https://github.com/mostuf25563/subtitle-sync/actions/runs/42943523529
 
 ### Failure Log & Diagnosis:
 Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).
