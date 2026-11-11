@@ -119,6 +119,9 @@ export interface BeginnerPreferencesTabProps {
   onDisableScrollingChange?: (disabled: boolean) => void;
   disableAutoFocus?: boolean;
   onDisableAutoFocusChange?: (disabled: boolean) => void;
+  languageMaxWords?: Record<string, number>;
+  onLanguageMaxWordsChange?: (langCode: string, val: number | undefined) => void;
+  learningLanguages?: Array<{ code: string; name: string }>;
   profileSelectorSlot?: React.ReactNode;
   activeProfileName?: string;
 }
@@ -141,6 +144,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   onMaxWordsPerSentenceChange,
   skipIncompleteSentences,
   onSkipIncompleteSentencesChange,
+  languageMaxWords,
+  onLanguageMaxWordsChange,
+  learningLanguages,
   onContinueToNextTab,
   catalog,
   targetLanguages,
@@ -1144,7 +1150,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         </div>
       )}
 
-      {/* 5. Learning Goals: Subtitle Row Filters (Max Words Slider & Complete Sentence Filter) */}
+      {/* 5. Learning Goals: Subtitle Row Filters (Max Words Slider & Complete Sentence Filter & Per-Language Max Words) */}
       {(learningGoalsFiltersSlot || onMaxWordsPerSentenceChange) && (
         <div
           id="beginner-learning-goals-filters-container"
@@ -1157,6 +1163,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
               onMaxWordsChange={onMaxWordsPerSentenceChange!}
               skipIncompleteSentences={skipIncompleteSentences ?? false}
               onSkipIncompleteSentencesChange={onSkipIncompleteSentencesChange ?? (() => {})}
+              languageMaxWords={languageMaxWords}
+              onLanguageMaxWordsChange={onLanguageMaxWordsChange}
+              learningLanguages={learningLanguages}
             />
           )}
         </div>

@@ -4,10 +4,11 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 379 (Prompt 148 - Chapter 1): Set Default TTS Rate to 1 for EN/HE and 0.8 for All Other Languages [ACTIVE]**
-  - [ ] Subtask 379.1: Add `getDefaultLanguageTtsRate(langCode: string): number` helper returning 1.0 for English ("en") and Hebrew ("he", "iw"), and 0.8 for all other languages.
-  - [ ] Subtask 379.2: Update initial rates state in `src/routes/index.tsx`, `src/lib/playback-preferences.ts`, and fallback rates in `src/components/beginner/PerLanguageTtsPreferences.tsx` to use `getDefaultLanguageTtsRate`.
-  - [ ] Subtask 379.3: Add dedicated test `scripts/verify-default-tts-rate-per-language.ts`, verify app compilation and linting, bump version, commit, and migrate Task 379 to `docs/done.md`.
+- [ ] **Task 383 (Prompt 151): Learning Goals Per-Language Max Words Allowed for Translation [ACTIVE]**
+  - [ ] Subtask 383.1: Add `learningGoalsLangMaxWords` preference helpers in `src/lib/playback-preferences.ts` (`getLearningGoalsLanguageMaxWords`, `setLearningGoalsLanguageMaxWords`, `getEffectiveLanguageMaxWords`).
+  - [ ] Subtask 383.2: Enhance `LearningGoalsFiltersPanel.tsx` to support per-language max words configuration with stepper inputs, reset-to-default controls, and full Beginner/Advanced mode parity.
+  - [ ] Subtask 383.3: In `src/routes/index.tsx`, integrate per-language max words in Stage 2 Learning Goals card, hook into `translateSentencesAhead`, `isSentenceEligibleForTts`, and TTS playback filters so sentences exceeding a language's specific limit are not translated/spoken for that language.
+  - [ ] Subtask 383.4: Add Storybook coverage and dedicated automated test `scripts/verify-learning-goals-lang-max-words.ts` (`npm run test:learning-goals-lang-max-words`), bump version to `2.1.78`, verify compilation (`compile_applet`) and linting (`lint_applet`), commit, and migrate Task 383 to `docs/done.md`.
 
 - [ ] **Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [PENDING]**
   - [ ] Subtask 380.1: Ensure `playAlternativeTtsAudio` and `speak(...)` strictly respect the full playing duration of fetched audio without premature cutoff or starting overlapping speech before completion.
