@@ -327,10 +327,10 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
                 data-control-category="daily-usage"
                 onClick={onToggleWordBalloonLearningView}
                 className="h-7 shrink-0 gap-1.5 px-2.5 text-xs border-indigo-500/40 text-indigo-600 dark:text-indigo-400"
-                title="Switch between video player and interactive punchable word balloons learning view"
+                title="Switch between video player and interactive sentence & word learning game"
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                {showWordBalloonLearningView ? "Video view" : "Word Balloons"}
+                {showWordBalloonLearningView ? "Video view" : "Sentence & Word Game"}
               </Button>
             )}
             <Button

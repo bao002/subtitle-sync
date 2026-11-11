@@ -1,5 +1,63 @@
 # Done tasks
 
+### Task 390 (Prompt 156): Replace Word Balloons Stage with Subtitles Sentence & Word Learning Game
+
+- **Prompt**:
+  ```
+  word baloon stage - replace it with a game of sentences and word based on current subtitles.
+  ```
+- **Requirements & Architectural Design**:
+  - Replace the single-purpose balloon stage with a full-featured, interactive **Subtitles Sentence & Word Learning Game** (`WordBalloonLearningView.tsx`) driven 100% by the video's active subtitle tracks.
+  - Deliver 4 interactive game modes:
+    1. **Sentence Builder (Unscramble Sentence)**: Shuffled word tiles that the student taps in correct grammatical sequence to build the sentence, complete with hints, instant validation, and +50 XP.
+    2. **Word Match (Vocabulary Pairs)**: Matching base language words to target translated words from the current subtitles with checkmarks, instant audio pronunciation, and +20 XP.
+    3. **Missing Word (Fill-in-the-Blank)**: Completing the subtitle sentence with multiple-choice word options extracted from the subtitle vocabulary pool with +35 XP and streak multiplier.
+    4. **Word Balloons (Poppable Vocabulary Discovery)**: Color-coded balloon bubbles that pop with Web Audio sound effects to reveal translations and trigger native TTS pronunciation.
+  - **Zero Video Player Distraction on Game Stage**:
+    - In Advanced Mode (`panelId === "player"`), when on Stage 5 (`currentAccordionStage === 5`) or when `showWordBalloonLearningView` is true, the video player, video playback controls, and video display controls are completely replaced with the dedicated full-width game view.
+    - In Beginner Mode, `playbackControlsSlot` is suppressed (`null`) when in the game view.
+    - Updated Stage 5 button in the pipeline stepper to "Sentence & Word Game", with `onCloseLearningView` returning directly to the video player.
+  - **Gamification & Web Audio**:
+    - Score counter (XP), streak multiplier with fire badge, accuracy tracking, sentence counter, and Web Audio synthesized pop sound, success chime, and error tone.
+- **Testing & Verification**:
+  - Created dedicated automated test `scripts/verify-sentence-and-word-subtitles-game.ts`, confirming all 4 game modes, test IDs, audio effects, zero-video policy on Stage 5, Beginner Mode parity, and dev server transforms.
+  - Verified `scripts/verify-word-balloon-learning-stage.ts` (100% passing).
+  - Verified `scripts/verify-canvas-balloon-game-fullscreen.ts` (100% passing).
+  - Verified `tsc --noEmit` (0 errors across entire repository).
+  - Bumped version to `2.1.81` (code `20181`) via `npm run sync-version`.
+
+### Hotfix (Prompt 155): Fix Vite Reload Failure & Undeclared Identifiers in index.tsx
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 1: [vite] SyntaxError: The requested module '/src/lib/playback-preferences.ts' does not provide an export named 'getDefaultLanguageTtsRate'
+  error 2: [vite] Failed to reload /src/components/beginner/PerLanguageTtsPreferences.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 3: [vite] SyntaxError: The requested module '/src/utils/speechVoiceUtils.ts' does not provide an export named 'getSampleTextForLanguage'
+  error 4: [vite] Failed to reload /src/components/beginner/tabs/BeginnerPreferencesTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 5: [vite] Failed to reload /src/components/TtsServiceSettingsPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 6: [vite] Failed to reload /src/components/ExperimentalSubtitleFetchPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 7: [vite] Failed to reload /src/components/AiSubtitlePunctuationTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 8: [vite] Failed to reload /src/components/FetchedSubtitlesStagePanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 9: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause & Diagnosis**:
+  - `src/routes/index.tsx` contained undeclared references `isPlaying` and `handlePause` at line 8568 inside the `launch-canvas-balloon-game-btn` click handler (`if (isPlaying) { handlePause(); }`).
+  - This prevented TypeScript compilation and broke Vite's module transformation for `/src/routes/index.tsx`, cascading failed reloads across dependent modules (`PerLanguageTtsPreferences`, `BeginnerPreferencesTab`, `TtsServiceSettingsPanel`, etc.).
+  - While `getDefaultLanguageTtsRate` in `playback-preferences.ts` and `getSampleTextForLanguage` in `speechVoiceUtils.ts` were correctly implemented, Vite's stale reload graph flagged them due to the syntax/type error in `index.tsx`.
+- **Fix & Implementation**:
+  - Replaced `isPlaying` and `handlePause` in `src/routes/index.tsx` with proper in-scope variables: `if (isVideoPlaying) { pauseBothVideoAndTts(); }`.
+  - Restarted the dev server to clear any stale module cache.
+  - Bumped application version in `package.json` to `2.1.80` (code `20180`) and synchronized via `npm run sync-version`.
+- **Testing & Verification**:
+  - Verified with `npx tsc --noEmit`: 0 errors across entire repository.
+  - Created dedicated automated test `scripts/verify-hotfix-vite-reload-and-index-syntax.ts`, confirming all 10 reported modules exist, transform with HTTP 200 OK from the dev server, and have zero syntax/reference errors.
+  - Verified app compilation (`compile_applet`) and linting (`lint_applet`).
+
 ### Task 385 (Prompt 154 - Chapter 0): Disable GitHub Actions Readme Workflow (`update-readme.yml`)
 
 - **Prompt**:

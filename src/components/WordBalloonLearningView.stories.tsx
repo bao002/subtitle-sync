@@ -13,7 +13,7 @@ const meta: Meta<typeof WordBalloonLearningView> = {
     docs: {
       description: {
         component:
-          "Dedicated interactive learning view where instead of showing the video player, words are presented as punchable balloons that expose word translations when punched.",
+          "Dedicated interactive learning game where instead of showing the video player, users play a rich subtitle-driven game with Sentence Builder, Word Match, Missing Word, and Word Balloon discovery modes.",
       },
     },
   },
