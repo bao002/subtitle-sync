@@ -5,7 +5,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 ## Active Tasks
 
 - [ ] **Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language [ACTIVE]**
-  - [ ] Subtask 387.1: Add per-language row-criteria (max words per sentence limit, complete sentence punctuation filter) preferences in `src/lib/playback-preferences.ts`.
+  - [x] Subtask 387.1: Add per-language row-criteria (max words per sentence limit, complete sentence punctuation filter) preferences in `src/lib/playback-preferences.ts`.
   - [ ] Subtask 387.2: Update `LearningGoalsFiltersPanel.tsx` to provide per-language row-criteria controls with reset options and active status.
   - [ ] Subtask 387.3: Integrate per-language row-criteria into translation and TTS processing in `src/routes/index.tsx`.
   - [ ] Subtask 387.4: Verify with dedicated test `scripts/verify-learning-goals-row-criteria-per-language.ts`, verify compilation and linting, commit, and migrate Task 387 to `docs/done.md`.

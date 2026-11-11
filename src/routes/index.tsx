@@ -1182,16 +1182,16 @@ function Index() {
           setFavoriteLanguages(favs);
         }
       }
-      if (favs.length > 0) return favs;
+      if (favs.length > 0) return Array.from(new Set(favs));
       const isAndroidEnv =
         Boolean(nativeShell()) ||
         new URLSearchParams(window.location.search).get("android") === "true";
       if (isAndroidEnv) return ["he", "it"];
       const baseDefaults = ["he", "it", "es", "fr", "ru", "ar"];
-      return [...baseDefaults, "pt-BR"];
+      return Array.from(new Set([...baseDefaults, "pt-BR"]));
     }
     const baseDefaults = ["he", "it", "es", "fr", "ru", "ar"];
-    return [...baseDefaults, "pt-BR"];
+    return Array.from(new Set([...baseDefaults, "pt-BR"]));
   };
 
   const getInitialTargetLanguages = (): string[] => {
@@ -1247,7 +1247,7 @@ function Index() {
           list.unshift(clean);
         }
       }
-      return list;
+      return Array.from(new Set(list));
     }
     return [];
   };
@@ -1272,10 +1272,11 @@ function Index() {
   });
 
   const handleUpdateFavoriteLanguages = (newFavs: string[]) => {
-    const addedFavs = newFavs.filter((l) => !favoriteLanguages.includes(l));
-    const removedFavs = favoriteLanguages.filter((l) => !newFavs.includes(l));
-    setFavoriteLanguagesState(newFavs);
-    setFavoriteLanguages(newFavs);
+    const uniqueFavs = Array.from(new Set(newFavs));
+    const addedFavs = uniqueFavs.filter((l) => !favoriteLanguages.includes(l));
+    const removedFavs = favoriteLanguages.filter((l) => !uniqueFavs.includes(l));
+    setFavoriteLanguagesState(uniqueFavs);
+    setFavoriteLanguages(uniqueFavs);
 
     if (addedFavs.length > 0) {
       // For any favorite language - by default do checkbox on for both options: present in table & tts-play
@@ -1508,9 +1509,11 @@ function Index() {
   const [languageMaxWords, setLanguageMaxWords] = useState<Record<string, number>>(() => {
     return getLearningGoalsLanguageMaxWords();
   });
-  const [languageSkipIncomplete, setLanguageSkipIncomplete] = useState<Record<string, boolean>>(() => {
-    return getLearningGoalsLanguageSkipIncomplete();
-  });
+  const [languageSkipIncomplete, setLanguageSkipIncomplete] = useState<Record<string, boolean>>(
+    () => {
+      return getLearningGoalsLanguageSkipIncomplete();
+    },
+  );
   const languageMaxWordsRef = useRef<Record<string, number>>(languageMaxWords);
   const languageSkipIncompleteRef = useRef<Record<string, boolean>>(languageSkipIncomplete);
 
@@ -1522,14 +1525,11 @@ function Index() {
     languageSkipIncompleteRef.current = languageSkipIncomplete;
   }, [languageSkipIncomplete]);
 
-  const handleLanguageMaxWordsChange = useCallback(
-    (langCode: string, val: number | undefined) => {
-      const next = saveLearningGoalsLanguageMaxWords(langCode, val);
-      setLanguageMaxWords(next);
-      languageMaxWordsRef.current = next;
-    },
-    [],
-  );
+  const handleLanguageMaxWordsChange = useCallback((langCode: string, val: number | undefined) => {
+    const next = saveLearningGoalsLanguageMaxWords(langCode, val);
+    setLanguageMaxWords(next);
+    languageMaxWordsRef.current = next;
+  }, []);
 
   const handleLanguageSkipIncompleteChange = useCallback(
     (langCode: string, val: boolean | undefined) => {
@@ -2276,11 +2276,12 @@ function Index() {
   );
 
   const handleTargetLanguagesChange = (newTargetLangs: string[]) => {
-    const removedLangs = targetLanguages.filter((l) => !newTargetLangs.includes(l));
-    const newlyAdded = newTargetLangs.filter((lang) => !targetLanguages.includes(lang));
+    const deduplicatedTargetLangs = Array.from(new Set(newTargetLangs));
+    const removedLangs = targetLanguages.filter((l) => !deduplicatedTargetLangs.includes(l));
+    const newlyAdded = deduplicatedTargetLangs.filter((lang) => !targetLanguages.includes(lang));
 
     // 1. Immediately prune failedLangs to only those still present in newTargetLangs
-    setFailedLangs((prev) => prev.filter((lang) => newTargetLangs.includes(lang)));
+    setFailedLangs((prev) => prev.filter((lang) => deduplicatedTargetLangs.includes(lang)));
 
     // 2. When favorite languages are removed, remove all related instances:
     // - columns shown
@@ -2315,10 +2316,10 @@ function Index() {
       });
     }
 
-    setTargetLanguages(newTargetLangs);
-    setUserLearningLanguages(newTargetLangs);
+    setTargetLanguages(deduplicatedTargetLangs);
+    setUserLearningLanguages(deduplicatedTargetLangs);
     if (videoId) {
-      saveVideoSettings(videoId, { targetLanguages: newTargetLangs });
+      saveVideoSettings(videoId, { targetLanguages: deduplicatedTargetLangs });
     }
     if (newlyAdded.length > 0) {
       setShown((prev) => Array.from(new Set([...prev, ...newlyAdded])));
@@ -4823,7 +4824,7 @@ function Index() {
         zeroKnowledgeLanguages: Object.entries(zeroKnowledgeMap || {})
           .filter(([, v]) => v)
           .map(([k]) => k),
-        isAudioTrackMode,
+        isAudioTrackMode: audioTrackMode,
         timestamp: new Date().toISOString(),
       };
     });
@@ -4842,6 +4843,7 @@ function Index() {
     speakingRow,
     speakingLang,
     zeroKnowledgeMap,
+    audioTrackMode,
   ]);
 
   // Main screen presents favorite languages and intercepted tracks for show/hide, speech toggles, ordering, and per-language TTS controls
@@ -5623,36 +5625,34 @@ function Index() {
         if (rowIdx < 0 || playedTtsRecords.current.has(getPlaybackSectionId(rows[rowIdx]!)))
           return [];
         const baseText = st.current.rows[rowIdx]?.texts[st.current.baseLanguage] ?? "";
-        let eligibleLanguages = orderedLangs.filter(
-          (l) => {
-            const langMaxWords = getEffectiveLanguageMaxWords(
-              l.code,
-              languageMaxWordsRef.current,
-              maxTtsWordsRef.current,
-            );
-            if (!isSentenceWithinWordLimit(baseText, langMaxWords)) return false;
-            const langSkipIncomplete = getEffectiveLanguageSkipIncomplete(
-              l.code,
-              languageSkipIncompleteRef.current,
-              skipIncompleteRef.current,
-            );
-            if (langSkipIncomplete && !isCompleteSentence(baseText)) return false;
+        let eligibleLanguages = orderedLangs.filter((l) => {
+          const langMaxWords = getEffectiveLanguageMaxWords(
+            l.code,
+            languageMaxWordsRef.current,
+            maxTtsWordsRef.current,
+          );
+          if (!isSentenceWithinWordLimit(baseText, langMaxWords)) return false;
+          const langSkipIncomplete = getEffectiveLanguageSkipIncomplete(
+            l.code,
+            languageSkipIncompleteRef.current,
+            skipIncompleteRef.current,
+          );
+          if (langSkipIncomplete && !isCompleteSentence(baseText)) return false;
 
-            return (
-              !isLanguageTtsBlacklisted(l.code, currentTtsBlacklist) &&
-              isTtsSpeakableLanguage(l.code, currentBaseLanguage, currentTtsBlacklist) &&
-              isLanguageSpoken(l.code, spoken) &&
-              isLanguageEligibleForTtsWithRole({
-                rowIdx,
-                langCode: l.code,
-                ratio: getLanguageTtsRatio(currentTtsRatios, l.code),
-                primaryLang: effectivePrimary,
-                primaryRatio,
-                blacklist: currentTtsBlacklist,
-              })
-            );
-          },
-        );
+          return (
+            !isLanguageTtsBlacklisted(l.code, currentTtsBlacklist) &&
+            isTtsSpeakableLanguage(l.code, currentBaseLanguage, currentTtsBlacklist) &&
+            isLanguageSpoken(l.code, spoken) &&
+            isLanguageEligibleForTtsWithRole({
+              rowIdx,
+              langCode: l.code,
+              ratio: getLanguageTtsRatio(currentTtsRatios, l.code),
+              primaryLang: effectivePrimary,
+              primaryRatio,
+              blacklist: currentTtsBlacklist,
+            })
+          );
+        });
         if (eligibleLanguages.length === 0 && isAudioTrackMode && spoken.length === 0) {
           const fallbackLang =
             orderedLangs.find(
@@ -7812,7 +7812,7 @@ function Index() {
                     // ignore storage errors
                   }
                 }}
-                learningLanguages={targetLanguages.map((code) => ({
+                learningLanguages={Array.from(new Set(targetLanguages)).map((code) => ({
                   code,
                   name:
                     LANGS.find((l) => l.code === code)?.name ||
@@ -9867,7 +9867,7 @@ function Index() {
                                           No favorites selected yet
                                         </span>
                                       ) : (
-                                        favoriteLanguages.map((code) => {
+                                        Array.from(new Set(favoriteLanguages)).map((code) => {
                                           const langMeta = SUPPORTED_LANGUAGES_CATALOG.find(
                                             (c) => c.code === code,
                                           ) || { code, name: code };
@@ -11052,7 +11052,7 @@ function Index() {
                                 >
                                   <div className="flex flex-col space-y-1 max-h-48 overflow-y-auto divide-y divide-border/40 border border-border/50 rounded-md bg-background/60 p-1">
                                     {(favoriteLanguages.length > 0
-                                      ? favoriteLanguages
+                                      ? Array.from(new Set(favoriteLanguages))
                                       : ["en", "es", "he", "ar", "fr", "de", "it", "ru", "pt"]
                                     ).map((code) => {
                                       const isSelected = targetLanguages.includes(code);
@@ -12339,6 +12339,7 @@ function Index() {
                                         </div>
                                       );
                                     })()}
+                                  </div>
                                 </LearningGoalAccordion>
 
                                 {/* 4. Subtitle Row Criteria & Filters (Global & Per-Language) */}
@@ -12359,37 +12360,56 @@ function Index() {
                                     <LearningGoalsFiltersPanel
                                       maxWords={simpleParserConfig.maxWordsPerSentence}
                                       onMaxWordsChange={(val) => {
-                                        const next = { ...simpleParserConfig, maxWordsPerSentence: val };
+                                        const next = {
+                                          ...simpleParserConfig,
+                                          maxWordsPerSentence: val,
+                                        };
                                         setSimpleParserConfig(next);
                                         saveLearningGoalsMaxWords(val);
                                         try {
-                                          localStorage.setItem("yt_simple_parser_config", JSON.stringify(next));
+                                          localStorage.setItem(
+                                            "yt_simple_parser_config",
+                                            JSON.stringify(next),
+                                          );
                                         } catch {
                                           // ignore storage errors
                                         }
                                       }}
-                                      skipIncompleteSentences={Boolean(simpleParserConfig.skipIncompleteSentences)}
+                                      skipIncompleteSentences={Boolean(
+                                        simpleParserConfig.skipIncompleteSentences,
+                                      )}
                                       onSkipIncompleteSentencesChange={(val) => {
-                                        const next = { ...simpleParserConfig, skipIncompleteSentences: val };
+                                        const next = {
+                                          ...simpleParserConfig,
+                                          skipIncompleteSentences: val,
+                                        };
                                         setSimpleParserConfig(next);
                                         saveLearningGoalsSkipIncomplete(val);
                                         try {
-                                          localStorage.setItem("yt_simple_parser_config", JSON.stringify(next));
+                                          localStorage.setItem(
+                                            "yt_simple_parser_config",
+                                            JSON.stringify(next),
+                                          );
                                         } catch {
                                           // ignore storage errors
                                         }
                                       }}
-                                      learningLanguages={targetLanguages.map((code) => ({
-                                        code,
-                                        name:
-                                          LANGS.find((l) => l.code === code)?.name ||
-                                          SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code === code)?.name ||
-                                          code.toUpperCase(),
-                                      }))}
+                                      learningLanguages={Array.from(new Set(targetLanguages)).map(
+                                        (code) => ({
+                                          code,
+                                          name:
+                                            LANGS.find((l) => l.code === code)?.name ||
+                                            SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code === code)
+                                              ?.name ||
+                                            code.toUpperCase(),
+                                        }),
+                                      )}
                                       languageMaxWords={languageMaxWords}
                                       onLanguageMaxWordsChange={handleLanguageMaxWordsChange}
                                       languageSkipIncomplete={languageSkipIncomplete}
-                                      onLanguageSkipIncompleteChange={handleLanguageSkipIncompleteChange}
+                                      onLanguageSkipIncompleteChange={
+                                        handleLanguageSkipIncompleteChange
+                                      }
                                     />
                                   </div>
                                 </LearningGoalAccordion>

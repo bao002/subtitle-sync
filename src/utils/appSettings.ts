@@ -409,14 +409,17 @@ export function saveVideoSettings(videoId: string, settings: Partial<VideoSpecif
 
 export function getUserLearningLanguages(): string[] {
   const current = loadAppSettings();
-  return Array.isArray(current.learningLanguages) ? current.learningLanguages : [];
+  return Array.isArray(current.learningLanguages)
+    ? Array.from(new Set(current.learningLanguages))
+    : [];
 }
 
 export function setUserLearningLanguages(languages: string[]): void {
   const current = loadAppSettings();
+  const unique = Array.from(new Set(Array.isArray(languages) ? languages : []));
   saveAppSettings({
     ...current,
-    learningLanguages: languages,
+    learningLanguages: unique,
   });
 }
 
@@ -432,15 +435,22 @@ export function getFavoriteLanguages(): string[] {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed
-          .map((item: unknown) =>
-            typeof item === "string"
-              ? item.trim()
-              : item && typeof item === "object" && "code" in item && typeof (item as { code?: unknown }).code === "string"
-                ? (item as { code: string }).code.trim()
-                : "",
-          )
-          .filter((s): s is string => typeof s === "string" && s.length > 0);
+        return Array.from(
+          new Set(
+            parsed
+              .map((item: unknown) =>
+                typeof item === "string"
+                  ? item.trim()
+                  : item &&
+                      typeof item === "object" &&
+                      "code" in item &&
+                      typeof (item as { code?: unknown }).code === "string"
+                    ? (item as { code: string }).code.trim()
+                    : "",
+              )
+              .filter((s): s is string => typeof s === "string" && s.length > 0),
+          ),
+        );
       }
     }
   } catch {
@@ -448,15 +458,22 @@ export function getFavoriteLanguages(): string[] {
   }
   const learning = getUserLearningLanguages();
   return Array.isArray(learning)
-    ? learning
-        .map((item: unknown) =>
-          typeof item === "string"
-            ? item.trim()
-            : item && typeof item === "object" && "code" in item && typeof (item as { code?: unknown }).code === "string"
-              ? (item as { code: string }).code.trim()
-              : "",
-        )
-        .filter((s): s is string => typeof s === "string" && s.length > 0)
+    ? Array.from(
+        new Set(
+          learning
+            .map((item: unknown) =>
+              typeof item === "string"
+                ? item.trim()
+                : item &&
+                    typeof item === "object" &&
+                    "code" in item &&
+                    typeof (item as { code?: unknown }).code === "string"
+                  ? (item as { code: string }).code.trim()
+                  : "",
+            )
+            .filter((s): s is string => typeof s === "string" && s.length > 0),
+        ),
+      )
     : [];
 }
 
@@ -465,19 +482,18 @@ export function getFavoriteLanguages(): string[] {
  */
 export function setFavoriteLanguages(languages: string[]): void {
   if (typeof window === "undefined") return;
+  const unique = Array.from(new Set(Array.isArray(languages) ? languages : []));
   try {
-    localStorage.setItem(FAVORITE_LANGUAGES_KEY, JSON.stringify(languages));
-    if (Array.isArray(languages)) {
-      languages.forEach((lang) => {
-        if (lang) {
-          try {
-            recordLanguageAdded(lang);
-          } catch {
-            // ignore
-          }
+    localStorage.setItem(FAVORITE_LANGUAGES_KEY, JSON.stringify(unique));
+    unique.forEach((lang) => {
+      if (lang) {
+        try {
+          recordLanguageAdded(lang);
+        } catch {
+          // ignore
         }
-      });
-    }
+      }
+    });
   } catch (err) {
     console.warn("[AppSettings] Failed to save favorite languages:", err);
   }

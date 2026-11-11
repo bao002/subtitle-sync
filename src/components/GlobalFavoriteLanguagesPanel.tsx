@@ -76,7 +76,7 @@ export function GlobalFavoriteLanguagesPanel({
         {favoriteLanguages.length === 0 ? (
           <span className="text-[11px] text-muted-foreground italic">No favorites selected</span>
         ) : (
-          favoriteLanguages.map((code) => {
+          Array.from(new Set(favoriteLanguages)).map((code) => {
             const language = catalog.find((item) => item.code === code) ?? {
               code,
               name: code.toUpperCase(),

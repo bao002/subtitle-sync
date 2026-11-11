@@ -1,5 +1,71 @@
 # Done tasks
 
+### Hotfix (Prompt 160): Fix Duplicate React Key Error ("pt-BR")
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. pt-BR
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause Analysis & Diagnosis**:
+  - Multiple language selection and learning components (`LearningGoalsFiltersPanel`, `BeginnerFavoriteLanguageSelector`, `GlobalFavoriteLanguagesPanel`, and `src/routes/index.tsx`) mapped over language code arrays (`targetLanguages`, `favoriteLanguages`, `learningLanguages`) using `key={code}` or `key={lang.code}` without enforcing deduplication.
+  - When `"pt-BR"` appeared more than once in stored preferences, initial target languages, or added favorite sets, React encountered sibling elements with identical `key="pt-BR"`, triggering runtime console warnings and potential DOM reconciler inconsistencies.
+- **Architectural Fixes Implemented**:
+  1. **`LearningGoalsFiltersPanel.tsx`**: Added `uniqueLearningLanguages` memo that deduplicates input languages by `lang.code` using a `Set` before mapping over elements.
+  2. **`BeginnerFavoriteLanguageSelector.tsx`**: Deduplicated `languages` array using `Array.from(new Set(...))` to guarantee unique keys across buttons.
+  3. **`GlobalFavoriteLanguagesPanel.tsx`**: Deduplicated `favoriteLanguages` with `Array.from(new Set(favoriteLanguages))` prior to chip rendering.
+  4. **`src/utils/appSettings.ts`**: Wrapped `getFavoriteLanguages`, `setFavoriteLanguages`, `getUserLearningLanguages`, and `setUserLearningLanguages` in `Array.from(new Set(...))` to prevent duplicate codes in storage.
+  5. **`src/routes/index.tsx`**:
+     - Guaranteed deduplication in `getInitialFavoriteLanguages`, `getInitialTargetLanguages`, `handleUpdateFavoriteLanguages`, and `handleTargetLanguagesChange`.
+     - Wrapped `learningLanguages` props and Stage 2 approved languages list with `Array.from(new Set(...))`.
+  6. **`SubtitleRow.tsx` & `SubtitlesTablePanel.tsx`**: Used compound indices (`key={`${l.code}-${colIdx}`}`) for column headers, single language cards, and table cells to guarantee absolute key uniqueness.
+- **Testing & Verification**:
+  - Dedicated automated verification test `scripts/verify-unique-language-keys.ts` (`npm run test:unique-language-keys`) verified:
+    - `getFavoriteLanguages` & `setFavoriteLanguages` deduplication with duplicate `"pt-BR"` input.
+    - `getUserLearningLanguages` & `setUserLearningLanguages` deduplication.
+    - Safe deduplication in `LearningGoalsFiltersPanel`, `BeginnerFavoriteLanguageSelector`, `GlobalFavoriteLanguagesPanel`, and `src/routes/index.tsx`.
+    - Compound keys in `SubtitleRow` and `SubtitlesTablePanel`.
+  - Type checking (`tsc --noEmit`) and ESLint (`npm run lint`) passed with 0 errors.
+  - Bumped version to `2.1.85` (code `20185`) and synchronized Android build config via `npm run sync-version`.
+
+### Hotfix (Prompt 159): Fix Syntax Error in `src/routes/index.tsx` (Missing Closing Tag for `<div>`)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Error: Error transforming route file /app/applet/src/routes/index.tsx: SyntaxError: Expected corresponding JSX closing tag for <div>. (12342:32)
+  error 1: 6:28:46 PM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/ApkReleaseModal.tsx, /src/components/FloatingErrorButton.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/ShareStateModal.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+  error 2: 6:28:47 PM [vite] (client) Pre-transform error: Transform failed with 3 errors:
+  error 3: [31m[PARSE_ERROR] [0mUnexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  error 4: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'div'.
+  error 5: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'LearningGoalAccordion'.
+  error 6: 6:28:50 PM [vite] Internal server error: Transform failed with 3 errors:
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause Analysis & Diagnosis**:
+  - In `src/routes/index.tsx`, `<div id="stage-2-language-ratios-container">` at line 11268 was missing its corresponding closing `</div>` tag before `</LearningGoalAccordion>` at line 12342.
+  - This unclosed tag caused Vite/esbuild/SWC JSX transformation to fail with a syntax error and cascaded parse errors.
+  - In addition, static analysis identified two TypeScript issues:
+    1. In `src/lib/playback-preferences.ts`, `getEffectiveLanguageMaxWords` was missing a final `return fallback;` statement (TS2366).
+    2. In `src/routes/index.tsx`, line 4826 referenced `isAudioTrackMode` instead of `isAudioTrackMode: audioTrackMode`.
+- **Architectural Fixes Implemented**:
+  1. Added missing closing `</div>` for `id="stage-2-language-ratios-container"` in `src/routes/index.tsx` before `</LearningGoalAccordion>`.
+  2. Fixed `isAudioTrackMode: audioTrackMode` in the state provider registration in `src/routes/index.tsx`.
+  3. Added `return fallback;` to `getEffectiveLanguageMaxWords` in `src/lib/playback-preferences.ts`.
+- **Testing & Verification**:
+  - Dedicated automated verification test `scripts/verify-hotfix-index-closing-div.ts` (`npm run test:hotfix-index-closing-div`) verified:
+    - Exact JSX div balance inside the narration-ratios accordion (54 opened, 54 closed).
+    - Complete TypeScript AST syntax validation for `src/routes/index.tsx` (0 syntax errors).
+    - `LearningGoalAccordion` balance across `src/routes/index.tsx` (4 opened, 4 closed).
+  - TypeScript compiler (`tsc --noEmit`) completed with 0 errors across the entire codebase.
+  - App compilation (`compile_applet`) and ESLint (`lint_applet`) passed with 0 errors.
+  - Version bumped to `2.1.84` (code `20184`) and synchronized with `android-shell/app/build.gradle.kts`.
+
 ### Task 386 (Prompt 154 - Chapter 1): Learning Goals Folded Accordions with Timeout
 
 - **Prompt**:

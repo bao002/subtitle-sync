@@ -2011,6 +2011,36 @@ Media attachment: User sent attachment: /assets/aistudio/Paste_November_11__2026
 go on
 ```
 
+---
+
+### Prompt 159: Fix Syntax Error in src/routes/index.tsx (Missing Closing Tag for <div>)
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Error: Error transforming route file /app/applet/src/routes/index.tsx: SyntaxError: Expected corresponding JSX closing tag for <div>. (12342:32)
+error 1: 6:28:46 PM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/ApkReleaseModal.tsx, /src/components/FloatingErrorButton.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/ShareStateModal.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+error 2: 6:28:47 PM [vite] (client) Pre-transform error: Transform failed with 3 errors:
+error 3: [31m[PARSE_ERROR] [0mUnexpected token. Did you mean `{'}'}` or `&rbrace;`?
+error 4: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'div'.
+error 5: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'LearningGoalAccordion'.
+error 6: 6:28:50 PM [vite] Internal server error: Transform failed with 3 errors:
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 160: Fix Duplicate React Key Error ("pt-BR")
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. pt-BR
+[AIS_METADATA_SECTION_END]
+```
+
+
+
 
 
 

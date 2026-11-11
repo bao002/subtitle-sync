@@ -111,7 +111,7 @@ export const SubtitleRow = memo(function SubtitleRow({
         const palette = getLanguageColorPalette(l.code);
         return (
           <td
-            key={l.code}
+            key={`${l.code}-${colIdx}`}
             dir={RTL.has(l.code) ? "rtl" : "ltr"}
             data-language-column={l.code}
             data-lang-cell={l.code}
@@ -123,12 +123,8 @@ export const SubtitleRow = memo(function SubtitleRow({
               freezeColumns && isFirstCol
                 ? `sticky left-42 z-10 ${isActive ? "bg-accent/95 backdrop-blur-xs font-medium text-foreground" : "bg-card/95"} shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]`
                 : ""
-            } ${
-              isActive ? palette.cellActiveBg : palette.cellBg
-            } ${
-              isPronouncedHighlight
-                ? "ring-1 ring-inset ring-primary/40 font-medium"
-                : ""
+            } ${isActive ? palette.cellActiveBg : palette.cellBg} ${
+              isPronouncedHighlight ? "ring-1 ring-inset ring-primary/40 font-medium" : ""
             }`}
           >
             {tracks && !tracks[l.code] && !columnText ? (

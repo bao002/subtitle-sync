@@ -818,6 +818,7 @@ export const getEffectiveLanguageMaxWords = (
   if (typeof stored[langCode] === "number" && stored[langCode] > 0) {
     return stored[langCode];
   }
+  return fallback;
 };
 
 export const getLearningGoalsLanguageSkipIncomplete = (): Record<string, boolean> => {

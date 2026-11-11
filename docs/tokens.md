@@ -6,9 +6,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
+- Prompt 160 (Hotfix: Fix Duplicate React Key Error for "pt-BR"):
+  - Hotfix [ACTIVE]: Ensure deduplication of `targetLanguages`, `favoriteLanguages`, and `learningLanguages` in `src/routes/index.tsx`, `LearningGoalsFiltersPanel.tsx`, `appSettings.ts`, `BeginnerFavoriteLanguageSelector.tsx`, and `GlobalFavoriteLanguagesPanel.tsx`, add dedicated test `scripts/verify-unique-language-keys.ts`, bump version to 2.1.85.
+- Prompt 159 (Hotfix: Fix Syntax Error in src/routes/index.tsx - Missing Closing Tag for <div>):
+  - Hotfix [COMPLETED & VERIFIED]: Fixed unclosed `<div id="stage-2-language-ratios-container">` in `src/routes/index.tsx`, fixed `isAudioTrackMode: audioTrackMode` in state provider registration, added `return fallback;` to `getEffectiveLanguageMaxWords`, bumped version to 2.1.84.
 - Prompt 158 (Resume Backlog - Learning Goals Folded Accordions & Row-Criteria Per Language):
   - Task 386 [COMPLETED & VERIFIED]: Chapter 1 (from Prompt 154) - Learning Goals Folded Accordions with Timeout (`LearningGoalAccordion` with `defaultOpen={false}`, 10s auto-fold hourglass indicator, pin toggle, 100% parity across Advanced and Beginner modes).
-  - Task 387 [ACTIVE]: Chapter 2 (from Prompt 154) - Learning Goals Row-Criteria Per Language (max words limit, complete sentence punctuation filter per language, reset options, 100% parity across modes).
+  - Task 387 [ON HOLD]: Chapter 2 (from Prompt 154) - Learning Goals Row-Criteria Per Language (max words limit, complete sentence punctuation filter per language, reset options, 100% parity across modes).
   - Task 388 [PENDING]: Chapter 3 (from Prompt 154) - Subtitles Table View Visible Global Row-Criteria with Default Language Filtering.
 - Prompt 157 (Bug Report / Diagnostic Error Log: Register State Provider, Prioritize Errors & Cap Reproduction Sequence):
   - Hotfix [COMPLETED & VERIFIED]: Fixed `[State provider not registered]` by registering live app state provider in `src/routes/index.tsx`, prioritized active errors at `## 0. Active Errors & Failures` at top of diagnostic report in `src/utils/logBuffer.ts`, capped reproduction sequence to prevent clipboard truncation (>65KB), mirrored network requests into `logBuffer`, bumped version to 2.1.82.

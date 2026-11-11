@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Filter, Sliders, CheckCircle2, Minus, Plus, Languages, RotateCcw } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
@@ -51,6 +51,15 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
     minWords,
     Math.min(maxWordsLimit, typeof maxWords === "number" && !isNaN(maxWords) ? maxWords : 10),
   );
+
+  const uniqueLearningLanguages = useMemo(() => {
+    const seen = new Set<string>();
+    return learningLanguages.filter((l) => {
+      if (!l.code || seen.has(l.code)) return false;
+      seen.add(l.code);
+      return true;
+    });
+  }, [learningLanguages]);
 
   const handleDecrement = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -169,7 +178,7 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
       </div>
 
       {/* 2. Per-Language Max Words Allowed for Translation */}
-      {learningLanguages.length > 0 && onLanguageMaxWordsChange && (
+      {uniqueLearningLanguages.length > 0 && onLanguageMaxWordsChange && (
         <div
           id="learning-goals-per-language-max-words-section"
           data-testid="learning-goals-per-language-max-words-section"
@@ -191,7 +200,7 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
           </div>
 
           <div className="space-y-1.5 pt-1">
-            {learningLanguages.map((lang) => {
+            {uniqueLearningLanguages.map((lang) => {
               const customVal = languageMaxWords[lang.code];
               const hasOverride = typeof customVal === "number" && customVal > 0;
               const effectiveVal = hasOverride ? customVal : safeMaxWords;
@@ -322,7 +331,8 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
           </div>
 
           <p className="text-[11px] text-muted-foreground leading-relaxed pt-0.5">
-            Sentences exceeding a language's word limit are excluded from translation and narration for that language.
+            Sentences exceeding a language's word limit are excluded from translation and narration
+            for that language.
           </p>
         </div>
       )}

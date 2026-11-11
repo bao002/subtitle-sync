@@ -469,7 +469,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           {availableDefaultLanguages && availableDefaultLanguages.length > 0 ? (
-            availableDefaultLanguages.map((langCode) => {
+            Array.from(new Set(availableDefaultLanguages)).map((langCode) => {
               const isDefault = baseLanguage === langCode;
               const langMeta = ALL_KNOWN_LANGUAGES.find((l) => l.code === langCode);
               return (
