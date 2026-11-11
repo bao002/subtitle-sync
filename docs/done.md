@@ -1,5 +1,64 @@
 # Done tasks
 
+### Task 382 (Prompt 150): Full Screen Canvas Balloon Word-Popping Game (Zero Video)
+
+- **Prompt**:
+  ```
+  allow to play a canvas baloon game on full screen (dont mistake - there shouldnt be a video in the game. its about a poping up ballons with the sentence's words and see the translation)
+  ```
+- **Implementation**:
+  - Implemented `src/components/CanvasBalloonGame.tsx`:
+    - Pure HTML5 `<canvas>` 2D rendering loop with floating balloons rising up smoothly from the bottom with sinusoidal swaying and strings.
+    - Each balloon displays one of the active sentence's words on its glossy 3D body.
+    - Tap/click hit-testing triggers balloon pop, confetti particle explosion, Web Audio pop SFX, floating translation reveal tag, and TTS pronunciation of the translated word.
+    - Full screen support with native Fullscreen API (`requestFullscreen`) and fixed full viewport CSS overlay (`fixed inset-0 z-50 h-screen w-screen`) with Escape key listener.
+    - Absolute zero-video policy: no `<video>`, no `<iframe>`, no player inside the game.
+    - Bottom & Top HUD with score tracking, target language switcher, sound effects toggle, sentence navigation, and victory banner upon full sentence completion.
+  - Created Storybook story `src/components/CanvasBalloonGame.stories.tsx` showcasing interactive canvas balloon game and fullscreen mode.
+  - Updated `src/components/WordBalloonLearningView.tsx`:
+    - Added "Canvas Game (Full Screen)" button (`data-testid="balloon-play-canvas-game-btn"`) with `Gamepad2` icon to launch the canvas game.
+    - Integrated `CanvasBalloonGame` render branch when game is launched.
+  - Updated `src/routes/index.tsx`:
+    - Added `launch-canvas-balloon-game-btn` in video playback controls bar.
+    - Rendered `CanvasBalloonGame` overlay with `initialFullScreen={true}` when active.
+  - Bumped single-source version to `v2.1.77` (code `20177`) and synchronized Android build config via `npm run sync-version`.
+- **Testing & Verification**:
+  - Created dedicated automated test `scripts/verify-canvas-balloon-game-fullscreen.ts` (`npm run test:canvas-balloon-game`) verifying 100% compliance with zero-video policy, HTML5 canvas rendering, fullscreen controls, sound, score, HUD, Storybook catalog, and route integration.
+  - Ran `npm run test:word-balloon-learning`, `npm run test:dev-server-stability`, and `npm run test:dev-server-prewarming-hotfix`.
+  - Verified `compile_applet` and `lint_applet` pass with 0 errors.
+
+### Hotfix (Prompt 149): Fix Dev Server Pre-warming Failure & Route Index Linter Errors
+
+- **Issue & Root Cause**:
+  - The dev server pre-warming failed (`Pre-warming failed: dev server process died.`) after code modifications in `src/routes/index.tsx` for prompt 148 chapter 1.
+  - ESLint/Prettier flagged 3 formatting errors in `src/routes/index.tsx` (lines 9516, 9548, 12462) involving line-wrapping on `rates[...] ?? getDefaultLanguageTtsRate(...)`.
+- **Fix & Implementation**:
+  - Fixed Prettier formatting in `src/routes/index.tsx` via `npx eslint --fix src/routes/index.tsx`.
+  - Re-verified dev server connectivity (`http://localhost:3000/`) returning HTTP 200 OK for root and transformed modules (`/src/main.tsx`, `/src/routes/index.tsx`).
+  - Successfully restarted dev server with `restart_dev_server` and verified immediate HTTP 200 response.
+  - Validated dev server stability and pre-warming hotfix using `npm run test:dev-server-stability` and `npm run test:dev-server-prewarming-hotfix`.
+
+### Task 379 (Prompt 148 - Chapter 1): Set Default TTS Rate to 1 for EN/HE and 0.8 for All Other Languages
+
+- **Prompt**:
+  ```
+  1.
+  change default tts-rate to 1 for english and hebrew
+  change default tts-rate to 0.8 for any other language
+  ```
+- **Implementation**:
+  - Added `getDefaultLanguageTtsRate(langCode?: string | null): number` in `src/lib/playback-preferences.ts`:
+    - Returns `1.0` for English (`"en"`, `"en-US"`, `"en-GB"`, etc.) and Hebrew (`"he"`, `"iw"`, `"he-IL"`, etc.).
+    - Returns `0.8` for all other languages (`"es"`, `"ar"`, `"fr"`, `"de"`, `"ru"`, etc.) and edge cases.
+  - Added `getDefaultTtsRates(langs)` batch helper in `src/lib/playback-preferences.ts`.
+  - Updated initial TTS rate state in `src/routes/index.tsx` to initialize default rates using `getDefaultLanguageTtsRate(lang.code)`.
+  - Updated fallback speech rate expressions in `src/routes/index.tsx` and `src/components/beginner/PerLanguageTtsPreferences.tsx` to fall back to `getDefaultLanguageTtsRate(...)`.
+  - Bumped single-source version to `v2.1.76` (code `20176`) and synchronized Android build config via `npm run sync-version`.
+- **Testing & Verification**:
+  - Created dedicated automated test `scripts/verify-default-tts-rate-per-language.ts` (`npm run test:default-tts-rate-per-language`).
+  - All test assertions passed 100%: English = 1.0, Hebrew = 1.0, other languages = 0.8, edge cases = 0.8, batch initialization matches, and source files import the helper.
+  - Verified `compile_applet` and `lint_applet` pass with 0 errors.
+
 ### Task 378 (Prompt 147 - Hotfix): Fix React Duplicate Instance / useState Null Dispatcher & Vite Reload Desync
 
 - **Issue & Root Cause**:

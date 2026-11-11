@@ -11,9 +11,12 @@ import {
   Languages,
   Check,
   Award,
+  Gamepad2,
+  Maximize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RTL } from "@/lib/subtitles";
+import { CanvasBalloonGame } from "@/components/CanvasBalloonGame";
 
 export interface WordBalloonLearningViewProps {
   /** Current base language sentence */
@@ -46,6 +49,8 @@ export interface WordBalloonLearningViewProps {
   onSpeakText?: (text: string, langCode: string) => void;
   /** Return to standard video player callback */
   onCloseLearningView?: () => void;
+  /** Launch canvas balloon game on full screen callback */
+  onOpenCanvasGame?: () => void;
   /** Custom wrapper styles */
   className?: string;
 }
@@ -208,8 +213,11 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   onReplaySentence,
   onSpeakText,
   onCloseLearningView,
+  onOpenCanvasGame,
   className = "",
 }) => {
+  // Toggle for full screen Canvas Balloon Game mode
+  const [internalShowCanvasGame, setInternalShowCanvasGame] = useState<boolean>(false);
   // Set of punched balloon indices for the active sentence
   const [punchedIndices, setPunchedIndices] = useState<Set<number>>(new Set());
   // Toggle for audio pop sound effect
@@ -319,6 +327,30 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   const isBaseRtl = RTL.has(baseLanguage);
   const isTargetRtl = RTL.has(targetLanguage);
 
+  if (internalShowCanvasGame) {
+    return (
+      <CanvasBalloonGame
+        currentSentence={currentSentence}
+        baseLanguage={baseLanguage}
+        baseLanguageName={baseLanguageName}
+        targetLanguage={targetLanguage}
+        targetLanguageName={targetLanguageName}
+        targetTranslation={targetTranslation}
+        availableTargetLanguages={availableTargetLanguages}
+        onSelectTargetLanguage={onSelectTargetLanguage}
+        activeRowIndex={activeRowIndex}
+        totalRows={totalRows}
+        onPrevSentence={onPrevSentence}
+        onNextSentence={onNextSentence}
+        onReplaySentence={onReplaySentence}
+        onSpeakText={onSpeakText}
+        onCloseGame={() => setInternalShowCanvasGame(false)}
+        initialFullScreen={true}
+        className={className}
+      />
+    );
+  }
+
   return (
     <div
       data-testid="word-balloon-learning-view"
@@ -393,6 +425,26 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
                 <span className="hidden sm:inline">Sound OFF</span>
               </>
             )}
+          </Button>
+
+          {/* Play Canvas Balloon Game in Full Screen */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-testid="balloon-play-canvas-game-btn"
+            onClick={() => {
+              if (onOpenCanvasGame) {
+                onOpenCanvasGame();
+              } else {
+                setInternalShowCanvasGame(true);
+              }
+            }}
+            className="h-7 px-2.5 text-xs gap-1.5 border-indigo-500/50 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-semibold"
+            title="Play Canvas Balloon Game on full screen (without video)"
+          >
+            <Gamepad2 className="h-3.5 w-3.5" />
+            <span>Canvas Game (Full Screen)</span>
           </Button>
 
           {/* Switch back to Video Player */}

@@ -6,8 +6,14 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
+- Prompt 151 (Learning Goals Per-Language Max Words Allowed for Translation):
+  - Task 383 [ACTIVE]: Learning Goals Per-Language Max Words Allowed for Translation.
+- Prompt 150 (Canvas Balloon Word-Popping Game Full Screen - No Video):
+  - Task 382 [COMPLETED & VERIFIED]: Full Screen Canvas Balloon Word-Popping Game (Zero Video).
+- Prompt 149 (Hotfix: Fix Dev Server Pre-warming Failure & Route Index Linter Errors):
+  - Hotfix [COMPLETED & VERIFIED]: Fixed Prettier errors in `src/routes/index.tsx`, verified dev server prewarming HTTP 200, restarted dev server.
 - Prompt 148 (Default TTS Rate 1 for EN/HE & 0.8 for Others; Strict Audio Playback Duration Sequencing; OpenAPI Multi-Provider Testing):
-  - Task 379 [ACTIVE]: Set Default TTS Rate to 1 for EN/HE and 0.8 for All Other Languages.
+  - Task 379 [COMPLETED & VERIFIED]: Set Default TTS Rate to 1 for EN/HE and 0.8 for All Other Languages (`getDefaultLanguageTtsRate`).
   - Task 380 [PENDING]: Strict Sequential TTS Playback & Respect Audio Playing Duration.
   - Task 381 [PENDING]: OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection.
 - Resumed Active Backlog: Task 371 [PENDING], Task 372 [PENDING] in [`docs/tasks.md`](tasks.md).

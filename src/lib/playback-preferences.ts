@@ -58,6 +58,7 @@ const KEYS = {
   primaryTtsLang: "yt_primary_tts_lang_v1",
   ttsBlacklist: "yt_tts_blacklist_v1",
   learningGoalsMaxWords: "yt_learning_goals_max_words_v1",
+  learningGoalsLangMaxWords: "yt_learning_goals_lang_max_words_v1",
   learningGoalsSkipIncomplete: "yt_learning_goals_skip_incomplete_v1",
   zeroKnowledgeInLang: "yt_zero_knowledge_in_lang_v1",
   pickWordStrategy: "yt_pick_word_strategy_v1",
@@ -763,6 +764,62 @@ export const getLearningGoalsSkipIncomplete = (): boolean => {
 
 export const setLearningGoalsSkipIncomplete = (skip: boolean) => {
   write(KEYS.learningGoalsSkipIncomplete, skip ? "1" : "0");
+};
+
+export const getLearningGoalsLanguageMaxWords = (): Record<string, number> => {
+  const s = getStorage();
+  if (!s) return {};
+  try {
+    const raw = s.getItem(KEYS.learningGoalsLangMaxWords);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
+    const result: Record<string, number> = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      if (typeof v === "number" && Number.isFinite(v) && v > 0) {
+        result[k] = Math.max(1, Math.min(100, Math.round(v)));
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+};
+
+export const setLearningGoalsLanguageMaxWords = (
+  langCode: string,
+  maxWords: number | undefined,
+): Record<string, number> => {
+  const current = getLearningGoalsLanguageMaxWords();
+  const next = { ...current };
+  if (typeof maxWords === "number" && Number.isFinite(maxWords) && maxWords > 0) {
+    next[langCode] = Math.max(1, Math.min(100, Math.round(maxWords)));
+  } else {
+    delete next[langCode];
+  }
+  write(KEYS.learningGoalsLangMaxWords, JSON.stringify(next));
+  return next;
+};
+
+export const saveAllLearningGoalsLanguageMaxWords = (
+  map: Record<string, number>,
+): void => {
+  write(KEYS.learningGoalsLangMaxWords, JSON.stringify(map));
+};
+
+export const getEffectiveLanguageMaxWords = (
+  langCode: string,
+  langMap?: Record<string, number> | null,
+  fallback = 10,
+): number => {
+  if (langMap && typeof langMap[langCode] === "number" && langMap[langCode] > 0) {
+    return langMap[langCode];
+  }
+  const stored = getLearningGoalsLanguageMaxWords();
+  if (typeof stored[langCode] === "number" && stored[langCode] > 0) {
+    return stored[langCode];
+  }
+  return fallback;
 };
 
 // ----------------------------------------------------------------------------

@@ -67,6 +67,7 @@ import {
   Palette,
   Download,
   Upload,
+  Gamepad2,
   Maximize2,
   Minimize2,
 } from "lucide-react";
@@ -151,6 +152,7 @@ import { SpecialCharactersRemovalPanel } from "@/components/SpecialCharactersRem
 import { BeginnerCharsRemovalAccordion } from "@/components/beginner/BeginnerCharsRemovalAccordion";
 import { AlternativeVideoPlayerView } from "@/components/AlternativeVideoPlayerView";
 import { WordBalloonLearningView } from "@/components/WordBalloonLearningView";
+import { CanvasBalloonGame } from "@/components/CanvasBalloonGame";
 import {
   getAppStateFromUrl,
   syncAppStateToUrl,
@@ -4849,6 +4851,7 @@ function Index() {
   }, []);
 
   const [isVideoFullscreen, setIsVideoFullscreen] = useState<boolean>(false);
+  const [showCanvasBalloonGame, setShowCanvasBalloonGame] = useState<boolean>(false);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -7310,6 +7313,7 @@ function Index() {
                     onNextSentence={handleNextSection}
                     onReplaySentence={handleReplaySection}
                     onCloseLearningView={() => setShowWordBalloonLearningView(false)}
+                    onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
                     onSpeakText={handleSpeakTextFromAlternativeView}
                   />
                 ) : useAlternativePlayerView ? (
@@ -8526,6 +8530,24 @@ function Index() {
                               <Button
                                 type="button"
                                 size="sm"
+                                variant={showCanvasBalloonGame ? "default" : "outline"}
+                                aria-pressed={showCanvasBalloonGame}
+                                data-testid="launch-canvas-balloon-game-btn"
+                                onClick={() => {
+                                  if (isPlaying) {
+                                    handlePause();
+                                  }
+                                  setShowCanvasBalloonGame((prev) => !prev);
+                                }}
+                                className="h-7 gap-1.5 px-2.5 text-xs border-indigo-500/50 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 font-semibold"
+                                title="Play interactive Canvas Balloon Game on full screen (without video)"
+                              >
+                                <Gamepad2 className="h-3.5 w-3.5" />
+                                <span>{showCanvasBalloonGame ? "Exit Game" : "Balloon Game"}</span>
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
                                 variant={showVideoSubtitles ? "default" : "outline"}
                                 aria-pressed={showVideoSubtitles}
                                 data-testid="video-subtitles-overlay-toggle"
@@ -9513,7 +9535,10 @@ function Index() {
                                           setLovableTtsVoiceState(v);
                                           setLovableTtsVoice(v);
                                         }}
-                                        speechRate={rates[baseLanguage || "en"] ?? getDefaultLanguageTtsRate(baseLanguage || "en")}
+                                        speechRate={
+                                          rates[baseLanguage || "en"] ??
+                                          getDefaultLanguageTtsRate(baseLanguage || "en")
+                                        }
                                         onSpeechRateChange={(val) => {
                                           const targetLang = baseLanguage || "en";
                                           setRates((current) => ({
@@ -9545,7 +9570,9 @@ function Index() {
                                         onValidateService={() => handleValidateRemoteService()}
                                         onTestAudio={async () => {
                                           setIsTestingAlternativeTts(true);
-                                          const testRate = rates[baseLanguage || "en"] ?? getDefaultLanguageTtsRate(baseLanguage || "en");
+                                          const testRate =
+                                            rates[baseLanguage || "en"] ??
+                                            getDefaultLanguageTtsRate(baseLanguage || "en");
                                           const sampleText = getSampleTextForLanguage(
                                             baseLanguage || "en",
                                           );
@@ -12459,7 +12486,10 @@ function Index() {
                                                 <select
                                                   aria-label={`${lang.name} speech rate`}
                                                   data-testid={`tts-rate-select-${lang.code}`}
-                                                  value={(rates[lang.code] ?? getDefaultLanguageTtsRate(lang.code)).toFixed(1)}
+                                                  value={(
+                                                    rates[lang.code] ??
+                                                    getDefaultLanguageTtsRate(lang.code)
+                                                  ).toFixed(1)}
                                                   onChange={(e) => {
                                                     recordUserInteraction(Date.now());
                                                     const val = Number(e.target.value);
@@ -13190,15 +13220,38 @@ function Index() {
         onOpenChange={setVideoMetadataModalOpen}
         metadata={videoMetadata}
         videoId={videoId}
-        onRefreshMetadata={() =>
+        onRefreshMetadata={() => {
+          if (!videoId) return;
           fetchVideoMetadata(videoId, {
             forceRefresh: true,
             player: player.current,
           }).then((meta) => {
-            setVideoMetadata({ ...meta });
-          })
-        }
+            if (meta) {
+              setVideoMetadata({ ...meta });
+            }
+          });
+        }}
       />
+      {showCanvasBalloonGame && (
+        <CanvasBalloonGame
+          currentSentence={currentAlternativeSentence}
+          baseLanguage={baseLanguage}
+          baseLanguageName={baseLanguageName}
+          targetLanguage={currentTtsPlayLang || targetLanguages[0] || "he"}
+          targetLanguageName={currentTtsPlayLangName || "Target"}
+          targetTranslation={currentAlternativeTranslation}
+          availableTargetLanguages={availableAlternativeTtsLanguages}
+          onSelectTargetLanguage={setSelectedAlternativeTtsLang}
+          activeRowIndex={active >= 0 ? active : 0}
+          totalRows={rows.length}
+          onPrevSentence={handlePrevSection}
+          onNextSentence={handleNextSection}
+          onReplaySentence={handleReplaySection}
+          onCloseGame={() => setShowCanvasBalloonGame(false)}
+          onSpeakText={handleSpeakTextFromAlternativeView}
+          initialFullScreen={true}
+        />
+      )}
     </div>
   );
 }
