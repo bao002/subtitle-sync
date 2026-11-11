@@ -1,10 +1,10 @@
 # Subtitle Sync
 
 1. [Docs](./docs/)
-2. [Demo Website (GitHub Pages)](https://mostuf25561.github.io/subtitle-sync/)
-3. [Report (GitHub Pages)](https://mostuf25561.github.io/subtitle-sync/android-emulator-report.html)
-4. [Test Coverage & QA Report (GitHub Pages)](https://mostuf25561.github.io/subtitle-sync/coverage/)
-5. [Storybook (GitHub Pages)](https://mostuf25561.github.io/subtitle-sync/storybook/)
+2. [Demo Website (GitHub Pages)](https://mostuf2556.github.io/subtitle-sync/)
+3. [Report (GitHub Pages)](https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html)
+4. [Test Coverage & QA Report (GitHub Pages)](https://mostuf2556.github.io/subtitle-sync/coverage/)
+5. [Storybook (GitHub Pages)](https://mostuf2556.github.io/subtitle-sync/storybook/)
 
 
 <!-- CI_STATUS_INDICATOR_START -->
@@ -16,11 +16,11 @@
 
 ```markdown
 # AI FIX PROMPT: CI Failure in Android Emulator Screencast & Report Video Flow
-- **Repository**: mostuf25561/subtitle-sync
+- **Repository**: mostuf2556/subtitle-sync
 - **Workflow / Checker**: Android Emulator Screencast & Report Video Flow
 - **Failing Step**: Broken Video Link Detection in android-emulator-report.html
 - **Report URL**: https://mostuf2556.github.io/subtitle-sync/android-emulator-report.html
-- **Run URL**: https://github.com/mostuf2556/subtitle-sync/actions/runs/42936575588
+- **Run URL**: https://github.com/mostuf2556/subtitle-sync/actions/runs/42936640291
 
 ### Failure Log & Diagnosis:
 Report at android-emulator-report.html contains broken video link (screencast video missing or HTTP 404).
