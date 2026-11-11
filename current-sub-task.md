@@ -1,8 +1,10 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [ACTIVE]
-- **Active Hotfix**: Hotfix (Prompt 153) - Fix Maximum Update Depth Exceeded in React Components
-- **Suspended Task [ON HOLD]**: Task 383 (Prompt 151) - Learning Goals Per-Language Max Words Allowed for Translation (Resumption state: `playback-preferences.ts` helpers defined, ready for `LearningGoalsFiltersPanel.tsx` UI and routing integration).
-- **Active Step**: Identify and guard the recursive `useEffect` / `setState` triggering "Maximum update depth exceeded" during component render/lifecycle.
-- **Completed**: Task 384 (Prompt 152) - Fix GitHub Actions Demo Website Deployment (`deploy-demo.yml` & `index.html`).
-
+- **Active Task**: Task 386 (Prompt 154 - Chapter 1): Learning Goals Folded Accordions with Timeout
+- **Active Step**: Subtask 386.1 & 386.2: Implement accordions for Learning Goals, folded by default, with auto-folded timeout as exists across the application.
+- **Next Tasks**:
+  - Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language
+  - Task 388 (Prompt 154 - Chapter 3): Subtitles Table View Visible Global Row-Criteria with Default Language Filtering
+  - Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game
+- **Completed**: Task 385 (Prompt 154 - Chapter 0) - Disable GitHub Actions Readme Workflow (`update-readme.yml`).

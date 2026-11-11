@@ -1955,5 +1955,18 @@ error 0: Maximum update depth exceeded. This can happen when a component calls s
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 154: Disable Readme Flow, Learning Goals Folded Accordions with Timeout, Per-Language Row-Criteria, Subtitles Table Global Row-Criteria Default Lang Filter, Word Balloons Stage Video Removal
+```
+0 github-actions- disable the readme flow (it is responsible to git conflicts)
+1 Learning goals - use accordions , folded by default and auto-folded timout as exists across the application
+2 learning goals - add row-criteria per language
+3 subtitles-table-view: the global Row-Criteria is not visible any longer 
+row-criteria should use the defualt language and filter out subtitles records with more then X words
+4. word balloons stage - it doent looks like a learning words game! why it has a video ? wtf?
+```
+
+
 
 

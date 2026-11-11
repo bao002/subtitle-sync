@@ -293,6 +293,7 @@ import {
 import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceModeSettingsPanel";
 import { useIsElementEnabled } from "@/utils/performanceModeManager";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
+import { LearningGoalAccordion } from "@/components/LearningGoalAccordion";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
 import { type BeginnerTabId } from "@/components/beginner/BeginnerTabNav";
 import { PerLanguageTtsPreferences } from "@/components/beginner/PerLanguageTtsPreferences";
@@ -8143,7 +8144,13 @@ function Index() {
                             ? () => setSubtitlesPanelWide((wide) => !wide)
                             : undefined
                         }
-                        autoTimeout={panelId === "library" ? videoLibraryTimeoutEnabled : false}
+                        autoTimeout={
+                          panelId === "library"
+                            ? videoLibraryTimeoutEnabled
+                            : panelId === "languages"
+                              ? true
+                              : false
+                        }
                       >
                         {panelId === "fetchedSubtitles" && (
                           <FetchedSubtitlesStagePanel

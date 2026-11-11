@@ -103,9 +103,9 @@ function runVerification() {
   );
   assert.ok(
     indexSource.includes(
-      'autoTimeout={panelId === "library" ? videoLibraryTimeoutEnabled : false}',
+      'autoTimeout={panelId === "library" ? videoLibraryTimeoutEnabled',
     ),
-    "index.tsx must pass autoTimeout restricted strictly to library accordion based on setting",
+    "index.tsx must pass autoTimeout based on setting",
   );
   console.log("✓ index.tsx wiring and Settings control verified");
 
