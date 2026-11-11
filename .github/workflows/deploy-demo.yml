@@ -2,7 +2,7 @@ name: Publish Web Demo to GitHub Pages
 
 on:
   workflow_run:
-    workflows: ["Build & Release Android APK", "Android Emulator E2E Tests"]
+    workflows: ["Android Emulator E2E Tests"]
     types:
       - completed
   push:
@@ -12,8 +12,8 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-demo-${{ github.ref }}
-  cancel-in-progress: true
+  group: deploy-demo-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -27,9 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+
 
     steps:
       - name: Checkout Code

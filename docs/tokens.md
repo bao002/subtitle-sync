@@ -6,8 +6,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
+- Prompt 153 (Hotfix: Fix Maximum Update Depth Exceeded in React Components):
+  - Hotfix [ACTIVE]: Fix recursive `useEffect` / `setState` triggering "Maximum update depth exceeded".
+- Prompt 152 (Fix GitHub Actions Demo Website Deployment):
+  - Task 384 [COMPLETED & VERIFIED]: Fixed concurrency in `deploy-demo.yml` (`cancel-in-progress: false`, scoped by event_name), removed APK release trigger, restored minimalist README, bumped version to 2.1.78.
 - Prompt 151 (Learning Goals Per-Language Max Words Allowed for Translation):
-  - Task 383 [ACTIVE]: Learning Goals Per-Language Max Words Allowed for Translation.
+  - Task 383 [ON HOLD]: Learning Goals Per-Language Max Words Allowed for Translation.
+
 - Prompt 150 (Canvas Balloon Word-Popping Game Full Screen - No Video):
   - Task 382 [COMPLETED & VERIFIED]: Full Screen Canvas Balloon Word-Popping Game (Zero Video).
 - Prompt 149 (Hotfix: Fix Dev Server Pre-warming Failure & Route Index Linter Errors):
@@ -16,7 +21,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
   - Task 379 [COMPLETED & VERIFIED]: Set Default TTS Rate to 1 for EN/HE and 0.8 for All Other Languages (`getDefaultLanguageTtsRate`).
   - Task 380 [PENDING]: Strict Sequential TTS Playback & Respect Audio Playing Duration.
   - Task 381 [PENDING]: OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection.
-- Resumed Active Backlog: Task 371 [PENDING], Task 372 [PENDING] in [`docs/tasks.md`](tasks.md).
+- Resumed Active Backlog: Task 371 [PENDING / CONSOLIDATED INTO TASK 384], Task 372 [PENDING] in [`docs/tasks.md`](tasks.md).
 
 
 

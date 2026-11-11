@@ -44,7 +44,23 @@ assert(
   deployContent.includes("keep_files: true"),
   "deploy-demo.yml must keep existing test/screencast artifacts on gh-pages",
 );
-console.log("✅ PASS: deploy-demo.yml properly configured for GitHub Pages deployment.");
+assert(
+  deployContent.includes("cancel-in-progress: false"),
+  "deploy-demo.yml must set cancel-in-progress: false to avoid canceling in-progress deployments",
+);
+assert(
+  !deployContent.includes("cancel-in-progress: true"),
+  "deploy-demo.yml must not set cancel-in-progress: true",
+);
+assert(
+  deployContent.includes("${{ github.event_name }}"),
+  "deploy-demo.yml concurrency group must be scoped by event_name to isolate push from workflow_run",
+);
+assert(
+  !deployContent.includes('"Build & Release Android APK"'),
+  "deploy-demo.yml must not trigger on APK release completion",
+);
+console.log("✅ PASS: deploy-demo.yml properly configured for GitHub Pages deployment with non-canceling concurrency.");
 
 // 3. Verify normalize-web-assets.mjs generates version.json with build metadata
 const normalizeScriptPath = path.join(rootDir, "scripts/normalize-web-assets.mjs");

@@ -2602,8 +2602,10 @@ function Index() {
     ttsBlacklist,
   ]);
 
+  const lastSyncedPrimaryTtsLangRef = useRef<string>("");
   useEffect(() => {
-    if (primaryTtsLang) {
+    if (primaryTtsLang && lastSyncedPrimaryTtsLangRef.current !== primaryTtsLang) {
+      lastSyncedPrimaryTtsLangRef.current = primaryTtsLang;
       setPrimaryTtsLang(primaryTtsLang);
     }
   }, [primaryTtsLang]);
@@ -2619,7 +2621,12 @@ function Index() {
       const savedLangs = settings.targetLanguages.map((l: unknown) =>
         typeof l === "string" ? l : (l as { code: string }).code,
       );
-      setTargetLanguages(savedLangs);
+      setTargetLanguages((curr) => {
+        if (curr.length === savedLangs.length && curr.every((c, i) => c === savedLangs[i])) {
+          return curr;
+        }
+        return savedLangs;
+      });
     } else {
       const favs = getFavoriteLanguages();
       if (favs.length > 0) {
@@ -2627,17 +2634,21 @@ function Index() {
           const urlParams =
             typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
           const urlTarget = urlParams?.get("target_lang") || urlParams?.get("lang");
+          let next = favs;
           if (urlTarget) {
             const clean = urlTarget.toLowerCase().trim();
             if (clean && !favs.includes(clean)) {
-              return [clean, ...favs];
+              next = [clean, ...favs];
             }
           }
           const currExtras = curr.filter((c) => !favs.includes(c));
           if (currExtras.length > 0) {
-            return Array.from(new Set([...currExtras, ...favs]));
+            next = Array.from(new Set([...currExtras, ...next]));
           }
-          return favs;
+          if (curr.length === next.length && curr.every((c, i) => c === next[i])) {
+            return curr;
+          }
+          return next;
         });
       }
     }
@@ -4294,7 +4305,11 @@ function Index() {
       const toAdd = Array.from(new Set([...missingInShown, ...newFavsToDefault]));
       if (toAdd.length === 0) return prevShown;
       newFavsToDefault.forEach((l) => processedDefaultFavsRef.current.add(l));
-      return Array.from(new Set([...prevShown, ...toAdd]));
+      const next = Array.from(new Set([...prevShown, ...toAdd]));
+      if (prevShown.length === next.length && prevShown.every((c, i) => c === next[i])) {
+        return prevShown;
+      }
+      return next;
     });
 
     const allFavs = Array.from(new Set([...favoriteLanguages, ...targetLanguages]));
@@ -6205,12 +6220,21 @@ function Index() {
   ]);
 
   // Ensure leftmost column acts as default language and is added to favorite languages
+  const lastAppliedLeftmostRef = useRef<string>("");
   useEffect(() => {
     const leftMost = cols[0]?.code || baseLanguage;
-    if (leftMost && !favoriteLanguages.includes(leftMost)) {
-      const nextFavs = [leftMost, ...favoriteLanguages];
-      setFavoriteLanguagesState(nextFavs);
-      setFavoriteLanguages(nextFavs);
+    if (!leftMost) return;
+    if (lastAppliedLeftmostRef.current === leftMost && favoriteLanguages.includes(leftMost)) return;
+    if (!favoriteLanguages.includes(leftMost)) {
+      lastAppliedLeftmostRef.current = leftMost;
+      setFavoriteLanguagesState((prev) => {
+        if (prev.includes(leftMost)) return prev;
+        const nextFavs = [leftMost, ...prev];
+        setFavoriteLanguages(nextFavs);
+        return nextFavs;
+      });
+    } else {
+      lastAppliedLeftmostRef.current = leftMost;
     }
   }, [cols, baseLanguage, favoriteLanguages]);
 
