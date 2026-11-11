@@ -61,6 +61,11 @@ export interface BeginnerFlowContainerProps {
   onToggleFullscreen?: () => void;
   profileSelectorSlot?: React.ReactNode;
   activeProfileName?: string;
+  languageMaxWords?: Record<string, number>;
+  onLanguageMaxWordsChange?: (langCode: string, val: number | undefined) => void;
+  languageSkipIncomplete?: Record<string, boolean>;
+  onLanguageSkipIncompleteChange?: (langCode: string, val: boolean | undefined) => void;
+  onResetAllLanguageCriteria?: () => void;
 }
 
 export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
@@ -111,6 +116,11 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
   onToggleFullscreen,
   profileSelectorSlot,
   activeProfileName,
+  languageMaxWords,
+  onLanguageMaxWordsChange,
+  languageSkipIncomplete,
+  onLanguageSkipIncompleteChange,
+  onResetAllLanguageCriteria,
 }) => {
   // Load initial settings
   const [settings, setSettings] = useState<AppSettings>(() => loadAppSettings());
@@ -266,6 +276,11 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
             onOpenBackupModal={onOpenBackupModal}
             profileSelectorSlot={profileSelectorSlot}
             activeProfileName={activeProfileName}
+            languageMaxWords={languageMaxWords}
+            onLanguageMaxWordsChange={onLanguageMaxWordsChange}
+            languageSkipIncomplete={languageSkipIncomplete}
+            onLanguageSkipIncompleteChange={onLanguageSkipIncompleteChange}
+            onResetAllLanguageCriteria={onResetAllLanguageCriteria}
           />
         </div>
       </main>

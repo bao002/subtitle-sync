@@ -351,8 +351,10 @@ import {
   setLearningGoalsSkipIncomplete as saveLearningGoalsSkipIncomplete,
   getLearningGoalsLanguageMaxWords,
   setLearningGoalsLanguageMaxWords as saveLearningGoalsLanguageMaxWords,
+  saveAllLearningGoalsLanguageMaxWords,
   getLearningGoalsLanguageSkipIncomplete,
   setLearningGoalsLanguageSkipIncomplete as saveLearningGoalsLanguageSkipIncomplete,
+  saveAllLearningGoalsLanguageSkipIncomplete,
   getEffectiveLanguageMaxWords,
   getEffectiveLanguageSkipIncomplete,
   getTtsBlacklist,
@@ -1539,6 +1541,15 @@ function Index() {
     },
     [],
   );
+
+  const handleResetAllLanguageCriteria = useCallback(() => {
+    saveAllLearningGoalsLanguageMaxWords({});
+    saveAllLearningGoalsLanguageSkipIncomplete({});
+    setLanguageMaxWords({});
+    setLanguageSkipIncomplete({});
+    languageMaxWordsRef.current = {};
+    languageSkipIncompleteRef.current = {};
+  }, []);
 
   const [tableDisplayMode, setTableDisplayMode] = useState<TableDisplayMode>(() => {
     return getTableDisplayModePreference();
@@ -7823,8 +7834,14 @@ function Index() {
                 onLanguageMaxWordsChange={handleLanguageMaxWordsChange}
                 languageSkipIncomplete={languageSkipIncomplete}
                 onLanguageSkipIncompleteChange={handleLanguageSkipIncompleteChange}
+                onResetAllLanguageCriteria={handleResetAllLanguageCriteria}
               />
             }
+            languageMaxWords={languageMaxWords}
+            onLanguageMaxWordsChange={handleLanguageMaxWordsChange}
+            languageSkipIncomplete={languageSkipIncomplete}
+            onLanguageSkipIncompleteChange={handleLanguageSkipIncompleteChange}
+            onResetAllLanguageCriteria={handleResetAllLanguageCriteria}
             maxWordsPerSentence={simpleParserConfig.maxWordsPerSentence}
             onMaxWordsPerSentenceChange={(val) => {
               const next = { ...simpleParserConfig, maxWordsPerSentence: val };
@@ -12410,6 +12427,7 @@ function Index() {
                                       onLanguageSkipIncompleteChange={
                                         handleLanguageSkipIncompleteChange
                                       }
+                                      onResetAllLanguageCriteria={handleResetAllLanguageCriteria}
                                     />
                                   </div>
                                 </LearningGoalAccordion>

@@ -1,5 +1,71 @@
 # Done tasks
 
+### Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language
+
+- **Prompt**: "go on" (resuming Chapter 2 from Prompt 154).
+- **Scope & Objectives**:
+  - Add per-language row criteria (max words per sentence limit and complete-sentence punctuation filter) in `LearningGoalsFiltersPanel.tsx` with active status indicators, per-language reset, and reset-all options.
+  - Maintain 100% parity across Advanced Mode and Beginner Mode (`BeginnerPreferencesTab.tsx` and `BeginnerFlowContainer.tsx`).
+  - Integrate per-language row-criteria into translation pre-checks and TTS speech synthesis in `src/routes/index.tsx`.
+  - Add dedicated automated verification test `scripts/verify-learning-goals-row-criteria-per-language.ts`.
+- **Architectural Implementation**:
+  1. **Storage & Preferences**:
+     - Added `getLearningGoalsLanguageMaxWords`, `setLearningGoalsLanguageMaxWords`, `saveLearningGoalsLanguageMaxWords`, `saveAllLearningGoalsLanguageMaxWords`, and `getEffectiveLanguageMaxWords` to `src/lib/playback-preferences.ts`.
+     - Added `getLearningGoalsLanguageSkipIncomplete`, `setLearningGoalsLanguageSkipIncomplete`, `saveLearningGoalsLanguageSkipIncomplete`, `saveAllLearningGoalsLanguageSkipIncomplete`, and `getEffectiveLanguageSkipIncomplete` to `src/lib/playback-preferences.ts`.
+  2. **UI Controls & Indicators (`LearningGoalsFiltersPanel.tsx`)**:
+     - Added active overrides count badge (`data-testid="learning-goals-active-overrides-count"`).
+     - Added global Reset All criteria button (`data-testid="learning-goals-reset-all-lang-criteria-btn"`).
+     - Added per-language row controls with active indicator badge (`data-testid="learning-goals-lang-active-status-${lang.code}"`), complete-sentence switch (`data-testid="learning-goals-lang-complete-switch-${lang.code}"`), number input (`data-testid="learning-goals-lang-max-words-input-${lang.code}"`), increment/decrement buttons, and individual reset button (`data-testid="learning-goals-lang-reset-${lang.code}"`).
+  3. **Beginner/Advanced Parity**:
+     - Updated `BeginnerPreferencesTabProps` and `BeginnerFlowContainerProps` to accept and forward `languageSkipIncomplete`, `onLanguageSkipIncompleteChange`, and `onResetAllLanguageCriteria`.
+     - Wired `handleResetAllLanguageCriteria` in `src/routes/index.tsx` for both Beginner and Advanced mode slots.
+  4. **Runtime Integration**:
+     - In `src/routes/index.tsx`, translation eligibility check (`isSentenceEligibleForTts`) and TTS speech synthesis queueing use `languageMaxWordsRef.current` and `languageSkipIncompleteRef.current` to evaluate each language's specific row criteria.
+  5. **Storybook Coverage**:
+     - Added `PerLanguageRowCriteria` story to `src/components/shared/LearningGoalsFiltersPanel.stories.tsx`.
+- **Testing & Verification**:
+  - `npm run test:learning-goals-row-criteria-per-language`: PASSED 100% (storage methods, markup testids, beginner parity, index wiring, storybook story).
+  - `npm run test:agents-all`: PASSED 21/21 constitutional checks (100%).
+  - `compile_applet`: PASSED (`Build succeeded`).
+  - `lint_applet`: PASSED (0 errors).
+  - App version bumped to `2.1.87` (code: 20187) and synchronized via `npm run sync-version`.
+
+
+### Hotfix (Prompt 161): Fix Vite Reload, Dev Server Stale State & AGENTS.md Size Headroom
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: 11:20:30 PM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/ApkReleaseModal.tsx, /src/components/ShareStateModal.tsx, /src/components/FloatingErrorButton.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+  error 1: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 2: [vite] Failed to reload /src/components/beginner/tabs/BeginnerPreferencesTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 3: [vite] Failed to reload /src/components/AiSubtitlePunctuationTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 4: [vite] Failed to reload /src/components/TtsServiceSettingsPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 5: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 6: [vite] Failed to reload /src/components/LanguageBoxesSelector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 7: [vite] Failed to reload /src/components/beginner/BeginnerFlowContainer.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 8: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  error 9: [vite] Failed to reload /src/components/beginner/PerLanguageTtsPreferences.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause Analysis & Diagnosis**:
+  - Following the multi-file changes across `src/routes/index.tsx`, `LearningGoalsFiltersPanel.tsx`, `GlobalFavoriteLanguagesPanel.tsx`, `BeginnerFavoriteLanguageSelector.tsx`, and `appSettings.ts` in Prompt 160, the Vite client attempted HMR updates in the browser iFrame where WebSocket HMR is disabled.
+  - The client recorded transient `[vite] Failed to reload` messages due to simultaneous bundle invalidations.
+  - Furthermore, appending the large 10-line error block to `AGENTS.md` increased its size from 19,661 bytes to 21,369 bytes, exceeding the 21,000-byte safe constitutional budget limit and causing four AGENTS size-guard contract checks to fail.
+- **Architectural Fixes Implemented**:
+  1. **Dev Server Clean Refresh**: Invoked `restart_dev_server` to re-initialize Vite's module graph cleanly.
+  2. **Comprehensive Module Transform Audit**: Directly probed all 17 reported modules via HTTP GET on `localhost:3000` (including `styles.css`, `BeginnerPreferencesTab.tsx`, `AiSubtitlePunctuationTab.tsx`, `TtsServiceSettingsPanel.tsx`, `NetworkRequestsInspector.tsx`, `LanguageBoxesSelector.tsx`, `BeginnerFlowContainer.tsx`, `index.tsx`, `PerLanguageTtsPreferences.tsx`, `WebDemoUrlsInput.tsx`, etc.), verifying that every single module transforms cleanly to HTTP 200 without `[PARSE_ERROR]` or runtime exceptions.
+  3. **`AGENTS.md` Size Optimization & Headroom Guarantee**: Compacted narrative filler and redundant prose across `AGENTS.md` while strictly preserving 100% of all tested assertion phrases, reducing `AGENTS.md` size to 20,550 bytes (comfortably under the 21,000-byte limit).
+  4. **Single Source of Truth Version Bump**: Bumped app version to `2.1.86` (versionCode `20186`) in `package.json`, and synchronized `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+- **Testing & Verification**:
+  - `npm run test:vite-reload-modules`: PASSED 100% (audited 17 files on disk, dev server transforms for all 17 modules, root URL index HTML, and `AGENTS.md` budget).
+  - `npm run test:agents-all`: PASSED 21/21 checks (100% constitutional compliance).
+  - `npx tsc --noEmit`: PASSED with 0 type errors.
+  - `compile_applet`: PASSED (`Build succeeded`).
+  - `lint_applet`: PASSED (0 errors).
+
 ### Hotfix (Prompt 160): Fix Duplicate React Key Error ("pt-BR")
 
 - **Prompt**:

@@ -48,3 +48,57 @@ export const ActiveFilters: Story = {
     );
   },
 };
+
+export const PerLanguageRowCriteria: Story = {
+  render: () => {
+    const [maxWords, setMaxWords] = useState<number>(10);
+    const [skipIncomplete, setSkipIncomplete] = useState<boolean>(false);
+    const [langMaxWords, setLangMaxWords] = useState<Record<string, number>>({
+      es: 6,
+      he: 8,
+    });
+    const [langSkipIncomplete, setLangSkipIncomplete] = useState<Record<string, boolean>>({
+      es: true,
+    });
+
+    const sampleLanguages = [
+      { code: "es", name: "Spanish" },
+      { code: "he", name: "Hebrew" },
+      { code: "ar", name: "Arabic" },
+    ];
+
+    return (
+      <div className="w-[480px]">
+        <LearningGoalsFiltersPanel
+          maxWords={maxWords}
+          onMaxWordsChange={setMaxWords}
+          skipIncompleteSentences={skipIncomplete}
+          onSkipIncompleteSentencesChange={setSkipIncomplete}
+          learningLanguages={sampleLanguages}
+          languageMaxWords={langMaxWords}
+          onLanguageMaxWordsChange={(code, val) => {
+            setLangMaxWords((prev) => {
+              const next = { ...prev };
+              if (val !== undefined) next[code] = val;
+              else delete next[code];
+              return next;
+            });
+          }}
+          languageSkipIncomplete={langSkipIncomplete}
+          onLanguageSkipIncompleteChange={(code, val) => {
+            setLangSkipIncomplete((prev) => {
+              const next = { ...prev };
+              if (val !== undefined) next[code] = val;
+              else delete next[code];
+              return next;
+            });
+          }}
+          onResetAllLanguageCriteria={() => {
+            setLangMaxWords({});
+            setLangSkipIncomplete({});
+          }}
+        />
+      </div>
+    );
+  },
+};
