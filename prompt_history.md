@@ -1935,3 +1935,25 @@ allow to play a canvas baloon game on full screen (dont mistake - there shouldnt
 learning goals - allow to set the max number of words in a sentence which allowed for translation - per language
 ```
 
+---
+
+### Prompt 152: Fix GitHub Actions Demo Website Deployment
+```
+go on
+
+github actions doesnt deploy the demo website. current deployed version is pretty old
+```
+
+---
+
+### Prompt 153: Fix Maximum Update Depth Exceeded
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[AIS_METADATA_SECTION_END]
+```
+
+
+

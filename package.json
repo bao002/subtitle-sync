@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.77",
+  "version": "2.1.78",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -60,6 +60,7 @@
     "test:floating-play-pause-action": "tsx scripts/verify-floating-play-pause-button-state-and-action.ts",
     "test:floating-play-pause-toggle": "tsx scripts/verify-floating-play-pause-toggle.ts",
     "test:simplified-order-arrows-and-loop-fix": "tsx scripts/verify-simplified-order-arrows-and-loop-fix.ts",
+    "test:hotfix-maximum-update-depth-p153": "tsx scripts/verify-hotfix-maximum-update-depth-p153.ts",
     "test:row-criteria-outside-subtitles-table-scroll": "tsx scripts/verify-row-criteria-outside-subtitles-table-scroll.ts",
     "test:learning-goals-component-design": "tsx scripts/verify-learning-goals-component-design.ts",
     "test:learning-goals-tts-order-and-video-bar": "tsx scripts/verify-learning-goals-tts-order-and-video-bar.ts",

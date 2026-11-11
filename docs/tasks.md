@@ -3,12 +3,18 @@
 This file is strictly the active backlog containing pending, active, and upcoming tasks. Completed tasks are migrated directly into `docs/done.md`.
 
 ## Active Tasks
+ 
+- [ ] **Hotfix (Prompt 153): Fix Maximum Update Depth Exceeded in React Components [ACTIVE]**
+  - [ ] Subtask H153.1: Locate the recursive `useEffect` / `setState` triggering "Maximum update depth exceeded" during component lifecycle or mode/language transitions.
+  - [ ] Subtask H153.2: Implement equality guard / ref comparison so `setState` is only invoked when state has actually changed.
+  - [ ] Subtask H153.3: Verify with dedicated automated test, compile (`compile_applet`), lint (`lint_applet`), commit, migrate to `docs/done.md`, and resume Task 383.
 
-- [ ] **Task 383 (Prompt 151): Learning Goals Per-Language Max Words Allowed for Translation [ACTIVE]**
+- [ ] **Task 383 (Prompt 151): Learning Goals Per-Language Max Words Allowed for Translation [ON HOLD]**
   - [ ] Subtask 383.1: Add `learningGoalsLangMaxWords` preference helpers in `src/lib/playback-preferences.ts` (`getLearningGoalsLanguageMaxWords`, `setLearningGoalsLanguageMaxWords`, `getEffectiveLanguageMaxWords`).
+
   - [ ] Subtask 383.2: Enhance `LearningGoalsFiltersPanel.tsx` to support per-language max words configuration with stepper inputs, reset-to-default controls, and full Beginner/Advanced mode parity.
   - [ ] Subtask 383.3: In `src/routes/index.tsx`, integrate per-language max words in Stage 2 Learning Goals card, hook into `translateSentencesAhead`, `isSentenceEligibleForTts`, and TTS playback filters so sentences exceeding a language's specific limit are not translated/spoken for that language.
-  - [ ] Subtask 383.4: Add Storybook coverage and dedicated automated test `scripts/verify-learning-goals-lang-max-words.ts` (`npm run test:learning-goals-lang-max-words`), bump version to `2.1.78`, verify compilation (`compile_applet`) and linting (`lint_applet`), commit, and migrate Task 383 to `docs/done.md`.
+  - [ ] Subtask 383.4: Add Storybook coverage and dedicated automated test `scripts/verify-learning-goals-lang-max-words.ts` (`npm run test:learning-goals-lang-max-words`), bump version, verify compilation (`compile_applet`) and linting (`lint_applet`), commit, and migrate Task 383 to `docs/done.md`.
 
 - [ ] **Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [PENDING]**
   - [ ] Subtask 380.1: Ensure `playAlternativeTtsAudio` and `speak(...)` strictly respect the full playing duration of fetched audio without premature cutoff or starting overlapping speech before completion.
@@ -20,11 +26,6 @@ This file is strictly the active backlog containing pending, active, and upcomin
   - [ ] Subtask 381.2: Allow testing/playing each generated provider audio clip directly in the UI.
   - [ ] Subtask 381.3: Allow user to select/customize which providers to include when calling `/api/public/auto` (or custom provider list) and save preference.
   - [ ] Subtask 381.4: Add dedicated test `scripts/verify-tts-openapi-multi-provider-testing.ts`, verify app compilation and linting, bump version, commit, and migrate Task 381 to `docs/done.md`.
-
-- [ ] **Task 371 (Prompt 140 - Chapter 3): Fix GitHub Pages Demo Deployment [PENDING]**
-  - [x] Subtask 371.1: Add HTTP no-cache meta tags to `index.html` preventing browsers from caching stale bundles.
-  - [ ] Subtask 371.2: Update `.github/workflows/deploy-demo.yml` so that `dist` is cleanly published to `gh-pages` without stale file retention masking updates (`keep_files: false`).
-  - [ ] Subtask 371.3: Add dedicated automated test `scripts/verify-github-pages-deployment-freshness.ts` (`npm run test:gh-pages-freshness`), bump version, verify compile/lint, commit, and migrate Task 371 to `docs/done.md`.
 
 - [ ] **Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle [PENDING]**
   - [ ] Subtask 372.1: Add `criteriaMatchAction` ("filter" | "highlight") with persistent preference in playback preferences and settings.

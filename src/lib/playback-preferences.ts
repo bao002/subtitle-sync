@@ -801,9 +801,7 @@ export const setLearningGoalsLanguageMaxWords = (
   return next;
 };
 
-export const saveAllLearningGoalsLanguageMaxWords = (
-  map: Record<string, number>,
-): void => {
+export const saveAllLearningGoalsLanguageMaxWords = (map: Record<string, number>): void => {
   write(KEYS.learningGoalsLangMaxWords, JSON.stringify(map));
 };
 

@@ -1,7 +1,8 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [ACTIVE]
-- **Active Task**: Task 383 (Prompt 151) - Learning Goals Per-Language Max Words Allowed for Translation
-- **Active Subtask**: Subtask 383.1: Add `learningGoalsLangMaxWords` preference helpers in `src/lib/playback-preferences.ts`, update `LearningGoalsFiltersPanel.tsx`, and connect per-language sentence word limits in `src/routes/index.tsx`.
-- **Completed**: Task 382 (Prompt 150) - Full Screen Canvas Balloon Word-Popping Game (Zero Video).
-- **Next Step**: Add per-language max words preference storage, update `LearningGoalsFiltersPanel.tsx` UI, wire into translation and TTS eligibility in `src/routes/index.tsx`.
+- **Active Hotfix**: Hotfix (Prompt 153) - Fix Maximum Update Depth Exceeded in React Components
+- **Suspended Task [ON HOLD]**: Task 383 (Prompt 151) - Learning Goals Per-Language Max Words Allowed for Translation (Resumption state: `playback-preferences.ts` helpers defined, ready for `LearningGoalsFiltersPanel.tsx` UI and routing integration).
+- **Active Step**: Identify and guard the recursive `useEffect` / `setState` triggering "Maximum update depth exceeded" during component render/lifecycle.
+- **Completed**: Task 384 (Prompt 152) - Fix GitHub Actions Demo Website Deployment (`deploy-demo.yml` & `index.html`).
+

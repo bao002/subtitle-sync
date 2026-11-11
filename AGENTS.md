@@ -132,8 +132,14 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-learning goals - allow to set the max number of words in a sentence which allowed for translation - per language
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+[AIS_METADATA_SECTION_END]
 ```
+
+
 
 
 
