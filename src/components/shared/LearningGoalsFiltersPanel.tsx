@@ -12,6 +12,10 @@ export interface LearningGoalsFiltersPanelProps {
   languageMaxWords?: Record<string, number>;
   /** Callback when max words allowed for a specific language is updated */
   onLanguageMaxWordsChange?: (langCode: string, val: number | undefined) => void;
+  /** Per-language complete sentence filter: { [langCode]: boolean } */
+  languageSkipIncomplete?: Record<string, boolean>;
+  /** Callback when complete sentence filter for a specific language is updated */
+  onLanguageSkipIncompleteChange?: (langCode: string, val: boolean | undefined) => void;
   /** Available or approved learning languages */
   learningLanguages?: Array<{ code: string; name: string }>;
   minWords?: number;
@@ -35,6 +39,8 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
   onSkipIncompleteSentencesChange,
   languageMaxWords = {},
   onLanguageMaxWordsChange,
+  languageSkipIncomplete = {},
+  onLanguageSkipIncompleteChange,
   learningLanguages = [],
   minWords = 1,
   maxWordsLimit = 50,
@@ -193,8 +199,8 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
               return (
                 <div
                   key={lang.code}
-                  data-testid={`learning-goals-lang-max-words-${lang.code}`}
-                  className="flex flex-wrap items-center justify-between gap-2 p-1.5 px-2 rounded-md bg-card/60 border border-border/60 text-xs"
+                  data-testid={`learning-goals-lang-row-criteria-${lang.code}`}
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 rounded-md bg-card/60 border border-border/60 text-xs"
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="font-medium text-foreground">{lang.name}</span>
@@ -202,7 +208,10 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
                       ({lang.code})
                     </span>
                     {hasOverride ? (
-                      <span className="text-[9px] font-mono bg-primary/15 text-primary px-1.5 py-0.2 rounded font-semibold">
+                      <span
+                        data-testid={`learning-goals-lang-badge-${lang.code}`}
+                        className="text-[9px] font-mono bg-primary/15 text-primary px-1.5 py-0.2 rounded font-semibold"
+                      >
                         Custom: {effectiveVal}w
                       </span>
                     ) : (
@@ -212,64 +221,100 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      data-testid={`learning-goals-lang-decrement-${lang.code}`}
-                      onClick={() => {
-                        const nextVal = Math.max(minWords, effectiveVal - 1);
-                        onLanguageMaxWordsChange(lang.code, nextVal);
-                      }}
-                      disabled={effectiveVal <= minWords}
-                      aria-label={`Decrease max words for ${lang.name}`}
-                      className="flex h-5 w-5 items-center justify-center rounded border border-input text-muted-foreground hover:text-foreground hover:bg-muted/50 disabled:opacity-40 transition-colors"
-                    >
-                      <Minus className="h-2.5 w-2.5" />
-                    </button>
-                    <input
-                      data-testid={`learning-goals-lang-max-words-input-${lang.code}`}
-                      type="number"
-                      min={minWords}
-                      max={maxWordsLimit}
-                      value={effectiveVal}
-                      onChange={(e) => {
-                        const parsed = parseInt(e.target.value, 10);
-                        if (!isNaN(parsed)) {
-                          onLanguageMaxWordsChange(
-                            lang.code,
-                            Math.max(minWords, Math.min(maxWordsLimit, parsed)),
-                          );
-                        }
-                      }}
-                      aria-label={`Max words for ${lang.name}`}
-                      className="h-5 w-9 text-center font-mono text-xs font-semibold rounded border border-input bg-background text-foreground focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      data-testid={`learning-goals-lang-increment-${lang.code}`}
-                      onClick={() => {
-                        const nextVal = Math.min(maxWordsLimit, effectiveVal + 1);
-                        onLanguageMaxWordsChange(lang.code, nextVal);
-                      }}
-                      disabled={effectiveVal >= maxWordsLimit}
-                      aria-label={`Increase max words for ${lang.name}`}
-                      className="flex h-5 w-5 items-center justify-center rounded border border-input text-muted-foreground hover:text-foreground hover:bg-muted/50 disabled:opacity-40 transition-colors"
-                    >
-                      <Plus className="h-2.5 w-2.5" />
-                    </button>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {/* Per-language complete sentence toggle */}
+                    {onLanguageSkipIncompleteChange && (
+                      <div className="flex items-center gap-1 mr-1">
+                        <label
+                          htmlFor={`lang-complete-toggle-${lang.code}`}
+                          className="text-[10px] text-muted-foreground cursor-pointer select-none"
+                        >
+                          Ends with punct:
+                        </label>
+                        <Switch
+                          id={`lang-complete-toggle-${lang.code}`}
+                          data-testid={`learning-goals-lang-complete-switch-${lang.code}`}
+                          checked={
+                            typeof languageSkipIncomplete[lang.code] === "boolean"
+                              ? languageSkipIncomplete[lang.code]
+                              : skipIncompleteSentences
+                          }
+                          onCheckedChange={(checked) =>
+                            onLanguageSkipIncompleteChange(lang.code, checked)
+                          }
+                          aria-label={`Complete sentence filter for ${lang.name}`}
+                          className="scale-75 origin-left"
+                        />
+                      </div>
+                    )}
 
-                    {hasOverride && (
+                    {/* Word limit decrement, input, increment */}
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        data-testid={`learning-goals-lang-reset-${lang.code}`}
-                        onClick={() => onLanguageMaxWordsChange(lang.code, undefined)}
-                        className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 px-1 py-0.5 rounded border border-border/40 hover:bg-muted/40 ml-1"
-                        title={`Reset ${lang.name} to default limit`}
+                        data-testid={`learning-goals-lang-decrement-${lang.code}`}
+                        onClick={() => {
+                          const nextVal = Math.max(minWords, effectiveVal - 1);
+                          onLanguageMaxWordsChange(lang.code, nextVal);
+                        }}
+                        disabled={effectiveVal <= minWords}
+                        aria-label={`Decrease max words for ${lang.name}`}
+                        className="flex h-5 w-5 items-center justify-center rounded border border-input text-muted-foreground hover:text-foreground hover:bg-muted/50 disabled:opacity-40 transition-colors"
                       >
-                        <RotateCcw className="h-2.5 w-2.5" />
-                        <span>Reset</span>
+                        <Minus className="h-2.5 w-2.5" />
                       </button>
-                    )}
+                      <input
+                        data-testid={`learning-goals-lang-max-words-input-${lang.code}`}
+                        type="number"
+                        min={minWords}
+                        max={maxWordsLimit}
+                        value={effectiveVal}
+                        onChange={(e) => {
+                          const parsed = parseInt(e.target.value, 10);
+                          if (!isNaN(parsed)) {
+                            onLanguageMaxWordsChange(
+                              lang.code,
+                              Math.max(minWords, Math.min(maxWordsLimit, parsed)),
+                            );
+                          }
+                        }}
+                        aria-label={`Max words for ${lang.name}`}
+                        className="h-5 w-9 text-center font-mono text-xs font-semibold rounded border border-input bg-background text-foreground focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        data-testid={`learning-goals-lang-increment-${lang.code}`}
+                        onClick={() => {
+                          const nextVal = Math.min(maxWordsLimit, effectiveVal + 1);
+                          onLanguageMaxWordsChange(lang.code, nextVal);
+                        }}
+                        disabled={effectiveVal >= maxWordsLimit}
+                        aria-label={`Increase max words for ${lang.name}`}
+                        className="flex h-5 w-5 items-center justify-center rounded border border-input text-muted-foreground hover:text-foreground hover:bg-muted/50 disabled:opacity-40 transition-colors"
+                      >
+                        <Plus className="h-2.5 w-2.5" />
+                      </button>
+
+                      {(hasOverride ||
+                        (onLanguageSkipIncompleteChange &&
+                          typeof languageSkipIncomplete[lang.code] === "boolean")) && (
+                        <button
+                          type="button"
+                          data-testid={`learning-goals-lang-reset-${lang.code}`}
+                          onClick={() => {
+                            onLanguageMaxWordsChange(lang.code, undefined);
+                            if (onLanguageSkipIncompleteChange) {
+                              onLanguageSkipIncompleteChange(lang.code, undefined);
+                            }
+                          }}
+                          className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 px-1 py-0.5 rounded border border-border/40 hover:bg-muted/40 ml-1 cursor-pointer"
+                          title={`Reset ${lang.name} to global defaults`}
+                        >
+                          <RotateCcw className="h-2.5 w-2.5" />
+                          <span>Reset</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

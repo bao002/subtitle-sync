@@ -132,14 +132,6 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-word baloon stage - replace it with a game of sentences and word based on current subtitles.
+go on
 ```
-
-
-
-
-
-
-
-
 

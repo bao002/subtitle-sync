@@ -1,6 +1,62 @@
 # Done tasks
 
-### Task 390 (Prompt 156): Replace Word Balloons Stage with Subtitles Sentence & Word Learning Game
+### Task 386 (Prompt 154 - Chapter 1): Learning Goals Folded Accordions with Timeout
+
+- **Prompt**:
+  ```
+  1. learning goals - use accordions , folded by default and auto-folded timout as exists across the application
+  ```
+- **Architectural Implementation**:
+  - Leveraged `LearningGoalAccordion.tsx` featuring `defaultOpen={false}`, `autoFoldTimeoutSeconds={10}`, countdown display, hourglass animation (`learning-goal-hourglass-${id}`), and pin/unpin controls.
+  - **Advanced Mode (`src/routes/index.tsx`, `panelId === "languages"`)**:
+    - Wrapped Section 1 ("1. Default Source Language") in `<LearningGoalAccordion id="default-source-lang" title="1. Default Source Language" defaultOpen={false} autoTimeout={true}>`.
+    - Wrapped Section 2 ("2. Approved Learning Languages") in `<LearningGoalAccordion id="approved-languages" title={`2. Approved Learning Languages (${targetLanguages.length})`} defaultOpen={false} autoTimeout={true}>`.
+    - Wrapped Section 3 ("3. Narration & Ratios") in `<LearningGoalAccordion id="narration-ratios" title="3. Narration & Ratios" defaultOpen={false} autoTimeout={true}>`.
+  - **Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`)**:
+    - Wrapped Favorite & Target Languages in `<LearningGoalAccordion id="beginner-favorite-languages" defaultOpen={false} autoTimeout={true}>`.
+    - Wrapped Narration Ratios in `<LearningGoalAccordion id="beginner-narration-ratios" defaultOpen={false} autoTimeout={true}>`.
+    - Wrapped Subtitle Row Criteria in `<LearningGoalAccordion id="beginner-row-criteria" defaultOpen={false} autoTimeout={true}>`.
+  - Maintained 100% parity across Advanced Mode and Beginner Mode.
+- **Testing & Verification**:
+  - Dedicated automated test `scripts/verify-learning-goals-folded-accordions.ts` (`npm run test:learning-goals-accordions`) passed with 100% assertions.
+  - Compilation (`compile_applet`) and ESLint (`lint_applet`) passed with 0 errors, 0 warnings.
+  - App version bumped to `2.1.83` (code `20183`) and synchronized with Android Gradle via `npm run sync-version`.
+
+### Hotfix (Prompt 157): Register App State Provider, Prioritize Errors at Top of Diagnostic Report & Cap Reproduction Sequence
+
+- **Prompt**:
+  ```
+  error log:
+  [AIS_METADATA_SECTION_START]
+  Media attachment: User sent attachment: /assets/aistudio/Paste_November_11__2026_-_6_36AM_dbb3dc2a (saved in workspace at /public/assets/aistudio/Paste_November_11__2026_-_6_36AM_dbb3dc2a). Read it with view_file at that path; in shell commands, which run from the workspace root, use the relative path public/assets/aistudio/Paste_November_11__2026_-_6_36AM_dbb3dc2a. When displaying or embedding this asset in code, reference this local file path directly. Only invoke image generation tools if the user explicitly requests creating or modifying an image.
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause Analysis & Diagnosis**:
+  - The user exported and pasted a runtime diagnostic report (`# Bug Report & Troubleshooting Prompt for AI Developer`) generated on Android after watching video `imzG2Pcamac` for ~32 minutes.
+  - Two critical deficiencies existed in the diagnostic reporting system:
+    1. **Missing State Provider Registration**: `registerAppStateProvider` in `src/utils/logBuffer.ts` was implemented but never called by the main application (`src/routes/index.tsx`). As a result, Section 1 unconditionally printed `[State provider not registered]`, depriving developers of live playback state (video ID, mode, stage, languages, row counts, TTS status).
+    2. **Unbounded Sequence Truncation (>65KB)**: With 394 state machine actions recorded during playback, Section 2.5 dumped all 394 actions with full JSON strings, causing the clipboard export to exceed 66KB. This truncated the pasted report mid-line at action 392, completely cutting off Section 3 (Chronological Logs) where the actual `[ERROR]` entries and stack traces were located!
+    3. **Unmirrored Network Requests**: `trackNetworkRequest` in `src/utils/networkTracker.ts` updated its internal store but did not emit `level: "NETWORK"` events to `logBuffer`, causing Section 2 (`Network Activity`) to display 0 requests.
+- **Architectural Fixes Implemented**:
+  1. **Section 0 Error Promotion in `src/utils/logBuffer.ts`**:
+     - Added `## 0. Active Errors & Failures (${errorLogs.length} recorded)` right at the top of `generateTroubleshootingPrompt` directly after metadata. Every active error, stack trace, and error details JSON is rendered first so that active defects are 100% visible and impossible to truncate.
+  2. **Bounded Reproduction Sequence & Chronological Logs**:
+     - Capped the reproduction sequence in Section 2.5: when >60 actions are recorded, it preserves the first 10 actions (startup context) and the last 50 actions (leading directly to the current state/error), separated by a clear omission notice (`... [X earlier state machine actions omitted for brevity] ...`).
+     - Capped chronological event logs in Section 3 to 80 entries (first 10 + omission notice + last 70).
+     - Keeps the entire generated markdown prompt safely under ~35KB, preventing clipboard and prompt input truncations.
+  3. **Live App State Provider Registration in `src/routes/index.tsx`**:
+     - Invoked `registerAppStateProvider` providing comprehensive live state: `videoId`, `mode` (`workflowMode`), `stage`, `isVideoPlaying`, `pauseReason`, `playerState`, `currentTime`, `baseLanguage`, `targetLanguages`, `favoriteLanguages`, `loadedTracks`, `rowsCount`, `speakingRow`, `speakingLang`, `isZeroKnowledgeActive`, `zeroKnowledgeLanguages`, `isAudioTrackMode`, and ISO timestamp.
+  4. **Network Tracker Mirroring in `src/utils/networkTracker.ts`**:
+     - Wired `trackNetworkRequest`'s `complete` and `fail` handlers to emit `logNetwork(...)` into `logBuffer`, populating Section 2 (`## 2. Network Activity & TimedText Requests`) with accurate statuses, durations, and response body previews.
+- **Testing & Verification**:
+  - Implemented dedicated test `scripts/verify-error-report-diagnostics-and-state-provider.ts` (`npm run test:error-report-diagnostics`), validating:
+    - Registered state provider renders in Section 1 with live state properties.
+    - Active errors are promoted to Section 0 at the top of the report.
+    - Large state machine sequences (150+ actions) are bounded and remain well below 50KB without truncation.
+    - Network tracking records appear in Section 2 table.
+  - Verified compilation (`compile_applet`) and ESLint (`lint_applet`): 0 errors, 0 warnings.
+  - Bumped version to `2.1.82` (code `20182`) synchronized via `npm run sync-version`.
+
 
 - **Prompt**:
   ```

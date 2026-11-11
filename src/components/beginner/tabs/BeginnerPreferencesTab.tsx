@@ -89,6 +89,8 @@ import {
   LearningGoalsFiltersPanel,
   type LearningGoalsFiltersPanelProps,
 } from "@/components/shared/LearningGoalsFiltersPanel";
+import { LearningGoalAccordion } from "@/components/LearningGoalAccordion";
+import { BookOpen } from "lucide-react";
 
 export interface BeginnerPreferencesTabProps {
   ttsSpeed: number;
@@ -1127,48 +1129,77 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       <PerformanceModeSettingsPanel />
 
       {/* 3. Global Favorite Languages Panel (Learning Goals: Favorite & Target Languages) */}
-      <div className="bg-card border border-border rounded-xl p-3.5 shadow-sm space-y-3">
-        <GlobalFavoriteLanguagesPanel
-          catalog={catalog || ALL_KNOWN_LANGUAGES}
-          favoriteLanguages={favoriteLanguages}
-          targetLanguages={targetLanguages || []}
-          videoId={videoId || ""}
-          onFavoriteLanguagesChange={onFavoriteLanguagesChange}
-          onApplyFavoritesToVideo={onApplyFavoritesToVideo || (() => {})}
-          onSaveCurrentSelectionAsFavorites={onSaveCurrentSelectionAsFavorites || (() => {})}
-        />
-      </div>
+      <LearningGoalAccordion
+        id="beginner-favorite-languages"
+        title={`Favorite & Target Languages (${(targetLanguages || []).length})`}
+        icon={<BookOpen className="h-3.5 w-3.5 text-primary" />}
+        badge={
+          <span className="text-muted-foreground text-[10px] font-mono truncate max-w-48">
+            {(targetLanguages || []).join(", ") || "None"}
+          </span>
+        }
+        defaultOpen={false}
+        autoTimeout={true}
+      >
+        <div className="bg-card rounded-lg p-2 space-y-3">
+          <GlobalFavoriteLanguagesPanel
+            catalog={catalog || ALL_KNOWN_LANGUAGES}
+            favoriteLanguages={favoriteLanguages}
+            targetLanguages={targetLanguages || []}
+            videoId={videoId || ""}
+            onFavoriteLanguagesChange={onFavoriteLanguagesChange}
+            onApplyFavoritesToVideo={onApplyFavoritesToVideo || (() => {})}
+            onSaveCurrentSelectionAsFavorites={onSaveCurrentSelectionAsFavorites || (() => {})}
+          />
+        </div>
+      </LearningGoalAccordion>
 
       {/* 4. Learning Goals: Per-Language Narration Ratios Settings (at the end of learning goals stage) */}
       {perLanguageTtsSettingsSlot && (
-        <div
-          id="beginner-learning-goals-ratios-container"
-          data-testid="beginner-learning-goals-ratios-container"
-          className="space-y-2"
+        <LearningGoalAccordion
+          id="beginner-narration-ratios"
+          title="Narration Ratios & Playing Precedence"
+          icon={<Sliders className="h-3.5 w-3.5 text-primary" />}
+          defaultOpen={false}
+          autoTimeout={true}
         >
-          {perLanguageTtsSettingsSlot}
-        </div>
+          <div
+            id="beginner-learning-goals-ratios-container"
+            data-testid="beginner-learning-goals-ratios-container"
+            className="space-y-2 pt-1"
+          >
+            {perLanguageTtsSettingsSlot}
+          </div>
+        </LearningGoalAccordion>
       )}
 
       {/* 5. Learning Goals: Subtitle Row Filters (Max Words Slider & Complete Sentence Filter & Per-Language Max Words) */}
       {(learningGoalsFiltersSlot || onMaxWordsPerSentenceChange) && (
-        <div
-          id="beginner-learning-goals-filters-container"
-          data-testid="beginner-learning-goals-filters-container"
-          className="space-y-2"
+        <LearningGoalAccordion
+          id="beginner-row-criteria"
+          title="Subtitle Row Criteria & Filters"
+          icon={<Sliders className="h-3.5 w-3.5 text-primary" />}
+          defaultOpen={false}
+          autoTimeout={true}
         >
-          {learningGoalsFiltersSlot ?? (
-            <LearningGoalsFiltersPanel
-              maxWords={maxWordsPerSentence ?? 10}
-              onMaxWordsChange={onMaxWordsPerSentenceChange!}
-              skipIncompleteSentences={skipIncompleteSentences ?? false}
-              onSkipIncompleteSentencesChange={onSkipIncompleteSentencesChange ?? (() => {})}
-              languageMaxWords={languageMaxWords}
-              onLanguageMaxWordsChange={onLanguageMaxWordsChange}
-              learningLanguages={learningLanguages}
-            />
-          )}
-        </div>
+          <div
+            id="beginner-learning-goals-filters-container"
+            data-testid="beginner-learning-goals-filters-container"
+            className="space-y-2 pt-1"
+          >
+            {learningGoalsFiltersSlot ?? (
+              <LearningGoalsFiltersPanel
+                maxWords={maxWordsPerSentence ?? 10}
+                onMaxWordsChange={onMaxWordsPerSentenceChange!}
+                skipIncompleteSentences={skipIncompleteSentences ?? false}
+                onSkipIncompleteSentencesChange={onSkipIncompleteSentencesChange ?? (() => {})}
+                languageMaxWords={languageMaxWords}
+                onLanguageMaxWordsChange={onLanguageMaxWordsChange}
+                learningLanguages={learningLanguages}
+              />
+            )}
+          </div>
+        </LearningGoalAccordion>
       )}
 
       {/* Navigation Footer */}

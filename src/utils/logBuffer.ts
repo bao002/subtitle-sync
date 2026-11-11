@@ -170,6 +170,28 @@ class LogRingBuffer {
     lines.push(`- **Recorded Log Count**: ${this.buffer.length} events (Ring Buffer, max 500)`);
     lines.push("");
 
+    // Section 0: Active Errors & Failures (Promoted to top so errors are NEVER truncated)
+    const errorLogs = this.buffer.filter((e) => e.level === "ERROR");
+    lines.push(`## 0. Active Errors & Failures (${errorLogs.length} recorded)`);
+    if (errorLogs.length === 0) {
+      lines.push("*No active application errors recorded.*");
+    } else {
+      errorLogs.forEach((err, idx) => {
+        lines.push(`### Error ${idx + 1}: [${err.formattedTime}] [${err.category}] ${err.message}`);
+        if (err.stack) {
+          lines.push("```stack");
+          lines.push(err.stack);
+          lines.push("```");
+        }
+        if (err.details) {
+          lines.push("```json");
+          lines.push(typeof err.details === "string" ? err.details : JSON.stringify(err.details, null, 2));
+          lines.push("```");
+        }
+      });
+    }
+    lines.push("");
+
     // Live App State Snapshot
     lines.push("## 1. Live Application State Snapshot");
     if (this.appStateProvider) {
@@ -205,29 +227,65 @@ class LogRingBuffer {
     }
     lines.push("");
 
-    // State Machine Actions Sequence for Error Reproduction
+    // State Machine Actions Sequence for Error Reproduction (Bounded to prevent clipboard cutoff)
     const actionLogs = this.buffer.filter((e) => e.level === "ACTION" || e.category === "State Machine");
     lines.push(`## 2.5 State Machine Actions Sequence for Reproduction (${actionLogs.length} actions)`);
     if (actionLogs.length === 0) {
       lines.push("*No state machine actions recorded.*");
     } else {
-      actionLogs.forEach((act, idx) => {
+      const maxActionsToShow = 60;
+      let displayActions: Array<{ act: LogEntry; index: number }> = [];
+      if (actionLogs.length <= maxActionsToShow) {
+        displayActions = actionLogs.map((act, index) => ({ act, index: index + 1 }));
+      } else {
+        // Show first 10 for startup context, plus the last 50 leading directly to the current state/error
+        const head = actionLogs.slice(0, 10).map((act, index) => ({ act, index: index + 1 }));
+        const tailStartIndex = actionLogs.length - 50;
+        const tail = actionLogs.slice(tailStartIndex).map((act, idx) => ({
+          act,
+          index: tailStartIndex + idx + 1,
+        }));
+        displayActions = [...head, ...tail];
+      }
+
+      displayActions.forEach((item, arrIdx) => {
+        if (actionLogs.length > maxActionsToShow && arrIdx === 10) {
+          lines.push(`... [${actionLogs.length - 60} earlier state machine actions omitted for brevity] ...`);
+        }
         lines.push(
-          `${idx + 1}. [${act.formattedTime}] (ts: ${act.timestamp}) [${act.category}] ${act.message}${
-            act.details ? ` | Details: ${JSON.stringify(act.details)}` : ""
+          `${item.index}. [${item.act.formattedTime}] (ts: ${item.act.timestamp}) [${item.act.category}] ${item.act.message}${
+            item.act.details ? ` | Details: ${JSON.stringify(item.act.details)}` : ""
           }`,
         );
       });
     }
     lines.push("");
 
-    // Chronological Logs
+    // Chronological Logs (Bounded to keep prompt under ~40KB)
     lines.push(`## 3. Chronological Event & Network Logs (${this.buffer.length} records)`);
     lines.push("```log");
     if (this.buffer.length === 0) {
       lines.push(`[${this.formatTime()}] [INFO] [System] Log buffer is currently empty.`);
     } else {
-      this.buffer.forEach((entry) => {
+      const maxLogsToShow = 80;
+      let displayLogs: Array<{ entry: LogEntry; index: number }> = [];
+      if (this.buffer.length <= maxLogsToShow) {
+        displayLogs = this.buffer.map((entry, index) => ({ entry, index }));
+      } else {
+        const head = this.buffer.slice(0, 10).map((entry, index) => ({ entry, index }));
+        const tailStartIndex = this.buffer.length - 70;
+        const tail = this.buffer.slice(tailStartIndex).map((entry, idx) => ({
+          entry,
+          index: tailStartIndex + idx,
+        }));
+        displayLogs = [...head, ...tail];
+      }
+
+      displayLogs.forEach((item, arrIdx) => {
+        if (this.buffer.length > maxLogsToShow && arrIdx === 10) {
+          lines.push(`... [${this.buffer.length - 80} earlier log records omitted for brevity] ...`);
+        }
+        const entry = item.entry;
         let line = `[${entry.formattedTime}] (ts: ${entry.timestamp}) [${entry.level}] [${entry.category}] ${entry.message}`;
         if (entry.url) {
           line += ` | URL: ${entry.url} (status=${entry.status ?? "pending"}${entry.duration !== undefined ? `, ${entry.duration}ms` : ""})`;
