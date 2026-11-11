@@ -16,6 +16,8 @@ export interface LearningGoalsFiltersPanelProps {
   languageSkipIncomplete?: Record<string, boolean>;
   /** Callback when complete sentence filter for a specific language is updated */
   onLanguageSkipIncompleteChange?: (langCode: string, val: boolean | undefined) => void;
+  /** Optional callback to reset all per-language row criteria to defaults */
+  onResetAllLanguageCriteria?: () => void;
   /** Available or approved learning languages */
   learningLanguages?: Array<{ code: string; name: string }>;
   minWords?: number;
@@ -41,6 +43,7 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
   onLanguageMaxWordsChange,
   languageSkipIncomplete = {},
   onLanguageSkipIncompleteChange,
+  onResetAllLanguageCriteria,
   learningLanguages = [],
   minWords = 1,
   maxWordsLimit = 50,
@@ -60,6 +63,28 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
       return true;
     });
   }, [learningLanguages]);
+
+  const activeOverridesCount = useMemo(() => {
+    let count = 0;
+    uniqueLearningLanguages.forEach((l) => {
+      const hasWordOverride =
+        typeof languageMaxWords[l.code] === "number" && languageMaxWords[l.code] > 0;
+      const hasPunctOverride = typeof languageSkipIncomplete[l.code] === "boolean";
+      if (hasWordOverride || hasPunctOverride) count++;
+    });
+    return count;
+  }, [uniqueLearningLanguages, languageMaxWords, languageSkipIncomplete]);
+
+  const handleResetAll = () => {
+    if (onResetAllLanguageCriteria) {
+      onResetAllLanguageCriteria();
+    } else {
+      uniqueLearningLanguages.forEach((l) => {
+        if (onLanguageMaxWordsChange) onLanguageMaxWordsChange(l.code, undefined);
+        if (onLanguageSkipIncompleteChange) onLanguageSkipIncompleteChange(l.code, undefined);
+      });
+    }
+  };
 
   const handleDecrement = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -184,26 +209,54 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
           data-testid="learning-goals-per-language-max-words-section"
           className="space-y-2 bg-background/70 p-2.5 rounded-md border border-border/70"
         >
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="flex items-center gap-1.5 min-w-0">
               <Languages className="h-3.5 w-3.5 text-primary shrink-0" />
               <span
                 data-testid="learning-goals-per-language-label"
                 className="text-xs font-semibold text-foreground select-none"
               >
-                Per-Language Max Words for Translation:
+                Per-Language Max Words &amp; Row Criteria:
               </span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-mono">
-              Overrides default ({safeMaxWords})
-            </span>
+            <div className="flex items-center gap-2">
+              <span
+                data-testid="learning-goals-active-overrides-count"
+                className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                  activeOverridesCount > 0
+                    ? "bg-primary/15 text-primary font-bold border border-primary/20"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {activeOverridesCount > 0
+                  ? `${activeOverridesCount} active override(s)`
+                  : `Inheriting global (${safeMaxWords}w)`}
+              </span>
+              {activeOverridesCount > 0 && (
+                <button
+                  type="button"
+                  data-testid="learning-goals-reset-all-lang-criteria-btn"
+                  onClick={handleResetAll}
+                  className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-1 px-1.5 py-0.5 rounded border border-border/60 hover:bg-muted/50 cursor-pointer transition-colors"
+                  title="Reset all per-language criteria to global defaults"
+                >
+                  <RotateCcw className="h-2.5 w-2.5" />
+                  <span>Reset All</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-1.5 pt-1">
             {uniqueLearningLanguages.map((lang) => {
               const customVal = languageMaxWords[lang.code];
-              const hasOverride = typeof customVal === "number" && customVal > 0;
-              const effectiveVal = hasOverride ? customVal : safeMaxWords;
+              const hasWordOverride = typeof customVal === "number" && customVal > 0;
+              const effectiveVal = hasWordOverride ? customVal : safeMaxWords;
+              const hasPunctOverride = typeof languageSkipIncomplete[lang.code] === "boolean";
+              const effectivePunct = hasPunctOverride
+                ? Boolean(languageSkipIncomplete[lang.code])
+                : Boolean(skipIncompleteSentences);
+              const isLangActive = hasWordOverride || hasPunctOverride;
 
               return (
                 <div
@@ -211,20 +264,27 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
                   data-testid={`learning-goals-lang-row-criteria-${lang.code}`}
                   className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 rounded-md bg-card/60 border border-border/60 text-xs"
                 >
-                  <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                     <span className="font-medium text-foreground">{lang.name}</span>
                     <span className="text-[10px] text-muted-foreground font-mono">
                       ({lang.code})
                     </span>
-                    {hasOverride ? (
+                    {isLangActive ? (
                       <span
-                        data-testid={`learning-goals-lang-badge-${lang.code}`}
-                        className="text-[9px] font-mono bg-primary/15 text-primary px-1.5 py-0.2 rounded font-semibold"
+                        data-testid={`learning-goals-lang-active-status-${lang.code}`}
+                        className="text-[9px] font-mono bg-primary/15 text-primary border border-primary/25 px-1.5 py-0.5 rounded font-semibold inline-flex items-center gap-1"
                       >
-                        Custom: {effectiveVal}w
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary inline-block" />
+                        <span>
+                          Active: {effectiveVal}w
+                          {hasPunctOverride ? (effectivePunct ? " • punct" : " • all") : ""}
+                        </span>
                       </span>
                     ) : (
-                      <span className="text-[9px] font-mono text-muted-foreground/80 px-1">
+                      <span
+                        data-testid={`learning-goals-lang-active-status-${lang.code}`}
+                        className="text-[9px] font-mono text-muted-foreground/80 px-1"
+                      >
                         Default ({safeMaxWords}w)
                       </span>
                     )}
@@ -304,9 +364,7 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
                         <Plus className="h-2.5 w-2.5" />
                       </button>
 
-                      {(hasOverride ||
-                        (onLanguageSkipIncompleteChange &&
-                          typeof languageSkipIncomplete[lang.code] === "boolean")) && (
+                      {isLangActive && (
                         <button
                           type="button"
                           data-testid={`learning-goals-lang-reset-${lang.code}`}

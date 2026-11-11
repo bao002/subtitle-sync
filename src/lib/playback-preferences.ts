@@ -802,6 +802,8 @@ export const setLearningGoalsLanguageMaxWords = (
   return next;
 };
 
+export const saveLearningGoalsLanguageMaxWords = setLearningGoalsLanguageMaxWords;
+
 export const saveAllLearningGoalsLanguageMaxWords = (map: Record<string, number>): void => {
   write(KEYS.learningGoalsLangMaxWords, JSON.stringify(map));
 };
@@ -855,6 +857,8 @@ export const setLearningGoalsLanguageSkipIncomplete = (
   write(KEYS.learningGoalsLangSkipIncomplete, JSON.stringify(next));
   return next;
 };
+
+export const saveLearningGoalsLanguageSkipIncomplete = setLearningGoalsLanguageSkipIncomplete;
 
 export const saveAllLearningGoalsLanguageSkipIncomplete = (map: Record<string, boolean>): void => {
   write(KEYS.learningGoalsLangSkipIncomplete, JSON.stringify(map));

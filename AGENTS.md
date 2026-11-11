@@ -6,7 +6,7 @@
 
 - **Single permitted fixture video and directory**: The ONLY subtitles fixtures this application will ever have is strictly for video `L2Ryrr6txwA` located strictly at `public/fixtures/L2Ryrr6txwA`. No other video ID or path may use static fixtures.
 - **Mandatory fixture labelling and explicit developer approval**: Never show, load, or render subtitle fixtures without explicitly labelling it as a fixture (e.g., `[Fixture]` badge or label). Fixtures may only ever be displayed after explicit developer approval.
-- **Zero hardcoded subtitles policy**: All hardcoded subtitles, static cue arrays, and static translation maps are strictly prohibited in `src/config` (such as `src/config/fixtures.ts`, `src/config/appConfig.ts`) and everywhere across the codebase. Video items in `DEFAULT_LIBRARY_ITEMS` and initial application state must have empty cues (`cues: []`), relying on dynamic timedtext fetching or approved fixtures for `L2Ryrr6txwA`.
+- **Zero hardcoded subtitles policy**: All hardcoded subtitles, static cue arrays, and static translation maps are strictly prohibited in `src/config` (such as `src/config/fixtures.ts`, `src/config/appConfig.ts`) and across codebase. Video items in `DEFAULT_LIBRARY_ITEMS` and initial state must have empty cues (`cues: []`), relying on dynamic timedtext fetching or approved fixtures for `L2Ryrr6txwA`.
 
 ## Application stages pipeline & execution order
 
@@ -58,31 +58,29 @@ The application processes and presents subtitles through a strict sequential pip
 - **Later tasks protocol**: Store later tasks under `## Later Tasks` in `docs/tasks.md` (and `docs/later.md`). Ask user whether to proceed when active tasks complete.
 - **No more tasks "go on" handling**: In case no more tasks are left (active backlog in `docs/tasks.md` and `current-sub-task.md` is empty), if prompt is "go on", then just summarize that there are no more tasks left. No need to show anything else.
 - **Numbered chapters as serial tasks protocol**: When user prompt consists of numbered chapters (e.g. `1. ...`, `2. ...`), treat each as a separate distinct task in `docs/tasks.md`, divided into sub-tasks worked on strictly serially: execute, test, verify, compile, lint, commit, and migrate to `docs/done.md` BEFORE proceeding to the next numbered chapter.
-- To verify any feature, always implement a dedicated test specifically validating the new behavior.
-- Check last GitHub Actions result and fix failed flows promptly (`web.yml`, `emulation.yml`, `deploy-demo.yml`, `release-apk.yml`, `integrity.yml`).
 
 ## Parallel AI agent coordination & lock mechanism (chat.md)
 
 - **Quarantine agent chat (chat.md) & do not use for now**: Agent chat and coordination via `chat.md` are strictly quarantined and must NOT be used for now. Do not acquire locks, post messages, or coordinate via `chat.md`. Execute tasks independently without using agent chat.
 - **Allow parallel work via lock mechanism and shared communication channel (quarantined specification)**: AI agents coordinate via `chat.md` and acquire a dedicated execution lock to prevent overlapping file edits.
 - **Mandatory lock release upon job completion**: Before work, an agent checks `chat.md` for active locks and registers lock (Agent ID, Task ID, Scope) under `## Active Lock`. When finished, an agent MUST immediately take off the lock (resetting status to `[UNLOCKED]`) and record completion in `chat.md`.
-- **Interrupted job priority resolution**: If a job stopped or interrupted (stale lock/incomplete task), an agent MUST NOT blindly overwrite; the agent MUST inquire about the job's priority and ask what task to continue before starting work.
-- **Duplicate job suspicion communication**: If an agent suspects or observes another agent is working on the same job, task, or overlapping file scope, the agent MUST explicitly post and communicate this in `chat.md` before performing edits.
+- **Interrupted job priority resolution**: If a job stopped or interrupted, inquire about job's priority and what task to continue before starting work.
+- **Duplicate job suspicion communication**: If an agent suspects another works on the same job/task, explicitly communicate in `chat.md` before editing.
 - **Fallback redirection to user**: If no agent replies on `chat.md`, the agent MUST redirect the question directly to the prompt user for resolution.
 - **Parallel planning mode in `docs/plans/`**: Parallel work can focus on creating plans without updating repository code. When prompt asks to plan, create plan strictly in `docs/plans/timestamp_<desc>.md` (e.g. `docs/plans/<YYYYMMDD_HHMMSS>_<desc>.md`) and do NOT update any other repo file. Record continuations using format `prompt: <x>` followed by `work: <y>`.
 
 ## Code architecture, modularity, and standards
 
-- **Avoid single-file overload**: Never concentrate or overload code into a single monolithic file (such as `index.tsx`, `index.ts`, or central entry points). Proactively decompose large files into modular, focused files with single responsibilities in `src/components/`.
-- **Component decomposition discipline**: Every structurally distinct or reusable UI component must be defined in its own dedicated component file under `src/components/`.
-- **Custom hooks and state isolation**: Complex state management, reactive side-effects, speech synthesis/TTS management, and multi-player coordination must be extracted into dedicated custom hooks under `src/hooks/` or state managers under `src/utils/`.
+- **Avoid single-file overload**: Never concentrate code into a single monolithic file (such as `index.tsx`, `index.ts`). Decompose large files into modular, focused files in `src/components/`.
+- **Component decomposition discipline**: Distinct or reusable UI components must be in dedicated files under `src/components/`.
+- **Custom hooks and state isolation**: Complex state, speech synthesis/TTS management, and multi-player coordination must be in dedicated custom hooks under `src/hooks/` or state managers under `src/utils/`.
 - **Naming and file inventory**: Maintain documented inventory of files in `docs/files.md`. Name code files descriptively.
 - **Storybook-first component workflow**: Any component should first be implemented and tested in Storybook (`.stories.tsx` or `src/storybook/`) before app integration.
 
 ## Project-specific delivery
 
 - **README.md is to be created by GitHub Actions — do not copy it when syncing git**: `README.md` is to be created and dynamically updated by GitHub Actions (via `.github/workflows/update-readme.yml` and `scripts/update-readme.mjs`). When syncing git, **ignore changes on other repo's `README.md`** (enforced via `.gitattributes` with `README.md merge=ours`); **`README.md` MUST NOT be copied or overwritten**.
-- **App version updates & single source of truth**: The app version number must not stay 1.0 always; it should be updated when delivering updates for prompt response. `package.json` is the authoritative single place of truth for the application version. Downstream TypeScript files (`src/config/appConfig.ts`, `src/utils/apkUpdater.ts`, `src/utils/appSettings.ts`) derive `APP_VERSION` from `package.json`, and `android-shell/app/build.gradle.kts` is automatically synchronized via `npm run sync-version` and GitHub Actions (`.github/workflows/version-sync.yml`).
+- **App version updates & single source of truth**: The app version number must not stay 1.0 always; it should be updated when delivering updates for prompt response. `package.json` is the authoritative single place of truth for the application version. Downstream files derive `APP_VERSION` from `package.json`, and `android-shell/app/build.gradle.kts` is automatically synchronized via `npm run sync-version` and GitHub Actions (`.github/workflows/version-sync.yml`).
 - **Strict UI & Web-Demo Design Preservation Mandate**: NEVER alter, redesign, replace, re-theme, or disrupt the user interface, page layout, component structure, or web-demo design without explicit user confirmation and request. The clean, original web-demo layout MUST remain intact.
 ### Android app E2E validation, screencast video & GitHub Pages reporting
 
@@ -100,11 +98,10 @@ The application processes and presents subtitles through a strict sequential pip
 ### 2. Anti-bot strategy for YouTube API execution
 - **Authentic session capture**: Subtitle requests must never originate from raw scrapers. On Android, native shell intercepts real `youtube.com/api/timedtext` requests, capturing live headers (`lastObservedHeaders`), cookies, tokens, and `Referer: https://www.youtube.com/`.
 - **WebView User-Agent sanitization**: The WebView User-Agent string MUST be sanitized by stripping `; wv` (`userAgentString = userAgentString.replace("; wv", "")`).
-- **Request pacing & rate control**: Requests must never hammer YouTube concurrently. Calls must be paced with serialized execution or jitter. If 429 or 403 occurs, back off.
+- **Request pacing & rate control**: Requests must never hammer YouTube concurrently; pace calls with serialized execution or jitter. If 429 or 403 occurs, back off.
 - **Native OkHttp repetition**: On Android, repetition requests use native `OkHttpClient` with captured session headers and cookies.
 
 ### 3. Request validation & "Good" response criteria
-A subtitle HTTP response is considered valid and "good" ONLY when it satisfies all criteria:
 - **HTTP status**: Status code must be 200 OK. 4xx/5xx rejected.
 - **Valid JSON parsing**: Body must be non-empty, start with `{` or `[`, and parse successfully. HTML error pages rejected.
 - **YouTube `json3` structural schema compliance**: Must contain non-empty `events` array (`events.length > 0`), valid events with numeric `tStartMs` and `dDurationMs`, and `segs` array with non-empty string in `utf8` property (`typeof seg.utf8 === "string"`).
@@ -132,12 +129,5 @@ A subtitle HTTP response is considered valid and "good" ONLY when it satisfies a
 ## Last raw prompt
 
 ```
-Fix the errors in the app
-[AIS_METADATA_SECTION_START]
-fix_it_trigger: manual
-error 0: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. pt-BR
-[AIS_METADATA_SECTION_END]
+go on
 ```
-
-
-

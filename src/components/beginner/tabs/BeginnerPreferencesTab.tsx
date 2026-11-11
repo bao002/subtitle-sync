@@ -123,6 +123,9 @@ export interface BeginnerPreferencesTabProps {
   onDisableAutoFocusChange?: (disabled: boolean) => void;
   languageMaxWords?: Record<string, number>;
   onLanguageMaxWordsChange?: (langCode: string, val: number | undefined) => void;
+  languageSkipIncomplete?: Record<string, boolean>;
+  onLanguageSkipIncompleteChange?: (langCode: string, val: boolean | undefined) => void;
+  onResetAllLanguageCriteria?: () => void;
   learningLanguages?: Array<{ code: string; name: string }>;
   profileSelectorSlot?: React.ReactNode;
   activeProfileName?: string;
@@ -148,6 +151,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
   onSkipIncompleteSentencesChange,
   languageMaxWords,
   onLanguageMaxWordsChange,
+  languageSkipIncomplete,
+  onLanguageSkipIncompleteChange,
+  onResetAllLanguageCriteria,
   learningLanguages,
   onContinueToNextTab,
   catalog,
@@ -1195,6 +1201,9 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
                 onSkipIncompleteSentencesChange={onSkipIncompleteSentencesChange ?? (() => {})}
                 languageMaxWords={languageMaxWords}
                 onLanguageMaxWordsChange={onLanguageMaxWordsChange}
+                languageSkipIncomplete={languageSkipIncomplete}
+                onLanguageSkipIncompleteChange={onLanguageSkipIncompleteChange}
+                onResetAllLanguageCriteria={onResetAllLanguageCriteria}
                 learningLanguages={learningLanguages}
               />
             )}
