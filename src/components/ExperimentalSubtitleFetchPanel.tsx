@@ -16,11 +16,11 @@ import {
   buildAttemptUrl,
   fetchViaServer,
   DEFAULT_FETCH_SERVER_URL,
-  ExactFetchResult,
+  type ExactFetchResult,
 } from "@/lib/subtitle-fetch-plan";
 import { parseJson3, nativeShell } from "@/lib/native-captions";
 import { isValidJsonSubtitleResponse } from "@/utils/subtitleCache";
-import { Json3 } from "@/types";
+import type { Json3 } from "@/types";
 
 export interface ExperimentalFetchResultItem {
   id: string;

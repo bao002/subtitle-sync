@@ -4,7 +4,23 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 371 (Prompt 140 - Chapter 3): Fix GitHub Pages Demo Deployment [ACTIVE]**
+- [ ] **Task 379 (Prompt 148 - Chapter 1): Set Default TTS Rate to 1 for EN/HE and 0.8 for All Other Languages [ACTIVE]**
+  - [ ] Subtask 379.1: Add `getDefaultLanguageTtsRate(langCode: string): number` helper returning 1.0 for English ("en") and Hebrew ("he", "iw"), and 0.8 for all other languages.
+  - [ ] Subtask 379.2: Update initial rates state in `src/routes/index.tsx`, `src/lib/playback-preferences.ts`, and fallback rates in `src/components/beginner/PerLanguageTtsPreferences.tsx` to use `getDefaultLanguageTtsRate`.
+  - [ ] Subtask 379.3: Add dedicated test `scripts/verify-default-tts-rate-per-language.ts`, verify app compilation and linting, bump version, commit, and migrate Task 379 to `docs/done.md`.
+
+- [ ] **Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [PENDING]**
+  - [ ] Subtask 380.1: Ensure `playAlternativeTtsAudio` and `speak(...)` strictly respect the full playing duration of fetched audio without premature cutoff or starting overlapping speech before completion.
+  - [ ] Subtask 380.2: Implement sequential speech queue / promise chaining so concurrent speech requests wait for the active playback to complete or terminate cleanly.
+  - [ ] Subtask 380.3: Add dedicated test `scripts/verify-tts-playback-duration-and-queue.ts`, verify app compilation and linting, bump version, commit, and migrate Task 380 to `docs/done.md`.
+
+- [ ] **Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection [PENDING]**
+  - [ ] Subtask 381.1: In `TtsServiceSettingsPanel.tsx`, add "Generate Response" / "Test All Providers" feature that fetches audio from each provider defined in the OpenAPI spec.
+  - [ ] Subtask 381.2: Allow testing/playing each generated provider audio clip directly in the UI.
+  - [ ] Subtask 381.3: Allow user to select/customize which providers to include when calling `/api/public/auto` (or custom provider list) and save preference.
+  - [ ] Subtask 381.4: Add dedicated test `scripts/verify-tts-openapi-multi-provider-testing.ts`, verify app compilation and linting, bump version, commit, and migrate Task 381 to `docs/done.md`.
+
+- [ ] **Task 371 (Prompt 140 - Chapter 3): Fix GitHub Pages Demo Deployment [PENDING]**
   - [x] Subtask 371.1: Add HTTP no-cache meta tags to `index.html` preventing browsers from caching stale bundles.
   - [ ] Subtask 371.2: Update `.github/workflows/deploy-demo.yml` so that `dist` is cleanly published to `gh-pages` without stale file retention masking updates (`keep_files: false`).
   - [ ] Subtask 371.3: Add dedicated automated test `scripts/verify-github-pages-deployment-freshness.ts` (`npm run test:gh-pages-freshness`), bump version, verify compile/lint, commit, and migrate Task 371 to `docs/done.md`.

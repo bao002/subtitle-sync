@@ -31,7 +31,7 @@ import {
   deduplicateVoices,
   getLanguageVoices,
   getCachedVoices,
-  SpeechVoiceLike,
+  type SpeechVoiceLike,
   getSampleTextForLanguage,
 } from "@/utils/speechVoiceUtils";
 import {

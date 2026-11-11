@@ -1,8 +1,9 @@
 import React from "react";
 import { Gauge, Languages, Film, Volume2, VolumeX, ChevronUp, ChevronDown } from "lucide-react";
-import { getLanguageVoices, getUniqueVoiceKey, SpeechVoiceLike } from "@/utils/speechVoiceUtils";
+import { getLanguageVoices, getUniqueVoiceKey, type SpeechVoiceLike } from "@/utils/speechVoiceUtils";
 import {
   getLanguageTtsRatio,
+  getDefaultLanguageTtsRate,
   isLanguageTtsBlacklisted,
   getZeroKnowledgeInLang,
   toggleZeroKnowledgeInLang,
@@ -10,7 +11,7 @@ import {
   setPickWordStrategy,
   ZERO_KNOWLEDGE_EVENT,
   PICK_WORD_STRATEGY_EVENT,
-  PickWordStrategy,
+  type PickWordStrategy,
 } from "@/lib/playback-preferences";
 import {
   VideoPlaybackPrecedenceBar,
@@ -140,7 +141,7 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
           {languages.map((language, index) => {
             const languageVoices = getLanguageVoices(voices, language.tts, true);
             const ratio = getLanguageTtsRatio(ratios, language.code);
-            const rate = rates[language.code] ?? 0.5;
+            const rate = rates[language.code] ?? getDefaultLanguageTtsRate(language.code);
             const isPrimary = language.code === effectivePrimary;
             const isBlacklisted = isLanguageTtsBlacklisted(language.code, blacklist);
             const isZeroKnowledge = getZeroKnowledgeInLang(language.code);

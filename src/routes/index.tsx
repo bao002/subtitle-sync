@@ -316,6 +316,7 @@ import {
   getSubtitleRequestMode,
   getTtsRatiosPreference,
   getTtsRatesPreference,
+  getDefaultLanguageTtsRate,
   getLanguageTtsRatio,
   partitionTtsLanguagesByOrder,
   isLanguageSpoken,
@@ -1331,7 +1332,7 @@ function Index() {
   );
   const [rates, setRates] = useState<Record<string, number>>(() =>
     Object.fromEntries([
-      ...LANGS.map((lang) => [lang.code, 0.5] as const),
+      ...LANGS.map((lang) => [lang.code, getDefaultLanguageTtsRate(lang.code)] as const),
       ...Object.entries(getTtsRatesPreference()),
     ]),
   );
@@ -2664,7 +2665,9 @@ function Index() {
 
     const globalRates = getTtsRatesPreference();
     setRates((curr) => {
-      const baseDefaults = Object.fromEntries(LANGS.map((lang) => [lang.code, 0.5] as const));
+      const baseDefaults = Object.fromEntries(
+        LANGS.map((lang) => [lang.code, getDefaultLanguageTtsRate(lang.code)] as const),
+      );
       return {
         ...baseDefaults,
         ...globalRates,
@@ -9510,7 +9513,7 @@ function Index() {
                                           setLovableTtsVoiceState(v);
                                           setLovableTtsVoice(v);
                                         }}
-                                        speechRate={rates[baseLanguage || "en"] ?? 0.5}
+                                        speechRate={rates[baseLanguage || "en"] ?? getDefaultLanguageTtsRate(baseLanguage || "en")}
                                         onSpeechRateChange={(val) => {
                                           const targetLang = baseLanguage || "en";
                                           setRates((current) => ({
@@ -9542,7 +9545,7 @@ function Index() {
                                         onValidateService={() => handleValidateRemoteService()}
                                         onTestAudio={async () => {
                                           setIsTestingAlternativeTts(true);
-                                          const testRate = rates[baseLanguage || "en"] ?? 0.5;
+                                          const testRate = rates[baseLanguage || "en"] ?? getDefaultLanguageTtsRate(baseLanguage || "en");
                                           const sampleText = getSampleTextForLanguage(
                                             baseLanguage || "en",
                                           );
@@ -12456,7 +12459,7 @@ function Index() {
                                                 <select
                                                   aria-label={`${lang.name} speech rate`}
                                                   data-testid={`tts-rate-select-${lang.code}`}
-                                                  value={(rates[lang.code] ?? 0.5).toFixed(1)}
+                                                  value={(rates[lang.code] ?? getDefaultLanguageTtsRate(lang.code)).toFixed(1)}
                                                   onChange={(e) => {
                                                     recordUserInteraction(Date.now());
                                                     const val = Number(e.target.value);

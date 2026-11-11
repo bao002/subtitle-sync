@@ -292,6 +292,18 @@ export const setTtsRatioPreference = (langCode: string, ratio: number) => {
   }
 };
 export const saveTtsRatioPreference = setTtsRatioPreference;
+export function getDefaultLanguageTtsRate(langCode?: string | null): number {
+  if (!langCode || typeof langCode !== "string") return 0.8;
+  const normalized = langCode.trim().toLowerCase().split(/[-_]/)[0];
+  if (normalized === "en" || normalized === "he" || normalized === "iw") {
+    return 1.0;
+  }
+  return 0.8;
+}
+
+export function getDefaultTtsRates(langs: Array<{ code: string }>): Record<string, number> {
+  return Object.fromEntries(langs.map((l) => [l.code, getDefaultLanguageTtsRate(l.code)]));
+}
 
 export const getTtsRatesPreference = (): Record<string, number> => {
   if (typeof window === "undefined") return {};

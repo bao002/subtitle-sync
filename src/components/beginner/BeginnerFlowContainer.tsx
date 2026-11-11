@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { BeginnerTabNav, BeginnerTabId } from "./BeginnerTabNav";
-import { BeginnerVideoTab, ObservedSubtitleTrack } from "./tabs/BeginnerVideoTab";
+import { BeginnerTabNav, type BeginnerTabId } from "./BeginnerTabNav";
+import { BeginnerVideoTab, type ObservedSubtitleTrack } from "./tabs/BeginnerVideoTab";
 import { BeginnerPreferencesTab } from "./tabs/BeginnerPreferencesTab";
 import { VideoLibraryPanel } from "@/components/VideoLibraryPanel";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,7 +8,7 @@ import { type Json3 } from "@/lib/subtitles";
 import {
   loadAppSettings,
   saveAppSettings,
-  AppSettings,
+  type AppSettings,
   ALL_KNOWN_LANGUAGES,
 } from "@/utils/appSettings";
 import { getBeginnerDefaultBaseLanguage } from "@/utils/beginnerLanguageSelection";

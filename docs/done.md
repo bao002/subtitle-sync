@@ -1,6 +1,25 @@
 # Done tasks
 
-### Task 377 (Prompt 146 - Focus Mode): Hide Deprecated Relative Ratio Elements
+### Task 378 (Prompt 147 - Hotfix): Fix React Duplicate Instance / useState Null Dispatcher & Vite Reload Desync
+
+- **Issue & Root Cause**:
+  - The application encountered `TypeError: Cannot read properties of null (reading 'useState')` in `LanguageBoxesSelector` alongside multiple `[vite] Failed to reload` errors across 6 components.
+  - Due to unpinned dependency pre-bundling in Vite, `LanguageBoxesSelector.tsx` was requested with a newer browserHash (`v=b7162f22` / `v=6ba7cd65`), while the browser root in `react-dom_client` was referencing an older pre-bundled `react.js` instance (`v=7ae61ac1`).
+  - Because `ReactCurrentDispatcher.current` (`ReactSharedInternals.H`) was set on the renderer's `react.js` copy while `LanguageBoxesSelector` called `useState` on the newly bundled copy, `resolveDispatcher()` returned `null`, triggering the invalid hook call exception and failing subsequent Vite HMR reloads.
+  - Additionally, components imported type declarations without the `type` modifier (`ExactFetchResult`, `SpeechVoiceLike`, `PickWordStrategy`, `AppSettings`, `BeginnerTabId`, `ObservedSubtitleTrack`, `Json3`).
+- **Fix & Implementation**:
+  - Configured `optimizeDeps.include` in `vite.config.ts` for all foundational packages (`react`, `react-dom`, `react-dom/client`, `react/jsx-runtime`, `react/jsx-dev-runtime`, `@tanstack/react-router`, `@tanstack/react-query`, `lucide-react`) so Vite pre-bundles single unified artifacts once.
+  - Expanded `resolve.dedupe` in `vite.config.ts` to strictly deduplicate `["react", "react-dom", "react-dom/client", "react/jsx-runtime", "react/jsx-dev-runtime"]`.
+  - Normalized all imports in `LanguageBoxesSelector.tsx` using root alias paths (`@/lib/native-captions`, `@/utils/subtitleCache`, etc.) and `type { Json3 }`.
+  - Converted type-only imports in `ExperimentalSubtitleFetchPanel.tsx`, `BeginnerFlowContainer.tsx`, `PerLanguageTtsPreferences.tsx`, and `BeginnerPreferencesTab.tsx` to explicit `type` imports.
+  - Cleared stale `node_modules/.vite` dependency cache and cleanly restarted the development server via `restart_dev_server`.
+  - Bumped single-source version to `v2.1.75` (code `20175`) synchronized across `package.json` and `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+- **Testing & Verification**:
+  - `npm run test:react-instance-and-vite-reload-hotfix` (`scripts/verify-react-instance-and-vite-reload-hotfix.ts`): Verified `vite.config.ts` rules, normalized type imports, HTTP 200 health, identical React module hash across `client.tsx` and `LanguageBoxesSelector.tsx`, and successful HTTP 200 transformation of all 7 target modules.
+  - `npx tsx scripts/verify-agents-all.ts`: 21/21 constitutional checks passed 100%.
+  - `compile_applet`: Build succeeded with 0 errors.
+  - `lint_applet`: ESLint completed successfully with 0 errors.
+
 
 - **Prompt**:
   ```

@@ -6,9 +6,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
-- Prompt 146 (Focus Mode: Hide Deprecated Relative Ratio Elements) [COMPLETED]:
-  - Task 377 [COMPLETED]: Hid deprecated relative ratio elements (`span:nth-of-type(1)` and `span:nth-of-type(2)`) via `hidden` styling.
-- Resumed Active Backlog: Task 371 [ACTIVE], Task 372 [PENDING] in [`docs/tasks.md`](tasks.md).
+- Prompt 148 (Default TTS Rate 1 for EN/HE & 0.8 for Others; Strict Audio Playback Duration Sequencing; OpenAPI Multi-Provider Testing):
+  - Task 379 [ACTIVE]: Set Default TTS Rate to 1 for EN/HE and 0.8 for All Other Languages.
+  - Task 380 [PENDING]: Strict Sequential TTS Playback & Respect Audio Playing Duration.
+  - Task 381 [PENDING]: OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection.
+- Resumed Active Backlog: Task 371 [PENDING], Task 372 [PENDING] in [`docs/tasks.md`](tasks.md).
+
+
 
 ---
 
