@@ -26,7 +26,9 @@ permissions:
 
 jobs:
   sync-readme:
-    name: Synchronize README.md with Repository Identity & CI Status
+    name: Synchronize README.md with Repository Identity & CI Status (Disabled)
+    # Disabled by user request (Prompt 154): Disabled to prevent automated git push conflicts
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -80,6 +82,8 @@ jobs:
           CHECK_REMOTE_VIDEO: "true"
 
       - name: Commit and Push if README Changed
+        # Disabled by user request: never push automated README commits to prevent git conflicts
+        if: false
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"

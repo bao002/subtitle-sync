@@ -6,22 +6,17 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ### Current Prompt Routing
 
+- Prompt 154 (Disable Readme Flow, Learning Goals Folded Accordions with Timeout, Per-Language Row-Criteria, Subtitles Table Global Row-Criteria Default Lang Filter, Word Balloons Stage Video Removal):
+  - Task 385 [ACTIVE]: Chapter 0 - Disable GitHub Actions Readme Workflow (`update-readme.yml`).
+  - Task 386 [PENDING]: Chapter 1 - Learning Goals Folded Accordions with Timeout (`AccordionSection`).
+  - Task 387 [PENDING]: Chapter 2 - Learning Goals Row-Criteria Per Language.
+  - Task 388 [PENDING]: Chapter 3 - Subtitles Table View Visible Global Row-Criteria with Default Language Filtering.
+  - Task 389 [PENDING]: Chapter 4 - Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game.
 - Prompt 153 (Hotfix: Fix Maximum Update Depth Exceeded in React Components):
-  - Hotfix [ACTIVE]: Fix recursive `useEffect` / `setState` triggering "Maximum update depth exceeded".
+  - Hotfix [COMPLETED & VERIFIED]: Fixed recursive `useEffect` / `setState` triggering "Maximum update depth exceeded" in `src/routes/index.tsx`.
 - Prompt 152 (Fix GitHub Actions Demo Website Deployment):
   - Task 384 [COMPLETED & VERIFIED]: Fixed concurrency in `deploy-demo.yml` (`cancel-in-progress: false`, scoped by event_name), removed APK release trigger, restored minimalist README, bumped version to 2.1.78.
-- Prompt 151 (Learning Goals Per-Language Max Words Allowed for Translation):
-  - Task 383 [ON HOLD]: Learning Goals Per-Language Max Words Allowed for Translation.
-
-- Prompt 150 (Canvas Balloon Word-Popping Game Full Screen - No Video):
-  - Task 382 [COMPLETED & VERIFIED]: Full Screen Canvas Balloon Word-Popping Game (Zero Video).
-- Prompt 149 (Hotfix: Fix Dev Server Pre-warming Failure & Route Index Linter Errors):
-  - Hotfix [COMPLETED & VERIFIED]: Fixed Prettier errors in `src/routes/index.tsx`, verified dev server prewarming HTTP 200, restarted dev server.
-- Prompt 148 (Default TTS Rate 1 for EN/HE & 0.8 for Others; Strict Audio Playback Duration Sequencing; OpenAPI Multi-Provider Testing):
-  - Task 379 [COMPLETED & VERIFIED]: Set Default TTS Rate to 1 for EN/HE and 0.8 for All Other Languages (`getDefaultLanguageTtsRate`).
-  - Task 380 [PENDING]: Strict Sequential TTS Playback & Respect Audio Playing Duration.
-  - Task 381 [PENDING]: OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection.
-- Resumed Active Backlog: Task 371 [PENDING / CONSOLIDATED INTO TASK 384], Task 372 [PENDING] in [`docs/tasks.md`](tasks.md).
+- Resumed Active Backlog: Task 380 [PENDING], Task 381 [PENDING], Task 372 [PENDING] in [`docs/tasks.md`](tasks.md).
 
 
 

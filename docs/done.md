@@ -1,5 +1,46 @@
 # Done tasks
 
+### Task 385 (Prompt 154 - Chapter 0): Disable GitHub Actions Readme Workflow (`update-readme.yml`)
+
+- **Prompt**:
+  ```
+  0 github-actions- disable the readme flow (it is responsible to git conflicts)
+  ```
+- **Root Cause & Diagnosis**:
+  - The GitHub Actions workflow `.github/workflows/update-readme.yml` ran automatically on pushes to `main`/`master` and upon completion of other workflows, executing `git commit` and `git push origin ${{ github.ref_name }}`.
+  - This automated git commit/push caused frequent git merge conflicts, branch discrepancies, and race conditions during active development.
+- **Implementation**:
+  - Added `if: false` to the `sync-readme` job definition in `.github/workflows/update-readme.yml` so the workflow is completely disabled and never runs or makes automated commits.
+  - Added `if: false` directly to the `Commit and Push if README Changed` step in `.github/workflows/update-readme.yml` as defense-in-depth.
+  - Restored clean 7-line minimalist `README.md` conforming to repository requirements.
+  - Bumped version to `2.1.79` (code `20179`) via single source of truth sync (`npm run sync-version`).
+- **Testing & Verification**:
+  - Created dedicated automated test `scripts/verify-disable-readme-workflow.ts` (`npm run test:disable-readme-workflow`).
+  - Verified `npx tsx scripts/verify-all-github-actions-pass.ts` (100% passing across all 10 workflows).
+  - Verified `npm run test:single-source-version`.
+  - Verified app build (`compile_applet`) and linting (`lint_applet`).
+
+### Hotfix (Prompt 153): Fix Maximum Update Depth Exceeded in React Components
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause & Diagnosis**:
+  - React's "Maximum update depth exceeded" occurred because several `useEffect` hooks in `src/routes/index.tsx` were repeatedly calling state setters (`setFavoriteLanguagesState`, `setShown`, `setSpoken`, `setTargetLanguages`, `setLanguageOrder`, and `primaryTtsLang` sync) without equality guards or ref-based change checking.
+  - As arrays and object references were recreated during render, the un-guarded effects scheduled updates every render frame, exceeding React's maximum nested update threshold.
+- **Fix & Implementation**:
+  - Added `lastAppliedLeftmostRef` ref and guarded the leftmost column effect in `src/routes/index.tsx` so it only runs when `leftMost` actually changes and isn't already present.
+  - Added shallow array equality checks in `setShown`, `setSpoken`, `setTargetLanguages`, and `setLanguageOrder` state setters (`if (prev.length === next.length && prev.every((c, i) => c === next[i])) return prev;`).
+  - Added `lastSyncedPrimaryTtsLangRef` ref comparison guarding the `primaryTtsLang` synchronization effect.
+- **Testing & Verification**:
+  - Verified with dedicated automated test `scripts/verify-hotfix-maximum-update-depth-p153.ts` (`npm run test:hotfix-maximum-update-depth-p153`), passing 5/5 assertions.
+  - Verified `npm run build` and `compile_applet`.
+
 ### Task 384 (Prompt 152): Fix GitHub Actions Demo Website Deployment (`deploy-demo.yml` & `index.html`)
 
 - **Prompt**:

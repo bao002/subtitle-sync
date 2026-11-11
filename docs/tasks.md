@@ -4,17 +4,27 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
  
-- [ ] **Hotfix (Prompt 153): Fix Maximum Update Depth Exceeded in React Components [ACTIVE]**
-  - [ ] Subtask H153.1: Locate the recursive `useEffect` / `setState` triggering "Maximum update depth exceeded" during component lifecycle or mode/language transitions.
-  - [ ] Subtask H153.2: Implement equality guard / ref comparison so `setState` is only invoked when state has actually changed.
-  - [ ] Subtask H153.3: Verify with dedicated automated test, compile (`compile_applet`), lint (`lint_applet`), commit, migrate to `docs/done.md`, and resume Task 383.
+- [ ] **Task 386 (Prompt 154 - Chapter 1): Learning Goals Folded Accordions with Timeout [ACTIVE]**
+  - [ ] Subtask 386.1: Audit Stage 2 Learning Goals layout and accordion structure in `src/routes/index.tsx` and related components.
+  - [ ] Subtask 386.2: Wrap Learning Goals sub-panels/sections in `AccordionSection` with `foldedByDefault={true}` and auto-folded timeout as used across the application.
+  - [ ] Subtask 386.3: Ensure 100% parity across Advanced Mode and Beginner Mode.
+  - [ ] Subtask 386.4: Verify with dedicated test `scripts/verify-learning-goals-folded-accordions.ts`, verify compilation and linting, commit, and migrate Task 386 to `docs/done.md`.
 
-- [ ] **Task 383 (Prompt 151): Learning Goals Per-Language Max Words Allowed for Translation [ON HOLD]**
-  - [ ] Subtask 383.1: Add `learningGoalsLangMaxWords` preference helpers in `src/lib/playback-preferences.ts` (`getLearningGoalsLanguageMaxWords`, `setLearningGoalsLanguageMaxWords`, `getEffectiveLanguageMaxWords`).
+- [ ] **Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language [PENDING]**
+  - [ ] Subtask 387.1: Add per-language row-criteria (max words per sentence limit, complete sentence punctuation filter) preferences in `src/lib/playback-preferences.ts`.
+  - [ ] Subtask 387.2: Update `LearningGoalsFiltersPanel.tsx` to provide per-language row-criteria controls with reset options and active status.
+  - [ ] Subtask 387.3: Integrate per-language row-criteria into translation and TTS processing in `src/routes/index.tsx`.
+  - [ ] Subtask 387.4: Verify with dedicated test `scripts/verify-learning-goals-row-criteria-per-language.ts`, verify compilation and linting, commit, and migrate Task 387 to `docs/done.md`.
 
-  - [ ] Subtask 383.2: Enhance `LearningGoalsFiltersPanel.tsx` to support per-language max words configuration with stepper inputs, reset-to-default controls, and full Beginner/Advanced mode parity.
-  - [ ] Subtask 383.3: In `src/routes/index.tsx`, integrate per-language max words in Stage 2 Learning Goals card, hook into `translateSentencesAhead`, `isSentenceEligibleForTts`, and TTS playback filters so sentences exceeding a language's specific limit are not translated/spoken for that language.
-  - [ ] Subtask 383.4: Add Storybook coverage and dedicated automated test `scripts/verify-learning-goals-lang-max-words.ts` (`npm run test:learning-goals-lang-max-words`), bump version, verify compilation (`compile_applet`) and linting (`lint_applet`), commit, and migrate Task 383 to `docs/done.md`.
+- [ ] **Task 388 (Prompt 154 - Chapter 3): Subtitles Table View Visible Global Row-Criteria with Default Language Filtering [PENDING]**
+  - [ ] Subtask 388.1: Ensure the global Row-Criteria panel/header is visibly rendered in `SubtitlesTablePanel.tsx` in Stage 3 / Subtitles Table View.
+  - [ ] Subtask 388.2: Ensure row-criteria word counting uses the default language (leftmost column / base language) and strictly filters out subtitle records exceeding X words.
+  - [ ] Subtask 388.3: Verify with dedicated test `scripts/verify-subtitles-table-global-row-criteria-visible.ts`, verify compilation and linting, commit, and migrate Task 388 to `docs/done.md`.
+
+- [ ] **Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game [PENDING]**
+  - [ ] Subtask 389.1: Audit `WordBalloonLearningView.tsx` and stage rendering in `src/routes/index.tsx` to locate any video player elements in the Word Balloons stage.
+  - [ ] Subtask 389.2: Remove the video player and video controls completely from the Word Balloons learning stage so it focuses 100% on interactive word-popping and vocabulary learning.
+  - [ ] Subtask 389.3: Verify with dedicated test `scripts/verify-word-balloons-stage-no-video.ts`, verify compilation and linting, commit, and migrate Task 389 to `docs/done.md`.
 
 - [ ] **Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [PENDING]**
   - [ ] Subtask 380.1: Ensure `playAlternativeTtsAudio` and `speak(...)` strictly respect the full playing duration of fetched audio without premature cutoff or starting overlapping speech before completion.
