@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   Bell,
   BellOff,
@@ -77,16 +77,22 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
     }
   };
 
-  // 2. Pending languages calculation
-  const pendingLanguages = targetLanguages.filter((code) => {
-    const track = tracks?.[code];
-    return !track || !track.events || track.events.length === 0;
-  });
+  // 2. Pending languages calculation (memoized to avoid new array reference on every render)
+  const pendingLanguages = useMemo(() => {
+    return targetLanguages.filter((code) => {
+      const track = tracks?.[code];
+      return !track || !track.events || track.events.length === 0;
+    });
+  }, [targetLanguages, tracks]);
 
-  const loadedLanguages = targetLanguages.filter((code) => {
-    const track = tracks?.[code];
-    return track && track.events && track.events.length > 0;
-  });
+  const pendingKey = useMemo(() => pendingLanguages.join(","), [pendingLanguages]);
+
+  const loadedLanguages = useMemo(() => {
+    return targetLanguages.filter((code) => {
+      const track = tracks?.[code];
+      return track && track.events && track.events.length > 0;
+    });
+  }, [targetLanguages, tracks]);
 
   const allFetched = targetLanguages.length > 0 && pendingLanguages.length === 0;
 
@@ -97,6 +103,13 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const onFetchLanguageRef = useRef(onFetchLanguage);
+  onFetchLanguageRef.current = onFetchLanguage;
+  const pendingLanguagesRef = useRef(pendingLanguages);
+  pendingLanguagesRef.current = pendingLanguages;
+  const isFetchingRef = useRef(isFetching);
+  isFetchingRef.current = isFetching;
 
   useEffect(() => {
     setIsPaused(!autoRetryEnabled);
@@ -114,17 +127,17 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
   }, []);
 
   const triggerNextFetch = useCallback(async () => {
-    if (pendingLanguages.length === 0 || isFetching) return;
-    const targetLang = pendingLanguages[0]!;
+    if (pendingLanguagesRef.current.length === 0 || isFetchingRef.current) return;
+    const targetLang = pendingLanguagesRef.current[0]!;
     setCurrentlyFetchingLang(targetLang);
     clearTimers();
 
     try {
-      await onFetchLanguage(targetLang);
+      await onFetchLanguageRef.current(targetLang);
     } finally {
       setCurrentlyFetchingLang(null);
     }
-  }, [pendingLanguages, isFetching, onFetchLanguage, clearTimers]);
+  }, [clearTimers]);
 
   useEffect(() => {
     if (pendingLanguages.length === 0) {
@@ -157,6 +170,7 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
       clearTimers();
     };
   }, [
+    pendingKey,
     pendingLanguages.length,
     isPaused,
     isFetching,

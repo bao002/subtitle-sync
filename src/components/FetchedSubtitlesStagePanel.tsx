@@ -169,8 +169,10 @@ export const FetchedSubtitlesStagePanel: React.FC<FetchedSubtitlesStagePanelProp
   }, [allTrackLangs, videoId]);
 
   // Automatically select the track with highest punctuation if none selected yet
+  const autoSelectedBaseLangRef = useRef<string>("");
   useEffect(() => {
-    if (!baseLanguage && recommendedLang) {
+    if (!baseLanguage && recommendedLang && autoSelectedBaseLangRef.current !== recommendedLang) {
+      autoSelectedBaseLangRef.current = recommendedLang;
       addLog(
         "stats",
         `Auto-selected translation source: '${recommendedLang}'`,
@@ -181,25 +183,32 @@ export const FetchedSubtitlesStagePanel: React.FC<FetchedSubtitlesStagePanelProp
   }, [baseLanguage, recommendedLang, onSelectBaseLanguage, statsMap, maxCommas]);
 
   // Log incoming observed URL
+  const lastObservedUrlLoggedRef = useRef<string>("");
   useEffect(() => {
-    if (observedUrl) {
+    if (observedUrl && lastObservedUrlLoggedRef.current !== observedUrl) {
+      lastObservedUrlLoggedRef.current = observedUrl;
       addLog("info", "Observed YouTube timedtext query", observedUrl);
     }
   }, [observedUrl]);
 
   // Cache tracks to localStorage whenever tracks change
+  const cachedTracksLoggedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!tracks || Object.keys(tracks).length === 0) return;
     for (const [lang, trackJson] of Object.entries(tracks)) {
       if (trackJson && (trackJson.events?.length || 0) > 0) {
-        const cached = cacheJson3Track(videoId, lang, trackJson);
-        if (cached) {
-          const stats = statsMap[lang];
-          addLog(
-            "cache",
-            `Cached track '${lang}' (${trackJson.events?.length || 0} cues)`,
-            `Punctuation: ${stats?.totalPunctuation || 0} marks. Saved to localStorage.`,
-          );
+        const key = `${videoId}|${lang}`;
+        if (!cachedTracksLoggedRef.current.has(key)) {
+          const cached = cacheJson3Track(videoId, lang, trackJson);
+          if (cached) {
+            cachedTracksLoggedRef.current.add(key);
+            const stats = statsMap[lang];
+            addLog(
+              "cache",
+              `Cached track '${lang}' (${trackJson.events?.length || 0} cues)`,
+              `Punctuation: ${stats?.totalPunctuation || 0} marks. Saved to localStorage.`,
+            );
+          }
         }
       }
     }

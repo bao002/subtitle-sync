@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Json3 } from "../lib/subtitles";
 import { getRandomRetryDelayMs } from "../lib/playback-preferences";
 import { subtitleRequestQueue } from "../utils/subtitleRequestQueue";
@@ -77,11 +77,15 @@ export function FloatingSubtitleRetryIndicator({
     refreshFetchConfig();
   }, [refreshFetchConfig]);
 
-  // Compute which favorite languages still lack valid subtitle cues
-  const pendingLanguages = targetLanguages.filter((code) => {
-    const track = tracks?.[code];
-    return !track || !track.events || track.events.length === 0;
-  });
+  // Compute which favorite languages still lack valid subtitle cues (memoized to avoid new array reference on every render)
+  const pendingLanguages = useMemo(() => {
+    return targetLanguages.filter((code) => {
+      const track = tracks?.[code];
+      return !track || !track.events || track.events.length === 0;
+    });
+  }, [targetLanguages, tracks]);
+
+  const pendingKey = useMemo(() => pendingLanguages.join(","), [pendingLanguages]);
 
   // Default to retrying by default as requested, folded by default
   const [isPaused, setIsPaused] = useState<boolean>(!autoRetryEnabled);
@@ -92,6 +96,13 @@ export function FloatingSubtitleRetryIndicator({
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const nextScheduledDelayMs = useRef<number>(minPacingSec * 1000);
+
+  const onFetchLanguageRef = useRef(onFetchLanguage);
+  onFetchLanguageRef.current = onFetchLanguage;
+  const pendingLanguagesRef = useRef(pendingLanguages);
+  pendingLanguagesRef.current = pendingLanguages;
+  const isFetchingRef = useRef(isFetching);
+  isFetchingRef.current = isFetching;
 
   // Sync isPaused with external autoRetryEnabled changes if provided
   useEffect(() => {
@@ -110,17 +121,17 @@ export function FloatingSubtitleRetryIndicator({
   }, []);
 
   const triggerNextFetch = useCallback(async () => {
-    if (pendingLanguages.length === 0 || isFetching) return;
-    const targetLang = pendingLanguages[0]!;
+    if (pendingLanguagesRef.current.length === 0 || isFetchingRef.current) return;
+    const targetLang = pendingLanguagesRef.current[0]!;
     setCurrentlyFetchingLang(targetLang);
     clearTimers();
 
     try {
-      await onFetchLanguage(targetLang);
+      await onFetchLanguageRef.current(targetLang);
     } finally {
       setCurrentlyFetchingLang(null);
     }
-  }, [pendingLanguages, isFetching, onFetchLanguage, clearTimers]);
+  }, [clearTimers]);
 
   // Main pacing and retry scheduling loop
   useEffect(() => {
@@ -160,6 +171,7 @@ export function FloatingSubtitleRetryIndicator({
       clearTimers();
     };
   }, [
+    pendingKey,
     pendingLanguages.length,
     isPaused,
     isFetching,
