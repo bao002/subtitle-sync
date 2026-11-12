@@ -2,6 +2,11 @@ import React, { useMemo } from "react";
 import { Filter, Sliders, CheckCircle2, Minus, Plus, Languages, RotateCcw } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { SUPPORTED_LANGUAGES_CATALOG } from "@/utils/appSettings";
+
+export const MAX_WORDS_OPTIONS = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 25, 30, 35, 40, 50,
+];
 
 export interface LearningGoalsFiltersPanelProps {
   maxWords: number;
@@ -57,12 +62,35 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
 
   const uniqueLearningLanguages = useMemo(() => {
     const seen = new Set<string>();
-    return learningLanguages.filter((l) => {
-      if (!l.code || seen.has(l.code)) return false;
+    const list: Array<{ code: string; name: string }> = [];
+
+    for (const l of learningLanguages) {
+      if (!l.code || seen.has(l.code)) continue;
       seen.add(l.code);
-      return true;
-    });
-  }, [learningLanguages]);
+      list.push(l);
+    }
+
+    const allOverrideCodes = new Set([
+      ...Object.keys(languageMaxWords),
+      ...Object.keys(languageSkipIncomplete),
+    ]);
+    for (const code of allOverrideCodes) {
+      if (!code || seen.has(code)) continue;
+      seen.add(code);
+      const catalogMatch = SUPPORTED_LANGUAGES_CATALOG.find((c) => c.code === code);
+      list.push({
+        code,
+        name: catalogMatch ? catalogMatch.name : code.toUpperCase(),
+      });
+    }
+
+    return list;
+  }, [learningLanguages, languageMaxWords, languageSkipIncomplete]);
+
+  const availableToAddLanguages = useMemo(() => {
+    const configuredCodes = new Set(uniqueLearningLanguages.map((l) => l.code));
+    return SUPPORTED_LANGUAGES_CATALOG.filter((c) => !configuredCodes.has(c.code));
+  }, [uniqueLearningLanguages]);
 
   const activeOverridesCount = useMemo(() => {
     let count = 0;
@@ -138,7 +166,22 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
               Max Words Per Subtitle Row:
             </label>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+            {/* Dropdown list for selecting max words */}
+            <select
+              id="learning-goals-max-words-dropdown"
+              data-testid="learning-goals-max-words-dropdown"
+              value={safeMaxWords}
+              onChange={(e) => onMaxWordsChange(parseInt(e.target.value, 10))}
+              aria-label="Select max words per subtitle row"
+              className="h-6 rounded border border-input bg-background px-1.5 font-mono text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+            >
+              {MAX_WORDS_OPTIONS.map((val) => (
+                <option key={val} value={val}>
+                  {val} words {val === 10 ? "(Default)" : ""}
+                </option>
+              ))}
+            </select>
             <button
               type="button"
               data-testid="learning-goals-decrement-btn"
@@ -219,7 +262,29 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
                 Per-Language Max Words &amp; Row Criteria:
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {availableToAddLanguages.length > 0 && onLanguageMaxWordsChange && (
+                <select
+                  id="learning-goals-add-language-dropdown"
+                  data-testid="learning-goals-add-language-dropdown"
+                  value=""
+                  onChange={(e) => {
+                    const code = e.target.value;
+                    if (code && onLanguageMaxWordsChange) {
+                      onLanguageMaxWordsChange(code, safeMaxWords);
+                    }
+                  }}
+                  className="h-6 rounded border border-input bg-background px-1.5 text-xs text-muted-foreground hover:text-foreground focus:text-foreground focus:outline-none cursor-pointer"
+                  aria-label="Add language row criteria"
+                >
+                  <option value="">+ Add language criteria...</option>
+                  {availableToAddLanguages.map((l) => (
+                    <option key={l.code} value={l.code}>
+                      + {l.name} ({l.code})
+                    </option>
+                  ))}
+                </select>
+              )}
               <span
                 data-testid="learning-goals-active-overrides-count"
                 className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
@@ -291,23 +356,43 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    {/* Per-language complete sentence toggle */}
+                    {/* Per-language complete sentence criteria dropdown & toggle */}
                     {onLanguageSkipIncompleteChange && (
                       <div className="flex items-center gap-1 mr-1">
                         <label
-                          htmlFor={`lang-complete-toggle-${lang.code}`}
+                          htmlFor={`learning-goals-lang-complete-dropdown-${lang.code}`}
                           className="text-[10px] text-muted-foreground cursor-pointer select-none"
                         >
-                          Ends with punct:
+                          Punct:
                         </label>
+                        <select
+                          id={`learning-goals-lang-complete-dropdown-${lang.code}`}
+                          data-testid={`learning-goals-lang-complete-dropdown-${lang.code}`}
+                          value={
+                            hasPunctOverride
+                              ? languageSkipIncomplete[lang.code]
+                                ? "complete"
+                                : "all"
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const val =
+                              e.target.value === ""
+                                ? undefined
+                                : e.target.value === "complete";
+                            onLanguageSkipIncompleteChange(lang.code, val);
+                          }}
+                          aria-label={`Complete sentence criteria for ${lang.name}`}
+                          className="h-5 rounded border border-input bg-background px-1 text-[10px] font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                        >
+                          <option value="">Default ({skipIncompleteSentences ? "Complete" : "All"})</option>
+                          <option value="complete">Complete Only</option>
+                          <option value="all">All Sentences</option>
+                        </select>
                         <Switch
                           id={`lang-complete-toggle-${lang.code}`}
                           data-testid={`learning-goals-lang-complete-switch-${lang.code}`}
-                          checked={
-                            typeof languageSkipIncomplete[lang.code] === "boolean"
-                              ? languageSkipIncomplete[lang.code]
-                              : skipIncompleteSentences
-                          }
+                          checked={effectivePunct}
                           onCheckedChange={(checked) =>
                             onLanguageSkipIncompleteChange(lang.code, checked)
                           }
@@ -317,8 +402,26 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
                       </div>
                     )}
 
-                    {/* Word limit decrement, input, increment */}
+                    {/* Word limit dropdown, decrement, input, increment */}
                     <div className="flex items-center gap-1">
+                      <select
+                        id={`learning-goals-lang-max-words-dropdown-${lang.code}`}
+                        data-testid={`learning-goals-lang-max-words-dropdown-${lang.code}`}
+                        value={hasWordOverride ? customVal : ""}
+                        onChange={(e) => {
+                          const val = e.target.value ? parseInt(e.target.value, 10) : undefined;
+                          onLanguageMaxWordsChange(lang.code, val);
+                        }}
+                        aria-label={`Max words for ${lang.name}`}
+                        className="h-5 rounded border border-input bg-background px-1 text-[11px] font-mono font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+                      >
+                        <option value="">Default ({safeMaxWords}w)</option>
+                        {MAX_WORDS_OPTIONS.map((num) => (
+                          <option key={num} value={num}>
+                            {num} words
+                          </option>
+                        ))}
+                      </select>
                       <button
                         type="button"
                         data-testid={`learning-goals-lang-decrement-${lang.code}`}
@@ -424,14 +527,27 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
           </p>
         </div>
 
-        <Switch
-          id="learning-goals-skip-incomplete-switch"
-          data-testid="learning-goals-skip-incomplete-switch"
-          checked={skipIncompleteSentences}
-          onCheckedChange={onSkipIncompleteSentencesChange}
-          aria-label="Skip incomplete sentences"
-          className="shrink-0"
-        />
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <select
+            id="learning-goals-complete-sentence-dropdown"
+            data-testid="learning-goals-complete-sentence-dropdown"
+            value={skipIncompleteSentences ? "complete" : "all"}
+            onChange={(e) => onSkipIncompleteSentencesChange(e.target.value === "complete")}
+            aria-label="Sentence completeness criteria dropdown"
+            className="h-6 rounded border border-input bg-background px-1.5 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
+          >
+            <option value="all">All Sentences</option>
+            <option value="complete">Complete Sentences Only</option>
+          </select>
+          <Switch
+            id="learning-goals-skip-incomplete-switch"
+            data-testid="learning-goals-skip-incomplete-switch"
+            checked={skipIncompleteSentences}
+            onCheckedChange={onSkipIncompleteSentencesChange}
+            aria-label="Skip incomplete sentences"
+            className="shrink-0"
+          />
+        </div>
       </div>
     </div>
   );

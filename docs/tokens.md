@@ -4,10 +4,15 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-### Current Prompt Routing
-
-- Prompt 162 (Resume Backlog - Learning Goals Row-Criteria Per Language - Subtask 387.2):
-  - Task 387 [ACTIVE]: Chapter 2 (from Prompt 154) - Learning Goals Row-Criteria Per Language. Update `LearningGoalsFiltersPanel.tsx` to provide per-language row-criteria controls with reset options and active status, integrate per-language row-criteria into translation and TTS processing in `src/routes/index.tsx`, verify with dedicated test `scripts/verify-learning-goals-row-criteria-per-language.ts`.
+- Prompt 166 (Hotfix: Fix ReferenceError - TDZ on showWordBalloonLearningView in src/routes/index.tsx):
+  - Hotfix [ACTIVE]: Resolve TDZ ReferenceError by relocating the pause useEffect to after `showWordBalloonLearningView` is declared and initialized.
+- Prompt 165 (Task 389: Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game):
+  - Task 389 [COMPLETED & VERIFIED]: Removed video player constraints, URL input, and video display controls from Word Balloons/Learning game stage in `BeginnerVideoTab.tsx`, added auto-pause of video playback on entering game view or Stage 5 in `src/routes/index.tsx`, verified zero video distractions and 100% pure learning games with "Back to Video" control, passed `verify-word-balloons-stage-no-video.ts`, bumped version to 2.1.89.
+  - Task 380 [ACTIVE]: Strict sequential TTS playback and respect audio playing duration.
+- Prompt 164 (Diagnostic Fix-It Check & Dev Server Clean State):
+  - Hotfix [COMPLETED & VERIFIED]: Diagnosed Vite client HMR notification log, confirmed clean zero-error build via `compile_applet` and 0 lint warnings via `lint_applet`, refreshed dev server to ensure clean in-memory state.
+- Prompt 163 (Task 388: Visible Global Row-Criteria in Subtitles Table View, Learning Goals Dropdown Lists, Per-Language Row-Criteria & Default Language Filtering):
+  - Task 388 [COMPLETED & VERIFIED]: Made global Row-Criteria visibly rendered in `SubtitlesTablePanel.tsx`, added dropdown lists for max words, sentence completeness, and per-language selection in `LearningGoalsFiltersPanel.tsx`, filtered displayed rows by default language word limit, passed all dedicated tests (`verify-learning-goals-dropdowns-and-row-criteria.ts`).
 - Prompt 161 (Hotfix: Fix Vite Reload, Module Import & Syntax Errors):
   - Hotfix [COMPLETED & VERIFIED]: Diagnosed Vite client reload logs caused by rapid multi-module invalidations, restarted dev server to clean module cache, audited HTTP 200 transforms across all 17 target components, optimized `AGENTS.md` size to 20,550 bytes (< 21,000 bytes budget) with 21/21 contract checks passing, added dedicated test `scripts/verify-vite-reload-and-modules-hotfix.ts`, bumped version to 2.1.86.
 - Prompt 160 (Hotfix: Fix Duplicate React Key Error for "pt-BR"):

@@ -1,5 +1,103 @@
 # Done tasks
 
+### Hotfix (Prompt 166): Fix ReferenceError - TDZ on showWordBalloonLearningView in src/routes/index.tsx
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Cannot access 'showWordBalloonLearningView' before initialization
+  error 1: [APP_PAGE_ERROR] This page didn't load: Cannot access 'showWordBalloonLearningView' before initialization
+  error 2: ReferenceError: Cannot access 'showWordBalloonLearningView' before initialization
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause Analysis & Diagnosis**:
+  - In `src/routes/index.tsx`, an auto-pause `useEffect` referencing `showWordBalloonLearningView` in its dependency array was placed around line 3590, while `showWordBalloonLearningView` state was declared lower down in the component body at line 4960.
+  - When React executed `Index()`, evaluating the hook dependency array at line 3590 hit the Temporal Dead Zone (TDZ) for `showWordBalloonLearningView`, throwing `ReferenceError: Cannot access 'showWordBalloonLearningView' before initialization` and triggering the router error boundary.
+- **Architectural Fixes Implemented**:
+  1. Relocated the auto-pause `useEffect` to line 4988, immediately following the initialization of `showWordBalloonLearningView` and `handleToggleWordBalloonLearningView`.
+  2. Verified zero references to `showWordBalloonLearningView` exist prior to its declaration.
+  3. Added dedicated automated verification test `scripts/verify-hotfix-word-balloon-init.ts` (`npm run test:hotfix-word-balloon-init`).
+  4. Bumped app version to `v2.1.90` and synchronized with `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+- **Testing & Verification**:
+  - `npm run test:hotfix-word-balloon-init`: PASSED (2/2 checks).
+  - `npm run test:word-balloons-stage-no-video`: PASSED (3/3 checks).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Completed with 0 errors.
+
+### Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game
+
+- **Prompt**:
+  ```
+  4. word balloons stage - it doent looks like a learning words game! why it has a video ? wtf?
+  ```
+- **Scope & Objectives**:
+  - Remove all video elements, video aspect-ratio locking, and video playback distraction from the Word Balloons / Learning stage.
+  - Deliver a pure, immersive vocabulary and sentence learning game experience with zero video distraction across Beginner and Advanced modes.
+  - Ensure video playback automatically pauses upon entering the learning game view or clicking Stage 5 (Sentence & Word Game).
+  - Provide a clean, seamless "Back to Video" control to return immediately to the video player view.
+- **Architectural Implementation**:
+  1. **`BeginnerVideoTab.tsx`**:
+     - Released `#beginner-player-slot-container` from `aspect-video bg-black` when `showWordBalloonLearningView` is active, allowing full-height responsive rendering of the game.
+     - Suppressed the video display controls container (`video-display-controls`: Fullscreen, Overlay On/Off, Subtitle Size 0.6x-1.8x) during game mode.
+     - Hidden the YouTube URL input form, language boxes selector, and discovery details during game mode.
+     - Preserved seamless transition via `onCloseLearningView` / "Back to Video" button.
+  2. **`src/routes/index.tsx`**:
+     - Added an auto-pause `useEffect` that calls `pauseBothVideoAndTts()` immediately whenever `showWordBalloonLearningView || currentAccordionStage === 5`.
+     - Ensured `handleToggleWordBalloonLearningView` and the Stage 5 button (`stage-step-learning`) call `pauseBothVideoAndTts()`.
+     - Suppressed `playbackControlsSlot` (`showWordBalloonLearningView ? null : ...`) during game mode.
+  3. **`WordBalloonLearningView.tsx`**:
+     - Verified zero embedded video elements (`<video>`, `<iframe>`).
+     - Delivered 4 dedicated interactive game modes: Sentence Builder, Word Match, Missing Word, and Word Balloons, with gamification XP/streaks and Web Audio sound effects.
+  4. **Version & Test Coverage**:
+     - Bumped version to `v2.1.89` in `package.json` and synchronized `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+     - Added dedicated test `scripts/verify-word-balloons-stage-no-video.ts` (`npm run test:word-balloons-stage-no-video`).
+- **Testing & Verification**:
+  - `npm run test:word-balloons-stage-no-video`: PASSED (3/3 test blocks).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Completed with 0 errors.
+
+### Task 388 (Prompt 154 - Chapter 3): Subtitles Table View Visible Global Row-Criteria, Dropdown Lists & Default Language Filtering
+
+- **Prompt**:
+  ```
+  1. Learning goals - use dropdown lists 
+  2. learning goals - add row-criteria per language
+  3. subtitles-table-view: Row-Criteria is not visible any longer (it should global)
+
+  row-criteria should use the defualt language and filter out subtitles records with more then X words
+  ```
+- **Scope & Objectives**:
+  - Restore visible rendering of global Row-Criteria in `SubtitlesTablePanel.tsx` by removing the `{false &&` suppression.
+  - Implement dropdown `<select>` lists for selecting max words limit and sentence completeness in `LearningGoalsFiltersPanel.tsx`.
+  - Add language selector dropdown (`learning-goals-add-language-dropdown`) allowing users to easily add and configure row-criteria per language.
+  - Ensure row-criteria evaluates the default language (`baseLanguage` or first column) and filters out subtitle records with more than X words.
+  - Pass language criteria props to `SubtitlesTablePanel` in both Beginner and Advanced modes.
+- **Architectural Implementation**:
+  1. **`SubtitlesTablePanel.tsx`**:
+     - Removed `{false &&` so `{showRowCriteria && (` visibly renders the global `LearningGoalsFiltersPanel`.
+     - Computed `effectiveDisplayedRows` checking `countWords(defText) <= maxWords` on the default language.
+     - Updated single-table and multiple-tables bodies to render `effectiveDisplayedRows`.
+     - Added props `languageMaxWords`, `onLanguageMaxWordsChange`, `languageSkipIncomplete`, `onLanguageSkipIncompleteChange`, and `onResetAllLanguageCriteria`.
+  2. **`LearningGoalsFiltersPanel.tsx`**:
+     - Added global max words dropdown list (`data-testid="learning-goals-max-words-dropdown"`).
+     - Added global complete sentence dropdown list (`data-testid="learning-goals-complete-sentence-dropdown"`).
+     - Added language adder dropdown list (`data-testid="learning-goals-add-language-dropdown"`).
+     - Added per-language max words dropdown list (`data-testid="learning-goals-lang-max-words-dropdown-${lang.code}"`).
+     - Added per-language complete sentence dropdown list (`data-testid="learning-goals-lang-complete-dropdown-${lang.code}"`).
+  3. **`newSubtitlesParser.ts`**:
+     - In `simpleAlign`, checked `hasWordFilter` and `hasPunctFilter` before falling back to raw cues so the user word limit filter is strictly respected.
+  4. **`src/routes/index.tsx`**:
+     - Forwarded `languageMaxWords`, `onLanguageMaxWordsChange`, `languageSkipIncomplete`, `onLanguageSkipIncompleteChange`, and `onResetAllLanguageCriteria` to `SubtitlesTablePanel` in both Beginner and Advanced mode slots.
+  5. **Version & Test Coverage**:
+     - Added dedicated test `scripts/verify-learning-goals-dropdowns-and-row-criteria.ts` (`npm run test:learning-goals-dropdowns-and-row-criteria`).
+     - Bumped version to `v2.1.88` across `package.json` and Android shell via `npm run sync-version`.
+- **Testing & Verification**:
+  - `npm run test:learning-goals-dropdowns-and-row-criteria`: PASSED (4/4 test blocks).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Completed with 0 errors.
+
 ### Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language
 
 - **Prompt**: "go on" (resuming Chapter 2 from Prompt 154).

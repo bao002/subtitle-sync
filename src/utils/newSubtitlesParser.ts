@@ -371,8 +371,17 @@ export function simpleAlign(
   // Split base cues into sentences using simple parser
   let segments = splitCuesIntoSentences(baseCues, config);
   if (!segments || segments.length === 0) {
-    // Fallback: use raw cues directly so table is never empty when valid subtitles exist
-    segments = baseCues.map((c) => ({ start: c.start, end: c.end, text: c.text }));
+    const hasWordFilter =
+      config.enabled &&
+      typeof config.maxWordsPerSentence === "number" &&
+      config.maxWordsPerSentence > 0;
+    const hasPunctFilter = Boolean(config.enabled && config.skipIncompleteSentences);
+    if (!hasWordFilter && !hasPunctFilter) {
+      // Fallback: use raw cues directly so table is never empty when valid subtitles exist
+      segments = baseCues.map((c) => ({ start: c.start, end: c.end, text: c.text }));
+    } else {
+      segments = [];
+    }
   }
 
   // Formulate rows aligned across all tracks

@@ -15,8 +15,12 @@ import {
 import { type Row, type Json3, subtitleColumnName } from "@/lib/subtitles";
 import { SubtitleRow, type SubtitleColumn } from "@/components/SubtitleRow";
 import { type SpeechProgress } from "@/components/HighlightedSubtitle";
-import { NewSubtitlesParserBar } from "@/components/NewSubtitlesParserBar";
-import { SimpleParserConfig, DEFAULT_SIMPLE_PARSER_CONFIG } from "@/utils/newSubtitlesParser";
+import {
+  SimpleParserConfig,
+  DEFAULT_SIMPLE_PARSER_CONFIG,
+  countWords,
+  isCompleteSentence,
+} from "@/utils/newSubtitlesParser";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import {
   getZeroKnowledgeInLang,
@@ -57,6 +61,11 @@ export interface SubtitlesTablePanelProps {
   onTablePlay?: () => void;
   tableDisplayMode?: TableDisplayMode;
   onTableDisplayModeChange?: (mode: TableDisplayMode) => void;
+  languageMaxWords?: Record<string, number>;
+  onLanguageMaxWordsChange?: (langCode: string, val: number | undefined) => void;
+  languageSkipIncomplete?: Record<string, boolean>;
+  onLanguageSkipIncompleteChange?: (langCode: string, val: boolean | undefined) => void;
+  onResetAllLanguageCriteria?: () => void;
 }
 
 export function SubtitlesTablePanel({
@@ -88,6 +97,11 @@ export function SubtitlesTablePanel({
   onTablePlay,
   tableDisplayMode: externalTableDisplayMode,
   onTableDisplayModeChange,
+  languageMaxWords,
+  onLanguageMaxWordsChange,
+  languageSkipIncomplete,
+  onLanguageSkipIncompleteChange,
+  onResetAllLanguageCriteria,
 }: SubtitlesTablePanelProps) {
   const [localParserConfig, setLocalParserConfig] = React.useState<SimpleParserConfig>(
     DEFAULT_SIMPLE_PARSER_CONFIG,
@@ -110,6 +124,32 @@ export function SubtitlesTablePanel({
   const activeParserConfig = externalParserConfig || localParserConfig;
   const handleParserConfigChange = onParserConfigChange || setLocalParserConfig;
   const [showQuarantinedParser, setShowQuarantinedParser] = React.useState(false);
+
+  // Filter subtitle rows based on default language word count and sentence completion
+  const effectiveDisplayedRows = React.useMemo(() => {
+    const defaultLang = baseLanguage || cols[0]?.code || "";
+    const maxWords = activeParserConfig?.maxWordsPerSentence;
+    const skipIncomplete = Boolean(activeParserConfig?.skipIncompleteSentences);
+
+    return displayedRows.filter((r) => {
+      const defText = (defaultLang && r.texts[defaultLang]) || Object.values(r.texts)[0] || "";
+      if (typeof maxWords === "number" && maxWords > 0) {
+        if (countWords(defText) > maxWords) {
+          return false;
+        }
+      }
+      if (skipIncomplete && defText && !isCompleteSentence(defText)) {
+        return false;
+      }
+      return true;
+    });
+  }, [
+    displayedRows,
+    baseLanguage,
+    cols,
+    activeParserConfig?.maxWordsPerSentence,
+    activeParserConfig?.skipIncompleteSentences,
+  ]);
 
   return (
     <>
@@ -148,7 +188,7 @@ export function SubtitlesTablePanel({
             )}
           </button>
         </div>
-        {false && showRowCriteria && (
+        {showRowCriteria && (
           <LearningGoalsFiltersPanel
             maxWords={activeParserConfig.maxWordsPerSentence ?? 10}
             onMaxWordsChange={(val) => {
@@ -164,6 +204,15 @@ export function SubtitlesTablePanel({
                 skipIncompleteSentences: val,
               });
             }}
+            learningLanguages={cols.map((c) => ({
+              code: c.code,
+              name: c.name || c.code.toUpperCase(),
+            }))}
+            languageMaxWords={languageMaxWords}
+            onLanguageMaxWordsChange={onLanguageMaxWordsChange}
+            languageSkipIncomplete={languageSkipIncomplete}
+            onLanguageSkipIncompleteChange={onLanguageSkipIncompleteChange}
+            onResetAllLanguageCriteria={onResetAllLanguageCriteria}
           />
         )}
       </div>
@@ -543,18 +592,20 @@ export function SubtitlesTablePanel({
               </tr>
             </thead>
             <tbody data-testid="subtitles-table-body">
-              {displayedRows.length === 0 ? (
+              {effectiveDisplayedRows.length === 0 ? (
                 <tr>
                   <td
                     colSpan={Math.max(1, cols.length + 2)}
                     className="py-12 text-center text-sm text-muted-foreground"
                     data-testid="subtitles-table-empty-notice"
                   >
-                    No subtitles loaded for this video.
+                    {displayedRows.length === 0
+                      ? "No subtitles loaded for this video."
+                      : `No subtitle records match current row criteria (max ${activeParserConfig.maxWordsPerSentence ?? 10} words).`}
                   </td>
                 </tr>
               ) : (
-                displayedRows.map((r, i) => {
+                effectiveDisplayedRows.map((r, i) => {
                   const actualIndex =
                     isAndroid && subtitlesLimit > 0 ? (subtitlesPage - 1) * subtitlesLimit + i : i;
                   return (
@@ -718,18 +769,20 @@ export function SubtitlesTablePanel({
                           </tr>
                         </thead>
                         <tbody data-testid={`subtitles-table-body-${col.code}`}>
-                          {displayedRows.length === 0 ? (
+                          {effectiveDisplayedRows.length === 0 ? (
                             <tr>
                               <td
                                 colSpan={3}
                                 className="py-8 text-center text-sm text-muted-foreground"
                                 data-testid={`subtitles-table-empty-notice-${col.code}`}
                               >
-                                No subtitles loaded for this video.
+                                {displayedRows.length === 0
+                                  ? "No subtitles loaded for this video."
+                                  : `No subtitle records match current row criteria (max ${activeParserConfig.maxWordsPerSentence ?? 10} words).`}
                               </td>
                             </tr>
                           ) : (
-                            displayedRows.map((r, i) => {
+                            effectiveDisplayedRows.map((r, i) => {
                               const actualIndex =
                                 isAndroid && subtitlesLimit > 0
                                   ? (subtitlesPage - 1) * subtitlesLimit + i
