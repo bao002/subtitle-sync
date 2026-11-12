@@ -1,6 +1,6 @@
 /**
  * Component Optimization Service (componentOptimizationService.ts)
- * 
+ *
  * Centralized service for:
  * 1. Managing zero-processing lifecycles for inactive, collapsed, or hidden components.
  * 2. Pure business logic helpers extracted out of UI components.
@@ -10,6 +10,32 @@
 import { type Row } from "@/lib/subtitles";
 import { countWords, isCompleteSentence } from "@/utils/newSubtitlesParser";
 import { type LogEntry } from "@/utils/logBuffer";
+
+/**
+/**
+ * Check if a subtitle row matches row criteria (max word limit and sentence completeness).
+ * Pure service function extracted from SubtitlesTablePanel.
+ */
+export function isSubtitleRowMatchingCriteria(
+  r: Row,
+  baseLanguage: string | undefined,
+  maxWords: number | undefined,
+  skipIncomplete: boolean | undefined,
+): boolean {
+  if ((!maxWords || maxWords <= 0) && !skipIncomplete) {
+    return true;
+  }
+  const text = (baseLanguage && r.texts[baseLanguage]) || Object.values(r.texts)[0] || "";
+  if (typeof maxWords === "number" && maxWords > 0) {
+    if (countWords(text) > maxWords) {
+      return false;
+    }
+  }
+  if (skipIncomplete && text && !isCompleteSentence(text)) {
+    return false;
+  }
+  return true;
+}
 
 /**
  * Filter subtitle rows by max word limit and sentence completeness.
@@ -26,18 +52,9 @@ export function filterSubtitleRowsByCriteria(
     return rows;
   }
 
-  return rows.filter((r) => {
-    const text = (baseLanguage && r.texts[baseLanguage]) || Object.values(r.texts)[0] || "";
-    if (typeof maxWords === "number" && maxWords > 0) {
-      if (countWords(text) > maxWords) {
-        return false;
-      }
-    }
-    if (skipIncomplete && text && !isCompleteSentence(text)) {
-      return false;
-    }
-    return true;
-  });
+  return rows.filter((r) =>
+    isSubtitleRowMatchingCriteria(r, baseLanguage, maxWords, skipIncomplete),
+  );
 }
 
 /**
@@ -45,10 +62,10 @@ export function filterSubtitleRowsByCriteria(
  * When collapsed or hidden, returns empty array to consume 0 processing.
  */
 export function filterLogEntriesOptimized(
-  entries: LogEntry[],
+  entries: readonly LogEntry[] | LogEntry[],
   filterLevel: "ALL" | "ACTIONS_ERRORS",
   isExpanded: boolean,
-): LogEntry[] {
+): readonly LogEntry[] {
   if (!isExpanded || !entries || entries.length === 0) {
     return [];
   }

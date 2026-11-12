@@ -21,14 +21,21 @@ import {
   countWords,
   isCompleteSentence,
 } from "@/utils/newSubtitlesParser";
-import { filterSubtitleRowsByCriteria } from "@/utils/componentOptimizationService";
+import {
+  filterSubtitleRowsByCriteria,
+  isSubtitleRowMatchingCriteria,
+} from "@/utils/componentOptimizationService";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
+import { NewSubtitlesParserBar } from "@/components/NewSubtitlesParserBar";
 import {
   getZeroKnowledgeInLang,
   getPickWordStrategy,
   getTableDisplayModePreference,
   setTableDisplayModePreference,
   type TableDisplayMode,
+  getCriteriaMatchActionPreference,
+  setCriteriaMatchActionPreference,
+  type CriteriaMatchAction,
 } from "@/lib/playback-preferences";
 import { getLanguageColorPalette } from "@/utils/languageColors";
 
@@ -62,6 +69,8 @@ export interface SubtitlesTablePanelProps {
   onTablePlay?: () => void;
   tableDisplayMode?: TableDisplayMode;
   onTableDisplayModeChange?: (mode: TableDisplayMode) => void;
+  criteriaMatchAction?: CriteriaMatchAction;
+  onCriteriaMatchActionChange?: (action: CriteriaMatchAction) => void;
   languageMaxWords?: Record<string, number>;
   onLanguageMaxWordsChange?: (langCode: string, val: number | undefined) => void;
   languageSkipIncomplete?: Record<string, boolean>;
@@ -98,6 +107,8 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
   onTablePlay,
   tableDisplayMode: externalTableDisplayMode,
   onTableDisplayModeChange,
+  criteriaMatchAction: externalCriteriaMatchAction,
+  onCriteriaMatchActionChange,
   languageMaxWords,
   onLanguageMaxWordsChange,
   languageSkipIncomplete,
@@ -112,8 +123,13 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
   const [internalDisplayMode, setInternalDisplayMode] = React.useState<TableDisplayMode>(() => {
     return externalTableDisplayMode || getTableDisplayModePreference();
   });
+  const [internalCriteriaMatchAction, setInternalCriteriaMatchAction] =
+    React.useState<CriteriaMatchAction>(() => {
+      return externalCriteriaMatchAction || getCriteriaMatchActionPreference();
+    });
 
   const activeDisplayMode = externalTableDisplayMode || internalDisplayMode;
+  const activeCriteriaMatchAction = externalCriteriaMatchAction || internalCriteriaMatchAction;
 
   const handleDisplayModeToggle = (mode: TableDisplayMode) => {
     setInternalDisplayMode(mode);
@@ -121,14 +137,27 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
     onTableDisplayModeChange?.(mode);
   };
 
+  const handleCriteriaMatchActionToggle = (action: CriteriaMatchAction) => {
+    setInternalCriteriaMatchAction(action);
+    setCriteriaMatchActionPreference(action);
+    onCriteriaMatchActionChange?.(action);
+  };
+
   const shouldFreezeColumns = !isAndroid && freezeColumns;
   const activeParserConfig = externalParserConfig || localParserConfig;
   const handleParserConfigChange = onParserConfigChange || setLocalParserConfig;
   const [showQuarantinedParser, setShowQuarantinedParser] = React.useState(false);
 
-  // Filter subtitle rows based on default language word count and sentence completion using pure service
+  const defaultLang = baseLanguage || cols[0]?.code || "";
+  const hasActiveCriteria =
+    Boolean(activeParserConfig?.maxWordsPerSentence && activeParserConfig.maxWordsPerSentence > 0) ||
+    Boolean(activeParserConfig?.skipIncompleteSentences);
+
+  // Filter or show all subtitle rows based on criteriaMatchAction ("filter" vs "highlight")
   const effectiveDisplayedRows = React.useMemo(() => {
-    const defaultLang = baseLanguage || cols[0]?.code || "";
+    if (activeCriteriaMatchAction === "highlight") {
+      return displayedRows;
+    }
     return filterSubtitleRowsByCriteria(
       displayedRows,
       defaultLang,
@@ -137,8 +166,8 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
     );
   }, [
     displayedRows,
-    baseLanguage,
-    cols,
+    defaultLang,
+    activeCriteriaMatchAction,
     activeParserConfig?.maxWordsPerSentence,
     activeParserConfig?.skipIncompleteSentences,
   ]);
@@ -151,34 +180,85 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
         data-testid="subtitles-table-row-criteria-container"
         className="rounded-xl border border-border/70 bg-card/60 p-2 shadow-2xs mb-2"
       >
-        <div className="flex items-center justify-between pb-1.5 px-1">
+        <div className="flex items-center justify-between pb-1.5 px-1 flex-wrap gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <Filter className="h-3.5 w-3.5 text-primary" />
               <span>Row Criteria</span>
             </span>
-            <span className="text-[10px] text-muted-foreground font-mono">
+            <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline">
               (Dynamic Table View)
             </span>
           </div>
-          <button
-            type="button"
-            data-testid="toggle-row-criteria-visibility-btn"
-            onClick={() => setShowRowCriteria((prev) => !prev)}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          >
-            {showRowCriteria ? (
-              <>
-                <ChevronUp className="h-3 w-3" />
-                <span>Collapse</span>
-              </>
-            ) : (
-              <>
-                <ChevronDown className="h-3 w-3" />
-                <span>Expand ({activeParserConfig.maxWordsPerSentence ?? 10} words max)</span>
-              </>
-            )}
-          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Filter Out vs Highlight Matching Toggle */}
+            <div
+              data-testid="criteria-match-action-controls"
+              className="inline-flex items-center rounded-lg border border-border/80 bg-background/80 p-0.5 shadow-2xs"
+            >
+              <button
+                type="button"
+                data-testid="btn-criteria-action-filter"
+                onClick={() => handleCriteriaMatchActionToggle("filter")}
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                  activeCriteriaMatchAction === "filter"
+                    ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Filter out sentences that don't match the row criteria"
+              >
+                <Filter className="h-3 w-3" />
+                <span>Filter Out</span>
+              </button>
+              <button
+                type="button"
+                data-testid="btn-criteria-action-highlight"
+                onClick={() => handleCriteriaMatchActionToggle("highlight")}
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                  activeCriteriaMatchAction === "highlight"
+                    ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Display all sentences and highlight matching sentences"
+              >
+                <Sparkles className="h-3 w-3" />
+                <span>Highlight Matching</span>
+              </button>
+              <button
+                type="button"
+                data-testid="toggle-criteria-match-action-btn"
+                onClick={() =>
+                  handleCriteriaMatchActionToggle(
+                    activeCriteriaMatchAction === "filter" ? "highlight" : "filter",
+                  )
+                }
+                className="sr-only"
+                aria-label="Toggle criteria filter vs highlight mode"
+              >
+                Toggle Criteria Action
+              </button>
+            </div>
+
+            <button
+              type="button"
+              data-testid="toggle-row-criteria-visibility-btn"
+              onClick={() => setShowRowCriteria((prev) => !prev)}
+              className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              {showRowCriteria ? (
+                <>
+                  <ChevronUp className="h-3 w-3" />
+                  <span>Collapse</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-3 w-3" />
+                  <span>Expand ({activeParserConfig.maxWordsPerSentence ?? 10} words max)</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
         {showRowCriteria && (
           <LearningGoalsFiltersPanel
@@ -600,6 +680,14 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
                 effectiveDisplayedRows.map((r, i) => {
                   const actualIndex =
                     isAndroid && subtitlesLimit > 0 ? (subtitlesPage - 1) * subtitlesLimit + i : i;
+                  const isMatched = hasActiveCriteria
+                    ? isSubtitleRowMatchingCriteria(
+                        r,
+                        defaultLang,
+                        activeParserConfig?.maxWordsPerSentence,
+                        Boolean(activeParserConfig?.skipIncompleteSentences),
+                      )
+                    : false;
                   return (
                     <SubtitleRow
                       key={actualIndex}
@@ -617,6 +705,8 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
                       blacklist={blacklist}
                       onSpeakCue={onSpeakCue}
                       freezeColumns={shouldFreezeColumns}
+                      isCriteriaMatched={isMatched}
+                      isCriteriaHighlightMode={activeCriteriaMatchAction === "highlight"}
                     />
                   );
                 })
@@ -779,6 +869,14 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
                                 isAndroid && subtitlesLimit > 0
                                   ? (subtitlesPage - 1) * subtitlesLimit + i
                                   : i;
+                              const isMatched = hasActiveCriteria
+                                ? isSubtitleRowMatchingCriteria(
+                                    r,
+                                    defaultLang,
+                                    activeParserConfig?.maxWordsPerSentence,
+                                    Boolean(activeParserConfig?.skipIncompleteSentences),
+                                  )
+                                : false;
                               return (
                                 <SubtitleRow
                                   key={actualIndex}
@@ -796,6 +894,10 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
                                   blacklist={blacklist}
                                   onSpeakCue={onSpeakCue}
                                   freezeColumns={false}
+                                  isCriteriaMatched={isMatched}
+                                  isCriteriaHighlightMode={
+                                    activeCriteriaMatchAction === "highlight"
+                                  }
                                 />
                               );
                             })

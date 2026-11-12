@@ -1,12 +1,14 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: [ACTIVE]
-- **Active Task**: Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
-- **Active Step**: Subtask 372.1: Add `criteriaMatchAction` ("filter" | "highlight") with persistent preference in playback preferences and settings.
+- **Status**: [IDLE]
+- **Active Task**: None (All active backlog tasks completed)
+- **Active Step**: None
 - **Suspended Task**: None
 - **Next Tasks**:
-  - Later tasks backlog in `docs/tasks.md`
+  - Later tasks backlog in `docs/tasks.md` and `docs/later.md`
 - **Completed**:
+  - Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
+  - Hotfix (Prompt 172): Fix TypeScript compile errors (curPlaying in index.tsx, NewSubtitlesParserBar in SubtitlesTablePanel.tsx, filterLogEntriesOptimized in BottomLogViewer.tsx) and dev server stale HMR state
   - Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection
   - Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration
   - Task 391 (Prompt 167): Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services

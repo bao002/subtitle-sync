@@ -4,12 +4,8 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle [ACTIVE]**
-  - [ ] Subtask 372.1: Add `criteriaMatchAction` ("filter" | "highlight") with persistent preference in playback preferences and settings.
-  - [ ] Subtask 372.2: Add visual toggle button ("Filter Out" vs "Highlight Matching") to `SubtitlesTablePanel.tsx` row criteria header.
-  - [ ] Subtask 372.3: In "highlight" mode, display all sentences in `SubtitlesTablePanel.tsx` while highlighting matching sentences with distinct visual styling and test IDs (`data-testid="row-criteria-highlighted"`).
-  - [ ] Subtask 372.4: Ensure 100% parity across Advanced Mode and Beginner Mode.
-  - [ ] Subtask 372.5: Add dedicated automated test `scripts/verify-subtitles-table-highlight-toggle.ts` (`npm run test:subtitles-highlight-toggle`), bump version, verify compile/lint, commit, and migrate Task 372 to `docs/done.md`.
+*(No active tasks pending. All backlog tasks completed. See `docs/done.md` for completed tasks and `## Later Tasks` below.)*
+
 
 ## Later Tasks
 

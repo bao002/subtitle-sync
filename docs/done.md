@@ -1,5 +1,78 @@
 # Done tasks
 
+### Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
+
+- **Prompt**:
+  ```
+  4. subtitles-table - add toggle which allow to highlight the part-sentence vs the current state where it filters out based on sentence-part&char-length.
+  ```
+- **Scope & Objectives**:
+  - Add visual toggle allowing users to choose whether subtitle row criteria (max words limit and sentence completeness) filters out non-matching rows or highlights matching rows in place.
+  - Implement persistent user preference `criteriaMatchAction` ("filter" | "highlight") in `playback-preferences.ts`.
+  - Extract `isSubtitleRowMatchingCriteria` in `componentOptimizationService.ts` for pure evaluation of row criteria.
+  - Render visual toggle buttons ("Filter Out" vs "Highlight Matching") in `SubtitlesTablePanel.tsx` row criteria header.
+  - In "highlight" mode, render all sentences in the table while styling matching sentences with distinct amber accent styling and `data-testid="row-criteria-highlighted"`.
+  - Guarantee 100% parity across Advanced Mode and Beginner Mode through shared component and preference state.
+- **Architectural Implementation**:
+  1. `src/lib/playback-preferences.ts`:
+     - Added `CriteriaMatchAction` type ("filter" | "highlight").
+     - Added `KEYS.criteriaMatchAction` ("yt_criteria_match_action_v1").
+     - Implemented `getCriteriaMatchActionPreference(): CriteriaMatchAction` and `setCriteriaMatchActionPreference(action: CriteriaMatchAction): void`.
+     - Added `CRITERIA_MATCH_ACTION_EVENT`.
+  2. `src/utils/componentOptimizationService.ts`:
+     - Implemented `isSubtitleRowMatchingCriteria(r, baseLanguage, maxWords, skipIncomplete): boolean`.
+     - Reused helper inside `filterSubtitleRowsByCriteria`.
+  3. `src/components/SubtitleRow.tsx`:
+     - Added `isCriteriaMatched` and `isCriteriaHighlightMode` props.
+     - Styled matching rows in highlight mode with distinct amber background, border accent, and rendered badge with `data-testid="row-criteria-highlighted"` and `data-criteria-highlighted="true"`.
+  4. `src/components/SubtitlesTablePanel.tsx`:
+     - Added `criteriaMatchAction` and `onCriteriaMatchActionChange` props with fallback to `getCriteriaMatchActionPreference()`.
+     - Added visual toggle button group in row criteria header (`data-testid="criteria-match-action-controls"`, `data-testid="btn-criteria-action-filter"`, `data-testid="btn-criteria-action-highlight"`, `data-testid="toggle-criteria-match-action-btn"`).
+     - In highlight mode, renders all rows while computing `isMatched` per row.
+  5. `src/routes/index.tsx`:
+     - Connected `criteriaMatchAction` state across both Advanced Mode (Stage 3) and Beginner Mode (Player Tab) `SubtitlesTablePanel` instances.
+- **Testing & Verification**:
+  - `scripts/verify-subtitles-table-highlight-toggle.ts` (`npm run test:subtitles-highlight-toggle`): **PASSED** (100% checks passed).
+  - `npx tsc --noEmit`: 0 errors.
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: 0 errors, 0 warnings.
+  - Bumped version to `v2.1.96` in `package.json` and synchronized `android-shell/app/build.gradle.kts`.
+
+### Hotfix (Prompt 172): Fix TypeScript Compile Errors & Stale HMR Module Resolution
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  ...
+  error 2: [vite] SyntaxError: The requested module '/src/lib/playback-preferences.ts' does not provide an export named 'getDefaultLanguageTtsRate'
+  error 4: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Component is not a function
+  ...
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Scope & Objectives**:
+  - Diagnose client-side runtime errors and compiler discrepancies triggering TanStack Router ErrorComponent (`Component is not a function`).
+  - Resolve TypeScript compiler errors:
+    1. `src/routes/index.tsx`: Undeclared `curPlaying` variable in time-check loop.
+    2. `src/components/SubtitlesTablePanel.tsx`: Missing `NewSubtitlesParserBar` import.
+    3. `src/utils/componentOptimizationService.ts`: Incompatible mutable `LogEntry[]` signature for `readonly LogEntry[]` in `filterLogEntriesOptimized`.
+  - Restart Vite dev server to guarantee completely clean dependency bundle hashes and clear stale in-memory HMR client cache.
+  - Verify 0 TypeScript errors (`npx tsc --noEmit`), 0 build errors (`compile_applet`), and 0 lint issues (`lint_applet`).
+- **Architectural Implementation**:
+  1. `src/routes/index.tsx`: Declared `const curPlaying = ...` before metadata sync and gated pause check `!curPlaying && !speakingLangRef.current && !busy.current`.
+  2. `src/components/SubtitlesTablePanel.tsx`: Added `import { NewSubtitlesParserBar } from "@/components/NewSubtitlesParserBar";`.
+  3. `src/utils/componentOptimizationService.ts`: Updated `filterLogEntriesOptimized` to accept `entries: readonly LogEntry[] | LogEntry[]` and return `readonly LogEntry[]`.
+  4. Dev Server: Restarted Vite dev server via `restart_dev_server`, verified HTTP 200 transforms across all 17 target components without parse errors.
+- **Testing & Verification**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `scripts/verify-hotfix-dev-errors-resolution.ts` (`npm run test:hotfix-dev-errors-resolution`): PASSED.
+  - `npm run test:vite-reload-modules`: PASSED.
+  - `npm run test:inactive-components-zero-processing`: PASSED.
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: 0 errors, 0 warnings.
+  - Bumped version to `v2.1.95` in `package.json` and synchronized `android-shell/app/build.gradle.kts`.
+
 ### Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection
 
 - **Prompt**:
