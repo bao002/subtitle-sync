@@ -4,8 +4,10 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 174 (Hotfix: Fix Missing componentOptimizationService Module, Dev Server Pre-Transform & TypeScript Errors):
+  - Hotfix [COMPLETED & VERIFIED]: Restored `src/utils/componentOptimizationService.ts` with complete type definitions (`tokenizeSentenceToWordTokens`, `filterLogEntriesOptimized`, `isSubtitleRowMatchingCriteria`, `filterSubtitleRowsByCriteria`, `createVisibilitySafeAnimationLoop`, `shouldComponentProcess`), restarted Vite dev server, passed `npx tsc --noEmit` with 0 errors, passed `npm run test:hotfix-component-optimization-service`, passed `compile_applet` and `lint_applet`, bumped version to v2.1.97.
 - Prompt 173 (Task 372: Subtitles-Table Highlight vs Filter Toggle):
-  - Task 372 [ACTIVE]: Adding `criteriaMatchAction` ("filter" | "highlight") persistent preference, toggle control in `SubtitlesTablePanel.tsx`, and highlighting matching sentences with `data-testid="row-criteria-highlighted"`.
+  - Task 372 [COMPLETED & VERIFIED]: Added `criteriaMatchAction` ("filter" | "highlight") persistent preference, toggle control in `SubtitlesTablePanel.tsx`, and highlighting matching sentences with `data-testid="row-criteria-highlighted"`.
 - Prompt 172 (Hotfix: Fix TypeScript Compile Errors & Stale HMR Module Resolution):
   - Hotfix [COMPLETED & VERIFIED]: Resolved undeclared variable `curPlaying` in `src/routes/index.tsx`, added missing `NewSubtitlesParserBar` import in `src/components/SubtitlesTablePanel.tsx`, supported `readonly LogEntry[]` in `filterLogEntriesOptimized`, passed `npx tsc --noEmit` with 0 errors, refreshed dev server, added dedicated test `scripts/verify-hotfix-dev-errors-resolution.ts`, passed compile and lint, bumped version to v2.1.95.
 - Prompt 171 (Task 391: Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services):

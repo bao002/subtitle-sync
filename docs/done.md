@@ -1,5 +1,45 @@
 # Done tasks
 
+### Hotfix (Prompt 174): Fix Missing componentOptimizationService Module, Dev Server Pre-Transform & TypeScript Errors
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: 4:18:08 AM [vite] (client) Pre-transform error: Transform failed with 3 errors:
+  error 1: [31m[PARSE_ERROR] [0mUnexpected token. Did you mean `{'}'}` or `&rbrace;`?
+  error 2: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'div'.
+  error 3: 4:18:09 AM [vite] Internal server error: Transform failed with 3 errors:
+  error 4: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'LearningGoalAccordion'.
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Scope & Objectives**:
+  - Diagnose Vite pre-transform and internal server errors reported during client compilation.
+  - Audit module resolution failure: `Failed to resolve import "@/utils/componentOptimizationService"` across `AlternativeVideoPlayerView.tsx`, `BottomLogViewer.tsx`, `CanvasBalloonGame.tsx`, and `SubtitlesTablePanel.tsx`.
+  - Restore `src/utils/componentOptimizationService.ts` with complete type definitions (`tokenizeSentenceToWordTokens`, `filterLogEntriesOptimized`, `isSubtitleRowMatchingCriteria`, `filterSubtitleRowsByCriteria`, `createVisibilitySafeAnimationLoop`, `shouldComponentProcess`).
+  - Provide Node/SSR compatible fallbacks for `requestAnimationFrame` and `cancelAnimationFrame` in `createVisibilitySafeAnimationLoop`.
+  - Restart Vite dev server to clear stale module resolution cache and verify HTTP 200 responses across all target modules.
+  - Verify 0 errors with `npx tsc --noEmit`, dedicated test `npm run test:hotfix-component-optimization-service`, `compile_applet`, and `lint_applet`.
+- **Architectural Implementation**:
+  1. `src/utils/componentOptimizationService.ts`:
+     - Implemented `tokenizeSentenceToWordTokens` generating `WordToken[]` with start and end character offsets.
+     - Implemented `filterLogEntriesOptimized` returning empty array when log viewer is collapsed, and filtering by ACTION/ERROR when requested.
+     - Implemented `isSubtitleRowMatchingCriteria` and `filterSubtitleRowsByCriteria` using `subtitleTextForColumn` and `row.texts`.
+     - Implemented `createVisibilitySafeAnimationLoop` pausing when `document.hidden` is true with safe fallbacks.
+     - Implemented `shouldComponentProcess`.
+  2. Dev Server & Cache:
+     - Restarted Vite dev server to clear in-memory stale transform errors.
+     - Verified all consumer modules and `src/routes/index.tsx` transform cleanly with HTTP 200.
+  3. Versioning:
+     - Bumped version to `v2.1.97` in `package.json` and synchronized `android-shell/app/build.gradle.kts`.
+- **Testing & Verification**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run test:hotfix-component-optimization-service`: **PASSED** (all 6 checks passed).
+  - `npm run build`: Production build succeeded in 3.92s.
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: 0 errors, 0 warnings.
+
 ### Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
 
 - **Prompt**:
