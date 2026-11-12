@@ -2262,5 +2262,20 @@ GO ON
 GO ON
 ```
 
+---
+
+### Prompt 175: Rollback Learning Goals Accordions & Keep Dedicated Row-Criteria Category Only
+```
+THE LEARNING GOALS WERE BETTER BEFORE THE LAST CHANGE. THE REQUESTED FEATURE WAS ANLY TO ADD ANOTHER CATEGORY "raw-criteria" which allows to set max words limitation filter for the subtitles-records per language. rollback and do that small change only
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+
 
 

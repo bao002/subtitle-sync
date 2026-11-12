@@ -1,12 +1,13 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [IDLE]
-- **Active Task**: None (All active backlog tasks completed)
+- **Active Task**: None (Ready for next prompt)
 - **Active Step**: None
 - **Suspended Task**: None
 - **Next Tasks**:
   - Later tasks backlog in `docs/tasks.md` and `docs/later.md`
 - **Completed**:
+  - Task 392 (Prompt 175): Rollback Learning Goals Accordions & Retain Open Category for Row-Criteria (Max Words Limitation Filter Per Language)
   - Hotfix (Prompt 174): Fix Missing componentOptimizationService Module, Dev Server Pre-Transform & TypeScript Errors
   - Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
   - Hotfix (Prompt 172): Fix TypeScript compile errors (curPlaying in index.tsx, NewSubtitlesParserBar in SubtitlesTablePanel.tsx, filterLogEntriesOptimized in BottomLogViewer.tsx) and dev server stale HMR state

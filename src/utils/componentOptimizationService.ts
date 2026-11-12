@@ -65,29 +65,67 @@ export function filterLogEntriesOptimized(
   return entries;
 }
 
+export interface SubtitleCriteriaOptions {
+  baseLanguage?: string;
+  maxWords?: number;
+  skipIncomplete?: boolean;
+  maxWordsPerLang?: Record<string, number>;
+  languageMaxWords?: Record<string, number>;
+}
+
 /**
  * Pure evaluation function to check if a subtitle row matches current parser row criteria
- * (max words per sentence limit and complete sentence punctuation requirements).
+ * (max words per sentence limit, per-language max words limits, and complete sentence punctuation requirements).
  */
 export function isSubtitleRowMatchingCriteria(
   row: Row,
-  baseLanguage: string,
+  baseLanguageOrOptions?: string | SubtitleCriteriaOptions,
   maxWords?: number,
   skipIncomplete?: boolean,
+  maxWordsPerLang?: Record<string, number>,
 ): boolean {
   if (!row) return false;
+
+  let baseLang = "";
+  let wordLimit: number | undefined;
+  let requireComplete = false;
+  let perLangLimits: Record<string, number> | undefined;
+
+  if (typeof baseLanguageOrOptions === "object" && baseLanguageOrOptions !== null) {
+    baseLang = baseLanguageOrOptions.baseLanguage || "";
+    wordLimit = baseLanguageOrOptions.maxWords;
+    requireComplete = Boolean(baseLanguageOrOptions.skipIncomplete);
+    perLangLimits = baseLanguageOrOptions.maxWordsPerLang || baseLanguageOrOptions.languageMaxWords;
+  } else {
+    baseLang = typeof baseLanguageOrOptions === "string" ? baseLanguageOrOptions : "";
+    wordLimit = maxWords;
+    requireComplete = Boolean(skipIncomplete);
+    perLangLimits = maxWordsPerLang;
+  }
+
   const text =
-    subtitleTextForColumn(row, baseLanguage) ||
+    subtitleTextForColumn(row, baseLang) ||
     (row.texts ? Object.values(row.texts)[0] || "" : "");
 
-  if (typeof maxWords === "number" && maxWords > 0) {
+  if (typeof wordLimit === "number" && wordLimit > 0) {
     const words = countWords(text);
-    if (words > maxWords) {
+    if (words > wordLimit) {
       return false;
     }
   }
 
-  if (skipIncomplete) {
+  if (perLangLimits && typeof perLangLimits === "object") {
+    for (const [langCode, limit] of Object.entries(perLangLimits)) {
+      if (typeof limit === "number" && limit > 0) {
+        const langText = row.texts?.[langCode] || subtitleTextForColumn(row, langCode);
+        if (langText && countWords(langText) > limit) {
+          return false;
+        }
+      }
+    }
+  }
+
+  if (requireComplete) {
     if (!isCompleteSentence(text)) {
       return false;
     }
@@ -101,15 +139,15 @@ export function isSubtitleRowMatchingCriteria(
  */
 export function filterSubtitleRowsByCriteria(
   rows: Row[],
-  baseLanguage: string,
+  baseLanguageOrOptions?: string | SubtitleCriteriaOptions,
   maxWords?: number,
   skipIncomplete?: boolean,
+  maxWordsPerLang?: Record<string, number>,
 ): Row[] {
   if (!rows || !Array.isArray(rows)) return [];
-  if ((!maxWords || maxWords <= 0) && !skipIncomplete) {
-    return rows;
-  }
-  return rows.filter((r) => isSubtitleRowMatchingCriteria(r, baseLanguage, maxWords, skipIncomplete));
+  return rows.filter((r) =>
+    isSubtitleRowMatchingCriteria(r, baseLanguageOrOptions, maxWords, skipIncomplete, maxWordsPerLang)
+  );
 }
 
 /**

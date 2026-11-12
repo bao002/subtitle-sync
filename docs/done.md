@@ -1,6 +1,46 @@
 # Done tasks
 
-### Hotfix (Prompt 174): Fix Missing componentOptimizationService Module, Dev Server Pre-Transform & TypeScript Errors
+### Task 392 (Prompt 175): Rollback Learning Goals Accordions & Retain Open Category for Row-Criteria (Max Words Limitation Filter Per Language)
+
+- **Prompt**:
+  ```
+  THE LEARNING GOALS WERE BETTER BEFORE THE LAST CHANGE. THE REQUESTED FEATURE WAS ANLY TO ADD ANOTHER CATEGORY "raw-criteria" which allows to set max words limitation filter for the subtitles-records per language. rollback and do that small change only
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Scope & Objectives**:
+  - Roll back `LearningGoalAccordion` wrapping from Learning Goals across both Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`).
+  - Eliminate auto-folding timers and hourglasses from the Learning Goals section, restoring clean, permanently open/visible container categories.
+  - Retain the clean, dedicated category "row-criteria" (`#stage-2-ingredient-row-criteria-section` / `data-testid="stage-2-ingredient-row-criteria-section"` in Advanced Mode and `#beginner-row-criteria-section` in Beginner Mode) containing `LearningGoalsFiltersPanel` for setting max words limitation filter per language.
+  - Maintain 100% parity across Advanced Mode and Beginner Mode.
+  - Enhance `isSubtitleRowMatchingCriteria` and `filterSubtitleRowsByCriteria` in `src/utils/componentOptimizationService.ts` to support per-language max word criteria (`maxWordsPerLang` / `languageMaxWords`).
+  - Update `SubtitlesTablePanel.tsx` to pass `languageMaxWords` into `filterSubtitleRowsByCriteria` and `isSubtitleRowMatchingCriteria`.
+  - Verify with dedicated automated test, compile (`compile_applet`), and lint (`lint_applet`).
+- **Architectural Implementation**:
+  1. `src/routes/index.tsx`:
+     - Removed `LearningGoalAccordion` import.
+     - Restored open containers: `#stage-2-default-source-lang-container`, `#stage-2-approved-languages-container`, `#stage-2-narration-ratios-container`.
+     - Staged dedicated category `#stage-2-ingredient-row-criteria-section` hosting `LearningGoalsFiltersPanel`.
+  2. `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`:
+     - Removed `LearningGoalAccordion` import.
+     - Restored open containers: `#beginner-favorite-languages-section`, `#beginner-narration-ratios-section`.
+     - Added dedicated category `#beginner-row-criteria-section` hosting `LearningGoalsFiltersPanel`.
+  3. `src/utils/componentOptimizationService.ts`:
+     - Added `SubtitleCriteriaOptions` interface and enhanced `isSubtitleRowMatchingCriteria` and `filterSubtitleRowsByCriteria` to evaluate per-language word limits (`maxWordsPerLang` / `languageMaxWords`).
+  4. `src/components/SubtitlesTablePanel.tsx`:
+     - Passed `languageMaxWords` into row criteria checking and filtering.
+  5. Versioning & Parity:
+     - Version bumped to `v2.1.98` in `package.json` and synchronized to `android-shell/app/build.gradle.kts`.
+- **Testing & Verification**:
+  - `npx tsc --noEmit`: 0 errors.
+  - `npm run test:learning-goals-rollback`: **PASSED** (all checks passed).
+  - Dev server HTTP 200 checks for `src/routes/index.tsx` and `BeginnerPreferencesTab.tsx`: **PASSED**.
+  - `compile_applet` & `lint_applet`: Verified clean build and lint with 0 errors.
 
 - **Prompt**:
   ```

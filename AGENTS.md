@@ -128,16 +128,16 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-Fix the errors in the app
+THE LEARNING GOALS WERE BETTER BEFORE THE LAST CHANGE. THE REQUESTED FEATURE WAS ANLY TO ADD ANOTHER CATEGORY "raw-criteria" which allows to set max words limitation filter for the subtitles-records per language. rollback and do that small change only
+Apply style changes to the selected element(s).
 [AIS_METADATA_SECTION_START]
-fix_it_trigger: manual
-error 0: 4:18:08 AM [vite] (client) Pre-transform error: Transform failed with 3 errors:
-error 1: [31m[PARSE_ERROR] [0mUnexpected token. Did you mean `{'}'}` or `&rbrace;`?
-error 2: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'div'.
-error 3: 4:18:09 AM [vite] Internal server error: Transform failed with 3 errors:
-error 4: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'LearningGoalAccordion'.
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3)
+CSS 1: {
+
+}
 [AIS_METADATA_SECTION_END]
 ```
+
 
 
 
