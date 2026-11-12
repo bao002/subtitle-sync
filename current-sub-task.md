@@ -1,11 +1,11 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [ACTIVE]
-- **Active Task**: Hotfix (Prompt 166): Fix ReferenceError - TDZ on showWordBalloonLearningView in src/routes/index.tsx
-- **Active Step**: Relocate auto-pause useEffect in src/routes/index.tsx to after showWordBalloonLearningView state declaration.
-- **Suspended Task**:
-  - Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [ON HOLD - Suspended for Hotfix 166]
+- **Active Task**: Task 391 (Prompt 167): Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services
+- **Active Step**: Subtask 391.1: Audit and optimize components so that when hidden/closed/folded, processing, timers, intervals, and loops are halted, and unmounted/memoized cleanly.
+- **Suspended Task**: None
 - **Next Tasks**:
+  - Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration
   - Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection
   - Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
 - **Completed**:

@@ -21,6 +21,7 @@ import {
   countWords,
   isCompleteSentence,
 } from "@/utils/newSubtitlesParser";
+import { filterSubtitleRowsByCriteria } from "@/utils/componentOptimizationService";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import {
   getZeroKnowledgeInLang,
@@ -68,7 +69,7 @@ export interface SubtitlesTablePanelProps {
   onResetAllLanguageCriteria?: () => void;
 }
 
-export function SubtitlesTablePanel({
+export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
   isAndroid,
   rows,
   displayedRows,
@@ -125,24 +126,15 @@ export function SubtitlesTablePanel({
   const handleParserConfigChange = onParserConfigChange || setLocalParserConfig;
   const [showQuarantinedParser, setShowQuarantinedParser] = React.useState(false);
 
-  // Filter subtitle rows based on default language word count and sentence completion
+  // Filter subtitle rows based on default language word count and sentence completion using pure service
   const effectiveDisplayedRows = React.useMemo(() => {
     const defaultLang = baseLanguage || cols[0]?.code || "";
-    const maxWords = activeParserConfig?.maxWordsPerSentence;
-    const skipIncomplete = Boolean(activeParserConfig?.skipIncompleteSentences);
-
-    return displayedRows.filter((r) => {
-      const defText = (defaultLang && r.texts[defaultLang]) || Object.values(r.texts)[0] || "";
-      if (typeof maxWords === "number" && maxWords > 0) {
-        if (countWords(defText) > maxWords) {
-          return false;
-        }
-      }
-      if (skipIncomplete && defText && !isCompleteSentence(defText)) {
-        return false;
-      }
-      return true;
-    });
+    return filterSubtitleRowsByCriteria(
+      displayedRows,
+      defaultLang,
+      activeParserConfig?.maxWordsPerSentence,
+      Boolean(activeParserConfig?.skipIncompleteSentences),
+    );
   }, [
     displayedRows,
     baseLanguage,
@@ -820,4 +812,4 @@ export function SubtitlesTablePanel({
       </div>
     </>
   );
-}
+});

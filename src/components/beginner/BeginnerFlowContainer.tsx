@@ -68,7 +68,7 @@ export interface BeginnerFlowContainerProps {
   onResetAllLanguageCriteria?: () => void;
 }
 
-export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
+export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = React.memo(({
   url,
   videoId,
   isAndroid = false,
@@ -285,27 +285,29 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = ({
         </div>
       </main>
 
-      {/* Video Library Modal */}
-      <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
-        <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto bg-card border-border text-foreground">
-          <DialogHeader>
-            <DialogTitle className="text-sm font-semibold text-foreground">
-              Saved Video Library
-            </DialogTitle>
-          </DialogHeader>
-          <VideoLibraryPanel
-            currentVideoId={videoId}
-            onSelectVideo={(newId, newUrl) => {
-              if (newUrl) {
-                onSubmitUrl(newUrl);
-              } else if (newId) {
-                onSubmitUrl(`https://www.youtube.com/watch?v=${newId}`);
-              }
-              setIsLibraryOpen(false);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Video Library Modal (Mounted only when open to eliminate inactive processing) */}
+      {isLibraryOpen && (
+        <Dialog open={isLibraryOpen} onOpenChange={setIsLibraryOpen}>
+          <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto bg-card border-border text-foreground">
+            <DialogHeader>
+              <DialogTitle className="text-sm font-semibold text-foreground">
+                Saved Video Library
+              </DialogTitle>
+            </DialogHeader>
+            <VideoLibraryPanel
+              currentVideoId={videoId}
+              onSelectVideo={(newId, newUrl) => {
+                if (newUrl) {
+                  onSubmitUrl(newUrl);
+                } else if (newId) {
+                  onSubmitUrl(`https://www.youtube.com/watch?v=${newId}`);
+                }
+                setIsLibraryOpen(false);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
-};
+});

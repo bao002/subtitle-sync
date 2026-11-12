@@ -50,7 +50,7 @@ interface Position {
   y: number;
 }
 
-export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButtonProps> = ({
+export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButtonProps> = React.memo(({
   isSetupPaused,
   onToggleSetupPause,
   isAutoScrollEnabled = false,
@@ -624,6 +624,6 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
       )}
     </div>
   );
-};
+});
 
 export default FloatingDraggablePauseButton;

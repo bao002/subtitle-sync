@@ -88,7 +88,7 @@ export function getVideoBarIndex(
  * VideoPlaybackPrecedenceBar
  * A movable and placeable bar to position video playing precedence among pointed table records.
  */
-export const VideoPlaybackPrecedenceBar: React.FC<VideoPlaybackPrecedenceBarProps> = ({
+export const VideoPlaybackPrecedenceBar: React.FC<VideoPlaybackPrecedenceBarProps> = React.memo(({
   currentPosition,
   totalRecords,
   onMoveUp,
@@ -216,4 +216,4 @@ export const VideoPlaybackPrecedenceBar: React.FC<VideoPlaybackPrecedenceBarProp
       {content}
     </div>
   );
-};
+});
