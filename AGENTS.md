@@ -128,5 +128,6 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-optimize application ensure every component which isnt being shown is not consuming proccessing (mv app logic to services, enure components are pure).
+GO ON
 ```
+

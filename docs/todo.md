@@ -1,14 +1,16 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [ACTIVE]
-- **Active Task**: Task 391 (Prompt 167): Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services
-- **Active Step**: Subtask 391.1: Audit and optimize components so that when hidden/closed/folded, processing, timers, intervals, and loops are halted, and unmounted/memoized cleanly.
+- **Active Task**: Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
+- **Active Step**: Subtask 372.1: Add `criteriaMatchAction` ("filter" | "highlight") with persistent preference in playback preferences and settings.
 - **Suspended Task**: None
 - **Next Tasks**:
-  - Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration
-  - Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection
-  - Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
+  - Later tasks backlog in `docs/tasks.md`
 - **Completed**:
+  - Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection
+  - Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration
+  - Task 391 (Prompt 167): Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services
+  - Hotfix (Prompt 168): Fix HMR Multi-Module Desync, Prettier Lint Errors & Clean Dev Server State
   - Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game
   - Task 388 (Prompt 154 - Chapter 3): Subtitles Table View Visible Global Row-Criteria, Dropdown Lists & Default Language Filtering
   - Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language

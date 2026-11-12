@@ -2139,5 +2139,83 @@ error 4: [APP_BOOT_ERROR] Application rendered error boundary: This page didn't 
 optimize application ensure every component which isnt being shown is not consuming proccessing (mv app logic to services, enure components are pure).
 ```
 
+---
 
+### Prompt 168: Fix Application Errors - TypeError Component is not a function & Null useState Dispatcher
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 1:50:14 AM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/ApkReleaseModal.tsx, /src/components/FloatingErrorButton.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/BottomLogViewer.tsx, /src/components/ShareStateModal.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+error 1: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Component is not a function
+error 2: [APP_PAGE_ERROR] This page didn't load: Component is not a function
+error 3: TypeError: Component is not a function
+    at Object.react_stack_bottom_frame (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:14140:12)
+    at renderWithHooks (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:4398:19)
+    at updateFunctionComponent (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:5773:16)
+    at beginWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:6389:20)
+    at runWithFiberInDEV (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:943:66)
+    at performUnitOfWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:9146:92)
+    at workLoopSync (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:9042:37)
+    at renderRootSync (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:9026:6)
+    at performWorkOnRoot (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:86
+    ... [stack truncated]
+error 4: TypeError: Component is not a function
+    at Object.react_stack_bottom_frame (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:14140:12)
+    at renderWithHooks (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:4398:19)
+    at updateFunctionComponent (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:5773:16)
+    at beginWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:6389:20)
+    at runWithFiberInDEV (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:943:66)
+    at performUnitOfWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:9146:92)
+    at workLoopSync (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:9042:37)
+    at renderRootSync (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:9026:6)
+    at performWorkOnRoot (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:87
+    ... [stack truncated]
+error 5: %o
+
+%s
+
+%s TypeError: Component is not a function
+    at Object.react_stack_bottom_frame (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:14140:12)
+    at renderWithHooks (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:4398:19)
+    at updateFunctionComponent (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:5773:16)
+    at beginWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:6389:20)
+    at runWithFiberInDEV (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:943:66)
+    at performUnitOfWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:9146:92)
+    at workLoopSync (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:9042:37)
+    ... [3 frames omitted]
+error 6: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+error 7: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Cannot read properties of null (reading 'useState')
+error 8: [APP_PAGE_ERROR] This page didn't load: Cannot read properties of null (reading 'useState')
+error 9: TypeError: Cannot read properties of null (reading 'useState')
+    at exports.useState (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react.js?v=841f7ed9:769:30)
+    at https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/src/components/LanguageBoxesSelector.tsx?t=1794448214466:23:40
+    at Object.react_stack_bottom_frame (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:14140:12)
+    at renderWithHooks (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:4398:19)
+    at updateFunctionComponent (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:5773:16)
+    at updateSimpleMemoComponent (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:5631:11)
+    at updateMemoComponent (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:5606:290)
+    at beginWork (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=43aa8690:6459:21)
+    at runWithFiberInDEV (https://ais-dev-wtbncte7cs3cmmhqsxhd4d-319144270628.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v
+    ... [stack truncated]
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 169: Go On (Execute Task 380 - Strict Sequential TTS Playback & Respect Audio Playing Duration)
+```
+GO ON
+```
+
+---
+
+### Prompt 170: Go On (Execute Task 381 - OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection)
+```
+GO ON
+```
 

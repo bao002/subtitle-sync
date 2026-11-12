@@ -524,8 +524,14 @@ type SpeechProgress = { lang: string; row: number; start: number; end: number } 
 type Theme = "light" | "dark" | "dark-blue";
 import { type PanelId, PANELS, ACCORDION_THEMES } from "@/config/accordionThemes";
 
+let activeSpeechJobId = 0;
+let speechQueueGeneration = 0;
+let activeSpeechQueue: Promise<void> = Promise.resolve();
+
 function cancelSpeech() {
+  speechQueueGeneration++;
   cancelAlternativeTtsAudio();
+  activeSpeechQueue = Promise.resolve();
   if (typeof window !== "undefined") {
     (window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null })._activeUtterance =
       null;
@@ -568,8 +574,6 @@ const getFixturesUrl = (video: string, lang: string) => {
   return `./fixtures/${video}/${lang}.json`;
 };
 
-let activeSpeechJobId = 0;
-
 function speak(
   text: string,
   lang: string,
@@ -578,32 +582,66 @@ function speak(
   row: number,
   onProgress: (value: SpeechProgress) => void,
   volume?: number,
-) {
+): Promise<void> {
   const currentJobId = ++activeSpeechJobId;
+  const currentGeneration = speechQueueGeneration;
+
+  // Queue speech execution onto activeSpeechQueue to preserve the full duration of currently playing audio
+  const queuedSpeech = activeSpeechQueue
+    .catch(() => {})
+    .then(async () => {
+      if (currentGeneration !== speechQueueGeneration) {
+        return; // Cancelled while waiting in queue
+      }
+      return executeSingleSpeech(
+        text,
+        lang,
+        rate,
+        voiceURI,
+        row,
+        onProgress,
+        volume,
+        currentJobId,
+        currentGeneration,
+      );
+    });
+
+  activeSpeechQueue = queuedSpeech.catch(() => {});
+  return queuedSpeech;
+}
+
+function executeSingleSpeech(
+  text: string,
+  lang: string,
+  rate: number,
+  voiceURI: string,
+  row: number,
+  onProgress: (value: SpeechProgress) => void,
+  volume?: number,
+  currentJobId?: number,
+  currentGeneration?: number,
+): Promise<void> {
   return new Promise<void>((res) => {
     void (async () => {
       if (!text) return res();
-
-      // Cancel any ongoing parallel audio playback before starting new speech
-      if (typeof window !== "undefined") {
-        cancelAlternativeTtsAudio();
-        if ("speechSynthesis" in window && window.speechSynthesis.speaking) {
-          try {
-            window.speechSynthesis.cancel();
-          } catch {
-            // ignore
-          }
-        }
+      if (currentGeneration !== undefined && currentGeneration !== speechQueueGeneration) {
+        return res();
       }
 
       const safeProgress = (val: SpeechProgress) => {
-        if (currentJobId === activeSpeechJobId) {
+        if (
+          (currentJobId === undefined || currentJobId === activeSpeechJobId) &&
+          (currentGeneration === undefined || currentGeneration === speechQueueGeneration)
+        ) {
           onProgress(val);
         }
       };
 
       const safeRes = () => {
-        if (currentJobId === activeSpeechJobId) {
+        if (
+          (currentJobId === undefined || currentJobId === activeSpeechJobId) &&
+          (currentGeneration === undefined || currentGeneration === speechQueueGeneration)
+        ) {
           res();
         }
       };
@@ -5569,7 +5607,8 @@ function Index() {
         }
       }
       if (!p?.getCurrentTime || busy.current || st.current.isSetupPaused) return;
-      if (activeTopTabRef.current === "playground" || showWordBalloonLearningViewRef.current) return;
+      if (activeTopTabRef.current === "playground" || showWordBalloonLearningViewRef.current)
+        return;
       const ms = p.getCurrentTime() * 1000;
       setPlaybackCurrentTime(ms / 1000);
       try {
@@ -13492,7 +13531,9 @@ function Index() {
           existingTrack={urlModalLang && tracks ? tracks[urlModalLang] : null}
         />
       )}
-      {apkModalOpen && <ApkReleaseModal isOpen={apkModalOpen} onClose={() => setApkModalOpen(false)} />}
+      {apkModalOpen && (
+        <ApkReleaseModal isOpen={apkModalOpen} onClose={() => setApkModalOpen(false)} />
+      )}
       {shareModalOpen && (
         <ShareStateModal
           open={shareModalOpen}

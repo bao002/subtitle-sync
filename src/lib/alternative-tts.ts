@@ -38,6 +38,7 @@ export const STORAGE_KEY_ALTERNATIVE_TTS_SPEAK_API_TOKEN = "yt_speak_api_token_v
 export const STORAGE_KEY_ALTERNATIVE_TTS_PROVIDER_API_KEY = "yt_provider_api_key_v1";
 export const STORAGE_KEY_ALTERNATIVE_TTS_ANONYMOUS_MODE = "yt_tts_anonymous_mode_v1";
 export const STORAGE_KEY_TTS_FALLBACK_ORDER = "yt_tts_fallback_order_v1";
+export const STORAGE_KEY_ALTERNATIVE_TTS_CUSTOM_AUTO_PROVIDERS = "yt_custom_auto_providers_v1";
 const STORAGE_KEY_REMOTE_TTS_VALIDATION_RESULT = "yt_remote_tts_val_res_v1";
 
 export type AlternativeTtsMode = "fallback_only" | "always";
@@ -50,6 +51,36 @@ export type LovableTtsFormat = "binary" | "json";
 export type TtsFallbackOrder = "tts3_native" | "native_tts3" | "native_only";
 
 export const DEFAULT_TTS_FALLBACK_ORDER: TtsFallbackOrder = "tts3_native";
+
+/**
+ * Standard list of concrete providers selectable for the "auto" custom provider pool.
+ */
+export const SELECTABLE_AUTO_PROVIDERS: readonly LovableTtsProvider[] = [
+  "google",
+  "lovable",
+  "openrouter",
+  "gemini",
+  "openai",
+  "elevenlabs",
+  "deepgram",
+];
+
+export const DEFAULT_CUSTOM_AUTO_PROVIDERS: LovableTtsProvider[] = [
+  "google",
+  "lovable",
+  "gemini",
+  "openrouter",
+];
+
+export interface ProviderTestResult {
+  provider: LovableTtsProvider;
+  ok: boolean;
+  statusCode?: number;
+  latencyMs: number;
+  audioUrl?: string;
+  error?: string;
+  details?: string;
+}
 
 const memoryFallbackStore: Record<string, string> = {};
 
@@ -83,6 +114,52 @@ export function setTtsFallbackOrder(order: TtsFallbackOrder): void {
     console.warn("Failed to persist TTS fallback order:", err);
   }
   memoryFallbackStore[STORAGE_KEY_TTS_FALLBACK_ORDER] = order;
+}
+
+/**
+ * Retrieves the user-configured list of providers to be included for "auto" selection.
+ */
+export function getCustomAutoProviders(): LovableTtsProvider[] {
+  try {
+    const raw =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(STORAGE_KEY_ALTERNATIVE_TTS_CUSTOM_AUTO_PROVIDERS)
+        : memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_CUSTOM_AUTO_PROVIDERS];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const valid = parsed.filter(
+          (p: unknown) =>
+            typeof p === "string" && (SELECTABLE_AUTO_PROVIDERS as readonly string[]).includes(p),
+        ) as LovableTtsProvider[];
+        if (valid.length > 0) return valid;
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return [...DEFAULT_CUSTOM_AUTO_PROVIDERS];
+}
+
+/**
+ * Persists the user-configured list of providers for "auto" selection.
+ */
+export function setCustomAutoProviders(providers: LovableTtsProvider[]): void {
+  const filtered = providers.filter((p) =>
+    (SELECTABLE_AUTO_PROVIDERS as readonly string[]).includes(p),
+  );
+  const toSave = filtered.length > 0 ? filtered : [...DEFAULT_CUSTOM_AUTO_PROVIDERS];
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(
+        STORAGE_KEY_ALTERNATIVE_TTS_CUSTOM_AUTO_PROVIDERS,
+        JSON.stringify(toSave),
+      );
+    }
+  } catch (err) {
+    console.warn("Failed to persist custom auto providers:", err);
+  }
+  memoryFallbackStore[STORAGE_KEY_ALTERNATIVE_TTS_CUSTOM_AUTO_PROVIDERS] = JSON.stringify(toSave);
 }
 
 /**
@@ -372,6 +449,7 @@ export interface LovableTtsOptions {
   method?: LovableTtsMethod;
   isAnonymous?: boolean;
   debug?: boolean;
+  interrupt?: boolean;
 }
 
 export interface LovableTtsRequestBody {
@@ -750,6 +828,18 @@ export function buildLovableTtsRequestBody(
       body.options = rawOptions as Record<string, unknown>;
     }
   }
+
+  // If provider is "auto", pass configured custom auto providers in options.providers
+  if (provider === "auto") {
+    const customAuto = getCustomAutoProviders();
+    if (!body.options) {
+      body.options = {};
+    }
+    if (!(body.options as Record<string, unknown>).providers) {
+      (body.options as Record<string, unknown>).providers = customAuto;
+    }
+  }
+
   if (targetLang && targetLang.trim()) {
     body.target_lang = targetLang.trim();
   }
@@ -1552,6 +1642,78 @@ export async function validateRemoteTtsService(
 }
 
 /**
+ * Tests audio generation for each provider defined in the OpenAPI specification.
+ * Synthesizes a short test audio clip for each provider, returns results with latency and audio URL,
+ * allowing live UI playback.
+ */
+export async function testAllOpenApiProviders(
+  text: string = "Hello, testing OpenAPI multi-provider speech synthesis.",
+  lang: string = "en",
+  providersToTest: readonly LovableTtsProvider[] = SELECTABLE_AUTO_PROVIDERS,
+  onProgress?: (completed: number, total: number, current: ProviderTestResult) => void,
+): Promise<ProviderTestResult[]> {
+  const results: ProviderTestResult[] = [];
+  const total = providersToTest.length;
+
+  for (let i = 0; i < total; i++) {
+    const provider = providersToTest[i];
+    const startTime = Date.now();
+    try {
+      const synthesized = await synthesizeLovableTtsAudio(
+        text,
+        lang,
+        {
+          provider,
+          speed: 1.0,
+          format: "json",
+        },
+        "test_button",
+      );
+
+      const latencyMs = Date.now() - startTime;
+      if (synthesized?.url) {
+        const item: ProviderTestResult = {
+          provider,
+          ok: true,
+          statusCode: 200,
+          latencyMs,
+          audioUrl: synthesized.url,
+          details: `Synthesized successfully (${latencyMs}ms)`,
+        };
+        results.push(item);
+        onProgress?.(i + 1, total, item);
+      } else {
+        const item: ProviderTestResult = {
+          provider,
+          ok: false,
+          statusCode: 500,
+          latencyMs,
+          error: "No audio stream returned",
+          details: "Audio synthesis returned null URL",
+        };
+        results.push(item);
+        onProgress?.(i + 1, total, item);
+      }
+    } catch (err) {
+      const latencyMs = Date.now() - startTime;
+      const errorMsg = (err as Error)?.message || String(err);
+      const item: ProviderTestResult = {
+        provider,
+        ok: false,
+        statusCode: 500,
+        latencyMs,
+        error: errorMsg,
+        details: `Synthesis failed: ${errorMsg}`,
+      };
+      results.push(item);
+      onProgress?.(i + 1, total, item);
+    }
+  }
+
+  return results;
+}
+
+/**
  * Fetches non-secret public service capabilities and provider availability from /api/public/info
  * according to the OpenAPI 3.1.0 specification.
  */
@@ -2064,11 +2226,30 @@ export function setLovableTtsApiKey(apiKey: string): void {
 
 let activeAlternativeAudio: HTMLAudioElement | null = null;
 let activeAudioReject: ((reason?: unknown) => void) | null = null;
+let activePlaybackQueue: Promise<void> = Promise.resolve();
+let isAudioPlaying = false;
+let audioQueueGeneration = 0;
 
 /**
- * Cancels any currently playing alternative TTS audio.
+ * Returns true if an alternative TTS audio stream is actively synthesizing, queued, or playing.
+ */
+export function isAlternativeTtsPlaying(): boolean {
+  return isAudioPlaying || Boolean(activeAlternativeAudio);
+}
+
+/**
+ * Awaits completion of all currently queued alternative TTS audio streams.
+ */
+export function waitForAllAlternativeTtsAudio(): Promise<void> {
+  return activePlaybackQueue.catch(() => {});
+}
+
+/**
+ * Cancels any currently playing alternative TTS audio and clears the queued playback pipeline.
  */
 export function cancelAlternativeTtsAudio(): void {
+  audioQueueGeneration++;
+  isAudioPlaying = false;
   if (activeAlternativeAudio) {
     try {
       activeAlternativeAudio.pause();
@@ -2083,10 +2264,13 @@ export function cancelAlternativeTtsAudio(): void {
     activeAudioReject(new Error("Alternative TTS cancelled"));
     activeAudioReject = null;
   }
+  activePlaybackQueue = Promise.resolve();
 }
 
 /**
  * Plays an audio stream from the configured alternative TTS service (Lovable Speak API or Google Translate).
+ * Respects playing duration: subsequent calls wait for active audio to complete before beginning playback,
+ * preventing overlapping speech or premature cutoffs unless interrupt: true is explicitly requested.
  */
 export async function playAlternativeTtsAudio(
   text: string,
@@ -2096,14 +2280,56 @@ export async function playAlternativeTtsAudio(
   engineOverride?: AlternativeTtsEngine,
   optionsOverride?: LovableTtsOptions,
 ): Promise<void> {
-  cancelAlternativeTtsAudio();
-
   if (!text || typeof window === "undefined") {
     return;
   }
 
+  if (optionsOverride?.interrupt) {
+    cancelAlternativeTtsAudio();
+  }
+
+  const myGeneration = audioQueueGeneration;
+
+  // Queue this playback so that preceding audio finishes its full playing duration
+  const queuedPlayback = activePlaybackQueue
+    .catch(() => {})
+    .then(async () => {
+      if (myGeneration !== audioQueueGeneration) {
+        return; // Cancelled while waiting in queue
+      }
+      return playSingleAlternativeTtsAudio(
+        text,
+        lang,
+        rate,
+        onProgress,
+        engineOverride,
+        optionsOverride,
+        myGeneration,
+      );
+    });
+
+  activePlaybackQueue = queuedPlayback.catch(() => {});
+  return queuedPlayback;
+}
+
+/**
+ * Internal single audio playback execution. Synthesizes and plays a single audio element
+ * to its complete finish (ended event).
+ */
+async function playSingleAlternativeTtsAudio(
+  text: string,
+  lang: string,
+  rate: number = 0.5,
+  onProgress?: (percent: number) => void,
+  engineOverride?: AlternativeTtsEngine,
+  optionsOverride?: LovableTtsOptions,
+  generation?: number,
+): Promise<void> {
+  if (generation !== undefined && generation !== audioQueueGeneration) {
+    return;
+  }
+
   const engine = engineOverride || getAlternativeTtsEngine();
-  const provider = optionsOverride?.provider || getLovableTtsProvider();
 
   let audioUrl = "";
   let shouldRevoke = false;
@@ -2121,6 +2347,16 @@ export async function playAlternativeTtsAudio(
       mergedOptions,
       optionsOverride ? "test_button" : "playback",
     );
+    if (generation !== undefined && generation !== audioQueueGeneration) {
+      if (synthesized?.url && synthesized.revokeOnDone) {
+        try {
+          URL.revokeObjectURL(synthesized.url);
+        } catch {
+          // ignore
+        }
+      }
+      return;
+    }
     if (synthesized?.url) {
       audioUrl = synthesized.url;
       shouldRevoke = Boolean(synthesized.revokeOnDone);
@@ -2129,11 +2365,12 @@ export async function playAlternativeTtsAudio(
     console.warn("[LovableTTS] Synthesis error, will attempt fallback:", err);
   }
 
-  if (!audioUrl) return;
+  if (!audioUrl || (generation !== undefined && generation !== audioQueueGeneration)) return;
 
   const isAnonymous = optionsOverride?.isAnonymous ?? getAlternativeTtsAnonymousMode();
 
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
+    isAudioPlaying = true;
     const audio = new Audio();
     if (isAnonymous) {
       audio.crossOrigin = "anonymous";
@@ -2154,6 +2391,7 @@ export async function playAlternativeTtsAudio(
     const cleanup = () => {
       if (hasEnded) return;
       hasEnded = true;
+      isAudioPlaying = false;
       if (watchdogTimer) {
         clearTimeout(watchdogTimer);
         watchdogTimer = null;

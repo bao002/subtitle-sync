@@ -4,8 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 169 (Task 380: Strict Sequential TTS Playback & Respect Audio Playing Duration):
+  - Task 380 [COMPLETED & VERIFIED]: Enqueued `playAlternativeTtsAudio` and `speak(...)` sequentially via `activePlaybackQueue` and `activeSpeechQueue`, preserving full audio duration without overlapping or cutoffs, verified cancellation flushes, added dedicated test `scripts/verify-tts-playback-duration-and-queue.ts`, bumped version to v2.1.93.
+  - Task 381 [ACTIVE]: OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection.
+- Prompt 168 (Hotfix: Fix HMR In-Memory Desynchronization, Prettier Lint Errors, and Fresh Dev Server State):
+  - Hotfix [COMPLETED & VERIFIED]: Diagnosed HMR multi-module replacement desynchronization between cached `react-dom_client` and pre-bundled `react.js`, restarted Vite dev server to guarantee clean uniform pre-bundled dependency hashes, fixed Prettier formatting issues in `src/routes/index.tsx`, verified 0 lint errors, zero build errors, all test suites passing, and bumped version to 2.1.92.
 - Prompt 167 (Task 391: Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services):
-  - Task 391 [ACTIVE]: Audit and optimize components to halt CPU processing, timers, intervals, and rendering when inactive/hidden, move application logic to service modules, and ensure components are pure.
+  - Task 391 [COMPLETED & VERIFIED]: Extracted pure logic to `componentOptimizationService.ts`, memoized 16 core UI components, gated background timers and animation frames, passed `verify-inactive-components-zero-processing.ts`.
 - Prompt 166 (Hotfix: Fix ReferenceError - TDZ on showWordBalloonLearningView in src/routes/index.tsx):
   - Hotfix [COMPLETED & VERIFIED]: Resolved TDZ ReferenceError by relocating the pause useEffect to after `showWordBalloonLearningView` is declared and initialized, passed `verify-hotfix-word-balloon-init.ts`, bumped version to 2.1.90.
 - Prompt 165 (Task 389: Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game):
