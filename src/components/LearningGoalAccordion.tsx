@@ -24,7 +24,7 @@ export interface LearningGoalAccordionProps {
  * - Pin/Unpin button to keep open indefinitely
  * - Activity listener (clicks, keys, pointer) resets timer
  */
-export const LearningGoalAccordion: React.FC<LearningGoalAccordionProps> = ({
+export const LearningGoalAccordion: React.FC<LearningGoalAccordionProps> = React.memo(({
   id,
   title,
   icon,
@@ -176,4 +176,4 @@ export const LearningGoalAccordion: React.FC<LearningGoalAccordionProps> = ({
       </div>
     </details>
   );
-};
+});

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RTL } from "@/lib/subtitles";
+import { createVisibilitySafeAnimationLoop } from "@/utils/componentOptimizationService";
 
 export interface CanvasBalloonGameProps {
   /** Current base language sentence (e.g. English) */
@@ -435,11 +436,9 @@ export const CanvasBalloonGame: React.FC<CanvasBalloonGameProps> = ({
     [soundEnabled, onSpeakText, targetLanguage],
   );
 
-  // Main Canvas Animation Render Loop
+  // Main Canvas Animation Render Loop (Visibility-safe: halts when tab hidden or canvas unmounted)
   useEffect(() => {
-    let animId: number;
-
-    const render = () => {
+    const loop = createVisibilitySafeAnimationLoop(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
@@ -617,15 +616,12 @@ export const CanvasBalloonGame: React.FC<CanvasBalloonGameProps> = ({
         ctx.fillText(displayText, tag.x, tag.y);
         ctx.restore();
       }
+    });
 
-      animId = requestAnimationFrame(render);
-    };
-
-    animId = requestAnimationFrame(render);
-    animFrameIdRef.current = animId;
+    loop.start();
 
     return () => {
-      if (animId) cancelAnimationFrame(animId);
+      loop.stop();
     };
   }, []);
 

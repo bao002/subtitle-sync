@@ -4968,6 +4968,11 @@ function Index() {
     return false;
   });
 
+  const showWordBalloonLearningViewRef = useRef<boolean>(showWordBalloonLearningView);
+  useEffect(() => {
+    showWordBalloonLearningViewRef.current = showWordBalloonLearningView;
+  }, [showWordBalloonLearningView]);
+
   const handleToggleWordBalloonLearningView = useCallback(() => {
     setShowWordBalloonLearningView((prev) => {
       const next = !prev;
@@ -5564,7 +5569,7 @@ function Index() {
         }
       }
       if (!p?.getCurrentTime || busy.current || st.current.isSetupPaused) return;
-      if (activeTopTabRef.current === "playground") return;
+      if (activeTopTabRef.current === "playground" || showWordBalloonLearningViewRef.current) return;
       const ms = p.getCurrentTime() * 1000;
       setPlaybackCurrentTime(ms / 1000);
       try {
@@ -5620,6 +5625,11 @@ function Index() {
         });
       } catch (_err) {
         // ignore media sync error
+      }
+
+      if (!curPlaying && !speakingLangRef.current && !busy.current) {
+        // Paused and not speaking: zero-processing for row evaluations & speech synthesis triggers
+        return;
       }
 
       const {
@@ -13447,10 +13457,10 @@ function Index() {
         data-testid="bottom-log-viewer-container"
         className={showBottomLogViewer ? "block" : "hidden"}
       >
-        <BottomLogViewer />
+        <BottomLogViewer isVisible={showBottomLogViewer} />
       </div>
 
-      {isDeveloperMode && debugMode && (
+      {isDeveloperMode && debugMode && networkInspectorOpen && (
         <NetworkRequestsInspector
           isOpen={networkInspectorOpen}
           onClose={() => setNetworkInspectorOpen(false)}
@@ -13465,45 +13475,51 @@ function Index() {
           onUpdateFetchServerUrl={handleUpdateFetchServerUrl}
         />
       )}
-      {isDeveloperMode && debugMode && (
+      {isDeveloperMode && debugMode && actionLogsOpen && (
         <StateMachineActionLogsInspector
           isOpen={actionLogsOpen}
           onClose={() => setActionLogsOpen(false)}
         />
       )}
-      <LanguageSubtitleUrlModal
-        isOpen={urlModalLang !== null}
-        onClose={() => setUrlModalLang(null)}
-        langCode={urlModalLang}
-        langName={urlModalLang ? getLanguageMeta(urlModalLang).name : ""}
-        currentVideoId={videoId}
-        onSaveTrack={handleSaveTrackFromUrl}
-        existingTrack={urlModalLang && tracks ? tracks[urlModalLang] : null}
-      />
-      <ApkReleaseModal isOpen={apkModalOpen} onClose={() => setApkModalOpen(false)} />
-      <ShareStateModal
-        open={shareModalOpen}
-        onOpenChange={setShareModalOpen}
-        videoId={videoId}
-        baseLanguage={baseLanguage || "en"}
-        targetLanguages={targetLanguages}
-        observedUrl={
-          observedUrl ||
-          (typeof window !== "undefined"
-            ? window.AndroidNativeShell?.getLastObservedTimedTextUrl?.()
-            : undefined)
-        }
-        rawJson3Track={tracks && baseLanguage ? tracks[baseLanguage] : null}
-        openRouterApiKey={getOpenRouterApiKeySetting()}
-        ttsProvider={lovableTtsProviderState}
-        isAndroid={isAndroid}
-      />
-      <SettingsBackupModal
-        isOpen={isSettingsBackupModalOpen}
-        initialTab={settingsBackupModalTab}
-        onClose={() => setIsSettingsBackupModalOpen(false)}
-        onSettingsImported={handleSettingsImported}
-      />
+      {urlModalLang !== null && (
+        <LanguageSubtitleUrlModal
+          isOpen={urlModalLang !== null}
+          onClose={() => setUrlModalLang(null)}
+          langCode={urlModalLang}
+          langName={urlModalLang ? getLanguageMeta(urlModalLang).name : ""}
+          currentVideoId={videoId}
+          onSaveTrack={handleSaveTrackFromUrl}
+          existingTrack={urlModalLang && tracks ? tracks[urlModalLang] : null}
+        />
+      )}
+      {apkModalOpen && <ApkReleaseModal isOpen={apkModalOpen} onClose={() => setApkModalOpen(false)} />}
+      {shareModalOpen && (
+        <ShareStateModal
+          open={shareModalOpen}
+          onOpenChange={setShareModalOpen}
+          videoId={videoId}
+          baseLanguage={baseLanguage || "en"}
+          targetLanguages={targetLanguages}
+          observedUrl={
+            observedUrl ||
+            (typeof window !== "undefined"
+              ? window.AndroidNativeShell?.getLastObservedTimedTextUrl?.()
+              : undefined)
+          }
+          rawJson3Track={tracks && baseLanguage ? tracks[baseLanguage] : null}
+          openRouterApiKey={getOpenRouterApiKeySetting()}
+          ttsProvider={lovableTtsProviderState}
+          isAndroid={isAndroid}
+        />
+      )}
+      {isSettingsBackupModalOpen && (
+        <SettingsBackupModal
+          isOpen={isSettingsBackupModalOpen}
+          initialTab={settingsBackupModalTab}
+          onClose={() => setIsSettingsBackupModalOpen(false)}
+          onSettingsImported={handleSettingsImported}
+        />
+      )}
       <SubtitleFetchToast
         onViewSubtitles={() => {
           setOpenPanels((prev) => ({ ...prev, subtitles: true }));
@@ -13541,25 +13557,28 @@ function Index() {
           onToggleAutoRetry={handleToggleAutoRetry}
           debugMode={debugMode}
           defaultMinimized={true}
+          isVisible={showAutoFetchSubtitles}
         />
       </div>
-      <VideoMetadataModal
-        open={videoMetadataModalOpen}
-        onOpenChange={setVideoMetadataModalOpen}
-        metadata={videoMetadata}
-        videoId={videoId}
-        onRefreshMetadata={() => {
-          if (!videoId) return;
-          fetchVideoMetadata(videoId, {
-            forceRefresh: true,
-            player: player.current,
-          }).then((meta) => {
-            if (meta) {
-              setVideoMetadata({ ...meta });
-            }
-          });
-        }}
-      />
+      {videoMetadataModalOpen && (
+        <VideoMetadataModal
+          open={videoMetadataModalOpen}
+          onOpenChange={setVideoMetadataModalOpen}
+          metadata={videoMetadata}
+          videoId={videoId}
+          onRefreshMetadata={() => {
+            if (!videoId) return;
+            fetchVideoMetadata(videoId, {
+              forceRefresh: true,
+              player: player.current,
+            }).then((meta) => {
+              if (meta) {
+                setVideoMetadata({ ...meta });
+              }
+            });
+          }}
+        />
+      )}
       {showCanvasBalloonGame && (
         <CanvasBalloonGame
           currentSentence={currentAlternativeSentence}

@@ -64,7 +64,7 @@ const PLAYBACK_RATES = [0.5, 0.75, 1.0, 1.25, 1.5, 2.0];
  * Provides large, accessible touch targets for Play/Pause, timeline scrubbing,
  * quick +/- 5s skips, subtitle section jumps, and playback rate adjustments.
  */
-export const VideoPlaybackControls: React.FC<VideoPlaybackControlsProps> = ({
+export const VideoPlaybackControls: React.FC<VideoPlaybackControlsProps> = React.memo(({
   isPlaying,
   currentTimeSec,
   durationSec,
@@ -370,6 +370,6 @@ export const VideoPlaybackControls: React.FC<VideoPlaybackControlsProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default VideoPlaybackControls;

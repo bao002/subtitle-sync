@@ -4,7 +4,12 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [ACTIVE]**
+- [ ] **Task 391 (Prompt 167): Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services [ACTIVE]**
+  - [ ] Subtask 391.1: Audit and optimize components so that when hidden/closed/folded (e.g. collapsed accordion sections, closed dialogs, inactive tabs/stages, background inspectors, canvas game), their timers, intervals, animation frames, and heavy DOM computations are paused/stopped or unmounted.
+  - [ ] Subtask 391.2: Move application business logic from UI components to service modules/managers, and ensure components are pure (memoized with `React.memo`, callbacks with `useCallback`, computations with `useMemo`).
+  - [ ] Subtask 391.3: Add dedicated test `scripts/verify-inactive-components-zero-processing.ts`, verify compilation (`compile_applet`), linting (`lint_applet`), bump version, commit, and migrate Task 391 to `docs/done.md`.
+
+- [ ] **Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [PENDING]**
   - [ ] Subtask 380.1: Ensure `playAlternativeTtsAudio` and `speak(...)` strictly respect the full playing duration of fetched audio without premature cutoff or starting overlapping speech before completion.
   - [ ] Subtask 380.2: Implement sequential speech queue / promise chaining so concurrent speech requests wait for the active playback to complete or terminate cleanly.
   - [ ] Subtask 380.3: Add dedicated test `scripts/verify-tts-playback-duration-and-queue.ts`, verify app compilation and linting, bump version, commit, and migrate Task 380 to `docs/done.md`.

@@ -47,7 +47,7 @@ export interface LanguageBoxesSelectorProps {
  * Clicked / selected languages are kept strictly at the top of the list.
  * Provides dedicated expand buttons on each language button to input subtitle URLs per language.
  */
-export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
+export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = React.memo(({
   catalog,
   selectedLanguages,
   onSelectionChange,
@@ -616,4 +616,4 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = ({
       </p>
     </div>
   );
-};
+});

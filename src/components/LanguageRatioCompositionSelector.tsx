@@ -25,7 +25,7 @@ export interface LanguageRatioCompositionSelectorProps {
  */
 export const LanguageRatioCompositionSelector: React.FC<
   LanguageRatioCompositionSelectorProps
-> = ({
+> = React.memo(({
   activeCompositionId,
   onSelectComposition,
   onSaveProfile,
@@ -293,4 +293,4 @@ export const LanguageRatioCompositionSelector: React.FC<
       </div>
     </div>
   );
-};
+});

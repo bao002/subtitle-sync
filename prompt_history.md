@@ -2132,5 +2132,12 @@ error 4: [APP_BOOT_ERROR] Application rendered error boundary: This page didn't 
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 167: Optimize Application - Pause Processing for Inactive/Hidden Components, Move App Logic to Services, Ensure Pure Components
+```
+optimize application ensure every component which isnt being shown is not consuming proccessing (mv app logic to services, enure components are pure).
+```
+
 
 

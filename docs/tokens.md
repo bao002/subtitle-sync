@@ -4,11 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 167 (Task 391: Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services):
+  - Task 391 [ACTIVE]: Audit and optimize components to halt CPU processing, timers, intervals, and rendering when inactive/hidden, move application logic to service modules, and ensure components are pure.
 - Prompt 166 (Hotfix: Fix ReferenceError - TDZ on showWordBalloonLearningView in src/routes/index.tsx):
-  - Hotfix [ACTIVE]: Resolve TDZ ReferenceError by relocating the pause useEffect to after `showWordBalloonLearningView` is declared and initialized.
+  - Hotfix [COMPLETED & VERIFIED]: Resolved TDZ ReferenceError by relocating the pause useEffect to after `showWordBalloonLearningView` is declared and initialized, passed `verify-hotfix-word-balloon-init.ts`, bumped version to 2.1.90.
 - Prompt 165 (Task 389: Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game):
   - Task 389 [COMPLETED & VERIFIED]: Removed video player constraints, URL input, and video display controls from Word Balloons/Learning game stage in `BeginnerVideoTab.tsx`, added auto-pause of video playback on entering game view or Stage 5 in `src/routes/index.tsx`, verified zero video distractions and 100% pure learning games with "Back to Video" control, passed `verify-word-balloons-stage-no-video.ts`, bumped version to 2.1.89.
-  - Task 380 [ACTIVE]: Strict sequential TTS playback and respect audio playing duration.
+  - Task 380 [PENDING]: Strict sequential TTS playback and respect audio playing duration.
 - Prompt 164 (Diagnostic Fix-It Check & Dev Server Clean State):
   - Hotfix [COMPLETED & VERIFIED]: Diagnosed Vite client HMR notification log, confirmed clean zero-error build via `compile_applet` and 0 lint warnings via `lint_applet`, refreshed dev server to ensure clean in-memory state.
 - Prompt 163 (Task 388: Visible Global Row-Criteria in Subtitles Table View, Learning Goals Dropdown Lists, Per-Language Row-Criteria & Default Language Filtering):

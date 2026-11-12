@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { RTL } from "@/lib/subtitles";
 import type { SpeechProgress } from "@/components/HighlightedSubtitle";
+import { tokenizeSentenceToWordTokens } from "@/utils/componentOptimizationService";
 
 export interface AlternativeVideoPlayerViewProps {
   /** Active base language sentence text */
@@ -114,7 +115,7 @@ function tokenizeWords(text: string): Array<{ word: string; start: number; end: 
  * Allows inspecting the current sentence, active part-sentence / part-word, and translation
  * to the current TTS-play language with word-level highlighting.
  */
-export const AlternativeVideoPlayerView: React.FC<AlternativeVideoPlayerViewProps> = ({
+export const AlternativeVideoPlayerView: React.FC<AlternativeVideoPlayerViewProps> = React.memo(({
   currentSentence,
   baseLanguage,
   baseLanguageName,
@@ -145,8 +146,8 @@ export const AlternativeVideoPlayerView: React.FC<AlternativeVideoPlayerViewProp
   const [copied, setCopied] = useState(false);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
 
-  const baseWords = useMemo(() => tokenizeWords(currentSentence), [currentSentence]);
-  const translationWords = useMemo(() => tokenizeWords(targetTranslation), [targetTranslation]);
+  const baseWords = useMemo(() => tokenizeSentenceToWordTokens(currentSentence), [currentSentence]);
+  const translationWords = useMemo(() => tokenizeSentenceToWordTokens(targetTranslation), [targetTranslation]);
 
   const isBaseRtl = RTL.has(baseLanguage);
   const isTargetRtl = RTL.has(targetTtsLang);
@@ -567,4 +568,4 @@ export const AlternativeVideoPlayerView: React.FC<AlternativeVideoPlayerViewProp
       </div>
     </div>
   );
-};
+});

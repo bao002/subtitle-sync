@@ -68,7 +68,7 @@ export interface TtsServiceSettingsPanelProps {
  * - When provider is keyed (openrouter, openai, elevenlabs, etc.): dynamically shows provider voices and token input
  * - Single validate button + single test audio button
  */
-export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = ({
+export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = React.memo(({
   mode,
   onModeChange,
   engine,
@@ -598,4 +598,4 @@ export const TtsServiceSettingsPanel: React.FC<TtsServiceSettingsPanelProps> = (
       {showDebugger && debuggerEnabled && <ExternalTtsDebuggerPanel className="mt-2" />}
     </div>
   );
-};
+});

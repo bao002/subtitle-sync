@@ -12,7 +12,7 @@ export interface GlobalFavoriteLanguagesPanelProps {
   className?: string;
 }
 
-export function GlobalFavoriteLanguagesPanel({
+export const GlobalFavoriteLanguagesPanel = React.memo(function GlobalFavoriteLanguagesPanel({
   catalog,
   favoriteLanguages,
   targetLanguages,
@@ -155,4 +155,4 @@ export function GlobalFavoriteLanguagesPanel({
       </p>
     </section>
   );
-}
+});

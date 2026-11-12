@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import React, { useState, useEffect, useRef, useSyncExternalStore, useMemo, memo } from "react";
 import { Activity, AlertTriangle, Check, Copy, Trash2, ChevronUp, ChevronDown, ListFilter, Workflow } from "lucide-react";
 import { getLogEntriesSnapshot, logBuffer, subscribeToLogEntries, copyAllLogToClipboard, type LogEntry } from "@/utils/logBuffer";
 import { Button } from "@/components/ui/button";
+import { filterLogEntriesOptimized } from "@/utils/componentOptimizationService";
 
 function formatDetails(details: unknown): string {
   if (typeof details === "string") return details;
@@ -15,11 +16,13 @@ function formatDetails(details: unknown): string {
 interface BottomLogViewerProps {
   className?: string;
   defaultExpanded?: boolean;
+  isVisible?: boolean;
 }
 
-export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
+export const BottomLogViewer: React.FC<BottomLogViewerProps> = memo(({
   className = "",
   defaultExpanded = false,
+  isVisible = true,
 }) => {
   const entries = useSyncExternalStore(
     subscribeToLogEntries,
@@ -67,12 +70,9 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
     };
   }, []);
 
-  const visibleEntries = entries.filter((entry) => {
-    if (filterLevel === "ACTIONS_ERRORS") {
-      return entry.level === "ACTION" || entry.level === "ERROR";
-    }
-    return true;
-  });
+  const visibleEntries = useMemo(() => {
+    return filterLogEntriesOptimized(entries, filterLevel, isVisible && isExpanded);
+  }, [entries, filterLevel, isVisible, isExpanded]);
 
   const latestEntry = entries.length > 0 ? entries[entries.length - 1] : null;
 
@@ -345,5 +345,5 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = ({
       )}
     </footer>
   );
-};
+});
 

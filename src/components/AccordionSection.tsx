@@ -22,7 +22,7 @@ export interface AccordionSectionProps {
   autoTimeout?: boolean;
 }
 
-export function AccordionSection({
+export const AccordionSection = React.memo(function AccordionSection({
   id,
   title,
   videoId,
@@ -221,4 +221,4 @@ export function AccordionSection({
       <div className="border-t border-border p-2 sm:p-3">{children}</div>
     </details>
   );
-}
+});

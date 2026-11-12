@@ -39,7 +39,7 @@ export interface LearningGoalsFiltersPanelProps {
  * 2. Set per-language max words allowed for translation (skipping translation for languages exceeding limit).
  * 3. Toggle skipping incomplete sentences (records not ending with ',', '.', '?', '!').
  */
-export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps> = ({
+export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps> = React.memo(({
   maxWords,
   onMaxWordsChange,
   skipIncompleteSentences,
@@ -551,4 +551,4 @@ export const LearningGoalsFiltersPanel: React.FC<LearningGoalsFiltersPanelProps>
       </div>
     </div>
   );
-};
+});

@@ -127,38 +127,6 @@ The application processes and presents subtitles through a strict sequential pip
 - **Historic prompts tracking in `prompt_history.md`**: Always record and preserve all historic prompts in `prompt_history.md`.
 
 ## Last raw prompt
-
 ```
-Fix the errors in the app
-[AIS_METADATA_SECTION_START]
-fix_it_trigger: manual
-error 0: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Cannot access 'showWordBalloonLearningView' before initialization
-error 1: [APP_PAGE_ERROR] This page didn't load: Cannot access 'showWordBalloonLearningView' before initialization
-error 2: ReferenceError: Cannot access 'showWordBalloonLearningView' before initialization
-    at Index (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/src/routes/index.tsx:2691:3)
-    at Object.react_stack_bottom_frame (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:14140:12)
-    at renderWithHooks (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:4398:19)
-    at updateFunctionComponent (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:5773:16)
-    at beginWork (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:6389:20)
-    at runWithFiberInDEV (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:943:66)
-    at performUnitOfWork (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:9146:92)
-    at workLoopSync (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:9042:37)
-    at renderRootSync (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:9026:
-    ... [stack truncated]
-error 3: %o
-
-%s
-
-%s ReferenceError: Cannot access 'showWordBalloonLearningView' before initialization
-    at Index (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/src/routes/index.tsx:2691:3)
-    at Object.react_stack_bottom_frame (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:14140:12)
-    at renderWithHooks (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:4398:19)
-    at updateFunctionComponent (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:5773:16)
-    at beginWork (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:6389:20)
-    at runWithFiberInDEV (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:943:66)
-    at performUnitOfWork (https://ais-dev-uvsarytusbzcdqwxqptrho-778504381984.europe-west2.run.app/node_modules/.vite/deps/react-dom_client.js?v=841f7ed9:9146:92)
-    ... [3 frames omitted]
-error 4: [APP_BOOT_ERROR] Application rendered error boundary: This page didn't load
-[AIS_METADATA_SECTION_END]
+optimize application ensure every component which isnt being shown is not consuming proccessing (mv app logic to services, enure components are pure).
 ```
-

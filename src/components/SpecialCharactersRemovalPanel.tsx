@@ -21,7 +21,7 @@ export interface SpecialCharactersRemovalPanelProps {
   onResetDefaults?: () => void;
 }
 
-export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPanelProps> = ({
+export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPanelProps> = React.memo(({
   stripSpeakerBrackets,
   onStripSpeakerBracketsChange,
   removeChars,
@@ -316,4 +316,4 @@ export const SpecialCharactersRemovalPanel: React.FC<SpecialCharactersRemovalPan
       </div>
     </div>
   );
-};
+});

@@ -41,9 +41,10 @@ export interface FloatingSubtitleRetryIndicatorProps {
   floating?: boolean;
   debugMode?: boolean;
   defaultMinimized?: boolean;
+  isVisible?: boolean;
 }
 
-export function FloatingSubtitleRetryIndicator({
+export const FloatingSubtitleRetryIndicator = React.memo(function FloatingSubtitleRetryIndicator({
   targetLanguages,
   tracks,
   onFetchLanguage,
@@ -55,6 +56,7 @@ export function FloatingSubtitleRetryIndicator({
   floating = false,
   debugMode,
   defaultMinimized = true,
+  isVisible = true,
 }: FloatingSubtitleRetryIndicatorProps) {
   // Determine if debug / developer mode is active (either via prop or developer mode setting)
   const isDebug = debugMode !== undefined ? debugMode : isDeveloperModeEnabled();
@@ -142,8 +144,8 @@ export function FloatingSubtitleRetryIndicator({
       return;
     }
 
-    // If user paused or auto-retry disabled or already actively fetching, hold off
-    if (isPaused || isFetching) {
+    // If not visible, or user paused, or auto-retry disabled, or already actively fetching, hold off
+    if (!isVisible || isPaused || isFetching) {
       clearTimers();
       return;
     }
@@ -175,6 +177,7 @@ export function FloatingSubtitleRetryIndicator({
     pendingLanguages.length,
     isPaused,
     isFetching,
+    isVisible,
     minPacingSec,
     maxPacingSec,
     triggerNextFetch,
@@ -517,4 +520,4 @@ export function FloatingSubtitleRetryIndicator({
       </div>
     </div>
   );
-}
+});

@@ -49,7 +49,7 @@ interface Props {
   onApplySubtitles?: (lang: string, json: Json3) => void;
 }
 
-export const AttemptOrderSettings: React.FC<Props> = ({
+export const AttemptOrderSettings: React.FC<Props> = React.memo(({
   order,
   onChangeOrder,
   promoteSuccess,
@@ -469,7 +469,7 @@ export const AttemptOrderSettings: React.FC<Props> = ({
         />
       )}
 
-      {winnerPromotionEnabled && (
+      {winnerPromotionEnabled && showWinnerReport && (
         <WinnerPromotionReportModal
           isOpen={showWinnerReport}
           onClose={() => setShowWinnerReport(false)}
@@ -478,4 +478,4 @@ export const AttemptOrderSettings: React.FC<Props> = ({
       )}
     </div>
   );
-};
+});
