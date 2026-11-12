@@ -4,23 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 391 (Prompt 167): Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services [ACTIVE]**
-  - [ ] Subtask 391.1: Audit and optimize components so that when hidden/closed/folded (e.g. collapsed accordion sections, closed dialogs, inactive tabs/stages, background inspectors, canvas game), their timers, intervals, animation frames, and heavy DOM computations are paused/stopped or unmounted.
-  - [ ] Subtask 391.2: Move application business logic from UI components to service modules/managers, and ensure components are pure (memoized with `React.memo`, callbacks with `useCallback`, computations with `useMemo`).
-  - [ ] Subtask 391.3: Add dedicated test `scripts/verify-inactive-components-zero-processing.ts`, verify compilation (`compile_applet`), linting (`lint_applet`), bump version, commit, and migrate Task 391 to `docs/done.md`.
-
-- [ ] **Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [PENDING]**
-  - [ ] Subtask 380.1: Ensure `playAlternativeTtsAudio` and `speak(...)` strictly respect the full playing duration of fetched audio without premature cutoff or starting overlapping speech before completion.
-  - [ ] Subtask 380.2: Implement sequential speech queue / promise chaining so concurrent speech requests wait for the active playback to complete or terminate cleanly.
-  - [ ] Subtask 380.3: Add dedicated test `scripts/verify-tts-playback-duration-and-queue.ts`, verify app compilation and linting, bump version, commit, and migrate Task 380 to `docs/done.md`.
-
-- [ ] **Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection [PENDING]**
-  - [ ] Subtask 381.1: In `TtsServiceSettingsPanel.tsx`, add "Generate Response" / "Test All Providers" feature that fetches audio from each provider defined in the OpenAPI spec.
-  - [ ] Subtask 381.2: Allow testing/playing each generated provider audio clip directly in the UI.
-  - [ ] Subtask 381.3: Allow user to select/customize which providers to include when calling `/api/public/auto` (or custom provider list) and save preference.
-  - [ ] Subtask 381.4: Add dedicated test `scripts/verify-tts-openapi-multi-provider-testing.ts`, verify app compilation and linting, bump version, commit, and migrate Task 381 to `docs/done.md`.
-
-- [ ] **Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle [PENDING]**
+- [ ] **Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle [ACTIVE]**
   - [ ] Subtask 372.1: Add `criteriaMatchAction` ("filter" | "highlight") with persistent preference in playback preferences and settings.
   - [ ] Subtask 372.2: Add visual toggle button ("Filter Out" vs "Highlight Matching") to `SubtitlesTablePanel.tsx` row criteria header.
   - [ ] Subtask 372.3: In "highlight" mode, display all sentences in `SubtitlesTablePanel.tsx` while highlighting matching sentences with distinct visual styling and test IDs (`data-testid="row-criteria-highlighted"`).

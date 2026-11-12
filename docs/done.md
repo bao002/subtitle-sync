@@ -1,5 +1,127 @@
 # Done tasks
 
+### Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection
+
+- **Prompt**:
+  ```
+  openapi multi-provider testing, live audio playback for each generated clip, and customizable provider selection for auto synthesis fallback.
+  ```
+- **Scope & Objectives**:
+  - Implement OpenAPI multi-provider response testing (`testAllOpenApiProviders`), generating test audio for all providers defined in the OpenAPI spec (`google`, `lovable`, `openrouter`, `gemini`, `openai`, `elevenlabs`, `deepgram`).
+  - Render interactive playback cards for each tested provider in `TtsServiceSettingsPanel.tsx`, allowing users to listen to and verify each provider's synthesized audio clip directly in the UI.
+  - Enable custom selection of providers to include when using `/api/public/auto` (or fallback pool) with persistent settings (`getCustomAutoProviders`, `setCustomAutoProviders`, and checkbox toggles).
+  - Automatically pass custom auto providers into `options.providers` in `buildLovableTtsRequestBody` when `provider: "auto"` is selected.
+- **Architectural Implementation**:
+  1. `src/lib/alternative-tts.ts`:
+     - Added `SELECTABLE_AUTO_PROVIDERS` and `DEFAULT_CUSTOM_AUTO_PROVIDERS`.
+     - Implemented `getCustomAutoProviders(): LovableTtsProvider[]` and `setCustomAutoProviders(providers)`.
+     - Implemented `testAllOpenApiProviders(text, lang, providers, onProgress): Promise<ProviderTestResult[]>`.
+     - Injected configured auto providers into `body.options.providers` when `provider === "auto"`.
+  2. `src/components/TtsServiceSettingsPanel.tsx`:
+     - Added "Test All Providers (OpenAPI)" action button with progress indicator.
+     - Added responsive grid of provider test result cards showing latency, status, details, and live "Play Clip" buttons.
+     - Added "Custom Auto Provider Pool" checkbox selector when `provider: "auto"` is chosen, allowing full customization of the auto fallback pool.
+- **Testing & Verification**:
+  - `scripts/verify-tts-openapi-multi-provider-testing.ts` (`npm run test:tts-openapi-multi-provider-testing`): PASSED.
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: 0 errors, 0 warnings.
+  - Bumped version to `v2.1.94` in `package.json` and synchronized `android-shell/app/build.gradle.kts`.
+
+
+### Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration
+
+- **Prompt**:
+  ```
+  tts-play and playing fetched audio from tts-service - respect the playing duration and dont start play another thing untill the first play is accomplished.
+  ```
+- **Scope & Objectives**:
+  - Guarantee that `playAlternativeTtsAudio` and `speak(...)` strictly respect the full playing duration of synthesized and fetched audio.
+  - Eliminate premature cutoffs and overlapping audio speech by chaining playback execution sequentially via promise-based audio queues.
+  - Retain `cancelSpeech()` and `cancelAlternativeTtsAudio()` strictly for intentional user cancellations (pause, stop, scrub, seek) while preventing automatic pre-speech cancellations from aborting concurrent utterances.
+  - Implement `isAlternativeTtsPlaying()` and `waitForAllAlternativeTtsAudio()` utilities to allow coordination hooks to monitor audio playback state.
+- **Architectural Implementation**:
+  1. `src/lib/alternative-tts.ts`:
+     - Added `isAlternativeTtsPlaying(): boolean` and `waitForAllAlternativeTtsAudio(): Promise<void>`.
+     - Added `interrupt?: boolean` to `LovableTtsOptions` allowing explicit interruption only when intended.
+     - Implemented `activePlaybackQueue` chaining in `playAlternativeTtsAudio(...)`, ensuring each audio element plays to its `ended` event before the next begins.
+     - Added `audioQueueGeneration` counter in `cancelAlternativeTtsAudio()` to immediately abort queued or pending promises upon user stop/seek.
+  2. `src/routes/index.tsx`:
+     - Implemented `activeSpeechQueue` in `speak(...)` chaining calls sequentially through `executeSingleSpeech(...)`.
+     - Removed automatic pre-speech `cancelAlternativeTtsAudio()` / `window.speechSynthesis.cancel()` from the beginning of `speak(...)`, allowing multi-word pronunciations (e.g., word in target language, then translation in base language) to play consecutively without interruption.
+     - Updated `cancelSpeech()` to increment `speechQueueGeneration`, flush `activeSpeechQueue`, and cleanly halt native/external speech.
+- **Testing & Verification**:
+  - `scripts/verify-tts-playback-duration-and-queue.ts` (`npm run test:tts-playback-duration-and-queue`): PASSED.
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: 0 errors, 0 warnings.
+  - Synchronized version to `v2.1.93` in `package.json` and `android-shell/app/build.gradle.kts`.
+
+
+### Task 391 (Prompt 167): Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services
+
+- **Prompt**:
+  ```
+  optimize application ensure every component which isnt being shown is not consuming proccessing (mv app logic to services, enure components are pure).
+  ```
+- **Scope & Objectives**:
+  - Audit all core application components to ensure zero processing overhead when unmounted, collapsed, closed, or hidden.
+  - Halt timers, intervals, animation frame requests, and heavy DOM computations when elements are inactive.
+  - Move application business logic from UI components into dedicated pure service modules (`src/utils/componentOptimizationService.ts`).
+  - Guarantee UI components are pure and memoized (`React.memo`, `useMemo`, `useCallback`) to avoid cascading re-renders.
+- **Architectural Implementation**:
+  1. Created `src/utils/componentOptimizationService.ts` containing pure service methods:
+     - `filterSubtitleRowsByCriteria`: extracted row filtering logic from `SubtitlesTablePanel`.
+     - `filterLogEntriesOptimized`: returns empty array when viewer is collapsed to consume 0 processing.
+     - `tokenizeSentenceToWordTokens`: extracted word tokenization from `AlternativeVideoPlayerView` / `WordBalloonLearningView`.
+     - `createVisibilitySafeAnimationLoop`: visibility-aware animation loop pausing on `document.hidden`.
+     - `shouldComponentProcess`: visibility gate for component processing.
+  2. Applied `React.memo` across 16 core UI components:
+     - `SubtitlesTablePanel`, `BottomLogViewer`, `AlternativeVideoPlayerView`, `LanguageBoxesSelector`, `LanguageRatioCompositionSelector`, `SpecialCharactersRemovalPanel`, `VideoPlaybackControls`, `VideoPlaybackPrecedenceBar`, `TtsServiceSettingsPanel`, `AttemptOrderSettings`, `FloatingDraggablePauseButton`, `FloatingSubtitleRetryIndicator`, `LearningGoalsFiltersPanel`, `LearningGoalAccordion`, `AccordionSection`, `BeginnerFlowContainer`.
+  3. Gated background processing:
+     - Modals and debug inspectors (`StateMachineActionLogsInspector`, `ApkReleaseModal`, etc.) conditionally unmounted when closed.
+     - `FloatingSubtitleRetryIndicator` halts countdown timers when invisible.
+     - `CanvasBalloonGame` uses `createVisibilitySafeAnimationLoop` pausing 60 FPS animation when tab is hidden.
+- **Testing & Verification**:
+  - `npm run test:inactive-components-zero-processing`: PASSED (3/3 checks passed).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: 0 errors, 0 warnings.
+  - `npm run build`: Production build succeeded.
+
+### Hotfix (Prompt 168): Fix Vite HMR Multi-Module Desync, Prettier Lint Errors & Clean Dev Server State
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: 1:50:14 AM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, ...
+  error 1: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Component is not a function
+  error 2: [APP_PAGE_ERROR] This page didn't load: Component is not a function
+  error 3: TypeError: Component is not a function
+  ...
+  error 6: Invalid hook call. Hooks can only be called inside of the body of a function component.
+  error 7: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Cannot read properties of null (reading 'useState')
+  error 9: TypeError: Cannot read properties of null (reading 'useState') at LanguageBoxesSelector.tsx
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause Analysis & Diagnosis**:
+  - During rapid multi-file edits across 12 UI component files in the previous prompt, Vite performed a batched HMR update on the running browser client.
+  - Because pre-bundled dependencies were re-hashed (`react.js?v=841f7ed9`), the browser retained in memory the previously bundled `react-dom_client.js?v=43aa8690`.
+  - When React Fast Refresh re-evaluated the newly memoized components, `ReactCurrentDispatcher.current` was null due to version hash disparity between `react-dom_client` and `react`, resulting in `TypeError: Component is not a function` followed by `Cannot read properties of null (reading 'useState')`.
+  - Additionally, ESLint flagged two Prettier formatting errors in `src/routes/index.tsx` (lines 5572 and 13495) on `if (activeTopTabRef.current...)` and `<ApkReleaseModal ... />`.
+- **Architectural Fixes Implemented**:
+  1. Restarted Vite development server via `restart_dev_server` to establish a clean, consistent dependency cache and uniform version hashes (`?v=841f7ed9`) across all modules.
+  2. Fixed Prettier formatting in `src/routes/index.tsx` for line 5572 and line 13495.
+  3. Preserved strict `AGENTS.md` size headroom (18,477 bytes, safely below the 21,000-byte budget and 24,576 platform limit) while capturing full stack traces in `prompt_history.md`.
+  4. Bumped app version to `v2.1.92` and synchronized with `android-shell/app/build.gradle.kts` via `npm run sync-version`.
+- **Testing & Verification**:
+  - `npx playwright test -g "e2e tests recognize application crashes"`: PASSED (verified clean boot, 0 crashes, 0 errors).
+  - `npx playwright test -g "Advanced mode mounts without a route render error"`: PASSED (verified route renders cleanly).
+  - `npm run test:react-instance-and-vite-reload-hotfix`: PASSED (all 5 tests, identical React hash across all modules).
+  - `npm run test:inactive-components-zero-processing`: PASSED (all 3 optimization checks pass).
+  - `compile_applet`: PASSED (Build succeeded).
+  - `lint_applet`: PASSED (0 errors, 0 warnings).
+  - `npm run build`: PASSED (3.00s production build).
+
 ### Hotfix (Prompt 166): Fix ReferenceError - TDZ on showWordBalloonLearningView in src/routes/index.tsx
 
 - **Prompt**:
