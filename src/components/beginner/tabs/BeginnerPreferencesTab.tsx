@@ -23,6 +23,7 @@ import {
   AlertCircle,
   Activity,
   Settings2,
+  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -89,7 +90,6 @@ import {
   LearningGoalsFiltersPanel,
   type LearningGoalsFiltersPanelProps,
 } from "@/components/shared/LearningGoalsFiltersPanel";
-import { LearningGoalAccordion } from "@/components/LearningGoalAccordion";
 import { BookOpen } from "lucide-react";
 
 export interface BeginnerPreferencesTabProps {
@@ -1135,18 +1135,20 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       <PerformanceModeSettingsPanel />
 
       {/* 3. Global Favorite Languages Panel (Learning Goals: Favorite & Target Languages) */}
-      <LearningGoalAccordion
-        id="beginner-favorite-languages"
-        title={`Favorite & Target Languages (${(targetLanguages || []).length})`}
-        icon={<BookOpen className="h-3.5 w-3.5 text-primary" />}
-        badge={
+      <div
+        id="beginner-favorite-languages-section"
+        data-testid="beginner-favorite-languages-section"
+        className="rounded-lg border border-border/80 bg-card/70 p-3 space-y-2 shadow-xs"
+      >
+        <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+          <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground uppercase tracking-wider">
+            <BookOpen className="h-3.5 w-3.5 text-primary" />
+            <span>Favorite & Target Languages ({(targetLanguages || []).length})</span>
+          </div>
           <span className="text-muted-foreground text-[10px] font-mono truncate max-w-48">
             {(targetLanguages || []).join(", ") || "None"}
           </span>
-        }
-        defaultOpen={false}
-        autoTimeout={true}
-      >
+        </div>
         <div className="bg-card rounded-lg p-2 space-y-3">
           <GlobalFavoriteLanguagesPanel
             catalog={catalog || ALL_KNOWN_LANGUAGES}
@@ -1158,17 +1160,21 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
             onSaveCurrentSelectionAsFavorites={onSaveCurrentSelectionAsFavorites || (() => {})}
           />
         </div>
-      </LearningGoalAccordion>
+      </div>
 
       {/* 4. Learning Goals: Per-Language Narration Ratios Settings (at the end of learning goals stage) */}
       {perLanguageTtsSettingsSlot && (
-        <LearningGoalAccordion
-          id="beginner-narration-ratios"
-          title="Narration Ratios & Playing Precedence"
-          icon={<Sliders className="h-3.5 w-3.5 text-primary" />}
-          defaultOpen={false}
-          autoTimeout={true}
+        <div
+          id="beginner-narration-ratios-section"
+          data-testid="beginner-narration-ratios-section"
+          className="rounded-lg border border-border/80 bg-card/70 p-3 space-y-2 shadow-xs"
         >
+          <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+            <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground uppercase tracking-wider">
+              <Sliders className="h-3.5 w-3.5 text-primary" />
+              <span>Narration Ratios & Playing Precedence</span>
+            </div>
+          </div>
           <div
             id="beginner-learning-goals-ratios-container"
             data-testid="beginner-learning-goals-ratios-container"
@@ -1176,18 +1182,25 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           >
             {perLanguageTtsSettingsSlot}
           </div>
-        </LearningGoalAccordion>
+        </div>
       )}
 
       {/* 5. Learning Goals: Subtitle Row Filters (Max Words Slider & Complete Sentence Filter & Per-Language Max Words) */}
       {(learningGoalsFiltersSlot || onMaxWordsPerSentenceChange) && (
-        <LearningGoalAccordion
-          id="beginner-row-criteria"
-          title="Subtitle Row Criteria & Filters"
-          icon={<Sliders className="h-3.5 w-3.5 text-primary" />}
-          defaultOpen={false}
-          autoTimeout={true}
+        <div
+          id="beginner-row-criteria-section"
+          data-testid="beginner-row-criteria-section"
+          className="rounded-lg border border-border/80 bg-card/70 p-3 space-y-2 shadow-xs"
         >
+          <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+            <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground uppercase tracking-wider">
+              <Filter className="h-3.5 w-3.5 text-primary" />
+              <span>Subtitle Row Criteria & Filters (Per Language)</span>
+            </div>
+            <span className="text-primary font-mono text-[10px] font-bold bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
+              {maxWordsPerSentence ?? 10}w max
+            </span>
+          </div>
           <div
             id="beginner-learning-goals-filters-container"
             data-testid="beginner-learning-goals-filters-container"
@@ -1208,7 +1221,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
               />
             )}
           </div>
-        </LearningGoalAccordion>
+        </div>
       )}
 
       {/* Navigation Footer */}

@@ -149,9 +149,14 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
   const [showQuarantinedParser, setShowQuarantinedParser] = React.useState(false);
 
   const defaultLang = baseLanguage || cols[0]?.code || "";
+  const hasLanguageMaxWords = Boolean(
+    languageMaxWords &&
+      Object.values(languageMaxWords).some((v) => typeof v === "number" && v > 0),
+  );
   const hasActiveCriteria =
     Boolean(activeParserConfig?.maxWordsPerSentence && activeParserConfig.maxWordsPerSentence > 0) ||
-    Boolean(activeParserConfig?.skipIncompleteSentences);
+    Boolean(activeParserConfig?.skipIncompleteSentences) ||
+    hasLanguageMaxWords;
 
   // Filter or show all subtitle rows based on criteriaMatchAction ("filter" vs "highlight")
   const effectiveDisplayedRows = React.useMemo(() => {
@@ -163,6 +168,7 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
       defaultLang,
       activeParserConfig?.maxWordsPerSentence,
       Boolean(activeParserConfig?.skipIncompleteSentences),
+      languageMaxWords,
     );
   }, [
     displayedRows,
@@ -170,6 +176,7 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
     activeCriteriaMatchAction,
     activeParserConfig?.maxWordsPerSentence,
     activeParserConfig?.skipIncompleteSentences,
+    languageMaxWords,
   ]);
 
   return (
@@ -686,6 +693,7 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
                         defaultLang,
                         activeParserConfig?.maxWordsPerSentence,
                         Boolean(activeParserConfig?.skipIncompleteSentences),
+                        languageMaxWords,
                       )
                     : false;
                   return (
@@ -875,6 +883,7 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
                                     defaultLang,
                                     activeParserConfig?.maxWordsPerSentence,
                                     Boolean(activeParserConfig?.skipIncompleteSentences),
+                                    languageMaxWords,
                                   )
                                 : false;
                               return (

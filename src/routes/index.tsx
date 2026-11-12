@@ -294,7 +294,6 @@ import {
 import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceModeSettingsPanel";
 import { useIsElementEnabled } from "@/utils/performanceModeManager";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
-import { LearningGoalAccordion } from "@/components/LearningGoalAccordion";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
 import { type BeginnerTabId } from "@/components/beginner/BeginnerTabNav";
 import { PerLanguageTtsPreferences } from "@/components/beginner/PerLanguageTtsPreferences";
@@ -11068,11 +11067,16 @@ function Index() {
 
                               <div className="space-y-2 text-xs">
                                 {/* 1. Set Default Source Language from Successfully Fetched Subtitles */}
-                                <LearningGoalAccordion
-                                  id="default-source-lang"
-                                  title="1. Default Source Language"
-                                  icon={<Globe className="h-3.5 w-3.5 text-primary" />}
-                                  badge={
+                                <div
+                                  id="stage-2-default-source-lang-container"
+                                  data-testid="stage-2-default-source-lang-container"
+                                  className="p-2.5 rounded-lg bg-card/80 border border-border/80 space-y-2 shadow-xs"
+                                >
+                                  <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+                                    <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground uppercase tracking-wider">
+                                      <Globe className="h-3.5 w-3.5 text-primary" />
+                                      <span>1. Default Source Language</span>
+                                    </div>
                                     <span className="text-primary font-mono text-[11px] font-medium flex items-center gap-1">
                                       <CheckCircle2 className="h-3 w-3 text-emerald-500" />
                                       <span>
@@ -11081,10 +11085,7 @@ function Index() {
                                           "Awaiting fetch"}
                                       </span>
                                     </span>
-                                  }
-                                  defaultOpen={false}
-                                  autoTimeout={true}
-                                >
+                                  </div>
                                   <div className="flex flex-col space-y-1 pt-0.5">
                                     {fetchedSubtitleLanguages.length > 0 ? (
                                       fetchedSubtitleLanguages.map((langCode) => {
@@ -11132,21 +11133,25 @@ function Index() {
                                       </div>
                                     )}
                                   </div>
-                                </LearningGoalAccordion>
+                                </div>
 
                                 {/* 2. Approve Favorite Languages to Learn */}
-                                <LearningGoalAccordion
-                                  id="approved-languages"
-                                  title={`2. Approved Learning Languages (${targetLanguages.length})`}
-                                  icon={<BookOpen className="h-3.5 w-3.5 text-primary" />}
-                                  badge={
+                                <div
+                                  id="stage-2-approved-languages-container"
+                                  data-testid="stage-2-approved-languages-container"
+                                  className="p-2.5 rounded-lg bg-card/80 border border-border/80 space-y-2 shadow-xs"
+                                >
+                                  <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+                                    <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground uppercase tracking-wider">
+                                      <BookOpen className="h-3.5 w-3.5 text-primary" />
+                                      <span>
+                                        2. Approved Learning Languages ({targetLanguages.length})
+                                      </span>
+                                    </div>
                                     <span className="text-muted-foreground text-[10px] font-mono truncate max-w-48">
                                       {targetLanguages.join(", ") || "None"}
                                     </span>
-                                  }
-                                  defaultOpen={false}
-                                  autoTimeout={true}
-                                >
+                                  </div>
                                   <div className="flex flex-col space-y-1 max-h-48 overflow-y-auto divide-y divide-border/40 border border-border/50 rounded-md bg-background/60 p-1">
                                     {(favoriteLanguages.length > 0
                                       ? Array.from(new Set(favoriteLanguages))
@@ -11339,14 +11344,19 @@ function Index() {
                                       </div>
                                     )}
                                   </div>
-                                </LearningGoalAccordion>
+                                </div>
 
                                 {/* 3. Language Ratios (Learning Goals Frequency) - Located at end of Stage 2 Learning Goals */}
-                                <LearningGoalAccordion
-                                  id="narration-ratios"
-                                  title="3. Narration & Ratios"
-                                  icon={<Sliders className="h-3.5 w-3.5 text-primary" />}
-                                  badge={
+                                <div
+                                  id="stage-2-narration-ratios-container"
+                                  data-testid="stage-2-narration-ratios-container"
+                                  className="p-2.5 rounded-lg bg-card/80 border border-border/80 space-y-2 shadow-xs w-full"
+                                >
+                                  <div className="flex items-center justify-between border-b border-border/40 pb-1.5 flex-wrap gap-2">
+                                    <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground uppercase tracking-wider">
+                                      <Sliders className="h-3.5 w-3.5 text-primary" />
+                                      <span>3. Narration & Ratios</span>
+                                    </div>
                                     <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
                                       <LanguageRatioCompositionSelector
                                         activeCompositionId={activeRatioCompositionId}
@@ -11357,11 +11367,7 @@ function Index() {
                                         compositions={storedCompositions}
                                       />
                                     </div>
-                                  }
-                                  defaultOpen={false}
-                                  autoTimeout={true}
-                                  className="w-full"
-                                >
+                                  </div>
                                   <div
                                     id="stage-2-language-ratios-container"
                                     data-testid="stage-2-language-ratios-container"
@@ -12437,22 +12443,23 @@ function Index() {
                                       );
                                     })()}
                                   </div>
-                                </LearningGoalAccordion>
+                                </div>
 
-                                {/* 4. Subtitle Row Criteria & Filters (Global & Per-Language) */}
-                                <LearningGoalAccordion
-                                  id="learning-goals-row-criteria"
-                                  title="4. Row Criteria & Filters"
-                                  icon={<Filter className="h-3.5 w-3.5 text-primary" />}
-                                  badge={
+                                {/* 4. Subtitle Row Criteria & Filters (Category: row-criteria per language) */}
+                                <div
+                                  id="stage-2-ingredient-row-criteria-section"
+                                  data-testid="stage-2-ingredient-row-criteria-section"
+                                  className="p-2.5 rounded-lg bg-card/80 border border-border/80 space-y-2 shadow-xs w-full"
+                                >
+                                  <div className="flex items-center justify-between border-b border-border/40 pb-1.5">
+                                    <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground uppercase tracking-wider">
+                                      <Filter className="h-3.5 w-3.5 text-primary" />
+                                      <span>4. Row Criteria & Filters (Per Language)</span>
+                                    </div>
                                     <span className="text-primary font-mono text-[10px] font-bold bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">
                                       {simpleParserConfig.maxWordsPerSentence}w max
                                     </span>
-                                  }
-                                  defaultOpen={false}
-                                  autoTimeout={true}
-                                  className="w-full"
-                                >
+                                  </div>
                                   <div className="pt-0.5">
                                     <LearningGoalsFiltersPanel
                                       maxWords={simpleParserConfig.maxWordsPerSentence}
@@ -12510,7 +12517,7 @@ function Index() {
                                       onResetAllLanguageCriteria={handleResetAllLanguageCriteria}
                                     />
                                   </div>
-                                </LearningGoalAccordion>
+                                </div>
                               </div>
                             </div>
 

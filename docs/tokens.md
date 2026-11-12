@@ -4,6 +4,8 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 175 (Task 392: Rollback Learning Goals Accordions & Retain Open Category for Row-Criteria):
+  - Task 392 [COMPLETED & VERIFIED]: Rolled back `LearningGoalAccordion` wrapping from Learning Goals across both Advanced Mode (`src/routes/index.tsx`) and Beginner Mode (`BeginnerPreferencesTab.tsx`), restoring clean, permanently visible open category containers. Retained the dedicated "row-criteria" category (`#stage-2-ingredient-row-criteria-section` / `#beginner-row-criteria-section`) hosting `LearningGoalsFiltersPanel` for configuring max words limitation filter per language. Enhanced `componentOptimizationService.ts` and `SubtitlesTablePanel.tsx` to filter rows according to per-language word limits. Passed `verify-learning-goals-rollback-and-row-criteria.ts`, passed compile and lint, bumped version to v2.1.98.
 - Prompt 174 (Hotfix: Fix Missing componentOptimizationService Module, Dev Server Pre-Transform & TypeScript Errors):
   - Hotfix [COMPLETED & VERIFIED]: Restored `src/utils/componentOptimizationService.ts` with complete type definitions (`tokenizeSentenceToWordTokens`, `filterLogEntriesOptimized`, `isSubtitleRowMatchingCriteria`, `filterSubtitleRowsByCriteria`, `createVisibilitySafeAnimationLoop`, `shouldComponentProcess`), restarted Vite dev server, passed `npx tsc --noEmit` with 0 errors, passed `npm run test:hotfix-component-optimization-service`, passed `compile_applet` and `lint_applet`, bumped version to v2.1.97.
 - Prompt 173 (Task 372: Subtitles-Table Highlight vs Filter Toggle):
