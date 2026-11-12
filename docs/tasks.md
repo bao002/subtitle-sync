@@ -4,12 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game [ACTIVE]**
-  - [ ] Subtask 389.1: Audit `WordBalloonLearningView.tsx` and stage rendering in `src/routes/index.tsx` to locate any video player elements in the Word Balloons stage.
-  - [ ] Subtask 389.2: Remove the video player and video controls completely from the Word Balloons learning stage so it focuses 100% on interactive word-popping and vocabulary learning.
-  - [ ] Subtask 389.3: Verify with dedicated test `scripts/verify-word-balloons-stage-no-video.ts`, verify compilation and linting, commit, and migrate Task 389 to `docs/done.md`.
-
-- [ ] **Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [PENDING]**
+- [ ] **Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [ACTIVE]**
   - [ ] Subtask 380.1: Ensure `playAlternativeTtsAudio` and `speak(...)` strictly respect the full playing duration of fetched audio without premature cutoff or starting overlapping speech before completion.
   - [ ] Subtask 380.2: Implement sequential speech queue / promise chaining so concurrent speech requests wait for the active playback to complete or terminate cleanly.
   - [ ] Subtask 380.3: Add dedicated test `scripts/verify-tts-playback-duration-and-queue.ts`, verify app compilation and linting, bump version, commit, and migrate Task 380 to `docs/done.md`.

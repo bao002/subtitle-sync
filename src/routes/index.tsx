@@ -4971,6 +4971,9 @@ function Index() {
   const handleToggleWordBalloonLearningView = useCallback(() => {
     setShowWordBalloonLearningView((prev) => {
       const next = !prev;
+      if (next) {
+        pauseBothVideoAndTts();
+      }
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem("subtitle_sync_word_balloon_learning_view", String(next));
@@ -4980,7 +4983,14 @@ function Index() {
       }
       return next;
     });
-  }, []);
+  }, [pauseBothVideoAndTts]);
+
+  // Ensure video is paused immediately when entering Word Balloon Learning Game or Stage 5
+  useEffect(() => {
+    if (showWordBalloonLearningView || currentAccordionStage === 5) {
+      pauseBothVideoAndTts();
+    }
+  }, [showWordBalloonLearningView, currentAccordionStage, pauseBothVideoAndTts]);
 
   const [isVideoFullscreen, setIsVideoFullscreen] = useState<boolean>(false);
   const [showCanvasBalloonGame, setShowCanvasBalloonGame] = useState<boolean>(false);
@@ -8214,6 +8224,7 @@ function Index() {
                       id="stage-step-learning"
                       data-testid="stage-step-learning"
                       onClick={() => {
+                        pauseBothVideoAndTts();
                         setShowOtherSettingsAccordions(false);
                         setCurrentAccordionStage(5);
                         setShowWordBalloonLearningView(true);

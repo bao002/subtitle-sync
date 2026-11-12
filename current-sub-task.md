@@ -1,12 +1,15 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [ACTIVE]
-- **Active Task**: Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game
-- **Active Step**: Subtask 389.1: Audit `WordBalloonLearningView.tsx` and stage rendering in `src/routes/index.tsx` to locate any video player elements in the Word Balloons stage.
+- **Active Task**: Hotfix (Prompt 166): Fix ReferenceError - TDZ on showWordBalloonLearningView in src/routes/index.tsx
+- **Active Step**: Relocate auto-pause useEffect in src/routes/index.tsx to after showWordBalloonLearningView state declaration.
+- **Suspended Task**:
+  - Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration [ON HOLD - Suspended for Hotfix 166]
 - **Next Tasks**:
-  - Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration
   - Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection
+  - Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
 - **Completed**:
+  - Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game
   - Task 388 (Prompt 154 - Chapter 3): Subtitles Table View Visible Global Row-Criteria, Dropdown Lists & Default Language Filtering
   - Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language
   - Hotfix (Prompt 161): Fix Vite Reload, Dev Server Stale State & AGENTS.md Size Headroom

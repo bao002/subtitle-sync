@@ -229,54 +229,60 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
         </div>
 
         {/* Web Demo or Standard URL Input Form */}
-        {webDemoUrlsSlot ? (
-          <div className="pt-1">{webDemoUrlsSlot}</div>
-        ) : (
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Input
-                type="text"
-                value={inputVal}
-                onChange={(e) => {
-                  setInputVal(e.target.value);
-                  onUrlChange(e.target.value);
-                }}
-                placeholder="Paste YouTube link (e.g., https://youtu.be/...)"
-                className="h-9 text-xs bg-background border-border text-foreground placeholder:text-muted-foreground pr-16 focus-visible:ring-primary"
-                data-testid="beginner-url-input"
-              />
-              <button
-                type="button"
-                onClick={handlePaste}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-medium text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80 rounded transition-colors"
-              >
-                Paste
-              </button>
-            </div>
+        {!showWordBalloonLearningView && (
+          webDemoUrlsSlot ? (
+            <div className="pt-1">{webDemoUrlsSlot}</div>
+          ) : (
+            <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Input
+                  type="text"
+                  value={inputVal}
+                  onChange={(e) => {
+                    setInputVal(e.target.value);
+                    onUrlChange(e.target.value);
+                  }}
+                  placeholder="Paste YouTube link (e.g., https://youtu.be/...)"
+                  className="h-9 text-xs bg-background border-border text-foreground placeholder:text-muted-foreground pr-16 focus-visible:ring-primary"
+                  data-testid="beginner-url-input"
+                />
+                <button
+                  type="button"
+                  onClick={handlePaste}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-medium text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80 rounded transition-colors"
+                >
+                  Paste
+                </button>
+              </div>
 
-            <Button
-              type="submit"
-              size="sm"
-              className="h-9 px-3 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium shrink-0"
-              data-testid="btn-load-video"
-            >
-              <Play className="w-3 h-3 mr-1" />
-              Load Video
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                size="sm"
+                className="h-9 px-3 text-xs bg-primary hover:bg-primary/90 text-primary-foreground font-medium shrink-0"
+                data-testid="btn-load-video"
+              >
+                <Play className="w-3 h-3 mr-1" />
+                Load Video
+              </Button>
+            </form>
+          )
         )}
 
         {/* Video Player Display */}
         {playerSlot && (
           <div
             id="beginner-player-slot-container"
-            className="w-full rounded-xl overflow-hidden bg-black aspect-video border border-border shadow-md relative [&:fullscreen]:flex [&:fullscreen]:items-center [&:fullscreen]:justify-center [&:fullscreen]:bg-black"
+            className={
+              showWordBalloonLearningView
+                ? "w-full rounded-xl overflow-hidden bg-background border border-border shadow-md relative"
+                : "w-full rounded-xl overflow-hidden bg-black aspect-video border border-border shadow-md relative [&:fullscreen]:flex [&:fullscreen]:items-center [&:fullscreen]:justify-center [&:fullscreen]:bg-black"
+            }
             data-testid="beginner-player-slot-container"
           >
             {playerSlot}
           </div>
         )}
-        {playerSlot && (
+        {playerSlot && !showWordBalloonLearningView && (
           <div
             data-testid="video-display-controls"
             className="flex flex-wrap items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-3 py-2"
@@ -390,20 +396,22 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             </div>
           </div>
         )}
-        {playerSlot && ttsServiceControlsSlot}
+        {playerSlot && !showWordBalloonLearningView && ttsServiceControlsSlot}
         {playbackControlsSlot && <div className="pt-2">{playbackControlsSlot}</div>}
       </div>
 
-      <LanguageBoxesSelector
-        catalog={favoriteLanguageCatalog}
-        selectedLanguages={selectedTargetLanguages}
-        onSelectionChange={onTargetLanguagesChange}
-        favoriteLanguages={favoriteLanguages}
-        currentVideoId={videoId}
-        isAndroid={isAndroid}
-      />
+      {!showWordBalloonLearningView && (
+        <LanguageBoxesSelector
+          catalog={favoriteLanguageCatalog}
+          selectedLanguages={selectedTargetLanguages}
+          onSelectionChange={onTargetLanguagesChange}
+          favoriteLanguages={favoriteLanguages}
+          currentVideoId={videoId}
+          isAndroid={isAndroid}
+        />
+      )}
 
-      {subtitlesTableSlot && (
+      {subtitlesTableSlot && !showWordBalloonLearningView && (
         <section
           className="space-y-2 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3"
           aria-label="Parallel subtitles table"
@@ -416,10 +424,11 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
         </section>
       )}
 
-      <details
-        className="rounded-xl border border-border bg-card p-3.5 shadow-sm"
-        data-testid="beginner-caption-discovery-details"
-      >
+      {!showWordBalloonLearningView && (
+        <details
+          className="rounded-xl border border-border bg-card p-3.5 shadow-sm"
+          data-testid="beginner-caption-discovery-details"
+        >
         <summary className="cursor-pointer text-xs font-semibold text-foreground">
           Caption discovery details ({observedTracks.length} tracks)
         </summary>
@@ -566,6 +575,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
           </div>
         </div>
       </details>
+      )}
     </div>
   );
 };
