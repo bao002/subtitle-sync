@@ -1,65 +1,49 @@
-/**
- * Component Optimization Service (componentOptimizationService.ts)
- *
- * Centralized service for:
- * 1. Managing zero-processing lifecycles for inactive, collapsed, or hidden components.
- * 2. Pure business logic helpers extracted out of UI components.
- * 3. Visibility-aware animation loops and timers that pause when document or element is hidden.
- */
-
-import { type Row } from "@/lib/subtitles";
+import type { LogEntry } from "@/utils/logBuffer";
 import { countWords, isCompleteSentence } from "@/utils/newSubtitlesParser";
-import { type LogEntry } from "@/utils/logBuffer";
+import { subtitleTextForColumn, type Row } from "@/lib/subtitles";
 
 /**
-/**
- * Check if a subtitle row matches row criteria (max word limit and sentence completeness).
- * Pure service function extracted from SubtitlesTablePanel.
+ * Word token representation extracted from sentences for interactive word learning and highlighting.
  */
-export function isSubtitleRowMatchingCriteria(
-  r: Row,
-  baseLanguage: string | undefined,
-  maxWords: number | undefined,
-  skipIncomplete: boolean | undefined,
-): boolean {
-  if ((!maxWords || maxWords <= 0) && !skipIncomplete) {
-    return true;
-  }
-  const text = (baseLanguage && r.texts[baseLanguage]) || Object.values(r.texts)[0] || "";
-  if (typeof maxWords === "number" && maxWords > 0) {
-    if (countWords(text) > maxWords) {
-      return false;
-    }
-  }
-  if (skipIncomplete && text && !isCompleteSentence(text)) {
-    return false;
-  }
-  return true;
+export interface WordToken {
+  index: number;
+  word: string;
+  start: number;
+  end: number;
 }
 
 /**
- * Filter subtitle rows by max word limit and sentence completeness.
- * Pure service function extracted from SubtitlesTablePanel.
+ * Animation loop interface with visibility-aware pausing.
  */
-export function filterSubtitleRowsByCriteria(
-  rows: Row[],
-  baseLanguage: string | undefined,
-  maxWords: number | undefined,
-  skipIncomplete: boolean | undefined,
-): Row[] {
-  if (!rows || rows.length === 0) return [];
-  if ((!maxWords || maxWords <= 0) && !skipIncomplete) {
-    return rows;
-  }
-
-  return rows.filter((r) =>
-    isSubtitleRowMatchingCriteria(r, baseLanguage, maxWords, skipIncomplete),
-  );
+export interface VisibilitySafeAnimationLoop {
+  start: () => void;
+  stop: () => void;
 }
 
 /**
- * Filter log entries only when viewer is actually expanded/shown.
- * When collapsed or hidden, returns empty array to consume 0 processing.
+ * Tokenize a sentence string into individual word tokens with character offsets and indices.
+ */
+export function tokenizeSentenceToWordTokens(sentence: string): WordToken[] {
+  if (!sentence || typeof sentence !== "string") return [];
+  const tokens: WordToken[] = [];
+  const regex = /\S+/g;
+  let match: RegExpExecArray | null;
+  let index = 0;
+  while ((match = regex.exec(sentence)) !== null) {
+    tokens.push({
+      index,
+      word: match[0],
+      start: match.index,
+      end: match.index + match[0].length,
+    });
+    index++;
+  }
+  return tokens;
+}
+
+/**
+ * Filter log buffer entries in an optimized manner.
+ * When log viewer is collapsed or not visible, returns empty array to consume 0 processing.
  */
 export function filterLogEntriesOptimized(
   entries: readonly LogEntry[] | LogEntry[],
@@ -70,98 +54,129 @@ export function filterLogEntriesOptimized(
     return [];
   }
   if (filterLevel === "ACTIONS_ERRORS") {
-    return entries.filter((entry) => entry.level === "ACTION" || entry.level === "ERROR");
+    return entries.filter(
+      (entry) =>
+        entry.level === "ACTION" ||
+        entry.level === "ERROR" ||
+        entry.category === "action" ||
+        entry.category === "error",
+    );
   }
   return entries;
 }
 
 /**
- * Tokenize sentence text into distinct word tokens with character bounds.
- * Pure service function extracted from AlternativeVideoPlayerView / WordBalloonLearningView.
+ * Pure evaluation function to check if a subtitle row matches current parser row criteria
+ * (max words per sentence limit and complete sentence punctuation requirements).
  */
-export function tokenizeSentenceToWordTokens(
-  text: string,
-): Array<{ word: string; start: number; end: number; index: number }> {
-  if (!text) return [];
-  const words: Array<{ word: string; start: number; end: number; index: number }> = [];
-  const regex = /\S+/g;
-  let match: RegExpExecArray | null;
-  let idx = 0;
-  while ((match = regex.exec(text)) !== null) {
-    words.push({
-      word: match[0],
-      start: match.index,
-      end: match.index + match[0].length,
-      index: idx++,
-    });
+export function isSubtitleRowMatchingCriteria(
+  row: Row,
+  baseLanguage: string,
+  maxWords?: number,
+  skipIncomplete?: boolean,
+): boolean {
+  if (!row) return false;
+  const text =
+    subtitleTextForColumn(row, baseLanguage) ||
+    (row.texts ? Object.values(row.texts)[0] || "" : "");
+
+  if (typeof maxWords === "number" && maxWords > 0) {
+    const words = countWords(text);
+    if (words > maxWords) {
+      return false;
+    }
   }
-  return words;
+
+  if (skipIncomplete) {
+    if (!isCompleteSentence(text)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
- * Creates a resource-safe requestAnimationFrame loop that automatically pauses
- * when document.hidden is true (browser tab inactive) or element is not connected.
+ * Filters a list of subtitle rows according to criteria.
  */
-export function createVisibilitySafeAnimationLoop(renderFrame: () => void): {
-  start: () => void;
-  stop: () => void;
-  isActive: () => boolean;
-} {
+export function filterSubtitleRowsByCriteria(
+  rows: Row[],
+  baseLanguage: string,
+  maxWords?: number,
+  skipIncomplete?: boolean,
+): Row[] {
+  if (!rows || !Array.isArray(rows)) return [];
+  if ((!maxWords || maxWords <= 0) && !skipIncomplete) {
+    return rows;
+  }
+  return rows.filter((r) => isSubtitleRowMatchingCriteria(r, baseLanguage, maxWords, skipIncomplete));
+}
+
+/**
+ * Creates a 60 FPS requestAnimationFrame animation loop that halts execution
+ * whenever the tab is hidden (document.hidden) or the loop is stopped.
+ * Safe across both browser and Node/SSR test environments.
+ */
+export function createVisibilitySafeAnimationLoop(callback: () => void): VisibilitySafeAnimationLoop {
   let animId: number | null = null;
   let running = false;
 
-  const tick = () => {
-    if (!running) return;
-    if (typeof document !== "undefined" && document.hidden) {
-      // Pause frame scheduling when document is hidden
-      return;
+  const requestFrame = (cb: () => void): number => {
+    if (typeof requestAnimationFrame !== "undefined") {
+      return requestAnimationFrame(cb);
     }
-    renderFrame();
-    if (running) {
-      animId = requestAnimationFrame(tick);
+    return setTimeout(cb, 16) as unknown as number;
+  };
+
+  const cancelFrame = (id: number): void => {
+    if (typeof cancelAnimationFrame !== "undefined") {
+      cancelAnimationFrame(id);
+    } else {
+      clearTimeout(id);
     }
   };
 
-  const handleVisibilityChange = () => {
+  const frame = () => {
     if (!running) return;
-    if (typeof document !== "undefined" && !document.hidden) {
-      if (animId) cancelAnimationFrame(animId);
-      animId = requestAnimationFrame(tick);
+    if (typeof document === "undefined" || !document.hidden) {
+      callback();
+    }
+    animId = requestFrame(frame);
+  };
+
+  const handleVisibilityChange = () => {
+    if (typeof document !== "undefined" && !document.hidden && running && animId === null) {
+      animId = requestFrame(frame);
     }
   };
 
   return {
-    start: () => {
+    start() {
       if (running) return;
       running = true;
       if (typeof document !== "undefined") {
         document.addEventListener("visibilitychange", handleVisibilityChange);
       }
-      animId = requestAnimationFrame(tick);
+      animId = requestFrame(frame);
     },
-    stop: () => {
+    stop() {
       running = false;
-      if (animId) {
-        cancelAnimationFrame(animId);
+      if (animId !== null) {
+        cancelFrame(animId);
         animId = null;
       }
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
       }
     },
-    isActive: () => running,
   };
 }
 
 /**
- * Check whether a stage or component is currently visible to gate processing.
+ * Evaluates whether a component should perform active background work or updates.
  */
-export function shouldComponentProcess(
-  isContainerShown: boolean,
-  isElementVisible: boolean = true,
-): boolean {
-  if (!isContainerShown) return false;
-  if (!isElementVisible) return false;
-  if (typeof document !== "undefined" && document.hidden) return false;
+export function shouldComponentProcess(isVisible: boolean, isParentOpen?: boolean): boolean {
+  if (!isVisible) return false;
+  if (isParentOpen !== undefined && !isParentOpen) return false;
   return true;
 }

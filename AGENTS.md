@@ -128,7 +128,16 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-GO ON
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 4:18:08 AM [vite] (client) Pre-transform error: Transform failed with 3 errors:
+error 1: [31m[PARSE_ERROR] [0mUnexpected token. Did you mean `{'}'}` or `&rbrace;`?
+error 2: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'div'.
+error 3: 4:18:09 AM [vite] Internal server error: Transform failed with 3 errors:
+error 4: [31m[PARSE_ERROR] [0mExpected corresponding JSX closing tag for 'LearningGoalAccordion'.
+[AIS_METADATA_SECTION_END]
 ```
+
 
 
