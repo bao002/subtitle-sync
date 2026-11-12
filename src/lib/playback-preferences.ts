@@ -44,6 +44,7 @@ export function extractLanguageCodeList(val: unknown): string[] {
 
 export type TableDisplayMode = "single" | "multiple";
 export type PickWordStrategy = "longest" | "random";
+export type CriteriaMatchAction = "filter" | "highlight";
 
 const KEYS = {
   requestMode: "yt_subtitle_request_mode_v1",
@@ -66,6 +67,7 @@ const KEYS = {
   perLangPickWordStrategy: "yt_per_lang_pick_word_strategy_v1",
   ttsVolumes: "yt_tts_volumes_v1",
   tableDisplayMode: "yt_table_display_mode_v1",
+  criteriaMatchAction: "yt_criteria_match_action_v1",
 } as const;
 
 const memoryStorage = new Map<string, string>();
@@ -1250,6 +1252,32 @@ export function setTableDisplayModePreference(mode: TableDisplayMode): void {
     s.setItem(KEYS.tableDisplayMode, mode);
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent(TABLE_DISPLAY_MODE_EVENT, { detail: mode }));
+    }
+  } catch {
+    // ignore
+  }
+}
+
+export const CRITERIA_MATCH_ACTION_EVENT = "yt-criteria-match-action-changed";
+
+export function getCriteriaMatchActionPreference(): CriteriaMatchAction {
+  const s = getStorage();
+  try {
+    const val = s.getItem(KEYS.criteriaMatchAction);
+    if (val === "highlight" || val === "filter") return val;
+  } catch {
+    // ignore
+  }
+  return "filter";
+}
+
+export function setCriteriaMatchActionPreference(action: CriteriaMatchAction): void {
+  if (action !== "filter" && action !== "highlight") return;
+  const s = getStorage();
+  try {
+    s.setItem(KEYS.criteriaMatchAction, action);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(CRITERIA_MATCH_ACTION_EVENT, { detail: action }));
     }
   } catch {
     // ignore

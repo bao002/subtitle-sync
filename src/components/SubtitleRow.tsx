@@ -35,6 +35,8 @@ export interface SubtitleRowProps {
   blacklist?: string[];
   onSpeakCue?: (text: string, lang: string) => void;
   freezeColumns?: boolean;
+  isCriteriaMatched?: boolean;
+  isCriteriaHighlightMode?: boolean;
 }
 
 export const SubtitleRow = memo(function SubtitleRow({
@@ -52,27 +54,53 @@ export const SubtitleRow = memo(function SubtitleRow({
   blacklist,
   onSpeakCue,
   freezeColumns = true,
+  isCriteriaMatched = false,
+  isCriteriaHighlightMode = false,
 }: SubtitleRowProps) {
+  const isHighlighted = Boolean(isCriteriaHighlightMode && isCriteriaMatched);
+
   return (
     <tr
       key={actualIndex}
       id={`subtitle-cue-row-${actualIndex}`}
       data-testid={`subtitle-cue-row-${actualIndex}`}
       data-row={actualIndex}
+      data-criteria-highlighted={isHighlighted ? "true" : undefined}
       onClick={() => onSeek(r, actualIndex)}
       className={`cursor-pointer border-t border-border/70 align-top transition-colors duration-150 ${
-        isActive ? "bg-primary/[0.08] dark:bg-primary/[0.14]" : "hover:bg-muted/40"
+        isActive
+          ? "bg-primary/[0.08] dark:bg-primary/[0.14]"
+          : isHighlighted
+            ? "bg-amber-500/[0.09] dark:bg-amber-500/[0.16] border-l-4 border-l-amber-500 hover:bg-amber-500/[0.13]"
+            : "hover:bg-muted/40"
       }`}
     >
       <td
         data-testid="cue-row-index"
         className={`whitespace-nowrap px-2.5 py-2.5 text-center tabular-nums text-xs font-mono text-muted-foreground w-14 min-w-[3.5rem] max-w-[3.5rem] transition-colors ${
           freezeColumns
-            ? `sticky left-0 z-10 ${isActive ? "bg-accent/95 backdrop-blur-xs font-semibold text-foreground" : "bg-card/95"} shadow-[1px_0_0_0_rgba(0,0,0,0.06)]`
+            ? `sticky left-0 z-10 ${
+                isActive
+                  ? "bg-accent/95 backdrop-blur-xs font-semibold text-foreground"
+                  : isHighlighted
+                    ? "bg-amber-500/10 font-medium text-amber-800 dark:text-amber-200"
+                    : "bg-card/95"
+              } shadow-[1px_0_0_0_rgba(0,0,0,0.06)]`
             : ""
         }`}
       >
-        {actualIndex + 1}
+        <div className="flex flex-col items-center justify-center gap-0.5">
+          <span>{actualIndex + 1}</span>
+          {isHighlighted && (
+            <span
+              data-testid="row-criteria-highlighted"
+              className="inline-flex items-center gap-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-200 px-1 py-0.2 text-[9px] font-semibold border border-amber-500/30"
+              title="Matches Row Criteria"
+            >
+              Matched
+            </span>
+          )}
+        </div>
       </td>
       <td
         data-testid="cue-row-timestamp"

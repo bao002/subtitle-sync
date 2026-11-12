@@ -2219,3 +2219,48 @@ GO ON
 GO ON
 ```
 
+---
+
+### Prompt 171: Optimize Application (Task 391)
+```
+optimize the application
+1. in-active and hidden components should consume 0 processing
+2. UI components should remain as pure UI components and all processing and filtering logic should be in services
+```
+
+---
+
+### Prompt 172: Fix errors in the app (Hotfix)
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 3:31:44 AM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/ApkReleaseModal.tsx, /src/components/FloatingErrorButton.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/ShareStateModal.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+error 1: [vite] SendBeforeConnectError: send was called before connect
+error 2: [vite] SyntaxError: The requested module '/src/lib/playback-preferences.ts' does not provide an export named 'getDefaultLanguageTtsRate'
+error 3: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules.
+error 4: [APP_BOOT_ERROR] Router rendered ErrorComponent: This page didn't load Component is not a function
+error 5: [APP_PAGE_ERROR] This page didn't load: Component is not a function
+error 6: TypeError: Component is not a function
+error 7: TypeError: Component is not a function
+error 8: TypeError: Component is not a function
+error 9: [vite] SyntaxError: The requested module '/src/lib/alternative-tts.ts' does not provide an export named 'SELECTABLE_AUTO_PROVIDERS'
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 173: Go On (Execute Task 372 - Subtitles-Table Highlight vs Filter Toggle)
+```
+GO ON
+```
+
+---
+
+### Prompt 174: Go On
+```
+GO ON
+```
+
+
+

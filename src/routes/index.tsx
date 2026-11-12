@@ -376,7 +376,10 @@ import {
   saveTtsLanguageOrdersPreference,
   getTableDisplayModePreference,
   setTableDisplayModePreference,
+  getCriteriaMatchActionPreference,
+  setCriteriaMatchActionPreference,
   type TableDisplayMode,
+  type CriteriaMatchAction,
   type SectionOrder,
   type TtsLanguageOrders,
   type SubtitleRequestMode,
@@ -1596,6 +1599,15 @@ function Index() {
   const handleTableDisplayModeChange = useCallback((mode: TableDisplayMode) => {
     setTableDisplayMode(mode);
     setTableDisplayModePreference(mode);
+  }, []);
+
+  const [criteriaMatchAction, setCriteriaMatchAction] = useState<CriteriaMatchAction>(() => {
+    return getCriteriaMatchActionPreference();
+  });
+
+  const handleCriteriaMatchActionChange = useCallback((action: CriteriaMatchAction) => {
+    setCriteriaMatchAction(action);
+    setCriteriaMatchActionPreference(action);
   }, []);
 
   const setBaseLanguage = useCallback((lang: string) => {
@@ -5642,14 +5654,15 @@ function Index() {
       lastMs.current = ms;
 
       // Sync background media metadata & playback progress
+      const curPlaying =
+        (p.getPlayerState ? p.getPlayerState() === 1 : isVideoPlayingRef.current) ||
+        Boolean(speakingLangRef.current) ||
+        busy.current;
+
       try {
         const title =
           (p.getVideoData && p.getVideoData()?.title) ||
           (videoId ? `YouTube (${videoId})` : "YouTube Video");
-        const isPlaying =
-          (p.getPlayerState ? p.getPlayerState() === 1 : isVideoPlayingRef.current) ||
-          Boolean(speakingLangRef.current) ||
-          busy.current;
         const curSec = ms / 1000;
         const durSec = p.getDuration ? p.getDuration() : 0;
         syncMediaMetadata({
@@ -5658,7 +5671,7 @@ function Index() {
             targetLanguagesRef.current && targetLanguagesRef.current.length > 0
               ? `Subtitles: ${targetLanguagesRef.current.join(", ")}`
               : "Parallel Subtitles",
-          isPlaying,
+          isPlaying: curPlaying,
           positionSec: curSec,
           durationSec: durSec,
         });
@@ -7985,6 +7998,8 @@ function Index() {
                 onTablePlay={handlePlayVideo}
                 tableDisplayMode={tableDisplayMode}
                 onTableDisplayModeChange={handleTableDisplayModeChange}
+                criteriaMatchAction={criteriaMatchAction}
+                onCriteriaMatchActionChange={handleCriteriaMatchActionChange}
                 languageMaxWords={languageMaxWords}
                 onLanguageMaxWordsChange={handleLanguageMaxWordsChange}
                 languageSkipIncomplete={languageSkipIncomplete}
@@ -13422,6 +13437,8 @@ function Index() {
                               onTablePlay={handlePlayVideo}
                               tableDisplayMode={tableDisplayMode}
                               onTableDisplayModeChange={handleTableDisplayModeChange}
+                              criteriaMatchAction={criteriaMatchAction}
+                              onCriteriaMatchActionChange={handleCriteriaMatchActionChange}
                               languageMaxWords={languageMaxWords}
                               onLanguageMaxWordsChange={handleLanguageMaxWordsChange}
                               languageSkipIncomplete={languageSkipIncomplete}

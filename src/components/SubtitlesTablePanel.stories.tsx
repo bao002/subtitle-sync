@@ -99,6 +99,11 @@ export const MultipleTablesMode: Story = {
   render: () => <InteractiveWrapper tableDisplayMode="multiple" />,
 };
 
+export const HighlightCriteriaMode: Story = {
+  render: () => <InteractiveWrapper criteriaMatchAction="highlight" />,
+};
+
 export const Interactive: Story = {
   render: () => <InteractiveWrapper />,
 };
+
