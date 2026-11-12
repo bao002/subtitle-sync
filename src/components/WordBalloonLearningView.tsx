@@ -771,9 +771,11 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
                   className="bg-transparent font-medium text-xs text-foreground focus:outline-hidden cursor-pointer"
                   title="Select target language for learning"
                 >
-                  {availableTargetLanguages.map((lang) => (
+                  {Array.from(
+                    new Map(availableTargetLanguages.map((lang) => [lang.code, lang])).values(),
+                  ).map((lang, idx) => (
                     <option
-                      key={lang.code}
+                      key={`${lang.code}-${idx}`}
                       value={lang.code}
                       className="bg-popover text-popover-foreground"
                     >

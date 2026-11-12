@@ -67,6 +67,12 @@ export const PerLanguageRowCriteria: Story = {
       { code: "ar", name: "Arabic" },
     ];
 
+    const sampleRows = [
+      { start: 0, end: 2000, texts: { es: "Hola mundo.", he: "שלום עולם.", ar: "مرحبا بالعالم." }, criteria: [] },
+      { start: 2000, end: 5000, texts: { es: "Esta es una oración mucho más larga de prueba.", he: "משפט ארוך יותר לבדיקה.", ar: "جملة طويلة للاختبار." }, criteria: [] },
+      { start: 5000, end: 7000, texts: { es: "Frase incompleta sin punto", he: "קצר.", ar: "قصير." }, criteria: [] },
+    ];
+
     return (
       <div className="w-[480px]">
         <LearningGoalsFiltersPanel
@@ -75,6 +81,8 @@ export const PerLanguageRowCriteria: Story = {
           skipIncompleteSentences={skipIncomplete}
           onSkipIncompleteSentencesChange={setSkipIncomplete}
           learningLanguages={sampleLanguages}
+          rows={sampleRows}
+          baseLanguage="es"
           languageMaxWords={langMaxWords}
           onLanguageMaxWordsChange={(code, val) => {
             setLangMaxWords((prev) => {

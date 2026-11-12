@@ -1,5 +1,127 @@
 # Done tasks
 
+### Task 395 (Prompt 179): Unfoldable Per-Language Eligible Records & Matching Default Language (2 Columns)
+
+- **Prompt**:
+  ```
+  unfolding should expose the list of eligible records and the matching default language text (2 columns)
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div#subtitles-table-row-criteria-container:nth-of-type(1) > div#learning-goals-filters-panel:nth-of-type(2) > div#learning-goals-per-language-max-words-section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(6)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Scope & Architectural Implementation**:
+  1. `src/utils/newSubtitlesParser.ts`:
+     - Added `EligibleLanguageRecord` interface and `getEligibleLanguageRecords` pure helper returning all records meeting the effective max-words and complete-sentence criteria alongside the matching default language text.
+     - Derived `computeLanguageCriteriaStats` directly from `getEligibleLanguageRecords` for guaranteed single-source math consistency.
+  2. `src/components/shared/LearningGoalsFiltersPanel.tsx`:
+     - Made each per-language condition row unfoldable via `data-testid="learning-goals-lang-toggle-records-${lang.code}"` (chevron + language name + eligible stats pill).
+     - When unfolded, lazily renders a scrollable 2-column table (`data-testid="learning-goals-lang-eligible-table-${lang.code}"`): Column 1 shows the eligible record text for that language (`{lang.name} ({lang.code})`); Column 2 shows the matching default language text (`Default ({effectiveDefaultLang})`).
+     - Shared across Subtitles Table (`#subtitles-table-row-criteria-container`), Advanced Mode Learning Goals, and Beginner Mode Preferences with 100% parity.
+  3. `scripts/verify-learning-goals-unfold-eligible-records.ts` & `package.json`:
+     - Added dedicated verification test (`test:learning-goals-unfold-eligible-records`).
+     - Bumped single-source version to `v2.1.102` (code `20202`) and synchronized `android-shell/app/build.gradle.kts` (`npm run sync-version`).
+- **Verification**:
+  - `npm run test:learning-goals-unfold-eligible-records`: **PASSED**.
+  - `npm run test:learning-goals-criteria-statistics`: **PASSED**.
+  - `npm run test:learning-goals-remove-redundant-dropdowns`: **PASSED**.
+  - `npm run check-version`: **PASSED** (`2.1.102`, code `20202`).
+  - `npx tsc --noEmit`: **0 errors**.
+  - `npx eslint src/components/shared/LearningGoalsFiltersPanel.tsx`: **0 errors**.
+  - `compile_applet` & `lint_applet`: **PASSED**.
+  - Git commit/push skipped gracefully (no `.git` repository in workspace).
+
+### Task 394 (Prompt 178): Show Eligible/Valid Record Statistics in LearningGoalsFiltersPanel
+
+- **Prompt**:
+  ```
+  it should also show the statistics - how many records are eligble/valid-based-on-the-condition?
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div#subtitles-table-row-criteria-container:nth-of-type(1) > div#learning-goals-filters-panel:nth-of-type(2) > div#learning-goals-per-language-max-words-section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(3)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Scope & Architectural Implementation**:
+  1. `src/utils/newSubtitlesParser.ts`:
+     - Added `LanguageCriteriaStats` interface, `computeLanguageCriteriaStats`, and `computeOverallCriteriaStats`.
+     - Extended `isSubtitleRowMatchingCriteria` and `filterSubtitleRowsByCriteria` to support per-language `languageSkipIncomplete` checks.
+  2. `src/components/shared/LearningGoalsFiltersPanel.tsx`:
+     - Added optional `rows` and `baseLanguage` props.
+     - Displayed live eligible/valid record statistics (`eligible/total valid (pct%)`, or `0 records` when empty) directly inside each per-language row (`data-testid="learning-goals-lang-stats-${lang.code}"`) and overall in the panel header (`data-testid="learning-goals-overall-stats"`).
+  3. `src/components/SubtitlesTablePanel.tsx`, `src/routes/index.tsx`, `src/components/shared/LearningGoalsFiltersPanel.stories.tsx`:
+     - Passed `rows` and `baseLanguage` to `LearningGoalsFiltersPanel` in Subtitles Table (`#subtitles-table-row-criteria-container`), Advanced Mode Stage 2 Learning Goals, and Beginner Mode Preferences tab for 100% parity.
+     - Forwarded `languageSkipIncomplete` to row criteria matching/filtering in `SubtitlesTablePanel.tsx`.
+  4. `scripts/verify-learning-goals-criteria-statistics.ts` & `package.json`:
+     - Added dedicated verification test (`test:learning-goals-criteria-statistics`).
+     - Bumped single-source version to `v2.1.101` (code `20201`) and synchronized `android-shell/app/build.gradle.kts` (`npm run sync-version`).
+- **Verification**:
+  - `npm run test:learning-goals-criteria-statistics`: **PASSED**.
+  - `npm run test:learning-goals-remove-redundant-dropdowns`: **PASSED**.
+  - `npm run test:unique-language-keys`: **PASSED** (10/10 checks).
+  - `npm run check-version`: **PASSED** (`2.1.101`, code `20201`).
+  - `npx tsc --noEmit`: **0 errors**.
+  - `npx eslint src/components/SubtitlesTablePanel.tsx src/components/shared/LearningGoalsFiltersPanel.tsx`: **0 errors**.
+  - `compile_applet` & `lint_applet`: **PASSED**.
+  - Git commit/push skipped gracefully (no `.git` repository in workspace).
+
+### Task 393 (Prompt 177): Remove 3 Redundant Dropdowns in Learning Goals Per-Language Row Criteria
+
+- **Prompt**:
+  ```
+  1. redundunt
+  2.redundunt
+  3.redundunt
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: ... > select#learning-goals-add-language-dropdown:nth-of-type(1)
+  CSS selector 2: ... > select#learning-goals-lang-max-words-dropdown-en:nth-of-type(1)
+  CSS selector 3: ... > select#learning-goals-lang-complete-dropdown-es:nth-of-type(1)
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Scope & Architectural Implementation**:
+  1. `src/components/shared/LearningGoalsFiltersPanel.tsx`:
+     - Removed `select#learning-goals-add-language-dropdown` (and unused `availableToAddLanguages` memo).
+     - Removed `select#learning-goals-lang-max-words-dropdown-${lang.code}` while preserving `[-][number input][+]` per-language word-limit controls.
+     - Removed `select#learning-goals-lang-complete-dropdown-${lang.code}` while preserving the `Punct:` `<Switch>` control (`data-testid="learning-goals-lang-complete-switch-${lang.code}"`).
+     - Preserved all unrelated controls (`#learning-goals-max-words-dropdown`, `#learning-goals-complete-sentence-dropdown`, reset buttons) and 100% parity across Advanced and Beginner modes.
+  2. `scripts/verify-learning-goals-remove-redundant-dropdowns.ts` & `package.json`:
+     - Added dedicated verification script (`test:learning-goals-remove-redundant-dropdowns`).
+     - Bumped single-source version to `v2.1.100` (code `20200`) and synchronized `android-shell/app/build.gradle.kts` (`npm run sync-version`).
+- **Verification**:
+  - `npm run test:learning-goals-remove-redundant-dropdowns`: **PASSED**.
+  - `npm run test:unique-language-keys`: **PASSED** (10/10 checks).
+  - `npm run check-version`: **PASSED** (`2.1.100`, code `20200`).
+  - `npx tsc --noEmit`: **0 errors**.
+  - `npx eslint src/components/shared/LearningGoalsFiltersPanel.tsx`: **0 errors**.
+  - `compile_applet` & `lint_applet`: **PASSED**.
+  - Git commit/push skipped gracefully (no `.git` repository in workspace).
+
+### Hotfix (Prompt 176): Fix Duplicate React Key Error ("pt-BR") & Resolve Deleted `componentOptimizationService` Imports
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. pt-BR
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Causes Identified & Resolved**:
+  1. Case-mismatch duplicate `"pt-br"` vs `"pt-BR"` during URL parameter / stored preference initialization: `canonicalizeLangCode` now normalizes incoming language codes against `LANGS` and `SUPPORTED_LANGUAGES_CATALOG`, and `activeCatalog` / `orderedLangs` (`src/routes/index.tsx`) and `sortedCatalog` (`LanguageBoxesSelector.tsx`) deduplicate mapped entries via `seenCodes` before rendering.
+  2. Compound React keys across all language-mapping lists (`src/routes/index.tsx`, `LanguageBoxesSelector.tsx`, `SwitchableDefaultSubtitlesBar.tsx`, `FetchedSubtitlesStagePanel.tsx`, `NotificationsStatusTab.tsx`, `FloatingSubtitleRetryIndicator.tsx`, `WebDemoUrlsInput.tsx`, `ExperimentalSubtitleFetchPanel.tsx`, `CanvasBalloonGame.tsx`, `AlternativeVideoPlayerView.tsx`, `WordBalloonLearningView.tsx`, `LearningGoalsFiltersPanel.tsx`, `VideoLanguageSequenceControl.tsx`, `BeginnerPreferencesTab.tsx`, `PerLanguageTtsPreferences.tsx`).
+  3. Removed stale `@/utils/componentOptimizationService` imports after user cleanup by placing `isSubtitleRowMatchingCriteria` and `filterSubtitleRowsByCriteria` cleanly in `src/utils/newSubtitlesParser.ts`, defining local pure helpers in `AlternativeVideoPlayerView.tsx`, `BottomLogViewer.tsx`, and `CanvasBalloonGame.tsx`, and removing deleted test scripts from `package.json`.
+  4. Bumped single-source version to `v2.1.99` (code `20199`) and ran `npm run sync-version`.
+- **Verification**:
+  - `npm run test:unique-language-keys`: **PASSED** (10/10 checks).
+  - `npx tsc --noEmit`: **0 errors**.
+  - `compile_applet` & `lint_applet`: **PASSED**.
+
 ### Task 392 (Prompt 175): Rollback Learning Goals Accordions & Retain Open Category for Row-Criteria (Max Words Limitation Filter Per Language)
 
 - **Prompt**:

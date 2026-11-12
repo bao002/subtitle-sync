@@ -475,12 +475,12 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         </p>
         <div className="flex flex-wrap gap-2 pt-1">
           {availableDefaultLanguages && availableDefaultLanguages.length > 0 ? (
-            Array.from(new Set(availableDefaultLanguages)).map((langCode) => {
+            Array.from(new Set(availableDefaultLanguages)).map((langCode, idx) => {
               const isDefault = baseLanguage === langCode;
               const langMeta = ALL_KNOWN_LANGUAGES.find((l) => l.code === langCode);
               return (
                 <button
-                  key={langCode}
+                  key={`${langCode}-${idx}`}
                   type="button"
                   data-testid={`beginner-default-lang-btn-${langCode}`}
                   onClick={() => onBaseLanguageChange?.(langCode)}

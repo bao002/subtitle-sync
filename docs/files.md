@@ -493,6 +493,9 @@ This document serves as the master catalog and directory of all repository docum
 | `.gitattributes`                                             | Git Attributes Configuration (Task 353, Prompt 118)                                 | Enforces `README.md merge=ours` so git merge/sync ignores other repository's README.md changes. |
 | `scripts/verify-ignore-other-repo-readme-on-sync.ts`         | Ignore Other Repo README on Sync Verification (Task 353, Prompt 118)                | Asserts .gitattributes merge=ours rule, AGENTS.md, ACTIONS.md, and simulated git sync preservation. |
 | `scripts/verify-floating-alert-leads-to-log.ts`              | Floating Alert Leads to Log & Reproduction Suite (Task 354, Prompt 119)            | Asserts clicking floating alert button navigates to log element, highlights record with stack trace and preceding state machine actions, and copies all log to clipboard. |
+| `scripts/verify-learning-goals-remove-redundant-dropdowns.ts`| Learning Goals Remove Redundant Dropdowns Verification (Task 393, Prompt 177)     | Verifies removal of the 3 redundant per-language dropdowns from `LearningGoalsFiltersPanel.tsx` while preserving numeric steppers, punctuation switches, and Advanced/Beginner mode parity. |
+| `scripts/verify-learning-goals-criteria-statistics.ts`       | Learning Goals Row Criteria Eligibility Statistics Verification (Task 394, P178) | Verifies `computeLanguageCriteriaStats`, `computeOverallCriteriaStats`, `languageSkipIncomplete` filtering, and per-language/overall valid count wiring across modes. |
+| `scripts/verify-learning-goals-unfold-eligible-records.ts`   | Learning Goals Unfoldable Eligible Records Verification (Task 395, P179)         | Verifies `getEligibleLanguageRecords` helper, single-source stats parity, and unfoldable 2-column table rendering matching default language text. |
 
 
 

@@ -102,7 +102,12 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = React
 
     const selected = filtered.filter((l) => selectedLanguages.includes(l.code));
     const unselected = filtered.filter((l) => !selectedLanguages.includes(l.code));
-    return [...selected, ...unselected];
+    const seenCodes = new Set<string>();
+    return [...selected, ...unselected].filter((l) => {
+      if (!l || !l.code || seenCodes.has(l.code)) return false;
+      seenCodes.add(l.code);
+      return true;
+    });
   }, [catalog, effectiveCatalog, selectedLanguages, searchFilter]);
 
   // List of catalog languages without the saved/favorite languages
@@ -362,7 +367,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = React
           onPointerDown={() => recordUserInteraction(Date.now())}
           className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 max-h-80 overflow-y-auto p-1 rounded-md border border-border bg-muted/10"
         >
-          {sortedCatalog.map((lang) => {
+          {sortedCatalog.map((lang, idx) => {
             const isSelected = selectedLanguages.includes(lang.code);
             const priorityIdx = selectedLanguages.indexOf(lang.code);
             const isExpanded = expandedLangUrl === lang.code;
@@ -371,7 +376,7 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = React
 
             return (
               <div
-                key={lang.code}
+                key={`${lang.code}-${idx}`}
                 data-testid={`language-card-${lang.code}`}
                 className={`${
                   isExpanded ? "col-span-2 sm:col-span-3 md:col-span-4" : ""
@@ -598,10 +603,10 @@ export const LanguageBoxesSelector: React.FC<LanguageBoxesSelectorProps> = React
           }}
           className="w-full rounded-md border border-input bg-background px-2 py-1.5 text-sm"
         >
-          {catalogWithoutFavorites.map((lang) => {
+          {catalogWithoutFavorites.map((lang, idx) => {
             const isSel = selectedLanguages.includes(lang.code);
             return (
-              <option key={lang.code} value={lang.code}>
+              <option key={`${lang.code}-${idx}`} value={lang.code}>
                 {isSel ? `✓ ${lang.name}` : lang.name}
               </option>
             );

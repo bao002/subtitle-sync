@@ -20,11 +20,9 @@ import {
   DEFAULT_SIMPLE_PARSER_CONFIG,
   countWords,
   isCompleteSentence,
-} from "@/utils/newSubtitlesParser";
-import {
   filterSubtitleRowsByCriteria,
   isSubtitleRowMatchingCriteria,
-} from "@/utils/componentOptimizationService";
+} from "@/utils/newSubtitlesParser";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import { NewSubtitlesParserBar } from "@/components/NewSubtitlesParserBar";
 import {
@@ -150,13 +148,18 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
 
   const defaultLang = baseLanguage || cols[0]?.code || "";
   const hasLanguageMaxWords = Boolean(
-    languageMaxWords &&
-      Object.values(languageMaxWords).some((v) => typeof v === "number" && v > 0),
+    languageMaxWords && Object.values(languageMaxWords).some((v) => typeof v === "number" && v > 0),
+  );
+  const hasLanguageSkipIncomplete = Boolean(
+    languageSkipIncomplete && Object.values(languageSkipIncomplete).some((v) => v === true),
   );
   const hasActiveCriteria =
-    Boolean(activeParserConfig?.maxWordsPerSentence && activeParserConfig.maxWordsPerSentence > 0) ||
+    Boolean(
+      activeParserConfig?.maxWordsPerSentence && activeParserConfig.maxWordsPerSentence > 0,
+    ) ||
     Boolean(activeParserConfig?.skipIncompleteSentences) ||
-    hasLanguageMaxWords;
+    hasLanguageMaxWords ||
+    hasLanguageSkipIncomplete;
 
   // Filter or show all subtitle rows based on criteriaMatchAction ("filter" vs "highlight")
   const effectiveDisplayedRows = React.useMemo(() => {
@@ -169,6 +172,7 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
       activeParserConfig?.maxWordsPerSentence,
       Boolean(activeParserConfig?.skipIncompleteSentences),
       languageMaxWords,
+      languageSkipIncomplete,
     );
   }, [
     displayedRows,
@@ -177,6 +181,7 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
     activeParserConfig?.maxWordsPerSentence,
     activeParserConfig?.skipIncompleteSentences,
     languageMaxWords,
+    languageSkipIncomplete,
   ]);
 
   return (
@@ -292,6 +297,8 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
             languageSkipIncomplete={languageSkipIncomplete}
             onLanguageSkipIncompleteChange={onLanguageSkipIncompleteChange}
             onResetAllLanguageCriteria={onResetAllLanguageCriteria}
+            rows={rows}
+            baseLanguage={defaultLang}
           />
         )}
       </div>
@@ -694,6 +701,7 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
                         activeParserConfig?.maxWordsPerSentence,
                         Boolean(activeParserConfig?.skipIncompleteSentences),
                         languageMaxWords,
+                        languageSkipIncomplete,
                       )
                     : false;
                   return (
@@ -884,6 +892,7 @@ export const SubtitlesTablePanel = React.memo(function SubtitlesTablePanel({
                                     activeParserConfig?.maxWordsPerSentence,
                                     Boolean(activeParserConfig?.skipIncompleteSentences),
                                     languageMaxWords,
+                                    languageSkipIncomplete,
                                   )
                                 : false;
                               return (

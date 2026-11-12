@@ -983,14 +983,26 @@ function executeSingleSpeech(
   });
 }
 
+function canonicalizeLangCode(code: string): string {
+  const normalized = (code || "").trim().toLowerCase();
+  if (!normalized) return "";
+  const fromLangs = LANGS.find((l) => l.code.toLowerCase() === normalized);
+  if (fromLangs) return fromLangs.code;
+  const fromCatalog = SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code.toLowerCase() === normalized);
+  if (fromCatalog) return fromCatalog.code;
+  return (code || "").trim();
+}
+
 function getLanguageMeta(code: string): { code: string; name: string; tts: string } {
   const normalized = (code || "").trim().toLowerCase();
   const fromLangs = LANGS.find((l) => l.code.toLowerCase() === normalized);
   if (fromLangs) return fromLangs;
   const fromCatalog = SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code.toLowerCase() === normalized);
   if (fromCatalog) {
-    const tts = code.includes("-") ? code : `${code}-${code.toUpperCase()}`;
-    return { code, name: fromCatalog.name, tts };
+    const tts = fromCatalog.code.includes("-")
+      ? fromCatalog.code
+      : `${fromCatalog.code}-${fromCatalog.code.toUpperCase()}`;
+    return { code: fromCatalog.code, name: fromCatalog.name, tts };
   }
   try {
     if (typeof Intl !== "undefined" && typeof Intl.DisplayNames === "function") {
@@ -1218,13 +1230,20 @@ function Index() {
       const urlParams = new URLSearchParams(window.location.search);
       const urlTarget = urlParams.get("target_lang") || urlParams.get("lang");
       if (urlTarget) {
-        const clean = urlTarget.toLowerCase().trim();
-        if (clean && !favs.includes(clean)) {
+        const clean = canonicalizeLangCode(urlTarget);
+        if (clean && !favs.some((f) => f.toLowerCase() === clean.toLowerCase())) {
           favs = [clean, ...favs];
           setFavoriteLanguages(favs);
         }
       }
-      if (favs.length > 0) return Array.from(new Set(favs));
+      if (favs.length > 0) {
+        const seen = new Set<string>();
+        return favs.map(canonicalizeLangCode).filter((c) => {
+          if (!c || seen.has(c.toLowerCase())) return false;
+          seen.add(c.toLowerCase());
+          return true;
+        });
+      }
       const isAndroidEnv =
         Boolean(nativeShell()) ||
         new URLSearchParams(window.location.search).get("android") === "true";
@@ -1283,13 +1302,18 @@ function Index() {
         }
       }
       if (urlTarget) {
-        const clean = urlTarget.toLowerCase().trim();
+        const clean = canonicalizeLangCode(urlTarget);
         recordSharedLanguageForVideo(urlVideo, clean);
-        if (clean && !list.includes(clean)) {
+        if (clean && !list.some((c) => c.toLowerCase() === clean.toLowerCase())) {
           list.unshift(clean);
         }
       }
-      return Array.from(new Set(list));
+      const seenTargets = new Set<string>();
+      return list.map(canonicalizeLangCode).filter((c) => {
+        if (!c || seenTargets.has(c.toLowerCase())) return false;
+        seenTargets.add(c.toLowerCase());
+        return true;
+      });
     }
     return [];
   };
@@ -4841,7 +4865,14 @@ function Index() {
       baseLanguage,
       ...(tracks ? Object.keys(tracks) : []),
     ]);
-    return Array.from(activeCodes).map(getLanguageMeta);
+    const seen = new Set<string>();
+    return Array.from(activeCodes)
+      .map(getLanguageMeta)
+      .filter((meta) => {
+        if (!meta?.code || seen.has(meta.code)) return false;
+        seen.add(meta.code);
+        return true;
+      });
   }, [isAndroid, targetLanguages, shown, spoken, baseLanguage, tracks]);
 
   useEffect(() => {
@@ -4931,10 +4962,15 @@ function Index() {
       }
     });
 
-    // Keep clicked / selected favorite languages strictly on top
+    // Keep clicked / selected favorite languages strictly on top and guarantee strictly unique codes
     const selected = list.filter((l) => targetLanguages.includes(l.code));
     const unselected = list.filter((l) => !targetLanguages.includes(l.code));
-    return [...selected, ...unselected];
+    const seenCodes = new Set<string>();
+    return [...selected, ...unselected].filter((l) => {
+      if (!l || !l.code || seenCodes.has(l.code)) return false;
+      seenCodes.add(l.code);
+      return true;
+    });
   }, [
     isAndroid,
     languageOrder,
@@ -7906,6 +7942,8 @@ function Index() {
                 languageSkipIncomplete={languageSkipIncomplete}
                 onLanguageSkipIncompleteChange={handleLanguageSkipIncompleteChange}
                 onResetAllLanguageCriteria={handleResetAllLanguageCriteria}
+                rows={rows}
+                baseLanguage={baseLanguage}
               />
             }
             languageMaxWords={languageMaxWords}
@@ -9387,12 +9425,12 @@ function Index() {
                                     data-testid="settings-default-language-select"
                                   >
                                     {fetchedSubtitleLanguages.length > 0 ? (
-                                      fetchedSubtitleLanguages.map((langCode) => {
+                                      fetchedSubtitleLanguages.map((langCode, idx) => {
                                         const isDefault = baseLanguage === langCode;
                                         const langMeta = LANGS.find((l) => l.code === langCode);
                                         return (
                                           <button
-                                            key={langCode}
+                                            key={`${langCode}-${idx}`}
                                             type="button"
                                             data-testid={`settings-default-lang-btn-${langCode}`}
                                             onClick={() => handleSelectDefaultSubtitle(langCode)}
@@ -9470,7 +9508,7 @@ function Index() {
                                             (code): code is string => Boolean(code),
                                           ),
                                         ),
-                                      ).map((langCode) => {
+                                      ).map((langCode, idx) => {
                                         const isZk = getZeroKnowledgeInLang(langCode);
                                         const meta =
                                           LANGS.find((l) => l.code === langCode) ||
@@ -9479,7 +9517,7 @@ function Index() {
                                           );
                                         return (
                                           <button
-                                            key={langCode}
+                                            key={`${langCode}-${idx}`}
                                             type="button"
                                             data-testid={`settings-zero-knowledge-toggle-${langCode}`}
                                             onClick={() => handleToggleZeroKnowledge(langCode)}
@@ -9963,13 +10001,13 @@ function Index() {
                                           No favorites selected yet
                                         </span>
                                       ) : (
-                                        Array.from(new Set(favoriteLanguages)).map((code) => {
+                                        Array.from(new Set(favoriteLanguages)).map((code, idx) => {
                                           const langMeta = SUPPORTED_LANGUAGES_CATALOG.find(
                                             (c) => c.code === code,
                                           ) || { code, name: code };
                                           return (
                                             <span
-                                              key={code}
+                                              key={`${code}-${idx}`}
                                               data-testid={`settings-fav-chip-${code}`}
                                               className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-2 py-0.5 text-xs font-medium"
                                             >
@@ -11088,12 +11126,12 @@ function Index() {
                                   </div>
                                   <div className="flex flex-col space-y-1 pt-0.5">
                                     {fetchedSubtitleLanguages.length > 0 ? (
-                                      fetchedSubtitleLanguages.map((langCode) => {
+                                      fetchedSubtitleLanguages.map((langCode, idx) => {
                                         const isDefault = baseLanguage === langCode;
                                         const langMeta = LANGS.find((l) => l.code === langCode);
                                         return (
                                           <button
-                                            key={langCode}
+                                            key={`${langCode}-${idx}`}
                                             type="button"
                                             data-testid={`stage-2-default-lang-${langCode}`}
                                             onClick={() => {
@@ -11156,14 +11194,14 @@ function Index() {
                                     {(favoriteLanguages.length > 0
                                       ? Array.from(new Set(favoriteLanguages))
                                       : ["en", "es", "he", "ar", "fr", "de", "it", "ru", "pt"]
-                                    ).map((code) => {
+                                    ).map((code, idx) => {
                                       const isSelected = targetLanguages.includes(code);
                                       const meta =
                                         LANGS.find((l) => l.code === code) ||
                                         SUPPORTED_LANGUAGES_CATALOG.find((l) => l.code === code);
                                       return (
                                         <div
-                                          key={code}
+                                          key={`${code}-${idx}`}
                                           className={`flex items-center justify-between px-2 py-1 text-xs transition-colors rounded ${
                                             isSelected
                                               ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-medium"
@@ -11464,7 +11502,7 @@ function Index() {
                                                   );
 
                                                 return (
-                                                  <Fragment key={`order-${langCode}`}>
+                                                  <Fragment key={`order-${langCode}-${idx}`}>
                                                     <div
                                                       data-testid={`stage-2-order-row-${langCode}`}
                                                       className="flex items-center justify-between gap-2 p-1.5 px-2.5 rounded-md bg-background/80 border border-border/60"
@@ -11586,7 +11624,7 @@ function Index() {
                                             </div>
 
                                             <div className="flex flex-col space-y-1.5 pt-0.5">
-                                              {orderedLearningCodes.map((langCode) => {
+                                              {orderedLearningCodes.map((langCode, idx) => {
                                                 const meta =
                                                   LANGS.find((l) => l.code === langCode) ||
                                                   SUPPORTED_LANGUAGES_CATALOG.find(
@@ -11599,7 +11637,7 @@ function Index() {
 
                                                 return (
                                                   <div
-                                                    key={`ratio-${langCode}`}
+                                                    key={`ratio-${langCode}-${idx}`}
                                                     data-testid={`stage-2-ratio-row-${langCode}`}
                                                     className="p-2 rounded-md bg-background/80 border border-border/60 space-y-1.5"
                                                   >
@@ -11785,7 +11823,7 @@ function Index() {
                                             </div>
 
                                             <div className="flex flex-col space-y-1 pt-0.5">
-                                              {orderedLearningCodes.map((langCode) => {
+                                              {orderedLearningCodes.map((langCode, idx) => {
                                                 const meta =
                                                   LANGS.find((l) => l.code === langCode) ||
                                                   SUPPORTED_LANGUAGES_CATALOG.find(
@@ -11798,7 +11836,7 @@ function Index() {
 
                                                 return (
                                                   <div
-                                                    key={`blacklist-${langCode}`}
+                                                    key={`blacklist-${langCode}-${idx}`}
                                                     data-testid={`stage-2-blacklist-container-${langCode}`}
                                                     className="flex items-center justify-between gap-2 p-1.5 px-2.5 rounded-md bg-background/80 border border-border/60 text-xs"
                                                   >
@@ -11868,7 +11906,7 @@ function Index() {
                                             </div>
 
                                             <div className="flex flex-col space-y-1 pt-0.5">
-                                              {orderedLearningCodes.map((langCode) => {
+                                              {orderedLearningCodes.map((langCode, idx) => {
                                                 const meta =
                                                   LANGS.find((l) => l.code === langCode) ||
                                                   SUPPORTED_LANGUAGES_CATALOG.find(
@@ -11878,7 +11916,7 @@ function Index() {
 
                                                 return (
                                                   <div
-                                                    key={`zk-${langCode}`}
+                                                    key={`zk-${langCode}-${idx}`}
                                                     data-testid={`stage-2-sentence-or-word-container-${langCode}`}
                                                     className="flex items-center justify-between gap-2 p-1.5 px-2.5 rounded-md bg-background/80 border border-border/60 text-xs"
                                                   >
@@ -11995,7 +12033,7 @@ function Index() {
                                             </div>
 
                                             <div className="flex flex-col space-y-1.5 pt-0.5">
-                                              {orderedLearningCodes.map((langCode) => {
+                                              {orderedLearningCodes.map((langCode, idx) => {
                                                 const meta =
                                                   LANGS.find((l) => l.code === langCode) ||
                                                   SUPPORTED_LANGUAGES_CATALOG.find(
@@ -12005,7 +12043,7 @@ function Index() {
 
                                                 return (
                                                   <div
-                                                    key={`speed-${langCode}`}
+                                                    key={`speed-${langCode}-${idx}`}
                                                     data-testid={`stage-2-speed-row-${langCode}`}
                                                     className="p-2 rounded-md bg-background/80 border border-border/60 space-y-1.5"
                                                   >
@@ -12192,7 +12230,7 @@ function Index() {
                                             </div>
 
                                             <div className="flex flex-col space-y-1.5 pt-0.5">
-                                              {orderedLearningCodes.map((langCode) => {
+                                              {orderedLearningCodes.map((langCode, idx) => {
                                                 const meta =
                                                   LANGS.find((l) => l.code === langCode) ||
                                                   SUPPORTED_LANGUAGES_CATALOG.find(
@@ -12209,7 +12247,7 @@ function Index() {
 
                                                 return (
                                                   <div
-                                                    key={`volume-${langCode}`}
+                                                    key={`volume-${langCode}-${idx}`}
                                                     data-testid={`stage-2-volume-row-${langCode}`}
                                                     className="p-2 rounded-md bg-background/80 border border-border/60 space-y-1.5"
                                                   >
@@ -12515,6 +12553,8 @@ function Index() {
                                         handleLanguageSkipIncompleteChange
                                       }
                                       onResetAllLanguageCriteria={handleResetAllLanguageCriteria}
+                                      rows={rows}
+                                      baseLanguage={baseLanguage}
                                     />
                                   </div>
                                 </div>
@@ -12779,7 +12819,7 @@ function Index() {
                                         );
 
                                         return (
-                                          <Fragment key={lang.code}>
+                                          <Fragment key={`${lang.code}-${index}`}>
                                             <tr
                                               data-testid={`language-row-${lang.code}`}
                                               className="border-b border-border/40 hover:bg-muted/10"
@@ -13184,7 +13224,7 @@ function Index() {
                                             </tr>
                                             {isExpanded && (
                                               <tr
-                                                key={`${lang.code}-url-drawer`}
+                                                key={`${lang.code}-url-drawer-${index}`}
                                                 data-testid={`url-input-row-${lang.code}`}
                                                 className="bg-primary/5 border-y border-primary/20"
                                               >

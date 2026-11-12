@@ -1,28 +1,14 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [IDLE]
-- **Active Task**: None (Ready for next prompt)
-- **Active Step**: None
-- **Suspended Task**: None
+- **Active Task**: None
+- **Active Step**: Ready for next prompt.
 - **Next Tasks**:
-  - Later tasks backlog in `docs/tasks.md` and `docs/later.md`
+  - *(No pending tasks in active backlog)*
 - **Completed**:
+  - Task 395 (Prompt 179): Unfoldable Per-Language Eligible Records & Matching Default Language (2 Columns)
+  - Task 394 (Prompt 178): Show Eligible/Valid Record Statistics in LearningGoalsFiltersPanel
+  - Task 393 (Prompt 177): Remove 3 Redundant Dropdowns in Learning Goals Per-Language Row Criteria
+  - Hotfix (Prompt 176): Fix Duplicate React Key Error ("pt-BR") & Resolve Deleted `componentOptimizationService` Imports
   - Task 392 (Prompt 175): Rollback Learning Goals Accordions & Retain Open Category for Row-Criteria (Max Words Limitation Filter Per Language)
-  - Hotfix (Prompt 174): Fix Missing componentOptimizationService Module, Dev Server Pre-Transform & TypeScript Errors
-  - Task 372 (Prompt 140 - Chapter 4): Subtitles-Table Highlight vs Filter Toggle
-  - Hotfix (Prompt 172): Fix TypeScript compile errors (curPlaying in index.tsx, NewSubtitlesParserBar in SubtitlesTablePanel.tsx, filterLogEntriesOptimized in BottomLogViewer.tsx) and dev server stale HMR state
-  - Task 381 (Prompt 148 - Chapter 3): OpenAPI Multi-Provider Testing, Playback & Custom Auto Provider Selection
-  - Task 380 (Prompt 148 - Chapter 2): Strict Sequential TTS Playback & Respect Audio Playing Duration
-  - Task 391 (Prompt 167): Optimize Application - Inactive/Hidden Components Zero-Processing, Pure Components & Logic in Services
-  - Hotfix (Prompt 168): Fix HMR Multi-Module Desync, Prettier Lint Errors & Clean Dev Server State
-  - Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game
-  - Task 388 (Prompt 154 - Chapter 3): Subtitles Table View Visible Global Row-Criteria, Dropdown Lists & Default Language Filtering
-  - Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language
-  - Hotfix (Prompt 161): Fix Vite Reload, Dev Server Stale State & AGENTS.md Size Headroom
   - Hotfix (Prompt 160): Fix Duplicate React Key Error ("pt-BR")
-  - Hotfix (Prompt 159): Fix Syntax Error in `src/routes/index.tsx` (Missing Closing Tag for `<div>`)
-  - Task 386 (Prompt 154 - Chapter 1): Learning Goals Folded Accordions with Timeout
-  - Hotfix (Prompt 157): Register App State Provider, Prioritize Errors at Top of Diagnostic Report & Cap Reproduction Sequence
-  - Task 390 (Prompt 156): Replace Word Balloons Stage with Subtitles Sentence & Word Learning Game
-  - Hotfix (Prompt 155): Fix Vite Reload Failure & Undeclared Identifiers in index.tsx
-  - Task 385 (Prompt 154 - Chapter 0): Disable GitHub Actions Readme Workflow (`update-readme.yml`).

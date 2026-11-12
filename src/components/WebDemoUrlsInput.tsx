@@ -566,11 +566,11 @@ export function WebDemoUrlsInput({
           {/* Target language selector chips */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[11px] text-muted-foreground mr-1">Target Languages:</span>
-            {COMMON_DEMO_LANGS.map((lang) => {
+            {COMMON_DEMO_LANGS.map((lang, idx) => {
               const isSelected = selectedLangs.includes(lang.code);
               return (
                 <button
-                  key={lang.code}
+                  key={`${lang.code}-${idx}`}
                   type="button"
                   onClick={() => handleToggleLang(lang.code)}
                   className={`text-[11px] px-1.5 py-0.5 rounded border transition-colors ${

@@ -20,7 +20,31 @@ import {
 import { Button } from "@/components/ui/button";
 import { RTL } from "@/lib/subtitles";
 import type { SpeechProgress } from "@/components/HighlightedSubtitle";
-import { tokenizeSentenceToWordTokens } from "@/utils/componentOptimizationService";
+
+interface WordToken {
+  word: string;
+  start: number;
+  end: number;
+  index: number;
+}
+
+function tokenizeSentenceToWordTokens(text: string): WordToken[] {
+  if (!text) return [];
+  const tokens: WordToken[] = [];
+  const regex = /\S+/g;
+  let match: RegExpExecArray | null;
+  let index = 0;
+  while ((match = regex.exec(text)) !== null) {
+    tokens.push({
+      word: match[0],
+      start: match.index,
+      end: match.index + match[0].length,
+      index,
+    });
+    index++;
+  }
+  return tokens;
+}
 
 export interface AlternativeVideoPlayerViewProps {
   /** Active base language sentence text */
@@ -418,8 +442,10 @@ export const AlternativeVideoPlayerView: React.FC<AlternativeVideoPlayerViewProp
                     className="rounded border border-input bg-background px-1.5 py-0.5 text-xs font-semibold text-foreground"
                     title="Switch target TTS translation language"
                   >
-                    {availableTtsLanguages.map((l) => (
-                      <option key={l.code} value={l.code}>
+                    {Array.from(
+                      new Map(availableTtsLanguages.map((l) => [l.code, l])).values(),
+                    ).map((l, idx) => (
+                      <option key={`${l.code}-${idx}`} value={l.code}>
                         {l.name} ({l.code})
                       </option>
                     ))}

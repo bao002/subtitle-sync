@@ -1,4 +1,4 @@
-import { Cue, Json3, Row, parseCues } from "@/lib/subtitles";
+import { Cue, Json3, Row, parseCues, subtitleTextForColumn } from "@/lib/subtitles";
 
 /**
  * New and Easier Subtitles Parser
@@ -170,7 +170,7 @@ export function buildSplitRegex(config: SimpleParserConfig): RegExp | null {
   // OR delimiter preceded by whitespace (handles patterns like "XXX ,YYY")
   return new RegExp(
     `(?:(?<=\\s)[${escapedChars.join("")}]+["'»)”]*)|(?:[${escapedChars.join("")}]+["'»)”]*(?=\\s+|$))`,
-    "gu"
+    "gu",
   );
 }
 
@@ -407,4 +407,227 @@ export function simpleAlign(
   });
 
   return rows;
+}
+
+export interface LanguageCriteriaStats {
+  eligible: number;
+  total: number;
+  excluded: number;
+  percentage: number;
+}
+
+/**
+ * Evaluates whether a subtitle row matches global and per-language row criteria
+ * (max words limitation per language and complete-sentence punctuation check).
+ */
+export function isSubtitleRowMatchingCriteria(
+  row: Row,
+  defaultLang: string,
+  maxWords?: number,
+  skipIncomplete?: boolean,
+  languageMaxWords?: Record<string, number>,
+  languageSkipIncomplete?: Record<string, boolean>,
+): boolean {
+  const langSpecificLimit =
+    defaultLang && languageMaxWords && typeof languageMaxWords[defaultLang] === "number"
+      ? languageMaxWords[defaultLang]
+      : undefined;
+  const effectiveDefaultLimit =
+    typeof langSpecificLimit === "number" && langSpecificLimit > 0
+      ? langSpecificLimit
+      : typeof maxWords === "number" && maxWords > 0
+        ? maxWords
+        : 0;
+
+  const baseText = defaultLang
+    ? subtitleTextForColumn(row, defaultLang) || ""
+    : Object.values(row.texts || {}).find((t) => Boolean(t && t.trim())) || "";
+
+  if (
+    effectiveDefaultLimit > 0 &&
+    baseText.trim().length > 0 &&
+    countWords(baseText) > effectiveDefaultLimit
+  ) {
+    return false;
+  }
+
+  if (languageMaxWords) {
+    for (const [langCode, limit] of Object.entries(languageMaxWords)) {
+      if (typeof limit !== "number" || limit <= 0) continue;
+      const text = subtitleTextForColumn(row, langCode);
+      if (text && text.trim().length > 0 && countWords(text) > limit) {
+        return false;
+      }
+    }
+  }
+
+  const effectiveDefaultSkipIncomplete =
+    defaultLang &&
+    languageSkipIncomplete &&
+    typeof languageSkipIncomplete[defaultLang] === "boolean"
+      ? languageSkipIncomplete[defaultLang]
+      : Boolean(skipIncomplete);
+
+  if (
+    effectiveDefaultSkipIncomplete &&
+    baseText.trim().length > 0 &&
+    !isCompleteSentence(baseText)
+  ) {
+    return false;
+  }
+
+  if (languageSkipIncomplete) {
+    for (const [langCode, requireComplete] of Object.entries(languageSkipIncomplete)) {
+      if (requireComplete !== true) continue;
+      const text = subtitleTextForColumn(row, langCode);
+      if (text && text.trim().length > 0 && !isCompleteSentence(text)) {
+        return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Filters subtitle rows against global and per-language row criteria.
+ */
+export function filterSubtitleRowsByCriteria(
+  rows: Row[],
+  defaultLang: string,
+  maxWords?: number,
+  skipIncomplete?: boolean,
+  languageMaxWords?: Record<string, number>,
+  languageSkipIncomplete?: Record<string, boolean>,
+): Row[] {
+  const hasGlobalMaxWords = typeof maxWords === "number" && maxWords > 0;
+  const hasLanguageLimits = Boolean(
+    languageMaxWords && Object.values(languageMaxWords).some((v) => typeof v === "number" && v > 0),
+  );
+  const hasLanguageSkipIncomplete = Boolean(
+    languageSkipIncomplete && Object.values(languageSkipIncomplete).some((v) => v === true),
+  );
+  if (!hasGlobalMaxWords && !skipIncomplete && !hasLanguageLimits && !hasLanguageSkipIncomplete) {
+    return rows;
+  }
+  return rows.filter((row) =>
+    isSubtitleRowMatchingCriteria(
+      row,
+      defaultLang,
+      maxWords,
+      skipIncomplete,
+      languageMaxWords,
+      languageSkipIncomplete,
+    ),
+  );
+}
+
+export interface EligibleLanguageRecord {
+  index: number;
+  start: number;
+  end: number;
+  languageText: string;
+  defaultLanguageText: string;
+  evaluatedText: string;
+  wordCount: number;
+}
+
+/**
+ * Returns all eligible/valid subtitle records for a single language along with
+ * the matching default language text, based on effective max words and complete-sentence criteria.
+ */
+export function getEligibleLanguageRecords(
+  rows: Row[],
+  langCode: string,
+  baseLanguage: string | undefined,
+  maxWords: number,
+  skipIncomplete: boolean,
+): EligibleLanguageRecord[] {
+  if (!rows || rows.length === 0) {
+    return [];
+  }
+
+  const eligible: EligibleLanguageRecord[] = [];
+  rows.forEach((row, index) => {
+    const languageText = langCode ? (subtitleTextForColumn(row, langCode) || "").trim() : "";
+    const defaultLanguageText = baseLanguage
+      ? (subtitleTextForColumn(row, baseLanguage) || "").trim()
+      : "";
+    const evaluatedText = languageText || defaultLanguageText;
+    if (!evaluatedText) return;
+
+    const wordCount = countWords(evaluatedText);
+    const withinWords = maxWords <= 0 || wordCount <= maxWords;
+    const punctOk = !skipIncomplete || isCompleteSentence(evaluatedText);
+    if (withinWords && punctOk) {
+      eligible.push({
+        index,
+        start: row.start,
+        end: row.end,
+        languageText,
+        defaultLanguageText,
+        evaluatedText,
+        wordCount,
+      });
+    }
+  });
+
+  return eligible;
+}
+
+/**
+ * Computes how many subtitle records are eligible/valid for a single language
+ * given its effective max words limit and complete-sentence requirement.
+ */
+export function computeLanguageCriteriaStats(
+  rows: Row[],
+  langCode: string,
+  baseLanguage: string | undefined,
+  maxWords: number,
+  skipIncomplete: boolean,
+): LanguageCriteriaStats {
+  if (!rows || rows.length === 0) {
+    return { eligible: 0, total: 0, excluded: 0, percentage: 0 };
+  }
+
+  const eligible = getEligibleLanguageRecords(
+    rows,
+    langCode,
+    baseLanguage,
+    maxWords,
+    skipIncomplete,
+  ).length;
+  const total = rows.length;
+  const excluded = Math.max(0, total - eligible);
+  const percentage = total > 0 ? Math.round((eligible / total) * 100) : 0;
+  return { eligible, total, excluded, percentage };
+}
+
+/**
+ * Computes overall subtitle record eligibility across all active global and per-language criteria.
+ */
+export function computeOverallCriteriaStats(
+  rows: Row[],
+  defaultLang: string,
+  maxWords?: number,
+  skipIncomplete?: boolean,
+  languageMaxWords?: Record<string, number>,
+  languageSkipIncomplete?: Record<string, boolean>,
+): LanguageCriteriaStats {
+  if (!rows || rows.length === 0) {
+    return { eligible: 0, total: 0, excluded: 0, percentage: 0 };
+  }
+
+  const eligible = filterSubtitleRowsByCriteria(
+    rows,
+    defaultLang,
+    maxWords,
+    skipIncomplete,
+    languageMaxWords,
+    languageSkipIncomplete,
+  ).length;
+  const total = rows.length;
+  const excluded = Math.max(0, total - eligible);
+  const percentage = total > 0 ? Math.round((eligible / total) * 100) : 0;
+  return { eligible, total, excluded, percentage };
 }

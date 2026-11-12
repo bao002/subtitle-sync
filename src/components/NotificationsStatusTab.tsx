@@ -314,9 +314,9 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
                     Pending ({pendingLanguages.length}):
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {pendingLanguages.map((lang) => (
+                    {pendingLanguages.map((lang, idx) => (
                       <span
-                        key={lang}
+                        key={`${lang}-${idx}`}
                         className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/30 uppercase"
                       >
                         {lang}
@@ -333,9 +333,9 @@ export const NotificationsStatusTab: React.FC<NotificationsStatusTabProps> = ({
                     Loaded ({loadedLanguages.length}):
                   </div>
                   <div className="flex flex-wrap gap-1.5">
-                    {loadedLanguages.map((lang) => (
+                    {loadedLanguages.map((lang, idx) => (
                       <span
-                        key={lang}
+                        key={`${lang}-${idx}`}
                         className="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-semibold bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 uppercase"
                       >
                         {lang}

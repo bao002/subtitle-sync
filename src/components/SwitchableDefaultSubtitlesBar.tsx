@@ -104,7 +104,7 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
             className="flex flex-wrap items-center gap-1.5"
           >
             {uniqueLangs.length > 0 ? (
-              uniqueLangs.map((langCode) => {
+              uniqueLangs.map((langCode, idx) => {
                 const normalizedCode = langCode === "iw" ? "he" : langCode;
                 const isActive =
                   activeLanguage === langCode ||
@@ -144,7 +144,7 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
 
                 return (
                   <button
-                    key={langCode}
+                    key={`${langCode}-${idx}`}
                     type="button"
                     data-testid={`default-subtitle-lang-btn-${langCode}`}
                     aria-pressed={isActive}
@@ -307,7 +307,7 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
                 </tr>
               </thead>
               <tbody>
-                {uniqueLangs.map((code) => {
+                {uniqueLangs.map((code, idx) => {
                   const normalizedCode = code === "iw" ? "he" : code;
                   const stats: SubtitlePunctuationStats = statsMap[code] ||
                     statsMap[normalizedCode] || {
@@ -334,7 +334,7 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
 
                   return (
                     <tr
-                      key={code}
+                      key={`${code}-${idx}`}
                       data-testid={`punctuation-stats-row-${code}`}
                       className={`border-b border-border/40 last:border-b-0 transition-colors ${
                         isRec ? "bg-amber-500/10 font-medium" : "hover:bg-muted/30"

@@ -165,7 +165,7 @@ export const VideoLanguageSequenceControl: React.FC<VideoLanguageSequenceControl
       >
         {/* Languages playing BEFORE the video */}
         {beforeVideoLangs.map((lang, idx) => (
-          <React.Fragment key={`before-${lang.code}`}>
+          <React.Fragment key={`before-${lang.code}-${idx}`}>
             <button
               type="button"
               onClick={() => onLanguageOrderChange(lang.code, "video-first")}
@@ -192,7 +192,7 @@ export const VideoLanguageSequenceControl: React.FC<VideoLanguageSequenceControl
 
         {/* Languages playing AFTER the video */}
         {afterVideoLangs.map((lang, idx) => (
-          <React.Fragment key={`after-${lang.code}`}>
+          <React.Fragment key={`after-${lang.code}-${idx}`}>
             <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
             <button
               type="button"

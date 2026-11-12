@@ -324,9 +324,9 @@ export const FloatingSubtitleRetryIndicator = React.memo(function FloatingSubtit
 
                 {/* Pending language tags */}
                 <div className="flex flex-wrap gap-1">
-                  {pendingLanguages.map((lang) => (
+                  {pendingLanguages.map((lang, idx) => (
                     <span
-                      key={lang}
+                      key={`${lang}-${idx}`}
                       className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-primary/10 text-primary border border-primary/20 uppercase"
                     >
                       {lang}

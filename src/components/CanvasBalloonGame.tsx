@@ -14,7 +14,55 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RTL } from "@/lib/subtitles";
-import { createVisibilitySafeAnimationLoop } from "@/utils/componentOptimizationService";
+
+function createVisibilitySafeAnimationLoop(drawFrame: () => void): {
+  start: () => void;
+  stop: () => void;
+} {
+  let rafId: number | null = null;
+  let stopped = true;
+
+  const tick = () => {
+    if (stopped) return;
+    const isHidden = typeof document !== "undefined" && document.hidden;
+    if (!isHidden) {
+      drawFrame();
+    }
+    if (typeof requestAnimationFrame === "function") {
+      rafId = requestAnimationFrame(tick);
+    }
+  };
+
+  const handleVisibilityChange = () => {
+    if (stopped || typeof document === "undefined") return;
+    if (!document.hidden && rafId === null && typeof requestAnimationFrame === "function") {
+      rafId = requestAnimationFrame(tick);
+    }
+  };
+
+  return {
+    start: () => {
+      if (!stopped) return;
+      stopped = false;
+      if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+      }
+      if (typeof requestAnimationFrame === "function") {
+        rafId = requestAnimationFrame(tick);
+      }
+    },
+    stop: () => {
+      stopped = true;
+      if (rafId !== null && typeof cancelAnimationFrame === "function") {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      }
+    },
+  };
+}
 
 export interface CanvasBalloonGameProps {
   /** Current base language sentence (e.g. English) */
@@ -706,9 +754,11 @@ export const CanvasBalloonGame: React.FC<CanvasBalloonGameProps> = ({
                 className="bg-transparent font-medium text-xs text-white focus:outline-hidden cursor-pointer"
                 title="Select target translation language"
               >
-                {availableTargetLanguages.map((lang) => (
+                {Array.from(
+                  new Map(availableTargetLanguages.map((lang) => [lang.code, lang])).values(),
+                ).map((lang, idx) => (
                   <option
-                    key={lang.code}
+                    key={`${lang.code}-${idx}`}
                     value={lang.code}
                     className="bg-slate-900 text-white"
                   >

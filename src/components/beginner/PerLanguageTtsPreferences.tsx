@@ -147,7 +147,7 @@ export const PerLanguageTtsPreferences: React.FC<PerLanguageTtsPreferencesProps>
             const isZeroKnowledge = getZeroKnowledgeInLang(language.code);
             const wordStrategy = getPickWordStrategy(language.code);
             return (
-              <React.Fragment key={language.code}>
+              <React.Fragment key={`${language.code}-${index}`}>
                 <div
                   className={`grid grid-cols-1 gap-2 rounded-lg border p-2 sm:grid-cols-[minmax(8rem,1fr)_auto_minmax(8rem,1fr)_minmax(10rem,1.5fr)_minmax(9rem,1fr)_auto] sm:items-center ${
                     isBlacklisted

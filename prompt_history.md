@@ -2276,6 +2276,66 @@ CSS 1: {
 [AIS_METADATA_SECTION_END]
 ```
 
+---
 
+### Prompt 176: Fix Duplicate React Key Error ("pt-BR") & Deleted Optimization Imports
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Encountered two children with the same key, `%s`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version. pt-BR
+[AIS_METADATA_SECTION_END]
+```
 
+---
+
+### Prompt 177: Remove 3 Redundant Dropdowns in Learning Goals Per-Language Row Criteria
+```
+1. redundunt
+2.redundunt
+3.redundunt
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(3) > div#stage-2-ingredient-row-criteria-section:nth-of-type(4) > div:nth-of-type(2) > div#learning-goals-filters-panel:nth-of-type(1) > div#learning-goals-per-language-max-words-section:nth-of-type(3) > div:nth-of-type(1) > div:nth-of-type(2) > select#learning-goals-add-language-dropdown:nth-of-type(1)
+CSS 1: {
+
+}
+CSS selector 2: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(3) > div#stage-2-ingredient-row-criteria-section:nth-of-type(4) > div:nth-of-type(2) > div#learning-goals-filters-panel:nth-of-type(1) > div#learning-goals-per-language-max-words-section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2) > select#learning-goals-lang-max-words-dropdown-en:nth-of-type(1)
+CSS 2: {
+
+}
+CSS selector 3: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div#stage-2-learning-goals-card:nth-of-type(1) > div:nth-of-type(3) > div#stage-2-ingredient-row-criteria-section:nth-of-type(4) > div:nth-of-type(2) > div#learning-goals-filters-panel:nth-of-type(1) > div#learning-goals-per-language-max-words-section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(4) > div:nth-of-type(2) > div:nth-of-type(1) > select#learning-goals-lang-complete-dropdown-es:nth-of-type(1)
+CSS 3: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 178: Show Per-Language & Overall Eligible/Valid Record Statistics in LearningGoalsFiltersPanel
+```
+it should also show the statistics - how many records are eligble/valid-based-on-the-condition?
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div#subtitles-table-row-criteria-container:nth-of-type(1) > div#learning-goals-filters-panel:nth-of-type(2) > div#learning-goals-per-language-max-words-section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(3)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 179: Unfoldable Per-Language Eligible Records & Matching Default Language 2-Column List
+```
+unfolding should expose the list of eligible records and the matching default language text (2 columns)
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div#subtitles-table-row-criteria-container:nth-of-type(1) > div#learning-goals-filters-panel:nth-of-type(2) > div#learning-goals-per-language-max-words-section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(6)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
 

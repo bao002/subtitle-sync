@@ -235,9 +235,9 @@ export const ExperimentalSubtitleFetchPanel: React.FC<ExperimentalSubtitleFetchP
         </label>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          {COMMON_EXPERIMENTAL_LANGS.map((lang) => (
+          {COMMON_EXPERIMENTAL_LANGS.map((lang, idx) => (
             <button
-              key={lang.code}
+              key={`${lang.code}-${idx}`}
               type="button"
               data-testid={`experimental-lang-pill-${lang.code}`}
               onClick={() => {

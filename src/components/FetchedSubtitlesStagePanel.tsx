@@ -494,9 +494,9 @@ export const FetchedSubtitlesStagePanel: React.FC<FetchedSubtitlesStagePanelProp
 
           <div className="flex flex-wrap items-center gap-1">
             <span className="text-[11px] text-muted-foreground mr-1">Quick fetch:</span>
-            {COMMON_FETCH_LANGUAGES.map((l) => (
+            {COMMON_FETCH_LANGUAGES.map((l, idx) => (
               <Button
-                key={l.code}
+                key={`${l.code}-${idx}`}
                 type="button"
                 variant={selectedQuickLang === l.code ? "secondary" : "ghost"}
                 size="sm"
@@ -546,7 +546,7 @@ export const FetchedSubtitlesStagePanel: React.FC<FetchedSubtitlesStagePanelProp
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {allTrackLangs.map((langCode) => {
+            {allTrackLangs.map((langCode, idx) => {
               const meta = LANGS.find((l) => l.code === langCode);
               const langName = meta?.name || langCode.toUpperCase();
               const stats = statsMap[langCode] || {
@@ -566,7 +566,7 @@ export const FetchedSubtitlesStagePanel: React.FC<FetchedSubtitlesStagePanelProp
 
               return (
                 <div
-                  key={langCode}
+                  key={`${langCode}-${idx}`}
                   data-testid={`fetched-track-card-${langCode}`}
                   className={`p-3 rounded-xl border transition-all ${
                     isSelectedBase

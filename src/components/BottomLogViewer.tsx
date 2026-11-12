@@ -2,7 +2,16 @@ import React, { useState, useEffect, useRef, useSyncExternalStore, useMemo, memo
 import { Activity, AlertTriangle, Check, Copy, Trash2, ChevronUp, ChevronDown, ListFilter, Workflow } from "lucide-react";
 import { getLogEntriesSnapshot, logBuffer, subscribeToLogEntries, copyAllLogToClipboard, type LogEntry } from "@/utils/logBuffer";
 import { Button } from "@/components/ui/button";
-import { filterLogEntriesOptimized } from "@/utils/componentOptimizationService";
+
+function filterLogEntriesOptimized(
+  entries: readonly LogEntry[],
+  filterLevel: "ALL" | "ACTIONS_ERRORS",
+  isActive: boolean,
+): LogEntry[] {
+  if (!isActive || entries.length === 0) return [];
+  if (filterLevel === "ALL") return entries as LogEntry[];
+  return entries.filter((entry) => entry.level === "ACTION" || entry.level === "ERROR");
+}
 
 function formatDetails(details: unknown): string {
   if (typeof details === "string") return details;
