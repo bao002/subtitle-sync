@@ -1,5 +1,45 @@
 # Done tasks
 
+### Task 388 (Prompt 154 - Chapter 3): Subtitles Table View Visible Global Row-Criteria, Dropdown Lists & Default Language Filtering
+
+- **Prompt**:
+  ```
+  1. Learning goals - use dropdown lists 
+  2. learning goals - add row-criteria per language
+  3. subtitles-table-view: Row-Criteria is not visible any longer (it should global)
+
+  row-criteria should use the defualt language and filter out subtitles records with more then X words
+  ```
+- **Scope & Objectives**:
+  - Restore visible rendering of global Row-Criteria in `SubtitlesTablePanel.tsx` by removing the `{false &&` suppression.
+  - Implement dropdown `<select>` lists for selecting max words limit and sentence completeness in `LearningGoalsFiltersPanel.tsx`.
+  - Add language selector dropdown (`learning-goals-add-language-dropdown`) allowing users to easily add and configure row-criteria per language.
+  - Ensure row-criteria evaluates the default language (`baseLanguage` or first column) and filters out subtitle records with more than X words.
+  - Pass language criteria props to `SubtitlesTablePanel` in both Beginner and Advanced modes.
+- **Architectural Implementation**:
+  1. **`SubtitlesTablePanel.tsx`**:
+     - Removed `{false &&` so `{showRowCriteria && (` visibly renders the global `LearningGoalsFiltersPanel`.
+     - Computed `effectiveDisplayedRows` checking `countWords(defText) <= maxWords` on the default language.
+     - Updated single-table and multiple-tables bodies to render `effectiveDisplayedRows`.
+     - Added props `languageMaxWords`, `onLanguageMaxWordsChange`, `languageSkipIncomplete`, `onLanguageSkipIncompleteChange`, and `onResetAllLanguageCriteria`.
+  2. **`LearningGoalsFiltersPanel.tsx`**:
+     - Added global max words dropdown list (`data-testid="learning-goals-max-words-dropdown"`).
+     - Added global complete sentence dropdown list (`data-testid="learning-goals-complete-sentence-dropdown"`).
+     - Added language adder dropdown list (`data-testid="learning-goals-add-language-dropdown"`).
+     - Added per-language max words dropdown list (`data-testid="learning-goals-lang-max-words-dropdown-${lang.code}"`).
+     - Added per-language complete sentence dropdown list (`data-testid="learning-goals-lang-complete-dropdown-${lang.code}"`).
+  3. **`newSubtitlesParser.ts`**:
+     - In `simpleAlign`, checked `hasWordFilter` and `hasPunctFilter` before falling back to raw cues so the user word limit filter is strictly respected.
+  4. **`src/routes/index.tsx`**:
+     - Forwarded `languageMaxWords`, `onLanguageMaxWordsChange`, `languageSkipIncomplete`, `onLanguageSkipIncompleteChange`, and `onResetAllLanguageCriteria` to `SubtitlesTablePanel` in both Beginner and Advanced mode slots.
+  5. **Version & Test Coverage**:
+     - Added dedicated test `scripts/verify-learning-goals-dropdowns-and-row-criteria.ts` (`npm run test:learning-goals-dropdowns-and-row-criteria`).
+     - Bumped version to `v2.1.88` across `package.json` and Android shell via `npm run sync-version`.
+- **Testing & Verification**:
+  - `npm run test:learning-goals-dropdowns-and-row-criteria`: PASSED (4/4 test blocks).
+  - `compile_applet`: Build succeeded.
+  - `lint_applet`: Completed with 0 errors.
+
 ### Task 387 (Prompt 154 - Chapter 2): Learning Goals Row-Criteria Per Language
 
 - **Prompt**: "go on" (resuming Chapter 2 from Prompt 154).

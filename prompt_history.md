@@ -2065,3 +2065,26 @@ error 9: [vite] Failed to reload /src/components/beginner/PerLanguageTtsPreferen
 ```
 go on
 ```
+
+---
+
+### Prompt 163: Learning Goals Dropdown Lists, Per-Language Row-Criteria & Global Default Language Word Filtering in Subtitles Table
+```
+1. Learning goals - use dropdown lists 
+2. learning goals - add row-criteria per language
+3. subtitles-table-view: Row-Criteria is not visible any longer (it should global)
+
+row-criteria should use the defualt language and filter out subtitles records with more then X words
+```
+
+---
+
+### Prompt 164: Diagnostic Fix-It Check & Dev Server Clean State
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 11:59:27 PM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/ApkReleaseModal.tsx, /src/components/ShareStateModal.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/FloatingErrorButton.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+[AIS_METADATA_SECTION_END]
+```
+

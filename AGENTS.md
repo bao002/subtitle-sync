@@ -129,5 +129,9 @@ The application processes and presents subtitles through a strict sequential pip
 ## Last raw prompt
 
 ```
-go on
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 11:59:27 PM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/ApkReleaseModal.tsx, /src/components/ShareStateModal.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/FloatingErrorButton.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+[AIS_METADATA_SECTION_END]
 ```

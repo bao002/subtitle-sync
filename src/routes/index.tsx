@@ -7926,6 +7926,11 @@ function Index() {
                 onTablePlay={handlePlayVideo}
                 tableDisplayMode={tableDisplayMode}
                 onTableDisplayModeChange={handleTableDisplayModeChange}
+                languageMaxWords={languageMaxWords}
+                onLanguageMaxWordsChange={handleLanguageMaxWordsChange}
+                languageSkipIncomplete={languageSkipIncomplete}
+                onLanguageSkipIncompleteChange={handleLanguageSkipIncompleteChange}
+                onResetAllLanguageCriteria={handleResetAllLanguageCriteria}
               />
             }
           />
@@ -13357,6 +13362,11 @@ function Index() {
                               onTablePlay={handlePlayVideo}
                               tableDisplayMode={tableDisplayMode}
                               onTableDisplayModeChange={handleTableDisplayModeChange}
+                              languageMaxWords={languageMaxWords}
+                              onLanguageMaxWordsChange={handleLanguageMaxWordsChange}
+                              languageSkipIncomplete={languageSkipIncomplete}
+                              onLanguageSkipIncompleteChange={handleLanguageSkipIncompleteChange}
+                              onResetAllLanguageCriteria={handleResetAllLanguageCriteria}
                             />
                             {currentAccordionStage === 2 && (
                               <div

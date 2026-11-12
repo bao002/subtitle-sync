@@ -4,12 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 388 (Prompt 154 - Chapter 3): Subtitles Table View Visible Global Row-Criteria with Default Language Filtering [ACTIVE]**
-  - [ ] Subtask 388.1: Ensure the global Row-Criteria panel/header is visibly rendered in `SubtitlesTablePanel.tsx` in Stage 3 / Subtitles Table View.
-  - [ ] Subtask 388.2: Ensure row-criteria word counting uses the default language (leftmost column / base language) and strictly filters out subtitle records exceeding X words.
-  - [ ] Subtask 388.3: Verify with dedicated test `scripts/verify-subtitles-table-global-row-criteria-visible.ts`, verify compilation and linting, commit, and migrate Task 388 to `docs/done.md`.
-
-- [ ] **Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game [PENDING]**
+- [ ] **Task 389 (Prompt 154 - Chapter 4): Word Balloons Stage - Remove Video Player & Deliver Pure Learning Words Game [ACTIVE]**
   - [ ] Subtask 389.1: Audit `WordBalloonLearningView.tsx` and stage rendering in `src/routes/index.tsx` to locate any video player elements in the Word Balloons stage.
   - [ ] Subtask 389.2: Remove the video player and video controls completely from the Word Balloons learning stage so it focuses 100% on interactive word-popping and vocabulary learning.
   - [ ] Subtask 389.3: Verify with dedicated test `scripts/verify-word-balloons-stage-no-video.ts`, verify compilation and linting, commit, and migrate Task 389 to `docs/done.md`.
