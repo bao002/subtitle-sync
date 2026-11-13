@@ -57,6 +57,8 @@ export const FloatingErrorButton: React.FC<FloatingErrorButtonProps> = ({
   const dragStartRef = useRef<{ clientX: number; clientY: number } | null>(null);
   const startPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const hasMovedRef = useRef(false);
+  const positionRef = useRef(position);
+  positionRef.current = position;
 
   // Subscribe to logBuffer for new ERROR level logs
   useEffect(() => {
@@ -119,7 +121,9 @@ export const FloatingErrorButton: React.FC<FloatingErrorButtonProps> = ({
       if (Math.hypot(dx, dy) > 8) {
         hasMovedRef.current = true;
       }
-      setPosition(clampPosition(startPosRef.current.x + dx, startPosRef.current.y + dy));
+      const nextPos = clampPosition(startPosRef.current.x + dx, startPosRef.current.y + dy);
+      positionRef.current = nextPos;
+      setPosition(nextPos);
     };
 
     const handleMouseUp = () => {
@@ -127,7 +131,7 @@ export const FloatingErrorButton: React.FC<FloatingErrorButtonProps> = ({
         isDraggingRef.current = false;
         dragStartRef.current = null;
         try {
-          localStorage.setItem("yt_floating_error_pos", JSON.stringify(position));
+          localStorage.setItem("yt_floating_error_pos", JSON.stringify(positionRef.current));
         } catch {
           // ignore
         }
@@ -140,7 +144,7 @@ export const FloatingErrorButton: React.FC<FloatingErrorButtonProps> = ({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [position]);
+  }, []);
 
   const handleClearErrors = () => {
     // Remove ERROR entries from buffer or clear

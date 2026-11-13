@@ -12,7 +12,14 @@ import {
   VolumeX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { unlockTtsAudioPlayback } from "@/lib/alternative-tts";
 import { RTL } from "@/lib/subtitles";
+import { normalizeLanguage } from "@/utils/onDemandTranslationManager";
+import {
+  getCachedWordTranslation,
+  getWordTranslation,
+  getWordTranslationCacheKey,
+} from "@/utils/zeroKnowledgeWordManager";
 import {
   extractListeningSentences,
   extractListeningWords,
@@ -65,13 +72,29 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     current: number;
     total: number;
   } | null>(null);
+  const [wordTranslations, setWordTranslations] = useState<Record<string, string>>({});
+  const [loadingWordKeys, setLoadingWordKeys] = useState<Record<string, boolean>>({});
   const playbackRunIdRef = useRef<number>(0);
   const autoAdjustedRef = useRef<boolean>(false);
   const onStopSpeakingRef = useRef(onStopSpeaking);
   onStopSpeakingRef.current = onStopSpeaking;
+  const wordsListRef = useRef<HTMLDivElement | null>(null);
+  const wordTranslationsRef = useRef<Record<string, string>>(wordTranslations);
+  wordTranslationsRef.current = wordTranslations;
+  const queuedKeysRef = useRef<Set<string>>(new Set());
+  const translationQueueRef = useRef<
+    Array<{ key: string; word: string; fromLang: string; toLang: string }>
+  >([]);
+  const activeWorkersRef = useRef<number>(0);
+  const isMountedRef = useRef<boolean>(true);
 
   const isBaseRtl = RTL.has(baseLanguage);
   const isTargetRtl = RTL.has(targetLanguage);
+  const hasDifferentTargetLang = Boolean(
+    baseLanguage &&
+    targetLanguage &&
+    normalizeLanguage(baseLanguage) !== normalizeLanguage(targetLanguage),
+  );
 
   const handleToggleWithTranslations = useCallback(
     (next: boolean) => {
@@ -141,10 +164,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     if (filteredWords.length === 0 && allAvailableWords.length > 0) {
       const bestThreshold = Math.max(
         1,
-        Math.min(
-          minLetters,
-          Math.max(...allAvailableWords.map((w) => w.letterCount)),
-        ),
+        Math.min(minLetters, Math.max(...allAvailableWords.map((w) => w.letterCount))),
       );
       if (bestThreshold !== minLetters) {
         setMinLetters(bestThreshold);
@@ -166,25 +186,215 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     maxWords,
   ]);
 
-  const stopSequentialPlayback = useCallback(
-    (notifyHost: boolean = true) => {
-      playbackRunIdRef.current += 1;
-      setIsPlayingAll(null);
-      setPlayingProgress(null);
-      setActiveItemId(null);
-      if (notifyHost) {
-        onStopSpeakingRef.current?.();
-      }
-    },
-    [],
-  );
+  const stopSequentialPlayback = useCallback((notifyHost: boolean = true) => {
+    playbackRunIdRef.current += 1;
+    setIsPlayingAll(null);
+    setPlayingProgress(null);
+    setActiveItemId(null);
+    if (notifyHost) {
+      onStopSpeakingRef.current?.();
+    }
+  }, []);
 
   useEffect(() => {
+    isMountedRef.current = true;
+    const queuedKeys = queuedKeysRef.current;
     return () => {
+      isMountedRef.current = false;
       playbackRunIdRef.current += 1;
+      translationQueueRef.current = [];
+      queuedKeys.clear();
       onStopSpeakingRef.current?.();
     };
   }, []);
+
+  const pumpTranslationQueue = useCallback(() => {
+    const MAX_CONCURRENT = 2;
+    while (activeWorkersRef.current < MAX_CONCURRENT && translationQueueRef.current.length > 0) {
+      const next = translationQueueRef.current.shift();
+      if (!next) break;
+      const { key, word, fromLang, toLang } = next;
+      const cached =
+        wordTranslationsRef.current[key] || getCachedWordTranslation(word, fromLang, toLang);
+      if (cached) {
+        queuedKeysRef.current.delete(key);
+        if (!wordTranslationsRef.current[key] && isMountedRef.current) {
+          setWordTranslations((prev) => (prev[key] ? prev : { ...prev, [key]: cached }));
+        }
+        continue;
+      }
+
+      activeWorkersRef.current += 1;
+      if (isMountedRef.current) {
+        setLoadingWordKeys((prev) => (prev[key] ? prev : { ...prev, [key]: true }));
+      }
+      void getWordTranslation(word, fromLang, toLang)
+        .then((translated) => {
+          if (translated && isMountedRef.current) {
+            setWordTranslations((prev) =>
+              prev[key] === translated ? prev : { ...prev, [key]: translated },
+            );
+          }
+        })
+        .finally(() => {
+          queuedKeysRef.current.delete(key);
+          activeWorkersRef.current = Math.max(0, activeWorkersRef.current - 1);
+          if (isMountedRef.current) {
+            setLoadingWordKeys((prev) => {
+              if (!prev[key]) return prev;
+              const nextMap = { ...prev };
+              delete nextMap[key];
+              return nextMap;
+            });
+            pumpTranslationQueue();
+          }
+        });
+    }
+  }, []);
+
+  const enqueueWordTranslation = useCallback(
+    (word: string) => {
+      if (!hasDifferentTargetLang || !word.trim()) return;
+      const key = getWordTranslationCacheKey(word, baseLanguage, targetLanguage);
+      if (!key) return;
+      const cached =
+        wordTranslationsRef.current[key] ||
+        getCachedWordTranslation(word, baseLanguage, targetLanguage);
+      if (cached) {
+        if (!wordTranslationsRef.current[key] && isMountedRef.current) {
+          setWordTranslations((prev) => (prev[key] ? prev : { ...prev, [key]: cached }));
+        }
+        return;
+      }
+      if (queuedKeysRef.current.has(key)) return;
+      queuedKeysRef.current.add(key);
+      translationQueueRef.current.push({
+        key,
+        word,
+        fromLang: baseLanguage,
+        toLang: targetLanguage,
+      });
+      pumpTranslationQueue();
+    },
+    [baseLanguage, targetLanguage, hasDifferentTargetLang, pumpTranslationQueue],
+  );
+
+  const resolveWordTranslationNow = useCallback(
+    async (word: string): Promise<string> => {
+      if (!hasDifferentTargetLang || !word.trim()) return "";
+      const key = getWordTranslationCacheKey(word, baseLanguage, targetLanguage);
+      if (!key) return "";
+      const existing =
+        wordTranslationsRef.current[key] ||
+        getCachedWordTranslation(word, baseLanguage, targetLanguage);
+      if (existing) {
+        if (!wordTranslationsRef.current[key] && isMountedRef.current) {
+          setWordTranslations((prev) => (prev[key] ? prev : { ...prev, [key]: existing }));
+        }
+        return existing;
+      }
+      if (isMountedRef.current) {
+        setLoadingWordKeys((prev) => (prev[key] ? prev : { ...prev, [key]: true }));
+      }
+      try {
+        const translated = await getWordTranslation(word, baseLanguage, targetLanguage);
+        if (translated && isMountedRef.current) {
+          setWordTranslations((prev) =>
+            prev[key] === translated ? prev : { ...prev, [key]: translated },
+          );
+        }
+        return translated;
+      } finally {
+        if (isMountedRef.current) {
+          setLoadingWordKeys((prev) => {
+            if (!prev[key]) return prev;
+            const nextMap = { ...prev };
+            delete nextMap[key];
+            return nextMap;
+          });
+        }
+      }
+    },
+    [baseLanguage, targetLanguage, hasDifferentTargetLang],
+  );
+
+  // Hydrate cached word translations synchronously and enqueue initial visible batch
+  useEffect(() => {
+    translationQueueRef.current = [];
+    queuedKeysRef.current.clear();
+    if (!hasDifferentTargetLang || filteredWords.length === 0) return;
+
+    const hydrated: Record<string, string> = {};
+    for (const item of filteredWords) {
+      const key = getWordTranslationCacheKey(item.word, baseLanguage, targetLanguage);
+      if (!key) continue;
+      const cached = getCachedWordTranslation(item.word, baseLanguage, targetLanguage);
+      if (cached) {
+        hydrated[key] = cached;
+      }
+    }
+    if (Object.keys(hydrated).length > 0) {
+      setWordTranslations((prev) => ({ ...hydrated, ...prev }));
+    }
+
+    if (withTranslations) {
+      for (const item of filteredWords.slice(0, 14)) {
+        enqueueWordTranslation(item.word);
+      }
+    }
+  }, [
+    filteredWords,
+    baseLanguage,
+    targetLanguage,
+    hasDifferentTargetLang,
+    withTranslations,
+    enqueueWordTranslation,
+  ]);
+
+  // Observe visible word cards as the user scrolls inside listening-words-list (e.g. down to item #73)
+  useEffect(() => {
+    const container = wordsListRef.current;
+    if (
+      !container ||
+      !withTranslations ||
+      !hasDifferentTargetLang ||
+      filteredWords.length === 0 ||
+      typeof IntersectionObserver === "undefined"
+    ) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const wordText = entry.target.getAttribute("data-word-item");
+          if (wordText) {
+            enqueueWordTranslation(wordText);
+          }
+          observer.unobserve(entry.target);
+        }
+      },
+      {
+        root: container,
+        rootMargin: "160px 0px",
+        threshold: 0.01,
+      },
+    );
+
+    const children = container.querySelectorAll("[data-word-item]");
+    children.forEach((el) => observer.observe(el));
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [
+    filteredWords,
+    withTranslations,
+    hasDifferentTargetLang,
+    activeListFilter,
+    enqueueWordTranslation,
+  ]);
 
   const speakSingleEntry = useCallback(
     async (baseText: string, translationText: string, itemId: string, runId?: number) => {
@@ -221,20 +431,88 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     [onSpeakText, baseLanguage, targetLanguage, withTranslations],
   );
 
-  const handlePlayWord = useCallback(
-    (item: ListeningGameWordItem) => {
-      stopSequentialPlayback(true);
-      void speakSingleEntry(item.word, item.sourceTranslation, item.id);
+  const speakWordEntry = useCallback(
+    async (item: ListeningGameWordItem, runId?: number) => {
+      setActiveItemId(item.id);
+      if (!onSpeakText) return;
+
+      const trimmedBase = item.word.trim();
+      const translationPromise =
+        withTranslations && hasDifferentTargetLang
+          ? resolveWordTranslationNow(trimmedBase)
+          : Promise.resolve("");
+
+      if (trimmedBase) {
+        try {
+          await Promise.resolve(onSpeakText(trimmedBase, baseLanguage));
+        } catch (err) {
+          console.warn("ListeningGamePanel word base speech error:", err);
+        }
+      }
+
+      if (runId !== undefined && playbackRunIdRef.current !== runId) {
+        return;
+      }
+
+      if (withTranslations) {
+        const onDemandWordTrans = (await translationPromise).trim();
+        if (runId !== undefined && playbackRunIdRef.current !== runId) {
+          return;
+        }
+        const spokenTranslation = onDemandWordTrans || item.sourceTranslation.trim();
+        if (spokenTranslation && spokenTranslation.toLowerCase() !== trimmedBase.toLowerCase()) {
+          try {
+            await Promise.resolve(onSpeakText(spokenTranslation, targetLanguage));
+          } catch (err) {
+            console.warn("ListeningGamePanel word translation speech error:", err);
+          }
+        }
+      }
     },
-    [speakSingleEntry, stopSequentialPlayback],
+    [
+      onSpeakText,
+      baseLanguage,
+      targetLanguage,
+      withTranslations,
+      hasDifferentTargetLang,
+      resolveWordTranslationNow,
+    ],
+  );
+
+  const handlePlayWord = useCallback(
+    async (item: ListeningGameWordItem) => {
+      unlockTtsAudioPlayback();
+      const wasAlreadySpeaking = isPlayingAll !== null || activeItemId !== null;
+      stopSequentialPlayback(wasAlreadySpeaking);
+      const runId = playbackRunIdRef.current;
+      if (wasAlreadySpeaking) {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        if (playbackRunIdRef.current !== runId) return;
+      }
+      await speakWordEntry(item, runId);
+      if (isMountedRef.current && playbackRunIdRef.current === runId) {
+        setActiveItemId((prev) => (prev === item.id ? null : prev));
+      }
+    },
+    [isPlayingAll, activeItemId, speakWordEntry, stopSequentialPlayback],
   );
 
   const handlePlaySentence = useCallback(
-    (item: ListeningGameSentenceItem) => {
-      stopSequentialPlayback(true);
-      void speakSingleEntry(item.sentence, item.translation, item.id);
+    async (item: ListeningGameSentenceItem) => {
+      unlockTtsAudioPlayback();
+      const wasAlreadySpeaking = isPlayingAll !== null || activeItemId !== null;
+      stopSequentialPlayback(wasAlreadySpeaking);
+      const runId = playbackRunIdRef.current;
+      if (wasAlreadySpeaking) {
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        if (playbackRunIdRef.current !== runId) return;
+      }
+      await speakSingleEntry(item.sentence, item.translation, item.id, runId);
+      if (isMountedRef.current && playbackRunIdRef.current === runId) {
+        setActiveItemId((prev) => (prev === item.id ? null : prev));
+      }
     },
-    [speakSingleEntry, stopSequentialPlayback],
+    [isPlayingAll, activeItemId, speakSingleEntry, stopSequentialPlayback],
   );
 
   const handlePlayAllWords = useCallback(async () => {
@@ -243,6 +521,8 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
       return;
     }
     if (filteredWords.length === 0) return;
+
+    unlockTtsAudioPlayback();
 
     const wasAlreadySpeaking = isPlayingAll !== null || activeItemId !== null;
     if (wasAlreadySpeaking) {
@@ -262,8 +542,11 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     for (let idx = 0; idx < filteredWords.length; idx++) {
       if (playbackRunIdRef.current !== runId) break;
       const item = filteredWords[idx];
+      if (withTranslations && filteredWords[idx + 1]) {
+        enqueueWordTranslation(filteredWords[idx + 1].word);
+      }
       setPlayingProgress({ list: "words", current: idx + 1, total: filteredWords.length });
-      await speakSingleEntry(item.word, item.sourceTranslation, item.id, runId);
+      await speakWordEntry(item, runId);
       if (playbackRunIdRef.current !== runId) break;
       await new Promise((resolve) => setTimeout(resolve, withTranslations ? 550 : 350));
     }
@@ -278,7 +561,8 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     isPlayingAll,
     activeItemId,
     onStopSpeaking,
-    speakSingleEntry,
+    speakWordEntry,
+    enqueueWordTranslation,
     stopSequentialPlayback,
     withTranslations,
   ]);
@@ -289,6 +573,8 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
       return;
     }
     if (filteredSentences.length === 0) return;
+
+    unlockTtsAudioPlayback();
 
     const wasAlreadySpeaking = isPlayingAll !== null || activeItemId !== null;
     if (wasAlreadySpeaking) {
@@ -330,10 +616,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
   ]);
 
   return (
-    <div
-      data-testid="listening-game-panel"
-      className={`space-y-4 ${className}`}
-    >
+    <div data-testid="listening-game-panel" className={`space-y-4 ${className}`}>
       {/* Top Controls: Translations Mode Toggle & List View Switch */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 p-3 rounded-xl border border-border/80 bg-muted/20">
         <div className="flex flex-wrap items-center gap-2">
@@ -543,6 +826,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
             </div>
 
             <div
+              ref={wordsListRef}
               data-testid="listening-words-list"
               className="max-h-72 overflow-y-auto space-y-1.5 pr-1"
             >
@@ -571,10 +855,24 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
               ) : (
                 filteredWords.map((item, idx) => {
                   const isActive = activeItemId === item.id;
+                  const cacheKey = getWordTranslationCacheKey(
+                    item.word,
+                    baseLanguage,
+                    targetLanguage,
+                  );
+                  const onDemandWordTrans = cacheKey
+                    ? wordTranslations[cacheKey] ||
+                      getCachedWordTranslation(item.word, baseLanguage, targetLanguage) ||
+                      ""
+                    : "";
+                  const isTranslatingWord = Boolean(
+                    cacheKey && loadingWordKeys[cacheKey] && !onDemandWordTrans,
+                  );
                   return (
                     <div
                       key={item.id}
                       data-testid={`listening-word-item-${idx}`}
+                      data-word-item={item.word}
                       className={`flex items-center justify-between gap-2 rounded-lg border p-2 text-xs transition-colors ${
                         isActive
                           ? "border-indigo-500 bg-indigo-500/10"
@@ -589,9 +887,24 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                           >
                             {item.word}
                           </span>
-                          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                            {item.letterCount} letters
-                          </span>
+                          {withTranslations && onDemandWordTrans && (
+                            <span
+                              dir={isTargetRtl ? "rtl" : "ltr"}
+                              data-testid={`listening-word-ondemand-translation-${idx}`}
+                              className="text-xs font-semibold text-indigo-600 dark:text-indigo-300"
+                              title={`On-demand word translation (${targetLanguageName})`}
+                            >
+                              → {onDemandWordTrans}
+                            </span>
+                          )}
+                          {withTranslations && isTranslatingWord && (
+                            <span
+                              data-testid={`listening-word-translating-${idx}`}
+                              className="text-[10px] italic text-indigo-500/80"
+                            >
+                              translating…
+                            </span>
+                          )}
                         </div>
                         {withTranslations && item.sourceTranslation && (
                           <p
@@ -614,7 +927,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                         className="h-7 px-2 text-[11px] gap-1 shrink-0"
                         title={
                           withTranslations
-                            ? "Listen to word + translation"
+                            ? "Listen to word + on-demand translation"
                             : "Listen to word only"
                         }
                       >
@@ -742,10 +1055,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                       data-testid="listening-autofit-sentences-btn"
                       onClick={() =>
                         setMaxWords(
-                          Math.min(
-                            40,
-                            Math.max(...allAvailableSentences.map((s) => s.wordCount)),
-                          ),
+                          Math.min(40, Math.max(...allAvailableSentences.map((s) => s.wordCount))),
                         )
                       }
                       className="h-7 text-[11px]"
