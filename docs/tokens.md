@@ -4,9 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
-- Prompt 181 (Serial Chapters — Task 397: Fix Video Stage Disappearing / Showing Word Game; Task 398: Fix Missing 3rd Option to Toggle TTS-Play):
-  - Task 397 [ACTIVE]: Fix Stage 3 / Beginner Video tab showing `WordBalloonLearningView` or disappearing player accordion/controls when transitioning from Stage 5 or stale `localStorage` state.
-  - Task 398 [PENDING]: Add missing 3rd option (`menu-option-tts-play`) to `FloatingDraggablePauseButton` floating controls menu and wire persistent global TTS-Play toggle in `src/routes/index.tsx`.
+- Prompt 183 (Hotfix: Verify bun install & Full Post-Recovery Build/Lint/Test Validation):
+  - Hotfix [COMPLETED & VERIFIED]: Verified `bun install` exits cleanly (`EXIT=0`, 700 installs across 831 packages), ran full post-recovery `compile_applet`, `lint_applet`, `npx tsc --noEmit`, `test:stage-click-view-visibility`, `test:video-stage-visibility-no-word-game`, `test:vite-reload-modules`, and `test:agents-all`.
+- Prompt 182 (Hotfix: Diagnostic Fix-It Check, Stage Click Visibility Test Alignment & Dev Server Clean State):
+  - Hotfix [COMPLETED & VERIFIED]: Diagnosed Vite client HMR notification log (`2:40:10 AM [vite] (client) hmr update ...`), verified zero TS/lint/runtime errors in headless Chromium across Advanced (Stages 1-5 -> 3) & Beginner modes, aligned `scripts/verify-stage-click-view-visibility.ts` with Stage 3/5 player slot sharing, and restarted dev server for clean state.
+- Prompt 181 / Prompt 184 (Task 397 & Task 398):
+  - Task 397 [COMPLETED & VERIFIED]: Fixed Stage 3 / Beginner Video tab showing `WordBalloonLearningView` or disappearing player accordion/controls when transitioning from Stage 5 or stale `localStorage` state (`v2.1.104`).
+  - Task 398 [COMPLETED & VERIFIED]: Added 3rd option (`menu-option-tts-play`) to `FloatingDraggablePauseButton` floating controls menu (`div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)`), wired persistent global TTS-Play toggle (`autoPlayTTS` default `true` in `yt_app_settings_v4`) in `src/routes/index.tsx`, updated Storybook, added `verify-floating-menu-third-option-tts-play.ts`, and bumped version to `v2.1.105`.
 - Prompt 180 (Task 396: Define king-of-comma & mother-tongue-language Default Subtitle Auto-Selection):
   - Task 396 [COMPLETED & VERIFIED]: Defined `king-of-comma` (`resolveKingOfComma` in `subtitlePunctuationStats.ts`) selecting the highest-comma language automatically as translation `baseLanguage`, and `mother-tongue-language` (`generateMotherTongueFromKingOfComma` / `setMotherTongueLanguage` in `defaultLanguageManager.ts`) generated from `king-of-comma` and acting as `default-language`; exposed cleanly in `#switchable-default-subtitles-bar` across Beginner Mode, Advanced Mode, and Storybook; added `verify-king-of-comma-and-mother-tongue.ts`, bumped version to `v2.1.103`, passed all tests, `eslint`, and `tsc --noEmit`.
 - Prompt 179 (Task 395: Unfoldable Per-Language Eligible Records 2-Column List):

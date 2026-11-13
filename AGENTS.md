@@ -128,7 +128,13 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-1. fix: video stage disapears or shows the word game
-2. fix: missing 3rd option to toggle tts-play
+where is the tts-paly  enabler (that should be enabled by default)
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
 ```
 
