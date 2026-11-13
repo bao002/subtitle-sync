@@ -2339,3 +2339,29 @@ CSS 1: {
 [AIS_METADATA_SECTION_END]
 ```
 
+---
+
+### Prompt 180: Define king-of-comma (Auto Base for Translation) & mother-tongue-language (Default Language)
+```
+first element - lets define another thing: king-of-comma
+- the language with the number of "," punctuation sign
+- that language will be selected automaticly as base for translation
+
+lets define another thing: mother-tongue-language will act as the default-language and will be generated based on king-of-comma
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div#switchable-default-subtitles-bar:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 181: Fix Video Stage Disappearing / Showing Word Game & Missing 3rd Option to Toggle TTS-Play
+```
+1. fix: video stage disapears or shows the word game
+2. fix: missing 3rd option to toggle tts-play
+```
+

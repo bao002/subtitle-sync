@@ -1,5 +1,48 @@
 # Done tasks
 
+### Task 396 (Prompt 180): Define `king-of-comma` & `mother-tongue-language` in Default Subtitles & Auto Base Selection
+
+- **Prompt**:
+  ```
+  first element - lets define another thing: king-of-comma
+  - the language with the number of "," punctuation sign
+  - that language will be selected automaticly as base for translation
+
+  lets define another thing: mother-tongue-language will act as the default-language and will be generated based on king-of-comma
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > div#switchable-default-subtitles-bar:nth-of-type(1)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Scope & Architectural Implementation**:
+  1. `src/utils/subtitlePunctuationStats.ts`:
+     - Defined `KingOfCommaResult` and `resolveKingOfComma(tracks, candidateLangs?, activeLanguage?)` to inspect available tracks and select the language with the highest `","` comma count (`kingOfCommaLang`).
+     - Added `kingOfCommaLang` alongside `recommendedLang` in `analyzeDefaultSubtitlesPunctuation`.
+  2. `src/utils/defaultLanguageManager.ts`:
+     - Defined `MOTHER_TONGUE_LANGUAGE_STORAGE_KEY`, `MOTHER_TONGUE_LANGUAGE_EVENT`, `generateMotherTongueFromKingOfComma`, `getMotherTongueLanguage`, `setMotherTongueLanguage`, and `subscribeMotherTongueLanguage` so `mother-tongue-language` is generated from `king-of-comma` and synchronized as `default-language`.
+  3. `src/routes/index.tsx`:
+     - Auto-selected `kingOfCommaLang` as `baseLanguage` (base for translation) when tracks arrive/update or in web demo load (`handleWebDemoLoadVideoAndSubtitles`), while allowing temporary per-video manual override via `manualBaseOverrideVideoId` and 1-click re-sync via `handleResetToKingOfComma`.
+     - Generated and synced `mother-tongue-language` (`setMotherTongueLanguage`, `setDefaultLanguage`, `setBaseLanguagePreference`, `setPrimaryTtsLangState`) automatically from `king-of-comma`.
+     - Passed `motherTongueLanguage` and `onResetToKingOfComma` to both Beginner Mode and Advanced Mode `<SwitchableDefaultSubtitlesBar>` instances with 100% parity.
+  4. `src/components/SwitchableDefaultSubtitlesBar.tsx` & `src/components/SwitchableDefaultSubtitlesBar.stories.tsx`:
+     - Exposed `data-king-of-comma`, `data-mother-tongue-language`, `king-of-comma-summary`, `mother-tongue-language-badge`, `king-of-comma-badge-${langCode}`, `reset-to-king-of-comma-btn`, and updated the punctuation breakdown callout and Storybook stories (`KingOfCommaManualOverride`).
+  5. `scripts/verify-king-of-comma-and-mother-tongue.ts` & `package.json`:
+     - Added dedicated verification script (`test:king-of-comma-mother-tongue`).
+     - Bumped single-source version to `v2.1.103` (code `20203`) and synced `android-shell/app/build.gradle.kts` (`npm run sync-version`).
+- **Verification**:
+  - `npm run test:king-of-comma-mother-tongue`: **PASSED**.
+  - `npm run test:default-subtitles-comma-recommendation`: **PASSED**.
+  - `npm run test:switchable-default-subtitles`: **PASSED**.
+  - `npm run test:default-language-unified-sync`: **PASSED** (all 9/9 checks).
+  - `npm run test:beginner-default-language`: **PASSED**.
+  - `npm run check-version`: **PASSED** (`2.1.103`, code `20203`).
+  - `npx eslint src/components/SwitchableDefaultSubtitlesBar.tsx src/utils/subtitlePunctuationStats.ts src/utils/defaultLanguageManager.ts src/components/SwitchableDefaultSubtitlesBar.stories.tsx`: **0 errors**.
+  - `npx tsc --noEmit`: **0 errors**.
+  - Git commit/push skipped gracefully (no `.git` repository in workspace).
+
 ### Task 395 (Prompt 179): Unfoldable Per-Language Eligible Records & Matching Default Language (2 Columns)
 
 - **Prompt**:

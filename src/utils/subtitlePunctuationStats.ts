@@ -167,9 +167,15 @@ export function calculateTrackPunctuationStats(
   };
 }
 
+export interface KingOfCommaResult {
+  kingOfCommaLang: string | null;
+  maxCommas: number;
+  statsMap: Record<string, SubtitlePunctuationStats>;
+}
+
 /**
  * Calculates punctuation statistics for multiple default subtitle tracks and
- * identifies the recommended default subtitle track having the highest number of commas.
+ * identifies the recommended default subtitle track (`king-of-comma`) having the highest number of commas.
  */
 export function analyzeDefaultSubtitlesPunctuation(
   defaultLanguages: string[],
@@ -178,6 +184,7 @@ export function analyzeDefaultSubtitlesPunctuation(
 ): {
   statsMap: Record<string, SubtitlePunctuationStats>;
   recommendedLang: string | null;
+  kingOfCommaLang: string | null;
   maxCommas: number;
 } {
   const statsMap: Record<string, SubtitlePunctuationStats> = {};
@@ -191,7 +198,7 @@ export function analyzeDefaultSubtitlesPunctuation(
     const stats = calculateTrackPunctuationStats(lang, track);
     statsMap[lang] = stats;
 
-    // Track with more commas gets recommended
+    // Track with the highest number of commas becomes king-of-comma
     if (stats.commas > maxCommas) {
       maxCommas = stats.commas;
       recommendedLang = lang;
@@ -206,6 +213,59 @@ export function analyzeDefaultSubtitlesPunctuation(
   return {
     statsMap,
     recommendedLang,
+    kingOfCommaLang: recommendedLang,
     maxCommas,
+  };
+}
+
+/**
+ * Resolves `king-of-comma`: evaluates all fetched tracks (and optional candidate order)
+ * and identifies the language with the highest number of `,` punctuation signs.
+ * That language is selected automatically as the base language for translation.
+ */
+export function resolveKingOfComma(
+  tracks?: Record<string, unknown> | null,
+  candidateLangs?: string[],
+  activeLanguage?: string,
+): KingOfCommaResult {
+  if (!tracks || typeof tracks !== "object") {
+    return {
+      kingOfCommaLang: null,
+      maxCommas: 0,
+      statsMap: {},
+    };
+  }
+
+  const candidates = Array.from(
+    new Set(
+      [...(candidateLangs || []), ...Object.keys(tracks)].filter((code) => {
+        if (!code || typeof code !== "string") return false;
+        const normalized = code === "iw" ? "he" : code;
+        const t = tracks[code] || tracks[normalized];
+        if (!t) return false;
+        const { cuesCount } = extractTextFromTrack(t);
+        return cuesCount > 0;
+      }),
+    ),
+  );
+
+  if (candidates.length === 0) {
+    return {
+      kingOfCommaLang: null,
+      maxCommas: 0,
+      statsMap: {},
+    };
+  }
+
+  const { kingOfCommaLang, maxCommas, statsMap } = analyzeDefaultSubtitlesPunctuation(
+    candidates,
+    tracks,
+    activeLanguage,
+  );
+
+  return {
+    kingOfCommaLang,
+    maxCommas,
+    statsMap,
   };
 }

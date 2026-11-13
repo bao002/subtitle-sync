@@ -128,13 +128,7 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-unfolding should expose the list of eligible records and the matching default language text (2 columns)
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > section:nth-of-type(1) > div#subtitles-table-row-criteria-container:nth-of-type(1) > div#learning-goals-filters-panel:nth-of-type(2) > div#learning-goals-per-language-max-words-section:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(6)
-CSS 1: {
-
-}
-[AIS_METADATA_SECTION_END]
+1. fix: video stage disapears or shows the word game
+2. fix: missing 3rd option to toggle tts-play
 ```
 

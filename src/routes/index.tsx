@@ -305,6 +305,8 @@ import {
   getDefaultLanguage,
   setDefaultLanguage,
   subscribeDefaultLanguage,
+  generateMotherTongueFromKingOfComma,
+  setMotherTongueLanguage,
 } from "@/utils/defaultLanguageManager";
 import { setBaseLanguagePreference } from "@/lib/playback-preferences";
 import { subtitleRequestQueue } from "@/utils/subtitleRequestQueue";
@@ -442,6 +444,7 @@ import {
   saveDefaultSubtitleLanguages,
 } from "@/utils/subtitleCache";
 import { SwitchableDefaultSubtitlesBar } from "@/components/SwitchableDefaultSubtitlesBar";
+import { resolveKingOfComma } from "@/utils/subtitlePunctuationStats";
 import { LanguageRatioCompositionSelector } from "@/components/LanguageRatioCompositionSelector";
 import {
   type LanguageRatioComposition,
@@ -1633,6 +1636,22 @@ function Index() {
     setCriteriaMatchActionPreference(action);
   }, []);
 
+  const [manualBaseOverrideVideoId, setManualBaseOverrideVideoId] = useState<string>("");
+  const lastAutoKingSyncRef = useRef<string>("");
+
+  const kingOfCommaResult = useMemo(
+    () => resolveKingOfComma(tracks, defaultSubtitleLanguages, explicitBaseLanguage),
+    [tracks, defaultSubtitleLanguages, explicitBaseLanguage],
+  );
+  const kingOfCommaLang = kingOfCommaResult.kingOfCommaLang;
+
+  const motherTongueLanguage = useMemo(() => {
+    if (manualBaseOverrideVideoId === videoId && explicitBaseLanguage) {
+      return explicitBaseLanguage;
+    }
+    return generateMotherTongueFromKingOfComma(kingOfCommaLang, explicitBaseLanguage);
+  }, [manualBaseOverrideVideoId, videoId, explicitBaseLanguage, kingOfCommaLang]);
+
   const setBaseLanguage = useCallback((lang: string) => {
     // The default language can only be one of those languages their subtitles have been successfully fetched already
     if (!lang) {
@@ -1655,12 +1674,40 @@ function Index() {
     }
   }, []);
 
+  const handleResetToKingOfComma = useCallback(() => {
+    if (!kingOfCommaLang) return;
+    const generatedMotherTongue = generateMotherTongueFromKingOfComma(
+      kingOfCommaLang,
+      kingOfCommaLang,
+    );
+    setManualBaseOverrideVideoId("");
+    lastAutoKingSyncRef.current = `${videoId}|${kingOfCommaLang}`;
+    setBaseLanguage(generatedMotherTongue);
+    setPrimaryTtsLangState(generatedMotherTongue);
+    setMotherTongueLanguage(generatedMotherTongue, true);
+    setBaseLanguagePreference(generatedMotherTongue);
+    if (videoId) {
+      addDefaultSubtitleLanguage(videoId, generatedMotherTongue);
+      setDefaultSubtitleLanguages((prev) =>
+        prev.includes(generatedMotherTongue) ? prev : [...prev, generatedMotherTongue],
+      );
+    }
+  }, [kingOfCommaLang, setBaseLanguage, videoId]);
+
   const handleSelectDefaultSubtitle = useCallback(
     (langCode: string) => {
       if (!langCode) return;
+      const normSelected = langCode === "iw" ? "he" : langCode;
+      const normKing = kingOfCommaLang === "iw" ? "he" : kingOfCommaLang;
+      if (normKing && normSelected === normKing) {
+        setManualBaseOverrideVideoId("");
+      } else if (kingOfCommaLang) {
+        setManualBaseOverrideVideoId(videoId);
+      }
       setBaseLanguage(langCode);
       setPrimaryTtsLangState(langCode);
       setDefaultLanguage(langCode);
+      setMotherTongueLanguage(langCode, false);
       setBaseLanguagePreference(langCode);
       setShown((prev) => (prev.includes(langCode) ? prev : [langCode, ...prev]));
       setFavoriteLanguagesState((prev) => {
@@ -1678,8 +1725,33 @@ function Index() {
         // ignore
       }
     },
-    [setBaseLanguage],
+    [kingOfCommaLang, setBaseLanguage, videoId],
   );
+
+  // Automatically select `king-of-comma` as translation base & generate `mother-tongue-language` as default-language
+  useEffect(() => {
+    if (!kingOfCommaLang || manualBaseOverrideVideoId === videoId) return;
+    const generatedMotherTongue = generateMotherTongueFromKingOfComma(
+      kingOfCommaLang,
+      kingOfCommaLang,
+    );
+    if (!generatedMotherTongue) return;
+    const syncKey = `${videoId}|${generatedMotherTongue}`;
+    if (lastAutoKingSyncRef.current === syncKey && explicitBaseLanguage === generatedMotherTongue) {
+      return;
+    }
+    lastAutoKingSyncRef.current = syncKey;
+    setExplicitBaseLanguage(generatedMotherTongue);
+    setPrimaryTtsLangState(generatedMotherTongue);
+    setMotherTongueLanguage(generatedMotherTongue, true);
+    setBaseLanguagePreference(generatedMotherTongue);
+    if (videoId) {
+      addDefaultSubtitleLanguage(videoId, generatedMotherTongue);
+      setDefaultSubtitleLanguages((prev) =>
+        prev.includes(generatedMotherTongue) ? prev : [...prev, generatedMotherTongue],
+      );
+    }
+  }, [explicitBaseLanguage, kingOfCommaLang, manualBaseOverrideVideoId, videoId]);
 
   const baseLanguage = useMemo(() => {
     // The default language can only be one of those languages their subtitles have been successfully fetched already
@@ -1696,6 +1768,28 @@ function Index() {
       return "";
     }
 
+    // 1. Respect explicit manual override on the current video if still available
+    if (
+      manualBaseOverrideVideoId === videoId &&
+      explicitBaseLanguage &&
+      (tracks?.[explicitBaseLanguage] || findFetchedSubtitleLanguage(tracks, explicitBaseLanguage))
+    ) {
+      const match = findFetchedSubtitleLanguage(tracks, explicitBaseLanguage);
+      if (match && tracks?.[match]) return match;
+      if (tracks?.[explicitBaseLanguage]) return explicitBaseLanguage;
+    }
+
+    // 2. Automatically select `king-of-comma` (track with highest `,` comma count) as base for translation
+    if (
+      kingOfCommaLang &&
+      (tracks?.[kingOfCommaLang] || findFetchedSubtitleLanguage(tracks, kingOfCommaLang))
+    ) {
+      const match = findFetchedSubtitleLanguage(tracks, kingOfCommaLang);
+      if (match && tracks?.[match]) return match;
+      if (tracks?.[kingOfCommaLang]) return kingOfCommaLang;
+    }
+
+    // 3. Fallback when no comma counts distinguish tracks yet
     if (
       explicitBaseLanguage &&
       (tracks?.[explicitBaseLanguage] || findFetchedSubtitleLanguage(tracks, explicitBaseLanguage))
@@ -1719,7 +1813,14 @@ function Index() {
     }
 
     return fetchedKeys[0] || "";
-  }, [explicitBaseLanguage, observedUrl, tracks]);
+  }, [
+    explicitBaseLanguage,
+    kingOfCommaLang,
+    manualBaseOverrideVideoId,
+    observedUrl,
+    tracks,
+    videoId,
+  ]);
 
   useEffect(() => {
     if (!baseLanguage) return;
@@ -3329,7 +3430,18 @@ function Index() {
   });
 
   // Guarantee that whenever currentAccordionStage changes, its corresponding panel is open
+  // and Stage 3 never stays stuck inside WordBalloonLearningView from a prior Stage 5 visit.
   useEffect(() => {
+    if (currentAccordionStage !== 5) {
+      setShowWordBalloonLearningView(false);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("subtitle_sync_word_balloon_learning_view", "false");
+        } catch {
+          // ignore storage error
+        }
+      }
+    }
     if (currentAccordionStage === 0) {
       setOpenPanels((prev) => ({ ...prev, fetchedSubtitles: true }));
       setShowOtherSettingsAccordions(false);
@@ -3342,6 +3454,7 @@ function Index() {
     } else if (currentAccordionStage === 3) {
       setOpenPanels((prev) => ({ ...prev, player: true }));
       setShowOtherSettingsAccordions(false);
+      setShowWordBalloonLearningView(false);
     } else if (currentAccordionStage === 4) {
       setOpenPanels((prev) => ({ ...prev, playback: true, library: true }));
       setShowOtherSettingsAccordions(true);
@@ -3544,6 +3657,8 @@ function Index() {
       previousVideoIdRef.current = videoId;
       // Immediately and cleanly reset all state belonging to the previous video
       cancelSpeech();
+      setManualBaseOverrideVideoId("");
+      lastAutoKingSyncRef.current = "";
       startSubtitlesTransition(() => {
         setTracks(null);
         setSubtitlesPage(1);
@@ -3665,8 +3780,18 @@ function Index() {
       st.current.isSetupPaused = false;
     }
 
-    // Activate the video stage so the player is mounted and visible
+    // Activate the video stage so the player is mounted, unfolded, and not eclipsed by the word game
+    setShowWordBalloonLearningView(false);
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("subtitle_sync_word_balloon_learning_view", "false");
+      } catch {
+        // ignore storage error
+      }
+    }
     if (workflowMode === "expert") {
+      setActiveTopTab("viewer");
+      setShowOtherSettingsAccordions(false);
       if (currentAccordionStage !== 3) {
         setCurrentAccordionStage(3);
         setOpenPanels((prev) => ({ ...prev, player: true }));
@@ -5045,7 +5170,13 @@ function Index() {
   const [showWordBalloonLearningView, setShowWordBalloonLearningView] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       try {
-        return localStorage.getItem("subtitle_sync_word_balloon_learning_view") === "true";
+        const params = new URLSearchParams(window.location.search);
+        const stageParam = params.get("stage");
+        if (stageParam === "5" || stageParam === "learning") {
+          return true;
+        }
+        // Clear any stale learning-view persistence so Video stage never boots stuck in Word Game
+        localStorage.setItem("subtitle_sync_word_balloon_learning_view", "false");
       } catch {
         return false;
       }
@@ -5432,8 +5563,12 @@ function Index() {
 
         const trackLangs = Object.keys(newTracks || {});
         if (trackLangs.length > 0) {
-          const detectedBase = trackLangs[0];
+          const { kingOfCommaLang: webDemoKing } = resolveKingOfComma(newTracks, trackLangs);
+          const detectedBase =
+            generateMotherTongueFromKingOfComma(webDemoKing, trackLangs[0]) || trackLangs[0];
+          setManualBaseOverrideVideoId("");
           setBaseLanguage(detectedBase);
+          setMotherTongueLanguage(detectedBase, true);
           setDefaultCaptionsLoaded(true);
           setTracks(newTracks);
           setShown(trackLangs);
@@ -7436,8 +7571,15 @@ function Index() {
             }
             onClick={() => {
               if (currentAccordionStage === 4) {
+                setShowWordBalloonLearningView(false);
+                try {
+                  localStorage.setItem("subtitle_sync_word_balloon_learning_view", "false");
+                } catch {
+                  // ignore storage error
+                }
                 setCurrentAccordionStage(3);
                 setShowOtherSettingsAccordions(false);
+                setOpenPanels((prev) => ({ ...prev, player: true }));
               } else {
                 setCurrentAccordionStage(4);
                 setShowOtherSettingsAccordions(true);
@@ -7572,7 +7714,14 @@ function Index() {
                     onPrevSentence={handlePrevSection}
                     onNextSentence={handleNextSection}
                     onReplaySentence={handleReplaySection}
-                    onCloseLearningView={() => setShowWordBalloonLearningView(false)}
+                    onCloseLearningView={() => {
+                      setShowWordBalloonLearningView(false);
+                      try {
+                        localStorage.setItem("subtitle_sync_word_balloon_learning_view", "false");
+                      } catch {
+                        // ignore storage error
+                      }
+                    }}
                     onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
                     onSpeakText={handleSpeakTextFromAlternativeView}
                     subtitleRows={rows}
@@ -7694,7 +7843,9 @@ function Index() {
                       videoId={videoId}
                       defaultLanguages={defaultSubtitleLanguages}
                       activeLanguage={baseLanguage}
+                      motherTongueLanguage={motherTongueLanguage || baseLanguage}
                       onSelectLanguage={handleSelectDefaultSubtitle}
+                      onResetToKingOfComma={handleResetToKingOfComma}
                       tracks={tracks}
                       detectedTracks={detectedPlaygroundTracks}
                       className="flex-1 min-w-[260px]"
@@ -8286,6 +8437,12 @@ function Index() {
                       data-testid="stage-step-3"
                       onClick={() => {
                         setShowOtherSettingsAccordions(false);
+                        setShowWordBalloonLearningView(false);
+                        try {
+                          localStorage.setItem("subtitle_sync_word_balloon_learning_view", "false");
+                        } catch {
+                          // ignore storage error
+                        }
                         setCurrentAccordionStage(3);
                         setOpenPanels((prev) => ({ ...prev, player: true }));
                       }}
@@ -8463,6 +8620,15 @@ function Index() {
                                 setOpenPanels((prev) => ({ ...prev, subtitles: true }));
                               }
                               if (stage === 3) {
+                                setShowWordBalloonLearningView(false);
+                                try {
+                                  localStorage.setItem(
+                                    "subtitle_sync_word_balloon_learning_view",
+                                    "false",
+                                  );
+                                } catch {
+                                  // ignore storage error
+                                }
                                 setOpenPanels((prev) => ({
                                   ...prev,
                                   player: true,
@@ -8492,6 +8658,15 @@ function Index() {
                                   onReplaySentence={handleReplaySection}
                                   onCloseLearningView={() => {
                                     setShowWordBalloonLearningView(false);
+                                    try {
+                                      localStorage.setItem(
+                                        "subtitle_sync_word_balloon_learning_view",
+                                        "false",
+                                      );
+                                    } catch {
+                                      // ignore storage error
+                                    }
+                                    setOpenPanels((prev) => ({ ...prev, player: true }));
                                     if (currentAccordionStage === 5) {
                                       setCurrentAccordionStage(3);
                                     }
@@ -8794,7 +8969,9 @@ function Index() {
                                     videoId={videoId}
                                     defaultLanguages={defaultSubtitleLanguages}
                                     activeLanguage={baseLanguage}
+                                    motherTongueLanguage={motherTongueLanguage || baseLanguage}
                                     onSelectLanguage={handleSelectDefaultSubtitle}
+                                    onResetToKingOfComma={handleResetToKingOfComma}
                                     tracks={tracks}
                                     detectedTracks={detectedPlaygroundTracks}
                                     className="flex-1 min-w-[260px]"
@@ -13519,6 +13696,15 @@ function Index() {
                                   size="sm"
                                   onClick={() => {
                                     setShowOtherSettingsAccordions(false);
+                                    setShowWordBalloonLearningView(false);
+                                    try {
+                                      localStorage.setItem(
+                                        "subtitle_sync_word_balloon_learning_view",
+                                        "false",
+                                      );
+                                    } catch {
+                                      // ignore storage error
+                                    }
                                     setCurrentAccordionStage(3);
                                     setOpenPanels((prev) => ({
                                       ...prev,

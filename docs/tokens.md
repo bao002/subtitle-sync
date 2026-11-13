@@ -4,6 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 181 (Serial Chapters — Task 397: Fix Video Stage Disappearing / Showing Word Game; Task 398: Fix Missing 3rd Option to Toggle TTS-Play):
+  - Task 397 [ACTIVE]: Fix Stage 3 / Beginner Video tab showing `WordBalloonLearningView` or disappearing player accordion/controls when transitioning from Stage 5 or stale `localStorage` state.
+  - Task 398 [PENDING]: Add missing 3rd option (`menu-option-tts-play`) to `FloatingDraggablePauseButton` floating controls menu and wire persistent global TTS-Play toggle in `src/routes/index.tsx`.
+- Prompt 180 (Task 396: Define king-of-comma & mother-tongue-language Default Subtitle Auto-Selection):
+  - Task 396 [COMPLETED & VERIFIED]: Defined `king-of-comma` (`resolveKingOfComma` in `subtitlePunctuationStats.ts`) selecting the highest-comma language automatically as translation `baseLanguage`, and `mother-tongue-language` (`generateMotherTongueFromKingOfComma` / `setMotherTongueLanguage` in `defaultLanguageManager.ts`) generated from `king-of-comma` and acting as `default-language`; exposed cleanly in `#switchable-default-subtitles-bar` across Beginner Mode, Advanced Mode, and Storybook; added `verify-king-of-comma-and-mother-tongue.ts`, bumped version to `v2.1.103`, passed all tests, `eslint`, and `tsc --noEmit`.
 - Prompt 179 (Task 395: Unfoldable Per-Language Eligible Records 2-Column List):
   - Task 395 [COMPLETED & VERIFIED]: Added `getEligibleLanguageRecords` in `newSubtitlesParser.ts` (shared with `computeLanguageCriteriaStats`), made per-language rows unfoldable in `LearningGoalsFiltersPanel.tsx` exposing a 2-column table (language record + matching default language text) across Advanced and Beginner modes, added `verify-learning-goals-unfold-eligible-records.ts`, bumped version to `v2.1.102`, passed all tests, `tsc --noEmit`, `compile_applet`, and `lint_applet`.
 - Prompt 178 (Task 394: Show Eligible/Valid Record Statistics in LearningGoalsFiltersPanel):

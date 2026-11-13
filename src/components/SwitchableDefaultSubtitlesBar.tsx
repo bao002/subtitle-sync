@@ -1,10 +1,21 @@
 import React, { useState, useMemo } from "react";
-import { Check, Subtitles, Sparkles, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Check,
+  Subtitles,
+  Sparkles,
+  BarChart3,
+  ChevronDown,
+  ChevronUp,
+  Crown,
+  RotateCcw,
+} from "lucide-react";
 import { LANGS, type Json3 } from "@/lib/subtitles";
 import {
   analyzeDefaultSubtitlesPunctuation,
+  resolveKingOfComma,
   type SubtitlePunctuationStats,
 } from "@/utils/subtitlePunctuationStats";
+import { generateMotherTongueFromKingOfComma } from "@/utils/defaultLanguageManager";
 import { useIsElementEnabled } from "@/utils/performanceModeManager";
 
 export interface DetectedSubtitleTrack {
@@ -22,6 +33,8 @@ export interface SwitchableDefaultSubtitlesBarProps {
   defaultLanguages: string[];
   activeLanguage: string;
   onSelectLanguage: (langCode: string) => void;
+  motherTongueLanguage?: string;
+  onResetToKingOfComma?: () => void;
   tracks?: Record<string, Json3> | null;
   detectedTracks?: Record<string, DetectedSubtitleTrack>;
   className?: string;
@@ -29,24 +42,33 @@ export interface SwitchableDefaultSubtitlesBarProps {
   defaultExpandedStats?: boolean;
 }
 
+function sameLanguageCode(a?: string | null, b?: string | null): boolean {
+  if (!a || !b) return false;
+  const na = a === "iw" ? "he" : a.toLowerCase();
+  const nb = b === "iw" ? "he" : b.toLowerCase();
+  return na === nb;
+}
+
 /**
  * SwitchableDefaultSubtitlesBar
  *
  * Displays the switchable list of default subtitle languages fetched from YouTube's API
  * around the video player component (both on the main video player and in the playground).
- * Preserves all fetched default subtitle tracks and allows 1-click switching of the active default language.
  *
  * Features:
- * - Highlights the recommended default subtitle track having the highest number of commas (",")
- *   with an animated recommendation Sparkles icon and badge.
- * - Exposes full punctuation counting statistics (commas, periods, questions, exclamations, colons/semicolons)
- *   for all default subtitle candidates.
+ * - Defines `king-of-comma`: identifies the language with the highest count of `,` punctuation signs,
+ *   which is selected automatically as the base language for translation.
+ * - Defines `mother-tongue-language`: acts as the `default-language` and is generated automatically
+ *   based on `king-of-comma`.
+ * - Exposes full punctuation counting statistics for all default subtitle candidates.
  */
 export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesBarProps> = ({
-  videoId,
+  videoId: _videoId,
   defaultLanguages,
   activeLanguage,
   onSelectLanguage,
+  motherTongueLanguage,
+  onResetToKingOfComma,
   tracks,
   detectedTracks,
   className = "",
@@ -56,19 +78,55 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
   const [showStats, setShowStats] = useState<boolean>(defaultExpandedStats);
   const statsEnabled = useIsElementEnabled("default_subtitles_stats");
 
-  // Deduplicate and filter non-empty languages
-  const uniqueLangs = useMemo(
-    () =>
-      Array.from(
-        new Set(defaultLanguages.filter((code) => Boolean(code && typeof code === "string"))),
-      ),
-    [defaultLanguages],
-  );
+  // Deduplicate and merge defaultLanguages with non-empty fetched tracks
+  const uniqueLangs = useMemo(() => {
+    const seen = new Set<string>();
+    const out: string[] = [];
+    const appendIfValid = (code: string) => {
+      if (!code || typeof code !== "string") return;
+      const key = code.toLowerCase();
+      if (seen.has(key)) return;
+      seen.add(key);
+      out.push(code);
+    };
+    defaultLanguages.forEach(appendIfValid);
+    if (tracks) {
+      Object.keys(tracks).forEach((code) => {
+        const t = tracks[code];
+        const hasCues =
+          (t?.events?.length || 0) > 0 || (Array.isArray(t) && (t as unknown[]).length > 0);
+        if (hasCues) appendIfValid(code);
+      });
+    }
+    return out;
+  }, [defaultLanguages, tracks]);
 
-  // Calculate punctuation statistics and recommendation across default subtitle tracks
-  const { statsMap, recommendedLang, maxCommas } = useMemo(
-    () => analyzeDefaultSubtitlesPunctuation(uniqueLangs, tracks, activeLanguage),
-    [uniqueLangs, tracks, activeLanguage],
+  // Calculate punctuation statistics and resolve `king-of-comma`
+  const { statsMap, recommendedLang, kingOfCommaLang, maxCommas } = useMemo(() => {
+    const analysis = analyzeDefaultSubtitlesPunctuation(uniqueLangs, tracks, activeLanguage);
+    if (analysis.kingOfCommaLang) return analysis;
+    const fallback = resolveKingOfComma(tracks, uniqueLangs, activeLanguage);
+    return {
+      statsMap: Object.keys(analysis.statsMap).length > 0 ? analysis.statsMap : fallback.statsMap,
+      recommendedLang: fallback.kingOfCommaLang,
+      kingOfCommaLang: fallback.kingOfCommaLang,
+      maxCommas: fallback.maxCommas,
+    };
+  }, [uniqueLangs, tracks, activeLanguage]);
+
+  // Generate `mother-tongue-language` from `king-of-comma`, acting as `default-language`
+  const effectiveMotherTongue = useMemo(() => {
+    if (motherTongueLanguage && motherTongueLanguage.trim()) {
+      return motherTongueLanguage.trim();
+    }
+    return generateMotherTongueFromKingOfComma(kingOfCommaLang, activeLanguage);
+  }, [motherTongueLanguage, kingOfCommaLang, activeLanguage]);
+
+  const isManualOverrideActive = Boolean(
+    kingOfCommaLang &&
+    maxCommas > 0 &&
+    activeLanguage &&
+    !sameLanguageCode(activeLanguage, kingOfCommaLang),
   );
 
   const getDisplayName = (langCode: string) => {
@@ -81,10 +139,12 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
     <div
       data-testid="switchable-default-subtitles-bar"
       id="switchable-default-subtitles-bar"
+      data-king-of-comma={kingOfCommaLang || ""}
+      data-mother-tongue-language={effectiveMotherTongue || ""}
       className={`flex flex-col gap-2 px-3 py-2 text-xs border border-border/70 bg-card/95 rounded-xl shadow-xs backdrop-blur-md studio-card-elevated ${className}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary/10 text-primary shrink-0">
             <Subtitles className="h-3.5 w-3.5" />
           </div>
@@ -92,9 +152,46 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
             <span className="font-semibold text-foreground tracking-tight">
               Default Subtitles ({uniqueLangs.length}):
             </span>
-            <span className="text-[11px] text-muted-foreground hidden sm:inline">
-              (Fetched from YouTube API)
-            </span>
+
+            {kingOfCommaLang && maxCommas > 0 && (
+              <span
+                data-testid="king-of-comma-summary"
+                title={`king-of-comma: ${getDisplayName(kingOfCommaLang)} (${kingOfCommaLang}) has the most ',' commas (${maxCommas}) and is selected automatically as base for translation.`}
+                className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300"
+              >
+                <Crown className="h-3 w-3 text-amber-500 shrink-0" />
+                <span>
+                  King of Comma: {getDisplayName(kingOfCommaLang)} ({kingOfCommaLang} · {maxCommas}
+                  ,)
+                </span>
+              </span>
+            )}
+
+            {effectiveMotherTongue && (
+              <span
+                data-testid="mother-tongue-language-badge"
+                title="mother-tongue-language acts as default-language and is generated based on king-of-comma."
+                className="inline-flex items-center gap-1 rounded-md border border-primary/35 bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary"
+              >
+                <span>
+                  Mother Tongue (Default): {getDisplayName(effectiveMotherTongue)} (
+                  {effectiveMotherTongue})
+                </span>
+              </span>
+            )}
+
+            {isManualOverrideActive && onResetToKingOfComma && (
+              <button
+                type="button"
+                data-testid="reset-to-king-of-comma-btn"
+                onClick={onResetToKingOfComma}
+                title={`Reset translation base & mother-tongue-language back to King of Comma (${kingOfCommaLang})`}
+                className="inline-flex items-center gap-1 rounded-md border border-amber-500/50 bg-background hover:bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="h-2.5 w-2.5 shrink-0" />
+                <span>Auto: King of Comma</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -106,12 +203,8 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
             {uniqueLangs.length > 0 ? (
               uniqueLangs.map((langCode, idx) => {
                 const normalizedCode = langCode === "iw" ? "he" : langCode;
-                const isActive =
-                  activeLanguage === langCode ||
-                  activeLanguage === normalizedCode ||
-                  (activeLanguage === "he" && langCode === "iw") ||
-                  (activeLanguage === "iw" && langCode === "he");
-
+                const isActive = sameLanguageCode(activeLanguage, langCode);
+                const isMotherTongue = sameLanguageCode(effectiveMotherTongue, langCode);
                 const displayName = getDisplayName(langCode);
 
                 // Check cues count if available
@@ -138,38 +231,48 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
                   stats.cuesCount ||
                   0;
 
-                const isRecommended =
-                  (langCode === recommendedLang || normalizedCode === recommendedLang) &&
-                  maxCommas > 0;
+                const isRecommended = sameLanguageCode(langCode, recommendedLang) && maxCommas > 0;
 
                 return (
                   <button
                     key={`${langCode}-${idx}`}
                     type="button"
                     data-testid={`default-subtitle-lang-btn-${langCode}`}
+                    data-king-of-comma={isRecommended ? "true" : "false"}
+                    data-mother-tongue={isMotherTongue ? "true" : "false"}
                     aria-pressed={isActive}
                     onClick={() => onSelectLanguage(langCode)}
                     title={`Switch active default subtitle to ${displayName} (${langCode}). ${
-                      isRecommended ? `Recommended: ${stats.commas} commas.` : ""
+                      isRecommended
+                        ? `King of Comma (${stats.commas} ",") — auto base for translation.`
+                        : ""
                     } Punctuation: ${stats.commas} commas, ${stats.periods} periods.`}
                     className={`group relative inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border transition-all cursor-pointer ${
                       isActive
                         ? "border-primary bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/40 font-semibold"
                         : isRecommended
-                        ? "border-amber-500/60 bg-amber-500/10 hover:bg-amber-500/15 text-foreground hover:border-amber-500"
-                        : "border-border bg-background/80 hover:bg-muted text-foreground hover:border-primary/50"
+                          ? "border-amber-500/60 bg-amber-500/10 hover:bg-amber-500/15 text-foreground hover:border-amber-500"
+                          : "border-border bg-background/80 hover:bg-muted text-foreground hover:border-primary/50"
                     }`}
                   >
                     {isActive && <Check className="h-3 w-3 shrink-0 stroke-[2.5]" />}
 
-                    {/* Recommendation Icon next to default subtitle with highest comma count */}
+                    {/* King of Comma Icon next to default subtitle with highest comma count */}
                     {isRecommended && (
                       <span
                         data-testid="recommended-default-subtitle-icon"
-                        className="inline-flex items-center gap-0.5 text-amber-500 dark:text-amber-400 shrink-0"
-                        title={`Recommended: Most commas (${stats.commas}) for finer sentence splitting`}
+                        className="inline-flex items-center gap-0.5 text-amber-500 dark:text-amber-300 shrink-0"
+                        title={`King of Comma: Most commas (${stats.commas}) — auto base for translation`}
                       >
                         <Sparkles className="h-3.5 w-3.5 fill-amber-400 text-amber-500 animate-pulse" />
+                        <span
+                          data-testid={`king-of-comma-badge-${langCode}`}
+                          className={`text-[9px] font-bold uppercase tracking-wide ${
+                            isActive ? "text-amber-200" : "text-amber-700 dark:text-amber-300"
+                          }`}
+                        >
+                          King of ,
+                        </span>
                       </span>
                     )}
 
@@ -188,10 +291,10 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
                         data-testid={`default-subtitle-comma-count-${langCode}`}
                         className={`text-[9px] px-1 py-0.2 rounded font-mono font-medium ${
                           isRecommended
-                            ? "bg-amber-500/30 text-amber-700 dark:text-amber-300 font-bold"
+                            ? "bg-amber-500/30 text-amber-800 dark:text-amber-200 font-bold"
                             : isActive
-                            ? "bg-black/25 text-white"
-                            : "bg-muted text-muted-foreground"
+                              ? "bg-black/25 text-white"
+                              : "bg-muted text-muted-foreground"
                         }`}
                         title={`${stats.commas} comma (,) marks`}
                       >
@@ -280,11 +383,14 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
             {recommendedLang && maxCommas > 0 && (
               <span
                 data-testid="recommended-track-callout"
-                className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 font-medium inline-flex items-center gap-1"
+                className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 font-medium inline-flex items-center gap-1"
               >
                 <Sparkles className="h-3 w-3 fill-amber-400 text-amber-500 shrink-0" />
                 <span>
-                  Recommended: <strong>{getDisplayName(recommendedLang)}</strong> ({maxCommas} commas)
+                  King of Comma (Auto Base for Translation):{" "}
+                  <strong>{getDisplayName(recommendedLang)}</strong> ({maxCommas} commas) &rarr;{" "}
+                  Mother Tongue (Default):{" "}
+                  <strong>{getDisplayName(effectiveMotherTongue || recommendedLang)}</strong>
                 </span>
               </span>
             )}
@@ -323,14 +429,9 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
                       wordsCount: 0,
                     };
 
-                  const isRec =
-                    (code === recommendedLang || normalizedCode === recommendedLang) &&
-                    maxCommas > 0;
-                  const isCur =
-                    code === activeLanguage ||
-                    normalizedCode === activeLanguage ||
-                    (activeLanguage === "he" && code === "iw") ||
-                    (activeLanguage === "iw" && code === "he");
+                  const isRec = sameLanguageCode(code, recommendedLang) && maxCommas > 0;
+                  const isCur = sameLanguageCode(code, activeLanguage);
+                  const isMT = sameLanguageCode(code, effectiveMotherTongue);
 
                   return (
                     <tr
@@ -342,18 +443,25 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
                     >
                       <td className="py-1 px-2.5 flex items-center gap-1.5">
                         <span>{getDisplayName(code)}</span>
-                        <span className="font-mono text-[10px] text-muted-foreground">({code})</span>
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          ({code})
+                        </span>
                         {isRec && (
                           <span
                             data-testid={`recommended-pill-${code}`}
-                            className="px-1 py-0.2 rounded text-[9px] bg-amber-500/25 text-amber-600 dark:text-amber-400 font-semibold inline-flex items-center gap-0.5"
+                            className="px-1 py-0.2 rounded text-[9px] bg-amber-500/25 text-amber-700 dark:text-amber-300 font-semibold inline-flex items-center gap-0.5"
                           >
-                            <Sparkles className="h-2.5 w-2.5 fill-amber-400" /> Recommended
+                            <Sparkles className="h-2.5 w-2.5 fill-amber-400" /> King of Comma
+                          </span>
+                        )}
+                        {isMT && (
+                          <span className="px-1 py-0.2 rounded text-[9px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold">
+                            Mother Tongue
                           </span>
                         )}
                         {isCur && (
                           <span className="px-1 py-0.2 rounded text-[9px] bg-primary/20 text-primary font-semibold">
-                            Active
+                            Default
                           </span>
                         )}
                       </td>
@@ -377,7 +485,8 @@ export const SwitchableDefaultSubtitlesBar: React.FC<SwitchableDefaultSubtitlesB
             </table>
           </div>
           <p className="text-[10px] text-muted-foreground italic">
-            💡 Subtitles with more comma (,) marks allow finer sentence and clause splitting, improving TTS pause timing and multilingual alignment.
+            King of Comma (most `,` punctuation signs) is automatically selected as the base for
+            translation and generates the Mother Tongue default language.
           </p>
         </div>
       )}

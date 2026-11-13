@@ -137,11 +137,13 @@ const SwitchableBarStoryWrapper: React.FC<Partial<SwitchableDefaultSubtitlesBarP
         defaultLanguages={["en", "es", "he"]}
         activeLanguage={activeLang}
         onSelectLanguage={setActiveLang}
+        onResetToKingOfComma={() => setActiveLang("en")}
         tracks={mockTracks}
         {...props}
       />
       <div className="text-xs text-muted-foreground font-mono">
-        Active Selected Default: <span className="font-semibold text-primary">{activeLang}</span>
+        Active Selected Default / Mother Tongue:{" "}
+        <span className="font-semibold text-primary">{activeLang}</span>
       </div>
     </div>
   );
@@ -155,6 +157,10 @@ export const PreExpandedStatistics: Story = {
   render: () => <SwitchableBarStoryWrapper defaultExpandedStats={true} />,
 };
 
+export const KingOfCommaManualOverride: Story = {
+  render: () => <SwitchableBarStoryWrapper activeLanguage="es" defaultExpandedStats={true} />,
+};
+
 export const SingleSubtitleTrack: Story = {
   render: () => (
     <SwitchableBarStoryWrapper
@@ -166,11 +172,5 @@ export const SingleSubtitleTrack: Story = {
 };
 
 export const EmptyTracksFallback: Story = {
-  render: () => (
-    <SwitchableBarStoryWrapper
-      defaultLanguages={[]}
-      tracks={{}}
-      activeLanguage=""
-    />
-  ),
+  render: () => <SwitchableBarStoryWrapper defaultLanguages={[]} tracks={{}} activeLanguage="" />,
 };
