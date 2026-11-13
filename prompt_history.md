@@ -2495,3 +2495,45 @@ CSS 1: {
 }
 [AIS_METADATA_SECTION_END]
 ```
+
+---
+
+### Prompt 195: Fix Errors in App & Game View Words List TTS-Play
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 11:02:47 PM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 196: Show On-Demand Word Translation & Play by Default on Play Request
+```
+also show an on-demand translation and play it by default  on play request
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div#word-balloon-learning-view:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > section:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(73)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 197: Word Cards — Remove "X letters", Fix Word TTS Playback, Show & Play Derived Sentence + Translation, and Improve Space UI/UX
+```
+1. X letters - rm it
+2. trigger listening doesnt play the word, only its translation
+3. show also the original sentence from which the word is derived and allow to play that sentence and its translation.
+4. make good ui/ux decision to properly use the space
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div#word-balloon-learning-view:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > section:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(7)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```

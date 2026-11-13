@@ -9,13 +9,39 @@
  * 3. Fast caching and translation fetching for the picked word into user's base language.
  */
 
-import { translateWithGoogle } from "./onDemandTranslationManager";
+import { translateWithGoogle, normalizeLanguage } from "./onDemandTranslationManager";
 import { removeSpecialCharacters } from "./captionParser";
-import { logInfo, logWarn } from "./logBuffer";
+import { logWarn } from "./logBuffer";
 import type { PickWordStrategy } from "../lib/playback-preferences";
 
 // In-memory cache for translated words: key `${fromLang}:${toLang}:${word.toLowerCase()}` -> translation
 const wordTranslationCache = new Map<string, string>();
+const inFlightWordTranslations = new Map<string, Promise<string>>();
+
+export function getWordTranslationCacheKey(
+  word: string,
+  fromLang: string,
+  toLang: string,
+): string | null {
+  const trimmed = word.trim();
+  if (!trimmed) return null;
+  const normalizedFrom = normalizeLanguage(fromLang);
+  const normalizedTo = normalizeLanguage(toLang);
+  if (!normalizedFrom || !normalizedTo || normalizedFrom === normalizedTo) {
+    return null;
+  }
+  return `${normalizedFrom}:${normalizedTo}:${trimmed.toLowerCase()}`;
+}
+
+export function getCachedWordTranslation(
+  word: string,
+  fromLang: string,
+  toLang: string,
+): string | null {
+  const cacheKey = getWordTranslationCacheKey(word, fromLang, toLang);
+  if (!cacheKey) return null;
+  return wordTranslationCache.get(cacheKey) ?? null;
+}
 
 /**
  * Extracts clean words from a sentence, stripping punctuation, symbols, and whitespace.
@@ -71,7 +97,8 @@ export function pickWordFromSentence(
 }
 
 /**
- * Translates a single picked word into the target/base language with aggressive in-memory caching.
+ * Translates a single picked word into the target/base language with aggressive in-memory caching
+ * and concurrent request deduplication.
  */
 export async function getWordTranslation(
   word: string,
@@ -80,37 +107,50 @@ export async function getWordTranslation(
 ): Promise<string> {
   const trimmed = word.trim();
   if (!trimmed) return "";
-  const normalizedFrom = fromLang.trim().toLowerCase().split(/[-_]/)[0];
-  const normalizedTo = toLang.trim().toLowerCase().split(/[-_]/)[0];
+  const normalizedFrom = normalizeLanguage(fromLang);
+  const normalizedTo = normalizeLanguage(toLang);
 
   if (normalizedFrom === normalizedTo) {
     return trimmed;
   }
 
-  const cacheKey = `${normalizedFrom}:${normalizedTo}:${trimmed.toLowerCase()}`;
+  const cacheKey = getWordTranslationCacheKey(trimmed, normalizedFrom, normalizedTo);
+  if (!cacheKey) return "";
+
   if (wordTranslationCache.has(cacheKey)) {
     return wordTranslationCache.get(cacheKey)!;
   }
 
-  try {
-    const translated = await translateWithGoogle({
-      text: trimmed,
-      fromLang: normalizedFrom,
-      toLang: normalizedTo,
-    });
-    const result = translated.trim();
-    if (result) {
-      wordTranslationCache.set(cacheKey, result);
-      return result;
-    }
-  } catch (err) {
-    logWarn(
-      "ZeroKnowledge",
-      `Word translation failed for "${trimmed}" (${normalizedFrom} -> ${normalizedTo}): ${err instanceof Error ? err.message : String(err)}`,
-    );
+  const existingInFlight = inFlightWordTranslations.get(cacheKey);
+  if (existingInFlight) {
+    return existingInFlight;
   }
 
-  return "";
+  const requestPromise = (async () => {
+    try {
+      const translated = await translateWithGoogle({
+        text: trimmed,
+        fromLang: normalizedFrom,
+        toLang: normalizedTo,
+      });
+      const result = translated.trim();
+      if (result) {
+        wordTranslationCache.set(cacheKey, result);
+        return result;
+      }
+    } catch (err) {
+      logWarn(
+        "ZeroKnowledge",
+        `Word translation failed for "${trimmed}" (${normalizedFrom} -> ${normalizedTo}): ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      inFlightWordTranslations.delete(cacheKey);
+    }
+    return "";
+  })();
+
+  inFlightWordTranslations.set(cacheKey, requestPromise);
+  return requestPromise;
 }
 
 /**
@@ -118,4 +158,5 @@ export async function getWordTranslation(
  */
 export function clearWordTranslationCache(): void {
   wordTranslationCache.clear();
+  inFlightWordTranslations.clear();
 }

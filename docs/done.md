@@ -1,5 +1,69 @@
 # Done tasks
 
+### Task 406 (Prompt 197, Chapter 1): Remove "X letters" Badge from Listening Game Word Cards (`v2.1.113`)
+
+- **Prompt**: `1. X letters - rm it`
+- **Changes**: Removed the redundant `{item.letterCount} letters` badge from `listening-word-item-*` cards in `src/components/ListeningGamePanel.tsx` while keeping the header `Min letters` filter intact.
+- **Verification**: `npx tsc --noEmit`, `npx eslint src/components/ListeningGamePanel.tsx`, `npm run test:listening-game-mode`, `compile_applet`, & `lint_applet`: **PASSED**.
+
+### Task 405 (Prompt 196): Listening Game Words List On-Demand Word Translation & Default Play (`v2.1.113`)
+
+- **Prompt**:
+  ```
+  also show an on-demand translation and play it by default  on play request
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div#word-balloon-learning-view:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > section:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(73)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Changes**:
+  - Updated `src/utils/zeroKnowledgeWordManager.ts` to unify language normalization via `normalizeLanguage` (`iw` -> `he`, etc.), deduplicate concurrent word requests (`inFlightWordTranslations`), and export synchronous helpers (`getWordTranslationCacheKey`, `getCachedWordTranslation`) for UI word cards.
+  - Updated `src/components/ListeningGamePanel.tsx` (`1. Subtitles' Words` list `listening-word-item-*`):
+    - Hydrates cached translations synchronously, pre-enqueues initial visible words, and attaches a scrollable `IntersectionObserver` (`rootMargin: "160px 0px"`) with concurrency cap (`MAX_CONCURRENT = 2`) so scrolling anywhere down the word list (e.g., item #73 / `idx = 72`) automatically fetches and displays each word's on-demand translation in `targetLanguage` (`data-testid="listening-word-ondemand-translation-${idx}"` + `listening-word-translating-${idx}`) while preserving the parent sentence context line (`listening-word-translation-${idx}`).
+    - Updated `speakWordEntry`, `handlePlayWord`, and `handlePlayAllWords` so clicking `Listen` or `Listen All` resolves `resolveWordTranslationNow(item.word)` in parallel with speaking the base word and speaks the on-demand word translation by default when `With Translations` is active (true by default), falling back to `item.sourceTranslation` only when offline/unavailable, with sequential runId cancellation & `activeItemId` cleanup.
+  - Added dedicated test `scripts/verify-listening-word-ondemand-translation.ts` (`"test:listening-word-ondemand-translation"` in `package.json`), documented it in `docs/files.md`, and bumped version to `v2.1.113` (`code: 20213`) via `npm run sync-version`.
+- **Verification**:
+  - `npm run test:listening-word-ondemand-translation` (unit/cache/source + live Playwright Chromium E2E verifying `Hola` on item #0, `vamos` after scrolling to item #72, and TTS play history recording the on-demand translation on clicking `listening-play-word-0`): **PASSED**.
+  - `npm run test:listening-words-tts-playback`, `npm run test:game-view-tts-wizard`, `npm run test:listening-game-mode`, `npm run test:zero-knowledge-word-learning`, `npm run test:tts-fallback-order-switch`, `npm run test:speech-interrupted-graceful-handling`, `npm run test:same-components-parity-policy`, `npm run check-version`, `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md` (68 files, 0 duplicates), `npx tsc --noEmit`, `compile_applet`, & `lint_applet`: **PASSED**. (Note: `.git` repository directory is not present in workspace so `git commit` / `git push` are skipped in this environment.)
+
+### Hotfix: Fix App Errors (`Native speech synthesis failed` Flood, TTS Fallback Chain & Component Lint/HMR) (Prompt 195, `v2.1.112`)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: 11:02:47 PM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Changes**:
+  - **Eliminated false `Native speech synthesis failed` `FloatingErrorButton` flood & broken fallback (`src/routes/index.tsx` + `src/lib/alternative-tts.ts` + `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`)**:
+    - `executeSingleSpeech` previously gated `fallbackToAlternative()` behind `useAltTts` (which defaults to `false`), causing TTS3 fallback to silently do nothing and `u.onerror` to immediately flood `[State Machine] Native speech synthesis failed` when local voices were missing (`voices.length === 0`). Enabled `canFallbackToTts3 = useAltTts || fallbackOrder !== "native_only"`, defaulted `provider` to `"auto"`, routed `voices.length === 0 && fallbackOrder === "tts3_native"` directly to TTS3 fallback, and moved `logError("State Machine", "Native speech synthesis failed", ...)` strictly AFTER `fallbackToAlternative()` fails to recover while preserving graceful `interrupted`/`canceled` handling.
+    - Updated `playAlternativeTtsAudio` and `playSingleAlternativeTtsAudio` to return `Promise<boolean>` (never rejecting), added `skipInternalWebSpeechFallback?: boolean`, fixed `cancelAlternativeTtsAudio` via `activeAudioCancel` (`audio.removeAttribute("src")` after detaching event listeners so cancellation never triggers spurious `error` -> `fallbackToWebSpeech()`), and updated `executeTtsFallbackSequence` to fall through to `"native"` whenever TTS3 returns `false`.
+    - Updated `BeginnerPreferencesTab.tsx` (`handleTestVoice`) to use `canFallbackToTts3` and replaced `catch (err: any)` with `catch (err: unknown)`.
+  - **Component & hook cleanups**:
+    - Updated `src/components/FloatingErrorButton.tsx` drag `window.addEventListener("mousemove"/"mouseup")` `useEffect` to use `positionRef` + `[]` dependencies so dragging does not re-bind window listeners on every pixel move.
+    - Updated `src/components/WordBalloonLearningView.tsx` (`shuffledTargetPairs` `useMemo`) to depend solely on `[matchPairs]`, eliminating the `react-hooks/exhaustive-deps` warning on `effectiveRowIndex`.
+- **Verification**:
+  - `npm run test:listening-words-tts-playback` (unit + source + live Chromium E2E), `npx tsc --noEmit`, `compile_applet`, `lint_applet`, & `npm run test:agents-all` (22/22): **PASSED**. (Note: `.git` repository directory is not present in workspace so `git commit` / `git push` are skipped in this environment.)
+
+### Task 404 (Prompt 194): Game View Words List `Listen All` TTS-Play Execution & Fallback Chain (`v2.1.112`)
+
+- **Prompt**:
+  ```
+  it doesnt tts-play the list of words of the game
+  ```
+- **Changes**:
+  - Added synchronous `unlockTtsAudioPlayback()` in `src/lib/alternative-tts.ts` (resumes paused `speechSynthesis` and creates/resumes `AudioContext` inside the user click gesture) and wired it into `ListeningGamePanel.tsx` (`handlePlayWord`, `handlePlaySentence`, `handlePlayAllWords`, `handlePlayAllSentences`) and `handleSpeakTextFromAlternativeView` in `src/routes/index.tsx`.
+  - Combined with the `executeSingleSpeech` / `playAlternativeTtsAudio` fallback chain fix (above), clicking `listening-play-all-words-btn`, `listening-play-word-*`, and `listening-play-all-sentences-btn` reliably executes sequential TTS playback via `tts3.lovable.app` or local voices with live `Stop (X/Y)` progress and zero error modals.
+  - Created dedicated verification script `scripts/verify-listening-words-tts-playback.ts` (`"test:listening-words-tts-playback"` in `package.json`), updated `docs/files.md`, and bumped app version to `v2.1.112` (`code: 20212`) via `npm run sync-version`.
+- **Verification**:
+  - `npm run test:listening-words-tts-playback` (verified real `tts3.lovable.app` requests on clicking `listening-play-all-words-btn` in Chromium with zero `floating-error-button` and zero console/page errors): **PASSED**.
+  - `npm run test:game-view-tts-wizard`, `npm run test:listening-game-mode`, `npm run test:tts-fallback-order-switch`, `npm run test:speech-interrupted-graceful-handling`, `npm run test:direct-google-tts-no-lovable-error`, `npm run test:default-external-tts-validated`, `npm run test:vite-reload-modules`, `npm run test:client-pretransform-health`, `npm run test:floating-alert-leads-to-log`, `npm run test:log-error-copy-modes`, `npm run test:same-components-parity-policy`: **PASSED**.
+
 ### Task 403 (Prompt 193): Game View — List TTS-Play Trigger Fix, Guided Wizard Menu & Empty-Content Guard (`v2.1.111`)
 
 - **Prompt**:

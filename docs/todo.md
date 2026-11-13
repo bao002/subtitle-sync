@@ -1,10 +1,13 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
 - **Status**: [ACTIVE]
-- **Active Task**: Task 404 (Prompt 194 — Fix Game View Words List TTS-Play Trigger & Fallback Chain)
-- **Active Step**: Subtask 404.1 — Diagnose & reproduce real-browser failure on `listening-play-all-words-btn`
-- **Upcoming**: Subtask 404.2 (Fix TTS list playback & fallback chain), Subtask 404.3 (Verification + archive)
+- **Active Task**: Task 407 (Prompt 197 Chapter 2 — Fix Trigger Listening Dropping Base Word)
+- **Active Step**: Subtask 407.1 — Fix `cancelSpeech` / `window.speechSynthesis.cancel()` race in `src/routes/index.tsx` and `ListeningGamePanel.tsx`
+- **Upcoming**: Task 408 (Derived sentence display & play), Task 409 (UI/UX space optimization & v2.1.114)
 - **Completed**:
+  - Task 406 (Prompt 197 Chapter 1): Remove "X letters" badge from word cards (`ListeningGamePanel.tsx`)
+  - Task 405 (Prompt 196): Listening Game Words List On-Demand Word Translation & Default Play (`v2.1.113`)
+  - Hotfix (Prompt 195) & Task 404 (Prompt 194): Fix App Errors (`Native speech synthesis failed` Flood), TTS Fallback Chain & Game View Words `Listen All` TTS-Play Execution (`v2.1.112`)
   - Task 403 (Prompt 193): Game View List TTS-Play Fix, Guided Wizard Menu & Empty-Content Guard (`v2.1.111`)
   - Task 402 (Prompt 192 Chapter 3): History Stage — TTS-Play History Viewer (`v2.1.110`)
   - Task 401 (Prompt 192 Chapter 2): Game Mode Listening Game (`v2.1.109`)

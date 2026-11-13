@@ -226,6 +226,7 @@ import {
   hasCustomOpenRouterApiKey,
   playAlternativeTtsAudio,
   cancelAlternativeTtsAudio,
+  unlockTtsAudioPlayback,
   LOVABLE_TTS_DOCS_URL,
   LOVABLE_TTS_OPENAPI_URL,
   LOVABLE_TTS_PROVIDERS,
@@ -534,14 +535,19 @@ import { type PanelId, PANELS, ACCORDION_THEMES } from "@/config/accordionThemes
 let activeSpeechJobId = 0;
 let speechQueueGeneration = 0;
 let activeSpeechQueue: Promise<void> = Promise.resolve();
+let lastSpeechSynthesisCancelAt = 0;
 
 function cancelSpeech() {
   speechQueueGeneration++;
   cancelAlternativeTtsAudio();
   activeSpeechQueue = Promise.resolve();
-  if (typeof window !== "undefined") {
-    (window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null })._activeUtterance =
-      null;
+  const win =
+    typeof window !== "undefined"
+      ? (window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null })
+      : undefined;
+  const hadActiveUtterance = Boolean(win?._activeUtterance);
+  if (win) {
+    win._activeUtterance = null;
   }
   if (typeof window !== "undefined" && window.AndroidNativeShell?.stopSpeaking) {
     try {
@@ -553,9 +559,11 @@ function cancelSpeech() {
   if (
     typeof window !== "undefined" &&
     "speechSynthesis" in window &&
-    window.speechSynthesis?.cancel
+    window.speechSynthesis?.cancel &&
+    (hadActiveUtterance || window.speechSynthesis.speaking || window.speechSynthesis.pending)
   ) {
     try {
+      lastSpeechSynthesisCancelAt = Date.now();
       window.speechSynthesis.cancel();
     } catch (_e) {
       // Ignore speech cancellation error
@@ -660,16 +668,19 @@ function executeSingleSpeech(
           : 1.0;
       const useAltTts = typeof window !== "undefined" && getUseAlternativeTts();
       const altTtsMode = typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only";
+      const fallbackOrder = typeof window !== "undefined" ? getTtsFallbackOrder() : "tts3_native";
+      const canFallbackToTts3 = useAltTts || fallbackOrder !== "native_only";
       const altEngine = typeof window !== "undefined" ? getAlternativeTtsEngine() : "lovable";
       // Use the native speech rate setting directly (no separate extra speed rate)
       const altSpeed = normalizedRate;
-      const altProvider = typeof window !== "undefined" ? getLovableTtsProvider() : "google";
-      const altVoice = typeof window !== "undefined" ? getLovableTtsVoice() : "Kore";
+      const altProvider = typeof window !== "undefined" ? getLovableTtsProvider() : "auto";
+      const isCancelled = () =>
+        currentGeneration !== undefined && currentGeneration !== speechQueueGeneration;
 
       // 1. If alternative TTS service is enabled as preferred / always, speak using configured fallback sequence
       if (useAltTts && altTtsMode === "always") {
         try {
-          onProgress({
+          safeProgress({
             lang: lang.slice(0, 2),
             row,
             start: 0,
@@ -679,9 +690,9 @@ function executeSingleSpeech(
             text,
             lang,
             altSpeed,
-            getTtsFallbackOrder(),
+            fallbackOrder,
             (pct) => {
-              onProgress({
+              safeProgress({
                 lang: lang.slice(0, 2),
                 row,
                 start: 0,
@@ -694,8 +705,8 @@ function executeSingleSpeech(
               volume: normalizedVolume,
             },
           );
-          if (outcome !== "none") {
-            onProgress(null);
+          if (outcome !== "none" || isCancelled()) {
+            safeProgress(null);
             return res();
           }
         } catch (err) {
@@ -722,7 +733,7 @@ function executeSingleSpeech(
           const utteranceId = `row-${row}-${lang}-${Date.now()}`;
           const handled = window.AndroidNativeShell.speak(text, lang, normalizedRate, utteranceId);
           if (handled) {
-            onProgress({
+            safeProgress({
               lang: lang.slice(0, 2),
               row,
               start: 0,
@@ -734,7 +745,7 @@ function executeSingleSpeech(
               if (resolved) return;
               resolved = true;
               if (timer) clearTimeout(timer);
-              onProgress(null);
+              safeProgress(null);
               res();
             };
             const prevDone = window.onNativeTTSDone;
@@ -758,7 +769,7 @@ function executeSingleSpeech(
                       lang,
                       altSpeed,
                       (pct) => {
-                        onProgress({
+                        safeProgress({
                           lang: lang.slice(0, 2),
                           row,
                           start: 0,
@@ -767,9 +778,10 @@ function executeSingleSpeech(
                       },
                       altEngine,
                       {
-                        provider: altProvider || "google",
+                        provider: altProvider || "auto",
                         speed: altSpeed,
                         volume: normalizedVolume,
+                        skipInternalWebSpeechFallback: true,
                       },
                     );
                   } catch (fallbackErr) {
@@ -793,18 +805,18 @@ function executeSingleSpeech(
               "Android native TTS unhandled/not ready, falling back to Google TTS audio",
             );
             try {
-              onProgress({
+              safeProgress({
                 lang: lang.slice(0, 2),
                 row,
                 start: 0,
                 end: text.length,
               });
-              await playAlternativeTtsAudio(
+              const played = await playAlternativeTtsAudio(
                 text,
                 lang,
                 altSpeed,
                 (pct) => {
-                  onProgress({
+                  safeProgress({
                     lang: lang.slice(0, 2),
                     row,
                     start: 0,
@@ -813,13 +825,16 @@ function executeSingleSpeech(
                 },
                 altEngine,
                 {
-                  provider: altProvider || "google",
+                  provider: altProvider || "auto",
                   speed: altSpeed,
                   volume: normalizedVolume,
+                  skipInternalWebSpeechFallback: true,
                 },
               );
-              onProgress(null);
-              return res();
+              if (played || isCancelled()) {
+                safeProgress(null);
+                return res();
+              }
             } catch (fallbackErr) {
               console.warn("Direct Google TTS fallback failed:", fallbackErr);
             }
@@ -829,21 +844,22 @@ function executeSingleSpeech(
         }
       }
 
-      const fallbackToAlternative = async () => {
-        if (useAltTts) {
+      const fallbackToAlternative = async (): Promise<boolean> => {
+        if (isCancelled()) return false;
+        if (canFallbackToTts3) {
           try {
-            onProgress({
+            safeProgress({
               lang: lang.slice(0, 2),
               row,
               start: 0,
               end: text.length,
             });
-            await playAlternativeTtsAudio(
+            const played = await playAlternativeTtsAudio(
               text,
               lang,
               altSpeed,
               (pct) => {
-                onProgress({
+                safeProgress({
                   lang: lang.slice(0, 2),
                   row,
                   start: 0,
@@ -852,14 +868,17 @@ function executeSingleSpeech(
               },
               altEngine,
               {
-                provider: altProvider,
+                provider: altProvider || "auto",
                 speed: altSpeed,
                 volume: normalizedVolume,
+                skipInternalWebSpeechFallback: true,
               },
             );
-            onProgress(null);
-            res();
-            return true;
+            if (played) {
+              safeProgress(null);
+              res();
+              return true;
+            }
           } catch (altErr) {
             console.warn("Alternative TTS fallback error:", altErr);
           }
@@ -873,7 +892,18 @@ function executeSingleSpeech(
         !window.speechSynthesis
       ) {
         if (await fallbackToAlternative()) return;
+        safeProgress(null);
         return res();
+      }
+
+      // When the browser has 0 local voices (e.g. headless Chromium / devices without voice packs)
+      // and TTS3 fallback is allowed, prefer TTS3 audio directly instead of failing native speak first.
+      if (voices.length === 0 && canFallbackToTts3 && fallbackOrder === "tts3_native") {
+        if (await fallbackToAlternative()) return;
+        if (isCancelled()) {
+          safeProgress(null);
+          return res();
+        }
       }
 
       try {
@@ -903,7 +933,7 @@ function executeSingleSpeech(
           if (event.name !== "word") return;
           const remainder = text.slice(event.charIndex);
           const wordLength = event.charLength || remainder.match(/^\S+/)?.[0].length || 1;
-          onProgress({
+          safeProgress({
             lang: lang.slice(0, 2),
             row,
             start: event.charIndex,
@@ -912,7 +942,7 @@ function executeSingleSpeech(
         };
         let resolved = false;
         let safetyTimer: ReturnType<typeof setTimeout> | null = null;
-        const done = async (isError?: boolean) => {
+        const done = async (isError?: boolean, errorDetail?: string) => {
           if (resolved) return;
           resolved = true;
           if (safetyTimer) {
@@ -931,10 +961,24 @@ function executeSingleSpeech(
               }
             }
           }
-          if (isError && (await fallbackToAlternative())) {
-            return;
+          if (isError && !isCancelled()) {
+            const recovered = await fallbackToAlternative();
+            if (recovered) {
+              return;
+            }
+            if (!isCancelled()) {
+              logError("State Machine", "Native speech synthesis failed", {
+                videoId:
+                  (typeof window !== "undefined" &&
+                    (window as Window & { __ACTIVE_VIDEO_ID__?: string }).__ACTIVE_VIDEO_ID__) ||
+                  undefined,
+                lang,
+                row,
+                error: errorDetail || "synthesis-failed",
+              });
+            }
           }
-          onProgress(null);
+          safeProgress(null);
           res();
         };
 
@@ -947,22 +991,23 @@ function executeSingleSpeech(
             void done(false);
             return;
           }
-          logError("State Machine", "Native speech synthesis failed", {
-            videoId:
-              (typeof window !== "undefined" &&
-                (window as Window & { __ACTIVE_VIDEO_ID__?: string }).__ACTIVE_VIDEO_ID__) ||
-              undefined,
-            lang,
-            row,
-            error: event.error,
-          });
-          void done(true);
+          void done(true, event.error);
         };
         const timeoutMs = Math.max(
           16000,
           (text.length / 3) * (1000 / (normalizedRate || 0.5)) + 8000,
         );
         safetyTimer = setTimeout(() => done(false), timeoutMs);
+        const elapsedSinceCancel = Date.now() - lastSpeechSynthesisCancelAt;
+        if (elapsedSinceCancel < 90) {
+          await new Promise<void>((waitResolve) =>
+            setTimeout(waitResolve, 90 - elapsedSinceCancel),
+          );
+          if (isCancelled()) {
+            safeProgress(null);
+            return res();
+          }
+        }
         if (typeof window !== "undefined") {
           (
             window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }
@@ -970,18 +1015,22 @@ function executeSingleSpeech(
         }
         window.speechSynthesis.speak(u);
       } catch (e) {
-        logError("State Machine", "Speech synthesis setup failed", {
-          videoId:
-            (typeof window !== "undefined" &&
-              (window as Window & { __ACTIVE_VIDEO_ID__?: string }).__ACTIVE_VIDEO_ID__) ||
-            undefined,
-          lang,
-          row,
-          error: e instanceof Error ? e.message : String(e),
-        });
         console.warn("Speech synthesis error:", e);
-        if (await fallbackToAlternative()) return;
-        onProgress(null);
+        if (!isCancelled()) {
+          if (await fallbackToAlternative()) return;
+          if (!isCancelled()) {
+            logError("State Machine", "Speech synthesis setup failed", {
+              videoId:
+                (typeof window !== "undefined" &&
+                  (window as Window & { __ACTIVE_VIDEO_ID__?: string }).__ACTIVE_VIDEO_ID__) ||
+                undefined,
+              lang,
+              row,
+              error: e instanceof Error ? e.message : String(e),
+            });
+          }
+        }
+        safeProgress(null);
         res();
       }
     })();
@@ -5490,17 +5539,7 @@ function Index() {
   const handleSpeakTextFromAlternativeView = useCallback(
     (textToSpeak: string, langCode: string): Promise<void> => {
       if (!textToSpeak || !textToSpeak.trim()) return Promise.resolve();
-      if (
-        typeof window !== "undefined" &&
-        "speechSynthesis" in window &&
-        window.speechSynthesis?.paused
-      ) {
-        try {
-          window.speechSynthesis.resume();
-        } catch {
-          // ignore resume error
-        }
-      }
+      unlockTtsAudioPlayback();
       const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
         (l) => l.code === langCode,
       );
@@ -5508,8 +5547,9 @@ function Index() {
       const rate = rates[langCode] ?? 1.0;
       const voice = voiceSelections[langCode] ?? "";
       const volume = getLanguageTtsVolume(ttsVolumes, langCode);
-      const rowIdx = active >= 0 ? active : 0;
-      const rowObj = rows[rowIdx];
+      const rowIdx =
+        speakingRow >= 0 ? speakingRow : active >= 0 ? active : rows.length > 0 ? 0 : -1;
+      const rowObj = rowIdx >= 0 ? rows[rowIdx] : undefined;
       const baseSentence =
         rowObj?.texts?.[baseLanguage] || currentAlternativeSentence || textToSpeak;
       const resolvedTranslationLang =
@@ -5535,6 +5575,7 @@ function Index() {
       return speak(textToSpeak, ttsLang, rate, voice, rowIdx, setSpeechProgress, volume);
     },
     [
+      speakingRow,
       active,
       rates,
       voiceSelections,

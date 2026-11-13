@@ -76,6 +76,8 @@ import {
   getLastValidationResult,
   getAlternativeTtsAnonymousMode,
   setAlternativeTtsAnonymousMode,
+  getTtsFallbackOrder,
+  unlockTtsAudioPlayback,
   type AlternativeTtsMode,
   type AlternativeTtsEngine,
   type LovableTtsProvider,
@@ -239,7 +241,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         isAnonymous: isAnonymousState,
       });
       setRemoteValidationResult(res);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setRemoteValidationResult({
         ok: false,
         service: targetEngine,
@@ -247,7 +249,7 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
         endpoint: "",
         latencyMs: 0,
         audioVerified: false,
-        error: err?.message || "Validation failed",
+        error: err instanceof Error ? err.message : "Validation failed",
         timestamp: Date.now(),
       });
     } finally {
@@ -278,8 +280,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
     if (typeof window === "undefined") return;
     const text = getSampleTextForLanguage(baseLanguage);
 
+    unlockTtsAudioPlayback();
     const useAltTts = getUseAlternativeTts();
     const altMode = getAlternativeTtsMode();
+    const fallbackOrder = getTtsFallbackOrder();
+    const canFallbackToTts3 = useAltTts || fallbackOrder !== "native_only";
 
     if (useAltTts && altMode === "always") {
       setIsAuditioning(true);
@@ -306,10 +311,15 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       window.onNativeTTSError = (uid: string, err?: string) => {
         if (uid === utteranceId) {
           window.onNativeTTSError = prevErr;
-          playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
-            provider: lovableTtsProviderState || "google",
-            speed: ttsSpeed,
-          }).finally(() => setIsAuditioning(false));
+          if (canFallbackToTts3) {
+            playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
+              provider: lovableTtsProviderState || "auto",
+              speed: ttsSpeed,
+              skipInternalWebSpeechFallback: true,
+            }).finally(() => setIsAuditioning(false));
+          } else {
+            setIsAuditioning(false);
+          }
         } else if (prevErr) prevErr(uid, err);
       };
       const ok = window.AndroidNativeShell.speak(text, baseLanguage, ttsSpeed, utteranceId);
@@ -317,13 +327,16 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
     }
 
     if (!("speechSynthesis" in window)) {
-      setIsAuditioning(true);
-      playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
-        provider: lovableTtsProviderState || "google",
-        speed: ttsSpeed,
-      })
-        .catch(() => {})
-        .finally(() => setIsAuditioning(false));
+      if (canFallbackToTts3) {
+        setIsAuditioning(true);
+        playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
+          provider: lovableTtsProviderState || "auto",
+          speed: ttsSpeed,
+          skipInternalWebSpeechFallback: true,
+        })
+          .catch(() => {})
+          .finally(() => setIsAuditioning(false));
+      }
       return;
     }
 
@@ -345,10 +358,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
           setIsAuditioning(false);
           return;
         }
-        if (useAltTts) {
+        if (canFallbackToTts3) {
           playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
-            provider: lovableTtsProviderState,
+            provider: lovableTtsProviderState || "auto",
             speed: ttsSpeed,
+            skipInternalWebSpeechFallback: true,
           })
             .catch(() => {})
             .finally(() => setIsAuditioning(false));
@@ -359,10 +373,11 @@ export const BeginnerPreferencesTab: React.FC<BeginnerPreferencesTabProps> = ({
       setIsAuditioning(true);
       window.speechSynthesis.speak(utterance);
     } catch {
-      if (useAltTts) {
+      if (canFallbackToTts3) {
         playAlternativeTtsAudio(text, baseLanguage, ttsSpeed, undefined, alternativeTtsEngineState, {
-          provider: lovableTtsProviderState,
+          provider: lovableTtsProviderState || "auto",
           speed: ttsSpeed,
+          skipInternalWebSpeechFallback: true,
         })
           .catch(() => {})
           .finally(() => setIsAuditioning(false));

@@ -565,7 +565,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   // Shuffled target choices for word matching
   const shuffledTargetPairs = useMemo(() => {
     return shuffleArray(matchPairs);
-  }, [matchPairs, effectiveRowIndex]);
+  }, [matchPairs]);
 
   useEffect(() => {
     setSelectedBaseWord(null);

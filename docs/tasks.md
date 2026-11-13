@@ -4,10 +4,16 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 404: Fix Game View Words List `Listen All` TTS-Play Execution & Fallback Chain (Prompt 194)**
-  - Subtask 404.1: Reproduce and diagnose why clicking `listening-play-all-words-btn` (`section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)`) fails to play TTS across the words list in real browser runtime (including silent TTS3 fallback return, stuck `activeSpeechQueue`/`speechSynthesis`, user-gesture preservation, and word+translation sequence).
-  - Subtask 404.2: Fix `ListeningGamePanel.tsx`, `src/lib/alternative-tts.ts`, and `src/routes/index.tsx` so `Listen All` (words & sentences) and single-word Listen reliably trigger TTS playback with proper fallback and progress updates across Beginner and Advanced modes.
-  - Subtask 404.3: Verify in Playwright browser test + dedicated verification script, bump version, compile, lint, and archive to `docs/done.md`.
+- [ ] **Task 407: Chapter 2 (Prompt 197) — Fix Trigger Listening Dropping Base Word & Playing Only Translation**
+  - Subtask 407.1: Fix `cancelSpeech()` -> `window.speechSynthesis.speak()` asynchronous race in `src/routes/index.tsx` (`lastSpeechCancelAt` cooldown guard + conditional `speechSynthesis.cancel()`) and conditional interrupt yield in `ListeningGamePanel.tsx` so the base word plays before its on-demand translation.
+  - Subtask 407.2: Verify with dedicated test (including Web Speech `canceled`/`interrupted` race simulation and Chromium E2E), compile, lint, and archive Task 407 to `docs/done.md`.
+
+- [ ] **Task 408: Chapter 3 (Prompt 197) — Show Derived Original Sentence & Allow Playing Sentence + Translation on Word Cards**
+  - Subtask 408.1: Render `item.sourceSentence` (highlighting the derived word cleanly) alongside `item.sourceTranslation` (when `With Translations` is enabled) and add a dedicated Play Sentence action (`listening-play-word-sentence-${idx}`) inside each word card (`ListeningGamePanel.tsx`) to play that sentence + translation.
+  - Subtask 408.2: Verify with dedicated test + Chromium E2E, compile, lint, and archive Task 408 to `docs/done.md`.
+
+- [ ] **Task 409: Chapter 4 (Prompt 197) — UI/UX Space Optimization on Listening Game Word Cards**
+  - Subtask 409.1: Structure word card into a clean two-band layout (Word + on-demand translation + Word Listen button on top; compact derived sentence + translation + Sentence Play button below without truncation) and adjust container height (`max-h-[26rem]`) for comfortable scanning, bumping version (`v2.1.114`) and running full verification + archival.
 
 ## Later Tasks
 
