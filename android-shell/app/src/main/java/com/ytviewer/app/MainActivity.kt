@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Environment
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
@@ -93,10 +94,118 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     companion object {
         private const val TAG = "YT_CAPTION_INTERCEPTOR"
         private const val LOCAL_ASSET_DOMAIN = "appassets.androidplatform.net"
+        private const val PREFS_LOCAL_STORAGE_BACKUP = "yt_viewer_localstorage_backup"
+        private const val KEY_LOCAL_STORAGE_SNAPSHOT = "local_storage_snapshot_v1"
+        private const val LOCAL_STORAGE_BACKUP_FILENAME = "localstorage_backup.json"
 
         @Volatile
         var instance: MainActivity? = null
             private set
+    }
+
+    private fun getInternalLocalStorageBackupFile(): File {
+        return File(filesDir, LOCAL_STORAGE_BACKUP_FILENAME)
+    }
+
+    private fun getExternalLocalStorageBackupFile(): File? {
+        return try {
+            val docsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            if (docsDir != null) {
+                File(File(docsDir, "YouTubeViewer"), LOCAL_STORAGE_BACKUP_FILENAME)
+            } else {
+                null
+            }
+        } catch (ignored: Exception) {
+            null
+        }
+    }
+
+    private fun extractSnapshotUpdatedAt(rawJson: String): Long {
+        return try {
+            JSONObject(rawJson).optLong("updatedAt", 0L)
+        } catch (ignored: Exception) {
+            0L
+        }
+    }
+
+    private fun isValidSnapshotJson(raw: String?): Boolean {
+        if (raw.isNullOrBlank()) return false
+        val trimmed = raw.trim()
+        if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return false
+        return try {
+            val obj = JSONObject(trimmed)
+            val entries = obj.optJSONObject("entries")
+            (entries != null && entries.length() > 0) || obj.length() > 0
+        } catch (ignored: Exception) {
+            false
+        }
+    }
+
+    fun persistLocalStorageSnapshot(snapshotJson: String): Boolean {
+        if (!isValidSnapshotJson(snapshotJson)) return false
+        var savedAny = false
+        try {
+            val prefs = getSharedPreferences(PREFS_LOCAL_STORAGE_BACKUP, Context.MODE_PRIVATE)
+            if (prefs.edit().putString(KEY_LOCAL_STORAGE_SNAPSHOT, snapshotJson).commit()) {
+                savedAny = true
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed saving localStorage snapshot to SharedPreferences: ${e.message}")
+        }
+        try {
+            val internalFile = getInternalLocalStorageBackupFile()
+            val tempFile = File(filesDir, "$LOCAL_STORAGE_BACKUP_FILENAME.tmp")
+            tempFile.writeText(snapshotJson, StandardCharsets.UTF_8)
+            if (internalFile.exists()) internalFile.delete()
+            if (tempFile.renameTo(internalFile) || internalFile.apply { writeText(snapshotJson, StandardCharsets.UTF_8) }.exists()) {
+                savedAny = true
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed saving localStorage snapshot to filesDir: ${e.message}")
+        }
+        try {
+            val extFile = getExternalLocalStorageBackupFile()
+            if (extFile != null) {
+                extFile.parentFile?.mkdirs()
+                extFile.writeText(snapshotJson, StandardCharsets.UTF_8)
+            }
+        } catch (ignored: Exception) {
+            // Best-effort external Documents mirror for Android <= 10 or permitted devices
+        }
+        return savedAny
+    }
+
+    fun loadBestLocalStorageSnapshot(): String {
+        val candidates = mutableListOf<String>()
+        try {
+            val internalFile = getInternalLocalStorageBackupFile()
+            if (internalFile.exists() && internalFile.canRead()) {
+                val content = internalFile.readText(StandardCharsets.UTF_8)
+                if (isValidSnapshotJson(content)) candidates.add(content)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed reading internal localStorage backup file: ${e.message}")
+        }
+        try {
+            val prefs = getSharedPreferences(PREFS_LOCAL_STORAGE_BACKUP, Context.MODE_PRIVATE)
+            val prefVal = prefs.getString(KEY_LOCAL_STORAGE_SNAPSHOT, null)
+            if (isValidSnapshotJson(prefVal)) candidates.add(prefVal!!)
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed reading localStorage backup from SharedPreferences: ${e.message}")
+        }
+        try {
+            val extFile = getExternalLocalStorageBackupFile()
+            if (extFile != null && extFile.exists() && extFile.canRead()) {
+                val content = extFile.readText(StandardCharsets.UTF_8)
+                if (isValidSnapshotJson(content)) candidates.add(content)
+            }
+        } catch (ignored: Exception) {
+            // External Documents mirror unreadable on scoped storage after UID change
+        }
+        if (candidates.isEmpty()) return ""
+        val best = candidates.maxByOrNull { extractSnapshotUpdatedAt(it) } ?: candidates.first()
+        persistLocalStorageSnapshot(best)
+        return best
     }
 
     private fun clearOtaCacheOnApkUpgrade() {
@@ -823,6 +932,23 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             dispatchMediaCommand("pause", 0L)
             stopNativeTTS()
         }
+        try {
+            val flushScript = """
+                (function() {
+                    try {
+                        if (window.AndroidNativeShell && window.AndroidNativeShell.saveLocalStorageBackup && window.localStorage && window.localStorage.length > 0) {
+                            var entries = {};
+                            for (var i = 0; i < window.localStorage.length; i++) {
+                                var k = window.localStorage.key(i);
+                                if (k) entries[k] = window.localStorage.getItem(k);
+                            }
+                            window.AndroidNativeShell.saveLocalStorageBackup(JSON.stringify({ version: 1, updatedAt: Date.now(), entries: entries }));
+                        }
+                    } catch (e) {}
+                })();
+            """.trimIndent()
+            webView.evaluateJavascript(flushScript, null)
+        } catch (ignored: Exception) {}
         Log.d(TAG, "onPause: maintaining webView active for background playback, bgEnabled=$isBackgroundAudioEnabled")
     }
 
@@ -883,6 +1009,16 @@ class MainActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 }
             }
             return true
+        }
+
+        @JavascriptInterface
+        fun saveLocalStorageBackup(snapshotJson: String): Boolean {
+            return this@MainActivity.persistLocalStorageSnapshot(snapshotJson)
+        }
+
+        @JavascriptInterface
+        fun readLocalStorageBackup(): String {
+            return this@MainActivity.loadBestLocalStorageSnapshot()
         }
 
         @JavascriptInterface

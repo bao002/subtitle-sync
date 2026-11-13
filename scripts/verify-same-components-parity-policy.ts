@@ -52,6 +52,7 @@ const SHARED_COMPONENTS = [
   "WordBalloonLearningView",
   "VideoLibraryPanel",
   "WebDemoUrlsInput",
+  "TtsPlayHistoryPanel",
 ] as const;
 
 for (const componentName of SHARED_COMPONENTS) {

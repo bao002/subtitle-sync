@@ -1,6 +1,12 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Activity, AlertTriangle, Check, Copy, Trash2, X } from "lucide-react";
-import { getLogEntriesSnapshot, logBuffer, subscribeToLogEntries } from "@/utils/logBuffer";
+import {
+  copyErrorOnlyToClipboard,
+  copyLogAroundErrorToClipboard,
+  getLogEntriesSnapshot,
+  logBuffer,
+  subscribeToLogEntries,
+} from "@/utils/logBuffer";
 
 interface Props {
   isOpen: boolean;
@@ -23,13 +29,18 @@ export function StateMachineActionLogsInspector({ isOpen, onClose }: Props) {
     getLogEntriesSnapshot,
   );
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
-  const [filterLevel, setFilterLevel] = useState<"ALL" | "ACTIONS_ERRORS">("ALL");
+  const [copiedErrorAction, setCopiedErrorAction] = useState<string | null>(null);
+  const [filterLevel] = useState<"ALL" | "ACTIONS_ERRORS">("ALL");
   const visibleEntries = entries.filter((entry) => {
     if (filterLevel === "ACTIONS_ERRORS") {
       return entry.level === "ACTION" || entry.level === "ERROR";
     }
     return true;
   });
+
+  const errorEntries = entries.filter((entry) => entry.level === "ERROR");
+  const hasErrors = errorEntries.length > 0;
+  const latestError = hasErrors ? errorEntries[errorEntries.length - 1] : null;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -42,9 +53,43 @@ export function StateMachineActionLogsInspector({ isOpen, onClose }: Props) {
 
   useEffect(() => {
     setCopyStatus("idle");
+    setCopiedErrorAction(null);
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const markCopiedErrorAction = (key: string) => {
+    setCopiedErrorAction(key);
+    setTimeout(() => {
+      setCopiedErrorAction((prev) => (prev === key ? null : prev));
+    }, 2200);
+  };
+
+  const handleCopyErrorOnly = async (errorId?: string) => {
+    const key = errorId ? `error-only:${errorId}` : "error-only:header";
+    try {
+      const ok = await copyErrorOnlyToClipboard(errorId);
+      if (!ok) {
+        await navigator.clipboard.writeText(logBuffer.formatOnlyErrorLogs(errorId));
+      }
+      markCopiedErrorAction(key);
+    } catch {
+      setCopyStatus("failed");
+    }
+  };
+
+  const handleCopyAroundError = async (errorId?: string) => {
+    const key = errorId ? `around-error:${errorId}` : "around-error:header";
+    try {
+      const ok = await copyLogAroundErrorToClipboard(errorId);
+      if (!ok) {
+        await navigator.clipboard.writeText(logBuffer.formatLogAroundError(errorId));
+      }
+      markCopiedErrorAction(key);
+    } catch {
+      setCopyStatus("failed");
+    }
+  };
 
   const handleCopyAll = async () => {
     try {
@@ -69,7 +114,7 @@ export function StateMachineActionLogsInspector({ isOpen, onClose }: Props) {
         className="w-full max-w-5xl h-[100dvh] sm:h-[85vh] bg-neutral-900 border-0 sm:border sm:border-neutral-800 sm:rounded-xl shadow-2xl flex flex-col overflow-hidden text-neutral-200 pb-[env(safe-area-inset-bottom)]"
         onClick={(event) => event.stopPropagation()}
       >
-        <header className="flex items-center justify-between gap-3 px-4 py-3 bg-neutral-950/90 border-b border-neutral-800 shrink-0">
+        <header className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-neutral-950/90 border-b border-neutral-800 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
             <Activity className="w-5 h-5 text-sky-400 shrink-0" />
             <div className="min-w-0">
@@ -81,7 +126,47 @@ export function StateMachineActionLogsInspector({ isOpen, onClose }: Props) {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {hasErrors && (
+              <>
+                <button
+                  type="button"
+                  data-testid="state-machine-copy-error-only-button"
+                  onClick={() => void handleCopyErrorOnly(latestError?.id)}
+                  className="inline-flex items-center gap-1.5 min-h-9 px-2.5 rounded-md border border-red-800/70 bg-red-950/50 hover:bg-red-900/60 text-red-200 text-xs font-medium"
+                  title="Copy only the error log without surrounding logs"
+                >
+                  {copiedErrorAction === `error-only:${latestError?.id}` ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  ) : (
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                  )}
+                  <span>
+                    {copiedErrorAction === `error-only:${latestError?.id}`
+                      ? "Copied Error!"
+                      : "Copy Error Only"}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  data-testid="state-machine-copy-around-error-button"
+                  onClick={() => void handleCopyAroundError(latestError?.id)}
+                  className="inline-flex items-center gap-1.5 min-h-9 px-2.5 rounded-md border border-amber-700/70 bg-amber-950/40 hover:bg-amber-900/50 text-amber-200 text-xs font-medium"
+                  title="Copy only the log window around the error (not all logs)"
+                >
+                  {copiedErrorAction === `around-error:${latestError?.id}` ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  <span>
+                    {copiedErrorAction === `around-error:${latestError?.id}`
+                      ? "Copied Context!"
+                      : "Copy Around Error"}
+                  </span>
+                </button>
+              </>
+            )}
             <button
               type="button"
               data-testid="copy-all-action-logs-button"
@@ -149,21 +234,65 @@ export function StateMachineActionLogsInspector({ isOpen, onClose }: Props) {
                       )}
                     </span>
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                        <time
-                          className="font-mono text-[11px] text-neutral-400"
-                          dateTime={new Date(entry.timestamp).toISOString()}
-                        >
-                          {new Date(entry.timestamp).toISOString()}
-                        </time>
-                        <span
-                          className={`text-[10px] font-bold uppercase ${
-                            isError ? "text-red-300" : "text-sky-300"
-                          }`}
-                        >
-                          {entry.level}
-                        </span>
-                        <span className="text-[11px] text-neutral-500">{entry.category}</span>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <time
+                            className="font-mono text-[11px] text-neutral-400"
+                            dateTime={new Date(entry.timestamp).toISOString()}
+                          >
+                            {new Date(entry.timestamp).toISOString()}
+                          </time>
+                          <span
+                            className={`text-[10px] font-bold uppercase ${
+                              isError ? "text-red-300" : "text-sky-300"
+                            }`}
+                          >
+                            {entry.level}
+                          </span>
+                          <span className="text-[11px] text-neutral-500">{entry.category}</span>
+                        </div>
+                        {isError && (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              data-testid={`state-machine-copy-error-only-${entry.id}`}
+                              onClick={() => void handleCopyErrorOnly(entry.id)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-red-800/70 bg-red-950/40 hover:bg-red-900/50 text-[11px] text-red-200 font-medium"
+                              title="Copy only this error log"
+                            >
+                              {copiedErrorAction === `error-only:${entry.id}` ? (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <span>Copied Error!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <AlertTriangle className="w-3 h-3" />
+                                  <span>Copy Error Only</span>
+                                </>
+                              )}
+                            </button>
+                            <button
+                              type="button"
+                              data-testid={`state-machine-copy-around-error-${entry.id}`}
+                              onClick={() => void handleCopyAroundError(entry.id)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-amber-700/70 bg-amber-950/40 hover:bg-amber-900/50 text-[11px] text-amber-200 font-medium"
+                              title="Copy only the log window around this error"
+                            >
+                              {copiedErrorAction === `around-error:${entry.id}` ? (
+                                <>
+                                  <Check className="w-3 h-3 text-emerald-400" />
+                                  <span>Copied Context!</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3 h-3" />
+                                  <span>Copy Around Error</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )}
                       </div>
                       <p className="mt-1 text-sm text-neutral-100 break-words">{entry.message}</p>
                       {entry.details !== undefined && (

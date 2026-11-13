@@ -77,6 +77,8 @@ const InteractiveStoryWrapper: React.FC<Partial<WordBalloonLearningViewProps>> =
           setActiveRowIndex((i) => Math.min(sampleSentences.length - 1, i + 1))
         }
         onReplaySentence={() => setActiveRowIndex(0)}
+        onSpeakText={() => new Promise((resolve) => setTimeout(resolve, 250))}
+        onStopSpeaking={() => {}}
         onCloseLearningView={() => {}}
         {...props}
       />
@@ -89,9 +91,62 @@ export const Default: Story = {
 };
 
 export const Interactive: Story = {
+  render: () => <InteractiveStoryWrapper initialGameMode="sentence_builder" />,
+};
+
+export const GuidedWizardMenu: Story = {
   render: () => <InteractiveStoryWrapper />,
 };
 
+export const EmptyContentWizard: Story = {
+  render: () => {
+    const EmptyWrapper: React.FC = () => {
+      const [loaded, setLoaded] = useState(false);
+      return (
+        <div className="max-w-3xl mx-auto p-4">
+          <WordBalloonLearningView
+            currentSentence={loaded ? "Welcome to the language learning adventure." : ""}
+            baseLanguage="en"
+            baseLanguageName="English"
+            targetLanguage="es"
+            targetLanguageName="Spanish"
+            targetTranslation={loaded ? "Bienvenidos a la aventura de aprender idiomas." : ""}
+            activeRowIndex={loaded ? 0 : -1}
+            totalRows={loaded ? 1 : 0}
+            onLoadSampleSubtitles={() => setLoaded(true)}
+            onCloseLearningView={() => {}}
+          />
+        </div>
+      );
+    };
+    return <EmptyWrapper />;
+  },
+};
+
 export const HebrewTargetRTL: Story = {
-  render: () => <InteractiveStoryWrapper targetLanguage="he" />,
+  render: () => <InteractiveStoryWrapper targetLanguage="he" initialGameMode="word_balloons" />,
+};
+
+export const ListeningGame: Story = {
+  render: () => (
+    <InteractiveStoryWrapper
+      initialGameMode="listening_game"
+      subtitleRows={[
+        {
+          texts: {
+            en: "Welcome to the language learning adventure. Short phrase!",
+            es: "Bienvenidos a la aventura de aprender idiomas. ¡Frase corta!",
+            he: "ברוכים הבאים להרפתקת לימוד השפה. משפט קצר!",
+          },
+        },
+        {
+          texts: {
+            en: "Practice vocabulary interactively with instant feedback every day.",
+            es: "Practica vocabulario interactivamente con retroalimentación instantánea cada día.",
+            he: "תרגל אוצר מילים באופן אינטראקטיבי עם משוב מיידי כל יום.",
+          },
+        },
+      ]}
+    />
+  ),
 };

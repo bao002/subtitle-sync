@@ -138,10 +138,42 @@ echo "[+] Download complete (${FILE_SIZE} bytes)."
 echo ""
 
 # ----------------------------------------------------------------------------
-# 5. Uninstall Existing App from Device (Clean Slate & Deep Purge)
+# 5. Preserve App Data on Upgrade & Pre-Backup localStorage Snapshot
 # ----------------------------------------------------------------------------
+LS_BACKUP_HOST_FILE="${DOWNLOAD_DIR}/.ytviewer-localstorage-backup.json"
+LS_BACKUP_RESTORE_NEEDED=false
+rm -f "${LS_BACKUP_HOST_FILE}" 2>/dev/null || true
+
+backup_local_storage_data() {
+  echo "[*] Backing up localStorage snapshot from ${PACKAGE_NAME} (if installed)..."
+  local tmp_out=""
+  tmp_out=$($ADB_CMD exec-out run-as "${PACKAGE_NAME}" cat files/localstorage_backup.json 2>/dev/null || true)
+  if [[ -n "$tmp_out" && "$tmp_out" == \{* ]]; then
+    printf '%s' "$tmp_out" > "${LS_BACKUP_HOST_FILE}"
+    echo "[+] Saved localStorage backup snapshot ($(wc -c < "${LS_BACKUP_HOST_FILE}" | tr -dc '0-9') bytes)."
+  else
+    rm -f "${LS_BACKUP_HOST_FILE}" 2>/dev/null || true
+    echo "[i] No prior localStorage backup file to extract via run-as (in-place upgrade will retain WebView storage directly)."
+  fi
+}
+
+restore_local_storage_data() {
+  if [ "$LS_BACKUP_RESTORE_NEEDED" = true ] && [ -s "${LS_BACKUP_HOST_FILE}" ]; then
+    echo "[*] Restoring backed-up localStorage snapshot into newly installed ${PACKAGE_NAME}..."
+    $ADB_CMD shell "run-as ${PACKAGE_NAME} mkdir -p files" 2>/dev/null || true
+    if cat "${LS_BACKUP_HOST_FILE}" | $ADB_CMD shell "run-as ${PACKAGE_NAME} sh -c 'cat > files/localstorage_backup.json'" 2>/dev/null; then
+      echo "[+] localStorage snapshot successfully restored across package reinstall!"
+    else
+      echo "[!] Could not restore localStorage snapshot via run-as."
+    fi
+  fi
+  rm -f "${LS_BACKUP_HOST_FILE}" 2>/dev/null || true
+}
+
 deep_purge_package() {
-  echo "[!] Performing deep purge of ${PACKAGE_NAME} (resolving collisions & lingering data)..."
+  echo "[!] Performing deep purge of ${PACKAGE_NAME} (resolving collisions; localStorage backup preserved for restore)..."
+  backup_local_storage_data
+  LS_BACKUP_RESTORE_NEEDED=true
   $ADB_CMD shell am force-stop "${PACKAGE_NAME}" 2>/dev/null || true
   $ADB_CMD shell pm clear "${PACKAGE_NAME}" 2>/dev/null || true
   $ADB_CMD uninstall "${PACKAGE_NAME}" 2>/dev/null || true
@@ -158,18 +190,9 @@ has_collision_error() {
   return 1
 }
 
-
-echo "[*] Uninstalling existing ${PACKAGE_NAME} from device..."
+echo "[*] Preserving existing ${PACKAGE_NAME} data (in-place upgrade first)..."
 $ADB_CMD shell am force-stop "${PACKAGE_NAME}" 2>/dev/null || true
-$ADB_CMD shell pm clear "${PACKAGE_NAME}" 2>/dev/null || true
-UNINSTALL_RES=$($ADB_CMD uninstall "${PACKAGE_NAME}" 2>&1 || true)
-echo "${UNINSTALL_RES}"
-$ADB_CMD shell pm uninstall --user 0 "${PACKAGE_NAME}" 2>/dev/null || true
-if echo "${UNINSTALL_RES}" | grep -iq "Success"; then
-  echo "[+] Existing version removed."
-else
-  echo "[i] Clean state: previous version was not present or already removed."
-fi
+backup_local_storage_data
 echo ""
 
 # ----------------------------------------------------------------------------
@@ -241,12 +264,15 @@ if [ "$INSTALL_SUCCESS" = false ]; then
 fi
 
 if [ "$INSTALL_SUCCESS" = false ]; then
+  rm -f "${LS_BACKUP_HOST_FILE}" 2>/dev/null || true
   echo ""
   echo "[ERROR] APK installation failed. Check ADB device connection and log above."
   exit 1
 fi
 
-echo "[+] APK installed successfully!"
+restore_local_storage_data
+
+echo "[+] APK installed successfully (localStorage data preserved)!"
 echo ""
 
 # ----------------------------------------------------------------------------

@@ -21,6 +21,8 @@ import {
   Subtitles,
   Filter,
   Film,
+  Headphones,
+  History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +42,9 @@ import { VideoPlaybackPrecedenceBar } from "@/components/VideoPlaybackPrecedence
 import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceModeSettingsPanel";
 import { FetchedSubtitlesStagePanel } from "@/components/FetchedSubtitlesStagePanel";
 import { AlternativeVideoPlayerView } from "@/components/AlternativeVideoPlayerView";
+import { ListeningGamePanel } from "@/components/ListeningGamePanel";
+import { TtsPlayHistoryPanel } from "@/components/TtsPlayHistoryPanel";
+import type { TtsPlayHistoryEntry } from "@/utils/ttsPlayHistory";
 import {
   addExternalTtsAuditRecord,
   type AlternativeTtsEngine,
@@ -63,7 +68,9 @@ type ComponentKey =
   | "precedence_bar"
   | "performance_mode"
   | "fetched_subtitles"
-  | "alternative_player_view";
+  | "alternative_player_view"
+  | "listening_game"
+  | "tts_history";
 
 export const StorybookWorkbench: React.FC = () => {
   const [selectedComponent, setSelectedComponent] = useState<ComponentKey>("tts_service");
@@ -118,6 +125,45 @@ export const StorybookWorkbench: React.FC = () => {
 
   // 9. VideoPlaybackPrecedenceBar State
   const [videoBarPos, setVideoBarPos] = useState<number>(1);
+
+  // 10. TtsPlayHistoryPanel State
+  const [historyEntries, setHistoryEntries] = useState<TtsPlayHistoryEntry[]>([
+    {
+      id: "sb-hist-1",
+      timestamp: Date.now() - 30_000,
+      formattedTime: new Date(Date.now() - 30_000).toISOString(),
+      videoId: "L2Ryrr6txwA",
+      videoTitle: "Interactive Subtitle Sync Demo",
+      videoTimeSec: 18.4,
+      rowIndex: 2,
+      sentence: "Welcome to the language learning adventure.",
+      playedText: "ברוכים הבאים להרפתקת לימוד השפה.",
+      spokenLang: "he",
+      baseLang: "en",
+      translationText: "ברוכים הבאים להרפתקת לימוד השפה.",
+      translationLang: "he",
+      ttsProvider: "lovable:google",
+      source: "auto_playback",
+    },
+    {
+      id: "sb-hist-2",
+      timestamp: Date.now() - 90_000,
+      formattedTime: new Date(Date.now() - 90_000).toISOString(),
+      videoId: "L2Ryrr6txwA",
+      videoTitle: "Interactive Subtitle Sync Demo",
+      videoTimeSec: 7.2,
+      rowIndex: 0,
+      sentence: "Short phrases help you focus.",
+      playedText: "Las frases cortas te ayudan a concentrarte.",
+      spokenLang: "es",
+      baseLang: "en",
+      translationText: "Las frases cortas te ayudan a concentrarte.",
+      translationLang: "es",
+      ttsProvider: "native",
+      source: "subtitle_table_cue",
+    },
+  ]);
+  const [historyActionNote, setHistoryActionNote] = useState<string>("");
 
   // Prepopulate sample audit records for Debugger story
   useEffect(() => {
@@ -288,6 +334,8 @@ export const StorybookWorkbench: React.FC = () => {
             { id: "performance_mode", label: "Fast/Slow Mode", icon: Zap },
             { id: "fetched_subtitles", label: "Fetched Subtitles", icon: Subtitles },
             { id: "alternative_player_view", label: "Alternative Player View", icon: Subtitles },
+            { id: "listening_game", label: "Listening Game", icon: Headphones },
+            { id: "tts_history", label: "TTS History", icon: History },
           ].map((c) => {
             const Icon = c.icon;
             const isSelected = selectedComponent === c.id;
@@ -446,6 +494,8 @@ export const StorybookWorkbench: React.FC = () => {
                 {selectedComponent === "performance_mode" && "PerformanceModeSettingsPanel"}
                 {selectedComponent === "fetched_subtitles" && "FetchedSubtitlesStagePanel"}
                 {selectedComponent === "alternative_player_view" && "AlternativeVideoPlayerView"}
+                {selectedComponent === "listening_game" && "ListeningGamePanel"}
+                {selectedComponent === "tts_history" && "TtsPlayHistoryPanel"}
               </h1>
               <p className="text-xs text-muted-foreground">
                 Active Component Catalog:{" "}
@@ -817,6 +867,54 @@ export const StorybookWorkbench: React.FC = () => {
                   onCloseAlternativeView={() => {}}
                   onSpeakText={() => {}}
                 />
+              </div>
+            )}
+
+            {selectedComponent === "listening_game" && (
+              <div className="max-w-4xl mx-auto">
+                <ListeningGamePanel
+                  rows={[
+                    {
+                      texts: {
+                        en: "Welcome to language immersion. Listen carefully!",
+                        es: "Bienvenidos a la inmersión lingüística. ¡Escucha atentamente!",
+                      },
+                    },
+                    {
+                      texts: {
+                        en: "Practice words and short sentences daily.",
+                        es: "Practica palabras y frases cortas diariamente.",
+                      },
+                    },
+                  ]}
+                  baseLanguage="en"
+                  baseLanguageName="English"
+                  targetLanguage="es"
+                  targetLanguageName="Spanish"
+                  onSpeakText={() => new Promise((resolve) => setTimeout(resolve, 250))}
+                  onStopSpeaking={() => {}}
+                />
+              </div>
+            )}
+
+            {selectedComponent === "tts_history" && (
+              <div className="max-w-4xl mx-auto space-y-2">
+                <TtsPlayHistoryPanel
+                  currentVideoId="L2Ryrr6txwA"
+                  entriesOverride={historyEntries}
+                  onReplayEntry={(entry) =>
+                    setHistoryActionNote(`Replay (${entry.spokenLang}): ${entry.playedText}`)
+                  }
+                  onNavigateToVideo={(vid, sec) =>
+                    setHistoryActionNote(`Go to video ${vid} @ ${sec}s`)
+                  }
+                  onClearHistory={() => setHistoryEntries([])}
+                />
+                {historyActionNote && (
+                  <div className="rounded border border-border bg-muted/30 px-3 py-1.5 text-xs font-mono text-muted-foreground">
+                    {historyActionNote}
+                  </div>
+                )}
               </div>
             )}
           </div>

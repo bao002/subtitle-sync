@@ -1,7 +1,7 @@
 import React from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { BottomLogViewer } from "./BottomLogViewer";
-import { logStateMachineAction, logError, logInfo } from "@/utils/logBuffer";
+import { logBuffer, logStateMachineAction, logError, logInfo } from "@/utils/logBuffer";
 
 const meta: Meta<typeof BottomLogViewer> = {
   title: "Components/BottomLogViewer",

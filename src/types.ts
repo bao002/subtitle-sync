@@ -173,6 +173,8 @@ declare global {
       shareText?: (text: string, title?: string) => boolean;
       shareSubtitlesUrl?: (url: string, title?: string) => boolean;
       setBackgroundAudioEnabled?: (enabled: boolean) => boolean;
+      saveLocalStorageBackup?: (snapshotJson: string) => boolean;
+      readLocalStorageBackup?: () => string;
       updateMediaMetadata?: (
         title: string,
         artist: string,

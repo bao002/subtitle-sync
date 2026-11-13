@@ -181,6 +181,8 @@ import {
   updatePrecedenceFromVideoBarIndex,
 } from "@/components/VideoPlaybackPrecedenceBar";
 import { FetchedSubtitlesStagePanel } from "@/components/FetchedSubtitlesStagePanel";
+import { TtsPlayHistoryPanel } from "@/components/TtsPlayHistoryPanel";
+import { recordTtsPlayHistory, type TtsPlayHistoryEntry } from "@/utils/ttsPlayHistory";
 
 import {
   addUniqueSubtitleColumn,
@@ -1893,11 +1895,44 @@ function Index() {
     setPickWordStrategyState(strategy);
   }, []);
 
+  const historyContextRef = useRef<{
+    videoId: string;
+    videoTitle: string;
+    videoTimeSec: number;
+    baseLanguage: string;
+    activeRow: number;
+    rows: Row[];
+  }>({
+    videoId: videoId || "",
+    videoTitle: videoId || "",
+    videoTimeSec: 0,
+    baseLanguage: baseLanguage || "en",
+    activeRow: -1,
+    rows: [],
+  });
+
+  const getActiveTtsProviderLabel = (): string => {
+    const useAlt = typeof window !== "undefined" && getUseAlternativeTts();
+    if (!useAlt) return "native";
+    const altMode = typeof window !== "undefined" ? getAlternativeTtsMode() : "fallback_only";
+    const prov = typeof window !== "undefined" ? getLovableTtsProvider() : "google";
+    return altMode === "always" ? `lovable:${prov}` : `native+fallback:${prov}`;
+  };
+
   const handleSpeakCue = useCallback(
     (text: string, lang: string) => {
       const rate = rates[lang] ?? 0.8;
       const voice = voiceSelections[lang] || "";
       const isZeroKnowledge = getZeroKnowledgeInLang(lang);
+      const ctx = historyContextRef.current;
+      const matchedRowIdx = ctx.rows.findIndex(
+        (r) => r.texts?.[lang] === text || r.texts?.[ctx.baseLanguage] === text,
+      );
+      const effectiveRowIdx = matchedRowIdx >= 0 ? matchedRowIdx : ctx.activeRow;
+      const rowObj = effectiveRowIdx >= 0 ? ctx.rows[effectiveRowIdx] : undefined;
+      const baseSentence = rowObj?.texts?.[ctx.baseLanguage] || text;
+      const videoTimeSec = matchedRowIdx >= 0 && rowObj ? rowObj.start / 1000 : ctx.videoTimeSec;
+
       if (isZeroKnowledge) {
         void (async () => {
           const strategy = getPickWordStrategy(lang);
@@ -1908,6 +1943,23 @@ function Index() {
           } catch {
             // ignore
           }
+          recordTtsPlayHistory({
+            videoId: ctx.videoId,
+            videoTitle: ctx.videoTitle,
+            videoTimeSec,
+            rowIndex: effectiveRowIdx,
+            sentence: baseSentence,
+            playedText:
+              wordTranslation && wordTranslation.trim().length > 0
+                ? `${pickedWord} → ${wordTranslation}`
+                : pickedWord,
+            spokenLang: lang,
+            baseLang: ctx.baseLanguage,
+            translationText: wordTranslation || text,
+            translationLang: lang,
+            ttsProvider: getActiveTtsProviderLabel(),
+            source: "zero_knowledge",
+          });
           const vol = getLanguageTtsVolume(ttsVolumes, lang);
           await speak(pickedWord, lang, rate, voice, -1, () => {}, vol);
           if (
@@ -1927,6 +1979,20 @@ function Index() {
           }
         })();
       } else {
+        recordTtsPlayHistory({
+          videoId: ctx.videoId,
+          videoTitle: ctx.videoTitle,
+          videoTimeSec,
+          rowIndex: effectiveRowIdx,
+          sentence: baseSentence,
+          playedText: text,
+          spokenLang: lang,
+          baseLang: ctx.baseLanguage,
+          translationText: text,
+          translationLang: lang,
+          ttsProvider: getActiveTtsProviderLabel(),
+          source: "subtitle_table_cue",
+        });
         const vol = getLanguageTtsVolume(ttsVolumes, lang);
         void speak(text, lang, rate, voice, -1, () => {}, vol);
       }
@@ -3442,20 +3508,24 @@ function Index() {
   // Stage 3: Video & playback synchronized view.
   // Stage 4: Toggle via settings icon to present all other accordion elements.
   // Stage 5: Dedicated Word Balloons Learning stage.
-  const [currentAccordionStage, setCurrentAccordionStage] = useState<0 | 1 | 2 | 3 | 4 | 5>(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const stageParam = params.get("stage");
-      if (stageParam === "0") return 0;
-      if (stageParam === "1") return 1;
-      if (stageParam === "2") return 2;
-      if (stageParam === "3") return 3;
-      if (stageParam === "4" || stageParam === "settings") return 4;
-      if (stageParam === "5" || stageParam === "learning") return 5;
-      if (params.get("all_stages") === "true") return 4;
-    }
-    return 1;
-  });
+  // Stage 6: Dedicated TTS-Play History Stage (shared with Beginner Mode).
+  const [currentAccordionStage, setCurrentAccordionStage] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6>(
+    () => {
+      if (typeof window !== "undefined") {
+        const params = new URLSearchParams(window.location.search);
+        const stageParam = params.get("stage");
+        if (stageParam === "0") return 0;
+        if (stageParam === "1") return 1;
+        if (stageParam === "2") return 2;
+        if (stageParam === "3") return 3;
+        if (stageParam === "4" || stageParam === "settings") return 4;
+        if (stageParam === "5" || stageParam === "learning") return 5;
+        if (stageParam === "6" || stageParam === "history") return 6;
+        if (params.get("all_stages") === "true") return 4;
+      }
+      return 1;
+    },
+  );
   const [showOtherSettingsAccordions, setShowOtherSettingsAccordions] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -3503,6 +3573,8 @@ function Index() {
       setOpenPanels((prev) => ({ ...prev, player: true }));
       setShowOtherSettingsAccordions(false);
       setShowWordBalloonLearningView(true);
+    } else if (currentAccordionStage === 6) {
+      setShowOtherSettingsAccordions(false);
     }
   }, [currentAccordionStage]);
 
@@ -5354,7 +5426,7 @@ function Index() {
   }, [baseLanguage]);
 
   const currentAlternativeSentence = useMemo(() => {
-    const rowIdx = speakingRow >= 0 ? speakingRow : active;
+    const rowIdx = speakingRow >= 0 ? speakingRow : active >= 0 ? active : rows.length > 0 ? 0 : -1;
     if (rowIdx >= 0 && rows[rowIdx]?.texts) {
       return rows[rowIdx].texts[baseLanguage] || Object.values(rows[rowIdx].texts)[0] || "";
     }
@@ -5362,7 +5434,7 @@ function Index() {
   }, [speakingRow, active, rows, baseLanguage]);
 
   const currentAlternativeTranslation = useMemo(() => {
-    const rowIdx = speakingRow >= 0 ? speakingRow : active;
+    const rowIdx = speakingRow >= 0 ? speakingRow : active >= 0 ? active : rows.length > 0 ? 0 : -1;
     if (rowIdx >= 0 && rows[rowIdx]?.texts) {
       return rows[rowIdx].texts[currentTtsPlayLang] || "";
     }
@@ -5389,9 +5461,46 @@ function Index() {
     });
   }, [currentTtsPlayLang, targetLanguages, defaultSubtitleLanguages, baseLanguage]);
 
+  historyContextRef.current = {
+    videoId: videoId || "",
+    videoTitle: topScreenTitle || videoId || "",
+    videoTimeSec: playbackCurrentTime || 0,
+    baseLanguage: baseLanguage || "en",
+    activeRow: active,
+    rows,
+  };
+
+  const handleCancelAlternativeSpeech = useCallback(() => {
+    cancelSpeech();
+  }, []);
+
+  const handleLoadSampleSubtitlesForGame = useCallback(() => {
+    const validEntries = Object.entries(JSON3_RAW_MAP)
+      .map(([code, raw]) => {
+        const j = parseJson3(raw);
+        return j ? ([code, j] as const) : null;
+      })
+      .filter((entry): entry is [string, Json3] => entry !== null);
+    if (validEntries.length > 0) {
+      setTracks(Object.fromEntries(validEntries));
+      setObservedUrl("https://www.youtube.com/api/timedtext?v=L2Ryrr6txwA&lang=en&fmt=json3");
+    }
+  }, []);
+
   const handleSpeakTextFromAlternativeView = useCallback(
-    (textToSpeak: string, langCode: string) => {
-      if (!textToSpeak) return;
+    (textToSpeak: string, langCode: string): Promise<void> => {
+      if (!textToSpeak || !textToSpeak.trim()) return Promise.resolve();
+      if (
+        typeof window !== "undefined" &&
+        "speechSynthesis" in window &&
+        window.speechSynthesis?.paused
+      ) {
+        try {
+          window.speechSynthesis.resume();
+        } catch {
+          // ignore resume error
+        }
+      }
       const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
         (l) => l.code === langCode,
       );
@@ -5399,9 +5508,94 @@ function Index() {
       const rate = rates[langCode] ?? 1.0;
       const voice = voiceSelections[langCode] ?? "";
       const volume = getLanguageTtsVolume(ttsVolumes, langCode);
-      speak(textToSpeak, ttsLang, rate, voice, active >= 0 ? active : 0, setSpeechProgress, volume);
+      const rowIdx = active >= 0 ? active : 0;
+      const rowObj = rows[rowIdx];
+      const baseSentence =
+        rowObj?.texts?.[baseLanguage] || currentAlternativeSentence || textToSpeak;
+      const resolvedTranslationLang =
+        langCode === baseLanguage ? currentTtsPlayLang || langCode : langCode;
+      const resolvedTranslationText =
+        langCode === baseLanguage
+          ? currentAlternativeTranslation || rowObj?.texts?.[resolvedTranslationLang] || textToSpeak
+          : textToSpeak;
+      recordTtsPlayHistory({
+        videoId,
+        videoTitle: topScreenTitle,
+        videoTimeSec: player.current?.getCurrentTime?.() ?? playbackCurrentTime ?? 0,
+        rowIndex: rowIdx,
+        sentence: baseSentence,
+        playedText: textToSpeak,
+        spokenLang: langCode,
+        baseLang: baseLanguage,
+        translationText: resolvedTranslationText,
+        translationLang: resolvedTranslationLang,
+        ttsProvider: getActiveTtsProviderLabel(),
+        source: "learning_or_alternative_view",
+      });
+      return speak(textToSpeak, ttsLang, rate, voice, rowIdx, setSpeechProgress, volume);
     },
-    [active, rates, voiceSelections, isAndroid, ttsVolumes],
+    [
+      active,
+      rates,
+      voiceSelections,
+      isAndroid,
+      ttsVolumes,
+      rows,
+      baseLanguage,
+      currentAlternativeSentence,
+      currentAlternativeTranslation,
+      currentTtsPlayLang,
+      videoId,
+      topScreenTitle,
+      playbackCurrentTime,
+    ],
+  );
+
+  const handleReplayHistoryEntry = useCallback(
+    (entry: TtsPlayHistoryEntry) => {
+      const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
+        (l) => l.code === entry.spokenLang,
+      );
+      const ttsLang = langMeta?.tts || entry.spokenLang;
+      const rate = rates[entry.spokenLang] ?? 1.0;
+      const voice = voiceSelections[entry.spokenLang] ?? "";
+      const volume = getLanguageTtsVolume(ttsVolumes, entry.spokenLang);
+      void speak(
+        entry.playedText || entry.sentence,
+        ttsLang,
+        rate,
+        voice,
+        entry.rowIndex >= 0 ? entry.rowIndex : -1,
+        setSpeechProgress,
+        volume,
+      );
+    },
+    [isAndroid, rates, voiceSelections, ttsVolumes],
+  );
+
+  const selectLibraryVideoRef = useRef(handleSelectLibraryVideo);
+  selectLibraryVideoRef.current = handleSelectLibraryVideo;
+
+  const handleNavigateToHistoryVideo = useCallback(
+    (targetVideoId: string, timeSec: number) => {
+      if (targetVideoId && targetVideoId !== videoId) {
+        selectLibraryVideoRef.current(targetVideoId);
+        if (Number.isFinite(timeSec) && timeSec > 0) {
+          setTimeout(() => {
+            handleSeek(timeSec);
+          }, 600);
+        }
+      } else if (Number.isFinite(timeSec)) {
+        handleSeek(timeSec);
+      }
+      if (workflowMode === "expert") {
+        setShowOtherSettingsAccordions(false);
+        setShowWordBalloonLearningView(false);
+        setCurrentAccordionStage(3);
+        setOpenPanels((prev) => ({ ...prev, player: true }));
+      }
+    },
+    [videoId, workflowMode, handleSeek],
   );
 
   const playerEl = useRef<HTMLDivElement>(null);
@@ -6081,6 +6275,24 @@ function Index() {
                     strategy,
                   });
 
+                  recordTtsPlayHistory({
+                    videoId,
+                    videoTitle: historyContextRef.current.videoTitle,
+                    videoTimeSec: p?.getCurrentTime?.() ?? (rows[rowIdx]?.start ?? 0) / 1000,
+                    rowIndex: rowIdx,
+                    sentence: rows[rowIdx]?.texts?.[baseLanguage] || rawText,
+                    playedText:
+                      wordTranslation && wordTranslation.trim().length > 0
+                        ? `${pickedWord} → ${wordTranslation}`
+                        : pickedWord,
+                    spokenLang: l.code,
+                    baseLang: baseLanguage,
+                    translationText: wordTranslation || rawText,
+                    translationLang: l.code,
+                    ttsProvider: getActiveTtsProviderLabel(),
+                    source: "zero_knowledge",
+                  });
+
                   // 1. Pronounce the picked word in the target language
                   const wordVol = getLanguageTtsVolume(st.current.ttsVolumes || ttsVolumes, l.code);
                   const speakWordPromise = speak(
@@ -6140,6 +6352,20 @@ function Index() {
                     ]);
                   }
                 } else {
+                  recordTtsPlayHistory({
+                    videoId,
+                    videoTitle: historyContextRef.current.videoTitle,
+                    videoTimeSec: p?.getCurrentTime?.() ?? (rows[rowIdx]?.start ?? 0) / 1000,
+                    rowIndex: rowIdx,
+                    sentence: rows[rowIdx]?.texts?.[baseLanguage] || rawText,
+                    playedText: rawText,
+                    spokenLang: l.code,
+                    baseLang: baseLanguage,
+                    translationText: rawText,
+                    translationLang: l.code,
+                    ttsProvider: getActiveTtsProviderLabel(),
+                    source: "auto_playback",
+                  });
                   const rowVol = getLanguageTtsVolume(st.current.ttsVolumes || ttsVolumes, l.code);
                   const speakPromise = speak(
                     rawText,
@@ -7753,7 +7979,7 @@ function Index() {
                     targetTranslation={currentAlternativeTranslation}
                     availableTargetLanguages={availableAlternativeTtsLanguages}
                     onSelectTargetLanguage={setSelectedAlternativeTtsLang}
-                    activeRowIndex={active >= 0 ? active : 0}
+                    activeRowIndex={active >= 0 ? active : rows.length > 0 ? 0 : -1}
                     totalRows={rows.length}
                     onPrevSentence={handlePrevSection}
                     onNextSentence={handleNextSection}
@@ -7768,6 +7994,8 @@ function Index() {
                     }}
                     onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
                     onSpeakText={handleSpeakTextFromAlternativeView}
+                    onStopSpeaking={handleCancelAlternativeSpeech}
+                    onLoadSampleSubtitles={handleLoadSampleSubtitlesForGame}
                     subtitleRows={rows}
                   />
                 ) : useAlternativePlayerView ? (
@@ -8239,6 +8467,13 @@ function Index() {
                 onResetAllLanguageCriteria={handleResetAllLanguageCriteria}
               />
             }
+            historyStageSlot={
+              <TtsPlayHistoryPanel
+                currentVideoId={videoId}
+                onReplayEntry={handleReplayHistoryEntry}
+                onNavigateToVideo={handleNavigateToHistoryVideo}
+              />
+            }
           />
         </div>
       ) : (
@@ -8543,6 +8778,26 @@ function Index() {
                       </span>
                       <span>Sentence &amp; Word Game</span>
                     </button>
+                    <button
+                      type="button"
+                      id="stage-step-history"
+                      data-testid="stage-step-history"
+                      onClick={() => {
+                        setShowOtherSettingsAccordions(false);
+                        setShowWordBalloonLearningView(false);
+                        setCurrentAccordionStage(6);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                        currentAccordionStage === 6
+                          ? "bg-primary text-primary-foreground shadow"
+                          : "bg-muted/70 hover:bg-muted text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <span className="h-4 w-4 rounded-full bg-background/20 flex items-center justify-center text-[10px] font-bold">
+                        6
+                      </span>
+                      <span>History</span>
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-2" />
@@ -8695,7 +8950,7 @@ function Index() {
                                   targetTranslation={currentAlternativeTranslation}
                                   availableTargetLanguages={availableAlternativeTtsLanguages}
                                   onSelectTargetLanguage={setSelectedAlternativeTtsLang}
-                                  activeRowIndex={active >= 0 ? active : 0}
+                                  activeRowIndex={active >= 0 ? active : rows.length > 0 ? 0 : -1}
                                   totalRows={rows.length}
                                   onPrevSentence={handlePrevSection}
                                   onNextSentence={handleNextSection}
@@ -8717,6 +8972,8 @@ function Index() {
                                   }}
                                   onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
                                   onSpeakText={handleSpeakTextFromAlternativeView}
+                                  onStopSpeaking={handleCancelAlternativeSpeech}
+                                  onLoadSampleSubtitles={handleLoadSampleSubtitlesForGame}
                                   subtitleRows={rows}
                                 />
                               </div>
@@ -13768,6 +14025,16 @@ function Index() {
                     );
                   })}
               </div>
+
+              {currentAccordionStage === 6 && (
+                <div className="px-4 md:px-6 pb-6" data-testid="advanced-history-stage-container">
+                  <TtsPlayHistoryPanel
+                    currentVideoId={videoId}
+                    onReplayEntry={handleReplayHistoryEntry}
+                    onNavigateToVideo={handleNavigateToHistoryVideo}
+                  />
+                </div>
+              )}
 
               <div
                 id="version-details-container"

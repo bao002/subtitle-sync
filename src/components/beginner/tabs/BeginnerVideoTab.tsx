@@ -11,6 +11,7 @@ import {
   Plus,
   Maximize2,
   Minimize2,
+  History,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ export interface BeginnerVideoTabProps {
   charsRemovalSlot?: React.ReactNode;
   subtitlesTableSlot?: React.ReactNode;
   criticalCaptionsAlertSlot?: React.ReactNode;
+  historyStageSlot?: React.ReactNode;
   favoriteLanguages: string[];
   favoriteLanguageCatalog: Array<{ code: string; name: string }>;
   selectedTargetLanguages: string[];
@@ -74,6 +76,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
   charsRemovalSlot,
   subtitlesTableSlot,
   criticalCaptionsAlertSlot,
+  historyStageSlot,
   favoriteLanguages,
   favoriteLanguageCatalog,
   selectedTargetLanguages,
@@ -93,6 +96,7 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
 }) => {
   const [inputVal, setInputVal] = useState(url);
   const [localFullscreen, setLocalFullscreen] = useState(false);
+  const [showHistoryStage, setShowHistoryStage] = useState(false);
 
   useEffect(() => {
     const handleFsChange = () => {
@@ -215,17 +219,32 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onOpenLibrary}
-            className="h-8 px-2.5 text-xs border-border hover:bg-muted text-foreground flex items-center gap-1.5"
-            data-testid="btn-open-library"
-          >
-            <Library className="w-3.5 h-3.5 text-primary" />
-            <span>Saved Library</span>
-          </Button>
+          <div className="flex items-center gap-1.5">
+            {historyStageSlot && (
+              <Button
+                type="button"
+                variant={showHistoryStage ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowHistoryStage((v) => !v)}
+                className="h-8 px-2.5 text-xs border-amber-500/40 text-foreground flex items-center gap-1.5"
+                data-testid="beginner-history-stage-toggle"
+              >
+                <History className="w-3.5 h-3.5 text-amber-500" />
+                <span>History</span>
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onOpenLibrary}
+              className="h-8 px-2.5 text-xs border-border hover:bg-muted text-foreground flex items-center gap-1.5"
+              data-testid="btn-open-library"
+            >
+              <Library className="w-3.5 h-3.5 text-primary" />
+              <span>Saved Library</span>
+            </Button>
+          </div>
         </div>
 
         {/* Web Demo or Standard URL Input Form */}
@@ -421,6 +440,15 @@ export const BeginnerVideoTab: React.FC<BeginnerVideoTabProps> = ({
           <h3 className="text-xs font-semibold text-foreground">Parallel subtitles</h3>
           {charsRemovalSlot}
           {subtitlesTableSlot}
+        </section>
+      )}
+
+      {historyStageSlot && (
+        <section
+          data-testid="beginner-history-stage-section"
+          className={showHistoryStage ? "block" : "hidden"}
+        >
+          {historyStageSlot}
         </section>
       )}
 

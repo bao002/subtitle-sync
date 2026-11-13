@@ -30,6 +30,7 @@ export interface BeginnerFlowContainerProps {
   criticalCaptionsAlertSlot?: React.ReactNode;
   perLanguageTtsSettingsSlot?: React.ReactNode;
   learningGoalsFiltersSlot?: React.ReactNode;
+  historyStageSlot?: React.ReactNode;
   maxWordsPerSentence?: number;
   onMaxWordsPerSentenceChange?: (words: number) => void;
   skipIncompleteSentences?: boolean;
@@ -85,6 +86,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = React
   criticalCaptionsAlertSlot,
   perLanguageTtsSettingsSlot,
   learningGoalsFiltersSlot,
+  historyStageSlot,
   maxWordsPerSentence,
   onMaxWordsPerSentenceChange,
   skipIncompleteSentences,
@@ -223,6 +225,7 @@ export const BeginnerFlowContainer: React.FC<BeginnerFlowContainerProps> = React
             charsRemovalSlot={charsRemovalSlot}
             subtitlesTableSlot={subtitlesTableSlot}
             criticalCaptionsAlertSlot={criticalCaptionsAlertSlot}
+            historyStageSlot={historyStageSlot}
             subtitlesRatio={subtitlesRatio}
             onSubtitlesRatioChange={(ratio) => {
               setSubtitlesRatio(ratio);

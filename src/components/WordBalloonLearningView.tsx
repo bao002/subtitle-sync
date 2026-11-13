@@ -20,12 +20,24 @@ import {
   Layers,
   Target,
   RefreshCw,
+  Headphones,
+  ArrowLeft,
+  ChevronRight,
+  Compass,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RTL } from "@/lib/subtitles";
 import { CanvasBalloonGame } from "@/components/CanvasBalloonGame";
+import { ListeningGamePanel } from "@/components/ListeningGamePanel";
+import { extractListeningSentences, extractListeningWords } from "@/utils/listeningGame";
 
-export type LearningGameMode = "sentence_builder" | "word_match" | "missing_word" | "word_balloons";
+export type LearningGameMode =
+  | "sentence_builder"
+  | "word_match"
+  | "missing_word"
+  | "word_balloons"
+  | "listening_game";
 
 export interface WordBalloonLearningViewProps {
   /** Current base language sentence */
@@ -55,13 +67,19 @@ export interface WordBalloonLearningViewProps {
   /** Replay / Restart sentence callback */
   onReplaySentence?: () => void;
   /** TTS speech synthesis callback */
-  onSpeakText?: (text: string, langCode: string) => void;
+  onSpeakText?: (text: string, langCode: string) => void | Promise<void>;
+  /** Cancel active/queued TTS speech callback */
+  onStopSpeaking?: () => void;
+  /** Load explicitly labelled [Fixture] sample subtitles when game has no content */
+  onLoadSampleSubtitles?: () => void;
   /** Return to standard video player callback */
   onCloseLearningView?: () => void;
   /** Launch canvas balloon game on full screen callback */
   onOpenCanvasGame?: () => void;
   /** Full subtitle rows for multi-sentence vocabulary pooling */
   subtitleRows?: Array<{ texts?: Record<string, string>; text?: string }>;
+  /** Optional initial game mode override */
+  initialGameMode?: LearningGameMode;
   /** Custom wrapper styles */
   className?: string;
 }
@@ -300,13 +318,80 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   onNextSentence,
   onReplaySentence,
   onSpeakText,
+  onStopSpeaking,
+  onLoadSampleSubtitles,
   onCloseLearningView,
   onOpenCanvasGame,
   subtitleRows = [],
+  initialGameMode,
   className = "",
 }) => {
-  // Game mode: Sentence Builder, Word Match, Missing Word, or Word Balloons
-  const [gameMode, setGameMode] = useState<LearningGameMode>("sentence_builder");
+  // Resolve playable defaults even if video hasn't moved past row -1
+  const fallbackRowSentence = useMemo(() => {
+    if (subtitleRows.length === 0) return "";
+    const row = subtitleRows[0];
+    return (
+      row?.texts?.[baseLanguage] ||
+      row?.text ||
+      (row?.texts ? Object.values(row.texts)[0] : "") ||
+      ""
+    ).trim();
+  }, [subtitleRows, baseLanguage]);
+
+  const fallbackRowTranslation = useMemo(() => {
+    if (subtitleRows.length === 0) return "";
+    const row = subtitleRows[0];
+    return (row?.texts?.[targetLanguage] || "").trim();
+  }, [subtitleRows, targetLanguage]);
+
+  const effectiveSentence = currentSentence.trim() ? currentSentence : fallbackRowSentence;
+  const effectiveTranslation = targetTranslation.trim()
+    ? targetTranslation
+    : fallbackRowTranslation;
+  const effectiveTotalRows = Math.max(totalRows, subtitleRows.length);
+  const effectiveRowIndex =
+    effectiveTotalRows > 0
+      ? activeRowIndex >= 0 && activeRowIndex < effectiveTotalRows
+        ? activeRowIndex
+        : 0
+      : -1;
+
+  const availableWordsTotal = useMemo(
+    () =>
+      extractListeningWords(subtitleRows, {
+        baseLanguage,
+        targetLanguage,
+        minLetters: 1,
+        fallbackSentence: effectiveSentence,
+        fallbackTranslation: effectiveTranslation,
+      }).length,
+    [subtitleRows, baseLanguage, targetLanguage, effectiveSentence, effectiveTranslation],
+  );
+
+  const availableSentencesTotal = useMemo(
+    () =>
+      extractListeningSentences(subtitleRows, {
+        baseLanguage,
+        targetLanguage,
+        maxWords: 50,
+        fallbackSentence: effectiveSentence,
+        fallbackTranslation: effectiveTranslation,
+      }).length,
+    [subtitleRows, baseLanguage, targetLanguage, effectiveSentence, effectiveTranslation],
+  );
+
+  const hasPlayableContent =
+    Boolean(effectiveSentence) || availableWordsTotal > 0 || availableSentencesTotal > 0;
+
+  // Guided Wizard / Menu stage ("menu" welcomes user cleanly; "play" shows active game)
+  const [wizardStage, setWizardStage] = useState<"menu" | "play">(
+    initialGameMode ? "play" : "menu",
+  );
+  // Game mode: Sentence Builder, Word Match, Missing Word, Word Balloons, or Listening Game
+  const [gameMode, setGameMode] = useState<LearningGameMode>(
+    initialGameMode ?? "listening_game",
+  );
+  const [listeningWithTranslations, setListeningWithTranslations] = useState<boolean>(true);
 
   // Toggle for full screen Canvas Balloon Game mode
   const [internalShowCanvasGame, setInternalShowCanvasGame] = useState<boolean>(false);
@@ -318,11 +403,30 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   const [streak, setStreak] = useState<number>(0);
   const [completedSentencesCount, setCompletedSentencesCount] = useState<number>(0);
 
+  const handleSelectGameMode = useCallback(
+    (mode: LearningGameMode) => {
+      if (gameMode === "listening_game" && mode !== "listening_game") {
+        onStopSpeaking?.();
+      }
+      setGameMode(mode);
+      setWizardStage("play");
+    },
+    [gameMode, onStopSpeaking],
+  );
+
+  const handleBackToMenu = useCallback(() => {
+    onStopSpeaking?.();
+    setWizardStage("menu");
+  }, [onStopSpeaking]);
+
   // -------------------------------------------------------------
   // Mode 1: Sentence Builder State
   // -------------------------------------------------------------
-  const baseWords = useMemo(() => extractWords(currentSentence), [currentSentence]);
-  const translationWords = useMemo(() => extractWords(targetTranslation), [targetTranslation]);
+  const baseWords = useMemo(() => extractWords(effectiveSentence), [effectiveSentence]);
+  const translationWords = useMemo(
+    () => extractWords(effectiveTranslation),
+    [effectiveTranslation],
+  );
 
   // Which language the player is unscrambling (defaults to base language or target if specified)
   const targetWordsForBuilder = useMemo(() => {
@@ -349,8 +453,12 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
       setAvailableTiles(shuffleArray(targetWordsForBuilder));
       setPlacedTiles([]);
       setBuilderStatus("idle");
+    } else {
+      setAvailableTiles([]);
+      setPlacedTiles([]);
+      setBuilderStatus("idle");
     }
-  }, [targetWordsForBuilder, activeRowIndex]);
+  }, [targetWordsForBuilder, effectiveRowIndex]);
 
   const handleTileClick = useCallback(
     (tile: { id: string; originalIndex: number; word: string; cleanWord: string }) => {
@@ -370,8 +478,8 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
             setScore((s) => s + 50);
             setStreak((st) => st + 1);
             setCompletedSentencesCount((c) => c + 1);
-            if (onSpeakText && currentSentence) {
-              onSpeakText(currentSentence, baseLanguage);
+            if (onSpeakText && effectiveSentence) {
+              void onSpeakText(effectiveSentence, baseLanguage);
             }
           } else {
             if (soundEnabled) playWebAudioErrorTone();
@@ -386,7 +494,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
       soundEnabled,
       builderStatus,
       targetWordsForBuilder.length,
-      currentSentence,
+      effectiveSentence,
       baseLanguage,
       onSpeakText,
     ],
@@ -457,18 +565,18 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   // Shuffled target choices for word matching
   const shuffledTargetPairs = useMemo(() => {
     return shuffleArray(matchPairs);
-  }, [matchPairs, activeRowIndex]);
+  }, [matchPairs, effectiveRowIndex]);
 
   useEffect(() => {
     setSelectedBaseWord(null);
     setSelectedTargetWord(null);
     setMatchedPairIds(new Set());
-  }, [activeRowIndex, currentSentence]);
+  }, [effectiveRowIndex, effectiveSentence]);
 
   const handleBaseWordSelect = (word: string) => {
     if (soundEnabled) playWebAudioPopSound();
     setSelectedBaseWord(word);
-    if (onSpeakText) onSpeakText(word, baseLanguage);
+    if (onSpeakText) void onSpeakText(word, baseLanguage);
 
     if (selectedTargetWord) {
       checkMatch(word, selectedTargetWord);
@@ -478,7 +586,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   const handleTargetWordSelect = (word: string) => {
     if (soundEnabled) playWebAudioPopSound();
     setSelectedTargetWord(word);
-    if (onSpeakText) onSpeakText(word, targetLanguage);
+    if (onSpeakText) void onSpeakText(word, targetLanguage);
 
     if (selectedBaseWord) {
       checkMatch(selectedBaseWord, word);
@@ -531,8 +639,9 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
     // Collect distractors from subtitle vocabulary or fallback catalog
     const distractorPool = new Set<string>();
     subtitleRows.forEach((r) => {
-      if (r.text) {
-        extractWords(r.text).forEach((w) => {
+      const candidateText = r.text || r.texts?.[baseLanguage] || "";
+      if (candidateText) {
+        extractWords(candidateText).forEach((w) => {
           const c = sanitizeWord(w);
           if (c && c.toLowerCase() !== correctClean.toLowerCase() && c.length > 2) {
             distractorPool.add(c);
@@ -557,7 +666,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
       .slice(0, 3);
 
     return shuffleArray([correctWord, ...distractors]);
-  }, [baseWords, missingWordIndex, subtitleRows]);
+  }, [baseWords, missingWordIndex, subtitleRows, baseLanguage]);
 
   const [selectedMissingOption, setSelectedMissingOption] = useState<string | null>(null);
   const [missingWordFeedback, setMissingWordFeedback] = useState<"idle" | "correct" | "incorrect">(
@@ -567,7 +676,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   useEffect(() => {
     setSelectedMissingOption(null);
     setMissingWordFeedback("idle");
-  }, [activeRowIndex, currentSentence]);
+  }, [effectiveRowIndex, effectiveSentence]);
 
   const handleSelectMissingWord = (option: string) => {
     setSelectedMissingOption(option);
@@ -580,8 +689,8 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
       setMissingWordFeedback("correct");
       setScore((s) => s + 35);
       setStreak((st) => st + 1);
-      if (onSpeakText && currentSentence) {
-        onSpeakText(currentSentence, baseLanguage);
+      if (onSpeakText && effectiveSentence) {
+        void onSpeakText(effectiveSentence, baseLanguage);
       }
     } else {
       if (soundEnabled) playWebAudioErrorTone();
@@ -599,7 +708,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   useEffect(() => {
     setPunchedIndices(new Set());
     setJustPunchedIndex(null);
-  }, [activeRowIndex, currentSentence]);
+  }, [effectiveRowIndex, effectiveSentence]);
 
   const balloons = useMemo<WordBalloonItem[]>(() => {
     if (baseWords.length === 0) return [];
@@ -679,19 +788,19 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   const isBaseRtl = RTL.has(baseLanguage);
   const isTargetRtl = RTL.has(targetLanguage);
 
-  if (internalShowCanvasGame) {
+  if (internalShowCanvasGame && hasPlayableContent) {
     return (
       <CanvasBalloonGame
-        currentSentence={currentSentence}
+        currentSentence={effectiveSentence}
         baseLanguage={baseLanguage}
         baseLanguageName={baseLanguageName}
         targetLanguage={targetLanguage}
         targetLanguageName={targetLanguageName}
-        targetTranslation={targetTranslation}
+        targetTranslation={effectiveTranslation}
         availableTargetLanguages={availableTargetLanguages}
         onSelectTargetLanguage={onSelectTargetLanguage}
-        activeRowIndex={activeRowIndex}
-        totalRows={totalRows}
+        activeRowIndex={effectiveRowIndex}
+        totalRows={effectiveTotalRows}
         onPrevSentence={onPrevSentence}
         onNextSentence={onNextSentence}
         onReplaySentence={onReplaySentence}
@@ -714,7 +823,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
       <div className="flex flex-col gap-3 border-b border-border/80 pb-4">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           {/* Game Title & Sentence Index */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap">
             <div className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1 text-xs font-bold text-white shadow-xs">
               <Sparkles className="h-4 w-4" />
               <span>Subtitles Sentence &amp; Word Game</span>
@@ -725,8 +834,8 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
                 data-testid="balloon-sentence-counter"
                 className="font-semibold text-foreground"
               >
-                {activeRowIndex >= 0
-                  ? `Sentence ${activeRowIndex + 1} of ${totalRows}`
+                {effectiveRowIndex >= 0
+                  ? `Sentence ${effectiveRowIndex + 1} of ${effectiveTotalRows}`
                   : "No subtitles loaded"}
               </span>
               <span aria-hidden="true">·</span>
@@ -817,7 +926,9 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               variant="outline"
               size="sm"
               data-testid="balloon-play-canvas-game-btn"
+              disabled={!hasPlayableContent}
               onClick={() => {
+                if (!hasPlayableContent) return;
                 if (onOpenCanvasGame) {
                   onOpenCanvasGame();
                 } else {
@@ -838,7 +949,10 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
                 variant="outline"
                 size="sm"
                 data-testid="balloon-back-to-video-btn"
-                onClick={onCloseLearningView}
+                onClick={() => {
+                  onStopSpeaking?.();
+                  onCloseLearningView();
+                }}
                 className="h-7 px-2.5 text-xs gap-1.5 border-border bg-card hover:bg-muted text-foreground"
                 title="Return to video player"
               >
@@ -849,105 +963,408 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
           </div>
         </div>
 
-        {/* Game Mode Segmented Selector */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 bg-muted/50 rounded-lg">
-          <button
-            type="button"
-            data-testid="game-mode-sentence-builder"
-            onClick={() => setGameMode("sentence_builder")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-              gameMode === "sentence_builder"
-                ? "bg-indigo-600 text-white shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Puzzle className="h-3.5 w-3.5" />
-            <span>Sentence Builder</span>
-          </button>
+        {/* Game Mode Segmented Selector (hidden on empty content guard) */}
+        {hasPlayableContent && (
+          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-muted/50 rounded-lg">
+            {wizardStage === "play" && (
+              <button
+                type="button"
+                data-testid="game-back-to-menu-btn"
+                onClick={handleBackToMenu}
+                className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-md border border-border bg-card text-foreground hover:bg-muted transition-all cursor-pointer"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Menu</span>
+              </button>
+            )}
 
-          <button
-            type="button"
-            data-testid="game-mode-word-match"
-            onClick={() => setGameMode("word_match")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-              gameMode === "word_match"
-                ? "bg-indigo-600 text-white shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Layers className="h-3.5 w-3.5" />
-            <span>Word Match</span>
-          </button>
+            <button
+              type="button"
+              data-testid="game-mode-sentence-builder"
+              onClick={() => handleSelectGameMode("sentence_builder")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                wizardStage === "play" && gameMode === "sentence_builder"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Puzzle className="h-3.5 w-3.5" />
+              <span>Sentence Builder</span>
+            </button>
 
-          <button
-            type="button"
-            data-testid="game-mode-missing-word"
-            onClick={() => setGameMode("missing_word")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-              gameMode === "missing_word"
-                ? "bg-indigo-600 text-white shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Target className="h-3.5 w-3.5" />
-            <span>Missing Word</span>
-          </button>
+            <button
+              type="button"
+              data-testid="game-mode-word-match"
+              onClick={() => handleSelectGameMode("word_match")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                wizardStage === "play" && gameMode === "word_match"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              <span>Word Match</span>
+            </button>
 
-          <button
-            type="button"
-            data-testid="game-mode-word-balloons"
-            onClick={() => setGameMode("word_balloons")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
-              gameMode === "word_balloons"
-                ? "bg-indigo-600 text-white shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Word Balloons</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              data-testid="game-mode-missing-word"
+              onClick={() => handleSelectGameMode("missing_word")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                wizardStage === "play" && gameMode === "missing_word"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Target className="h-3.5 w-3.5" />
+              <span>Missing Word</span>
+            </button>
+
+            <button
+              type="button"
+              data-testid="game-mode-word-balloons"
+              onClick={() => handleSelectGameMode("word_balloons")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                wizardStage === "play" && gameMode === "word_balloons"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Word Balloons</span>
+            </button>
+
+            <button
+              type="button"
+              data-testid="game-mode-listening-game"
+              onClick={() => handleSelectGameMode("listening_game")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                wizardStage === "play" && gameMode === "listening_game"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Headphones className="h-3.5 w-3.5" />
+              <span>Listening Game</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* 2. Main Interactive Workspace (Per Game Mode) */}
-      <div className="my-auto py-4 space-y-4">
-        {/* ============================================================== */}
-        {/* MODE 1: SENTENCE BUILDER (UNSCRAMBLE SENTENCE)                  */}
-        {/* ============================================================== */}
-        {gameMode === "sentence_builder" && (
-          <div data-testid="sentence-builder-workspace" className="space-y-4">
-            {/* Guide Prompt / Target Translation */}
-            <div className="p-3.5 rounded-lg border border-border/80 bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
-              <div className="space-y-1">
-                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  Target Translation Meaning:
-                </div>
-                <div
-                  dir={isTargetRtl ? "rtl" : "ltr"}
-                  className="text-base font-semibold text-foreground leading-relaxed"
-                >
-                  {targetTranslation || currentSentence}
-                </div>
-              </div>
+      {/* 2. Empty-Content Guard Wizard (Never present an empty game without subtitles) */}
+      {!hasPlayableContent ? (
+        <div
+          data-testid="game-empty-content-wizard"
+          className="my-auto py-8 px-4 flex flex-col items-center text-center max-w-xl mx-auto space-y-5"
+        >
+          <div className="h-12 w-12 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-500">
+            <FileText className="h-6 w-6" />
+          </div>
+          <div className="space-y-1.5">
+            <h2 className="text-lg font-bold text-foreground">
+              Subtitles Required Before Starting the Game
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+              Every game mode uses real words and sentences from your active video&apos;s subtitles.
+              No subtitles are loaded right now, so let&apos;s load content in 1 click first:
+            </p>
+          </div>
 
-              {onSpeakText && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left">
+            <div className="p-3.5 rounded-xl border border-border bg-muted/20 space-y-2">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-indigo-500">
+                Option 1 · Instant Practice
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Load approved multi-language sample subtitles for demo video{" "}
+                <code className="font-mono font-semibold text-foreground">L2Ryrr6txwA</code>.
+              </p>
+              {onLoadSampleSubtitles && (
                 <Button
                   type="button"
-                  variant="outline"
                   size="sm"
-                  onClick={() =>
-                    onSpeakText(
-                      targetTranslation || currentSentence,
-                      targetLanguage || baseLanguage,
-                    )
-                  }
-                  className="h-7 text-xs gap-1 border-border shrink-0"
+                  data-testid="game-load-sample-fixture-btn"
+                  onClick={onLoadSampleSubtitles}
+                  className="w-full h-8 text-xs gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white"
                 >
-                  <Volume2 className="h-3.5 w-3.5" />
-                  <span>Listen</span>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>[Fixture] Load Sample Subtitles (L2Ryrr6txwA)</span>
                 </Button>
               )}
             </div>
+
+            <div className="p-3.5 rounded-xl border border-border bg-muted/20 space-y-2">
+              <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                Option 2 · Any YouTube Video
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Return to the video player and enable or fetch captions for your chosen video.
+              </p>
+              {onCloseLearningView && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  data-testid="game-empty-back-to-video-btn"
+                  onClick={onCloseLearningView}
+                  className="w-full h-8 text-xs gap-1.5 border-border"
+                >
+                  <Tv className="h-3.5 w-3.5" />
+                  <span>Back to Video &amp; Load Captions</span>
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : wizardStage === "menu" ? (
+        /* Guided Game Menu / Wizard (Step-by-step entry into playable activities) */
+        <div
+          data-testid="game-wizard-menu"
+          className="my-auto py-4 space-y-5"
+        >
+          {/* Step 1: Ready Content & Language Pairing Banner */}
+          <div className="p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5 space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Compass className="h-4 w-4 text-indigo-500" />
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                  Step 1 · Ready Subtitles Content
+                </span>
+              </div>
+              <span className="text-[11px] font-mono text-muted-foreground">
+                {effectiveTotalRows} sentences · {availableWordsTotal} words ({baseLanguageName} →{" "}
+                {targetLanguageName})
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+              <div className="p-2.5 rounded-lg border border-border/70 bg-card/80">
+                <div className="text-[10px] font-semibold uppercase text-muted-foreground mb-0.5">
+                  Active Sentence ({baseLanguageName})
+                </div>
+                <p dir={isBaseRtl ? "rtl" : "ltr"} className="font-semibold text-foreground">
+                  {effectiveSentence}
+                </p>
+              </div>
+              <div className="p-2.5 rounded-lg border border-border/70 bg-card/80">
+                <div className="text-[10px] font-semibold uppercase text-muted-foreground mb-0.5">
+                  Translation ({targetLanguageName})
+                </div>
+                <p
+                  dir={isTargetRtl ? "rtl" : "ltr"}
+                  className="font-semibold text-indigo-600 dark:text-indigo-300"
+                >
+                  {effectiveTranslation || "Audio-only (no target translation text on this row)"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 2: Choose Game Mode Cards */}
+          <div className="space-y-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Step 2 · Choose How You Want to Practice
+              </span>
+              <Button
+                type="button"
+                size="sm"
+                data-testid="wizard-quick-start-btn"
+                onClick={() =>
+                  handleSelectGameMode(
+                    availableWordsTotal > 0 ? "listening_game" : "sentence_builder",
+                  )
+                }
+                className="h-7 px-3 text-xs gap-1 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold"
+              >
+                <span>
+                  Quick Start:{" "}
+                  {availableWordsTotal > 0 ? "Listening Game" : "Sentence Builder"}
+                </span>
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Card 1: Listening Game */}
+              <button
+                type="button"
+                data-testid="wizard-card-listening-game"
+                onClick={() => handleSelectGameMode("listening_game")}
+                className="text-left p-3.5 rounded-xl border border-indigo-500/40 bg-card hover:bg-indigo-500/10 hover:border-indigo-500 transition-all space-y-1.5 cursor-pointer group"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <Headphones className="h-4 w-4 text-indigo-500" />
+                    <span>Listening Game</span>
+                  </span>
+                  <span className="rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 px-2 py-0.5 text-[10px] font-mono font-bold">
+                    {availableWordsTotal}w · {availableSentencesTotal}s
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Listen to filtered words &amp; sentences sequentially with or without translations.
+                </p>
+              </button>
+
+              {/* Card 2: Sentence Builder */}
+              <button
+                type="button"
+                data-testid="wizard-card-sentence-builder"
+                onClick={() => handleSelectGameMode("sentence_builder")}
+                className="text-left p-3.5 rounded-xl border border-border bg-card hover:bg-muted/50 hover:border-indigo-500 transition-all space-y-1.5 cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <Puzzle className="h-4 w-4 text-sky-500" />
+                    <span>Sentence Builder</span>
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                    {baseWords.length} tiles
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Assemble the subtitle sentence words in order from the translation prompt.
+                </p>
+              </button>
+
+              {/* Card 3: Word Match */}
+              <button
+                type="button"
+                data-testid="wizard-card-word-match"
+                disabled={matchPairs.length === 0}
+                onClick={() => handleSelectGameMode("word_match")}
+                className={`text-left p-3.5 rounded-xl border transition-all space-y-1.5 ${
+                  matchPairs.length > 0
+                    ? "border-border bg-card hover:bg-muted/50 hover:border-indigo-500 cursor-pointer"
+                    : "border-border/50 bg-muted/20 opacity-60 cursor-not-allowed"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <Layers className="h-4 w-4 text-emerald-500" />
+                    <span>Word Match</span>
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                    {matchPairs.length > 0 ? `${matchPairs.length} pairs` : "Needs translation"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Pair {baseLanguageName} words side-by-side with {targetLanguageName} translations.
+                </p>
+              </button>
+
+              {/* Card 4: Missing Word */}
+              <button
+                type="button"
+                data-testid="wizard-card-missing-word"
+                onClick={() => handleSelectGameMode("missing_word")}
+                className="text-left p-3.5 rounded-xl border border-border bg-card hover:bg-muted/50 hover:border-indigo-500 transition-all space-y-1.5 cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <Target className="h-4 w-4 text-amber-500" />
+                    <span>Missing Word</span>
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                    {missingWordOptions.length} choices
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Fill in the key missing word from multiple-choice subtitle options.
+                </p>
+              </button>
+
+              {/* Card 5: Word Balloons */}
+              <button
+                type="button"
+                data-testid="wizard-card-word-balloons"
+                onClick={() => handleSelectGameMode("word_balloons")}
+                className="text-left p-3.5 rounded-xl border border-border bg-card hover:bg-muted/50 hover:border-indigo-500 transition-all space-y-1.5 cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <Sparkles className="h-4 w-4 text-rose-500" />
+                    <span>Word Balloons</span>
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                    {balloons.length} balloons
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Pop word balloons to reveal and hear their {targetLanguageName} translations.
+                </p>
+              </button>
+
+              {/* Card 6: Canvas Full Screen */}
+              <button
+                type="button"
+                data-testid="wizard-card-canvas-fullscreen"
+                onClick={() => {
+                  if (onOpenCanvasGame) {
+                    onOpenCanvasGame();
+                  } else {
+                    setInternalShowCanvasGame(true);
+                  }
+                }}
+                className="text-left p-3.5 rounded-xl border border-border bg-card hover:bg-muted/50 hover:border-indigo-500 transition-all space-y-1.5 cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <Gamepad2 className="h-4 w-4 text-violet-500" />
+                    <span>Full Screen Balloons</span>
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-mono text-muted-foreground">
+                    Arcade
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Launch the full-screen canvas balloon popping arcade mode.
+                </p>
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* 2. Main Interactive Workspace (Per Game Mode) */
+        <div className="my-auto py-4 space-y-4">
+          {/* ============================================================== */}
+          {/* MODE 1: SENTENCE BUILDER (UNSCRAMBLE SENTENCE)                  */}
+          {/* ============================================================== */}
+          {gameMode === "sentence_builder" && (
+            <div data-testid="sentence-builder-workspace" className="space-y-4">
+              {/* Guide Prompt / Target Translation */}
+              <div className="p-3.5 rounded-lg border border-border/80 bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                <div className="space-y-1">
+                  <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                    Target Translation Meaning:
+                  </div>
+                  <div
+                    dir={isTargetRtl ? "rtl" : "ltr"}
+                    className="text-base font-semibold text-foreground leading-relaxed"
+                  >
+                    {effectiveTranslation || effectiveSentence}
+                  </div>
+                </div>
+
+                {onSpeakText && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      void onSpeakText(
+                        effectiveTranslation || effectiveSentence,
+                        effectiveTranslation ? targetLanguage || baseLanguage : baseLanguage,
+                      )
+                    }
+                    className="h-7 text-xs gap-1 border-border shrink-0"
+                  >
+                    <Volume2 className="h-3.5 w-3.5" />
+                    <span>Listen</span>
+                  </Button>
+                )}
+              </div>
 
             {/* Workspace: Placed Sentence Slot */}
             <div className="space-y-1.5">
@@ -1180,7 +1597,8 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
                 dir={isTargetRtl ? "rtl" : "ltr"}
                 className="text-xs text-muted-foreground pt-1 border-t border-border/40"
               >
-                <strong className="text-foreground">Meaning:</strong> {targetTranslation}
+                <strong className="text-foreground">Meaning:</strong>{" "}
+                {effectiveTranslation || "(Listen or choose from context)"}
               </div>
             </div>
 
@@ -1351,6 +1769,25 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
           </div>
         )}
 
+        {/* ============================================================== */}
+        {/* MODE 5: LISTENING GAME (WORDS & SENTENCES WITH/WITHOUT TRANS.) */}
+        {/* ============================================================== */}
+        {gameMode === "listening_game" && (
+          <ListeningGamePanel
+            rows={subtitleRows}
+            currentSentence={effectiveSentence}
+            targetTranslation={effectiveTranslation}
+            baseLanguage={baseLanguage}
+            baseLanguageName={baseLanguageName}
+            targetLanguage={targetLanguage}
+            targetLanguageName={targetLanguageName}
+            onSpeakText={onSpeakText}
+            onStopSpeaking={onStopSpeaking}
+            initialWithTranslations={listeningWithTranslations}
+            onWithTranslationsChange={setListeningWithTranslations}
+          />
+        )}
+
         {/* 3. Reference Sentence & Translation Cards (Always Accessible) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs pt-2">
           {/* Base Sentence Card */}
@@ -1362,11 +1799,11 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               <span className="font-semibold text-foreground uppercase tracking-wide">
                 {baseLanguageName} ({baseLanguage})
               </span>
-              {onSpeakText && currentSentence && (
+              {onSpeakText && effectiveSentence && (
                 <button
                   type="button"
                   data-testid="balloon-speak-btn"
-                  onClick={() => onSpeakText(currentSentence, baseLanguage)}
+                  onClick={() => void onSpeakText(effectiveSentence, baseLanguage)}
                   className="hover:text-foreground flex items-center gap-1 text-[11px] cursor-pointer"
                   title="Pronounce full sentence"
                 >
@@ -1379,40 +1816,43 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               dir={isBaseRtl ? "rtl" : "ltr"}
               className="font-medium text-foreground text-sm leading-relaxed"
             >
-              {currentSentence || "N/A"}
+              {effectiveSentence || "N/A"}
             </p>
           </div>
 
-          {/* Target Translation Sentence Card */}
-          <div
-            data-testid="balloon-target-translation-card"
-            className="p-3 rounded-lg border border-border/80 bg-card flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between text-muted-foreground mb-1">
-              <span className="font-semibold text-foreground uppercase tracking-wide">
-                {targetLanguageName} ({targetLanguage})
-              </span>
-              {onSpeakText && targetTranslation && (
-                <button
-                  type="button"
-                  onClick={() => onSpeakText(targetTranslation, targetLanguage)}
-                  className="hover:text-foreground flex items-center gap-1 text-[11px] text-indigo-500 cursor-pointer"
-                  title="Pronounce target translation"
-                >
-                  <Volume2 className="h-3 w-3" />
-                  <span>Pronounce</span>
-                </button>
-              )}
-            </div>
-            <p
-              dir={isTargetRtl ? "rtl" : "ltr"}
-              className="font-medium text-foreground text-sm leading-relaxed"
+          {/* Target Translation Sentence Card (hidden when Listening Game is in Without Translations mode) */}
+          {!(gameMode === "listening_game" && !listeningWithTranslations) && (
+            <div
+              data-testid="balloon-target-translation-card"
+              className="p-3 rounded-lg border border-border/80 bg-card flex flex-col justify-between"
             >
-              {targetTranslation || "N/A"}
-            </p>
-          </div>
+              <div className="flex items-center justify-between text-muted-foreground mb-1">
+                <span className="font-semibold text-foreground uppercase tracking-wide">
+                  {targetLanguageName} ({targetLanguage})
+                </span>
+                {onSpeakText && effectiveTranslation && (
+                  <button
+                    type="button"
+                    onClick={() => void onSpeakText(effectiveTranslation, targetLanguage)}
+                    className="hover:text-foreground flex items-center gap-1 text-[11px] text-indigo-500 cursor-pointer"
+                    title="Pronounce target translation"
+                  >
+                    <Volume2 className="h-3 w-3" />
+                    <span>Pronounce</span>
+                  </button>
+                )}
+              </div>
+              <p
+                dir={isTargetRtl ? "rtl" : "ltr"}
+                className="font-medium text-foreground text-sm leading-relaxed"
+              >
+                {effectiveTranslation || "N/A"}
+              </p>
+            </div>
+          )}
         </div>
       </div>
+      )}
 
       {/* 4. Footer Controls: Sentence Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/80 pt-3 mt-2">
@@ -1424,7 +1864,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               size="sm"
               data-testid="balloon-prev-sentence-btn"
               onClick={onPrevSentence}
-              disabled={activeRowIndex <= 0}
+              disabled={effectiveRowIndex <= 0}
               className="h-8 px-2.5 text-xs gap-1 border-border text-foreground"
               title="Previous subtitle sentence"
             >
@@ -1440,6 +1880,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               size="sm"
               data-testid="balloon-replay-sentence-btn"
               onClick={onReplaySentence}
+              disabled={!hasPlayableContent}
               className="h-8 px-2.5 text-xs gap-1 border-border text-foreground"
               title="Reset current sentence game"
             >
@@ -1455,7 +1896,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               size="sm"
               data-testid="balloon-next-sentence-btn"
               onClick={onNextSentence}
-              disabled={activeRowIndex >= totalRows - 1}
+              disabled={effectiveRowIndex < 0 || effectiveRowIndex >= effectiveTotalRows - 1}
               className="h-8 px-2.5 text-xs gap-1 border-border text-foreground font-semibold"
               title="Next subtitle sentence"
             >
