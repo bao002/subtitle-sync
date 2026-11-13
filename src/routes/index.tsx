@@ -3022,6 +3022,47 @@ function Index() {
     setDisableAutoFocusState(!enabled);
     setDisableAutoFocusSetting(!enabled);
   };
+  const [isTtsPlayEnabled, setIsTtsPlayEnabled] = useState<boolean>(() =>
+    typeof window !== "undefined" ? (loadAppSettings().autoPlayTTS ?? true) : true,
+  );
+  const onTtsPlayEnabledChange = useCallback(
+    (enabled: boolean) => {
+      setIsTtsPlayEnabled(enabled);
+      if (st.current) {
+        st.current.isTtsPlayEnabled = enabled;
+      }
+      const currentSettings = loadAppSettings();
+      saveAppSettings({
+        ...currentSettings,
+        autoPlayTTS: enabled,
+      });
+      logStateMachineAction("TTS_PLAY_TOGGLED", {
+        videoId,
+        enabled,
+      });
+      if (!enabled) {
+        const wasPausedForTts = isPausedForTtsRef.current;
+        cancelSpeech();
+        busy.current = false;
+        isPausedForTtsRef.current = false;
+        setSpeakingLang(null);
+        setSpeakingRow(-1);
+        setSpeechProgress(null);
+        setPauseReason((prev) =>
+          prev && prev !== "Paused by user" && prev !== "Paused for setup" ? null : prev,
+        );
+        if (wasPausedForTts && !userExplicitlyPausedRef.current && !st.current?.isSetupPaused) {
+          try {
+            player.current?.playVideo?.();
+            setIsVideoPlaying(true);
+          } catch {
+            // ignore
+          }
+        }
+      }
+    },
+    [videoId],
+  );
   const onDebugModeChange = (enabled: boolean) => {
     setDebugModeState(enabled);
     setDeveloperModeEnabled(enabled);
@@ -5120,6 +5161,7 @@ function Index() {
     audioTrackMode,
     sectionOrder,
     isSetupPaused,
+    isTtsPlayEnabled,
     baseLanguage,
     ttsBlacklist,
     ttsVolumes,
@@ -5137,6 +5179,7 @@ function Index() {
     audioTrackMode,
     sectionOrder,
     isSetupPaused,
+    isTtsPlayEnabled,
     baseLanguage,
     ttsBlacklist,
     ttsVolumes,
@@ -5875,6 +5918,7 @@ function Index() {
       lastRow.current = idx;
 
       const getEligibleLangs = (rowIdx: number, requestedOrder?: SectionOrder) => {
+        if (!st.current.isTtsPlayEnabled) return [];
         if (rowIdx < 0 || playedTtsRecords.current.has(getPlaybackSectionId(rows[rowIdx]!)))
           return [];
         const baseText = st.current.rows[rowIdx]?.texts[st.current.baseLanguage] ?? "";
@@ -6189,7 +6233,7 @@ function Index() {
         }, 240);
       };
 
-      if (pauseMode) {
+      if (pauseMode && st.current.isTtsPlayEnabled) {
         // 1. Before Video (tts-first): check if active row has speech-first languages to speak on arrival
         const sectionId = idx >= 0 ? getPlaybackSectionId(rows[idx]!) : "";
         if (
@@ -13821,6 +13865,8 @@ function Index() {
         onToggleSetupPause={toggleSetupPause}
         isAutoScrollEnabled={autoFocus}
         onToggleAutoScroll={() => onAutoFocusChange(!autoFocus)}
+        isTtsPlayEnabled={isTtsPlayEnabled}
+        onToggleTtsPlay={() => onTtsPlayEnabledChange(!isTtsPlayEnabled)}
         isVideoPlaying={isVideoPlaying}
         isSpeaking={Boolean(speakingLang)}
         pauseReason={pauseReason}

@@ -1,5 +1,87 @@
 # Done tasks
 
+### Task 398 (Prompt 181 Chapter 2 / Prompt 184): Add Missing 3rd Option (`menu-option-tts-play`) to Toggle TTS-Play (Enabled by Default, `v2.1.105`)
+
+- **Prompt**:
+  ```
+  where is the tts-paly  enabler (that should be enabled by default)
+  Apply style changes to the selected element(s).
+  [AIS_METADATA_SECTION_START]
+  CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)
+  CSS 1: {
+
+  }
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Changes**:
+  - Updated `src/components/FloatingDraggablePauseButton.tsx` (selected element `floating-menu-dropdown`): added `isTtsPlayEnabled = true` and `onToggleTtsPlay` props, rendered Option 3 (`data-testid="menu-option-tts-play"`) with `"TTS-Play"` label, `"Enabled"` / `"Disabled"` badge, explanation drawer (`data-testid="explanation-tts-play"`), and 3-option footer counter (`activeOptionsCount`).
+  - Updated `src/routes/index.tsx`: added global `isTtsPlayEnabled` state initialized from `loadAppSettings().autoPlayTTS ?? true` and `onTtsPlayEnabledChange` persisting `autoPlayTTS` to `yt_app_settings_v4`, logging `TTS_PLAY_TOGGLED`, cancelling active speech (and resuming primary video if paused strictly for TTS), gating `getEligibleLangs` (`if (!st.current.isTtsPlayEnabled) return []`) and the `pauseMode` section coordinator (`if (pauseMode && st.current.isTtsPlayEnabled)`), and wiring props to `<FloatingDraggablePauseButton>` across both Advanced and Beginner modes.
+  - Updated Storybook coverage in `src/components/FloatingDraggablePauseButton.stories.tsx` (adding `TtsPlayDisabledState`) and `src/storybook/StorybookWorkbench.tsx`.
+  - Added dedicated test `scripts/verify-floating-menu-third-option-tts-play.ts`, inventoried in `docs/files.md`, registered `"test:floating-menu-third-option-tts-play"` in `package.json`, bumped version to `v2.1.105`, and ran `npm run sync-version` (`code: 20205`).
+- **Verification**:
+  - `npm run test:floating-menu-third-option-tts-play`: **PASSED**.
+  - `npm run test:floating-dropdown-menu`: **PASSED**.
+  - `npm run test:floating-pause`, `npm run test:single-icon-floating-button`, `npm run test:design-play-buttons`, `npm run test:e2e-selectors`, `npm run test:vite-reload-modules`: **PASSED**.
+  - `npm run check-version` & `npm run test:agents-all` (21/21): **PASSED**.
+  - `npx tsc --noEmit`, `compile_applet`, & `lint_applet`: **PASSED** (0 errors/warnings).
+  - Headless Chromium runtime verification: confirmed `div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)` resolves to `floating-menu-dropdown`, `menu-option-tts-play` defaults to `Enabled`, toggles cleanly to `Disabled` + persists `autoPlayTTS: false` in `localStorage["yt_app_settings_v4"]`, toggles back to `Enabled`, and maintains parity in Beginner mode with 0 console/page errors.
+
+### Hotfix (Prompt 183): Verify `bun install` & Post-Recovery Full Build/Lint/Test Validation
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: bun install failed: exit status 1
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Diagnosis & Fix**:
+  - Confirmed the prior `bun install failed: exit status 1` coincided with the transient sandbox filesystem timeout in the previous turn.
+  - Executed `bun install --dry-run` and `bun install`, confirming `bun install v1.4.4` resolves all 831 packages with `EXIT=0`.
+  - Completed full post-recovery validation across compilation, linting, TypeScript type-checking, stage visibility, Vite module transforms, and `AGENTS.md` contract checks.
+- **Verification**:
+  - `bun install`: **PASSED** (`EXIT=0`).
+  - `npx tsc --noEmit`: **PASSED**.
+  - `npm run test:stage-click-view-visibility`: **PASSED**.
+  - `npm run test:video-stage-visibility-no-word-game`: **PASSED**.
+  - `npm run test:vite-reload-modules`: **PASSED**.
+  - `npm run test:agents-all`: **PASSED**.
+  - `compile_applet` & `lint_applet`: **PASSED**.
+
+### Hotfix (Prompt 182): Diagnostic Fix-It Check, Stage Click Visibility Regression Fix & Dev Server Clean State
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: 2:40:10 AM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/ApkReleaseModal.tsx, /src/components/ShareStateModal.tsx, /src/components/FloatingErrorButton.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Diagnosis & Fix**:
+  - Verified `error 0` was a Vite client HMR update log after `src/routes/index.tsx` edits; confirmed `npx tsc --noEmit`, `npm run build`, `compile_applet`, `lint_applet`, `test:vite-reload-modules`, `test:client-pretransform-health`, and headless Chromium rendering across Advanced (Stages 1–5 → 3) and Beginner modes all run with **0 errors**.
+  - Fixed regression in `scripts/verify-stage-click-view-visibility.ts` (`panelId === "player"` assertion updated to match `currentAccordionStage === 3 || currentAccordionStage === 5`).
+  - Restarted dev server to ensure clean Vite module graph and HMR state.
+- **Verification**:
+  - `npm run test:stage-click-view-visibility`: **PASSED**.
+  - `npm run test:video-stage-visibility-no-word-game`: **PASSED**.
+  - `npm run test:vite-reload-modules`: **PASSED**.
+  - `npm run test:agents-all`: **PASSED**.
+  - `compile_applet` & `lint_applet`: **PASSED**.
+
+### Task 397 (Prompt 181, Chapter 1): Fix Video Stage Disappearing or Showing the Word Game (`v2.1.104`)
+
+- **Scope & Architectural Implementation**:
+  1. `src/routes/index.tsx`:
+     - Guarded `showWordBalloonLearningView` initialization so it only boots `true` for explicit `?stage=5` or `?stage=learning` query parameters and clears stale `localStorage.setItem("subtitle_sync_word_balloon_learning_view", "false")`.
+     - Synchronized `useEffect([currentAccordionStage])`, `#stage-step-3`, `#stage-2-to-video-button`, `onProceedToStage(3)`, and `handlePlayVideo` to clear `showWordBalloonLearningView` (and `localStorage`), close settings accordions, activate Stage 3 (`openPanels.player: true`), and activate `beginnerActiveTab = "video"` in Beginner mode.
+  2. `scripts/verify-video-stage-visibility-no-word-game.ts` & `package.json`:
+     - Added dedicated verification test (`test:video-stage-visibility-no-word-game`) and bumped single-source version to `v2.1.104` (code `20204`), synced with `android-shell/app/build.gradle.kts`.
+- **Verification**:
+  - `npm run test:video-stage-visibility-no-word-game`: **PASSED**.
+  - `npm run check-version`: **PASSED** (`2.1.104`, code `20204`).
+
 ### Task 396 (Prompt 180): Define `king-of-comma` & `mother-tongue-language` in Default Subtitles & Auto Base Selection
 
 - **Prompt**:

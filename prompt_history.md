@@ -2365,3 +2365,39 @@ CSS 1: {
 2. fix: missing 3rd option to toggle tts-play
 ```
 
+---
+
+### Prompt 182: Diagnostic Fix-It Check & Stage Click Visibility Alignment
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 2:40:10 AM [vite] (client) hmr update /src/styles.css, /src/routes/index.tsx, /src/components/WebDemoUrlsInput.tsx, /src/components/LanguageBoxesSelector.tsx, /src/components/FetchedSubtitlesStagePanel.tsx, /src/components/ApkReleaseModal.tsx, /src/components/ShareStateModal.tsx, /src/components/FloatingErrorButton.tsx, /src/components/StateMachineActionLogsInspector.tsx, /src/components/BottomLogViewer.tsx, /src/components/CriticalCaptionsAlert.tsx, /src/components/AiSubtitlePunctuationTab.tsx
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 183: Verify bun install & Post-Recovery Full Validation
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: bun install failed: exit status 1
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 184: Missing 3rd Option (TTS-Play Enabler, Enabled by Default) in Floating Controls Dropdown
+```
+where is the tts-paly  enabler (that should be enabled by default)
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+

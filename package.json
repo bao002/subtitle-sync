@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.104",
+  "version": "2.1.105",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -379,6 +379,7 @@
     "test:subtitles-table-width-toggle": "tsx scripts/verify-subtitles-table-width-toggle.ts",
     "test:mainactivity-scope": "tsx scripts/verify-android-mainactivity-compilation.ts",
     "test:floating-dropdown-menu": "tsx scripts/verify-floating-dropdown-menu.ts",
+    "test:floating-menu-third-option-tts-play": "tsx scripts/verify-floating-menu-third-option-tts-play.ts",
     "test:client-side-metadata": "tsx scripts/verify-client-side-metadata.ts",
     "test:android-e2e-caption-exposure": "tsx scripts/verify-android-e2e-caption-exposure.ts",
     "test:suggestions-doc-and-link": "tsx scripts/verify-suggestions-doc-and-link.ts",

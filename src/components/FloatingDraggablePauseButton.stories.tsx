@@ -26,6 +26,7 @@ type Story = StoryObj<typeof FloatingDraggablePauseButton>;
 const InteractiveFloatingWrapper: React.FC<Partial<FloatingDraggablePauseButtonProps>> = (props) => {
   const [isSetupPaused, setIsSetupPaused] = useState(props.isSetupPaused ?? false);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState(props.isAutoScrollEnabled ?? true);
+  const [isTtsPlayEnabled, setIsTtsPlayEnabled] = useState(props.isTtsPlayEnabled ?? true);
 
   return (
     <div className="relative w-full h-[360px] bg-muted/20 border border-dashed border-border rounded-xl p-4 overflow-hidden">
@@ -37,6 +38,8 @@ const InteractiveFloatingWrapper: React.FC<Partial<FloatingDraggablePauseButtonP
         onToggleSetupPause={() => setIsSetupPaused((p) => !p)}
         isAutoScrollEnabled={isAutoScrollEnabled}
         onToggleAutoScroll={() => setIsAutoScrollEnabled((s) => !s)}
+        isTtsPlayEnabled={isTtsPlayEnabled}
+        onToggleTtsPlay={() => setIsTtsPlayEnabled((t) => !t)}
         {...props}
       />
     </div>
@@ -44,17 +47,41 @@ const InteractiveFloatingWrapper: React.FC<Partial<FloatingDraggablePauseButtonP
 };
 
 export const NormalActiveState: Story = {
-  render: () => <InteractiveFloatingWrapper isSetupPaused={false} isAutoScrollEnabled={true} />,
+  render: () => (
+    <InteractiveFloatingWrapper
+      isSetupPaused={false}
+      isAutoScrollEnabled={true}
+      isTtsPlayEnabled={true}
+    />
+  ),
 };
 
 export const SetupPausedState: Story = {
-  render: () => <InteractiveFloatingWrapper isSetupPaused={true} isAutoScrollEnabled={false} pauseReason="Paused for setup" />,
+  render: () => (
+    <InteractiveFloatingWrapper
+      isSetupPaused={true}
+      isAutoScrollEnabled={false}
+      isTtsPlayEnabled={true}
+      pauseReason="Paused for setup"
+    />
+  ),
+};
+
+export const TtsPlayDisabledState: Story = {
+  render: () => (
+    <InteractiveFloatingWrapper
+      isSetupPaused={false}
+      isAutoScrollEnabled={true}
+      isTtsPlayEnabled={false}
+    />
+  ),
 };
 
 export const VideoPausedWithReason: Story = {
   render: () => (
     <InteractiveFloatingWrapper
       isSetupPaused={false}
+      isTtsPlayEnabled={true}
       isVideoPlaying={false}
       isSpeaking={false}
       pauseReason="Waiting for speech synthesis (English, Hebrew) before playing"
@@ -66,6 +93,7 @@ export const SpeechSpeakingState: Story = {
   render: () => (
     <InteractiveFloatingWrapper
       isSetupPaused={false}
+      isTtsPlayEnabled={true}
       isVideoPlaying={false}
       isSpeaking={true}
       pauseReason="Section complete: speaking translation (Hebrew)"

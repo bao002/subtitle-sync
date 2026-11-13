@@ -92,6 +92,7 @@ export const StorybookWorkbench: React.FC = () => {
   // 3. FloatingDraggablePauseButton State
   const [isSetupPaused, setIsSetupPaused] = useState<boolean>(false);
   const [isAutoScrollEnabled, setIsAutoScrollEnabled] = useState<boolean>(true);
+  const [isTtsPlayEnabled, setIsTtsPlayEnabled] = useState<boolean>(true);
 
   // 4. LanguageBoxesSelector State
   const [selectedLangs, setSelectedLangs] = useState<string[]>(["en", "he"]);
@@ -526,6 +527,8 @@ export const StorybookWorkbench: React.FC = () => {
                   onToggleSetupPause={() => setIsSetupPaused((p) => !p)}
                   isAutoScrollEnabled={isAutoScrollEnabled}
                   onToggleAutoScroll={() => setIsAutoScrollEnabled((s) => !s)}
+                  isTtsPlayEnabled={isTtsPlayEnabled}
+                  onToggleTtsPlay={() => setIsTtsPlayEnabled((t) => !t)}
                   currentTimeSec={42}
                   durationSec={180}
                 />

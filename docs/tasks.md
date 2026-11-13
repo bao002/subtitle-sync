@@ -4,15 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 397 [ACTIVE] (Prompt 181, Chapter 1): Fix Video Stage Disappearing or Showing the Word Game**
-  - Prevent stale `showWordBalloonLearningView` (`localStorage` `"subtitle_sync_word_balloon_learning_view"`) or Stage 5 visits from hijacking Stage 3 ("Video & Playback") or Beginner Video tab into `WordBalloonLearningView`.
-  - Guarantee Stage 3 (`#stage-step-3`, `#stage-2-to-video-button`, `onProceedToStage(3)`, `handlePlayVideo`, Stage 4->3 toggle, `useEffect([currentAccordionStage])`) always opens `openPanels.player: true`, clears `showOtherSettingsAccordions`, clears `showWordBalloonLearningView` (+ `localStorage`), and renders the Video Player reliably with full Beginner/Advanced parity.
-  - Add dedicated verification test `scripts/verify-video-stage-visibility-no-word-game.ts`, register in `package.json`, run regression checks, compile, lint, and migrate to `docs/done.md` before starting Task 398.
-
-- [ ] **Task 398 [PENDING] (Prompt 181, Chapter 2): Fix Missing 3rd Option to Toggle TTS-Play**
-  - Add the missing 3rd option (`menu-option-tts-play`) to `FloatingDraggablePauseButton.tsx` dropdown alongside Option 1 (`Pause for Setup`) and Option 2 (`Auto-Scroll Subtitles`), updating active counter and explanation drawer.
-  - Wire global `isTtsPlayEnabled` / `onToggleTtsPlay` in `src/routes/index.tsx` persisted via `appSettings` (`autoPlayTTS`), gating automatic section TTS playback and cancelling active speech when disabled across both Beginner and Advanced modes.
-  - Update `FloatingDraggablePauseButton.stories.tsx` and `StorybookWorkbench.tsx`, add dedicated verification test `scripts/verify-floating-menu-third-option-tts-play.ts`, register in `package.json`, compile, lint, and migrate to `docs/done.md`.
+_(No active tasks pending. See `## Later Tasks` below or wait for next user prompt.)_
 
 
 ## Later Tasks

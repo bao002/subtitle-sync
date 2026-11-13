@@ -121,8 +121,8 @@ async function main() {
     "Must return subtitles on stage 2",
   );
   assert.ok(
-    indexTsx.includes('if (currentAccordionStage === 3) {\n                      return panelId === "player";\n                    }'),
-    "Must return player on stage 3",
+    indexTsx.includes('if (panelId === "player") {\n                      return currentAccordionStage === 3 || currentAccordionStage === 5;\n                    }'),
+    "Must return player on stage 3 (and stage 5 learning view)",
   );
   assert.ok(
     indexTsx.includes('if (currentAccordionStage === 4) {\n                      return panelId === "playback" || panelId === "library";\n                    }'),

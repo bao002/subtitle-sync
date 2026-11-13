@@ -11,6 +11,8 @@ import {
   ScrollText,
   CheckCircle2,
   XCircle,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 export interface FloatingDraggablePauseButtonProps {
@@ -18,6 +20,8 @@ export interface FloatingDraggablePauseButtonProps {
   onToggleSetupPause: () => void;
   isAutoScrollEnabled?: boolean;
   onToggleAutoScroll?: () => void;
+  isTtsPlayEnabled?: boolean;
+  onToggleTtsPlay?: () => void;
   isVideoPlaying?: boolean;
   isSpeaking?: boolean;
   pauseReason?: string | null;
@@ -55,6 +59,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
   onToggleSetupPause,
   isAutoScrollEnabled = false,
   onToggleAutoScroll,
+  isTtsPlayEnabled = true,
+  onToggleTtsPlay,
   isVideoPlaying = false,
   isSpeaking = false,
   pauseReason = null,
@@ -87,9 +93,9 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
   });
 
   const [isOpen, setIsOpen] = useState(false);
-  const [activeExplanation, setActiveExplanation] = useState<"setup-pause" | "auto-scroll" | null>(
-    null,
-  );
+  const [activeExplanation, setActiveExplanation] = useState<
+    "setup-pause" | "auto-scroll" | "tts-play" | null
+  >(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [showPlaytimeMobile, setShowPlaytimeMobile] = useState(false);
@@ -282,6 +288,14 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
     setActiveExplanation("auto-scroll");
   };
 
+  const handleToggleTtsPlayOption = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onToggleTtsPlay) {
+      onToggleTtsPlay();
+    }
+    setActiveExplanation("tts-play");
+  };
+
   // Determine popover direction relative to viewport
   const opensUpward = typeof window !== "undefined" ? position.y > window.innerHeight / 2 : true;
   const alignsRight = typeof window !== "undefined" ? position.x > window.innerWidth / 2 : false;
@@ -289,6 +303,8 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
   // The overall playback is effectively active if video is playing or speech is actively speaking
   const isPlaybackActive = isVideoPlaying || isSpeaking;
   const isEffectivelyPaused = isSetupPaused || !isPlaybackActive;
+  const activeOptionsCount =
+    (isSetupPaused ? 1 : 0) + (isAutoScrollEnabled ? 1 : 0) + (isTtsPlayEnabled ? 1 : 0);
 
   const shouldShowPlaytimeTooltip =
     !isOpen && (isHovered || showPlaytimeMobile) && !isDragging;
@@ -602,22 +618,91 @@ export const FloatingDraggablePauseButton: React.FC<FloatingDraggablePauseButton
                 </div>
               )}
             </div>
+
+            {/* Option 3: TTS-Play */}
+            <div
+              data-testid="menu-option-tts-play"
+              className={`rounded-lg border p-2.5 transition-colors cursor-pointer ${
+                isTtsPlayEnabled
+                  ? "border-emerald-500/80 bg-emerald-500/10 text-foreground"
+                  : "border-rose-400/50 bg-rose-500/5 hover:border-rose-400 hover:bg-rose-500/10"
+              }`}
+              onClick={handleToggleTtsPlayOption}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`flex h-7 w-7 items-center justify-center rounded-md ${
+                      isTtsPlayEnabled
+                        ? "bg-emerald-600 text-white"
+                        : "bg-rose-600 text-white"
+                    }`}
+                  >
+                    {isTtsPlayEnabled ? (
+                      <Volume2 className="h-3.5 w-3.5" />
+                    ) : (
+                      <VolumeX className="h-3.5 w-3.5" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold leading-tight">TTS-Play</div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {isTtsPlayEnabled
+                        ? "Speak translated subtitles (ON)"
+                        : "Automatic TTS paused (OFF)"}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1">
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                      isTtsPlayEnabled
+                        ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                        : "bg-rose-500/20 text-rose-700 dark:text-rose-300"
+                    }`}
+                  >
+                    {isTtsPlayEnabled ? "Enabled" : "Disabled"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveExplanation((prev) => (prev === "tts-play" ? null : "tts-play"));
+                    }}
+                    className="p-1 text-muted-foreground hover:text-foreground"
+                    title="Explain TTS-Play"
+                    aria-label="Explain TTS-Play"
+                  >
+                    <Info className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Explanation Text */}
+              {(activeExplanation === "tts-play" || !isTtsPlayEnabled) && (
+                <div
+                  data-testid="explanation-tts-play"
+                  className="mt-2 rounded bg-muted/60 p-2 text-[11px] leading-relaxed text-muted-foreground border-l-2 border-emerald-500"
+                >
+                  <p className="font-medium text-foreground mb-0.5">TTS-Play Explanation:</p>
+                  Automatically pauses the video between subtitle sections to speak enabled
+                  translations via text-to-speech, and resumes video playback once speech finishes.
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Footer Guidance */}
           <div className="mt-2.5 pt-2 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
             <span>Drag handle to reposition anywhere</span>
             <span className="flex items-center gap-1 font-medium">
-              {isSetupPaused || isAutoScrollEnabled ? (
+              {activeOptionsCount > 0 ? (
                 <CheckCircle2 className="h-3 w-3 text-emerald-500" />
               ) : (
                 <XCircle className="h-3 w-3 text-muted-foreground" />
               )}
-              {isSetupPaused && isAutoScrollEnabled
-                ? "2 Active"
-                : isSetupPaused || isAutoScrollEnabled
-                  ? "1 Active"
-                  : "Inactive"}
+              {activeOptionsCount > 0 ? `${activeOptionsCount} Active` : "Inactive"}
             </span>
           </div>
         </div>
