@@ -1,9 +1,10 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
-- **Status**: [COMPLETED] — No active subtasks remaining.
-- **Active Task**: None (Task 398 completed and archived in `docs/done.md`).
-- **Active Step**: Complete.
+- **Status**: [ACTIVE] — Executing Task 399 (Prompt 190, Chapter 1): Log Element — Copy Only Error Log & Copy Only Log Around Error.
+- **Active Task**: Task 399 — Add `copyErrorOnlyToClipboard` and `copyLogAroundErrorToClipboard` in `src/utils/logBuffer.ts` and expose copy buttons on errors in `BottomLogViewer.tsx` and `FloatingErrorButton.tsx`.
+- **Active Step**: Subtask 399.1 & 399.2 — Implement error-only and around-error copy helpers and UI controls.
 - **Completed**:
+  - Task 263 (Later 2, Prompt 186): Formalize Same Components Policy (Beginner & Advanced Mode — Only Order Differs) in `AGENTS.md`, verify 16 shared component blocks across both modes via `scripts/verify-same-components-parity-policy.ts`, clean up stale `Task 224` in `docs/later.md` (`v2.1.106`)
   - Task 398 (Prompt 181 Chapter 2 / Prompt 184): Add 3rd Option (`menu-option-tts-play`) to Toggle TTS-Play (Enabled by Default, `v2.1.105`)
   - Hotfix (Prompt 183): Verified `bun install` (`EXIT=0`) & Post-Recovery Full Build/Lint/Test Validation
   - Hotfix (Prompt 182): Diagnostic Fix-It Check, Stage Click Visibility Regression Fix & Dev Server Clean State

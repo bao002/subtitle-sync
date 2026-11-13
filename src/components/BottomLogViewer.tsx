@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef, useSyncExternalStore, useMemo, memo } from "react";
 import { Activity, AlertTriangle, Check, Copy, Trash2, ChevronUp, ChevronDown, ListFilter, Workflow } from "lucide-react";
-import { getLogEntriesSnapshot, logBuffer, subscribeToLogEntries, copyAllLogToClipboard, type LogEntry } from "@/utils/logBuffer";
+import {
+  getLogEntriesSnapshot,
+  logBuffer,
+  subscribeToLogEntries,
+  copyAllLogToClipboard,
+  copyErrorOnlyToClipboard,
+  copyLogAroundErrorToClipboard,
+  type LogEntry,
+} from "@/utils/logBuffer";
 import { Button } from "@/components/ui/button";
 
 function filterLogEntriesOptimized(
@@ -40,6 +48,7 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = memo(({
   );
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const [copiedErrorAction, setCopiedErrorAction] = useState<string | null>(null);
   const [filterLevel, setFilterLevel] = useState<"ALL" | "ACTIONS_ERRORS">("ALL");
   const [focusedEntryId, setFocusedEntryId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -83,7 +92,45 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = memo(({
     return filterLogEntriesOptimized(entries, filterLevel, isVisible && isExpanded);
   }, [entries, filterLevel, isVisible, isExpanded]);
 
+  const errorEntries = useMemo(() => {
+    return entries.filter((entry) => entry.level === "ERROR");
+  }, [entries]);
+  const hasErrors = errorEntries.length > 0;
+  const latestError = hasErrors ? errorEntries[errorEntries.length - 1] : null;
   const latestEntry = entries.length > 0 ? entries[entries.length - 1] : null;
+
+  const markCopiedErrorAction = (key: string) => {
+    setCopiedErrorAction(key);
+    setTimeout(() => {
+      setCopiedErrorAction((prev) => (prev === key ? null : prev));
+    }, 2200);
+  };
+
+  const handleCopyErrorOnly = async (errorId?: string) => {
+    const actionKey = errorId ? `error-only:${errorId}` : "error-only:header";
+    try {
+      const ok = await copyErrorOnlyToClipboard(errorId);
+      if (!ok) {
+        await navigator.clipboard.writeText(logBuffer.formatOnlyErrorLogs(errorId));
+      }
+      markCopiedErrorAction(actionKey);
+    } catch {
+      // ignore clipboard denial
+    }
+  };
+
+  const handleCopyAroundError = async (errorId?: string) => {
+    const actionKey = errorId ? `around-error:${errorId}` : "around-error:header";
+    try {
+      const ok = await copyLogAroundErrorToClipboard(errorId);
+      if (!ok) {
+        await navigator.clipboard.writeText(logBuffer.formatLogAroundError(errorId));
+      }
+      markCopiedErrorAction(actionKey);
+    } catch {
+      // ignore clipboard denial
+    }
+  };
 
   const handleCopyAll = async () => {
     try {
@@ -151,8 +198,8 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = memo(({
           )}
         </div>
 
-        {/* Action Controls: Copy All, Clear, and Filter */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Action Controls: Error Copy Modes, Copy All, Clear, and Filter */}
+        <div className="flex items-center flex-wrap gap-1.5 shrink-0">
           {isExpanded && (
             <div className="flex items-center border border-border rounded-md overflow-hidden bg-background mr-1 text-[11px]">
               <button
@@ -180,6 +227,55 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = memo(({
                 Actions/Errors
               </button>
             </div>
+          )}
+
+          {hasErrors && (
+            <>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-testid="bottom-log-copy-error-only-btn"
+                onClick={() => void handleCopyErrorOnly(latestError?.id)}
+                className="h-7 px-2 text-[11px] flex items-center gap-1 font-medium border-destructive/40 text-destructive hover:bg-destructive/10"
+                title="Copy only the error log entry without surrounding logs"
+              >
+                {copiedErrorAction === "error-only:header" ||
+                copiedErrorAction === `error-only:${latestError?.id}` ? (
+                  <>
+                    <Check className="h-3 w-3 text-emerald-500" />
+                    <span>Copied Error!</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="h-3 w-3" />
+                    <span>Copy Error Only</span>
+                  </>
+                )}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                data-testid="bottom-log-copy-around-error-btn"
+                onClick={() => void handleCopyAroundError(latestError?.id)}
+                className="h-7 px-2 text-[11px] flex items-center gap-1 font-medium border-amber-500/40 text-amber-600 dark:text-amber-300 hover:bg-amber-500/10"
+                title="Copy only the log window immediately around the latest error (not all logs)"
+              >
+                {copiedErrorAction === "around-error:header" ||
+                copiedErrorAction === `around-error:${latestError?.id}` ? (
+                  <>
+                    <Check className="h-3 w-3 text-emerald-500" />
+                    <span>Copied Window!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3 w-3" />
+                    <span>Copy Around Error</span>
+                  </>
+                )}
+              </Button>
+            </>
           )}
 
           <Button
@@ -295,9 +391,53 @@ export const BottomLogViewer: React.FC<BottomLogViewerProps> = memo(({
                         {entry.message}
                       </span>
                       {isFocused && (
-                        <span className="ml-auto text-[9px] font-bold uppercase tracking-wider bg-rose-500 text-white px-1.5 py-0.5 rounded">
+                        <span className="text-[9px] font-bold uppercase tracking-wider bg-rose-500 text-white px-1.5 py-0.5 rounded">
                           Focused Error
                         </span>
+                      )}
+                      {isError && (
+                        <div className="ml-auto flex items-center gap-1">
+                          <button
+                            type="button"
+                            data-testid={`log-record-copy-error-btn-${entry.id}`}
+                            data-action="copy-error-only"
+                            onClick={() => void handleCopyErrorOnly(entry.id)}
+                            className="inline-flex items-center gap-1 rounded border border-destructive/40 bg-destructive/10 px-1.5 py-0.5 text-[10px] font-medium text-destructive hover:bg-destructive/20 cursor-pointer"
+                            title="Copy only this error log"
+                          >
+                            {copiedErrorAction === `error-only:${entry.id}` ? (
+                              <>
+                                <Check className="h-2.5 w-2.5 text-emerald-500" />
+                                <span>Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-2.5 w-2.5" />
+                                <span>Copy Error</span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            data-testid={`log-record-copy-around-btn-${entry.id}`}
+                            data-action="copy-around-error"
+                            onClick={() => void handleCopyAroundError(entry.id)}
+                            className="inline-flex items-center gap-1 rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 cursor-pointer"
+                            title="Copy only the log entries around this error (not all logs)"
+                          >
+                            {copiedErrorAction === `around-error:${entry.id}` ? (
+                              <>
+                                <Check className="h-2.5 w-2.5 text-emerald-500" />
+                                <span>Copied Window</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-2.5 w-2.5" />
+                                <span>Copy Around</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       )}
                     </div>
 

@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { AlertTriangle, X, Copy, Trash2, ChevronDown, ChevronUp, Bug, ExternalLink } from "lucide-react";
-import { logBuffer, LogEntry, logError, leadToLogRecord, copyAllLogToClipboard } from "@/utils/logBuffer";
+import { AlertTriangle, X, Copy, Check, Trash2, ChevronDown, ChevronUp, Bug, ExternalLink } from "lucide-react";
+import {
+  logBuffer,
+  LogEntry,
+  logError,
+  leadToLogRecord,
+  copyAllLogToClipboard,
+  copyErrorOnlyToClipboard,
+  copyLogAroundErrorToClipboard,
+} from "@/utils/logBuffer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -20,7 +28,7 @@ export const FloatingErrorButton: React.FC<FloatingErrorButtonProps> = ({
     return logBuffer.getEntries().filter((e) => e.level === "ERROR");
   });
   const [isOpen, setIsOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copiedMode, setCopiedMode] = useState<string | null>(null);
   const [expandedErrorId, setExpandedErrorId] = useState<string | null>(null);
 
   // Position state with default top-right (offset from top bar)
@@ -141,24 +149,43 @@ export const FloatingErrorButton: React.FC<FloatingErrorButtonProps> = ({
     setIsOpen(false);
   };
 
-  const handleCopyErrors = () => {
-    const text = errors
-      .map(
-        (err) =>
-          `[${err.formattedTime}] [${err.category}] ${err.message}${
-            err.stack ? `\nStack: ${err.stack}` : ""
-          }${err.details ? `\nDetails: ${JSON.stringify(err.details, null, 2)}` : ""}`,
-      )
-      .join("\n\n---\n\n");
-    navigator.clipboard?.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const markCopied = (mode: string) => {
+    setCopiedMode(mode);
+    setTimeout(() => {
+      setCopiedMode((prev) => (prev === mode ? null : prev));
+    }, 2000);
+  };
+
+  const handleCopyErrorOnly = async (errorId?: string) => {
+    const mode = errorId ? `error-only:${errorId}` : "error-only:header";
+    const ok = await copyErrorOnlyToClipboard(errorId);
+    if (!ok) {
+      const targetErrors = errorId ? errors.filter((e) => e.id === errorId) : errors;
+      const fallbackText = (targetErrors.length > 0 ? targetErrors : errors)
+        .map(
+          (err) =>
+            `[${err.formattedTime}] [${err.category}] ${err.message}${
+              err.stack ? `\nStack: ${err.stack}` : ""
+            }${err.details ? `\nDetails: ${JSON.stringify(err.details, null, 2)}` : ""}`,
+        )
+        .join("\n\n---\n\n");
+      await navigator.clipboard?.writeText(fallbackText);
+    }
+    markCopied(mode);
+  };
+
+  const handleCopyAroundError = async (errorId?: string) => {
+    const mode = errorId ? `around-error:${errorId}` : "around-error:header";
+    const ok = await copyLogAroundErrorToClipboard(errorId);
+    if (!ok) {
+      await navigator.clipboard?.writeText(logBuffer.formatLogAroundError(errorId));
+    }
+    markCopied(mode);
   };
 
   const handleCopyAllLogs = async () => {
     await copyAllLogToClipboard();
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    markCopied("all");
   };
 
   const handleLeadToLog = (entryId?: string) => {
@@ -241,6 +268,46 @@ export const FloatingErrorButton: React.FC<FloatingErrorButtonProps> = ({
             <div className="flex items-center gap-1.5 flex-wrap">
               <Button
                 type="button"
+                variant="outline"
+                size="sm"
+                data-testid="copy-error-only-clipboard-btn"
+                onClick={() => void handleCopyErrorOnly(latestError?.id)}
+                className="h-7 px-2 text-xs gap-1 border-destructive/40 text-destructive hover:bg-destructive/10"
+                title="Copy only the error log without surrounding non-error logs"
+              >
+                {copiedMode === "error-only:header" || copiedMode === `error-only:${latestError?.id}` ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+                <span>
+                  {copiedMode === "error-only:header" || copiedMode === `error-only:${latestError?.id}`
+                    ? "Copied Error!"
+                    : "Copy Error Only"}
+                </span>
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid="copy-around-error-clipboard-btn"
+                onClick={() => void handleCopyAroundError(latestError?.id)}
+                className="h-7 px-2 text-xs gap-1 border-amber-500/40 text-amber-600 dark:text-amber-300 hover:bg-amber-500/10"
+                title="Copy only the log entries immediately around the error (not all logs)"
+              >
+                {copiedMode === "around-error:header" || copiedMode === `around-error:${latestError?.id}` ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+                <span>
+                  {copiedMode === "around-error:header" || copiedMode === `around-error:${latestError?.id}`
+                    ? "Copied Window!"
+                    : "Copy Around Error"}
+                </span>
+              </Button>
+              <Button
+                type="button"
                 variant="default"
                 size="sm"
                 data-testid="copy-all-log-clipboard-btn"
@@ -249,7 +316,7 @@ export const FloatingErrorButton: React.FC<FloatingErrorButtonProps> = ({
                 title="Copy all activity log, timestamps, state machine actions and reproduction data to clipboard"
               >
                 <Copy className="h-3.5 w-3.5" />
-                <span>{copied ? "Copied All!" : "Copy All Log"}</span>
+                <span>{copiedMode === "all" ? "Copied All!" : "Copy All Log"}</span>
               </Button>
               <Button
                 type="button"
@@ -297,7 +364,27 @@ export const FloatingErrorButton: React.FC<FloatingErrorButtonProps> = ({
                       </span>
                       <span className="font-medium text-foreground break-words">{err.message}</span>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1 shrink-0 flex-wrap">
+                      <button
+                        type="button"
+                        data-testid={`btn-copy-error-only-${err.id}`}
+                        onClick={() => void handleCopyErrorOnly(err.id)}
+                        className="px-2 py-0.5 text-[10px] bg-destructive/10 text-destructive hover:bg-destructive/20 rounded font-medium flex items-center gap-1"
+                        title="Copy only this error log"
+                      >
+                        <Copy className="h-3 w-3" />
+                        <span>{copiedMode === `error-only:${err.id}` ? "Copied" : "Copy Error"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        data-testid={`btn-copy-around-error-${err.id}`}
+                        onClick={() => void handleCopyAroundError(err.id)}
+                        className="px-2 py-0.5 text-[10px] bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20 rounded font-medium flex items-center gap-1"
+                        title="Copy only the log window around this error"
+                      >
+                        <Copy className="h-3 w-3" />
+                        <span>{copiedMode === `around-error:${err.id}` ? "Copied Window" : "Copy Around"}</span>
+                      </button>
                       <button
                         type="button"
                         data-testid="btn-lead-to-log-record"

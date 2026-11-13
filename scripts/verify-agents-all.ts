@@ -97,6 +97,11 @@ const CHECKS: ScriptCheck[] = [
     name: "Parallel Planning Mode Protocol (docs/plans/)",
     file: "scripts/verify-parallel-planning-mode.ts",
   },
+  {
+    id: "22",
+    name: "Same Components Policy (Beginner & Advanced)",
+    file: "scripts/verify-same-components-parity-policy.ts",
+  },
 ];
 
 function run() {

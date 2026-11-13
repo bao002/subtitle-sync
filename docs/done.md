@@ -1,5 +1,22 @@
 # Done tasks
 
+### Task 263 (Later 2, Prompt 186): Enforce Same Components Policy (Beginner & Advanced Mode — Only Order Differs) (`v2.1.106`)
+
+- **Prompt**:
+  ```
+  do only the stuff that u know how to do from the later tasks. according to this project history you have some difficulties doing some stuff. do only what u sure u can.
+  ```
+- **Changes**:
+  - Formalized the **Same Components Policy (Only Order Differs)** rule in `AGENTS.md` under `### Absolute Parity Rule Between Advanced and Beginner Modes:`, specifying all 16 shared UI component blocks (`SpecialCharactersRemovalPanel`, `SubtitlesTablePanel`, `NewSubtitlesParserBar`, `GlobalFavoriteLanguagesPanel`, `LearningGoalsFiltersPanel`, `PerformanceModeSettingsPanel`, `LanguageBoxesSelector`, `VideoPlaybackControls`, `SwitchableDefaultSubtitlesBar`, `LanguageRatioCompositionSelector`, `TtsFallbackOrderSwitch`, `CriticalCaptionsAlert`, `AlternativeVideoPlayerView`, `WordBalloonLearningView`, `VideoLibraryPanel`, `WebDemoUrlsInput`) and confirming modes differ strictly in layout/sequence order rather than duplicating divergent UI/logic.
+  - Added dedicated verification script `scripts/verify-same-components-parity-policy.ts`, registered `"test:same-components-parity-policy"` in `package.json`, integrated check #22 into `scripts/verify-agents-all.ts`, and documented it in `docs/files.md`.
+  - Cleaned up stale already-completed `Task 224` and completed `Task 263 (Later 2)` entries from `docs/later.md` and `docs/tasks.md`, leaving only genuinely blocked/external items (`Task 234`, `Task 196`, `Task 221`, `Task 228`, user-review control colors, external TTS service extensions, and GitHub Actions artifact inspection).
+  - Bumped version to `v2.1.106` in `package.json` and synchronized `android-shell/app/build.gradle.kts` (`versionCode = 20206`).
+- **Verification**:
+  - `npm run test:same-components-parity-policy`: **PASSED**.
+  - `npm run test:agents-all` (22/22 checks, including size budget & headroom guard): **PASSED**.
+  - `npm run check-version`: **PASSED** (`2.1.106`, code `20206`).
+  - `compile_applet` & `lint_applet`: **PASSED**.
+
 ### Task 398 (Prompt 181 Chapter 2 / Prompt 184): Add Missing 3rd Option (`menu-option-tts-play`) to Toggle TTS-Play (Enabled by Default, `v2.1.105`)
 
 - **Prompt**:

@@ -324,6 +324,104 @@ class LogRingBuffer {
   }
 
   /**
+   * Formats a single log entry into a readable diagnostic line/block.
+   */
+  public formatSingleLogEntry(entry: LogEntry, prefixMarker: string = ""): string {
+    const marker = prefixMarker ? `${prefixMarker} ` : "";
+    let line = `${marker}[${entry.formattedTime}] (ts: ${entry.timestamp}) [${entry.level}] [${entry.category}] ${entry.message}`;
+    if (entry.url) {
+      line += ` | URL: ${entry.url} (status=${entry.status ?? "pending"}${entry.duration !== undefined ? `, ${entry.duration}ms` : ""})`;
+    }
+    if (entry.responseBodyPreview15 !== undefined) {
+      line += ` | body_preview(X=15 chars): "${entry.responseBodyPreview15}"`;
+    }
+    if (entry.details !== undefined) {
+      try {
+        line += ` | Details: ${typeof entry.details === "string" ? entry.details : JSON.stringify(entry.details)}`;
+      } catch {}
+    }
+    if (entry.stack) {
+      line += `\n  Stack Trace:\n    ${entry.stack.replace(/\n/g, "\n    ")}`;
+    }
+    if (entry.truncatedResponseBody && !entry.responseBodyPreview15) {
+      line += ` | Response: ${entry.truncatedResponseBody}`;
+    }
+    return line;
+  }
+
+  /**
+   * Formats ONLY the error log entry (or all ERROR entries if errorId is omitted).
+   * Does not include surrounding non-error logs or full application state dumps.
+   */
+  public formatOnlyErrorLogs(errorId?: string): string {
+    const errorLogs = this.buffer.filter((e) => e.level === "ERROR");
+    const targets = errorId
+      ? errorLogs.filter((e) => e.id === errorId)
+      : errorLogs;
+    const resolvedTargets = targets.length > 0 ? targets : errorLogs;
+
+    if (resolvedTargets.length === 0) {
+      return "[No ERROR log entries recorded.]";
+    }
+
+    const header =
+      resolvedTargets.length === 1
+        ? "# Error Log Only (1 error)"
+        : `# Error Logs Only (${resolvedTargets.length} errors)`;
+    return [header, ...resolvedTargets.map((entry) => this.formatSingleLogEntry(entry))].join("\n\n");
+  }
+
+  /**
+   * Formats ONLY a focused window of log entries immediately around an error
+   * (default: 8 entries before and 4 entries after), NOT the entire log buffer.
+   */
+  public formatLogAroundError(
+    errorId?: string,
+    beforeCount: number = 8,
+    afterCount: number = 4,
+  ): string {
+    if (this.buffer.length === 0) {
+      return "[Log buffer is empty.]";
+    }
+
+    let targetIndex = -1;
+    if (errorId) {
+      targetIndex = this.buffer.findIndex((e) => e.id === errorId);
+    }
+    if (targetIndex === -1) {
+      for (let i = this.buffer.length - 1; i >= 0; i--) {
+        if (this.buffer[i].level === "ERROR") {
+          targetIndex = i;
+          break;
+        }
+      }
+    }
+
+    if (targetIndex === -1) {
+      return "[No ERROR log entry found in buffer.]";
+    }
+
+    const startIdx = Math.max(0, targetIndex - Math.max(0, beforeCount));
+    const endIdx = Math.min(this.buffer.length, targetIndex + Math.max(0, afterCount) + 1);
+    const windowEntries = this.buffer.slice(startIdx, endIdx);
+    const targetEntry = this.buffer[targetIndex];
+
+    const lines: string[] = [
+      `# Log Window Around Error (showing entries ${startIdx + 1}..${endIdx} of ${this.buffer.length})`,
+      `Target Error: [${targetEntry.formattedTime}] [${targetEntry.category}] ${targetEntry.message}`,
+      "```log",
+    ];
+
+    windowEntries.forEach((entry, offset) => {
+      const isTarget = startIdx + offset === targetIndex;
+      lines.push(this.formatSingleLogEntry(entry, isTarget ? ">>> [TARGET ERROR]" : "   "));
+    });
+
+    lines.push("```");
+    return lines.join("\n");
+  }
+
+  /**
    * Formats all log entries and complete application state into a single cohesive string for 1-click clipboard copy
    */
   public copyAll(userComplaint?: string): string {
@@ -457,3 +555,38 @@ export async function copyAllLogToClipboard(userComplaint?: string): Promise<boo
   return copyBugReportToClipboard(userComplaint);
 }
 
+/**
+ * Copies ONLY the error log entry (or all error entries when errorId is omitted) to clipboard.
+ */
+export async function copyErrorOnlyToClipboard(errorId?: string): Promise<boolean> {
+  const report = logBuffer.formatOnlyErrorLogs(errorId);
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(report);
+      return true;
+    }
+  } catch (err) {
+    console.error("Failed to copy error-only log:", err);
+  }
+  return false;
+}
+
+/**
+ * Copies ONLY the log window immediately around the specified (or latest) error to clipboard.
+ */
+export async function copyLogAroundErrorToClipboard(
+  errorId?: string,
+  beforeCount: number = 8,
+  afterCount: number = 4,
+): Promise<boolean> {
+  const report = logBuffer.formatLogAroundError(errorId, beforeCount, afterCount);
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(report);
+      return true;
+    }
+  } catch (err) {
+    console.error("Failed to copy log around error:", err);
+  }
+  return false;
+}

@@ -498,6 +498,7 @@ This document serves as the master catalog and directory of all repository docum
 | `scripts/verify-learning-goals-unfold-eligible-records.ts`   | Learning Goals Unfoldable Eligible Records Verification (Task 395, P179)         | Verifies `getEligibleLanguageRecords` helper, single-source stats parity, and unfoldable 2-column table rendering matching default language text. |
 | `scripts/verify-king-of-comma-and-mother-tongue.ts`         | King of Comma & Mother Tongue Verification (Task 396, Prompt 180)                | Verifies `resolveKingOfComma` highest-comma base selection, `mother-tongue-language` generation acting as `default-language`, UI badges in `#switchable-default-subtitles-bar`, and mode parity. |
 | `scripts/verify-floating-menu-third-option-tts-play.ts`     | Floating Menu 3rd Option TTS-Play Verification (Task 398, Prompt 184)            | Verifies 3rd dropdown option `menu-option-tts-play` enabled by default (`isTtsPlayEnabled = true`), explanation drawer, `autoPlayTTS` persistence, playback gating, and Storybook coverage. |
+| `scripts/verify-same-components-parity-policy.ts`          | Same Components Policy Parity Verification (Task 263 Later 2, Prompt 186)        | Enforces AGENTS.md Same Components Policy (Only Order Differs) and verifies all 16 shared component blocks are active across both Beginner and Advanced modes. |
 
 
 

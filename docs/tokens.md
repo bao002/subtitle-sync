@@ -4,6 +4,12 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 190 (Tasks 399, 400, 401: Log Error Copy Modes, Listening Game Mode, & TTS-Play History Stage):
+  - Task 399 [ACTIVE]: Log Element — on error, allow copying only the error log or only the log around the error (not all logs).
+  - Task 400 [PENDING]: Game Mode — add listening game (with/without translations) for subtitles' words (min letters) and punctuation sentences (max X words).
+  - Task 401 [PENDING]: History Stage — view list of TTS-play history (sentence played, translation used, timestamp, video) for debugging/reproducing behavior.
+- Prompt 186 (Task 263 Later 2: Executable Later Tasks Only — Enforce Same Components Policy in AGENTS.md & Parity Audit):
+  - Task 263 (Later 2) [COMPLETED & VERIFIED]: Formalized "Same Components Policy (Only Order Differs)" between Beginner & Advanced modes in `AGENTS.md`, verified all 16 shared component blocks across both modes via `scripts/verify-same-components-parity-policy.ts` (integrated as check 22/22 in `verify-agents-all.ts`), cleaned up stale `Task 224` in `docs/later.md`, bumped version to `v2.1.106` (`code: 20206`), and skipped hardware/external/user-review blocked later items.
 - Prompt 183 (Hotfix: Verify bun install & Full Post-Recovery Build/Lint/Test Validation):
   - Hotfix [COMPLETED & VERIFIED]: Verified `bun install` exits cleanly (`EXIT=0`, 700 installs across 831 packages), ran full post-recovery `compile_applet`, `lint_applet`, `npx tsc --noEmit`, `test:stage-click-view-visibility`, `test:video-stage-visibility-no-word-game`, `test:vite-reload-modules`, and `test:agents-all`.
 - Prompt 182 (Hotfix: Diagnostic Fix-It Check, Stage Click Visibility Test Alignment & Dev Server Clean State):

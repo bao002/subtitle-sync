@@ -6,11 +6,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 _(No active tasks pending. See `## Later Tasks` below or wait for next user prompt.)_
 
-
 ## Later Tasks
-
-- [ ] **Task 263 (Later 2): AGENTS.md - Enforce same components policy (beginner & advance mode) - only the order differ**
-  - Formalize rule in AGENTS.md and codebase architecture requiring absolute UI component parity between Beginner and Advanced modes where every feature/panel is composed of identical component blocks and differs strictly in sequence/order.
 
 - [ ] **Task 234: Capture authentic shared-video subtitle E2E**
   - Retry only from a runtime/network where the YouTube embed is permitted to play. The current Docker attempt loaded 126 authentic Hebrew caption sections and non-empty Italian on-demand translations, but YouTube displayed “Sign in to confirm you're not a bot,” so there is no authentic video playback screencast. Do not substitute mock or illustrative footage.

@@ -32,7 +32,7 @@ const meta: Meta<typeof FloatingErrorButton> = {
     docs: {
       description: {
         component:
-          "Draggable floating button that dynamically surfaces application errors rising in real-time with error count badge and inspectable modal.",
+          "Draggable floating button that dynamically surfaces application errors rising in real-time with error count badge, Copy Error Only, Copy Around Error, and inspectable modal.",
       },
     },
   },
