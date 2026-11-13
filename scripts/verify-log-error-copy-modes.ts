@@ -10,7 +10,7 @@ import {
   copyLogAroundErrorToClipboard,
 } from "../src/utils/logBuffer";
 
-console.log("=== Verifying Task 399: Log Element Error Copy Modes (Error Only & Around Error) ===");
+console.log("=== Verifying Task 400: Log Element Error Copy Modes (Error Only & Around Error) ===");
 
 logBuffer.clear();
 
@@ -105,5 +105,16 @@ assert.ok(floatingErrorSrc.includes("btn-copy-around-error-"));
 assert.ok(floatingErrorSrc.includes("copyErrorOnlyToClipboard"));
 assert.ok(floatingErrorSrc.includes("copyLogAroundErrorToClipboard"));
 
+const stateMachineLogSrc = fs.readFileSync(
+  path.resolve("src/components/StateMachineActionLogsInspector.tsx"),
+  "utf-8",
+);
+assert.ok(stateMachineLogSrc.includes('data-testid="state-machine-copy-error-only-button"'));
+assert.ok(stateMachineLogSrc.includes('data-testid="state-machine-copy-around-error-button"'));
+assert.ok(stateMachineLogSrc.includes("state-machine-copy-error-only-"));
+assert.ok(stateMachineLogSrc.includes("state-machine-copy-around-error-"));
+assert.ok(stateMachineLogSrc.includes("copyErrorOnlyToClipboard"));
+assert.ok(stateMachineLogSrc.includes("copyLogAroundErrorToClipboard"));
+
 console.log("✔ UI components expose Copy Error Only and Copy Around Error buttons on errors.");
-console.log("=== Task 399 Verification PASSED ===");
+console.log("=== Task 400 Verification PASSED ===");

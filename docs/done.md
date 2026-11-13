@@ -1,5 +1,108 @@
 # Done tasks
 
+### Task 403 (Prompt 193): Game View — List TTS-Play Trigger Fix, Guided Wizard Menu & Empty-Content Guard (`v2.1.111`)
+
+- **Prompt**:
+  ```
+  game view - 
+  1. the button doesnt trigger tts-play for the list
+  2. in general - should take the user through menu or wizard and make it easy to engage with. - dont present empty game - a game without content !
+  ```
+- **Changes**:
+  - **Root cause #1 fixed (`src/routes/index.tsx` + `ListeningGamePanel.tsx`)**: `handleSpeakTextFromAlternativeView` previously invoked `speak(...)` without returning its `Promise<void>`, causing `Listen All` (`listening-play-all-words-btn` / `listening-play-all-sentences-btn`) to resolve immediately across all items simultaneously. Updated `handleSpeakTextFromAlternativeView` to return `speak(...)` (plus synchronous `window.speechSynthesis?.resume()` unlock when paused), added `handleCancelAlternativeSpeech` (`onStopSpeaking`), added `onStopSpeakingRef` unmount cancellation in `ListeningGamePanel.tsx`, tracked live `playingProgress` (`Stop (X/Y)`), skipped identical duplicate base/translation speech, and guarded per-utterance errors cleanly.
+  - **Root cause #2 fixed (`src/routes/index.tsx` + `WordBalloonLearningView.tsx` + `ListeningGamePanel.tsx`)**:
+    - Defaulted `currentAlternativeSentence`, `currentAlternativeTranslation`, and `activeRowIndex` to row `0` when `rows.length > 0` even before video playback begins (`active === -1`), plus component-level fallback to `subtitleRows[0]`.
+    - Added Empty-Content Guard (`data-testid="game-empty-content-wizard"`) blocking empty game boards when zero subtitles are loaded, offering `[Fixture] Load Sample Subtitles (L2Ryrr6txwA)` (`data-testid="game-load-sample-fixture-btn"`, wired via `handleLoadSampleSubtitlesForGame` in both Beginner & Advanced `<WordBalloonLearningView>`) and `Back to Video & Load Captions` (`data-testid="game-empty-back-to-video-btn"`).
+    - Added guided Game Menu / Wizard (`data-testid="game-wizard-menu"`) presenting Step 1 ready content/language summary and Step 2 activity cards (`wizard-card-listening-game`, `wizard-card-sentence-builder`, `wizard-card-word-match`, `wizard-card-missing-word`, `wizard-card-word-balloons`, `wizard-card-canvas-fullscreen`) with item readiness counts, `wizard-quick-start-btn`, and `game-back-to-menu-btn`.
+    - Added initial auto-fit adjustment and 1-click filter recovery (`listening-autofit-words-btn` / `listening-autofit-sentences-btn`) in `ListeningGamePanel.tsx` so short words or long sentences never produce dead empty lists.
+  - **Storybook & Verification**: Updated `src/components/WordBalloonLearningView.stories.tsx` (`GuidedWizardMenu`, `EmptyContentWizard`, async `onSpeakText`) and `src/storybook/StorybookWorkbench.tsx`; created `scripts/verify-game-view-tts-wizard-no-empty.ts` (`"test:game-view-tts-wizard"` in `package.json`), documented in `docs/files.md`, and bumped version to `v2.1.111` (`code: 20211`) via `npm run sync-version`.
+- **Verification**:
+  - `npm run test:game-view-tts-wizard`, `npm run test:listening-game-mode`: **PASSED**.
+  - `npm run test:same-components-parity-policy`, `npm run test:video-stage-visibility-no-word-game`: **PASSED**.
+  - `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md` (68 files, 0 duplicates), `npm run check-version` (`2.1.111`): **PASSED**.
+  - `npx tsc --noEmit`, `compile_applet`, & `lint_applet`: **PASSED**.
+
+### Task 402 (Prompt 192, Chapter 3): History Stage — TTS-Play History Viewer & Reproduction (`v2.1.110`)
+
+- **Prompt**:
+  ```
+  history stage -
+  allow to view the list of tts-play history (which sentence was played to the user and which translation used and when it happened and on which video and when)[this should help to debug/reproduce application behaviour]
+  ```
+- **Changes**:
+  - Created `src/utils/ttsPlayHistory.ts` (`yt_tts_play_history_v1` `localStorage` persistence, `useSyncExternalStore`-safe `getTtsPlayHistorySnapshot` / `subscribeToTtsPlayHistory`, `recordTtsPlayHistory`, `clearTtsPlayHistory`, `formatVideoTimestampSec`, and `formatTtsPlayHistoryDebugReport`).
+  - Created `src/components/TtsPlayHistoryPanel.tsx` (`data-testid="tts-play-history-panel"`) displaying timestamp (`when`), video title & ID (`videoId @ M:SS`), row index, sentence played, spoken segment, translation language & translation text used, source & TTS provider, searchable filter, All Videos vs current-video scope toggle, Copy Debug Report button, Clear button, Replay button, and Go to Video button.
+  - Created Storybook story `src/components/TtsPlayHistoryPanel.stories.tsx` (`PopulatedHistory`, `EmptyState`) and added `"tts_history"` catalog tab & preview in `src/storybook/StorybookWorkbench.tsx`.
+  - Exposed shared `<TtsPlayHistoryPanel>` cleanly in BOTH modes per `AGENTS.md` Same Components Policy:
+    - **Advanced Mode**: Dedicated Stage 6 (`id="stage-step-history"`, `currentAccordionStage === 6`, `data-testid="advanced-history-stage-container"`).
+    - **Beginner Mode**: `historyStageSlot` via `BeginnerFlowContainer.tsx` -> `BeginnerVideoTab.tsx` (`data-testid="beginner-history-stage-toggle"` & `data-testid="beginner-history-stage-section"`).
+  - Hooked `recordTtsPlayHistory(...)` across all TTS playback call sites in `src/routes/index.tsx`: `handleSpeakCue` (table cues & zero-knowledge), `handleSpeakTextFromAlternativeView` (Alternative View, Word Game & Listening Game), and the main section playback loop (`auto_playback` & `zero_knowledge`).
+  - Added `TtsPlayHistoryPanel` to `AGENTS.md` (`Same Components Policy`), `scripts/verify-same-components-parity-policy.ts`, created `scripts/verify-tts-play-history-stage.ts`, registered `"test:tts-play-history-stage"` in `package.json`, documented in `docs/files.md`, and bumped version to `v2.1.110` (`code: 20210`) via `npm run sync-version`.
+- **Verification**:
+  - `npm run test:tts-play-history-stage`: **PASSED**.
+  - `npm run test:same-components-parity-policy` (17/17 shared components): **PASSED**.
+  - `npm run test:stage-click-view-visibility`, `npm run test:video-stage-visibility-no-word-game`, `npm run test:design-preservation`: **PASSED**.
+  - `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md` (68 files, 0 duplicates), `npm run check-version` (`2.1.110`): **PASSED**.
+  - `compile_applet` & `lint_applet`: **PASSED**.
+
+### Task 401 (Prompt 192, Chapter 2): Game Mode — Listening Game (With/Without Translations, Words & Sentences) (`v2.1.109`)
+
+- **Prompt**:
+  ```
+  game mode -
+  add a game: allow to listen with/without the translations:
+  list of subtitles' words (allow to set minimum number of letters in a word)
+  2.list of subtitles' sentences (punctuation based sentences with up to X words)(allow to set max number of words in a sentence)
+  ```
+- **Changes**:
+  - Created `src/utils/listeningGame.ts` providing pure extraction utilities: `extractListeningWords` (Unicode letter counting `countWordLetters`, `sanitizeListeningWord`, configurable `minLetters` filter, case-insensitive deduplication) and `extractListeningSentences` (`splitTextIntoPunctuationSentences` respecting paired quotes/parentheses, `countSentenceWords`, configurable `maxWords` limit X, and aligned translation pairing).
+  - Created `src/components/ListeningGamePanel.tsx` and Storybook story `src/components/ListeningGamePanel.stories.tsx` (also wired into `src/storybook/StorybookWorkbench.tsx` as `listening_game`), supporting **With Translations / Without Translations** mode switch, **List 1 (Subtitles' Words)** with `Min letters` stepper/input and "Listen" / "Listen All", and **List 2 (Punctuation Sentences)** with `Max words (X)` stepper/input and "Listen" / "Listen All".
+  - Integrated `"listening_game"` into `WordBalloonLearningView.tsx` (`data-testid="game-mode-listening-game"`, automatically hiding Section 3's target translation card when listening without translations) and added `ListeningGame` story in `WordBalloonLearningView.stories.tsx`.
+  - Preserved 100% Beginner/Advanced parity since both modes render `<WordBalloonLearningView ... subtitleRows={rows} />`.
+  - Added dedicated verification suite `scripts/verify-listening-game-mode.ts`, registered `"test:listening-game-mode"` in `package.json`, documented all files in `docs/files.md`, and bumped version to `v2.1.109` (`code: 20209`) via `npm run sync-version`.
+- **Verification**:
+  - `npm run test:listening-game-mode`: **PASSED**.
+  - `npm run test:video-stage-visibility-no-word-game` & `npm run check-version` (`2.1.109`): **PASSED**.
+  - `compile_applet` & `lint_applet`: **PASSED**.
+
+### Task 400 (Prompt 192, Chapter 1): Log Element Error Copy Modes (`v2.1.108`)
+
+- **Prompt**:
+  ```
+  log element -
+  on error -
+  allow to copy only the error log
+  allow to copy only the log around the error (not all logs)
+  ```
+- **Changes**:
+  - Verified `src/utils/logBuffer.ts` (`formatOnlyErrorLogs`, `formatLogAroundError`, `copyErrorOnlyToClipboard`, `copyLogAroundErrorToClipboard`), `src/components/BottomLogViewer.tsx` (`bottom-log-copy-error-only-btn`, `bottom-log-copy-around-error-btn`, per-error buttons), and `src/components/FloatingErrorButton.tsx` (`copy-error-only-clipboard-btn`, `copy-around-error-clipboard-btn`, per-error buttons).
+  - Updated `src/components/StateMachineActionLogsInspector.tsx` to also expose header and per-error row `"Copy Error Only"` (`state-machine-copy-error-only-button` / `state-machine-copy-error-only-${entry.id}`) and `"Copy Around Error"` (`state-machine-copy-around-error-button` / `state-machine-copy-around-error-${entry.id}`) controls when error records are present.
+  - Extended `scripts/verify-log-error-copy-modes.ts` to assert all three log viewer components (`BottomLogViewer`, `FloatingErrorButton`, `StateMachineActionLogsInspector`) plus exact window-slice and error-only formatting; documented in `docs/files.md`; bumped version to `v2.1.108` (`code: 20208`) via `npm run sync-version`.
+- **Verification**:
+  - `npm run test:log-error-copy-modes`: **PASSED**.
+  - `npm run test:state-machine-log-actions-copy-clear`: **PASSED**.
+  - `npm run check-version` (`2.1.108`, code `20208`): **PASSED**.
+  - `compile_applet` & `lint_applet`: **PASSED**.
+
+### Task 399 (Prompt 190 / Prompt 191): Keep `localStorage` Data Between Android Installations (`v2.1.107`)
+
+- **Prompt**:
+  ```
+  1. keep the localstorge data between android installations
+  ```
+- **Changes**:
+  - Updated `update.apk.sh` and `install-apk.sh` to attempt in-place APK upgrades (`install -r -d -t`) without unconditional upfront `pm clear` or `adb uninstall`, while backing up and restoring `files/localstorage_backup.json` via `adb run-as` (`backup_local_storage_data` / `restore_local_storage_data`) whenever signature or version downgrade collisions force `deep_purge_package`.
+  - Added Android Auto Backup rule files `android-shell/app/src/main/res/xml/backup_rules.xml` (API <= 30) and `android-shell/app/src/main/res/xml/data_extraction_rules.xml` (API 31+) preserving `sharedpref`, `filesDir`, and `app_webview` while excluding ephemeral `app_updates` and caption caches, and wired `android:fullBackupContent`, `android:dataExtractionRules`, and `android:requestLegacyExternalStorage="true"` in `android-shell/app/src/main/AndroidManifest.xml`.
+  - Added native backup/restore persistence in `android-shell/app/src/main/java/com/ytviewer/app/MainActivity.kt` (`persistLocalStorageSnapshot`, `loadBestLocalStorageSnapshot`, `onPause()` JS flush, and `@JavascriptInterface` `saveLocalStorageBackup` + `readLocalStorageBackup`) using `SharedPreferences`, atomic `filesDir/localstorage_backup.json` writes, and best-effort external `Documents/YouTubeViewer/localstorage_backup.json` mirroring (using Kotlin 1.9-compatible `catch (ignored: Exception)` blocks).
+  - Created `src/lib/android-local-storage.ts` (`parseLocalStorageBackupJson`, `serializeStorageToSnapshotJson` prioritizing `yt_app_settings*`/`yt_vsettings_*` keys, `restoreStorageFromBackupJson`, `flushAndroidLocalStorageBackup`, and `setupAndroidLocalStoragePersistence`), invoked synchronously in `src/client.tsx` before `getRouter()` and typed on `Window.AndroidNativeShell` in `src/types.ts`.
+  - Added dedicated verification suite `scripts/verify-android-localstorage-persistence.ts`, registered `"test:android-localstorage-persistence"` in `package.json`, and updated `docs/files.md`.
+- **Verification**:
+  - `npm run test:android-localstorage-persistence` (unit tests + static native/manifest/script contracts): **PASSED**.
+  - `npm run test:android-loading`, `npm run test:apk-installable`, `npm run test:android-share-e2e`, `npm run test:youtube-share-intent`, `npm run test:mainactivity-scope`: **PASSED**.
+  - `npm run check-version` (`v2.1.107`, code `20207`), `npm run test:no-duplicate-md` (68 files, 0 duplicates), `npm run test:agents-all` (22/22): **PASSED**.
+  - `bash -n update.apk.sh && bash -n install-apk.sh`: **PASSED**.
+  - `compile_applet` (Vite build + `sync-android-assets`) & `lint_applet`: **PASSED**.
+
 ### Task 263 (Later 2, Prompt 186): Enforce Same Components Policy (Beginner & Advanced Mode — Only Order Differs) (`v2.1.106`)
 
 - **Prompt**:

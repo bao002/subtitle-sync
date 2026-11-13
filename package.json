@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.107",
+  "version": "2.1.111",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -18,7 +18,10 @@
     "coverage": "npm run test:coverage",
     "sync-version": "tsx scripts/sync-version.ts",
     "check-version": "tsx scripts/sync-version.ts --check",
+    "test:game-view-tts-wizard": "tsx scripts/verify-game-view-tts-wizard-no-empty.ts",
     "test:log-error-copy-modes": "tsx scripts/verify-log-error-copy-modes.ts",
+    "test:listening-game-mode": "tsx scripts/verify-listening-game-mode.ts",
+    "test:tts-play-history-stage": "tsx scripts/verify-tts-play-history-stage.ts",
     "test:same-components-parity-policy": "tsx scripts/verify-same-components-parity-policy.ts",
     "test:video-stage-visibility-no-word-game": "tsx scripts/verify-video-stage-visibility-no-word-game.ts",
     "test:king-of-comma-mother-tongue": "tsx scripts/verify-king-of-comma-and-mother-tongue.ts",
@@ -408,6 +411,7 @@
     "test:simplified-design-and-reduced-text": "tsx scripts/verify-simplified-design-and-reduced-text.ts",
     "test:elevated-design": "tsx scripts/verify-elevated-frontend-design.ts",
     "test:error-report-diagnostics": "tsx scripts/verify-error-report-diagnostics-and-state-provider.ts",
+    "test:android-localstorage-persistence": "tsx scripts/verify-android-localstorage-persistence.ts",
     "test:android": "bash scripts/run-android-e2e.sh"
   },
   "overrides": {

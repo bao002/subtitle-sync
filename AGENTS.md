@@ -23,7 +23,7 @@ The application processes and presents subtitles through a strict sequential pip
 
 ### Absolute Parity Rule Between Advanced and Beginner Modes:
 - Shared behavior, settings, bug fixes, and processing rules **MUST BE 100% IDENTICAL** across both Advanced Mode and Beginner Mode through the same component or source of truth.
-- **Same Components Policy (Only Order Differs)**: Every feature/panel across Beginner and Advanced modes MUST render identical shared UI component blocks (`SpecialCharactersRemovalPanel`, `SubtitlesTablePanel`, `NewSubtitlesParserBar`, `GlobalFavoriteLanguagesPanel`, `LearningGoalsFiltersPanel`, `PerformanceModeSettingsPanel`, `LanguageBoxesSelector`, `VideoPlaybackControls`, `SwitchableDefaultSubtitlesBar`, `LanguageRatioCompositionSelector`, `TtsFallbackOrderSwitch`, `CriticalCaptionsAlert`, `AlternativeVideoPlayerView`, `WordBalloonLearningView`, `VideoLibraryPanel`, `WebDemoUrlsInput`) and differ strictly in layout/sequence order — never by duplicating divergent UI/logic.
+- **Same Components Policy (Only Order Differs)**: Every feature/panel across Beginner and Advanced modes MUST render identical shared UI component blocks (`SpecialCharactersRemovalPanel`, `SubtitlesTablePanel`, `NewSubtitlesParserBar`, `GlobalFavoriteLanguagesPanel`, `LearningGoalsFiltersPanel`, `PerformanceModeSettingsPanel`, `LanguageBoxesSelector`, `VideoPlaybackControls`, `SwitchableDefaultSubtitlesBar`, `LanguageRatioCompositionSelector`, `TtsFallbackOrderSwitch`, `CriticalCaptionsAlert`, `AlternativeVideoPlayerView`, `WordBalloonLearningView`, `VideoLibraryPanel`, `WebDemoUrlsInput`, `TtsPlayHistoryPanel`) and differ strictly in layout/sequence order — never by duplicating divergent UI/logic.
 - **Parallel UI & Accordion Ordering**: The Special Characters Removal (Chars Removal) feature MUST be present in Advanced Mode as a dedicated accordion section, providing full functional parity with Beginner Mode. In BOTH Advanced Mode and Beginner Mode, the Chars Removal section/accordion MUST strictly appear BEFORE the Parser (Sentence Splitting) section/accordion, adhering directly to the pipeline sequence (Stage 3 Chars Removal precedes Stage 4 Parser).
 
 ### State Preservation Across Modes and Stages
@@ -129,6 +129,12 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-ok
-```
+it doesnt tts-play the list of words of the game
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div#word-balloon-learning-view:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)
+CSS 1: {
 
+}
+[AIS_METADATA_SECTION_END]
+```

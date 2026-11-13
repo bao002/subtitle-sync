@@ -1,9 +1,15 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: [COMPLETED] — No active subtasks remaining.
-- **Active Task**: None (Task 263 (Later 2) completed and migrated to `docs/done.md`; remaining items in `docs/tasks.md` `## Later Tasks` require external hardware/network/credentials or user review).
-- **Active Step**: Complete.
+- **Status**: [ACTIVE]
+- **Active Task**: Task 404 (Prompt 194 — Fix Game View Words List TTS-Play Trigger & Fallback Chain)
+- **Active Step**: Subtask 404.1 — Diagnose & reproduce real-browser failure on `listening-play-all-words-btn`
+- **Upcoming**: Subtask 404.2 (Fix TTS list playback & fallback chain), Subtask 404.3 (Browser & automated verification + version bump)
 - **Completed**:
+  - Task 403 (Prompt 193): Game View List TTS-Play Fix, Guided Wizard Menu & Empty-Content Guard (`v2.1.111`)
+  - Task 402 (Prompt 192 Chapter 3): History Stage — TTS-Play History Viewer & Reproduction (`v2.1.110`)
+  - Task 401 (Prompt 192 Chapter 2): Game Mode Listening Game with/without translations, min-letters words & max-words punctuation sentences (`v2.1.109`)
+  - Task 400 (Prompt 192 Chapter 1): Log Element Error Copy Modes across `BottomLogViewer`, `FloatingErrorButton`, and `StateMachineActionLogsInspector` (`v2.1.108`)
+  - Task 399 (Prompt 190 / Prompt 191): Keep `localStorage` Data Between Android Installations (`v2.1.107`)
   - Task 263 (Later 2, Prompt 186): Formalize Same Components Policy (Beginner & Advanced Mode — Only Order Differs) in `AGENTS.md`, verify 16 shared component blocks across both modes via `scripts/verify-same-components-parity-policy.ts`, clean up stale `Task 224` in `docs/later.md` (`v2.1.106`)
   - Task 398 (Prompt 181 Chapter 2 / Prompt 184): Add 3rd Option (`menu-option-tts-play`) to Toggle TTS-Play (Enabled by Default, `v2.1.105`)
   - Hotfix (Prompt 183): Verified `bun install` (`EXIT=0`) & Post-Recovery Full Build/Lint/Test Validation

@@ -2436,3 +2436,62 @@ go on do the later after presenting and ask to procceed
 ok
 ```
 
+---
+
+### Prompt 190: Keep localStorage Data Between Android Installations (Task 399)
+```
+1. keep the localstorge data between android installations
+```
+
+---
+
+### Prompt 191: Go On (Complete & Verify Task 399)
+```
+go on
+```
+
+---
+
+### Prompt 192: Log Element Error Copy Modes, Game Mode Listening Game & History Stage TTS-Play History
+```
+log element -
+on error -
+allow to copy only the error log
+allow to copy only the log around the error (not all logs)
+game mode -
+add a game: allow to listen with/without the translations:
+list of subtitles' words (allow to set minimum number of letters in a word)
+2.list of subtitles' sentences (punctuation based sentences with up to X words)(allow to set max number of words in a sentence)
+history stage -
+allow to view the list of tts-play history (which sentence was played to the user and which translation used and when it happened and on which video and when)[this should help to debug/reproduce application behaviour]
+```
+
+---
+
+### Prompt 193: Game View List TTS-Play Trigger Fix, Guided Wizard Menu & Empty-Content Guard
+```
+game view - 
+1. the button doesnt trigger tts-play for the list
+2. in general - should take the user through menu or wizard and make it easy to engage with. - dont present empty game - a game without content !
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div#word-balloon-learning-view:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 194: Game View Words List TTS-Play Trigger & Playback Reliability
+```
+it doesnt tts-play the list of words of the game
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div#word-balloon-learning-view:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > section:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2) > button:nth-of-type(1)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
