@@ -29,7 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { RTL } from "@/lib/subtitles";
 import { CanvasBalloonGame } from "@/components/CanvasBalloonGame";
-import { ListeningGamePanel } from "@/components/ListeningGamePanel";
+import { ListeningGamePanel, type ListeningSpeakOptions } from "@/components/ListeningGamePanel";
 import { extractListeningSentences, extractListeningWords } from "@/utils/listeningGame";
 
 export type LearningGameMode =
@@ -66,8 +66,14 @@ export interface WordBalloonLearningViewProps {
   onNextSentence?: () => void;
   /** Replay / Restart sentence callback */
   onReplaySentence?: () => void;
+  /** Configured per-language TTS speeds */
+  configuredRates?: Record<string, number>;
   /** TTS speech synthesis callback */
-  onSpeakText?: (text: string, langCode: string) => void | Promise<void>;
+  onSpeakText?: (
+    text: string,
+    langCode: string,
+    options?: ListeningSpeakOptions,
+  ) => void | Promise<void>;
   /** Cancel active/queued TTS speech callback */
   onStopSpeaking?: () => void;
   /** Load explicitly labelled [Fixture] sample subtitles when game has no content */
@@ -317,6 +323,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   onPrevSentence,
   onNextSentence,
   onReplaySentence,
+  configuredRates,
   onSpeakText,
   onStopSpeaking,
   onLoadSampleSubtitles,
@@ -1781,6 +1788,8 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
             baseLanguageName={baseLanguageName}
             targetLanguage={targetLanguage}
             targetLanguageName={targetLanguageName}
+            availableLanguages={availableTargetLanguages}
+            configuredRates={configuredRates}
             onSpeakText={onSpeakText}
             onStopSpeaking={onStopSpeaking}
             initialWithTranslations={listeningWithTranslations}

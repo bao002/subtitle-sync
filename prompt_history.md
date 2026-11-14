@@ -2558,3 +2558,33 @@ error 3: 11:58:20 PM [vite] (client) hmr update /src/styles.css, /src/components
 ```
 go on
 ```
+
+---
+
+### Prompt 200: Hotfix — Vite Startup Pre-Transform Race & Clean Dev Server Verification
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 12:38:59 AM [vite] (client) Pre-transform error: Failed to load url /src/utils/componentOptimizationService.ts (resolved id: /app/applet/src/utils/componentOptimizationService.ts) in /app/applet/src/components/BottomLogViewer.tsx. Does the file exist?
+error 1: 12:39:00 AM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+error 2: 12:39:01 AM [vite] (client) Pre-transform error: Failed to load url /src/utils/componentOptimizationService.ts (resolved id: /app/applet/src/utils/componentOptimizationService.ts) in /app/applet/src/components/BottomLogViewer.tsx. Does the file exist?
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 201: Listening Game Enhancements (Languages & Order, Word Sorting, TTS Speed Override & "Both" Playback Fix)
+```
+1.  allow to set the list of languages to listen to & their order.
+2. allow to sort the list of words by order of alphabet or by size of word or by length of sentence in terms of number of words.
+3. allow to set tts-play speed to override the configured one
+4. clicking on "both" doesnt trigger listening to both words and their sentences.
+```
+
+---
+
+### Prompt 202: Go On — Complete Task 413 Verification/Archival & Execute Task 409
+```
+go on. it said "feat(listening-game): implement features for prompt 201"
+```

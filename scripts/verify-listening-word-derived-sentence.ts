@@ -48,13 +48,16 @@ function runUnitAndSourceChecks() {
   console.log("✔ splitSentenceHighlightParts unit checks passed.");
 
   // 2. Source invariants in ListeningGamePanel.tsx
-  const panelSrc = fs.readFileSync(path.resolve("src/components/ListeningGamePanel.tsx"), "utf-8");
+  const panelSrc = fs
+    .readFileSync(path.resolve("src/components/ListeningGamePanel.tsx"), "utf-8")
+    .replace(/\s+/g, " ");
   assert.ok(
     panelSrc.includes("splitSentenceHighlightParts") &&
       panelSrc.includes("data-testid={`listening-word-source-sentence-${idx}`}") &&
       panelSrc.includes("data-testid={`listening-play-word-sentence-${idx}`}") &&
       panelSrc.includes("handlePlayWordSentence") &&
-      panelSrc.includes("speakSingleEntry(item.sourceSentence, item.sourceTranslation"),
+      (panelSrc.includes("speakSingleEntry( item.sourceSentence, item.sourceTranslation") ||
+        panelSrc.includes("speakSingleEntry(item.sourceSentence, item.sourceTranslation")),
     "ListeningGamePanel must render highlighted item.sourceSentence and wire Play Sentence (+ translation)",
   );
   console.log("✔ Source invariants in ListeningGamePanel.tsx verified.");
@@ -213,7 +216,10 @@ async function runChromiumE2E() {
     const sourceTransEl = page.getByTestId(`listening-word-translation-${cardIdx}`);
     await sourceTransEl.waitFor({ state: "visible", timeout: 5000 });
     const sourceTransText = ((await sourceTransEl.textContent()) || "").trim();
-    assert.ok(sourceTransText.length > 0, "Expected derived sentence translation when With Translations is active");
+    assert.ok(
+      sourceTransText.length > 0,
+      "Expected derived sentence translation when With Translations is active",
+    );
     console.log(
       `✔ Card #${cardIdx} displays derived sentence '${sourceSentenceText}' (<mark>${markText}</mark>) + translation '${sourceTransText}'.`,
     );
@@ -223,7 +229,8 @@ async function runChromiumE2E() {
     await page.waitForFunction(
       () => {
         const log =
-          (window as unknown as { __MOCK_SPOKEN_LOG__?: Array<{ text: string }> }).__MOCK_SPOKEN_LOG__ || [];
+          (window as unknown as { __MOCK_SPOKEN_LOG__?: Array<{ text: string }> })
+            .__MOCK_SPOKEN_LOG__ || [];
         return log.length >= 2;
       },
       undefined,
@@ -245,20 +252,25 @@ async function runChromiumE2E() {
       sourceTransText,
       `Expected derived sentence translation '${sourceTransText}' spoken second, got ${JSON.stringify(spokenLog)}`,
     );
-    console.log("✔ Clicking Sentence button played derived original sentence followed by its translation.");
+    console.log(
+      "✔ Clicking Sentence button played derived original sentence followed by its translation.",
+    );
 
     // Switch to Without Translations: original sentence remains visible; translation hides; Play Sentence plays base only
     await page.getByTestId("listening-without-translations-btn").click();
     assert.equal(await sourceSentenceEl.isVisible(), true);
     assert.equal(await sourceTransEl.count(), 0);
     await page.evaluate(() => {
-      (window as unknown as { __MOCK_SPOKEN_LOG__: Array<{ text: string }> }).__MOCK_SPOKEN_LOG__.length = 0;
+      (
+        window as unknown as { __MOCK_SPOKEN_LOG__: Array<{ text: string }> }
+      ).__MOCK_SPOKEN_LOG__.length = 0;
     });
     await page.getByTestId(`listening-play-word-sentence-${cardIdx}`).click();
     await page.waitForFunction(
       () => {
         const log =
-          (window as unknown as { __MOCK_SPOKEN_LOG__?: Array<{ text: string }> }).__MOCK_SPOKEN_LOG__ || [];
+          (window as unknown as { __MOCK_SPOKEN_LOG__?: Array<{ text: string }> })
+            .__MOCK_SPOKEN_LOG__ || [];
         return log.length >= 1;
       },
       undefined,
@@ -266,7 +278,8 @@ async function runChromiumE2E() {
     );
     await page.waitForTimeout(260);
     const spokenNoTrans = await page.evaluate(
-      () => (window as unknown as { __MOCK_SPOKEN_LOG__: Array<{ text: string }> }).__MOCK_SPOKEN_LOG__,
+      () =>
+        (window as unknown as { __MOCK_SPOKEN_LOG__: Array<{ text: string }> }).__MOCK_SPOKEN_LOG__,
     );
     assert.equal(spokenNoTrans.length, 1, "Without Translations must play original sentence only");
     assert.equal(spokenNoTrans[0]?.text.trim(), sourceSentenceText);

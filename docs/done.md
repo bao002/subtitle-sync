@@ -1,5 +1,79 @@
 # Done tasks
 
+### Task 409 (Prompt 197, Chapter 4): Listening Game — UI/UX Space Optimization on Word Cards (`v2.1.116`)
+
+- **Prompt**: `4. make good ui/ux decision to properly use the space`
+- **Changes**:
+  - Updated `src/components/ListeningGamePanel.tsx`: structured each word card (`listening-word-item-*`) into two clear bands (`listening-word-band-*` for word + primary on-demand translation + multi-language translations + right-rail `Listen` button; `listening-word-sentence-band-*` for non-truncated derived original sentence with inline `<mark>` word highlight + `Xw` word-count pill + sentence translation + equal-width right-rail `Sentence` button), and expanded both `listening-words-list` and `listening-sentences-list` height from `max-h-72` to `max-h-[26rem]` for comfortable scanning without re-introducing `{item.letterCount} letters`.
+  - Added dedicated verification suite `scripts/verify-listening-word-cards-ui-ux.ts` (`"test:listening-word-cards-ui-ux"` in `package.json`, documented in `docs/files.md`), bumped version to `v2.1.116` (`code: 20216`), and synced `android-shell/app/build.gradle.kts`.
+- **Verification**: `npm run sync-version`, `npx tsc --noEmit`, `npx eslint src/components/ListeningGamePanel.tsx scripts/verify-listening-word-cards-ui-ux.ts`, `npm run test:listening-word-cards-ui-ux` (source invariants + live Chromium bounding-box alignment, zero horizontal overflow, `max-h-[26rem]` height), `npm run test:listening-word-derived-sentence`, `npm run test:listening-word-ondemand-translation`, `npm run test:listening-both-playback`, `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md`, `compile_applet`, and `lint_applet` (git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Task 413 (Prompt 201, Chapter 4): Listening Game — Clicking "Both" Triggers Listening to Both Words and Their Sentences (`v2.1.115`)
+
+- **Prompt**: `4. clicking on "both" doesnt trigger listening to both words and their sentences.`
+- **Changes**:
+  - Updated `src/components/ListeningGamePanel.tsx`: extended `isPlayingAll` and `playingProgress.list` to support `"both"`; added `handlePlayAllBoth` to iterate sequentially through `sortedWords` (playing each word via `speakWordEntry(item, runId)` followed by its derived sentence + translation via `speakSingleEntry(item.sourceSentence, item.sourceTranslation, ...)`), with clean fallback to `filteredSentences` when `sortedWords` is empty and clean cancellation via `stopSequentialPlayback(true)`.
+  - Wired both `listening-list-both-tab` (`"Both Lists"`) and dedicated `listening-play-all-both-btn` (`"Listen Both"` / `"Stop Both"`) to synchronously call `unlockTtsAudioPlayback()`, `setActiveListFilter("both")`, and `void handlePlayAllBoth()`.
+  - Updated `scripts/verify-listening-word-derived-sentence.ts` to normalize whitespace cleanly and keep `<p data-testid="listening-word-source-sentence-*">` exact alongside sibling word-count badges.
+  - Added dedicated verification suite `scripts/verify-listening-both-playback.ts` (`"test:listening-both-playback"` in `package.json`, documented in `docs/files.md`), bumped version to `v2.1.115` (`code: 20215`), and synced `android-shell/app/build.gradle.kts`.
+- **Verification**: `npx tsc --noEmit`, `npx eslint src/components/ListeningGamePanel.tsx src/utils/listeningGame.ts src/components/ListeningGamePanel.stories.tsx`, `npm run test:listening-game-mode`, `npm run test:listening-word-derived-sentence`, `npm run test:listening-word-base-before-translation`, `npm run test:listening-word-ondemand-translation`, `npm run test:listening-words-tts-playback`, `npm run test:listening-languages-order`, `npm run test:listening-word-sorting`, `npm run test:listening-tts-speed-override`, `npm run test:listening-both-playback`, `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md`, and `npm run check-version` (git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Task 412 (Prompt 201, Chapter 3): Listening Game — TTS-Play Speed Override Control (`v2.1.114`)
+
+- **Prompt**: `3. allow to set tts-play speed to override the configured one`
+- **Changes**:
+  - Updated `src/utils/listeningGame.ts`: added `MIN_LISTENING_TTS_RATE`, `MAX_LISTENING_TTS_RATE`, `LISTENING_RATE_PRESETS`, `clampListeningTtsRate`, `resolveEffectiveListeningTtsRate`, and `localStorage` persistence (`yt_listening_game_rate_override_v1` via `loadListeningTtsRateOverride` / `saveListeningTtsRateOverride`).
+  - Updated `src/components/ListeningGamePanel.tsx`: added `ListeningSpeakOptions` (`rateOverride?: number`), `configuredRates` prop, interactive `listening-speed-override-control` bar (`listening-speed-override-toggle`, `-`/`+` steppers, numeric input `listening-speed-input`, quick presets `0.75x`–`2x`, and `Use Configured` reset button `listening-speed-reset-btn`), and forwarded `{ rateOverride: ttsRateOverride }` when active into `speakSingleEntry` and `speakWordEntry`.
+  - Updated `src/components/WordBalloonLearningView.tsx`, `src/routes/index.tsx` (`handleSpeakTextFromAlternativeView` honoring `options?.rateOverride` and passing `configuredRates={rates}` in both Beginner and Advanced modes), `src/components/ListeningGamePanel.stories.tsx`, and `src/storybook/StorybookWorkbench.tsx`.
+  - Added dedicated verification suite `scripts/verify-listening-tts-speed-override.ts` (`"test:listening-tts-speed-override"` in `package.json`, documented in `docs/files.md`).
+- **Verification**: `npx tsc --noEmit`, `npx eslint src/utils/listeningGame.ts src/components/ListeningGamePanel.tsx`, `compile_applet`, `lint_applet`, and `npm run test:listening-tts-speed-override` (unit checks + live Chromium E2E confirming configured `0.8x` vs active `1.75x` override across `SpeechSynthesisUtterance.rate` with zero errors; git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Task 411 (Prompt 201, Chapter 2): Listening Game — Sort Words by Alphabet, Word Size, or Sentence Length (`v2.1.114`)
+
+- **Prompt**: `2. allow to sort the list of words by order of alphabet or by size of word or by length of sentence in terms of number of words.`
+- **Changes**:
+  - Updated `src/utils/listeningGame.ts`: added `sourceSentenceWordCount` to `ListeningGameWordItem` (populated via `countSentenceWords(baseText)`), exported `ListeningWordSortBy` (`"default" | "alphabet" | "word_size" | "sentence_length"`), `ListeningSortDirection` (`"asc" | "desc"`), pure `sortListeningWords` helper with locale-aware alphabetical ordering, and `localStorage` persistence (`yt_listening_game_word_sort_v1`).
+  - Updated `src/components/ListeningGamePanel.tsx`: wired `wordSortBy` and `wordSortDirection` state, `sortedWords` memo (applied consistently to rendering, on-demand translation lookahead, and `Listen All` words playback), compact sort `<select data-testid="listening-words-sort-select">` and Asc/Desc direction toggle `<button data-testid="listening-words-sort-direction-btn">`, plus compact `${item.sourceSentenceWordCount}w` badge inside the derived sentence block.
+  - Added dedicated verification suite `scripts/verify-listening-word-sorting.ts` (`"test:listening-word-sorting"` in `package.json`, documented in `docs/files.md`).
+- **Verification**: `npx tsc --noEmit`, `npx eslint src/utils/listeningGame.ts src/components/ListeningGamePanel.tsx`, `compile_applet`, `lint_applet`, and `npm run test:listening-word-sorting` (unit tests + live Chromium E2E verifying alphabet, word size, and sentence length sorting in Asc/Desc with zero errors; git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Task 410 (Prompt 201, Chapter 1): Listening Game — Configurable List of Languages to Listen To & Their Order (`v2.1.114`)
+
+- **Prompt**: `1. allow to set the list of languages to listen to & their order.`
+- **Changes**:
+  - Updated `src/utils/listeningGame.ts`: added `ListeningLanguageOption`, `ListeningLanguagesConfig`, `translationsByLang` alignment across `extractListeningWords` and `extractListeningSentences`, plus `buildListeningLanguageOptions`, `reconcileListeningLanguagesConfig`, `moveListeningLanguage`, `toggleListeningLanguageEnabled`, and `localStorage` persistence (`yt_listening_game_languages_v1`).
+  - Updated `src/components/ListeningGamePanel.tsx`: added `availableLanguages` prop, interactive `listening-languages-order-panel` with per-language include/exclude toggles, `ArrowLeft`/`ArrowRight` order controls, sequence preview, and reset action; generalized word/sentence on-demand translation warming, card badges, and sequential playback (`speakWordEntry`, `speakSingleEntry`) to follow `effectivePlaybackLanguages` in exact user-configured order.
+  - Updated `src/components/WordBalloonLearningView.tsx`, `src/routes/index.tsx` (`availableAlternativeTtsLanguages` including `tracks` & `favoriteLanguages`), `src/components/ListeningGamePanel.stories.tsx`, and `src/storybook/StorybookWorkbench.tsx` for Beginner/Advanced/Storybook parity.
+  - Added dedicated verification suite `scripts/verify-listening-languages-order.ts` (`"test:listening-languages-order"` in `package.json`, cataloged in `docs/files.md`).
+- **Verification**: `npx tsc --noEmit`, `npx eslint src/components/ListeningGamePanel.tsx src/utils/listeningGame.ts`, `compile_applet`, `lint_applet`, `npm run test:listening-game-mode`, and `npm run test:listening-languages-order` (unit tests + live Chromium E2E verifying 3-language toggle, reorder, sequential TTS order, and reset with zero errors): **PASSED**.
+
+### Task 408 (Prompt 197, Chapter 3): Show Derived Original Sentence & Play Sentence + Translation on Listening Game Word Cards (`v2.1.114`)
+
+- **Prompt**: `3. show also the original sentence from which the word is derived and allow to play that sentence and its translation.`
+- **Changes**:
+  - Updated `src/utils/listeningGame.ts` (`splitSentenceHighlightParts`) and `src/components/ListeningGamePanel.tsx` to render `item.sourceSentence` with inline `<mark>` highlighting of the derived word, display `item.sourceTranslation` when `With Translations` is active, and wire `listening-play-word-sentence-${idx}` (`handlePlayWordSentence`) to speak the derived sentence followed by its translation.
+  - Added dedicated verification script `scripts/verify-listening-word-derived-sentence.ts` (`"test:listening-word-derived-sentence"` in `package.json`).
+- **Verification**: `npm run test:listening-word-derived-sentence` (unit checks + live Chromium E2E verifying highlighted `<mark>`, `With Translations` 2-utterance playback, and `Without Translations` base-only playback): **PASSED**.
+
+### Hotfix: Clear Vite Startup Pre-Transform Stale Error & Verify All Client Modules (Prompt 200, `v2.1.114`)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: 12:38:59 AM [vite] (client) Pre-transform error: Failed to load url /src/utils/componentOptimizationService.ts (resolved id: /app/applet/src/utils/componentOptimizationService.ts) in /app/applet/src/components/BottomLogViewer.tsx. Does the file exist?
+  error 1: 12:39:00 AM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+  error 2: 12:39:01 AM [vite] (client) Pre-transform error: Failed to load url /src/utils/componentOptimizationService.ts (resolved id: /app/applet/src/utils/componentOptimizationService.ts) in /app/applet/src/components/BottomLogViewer.tsx. Does the file exist?
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause**:
+  - Vite dev server started and initialized `node_modules/.vite` at `00:38:57 UTC` (`12:38:57 AM`), while workspace file synchronization updated `src/components/BottomLogViewer.tsx`, `src/components/FloatingErrorButton.tsx`, and `src/routes/index.tsx` at `00:39:00 UTC` (`12:39:00 AM`). The pre-sync transform attempt at `12:38:59`–`12:39:01 AM` logged a stale `componentOptimizationService` pre-transform error before the current files finished syncing.
+- **Changes & Verification**:
+  - Audited `src/components/BottomLogViewer.tsx` and all 200 `.ts`/`.tsx`/`.css` files under `src/` via both disk grep and live HTTP module probes against `http://localhost:3000`: 200/200 returned HTTP 200 with zero `componentOptimizationService` references and zero parse/pre-transform errors.
+  - Verified live Chromium rendering of `http://localhost:3000/` with zero console errors, zero page errors, and `FloatingErrorButton` count = 0.
+  - Restarted the Vite dev server (`restart_dev_server`) to clear the stale boot-time error buffer, and verified `npx tsc --noEmit`, `npm run test:client-pretransform-health`, `npm run test:vite-reload-modules`, `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md`, `npm run check-version`, `compile_applet`, and `lint_applet`.
+
 ### Task 407 (Prompt 197, Chapter 2): Fix Trigger Listening Dropping Base Word & Playing Only Translation (`v2.1.114`)
 
 - **Prompt**: `2. trigger listening doesnt play the word, only its translation`

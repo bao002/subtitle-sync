@@ -878,12 +878,14 @@ export const StorybookWorkbench: React.FC = () => {
                       texts: {
                         en: "Welcome to language immersion. Listen carefully!",
                         es: "Bienvenidos a la inmersión lingüística. ¡Escucha atentamente!",
+                        he: "ברוכים הבאים לטבילת השפה. הקשב היטב!",
                       },
                     },
                     {
                       texts: {
                         en: "Practice words and short sentences daily.",
                         es: "Practica palabras y frases cortas diariamente.",
+                        he: "תרגל מילים ומשפטים קצרים מדי יום.",
                       },
                     },
                   ]}
@@ -891,6 +893,12 @@ export const StorybookWorkbench: React.FC = () => {
                   baseLanguageName="English"
                   targetLanguage="es"
                   targetLanguageName="Spanish"
+                  availableLanguages={[
+                    { code: "en", name: "English" },
+                    { code: "es", name: "Spanish" },
+                    { code: "he", name: "Hebrew" },
+                  ]}
+                  configuredRates={{ en: 1.0, es: 0.9, he: 0.85 }}
                   onSpeakText={() => new Promise((resolve) => setTimeout(resolve, 250))}
                   onStopSpeaking={() => {}}
                 />

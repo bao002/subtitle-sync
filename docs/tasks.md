@@ -4,13 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-
-- [ ] **Task 408: Chapter 3 (Prompt 197) — Show Derived Original Sentence & Allow Playing Sentence + Translation on Word Cards**
-  - Subtask 408.1 [ACTIVE]: Render `item.sourceSentence` (highlighting the derived word cleanly) alongside `item.sourceTranslation` (when `With Translations` is enabled) and add a dedicated Play Sentence action (`listening-play-word-sentence-${idx}`) inside each word card (`ListeningGamePanel.tsx`) to play that sentence + translation.
-  - Subtask 408.2: Verify with dedicated test (`scripts/verify-listening-word-derived-sentence.ts`) + Chromium E2E, compile, lint, and archive Task 408 to `docs/done.md`.
-
-- [ ] **Task 409: Chapter 4 (Prompt 197) — UI/UX Space Optimization on Listening Game Word Cards**
-  - Subtask 409.1: Structure word card into a clean two-band layout (Word + on-demand translation + Word Listen button on top; compact derived sentence + translation + Sentence Play button below without truncation) and adjust container height (`max-h-[26rem]`) for comfortable scanning, bumping version (`v2.1.115`) and running full verification + archival.
+_No active tasks remaining. Pending deferred items are listed below under Later Tasks._
 
 ## Later Tasks
 

@@ -5546,11 +5546,16 @@ function Index() {
   }, [speakingRow, active, rows, currentTtsPlayLang]);
 
   const availableAlternativeTtsLanguages = useMemo(() => {
+    const trackCodes = tracks ? Object.keys(tracks) : [];
     const allCodes = Array.from(
       new Set(
-        [currentTtsPlayLang, ...targetLanguages, ...defaultSubtitleLanguages].filter(
-          (c) => Boolean(c) && c !== baseLanguage,
-        ),
+        [
+          currentTtsPlayLang,
+          ...targetLanguages,
+          ...defaultSubtitleLanguages,
+          ...trackCodes,
+          ...favoriteLanguages,
+        ].filter((c) => Boolean(c) && c !== baseLanguage),
       ),
     );
     if (allCodes.length === 0 && targetLanguages.length > 0) {
@@ -5563,7 +5568,14 @@ function Index() {
         name: LANGS.find((l) => l.code === norm)?.name || norm.toUpperCase(),
       };
     });
-  }, [currentTtsPlayLang, targetLanguages, defaultSubtitleLanguages, baseLanguage]);
+  }, [
+    currentTtsPlayLang,
+    targetLanguages,
+    defaultSubtitleLanguages,
+    tracks,
+    favoriteLanguages,
+    baseLanguage,
+  ]);
 
   historyContextRef.current = {
     videoId: videoId || "",
@@ -5592,14 +5604,17 @@ function Index() {
   }, []);
 
   const handleSpeakTextFromAlternativeView = useCallback(
-    (textToSpeak: string, langCode: string): Promise<void> => {
+    (textToSpeak: string, langCode: string, options?: { rateOverride?: number }): Promise<void> => {
       if (!textToSpeak || !textToSpeak.trim()) return Promise.resolve();
       unlockTtsAudioPlayback();
       const langMeta = (isAndroid ? SUPPORTED_LANGUAGES_CATALOG : LANGS).find(
         (l) => l.code === langCode,
       );
       const ttsLang = langMeta?.tts || langCode;
-      const rate = rates[langCode] ?? 1.0;
+      const rate =
+        typeof options?.rateOverride === "number" && Number.isFinite(options.rateOverride)
+          ? Math.max(0.25, Math.min(2.5, options.rateOverride))
+          : (rates[langCode] ?? 1.0);
       const voice = voiceSelections[langCode] ?? "";
       const volume = getLanguageTtsVolume(ttsVolumes, langCode);
       const rowIdx =
@@ -8089,6 +8104,7 @@ function Index() {
                       }
                     }}
                     onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
+                    configuredRates={rates}
                     onSpeakText={handleSpeakTextFromAlternativeView}
                     onStopSpeaking={handleCancelAlternativeSpeech}
                     onLoadSampleSubtitles={handleLoadSampleSubtitlesForGame}
@@ -9067,6 +9083,7 @@ function Index() {
                                     }
                                   }}
                                   onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
+                                  configuredRates={rates}
                                   onSpeakText={handleSpeakTextFromAlternativeView}
                                   onStopSpeaking={handleCancelAlternativeSpeech}
                                   onLoadSampleSubtitles={handleLoadSampleSubtitlesForGame}
