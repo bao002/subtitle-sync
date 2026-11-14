@@ -1,6 +1,6 @@
 {
   "name": "subtitle-sync",
-  "version": "2.1.117",
+  "version": "2.1.122",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -215,6 +215,10 @@
     "test:env-and-lockfile-hygiene": "tsx scripts/verify-env-and-lockfile-hygiene.ts",
     "test:native-tts-speed-for-service": "tsx scripts/verify-native-tts-speed-for-service.ts",
     "test:openrouter-key-settings": "tsx scripts/verify-openrouter-key-settings.ts",
+    "test:settings-tts-service-accordion": "tsx scripts/verify-settings-tts-service-accordion.ts",
+    "test:openrouter-accordion": "tsx scripts/verify-openrouter-accordion-and-settings.ts",
+    "test:openrouter-free-models": "tsx scripts/verify-openrouter-free-models-dropdown.ts",
+    "test:game-openrouter-sentences": "tsx scripts/verify-game-openrouter-sentences.ts",
     "test:android-emulator-docs-evidence": "tsx scripts/verify-android-emulator-docs-evidence.ts",
     "test:theme-colors-consistency": "tsx scripts/verify-theme-colors-consistency.ts",
     "test:android-build-hotfix-and-version-details": "tsx scripts/verify-android-build-hotfix-and-version-details.ts",

@@ -23,6 +23,8 @@ import {
   Film,
   Headphones,
   History,
+  Key,
+  MessageSquarePlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +46,8 @@ import { FetchedSubtitlesStagePanel } from "@/components/FetchedSubtitlesStagePa
 import { AlternativeVideoPlayerView } from "@/components/AlternativeVideoPlayerView";
 import { ListeningGamePanel } from "@/components/ListeningGamePanel";
 import { TtsPlayHistoryPanel } from "@/components/TtsPlayHistoryPanel";
+import { OpenRouterSettingsPanel } from "@/components/OpenRouterSettingsPanel";
+import { OpenRouterSentenceGamePanel } from "@/components/OpenRouterSentenceGamePanel";
 import type { TtsPlayHistoryEntry } from "@/utils/ttsPlayHistory";
 import {
   addExternalTtsAuditRecord,
@@ -56,6 +60,7 @@ import type { SectionOrder, TtsLanguageOrders } from "@/lib/playback-preferences
 
 type ComponentKey =
   | "tts_service"
+  | "openrouter_settings"
   | "playback_controls"
   | "floating_pause"
   | "language_boxes"
@@ -70,6 +75,7 @@ type ComponentKey =
   | "fetched_subtitles"
   | "alternative_player_view"
   | "listening_game"
+  | "openrouter_sentence_game"
   | "tts_history";
 
 export const StorybookWorkbench: React.FC = () => {
@@ -321,6 +327,7 @@ export const StorybookWorkbench: React.FC = () => {
         >
           {[
             { id: "tts_service", label: "TTS Service", icon: Volume2 },
+            { id: "openrouter_settings", label: "OpenRouter", icon: Key },
             { id: "playback_controls", label: "Playback Bar", icon: Play },
             { id: "floating_pause", label: "Floating Pause", icon: Move },
             { id: "language_boxes", label: "Language Boxes", icon: Languages },
@@ -335,6 +342,7 @@ export const StorybookWorkbench: React.FC = () => {
             { id: "fetched_subtitles", label: "Fetched Subtitles", icon: Subtitles },
             { id: "alternative_player_view", label: "Alternative Player View", icon: Subtitles },
             { id: "listening_game", label: "Listening Game", icon: Headphones },
+            { id: "openrouter_sentence_game", label: "AI Game (5x)", icon: MessageSquarePlus },
             { id: "tts_history", label: "TTS History", icon: History },
           ].map((c) => {
             const Icon = c.icon;
@@ -901,6 +909,64 @@ export const StorybookWorkbench: React.FC = () => {
                   configuredRates={{ en: 1.0, es: 0.9, he: 0.85 }}
                   onSpeakText={() => new Promise((resolve) => setTimeout(resolve, 250))}
                   onStopSpeaking={() => {}}
+                />
+              </div>
+            )}
+
+            {selectedComponent === "openrouter_settings" && (
+              <div className="max-w-3xl mx-auto">
+                <OpenRouterSettingsPanel />
+              </div>
+            )}
+
+            {selectedComponent === "openrouter_sentence_game" && (
+              <div className="max-w-3xl mx-auto">
+                <OpenRouterSentenceGamePanel
+                  targetWords={["focus", "language", "practice", "subtitles", "memory"]}
+                  baseLanguage="en"
+                  baseLanguageName="English"
+                  targetLanguage="he"
+                  targetLanguageName="Hebrew"
+                  apiKeyOverride="sk-or-v1-storybook-demo-key"
+                  modelOverride="openrouter/auto:free"
+                  initialSentencesOverride={[
+                    {
+                      id: "wb-or-1",
+                      targetWord: "focus",
+                      sentence: "Daily focus builds real fluency step by step.",
+                      translation: "מיקוד יומי בונה שטף אמיתי צעד אחר צעד.",
+                      batchIndex: 1,
+                    },
+                    {
+                      id: "wb-or-2",
+                      targetWord: "language",
+                      sentence: "Listening in another language trains your ear quickly.",
+                      translation: "האזנה בשפה אחרת מאמנת את האוזן במהירות.",
+                      batchIndex: 1,
+                    },
+                    {
+                      id: "wb-or-3",
+                      targetWord: "practice",
+                      sentence: "Five minutes of daily practice beats cramming.",
+                      translation: "חמש דקות של תרגול יומי עדיפות על שינון מרוכז.",
+                      batchIndex: 1,
+                    },
+                    {
+                      id: "wb-or-4",
+                      targetWord: "subtitles",
+                      sentence: "Dual subtitles show grammar and meaning side by side.",
+                      translation: "כתוביות כפולות מראות דקדוק ומשמעות זה לצד זה.",
+                      batchIndex: 1,
+                    },
+                    {
+                      id: "wb-or-5",
+                      targetWord: "memory",
+                      sentence: "New context sentences keep your memory sharp.",
+                      translation: "משפטי הקשר חדשים שומרים על הזיכרון חד.",
+                      batchIndex: 1,
+                    },
+                  ]}
+                  onSpeakText={() => new Promise((resolve) => setTimeout(resolve, 250))}
                 />
               </div>
             )}

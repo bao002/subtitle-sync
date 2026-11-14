@@ -25,19 +25,23 @@ import {
   ChevronRight,
   Compass,
   FileText,
+  MessageSquarePlus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RTL } from "@/lib/subtitles";
 import { CanvasBalloonGame } from "@/components/CanvasBalloonGame";
 import { ListeningGamePanel, type ListeningSpeakOptions } from "@/components/ListeningGamePanel";
+import { OpenRouterSentenceGamePanel } from "@/components/OpenRouterSentenceGamePanel";
 import { extractListeningSentences, extractListeningWords } from "@/utils/listeningGame";
+import { extractTargetWordsToLearn } from "@/utils/openRouterSentenceGenerator";
 
 export type LearningGameMode =
   | "sentence_builder"
   | "word_match"
   | "missing_word"
   | "word_balloons"
-  | "listening_game";
+  | "listening_game"
+  | "openrouter_sentences";
 
 export interface WordBalloonLearningViewProps {
   /** Current base language sentence */
@@ -82,6 +86,8 @@ export interface WordBalloonLearningViewProps {
   onCloseLearningView?: () => void;
   /** Launch canvas balloon game on full screen callback */
   onOpenCanvasGame?: () => void;
+  /** Optional shortcut to jump to Settings -> OpenRouter 1st accordion */
+  onOpenOpenRouterSettings?: () => void;
   /** Full subtitle rows for multi-sentence vocabulary pooling */
   subtitleRows?: Array<{ texts?: Record<string, string>; text?: string }>;
   /** Optional initial game mode override */
@@ -329,6 +335,7 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
   onLoadSampleSubtitles,
   onCloseLearningView,
   onOpenCanvasGame,
+  onOpenOpenRouterSettings,
   subtitleRows = [],
   initialGameMode,
   className = "",
@@ -387,6 +394,19 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
     [subtitleRows, baseLanguage, targetLanguage, effectiveSentence, effectiveTranslation],
   );
 
+  const targetWordsForAiGame = useMemo(
+    () =>
+      extractTargetWordsToLearn(subtitleRows, {
+        baseLanguage,
+        targetLanguage,
+        minLetters: 3,
+        maxWords: 30,
+        fallbackSentence: effectiveSentence,
+        fallbackTranslation: effectiveTranslation,
+      }).map((item) => item.word),
+    [subtitleRows, baseLanguage, targetLanguage, effectiveSentence, effectiveTranslation],
+  );
+
   const hasPlayableContent =
     Boolean(effectiveSentence) || availableWordsTotal > 0 || availableSentencesTotal > 0;
 
@@ -412,7 +432,10 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
 
   const handleSelectGameMode = useCallback(
     (mode: LearningGameMode) => {
-      if (gameMode === "listening_game" && mode !== "listening_game") {
+      if (
+        (gameMode === "listening_game" || gameMode === "openrouter_sentences") &&
+        mode !== gameMode
+      ) {
         onStopSpeaking?.();
       }
       setGameMode(mode);
@@ -1054,6 +1077,20 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
               <Headphones className="h-3.5 w-3.5" />
               <span>Listening Game</span>
             </button>
+
+            <button
+              type="button"
+              data-testid="game-mode-openrouter-sentences"
+              onClick={() => handleSelectGameMode("openrouter_sentences")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                wizardStage === "play" && gameMode === "openrouter_sentences"
+                  ? "bg-indigo-600 text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <MessageSquarePlus className="h-3.5 w-3.5" />
+              <span>AI Sentences (5x)</span>
+            </button>
           </div>
         )}
       </div>
@@ -1303,7 +1340,28 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
                 </p>
               </button>
 
-              {/* Card 6: Canvas Full Screen */}
+              {/* Card 6: AI Sentences (OpenRouter X=5 Target-Word Sentences) */}
+              <button
+                type="button"
+                data-testid="wizard-card-openrouter-sentences"
+                onClick={() => handleSelectGameMode("openrouter_sentences")}
+                className="text-left p-3.5 rounded-xl border border-indigo-500/40 bg-card hover:bg-indigo-500/10 hover:border-indigo-500 transition-all space-y-1.5 cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-foreground">
+                    <MessageSquarePlus className="h-4 w-4 text-indigo-500" />
+                    <span>AI Sentences (5x)</span>
+                  </span>
+                  <span className="rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 px-2 py-0.5 text-[10px] font-mono font-bold">
+                    {targetWordsForAiGame.length}w · 5/batch
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Generate 5 fresh OpenRouter sentences at a time using your target words to learn.
+                </p>
+              </button>
+
+              {/* Card 7: Canvas Full Screen */}
               <button
                 type="button"
                 data-testid="wizard-card-canvas-fullscreen"
@@ -1794,6 +1852,22 @@ export const WordBalloonLearningView: React.FC<WordBalloonLearningViewProps> = (
             onStopSpeaking={onStopSpeaking}
             initialWithTranslations={listeningWithTranslations}
             onWithTranslationsChange={setListeningWithTranslations}
+          />
+        )}
+
+        {/* ============================================================== */}
+        {/* MODE 6: OPENROUTER AI SENTENCES USING TARGET WORDS (X=5 BATCH) */}
+        {/* ============================================================== */}
+        {gameMode === "openrouter_sentences" && (
+          <OpenRouterSentenceGamePanel
+            targetWords={targetWordsForAiGame}
+            baseLanguage={baseLanguage}
+            baseLanguageName={baseLanguageName}
+            targetLanguage={targetLanguage}
+            targetLanguageName={targetLanguageName}
+            onSpeakText={onSpeakText}
+            onStopSpeaking={onStopSpeaking}
+            onOpenOpenRouterSettings={onOpenOpenRouterSettings}
           />
         )}
 

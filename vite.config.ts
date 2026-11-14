@@ -13,6 +13,20 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
     allowedHosts: true,
+    watch: {
+      ignored: [
+        "**/public/storybook/**",
+        "**/public/coverage/**",
+        "**/android-shell/**",
+        "**/quarentined/**",
+        "**/docs/**",
+        "**/scripts/**",
+        "**/e2e/**",
+        "**/test/**",
+        "**/dist/**",
+        "**/.git/**",
+      ],
+    },
   },
   plugins: [
     TanStackRouterVite({
@@ -25,6 +39,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   optimizeDeps: {
+    entries: ["index.html"],
     include: [
       "react",
       "react-dom",
