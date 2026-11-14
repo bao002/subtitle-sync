@@ -5,6 +5,7 @@
 - **Active Step**: Subtask 408.1 — Display `item.sourceSentence` (highlighting derived word) + `item.sourceTranslation` & add Play Sentence trigger in `ListeningGamePanel.tsx`
 - **Upcoming**: Task 409 (UI/UX space optimization)
 - **Completed**:
+  - Hotfix (Prompt 200): Cleared container-boot Vite pre-transform race (`componentOptimizationService.ts` in `BottomLogViewer.tsx`), verified 200/200 `src/` modules HTTP 200 + restarted Vite dev server (`v2.1.114`)
   - Task 407 (Prompt 197 Chapter 2): Fixed Listening trigger dropping base word on async `cancel()` -> `speak()` race (`v2.1.114`)
   - Hotfix (Prompt 198): Verified zero stale `componentOptimizationService` imports across Vite client modules, fixed `onDemandTranslationManager.ts` browser CORS/rate-limit flood, & restarted dev server (`v2.1.114`)
   - Task 406 (Prompt 197 Chapter 1): Remove "X letters" badge from word cards (`ListeningGamePanel.tsx`)

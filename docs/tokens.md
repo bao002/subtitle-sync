@@ -4,6 +4,8 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 200 (Hotfix — Vite Startup Pre-Transform Stale Module Cache & Clean Dev Server Verification):
+  - Hotfix [COMPLETED & VERIFIED]: Confirmed zero references to `componentOptimizationService` across all 200 `src/` modules (`Checked 200 files in src/. Bad: 0`), verified zero TypeScript/runtime/FloatingErrorButton errors in live headless Chromium, and restarted the Vite dev server to clear the container-boot pre-transform log error recorded before workspace file sync completed.
 - Prompt 199 (Continue Backlog — "go on"): Execute active Prompt 197 chapters serially (`Task 407` -> `Task 408` -> `Task 409`).
 - Prompt 198 (Hotfix — Fix Vite Pre-transform Cache & On-Demand Translation CORS Console Error Flood):
   - Hotfix [COMPLETED & VERIFIED]: Verified zero stale `componentOptimizationService` imports across `BottomLogViewer.tsx`, `AlternativeVideoPlayerView.tsx`, and `CanvasBalloonGame.tsx`; fixed `translate.googleapis.com` 302 `/sorry/index` CORS `console.error` flood in `onDemandTranslationManager.ts` (browser-first `clients5.google.com` CORS-enabled endpoint, typed `extractTranslatedText`, 5m cooldown circuit-breaker, concurrency-capped lookahead); restarted Vite dev server and bumped to `v2.1.114`.

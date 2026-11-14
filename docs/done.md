@@ -1,5 +1,24 @@
 # Done tasks
 
+### Hotfix: Clear Vite Startup Pre-Transform Stale Error & Verify All Client Modules (Prompt 200, `v2.1.114`)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: 12:38:59 AM [vite] (client) Pre-transform error: Failed to load url /src/utils/componentOptimizationService.ts (resolved id: /app/applet/src/utils/componentOptimizationService.ts) in /app/applet/src/components/BottomLogViewer.tsx. Does the file exist?
+  error 1: 12:39:00 AM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+  error 2: 12:39:01 AM [vite] (client) Pre-transform error: Failed to load url /src/utils/componentOptimizationService.ts (resolved id: /app/applet/src/utils/componentOptimizationService.ts) in /app/applet/src/components/BottomLogViewer.tsx. Does the file exist?
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause**:
+  - Vite dev server started and initialized `node_modules/.vite` at `00:38:57 UTC` (`12:38:57 AM`), while workspace file synchronization updated `src/components/BottomLogViewer.tsx`, `src/components/FloatingErrorButton.tsx`, and `src/routes/index.tsx` at `00:39:00 UTC` (`12:39:00 AM`). The pre-sync transform attempt at `12:38:59`–`12:39:01 AM` logged a stale `componentOptimizationService` pre-transform error before the current files finished syncing.
+- **Changes & Verification**:
+  - Audited `src/components/BottomLogViewer.tsx` and all 200 `.ts`/`.tsx`/`.css` files under `src/` via both disk grep and live HTTP module probes against `http://localhost:3000`: 200/200 returned HTTP 200 with zero `componentOptimizationService` references and zero parse/pre-transform errors.
+  - Verified live Chromium rendering of `http://localhost:3000/` with zero console errors, zero page errors, and `FloatingErrorButton` count = 0.
+  - Restarted the Vite dev server (`restart_dev_server`) to clear the stale boot-time error buffer, and verified `npx tsc --noEmit`, `npm run test:client-pretransform-health`, `npm run test:vite-reload-modules`, `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md`, `npm run check-version`, `compile_applet`, and `lint_applet`.
+
 ### Task 407 (Prompt 197, Chapter 2): Fix Trigger Listening Dropping Base Word & Playing Only Translation (`v2.1.114`)
 
 - **Prompt**: `2. trigger listening doesnt play the word, only its translation`

@@ -129,5 +129,11 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-go on
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 12:38:59 AM [vite] (client) Pre-transform error: Failed to load url /src/utils/componentOptimizationService.ts (resolved id: /app/applet/src/utils/componentOptimizationService.ts) in /app/applet/src/components/BottomLogViewer.tsx. Does the file exist?
+error 1: 12:39:00 AM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+error 2: 12:39:01 AM [vite] (client) Pre-transform error: Failed to load url /src/utils/componentOptimizationService.ts (resolved id: /app/applet/src/utils/componentOptimizationService.ts) in /app/applet/src/components/BottomLogViewer.tsx. Does the file exist?
+[AIS_METADATA_SECTION_END]
 ```
