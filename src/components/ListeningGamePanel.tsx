@@ -12,7 +12,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { unlockTtsAudioPlayback } from "@/lib/alternative-tts";
+import { isAlternativeTtsPlaying, unlockTtsAudioPlayback } from "@/lib/alternative-tts";
 import { RTL } from "@/lib/subtitles";
 import { normalizeLanguage } from "@/utils/onDemandTranslationManager";
 import {
@@ -23,6 +23,7 @@ import {
 import {
   extractListeningSentences,
   extractListeningWords,
+  splitSentenceHighlightParts,
   type ListeningGameSentenceItem,
   type ListeningGameWordItem,
   type SubtitleRowLike,
@@ -421,6 +422,12 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         trimmedTrans &&
         trimmedTrans.toLowerCase() !== trimmedBase.toLowerCase()
       ) {
+        if (trimmedBase) {
+          await new Promise((resolve) => setTimeout(resolve, 60));
+          if (runId !== undefined && playbackRunIdRef.current !== runId) {
+            return;
+          }
+        }
         try {
           await Promise.resolve(onSpeakText(trimmedTrans, targetLanguage));
         } catch (err) {
@@ -461,6 +468,12 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         }
         const spokenTranslation = onDemandWordTrans || item.sourceTranslation.trim();
         if (spokenTranslation && spokenTranslation.toLowerCase() !== trimmedBase.toLowerCase()) {
+          if (trimmedBase) {
+            await new Promise((resolve) => setTimeout(resolve, 60));
+            if (runId !== undefined && playbackRunIdRef.current !== runId) {
+              return;
+            }
+          }
           try {
             await Promise.resolve(onSpeakText(spokenTranslation, targetLanguage));
           } catch (err) {
@@ -479,14 +492,26 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     ],
   );
 
+  const isAnyPlaybackActive = useCallback(() => {
+    const nativeSpeechActive =
+      typeof window !== "undefined" &&
+      Boolean(window.speechSynthesis?.speaking || window.speechSynthesis?.pending);
+    return (
+      isPlayingAll !== null ||
+      activeItemId !== null ||
+      isAlternativeTtsPlaying() ||
+      nativeSpeechActive
+    );
+  }, [isPlayingAll, activeItemId]);
+
   const handlePlayWord = useCallback(
     async (item: ListeningGameWordItem) => {
       unlockTtsAudioPlayback();
-      const wasAlreadySpeaking = isPlayingAll !== null || activeItemId !== null;
+      const wasAlreadySpeaking = isAnyPlaybackActive();
       stopSequentialPlayback(wasAlreadySpeaking);
       const runId = playbackRunIdRef.current;
       if (wasAlreadySpeaking) {
-        await new Promise((resolve) => setTimeout(resolve, 80));
+        await new Promise((resolve) => setTimeout(resolve, 150));
         if (playbackRunIdRef.current !== runId) return;
       }
       await speakWordEntry(item, runId);
@@ -494,17 +519,37 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         setActiveItemId((prev) => (prev === item.id ? null : prev));
       }
     },
-    [isPlayingAll, activeItemId, speakWordEntry, stopSequentialPlayback],
+    [isAnyPlaybackActive, speakWordEntry, stopSequentialPlayback],
+  );
+
+  const handlePlayWordSentence = useCallback(
+    async (item: ListeningGameWordItem) => {
+      if (!item.sourceSentence.trim()) return;
+      unlockTtsAudioPlayback();
+      const wasAlreadySpeaking = isAnyPlaybackActive();
+      stopSequentialPlayback(wasAlreadySpeaking);
+      const runId = playbackRunIdRef.current;
+      if (wasAlreadySpeaking) {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+        if (playbackRunIdRef.current !== runId) return;
+      }
+      const sentenceItemId = `${item.id}-sentence`;
+      await speakSingleEntry(item.sourceSentence, item.sourceTranslation, sentenceItemId, runId);
+      if (isMountedRef.current && playbackRunIdRef.current === runId) {
+        setActiveItemId((prev) => (prev === sentenceItemId ? null : prev));
+      }
+    },
+    [isAnyPlaybackActive, speakSingleEntry, stopSequentialPlayback],
   );
 
   const handlePlaySentence = useCallback(
     async (item: ListeningGameSentenceItem) => {
       unlockTtsAudioPlayback();
-      const wasAlreadySpeaking = isPlayingAll !== null || activeItemId !== null;
+      const wasAlreadySpeaking = isAnyPlaybackActive();
       stopSequentialPlayback(wasAlreadySpeaking);
       const runId = playbackRunIdRef.current;
       if (wasAlreadySpeaking) {
-        await new Promise((resolve) => setTimeout(resolve, 80));
+        await new Promise((resolve) => setTimeout(resolve, 150));
         if (playbackRunIdRef.current !== runId) return;
       }
       await speakSingleEntry(item.sentence, item.translation, item.id, runId);
@@ -512,7 +557,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         setActiveItemId((prev) => (prev === item.id ? null : prev));
       }
     },
-    [isPlayingAll, activeItemId, speakSingleEntry, stopSequentialPlayback],
+    [isAnyPlaybackActive, speakSingleEntry, stopSequentialPlayback],
   );
 
   const handlePlayAllWords = useCallback(async () => {
@@ -524,7 +569,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
 
     unlockTtsAudioPlayback();
 
-    const wasAlreadySpeaking = isPlayingAll !== null || activeItemId !== null;
+    const wasAlreadySpeaking = isAnyPlaybackActive();
     if (wasAlreadySpeaking) {
       onStopSpeaking?.();
     }
@@ -535,7 +580,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     setPlayingProgress({ list: "words", current: 1, total: filteredWords.length });
 
     if (wasAlreadySpeaking) {
-      await new Promise((resolve) => setTimeout(resolve, 60));
+      await new Promise((resolve) => setTimeout(resolve, 150));
       if (playbackRunIdRef.current !== runId) return;
     }
 
@@ -559,7 +604,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
   }, [
     filteredWords,
     isPlayingAll,
-    activeItemId,
+    isAnyPlaybackActive,
     onStopSpeaking,
     speakWordEntry,
     enqueueWordTranslation,
@@ -576,7 +621,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
 
     unlockTtsAudioPlayback();
 
-    const wasAlreadySpeaking = isPlayingAll !== null || activeItemId !== null;
+    const wasAlreadySpeaking = isAnyPlaybackActive();
     if (wasAlreadySpeaking) {
       onStopSpeaking?.();
     }
@@ -587,7 +632,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     setPlayingProgress({ list: "sentences", current: 1, total: filteredSentences.length });
 
     if (wasAlreadySpeaking) {
-      await new Promise((resolve) => setTimeout(resolve, 60));
+      await new Promise((resolve) => setTimeout(resolve, 150));
       if (playbackRunIdRef.current !== runId) return;
     }
 
@@ -608,7 +653,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
   }, [
     filteredSentences,
     isPlayingAll,
-    activeItemId,
+    isAnyPlaybackActive,
     onStopSpeaking,
     speakSingleEntry,
     stopSequentialPlayback,
@@ -854,7 +899,10 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                 </div>
               ) : (
                 filteredWords.map((item, idx) => {
-                  const isActive = activeItemId === item.id;
+                  const sentenceItemId = `${item.id}-sentence`;
+                  const isWordActive = activeItemId === item.id;
+                  const isSentenceActive = activeItemId === sentenceItemId;
+                  const isActive = isWordActive || isSentenceActive;
                   const cacheKey = getWordTranslationCacheKey(
                     item.word,
                     baseLanguage,
@@ -868,19 +916,22 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                   const isTranslatingWord = Boolean(
                     cacheKey && loadingWordKeys[cacheKey] && !onDemandWordTrans,
                   );
+                  const sentenceParts = item.sourceSentence
+                    ? splitSentenceHighlightParts(item.sourceSentence, item.word)
+                    : [];
                   return (
                     <div
                       key={item.id}
                       data-testid={`listening-word-item-${idx}`}
                       data-word-item={item.word}
-                      className={`flex items-center justify-between gap-2 rounded-lg border p-2 text-xs transition-colors ${
+                      className={`rounded-lg border p-2.5 text-xs transition-colors space-y-1.5 ${
                         isActive
                           ? "border-indigo-500 bg-indigo-500/10"
                           : "border-border/60 bg-background/70 hover:bg-muted/40"
                       }`}
                     >
-                      <div className="min-w-0 flex-1 space-y-0.5">
-                        <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1 flex items-center gap-2 flex-wrap">
                           <span
                             dir={isBaseRtl ? "rtl" : "ltr"}
                             className="font-bold text-sm text-foreground"
@@ -906,34 +957,79 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                             </span>
                           )}
                         </div>
-                        {withTranslations && item.sourceTranslation && (
-                          <p
-                            dir={isTargetRtl ? "rtl" : "ltr"}
-                            data-testid={`listening-word-translation-${idx}`}
-                            className="text-[11px] text-muted-foreground truncate"
-                            title={item.sourceTranslation}
-                          >
-                            {item.sourceTranslation}
-                          </p>
-                        )}
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={isWordActive ? "default" : "outline"}
+                          data-testid={`listening-play-word-${idx}`}
+                          onClick={() => handlePlayWord(item)}
+                          className="h-7 px-2 text-[11px] gap-1 shrink-0 whitespace-nowrap"
+                          title={
+                            withTranslations
+                              ? "Listen to word + on-demand translation"
+                              : "Listen to word only"
+                          }
+                        >
+                          <Volume2
+                            className={`h-3.5 w-3.5 ${isWordActive ? "" : "text-indigo-500"}`}
+                          />
+                          <span>Listen</span>
+                        </Button>
                       </div>
 
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        data-testid={`listening-play-word-${idx}`}
-                        onClick={() => handlePlayWord(item)}
-                        className="h-7 px-2 text-[11px] gap-1 shrink-0"
-                        title={
-                          withTranslations
-                            ? "Listen to word + on-demand translation"
-                            : "Listen to word only"
-                        }
-                      >
-                        <Volume2 className="h-3.5 w-3.5 text-indigo-500" />
-                        <span>Listen</span>
-                      </Button>
+                      {item.sourceSentence && (
+                        <div className="flex items-start justify-between gap-2 border-t border-border/40 pt-1.5">
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            <p
+                              dir={isBaseRtl ? "rtl" : "ltr"}
+                              data-testid={`listening-word-source-sentence-${idx}`}
+                              className="text-[11px] leading-snug text-foreground/90 break-words"
+                            >
+                              {sentenceParts.map((part, partIdx) =>
+                                part.isMatch ? (
+                                  <mark
+                                    key={partIdx}
+                                    className="rounded-xs bg-sky-500/15 px-0.5 font-semibold text-sky-700 dark:text-sky-300"
+                                  >
+                                    {part.text}
+                                  </mark>
+                                ) : (
+                                  <React.Fragment key={partIdx}>{part.text}</React.Fragment>
+                                ),
+                              )}
+                            </p>
+                            {withTranslations && item.sourceTranslation && (
+                              <p
+                                dir={isTargetRtl ? "rtl" : "ltr"}
+                                data-testid={`listening-word-translation-${idx}`}
+                                className="text-[11px] leading-snug text-muted-foreground break-words"
+                              >
+                                {item.sourceTranslation}
+                              </p>
+                            )}
+                          </div>
+
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant={isSentenceActive ? "default" : "outline"}
+                            data-testid={`listening-play-word-sentence-${idx}`}
+                            onClick={() => handlePlayWordSentence(item)}
+                            className="h-6 px-2 text-[10px] gap-1 shrink-0 whitespace-nowrap"
+                            title={
+                              withTranslations && item.sourceTranslation
+                                ? "Play original sentence + translation"
+                                : "Play original sentence"
+                            }
+                          >
+                            <Volume2
+                              className={`h-3 w-3 ${isSentenceActive ? "" : "text-emerald-500"}`}
+                            />
+                            <span>Sentence</span>
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   );
                 })

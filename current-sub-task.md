@@ -1,10 +1,12 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [ACTIVE]
-- **Active Task**: Task 407 (Prompt 197 Chapter 2 — Fix Trigger Listening Dropping Base Word & Playing Only Translation)
-- **Active Step**: Subtask 407.1 — Eliminate `cancelSpeech` / `window.speechSynthesis.cancel()` race in `src/routes/index.tsx` and conditional interrupt yield in `ListeningGamePanel.tsx`
-- **Upcoming**: Task 408 (Show & play derived sentence + translation), Task 409 (UI/UX space optimization & v2.1.114)
+- **Active Task**: Task 408 (Prompt 197 Chapter 3 — Show Derived Original Sentence & Allow Playing Sentence + Translation on Word Cards)
+- **Active Step**: Subtask 408.1 — Display `item.sourceSentence` (highlighting derived word) + `item.sourceTranslation` & add Play Sentence trigger in `ListeningGamePanel.tsx`
+- **Upcoming**: Task 409 (UI/UX space optimization)
 - **Completed**:
+  - Task 407 (Prompt 197 Chapter 2): Fixed Listening trigger dropping base word on async `cancel()` -> `speak()` race (`v2.1.114`)
+  - Hotfix (Prompt 198): Verified zero stale `componentOptimizationService` imports across Vite client modules, fixed `onDemandTranslationManager.ts` browser CORS/rate-limit flood (`clients5.google.com` browser-first + endpoint cooldown + capped lookahead concurrency), & restarted dev server (`v2.1.114`)
   - Task 406 (Prompt 197 Chapter 1): Remove "X letters" badge from word cards (`ListeningGamePanel.tsx`)
   - Task 405 (Prompt 196): Listening Game Words List On-Demand Word Translation & Default Play (`v2.1.113`)
   - Hotfix (Prompt 195) & Task 404 (Prompt 194): Fix App Errors (`Native speech synthesis failed` Flood), TTS Fallback Chain & Game View Words `Listen All` TTS-Play Execution (`v2.1.112`)

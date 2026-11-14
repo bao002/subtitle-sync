@@ -23,12 +23,7 @@ export interface ListeningGameSentenceItem {
 }
 
 export function sanitizeListeningWord(rawWord: string): string {
-  return rawWord
-    .trim()
-    .replace(
-      /^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,
-      "",
-    );
+  return rawWord.trim().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
 }
 
 export function countWordLetters(word: string): number {
@@ -247,4 +242,50 @@ export function extractListeningSentences(
   });
 
   return items;
+}
+
+export interface SentenceHighlightPart {
+  text: string;
+  isMatch: boolean;
+}
+
+/**
+ * Splits a source sentence into segments so occurrences of the derived word can be
+ * highlighted inline without altering text content or breaking unicode word boundaries.
+ */
+export function splitSentenceHighlightParts(
+  sentence: string,
+  word: string,
+): SentenceHighlightPart[] {
+  if (!sentence) return [];
+  const trimmedWord = word.trim();
+  if (!trimmedWord) return [{ text: sentence, isMatch: false }];
+
+  const escaped = trimmedWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  let regex: RegExp;
+  try {
+    regex = new RegExp(`(?<![\\p{L}\\p{N}])(${escaped})(?![\\p{L}\\p{N}])`, "giu");
+  } catch {
+    return [{ text: sentence, isMatch: false }];
+  }
+
+  const parts: SentenceHighlightPart[] = [];
+  let lastIndex = 0;
+  for (const match of sentence.matchAll(regex)) {
+    const idx = match.index ?? -1;
+    if (idx < 0) continue;
+    if (idx > lastIndex) {
+      parts.push({ text: sentence.slice(lastIndex, idx), isMatch: false });
+    }
+    parts.push({ text: match[0], isMatch: true });
+    lastIndex = idx + match[0].length;
+  }
+
+  if (lastIndex === 0) {
+    return [{ text: sentence, isMatch: false }];
+  }
+  if (lastIndex < sentence.length) {
+    parts.push({ text: sentence.slice(lastIndex), isMatch: false });
+  }
+  return parts;
 }

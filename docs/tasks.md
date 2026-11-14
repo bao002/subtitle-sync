@@ -4,16 +4,13 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 407: Chapter 2 (Prompt 197) — Fix Trigger Listening Dropping Base Word & Playing Only Translation**
-  - Subtask 407.1: Fix `cancelSpeech()` -> `window.speechSynthesis.speak()` asynchronous race in `src/routes/index.tsx` (`lastSpeechCancelAt` cooldown guard + conditional `speechSynthesis.cancel()`) and conditional interrupt yield in `ListeningGamePanel.tsx` so the base word plays before its on-demand translation.
-  - Subtask 407.2: Verify with dedicated test (including Web Speech `canceled`/`interrupted` race simulation and Chromium E2E), compile, lint, and archive Task 407 to `docs/done.md`.
 
 - [ ] **Task 408: Chapter 3 (Prompt 197) — Show Derived Original Sentence & Allow Playing Sentence + Translation on Word Cards**
-  - Subtask 408.1: Render `item.sourceSentence` (highlighting the derived word cleanly) alongside `item.sourceTranslation` (when `With Translations` is enabled) and add a dedicated Play Sentence action (`listening-play-word-sentence-${idx}`) inside each word card (`ListeningGamePanel.tsx`) to play that sentence + translation.
-  - Subtask 408.2: Verify with dedicated test + Chromium E2E, compile, lint, and archive Task 408 to `docs/done.md`.
+  - Subtask 408.1 [ACTIVE]: Render `item.sourceSentence` (highlighting the derived word cleanly) alongside `item.sourceTranslation` (when `With Translations` is enabled) and add a dedicated Play Sentence action (`listening-play-word-sentence-${idx}`) inside each word card (`ListeningGamePanel.tsx`) to play that sentence + translation.
+  - Subtask 408.2: Verify with dedicated test (`scripts/verify-listening-word-derived-sentence.ts`) + Chromium E2E, compile, lint, and archive Task 408 to `docs/done.md`.
 
 - [ ] **Task 409: Chapter 4 (Prompt 197) — UI/UX Space Optimization on Listening Game Word Cards**
-  - Subtask 409.1: Structure word card into a clean two-band layout (Word + on-demand translation + Word Listen button on top; compact derived sentence + translation + Sentence Play button below without truncation) and adjust container height (`max-h-[26rem]`) for comfortable scanning, bumping version (`v2.1.114`) and running full verification + archival.
+  - Subtask 409.1: Structure word card into a clean two-band layout (Word + on-demand translation + Word Listen button on top; compact derived sentence + translation + Sentence Play button below without truncation) and adjust container height (`max-h-[26rem]`) for comfortable scanning, bumping version (`v2.1.115`) and running full verification + archival.
 
 ## Later Tasks
 
