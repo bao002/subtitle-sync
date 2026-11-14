@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Sliders, BookmarkCheck, Plus, Check, Trash2, X, Edit2, RotateCw } from "lucide-react";
 import {
   type LanguageRatioComposition,
@@ -39,6 +39,20 @@ export const LanguageRatioCompositionSelector: React.FC<
   const [profileName, setProfileName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
+  const editInputRef = useRef<HTMLInputElement>(null);
+  const saveInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditingName) {
+      editInputRef.current?.focus({ preventScroll: true });
+    }
+  }, [isEditingName]);
+
+  useEffect(() => {
+    if (isAdding) {
+      saveInputRef.current?.focus({ preventScroll: true });
+    }
+  }, [isAdding]);
 
   const compositions = propCompositions || getStoredRatioCompositions();
   const activeComp =
@@ -162,10 +176,10 @@ export const LanguageRatioCompositionSelector: React.FC<
           className="inline-flex items-center gap-1 bg-background/90 px-1.5 py-0.5 rounded border border-border"
         >
           <input
+            ref={editInputRef}
             type="text"
             data-testid="edit-profile-name-input"
             value={editedName}
-            autoFocus
             onChange={(e) => setEditedName(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") handleConfirmEditName();
@@ -225,11 +239,11 @@ export const LanguageRatioCompositionSelector: React.FC<
               className="inline-flex items-center gap-1 bg-background/90 px-1.5 py-0.5 rounded border border-border"
             >
               <input
+                ref={saveInputRef}
                 type="text"
                 data-testid="save-profile-name-input"
                 placeholder="Profile name..."
                 value={profileName}
-                autoFocus
                 onChange={(e) => setProfileName(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleConfirmSave();
