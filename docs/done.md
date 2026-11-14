@@ -1,5 +1,51 @@
 # Done tasks
 
+### Task 418: Prompt 207 Chapter 3 — OpenRouter Free Models Fetch (`frontend/v1/models/find`), `openrouter/auto:free` Default & Init Dropdown (`v2.1.121`)
+
+- **Prompt Chapter**: `3. using the openrouter key: - fetch free models:https://openrouter.ai/api/frontend/v1/models/find?active=true&fmt=cards&max_price=0 - default to openrouter/auto:free - show dropdownlist of models (fetch on relevant component init)`
+- **Changes**:
+  - Updated `src/utils/openRouterAiService.ts` (`OPENROUTER_FREE_MODELS_FIND_URL = "https://openrouter.ai/api/frontend/v1/models/find?active=true&fmt=cards&max_price=0"`, `parseOpenRouterFreeModelsPayload`, `fetchOpenRouterFreeModels`): queries OpenRouter's frontend cards endpoint with optional `Authorization: Bearer <apiKey>`, filters text-output models (`has_text_output !== false`), resolves `endpoint.model_variant_slug`, caches per normalized key, falls back to `/api/v1/models` and curated models cleanly, and keeps `"openrouter/auto:free"` pinned first as default; resolved 4 pre-existing ESLint issues in `openRouterAiService.ts`.
+  - Updated `src/components/OpenRouterSettingsPanel.tsx` & `.stories.tsx`: automatically fetches free models on component init (`useEffect`) and key changes, renders `<select data-testid="openrouter-free-models-dropdown">` defaulting to `openrouter/auto:free`, adds count badge + manual refresh button, and syncs active model badge (`openrouter-accordion-model-badge` / `beginner-openrouter-accordion-model-badge`) and persistence across Advanced Settings (`src/routes/index.tsx`) and Beginner Preferences (`src/components/beginner/tabs/BeginnerPreferencesTab.tsx`).
+  - Added `scripts/verify-openrouter-free-models-dropdown.ts` + `test:openrouter-free-models` in `package.json`, updated `docs/files.md`, and bumped version to `v2.1.121`.
+- **Verification**: `npm run test:openrouter-free-models`, `npm run test:openrouter-accordion`, `npm run test:ai-subtitle-punctuation`, `npm run test:agents-all` (22/22), `npx tsc --noEmit`, `npx eslint`, `compile_applet`, `lint_applet`, and live Chromium verification (`initFetchFired: true`, `initDropdownVal: "openrouter/auto:free"`, `optionsCount: 15`, `authHeaderForwarded: true`, cross-mode Beginner/Advanced sync) (git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Task 417: Prompt 207 Chapter 2 — Dedicated OpenRouter Key Settings Panel Moved Upper Into Its Own Accordion (Slot 1) (`v2.1.120`)
+
+- **Prompt Chapter**: `2. user should be able to set their own openrouter key. v upper and to its own accordion. (1st accordion)`
+- **Changes**:
+  - Created shared Storybook-first `src/components/OpenRouterSettingsPanel.tsx` and `src/components/OpenRouterSettingsPanel.stories.tsx`, plus registered `"openrouter_settings"` tab in `src/storybook/StorybookWorkbench.tsx`.
+  - Users can set, save (`setOpenRouterApiKeySetting`), show/hide, clear, and test their OpenRouter API key (`testOpenRouterConnection`), with live status badge and link to `https://openrouter.ai/keys`.
+  - Mounted `OpenRouterSettingsPanel` inside its own dedicated 1st accordion directly above TTS Service (2nd accordion) in both Advanced Settings (`data-testid="settings-openrouter-accordion"` in `src/routes/index.tsx`) and Beginner Preferences (`data-testid="beginner-settings-openrouter-accordion"` in `src/components/beginner/tabs/BeginnerPreferencesTab.tsx`).
+  - Added `scripts/verify-openrouter-accordion-and-settings.ts` + `test:openrouter-accordion` in `package.json`, updated `docs/files.md`, and bumped version to `v2.1.120`.
+- **Verification**: `npm run test:openrouter-accordion`, `npm run test:settings-tts-service-accordion`, `npm run test:agents-all` (22/22), `npx tsc --noEmit`, `npx eslint`, `compile_applet`, `lint_applet`, and live Chromium Playwright check (`ADV_ORDER` & `BEG_ORDER` + `localStorage` key save, `ERR_BTN: 0`, `ERRS: []`) (git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Task 416: Prompt 207 Chapter 1 — Move TTS Service Upper in Settings Into Its Own Dedicated Accordion (Slot 2) (`v2.1.119`)
+
+- **Prompt Chapter**: `1. tts-service - mv upper and to its own accordion (2nd accordion)`
+- **Changes**:
+  - Extracted Alternative TTS Service (`alternative-tts-settings-card` + `<TtsServiceSettingsPanel />`) out of `settings-playback-accordion` (`General Playback & Audio Settings`) and moved it upper into its own dedicated accordion `<details data-testid="settings-tts-service-accordion">` positioned directly after `<PerformanceModeSettingsPanel />` (slot 2 below reserved slot 1 OpenRouter accordion) in `src/routes/index.tsx`.
+  - Replicated full Beginner Mode parity in `src/components/beginner/tabs/BeginnerPreferencesTab.tsx` by moving `beginner-alternative-tts-card` (`#tts-service-settings-panel`) upper directly after `beginner-top-profile-container` inside `<details data-testid="beginner-settings-tts-service-accordion">`.
+  - Updated `handleNavigateToTtsSetup` in `src/routes/index.tsx` to unfold the dedicated TTS Service accordion automatically before scrolling.
+  - Added `scripts/verify-settings-tts-service-accordion.ts` + `test:settings-tts-service-accordion` script in `package.json` and bumped single-source version to `v2.1.119`.
+- **Verification**: `npm run test:settings-tts-service-accordion`, `npm run test:settings-moved-and-folded`, `npx tsx scripts/verify-remote-tts-validation.ts`, `npm run test:tts3-docs-parity`, `npm run test:tts-fallback-order-switch`, `npm run test:agents-all` (22/22), `npx tsc --noEmit`, `compile_applet`, `lint_applet`, and live Chromium Playwright check (`ADVANCED` & `BEGINNER` DOM ordering + accordion toggle, `ERR_BTN: 0`) (git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Hotfix: Fix Dev Server Pre-warming Process Death & Scope Vite Watch/Optimize Entries (Prompt 206, `v2.1.118`)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.117 dev > vite --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1611 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause & Changes**:
+  - Without explicit `optimizeDeps.entries` or `server.watch.ignored`, Vite 8 scanned all 13 `.html` files across `public/storybook/`, `public/`, and `quarentined/` and watched non-app directories (`public/storybook`, `android-shell`, `quarentined`, `docs`, `scripts`, `e2e`, `test`, `dist`) during container boot pre-warming.
+  - Updated `vite.config.ts`: added `optimizeDeps.entries: ["index.html"]` and `server.watch.ignored` for non-app directories while preserving `host: "0.0.0.0"`, `port: 3000`, `strictPort: true`, `optimizeDeps.include`, and `resolve.dedupe`.
+  - Updated `scripts/verify-dev-server-prewarming-hotfix.ts` to assert `optimizeDeps.entries` and `server.watch.ignored`.
+  - Bumped single-source version to `v2.1.118` (`code: 20218` via `npx tsx scripts/sync-version.ts 2.1.118`) and restarted the Vite dev server cleanly via `restart_dev_server`.
+- **Verification**: `npm run test:dev-server-prewarming-hotfix`, `npm run test:dev-server-stability`, `npm run test:client-pretransform-health`, `npm run test:vite-reload-modules`, `npm run test:react-instance-and-vite-reload-hotfix`, `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md`, `npm run check-version`, `npx tsc --noEmit`, `npx eslint vite.config.ts`, live Chromium render (`TITLE: Parallel Subtitles`, `ROOT_LEN: 230039`, `ERR_BTN: 0`, `ERRORS: []`), `compile_applet`, and `lint_applet` (git commit/push skipped — no `.git` directory): **PASSED**.
+
 ### Hotfix: Fix Vite HMR Reload Errors Across 10 Modules & Fast-Refresh / ESLint Cleanup (Prompt 203, `v2.1.117`)
 
 - **Prompt**:

@@ -4,6 +4,11 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
+- [ ] **Task 419: Prompt 207 Chapter 4 — Game & OpenRouter sentence generation using target words to learn (on-demand next X=5 sentences)**
+  - Build OpenRouter target-word sentence generation service (`X=5` per batch) & shared Game UI integration (`WordBalloonLearningView` + Storybook) using target words extracted from active subtitles.
+  - Implement on-demand next `X=5` sentence fetching (manual Next 5 trigger + auto-prefetch when remaining buffer runs low, deduplicating previously generated sentences, with TTS playback and graceful missing-key guidance).
+  - Add dedicated verification, live Playwright verification, compile, lint, bump version, and migrate to `docs/done.md`.
+
 - [ ] **Task 414: Prompt 204 Chapter 1 — Fix unintended auto-scroll when interacting with controls in Learning Goals stage**
   - Identify and eliminate all unintended auto-scroll / `scrollIntoView` / focus-scroll jumps triggered by interacting with controls in the Learning Goals stage (Advanced Stage 1 `languages` & Beginner Preferences/Learning Goals), maintaining 100% parity across modes.
   - Add dedicated unit + live Playwright Chromium regression test (`scripts/verify-learning-goals-no-autoscroll.ts`), compile, lint, and migrate to `docs/done.md` before starting Task 415.

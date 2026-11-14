@@ -20,6 +20,9 @@ export interface OpenRouterModel {
 }
 
 export const DEFAULT_OPENROUTER_MODEL = "openrouter/auto:free";
+export const OPENROUTER_FREE_MODELS_FIND_URL =
+  "https://openrouter.ai/api/frontend/v1/models/find?active=true&fmt=cards&max_price=0";
+export const OPENROUTER_MODELS_API_URL = "https://openrouter.ai/api/v1/models";
 
 /**
  * Curated offline fallback of top free OpenRouter models
@@ -91,88 +94,217 @@ export const CURATED_FREE_MODELS: OpenRouterModel[] = [
 ];
 
 let cachedModels: OpenRouterModel[] | null = null;
+let cachedModelsKey = "";
 let lastModelsFetchTime = 0;
 const MODELS_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
-/**
- * Fetches free models dynamically from OpenRouter API, falling back to curated list on network failure.
- */
-export async function fetchOpenRouterFreeModels(apiKey?: string): Promise<OpenRouterModel[]> {
-  const now = Date.now();
-  if (cachedModels && now - lastModelsFetchTime < MODELS_CACHE_TTL_MS) {
-    return cachedModels;
-  }
+export function resetOpenRouterModelsCache(): void {
+  cachedModels = null;
+  cachedModelsKey = "";
+  lastModelsFetchTime = 0;
+}
 
+interface FrontendModelCard {
+  id?: string;
+  slug?: string;
+  name?: string;
+  short_name?: string;
+  description?: string;
+  context_length?: number;
+  has_text_output?: boolean;
+  output_modalities?: string[];
+  pricing?: {
+    prompt?: string | number;
+    completion?: string | number;
+  };
+  endpoint?: {
+    model_variant_slug?: string;
+    is_free?: boolean;
+    pricing?: {
+      prompt?: string | number;
+      completion?: string | number;
+    };
+  };
+}
+
+function buildOpenRouterRequestHeaders(apiKey?: string): Record<string, string> {
   const headers: Record<string, string> = {
+    Accept: "application/json",
     "HTTP-Referer":
       typeof window !== "undefined"
         ? window.location.origin
         : "https://github.com/mostuf2556/subtitle-sync",
-    "X-Title": "Parallel Subtitles AI Punctuation",
+    "X-Title": "Parallel Subtitles AI",
   };
-  if (apiKey) {
+  if (apiKey && apiKey.trim().length > 0) {
     headers["Authorization"] = `Bearer ${apiKey.trim()}`;
   }
+  return headers;
+}
 
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/models", { headers });
-    if (!res.ok) {
-      logWarn("OpenRouter", `Models fetch returned status ${res.status}`);
-      return CURATED_FREE_MODELS;
-    }
-    const data = await res.json();
-    if (!data || !Array.isArray(data.data)) {
-      return CURATED_FREE_MODELS;
-    }
+/**
+ * Parses either OpenRouter's frontend `/models/find?fmt=cards&max_price=0` payload
+ * (`{ data: { models: [...] } }`) or `/api/v1/models` payload (`{ data: [...] }`)
+ * into normalized free text models with `openrouter/auto:free` pinned first.
+ */
+export function parseOpenRouterFreeModelsPayload(payload: unknown): OpenRouterModel[] {
+  const obj = payload as { data?: unknown } | null | undefined;
+  const rawData = obj?.data;
 
-    const freeList: OpenRouterModel[] = [];
+  const isFrontendCardsPayload = Boolean(
+    rawData &&
+      !Array.isArray(rawData) &&
+      Array.isArray((rawData as { models?: unknown }).models),
+  );
 
-    // Always include default free router at top
-    freeList.push(CURATED_FREE_MODELS[0]!);
+  const rawItems: FrontendModelCard[] = isFrontendCardsPayload
+    ? ((rawData as { models: FrontendModelCard[] }).models || [])
+    : Array.isArray(rawData)
+      ? (rawData as FrontendModelCard[])
+      : [];
 
-    for (const m of data.data) {
-      if (!m || typeof m.id !== "string") continue;
-      const id = m.id.toLowerCase();
-      const promptPrice = m.pricing?.prompt !== undefined ? Number(m.pricing.prompt) : null;
-      const completionPrice =
-        m.pricing?.completion !== undefined ? Number(m.pricing.completion) : null;
-
-      const isZeroPrice =
-        (promptPrice === 0 || promptPrice === null) &&
-        (completionPrice === 0 || completionPrice === null);
-      const isFreeTag = id.endsWith(":free") || id.includes("/free") || id.includes(":free");
-
-      if (isZeroPrice || isFreeTag) {
-        if (m.id !== DEFAULT_OPENROUTER_MODEL) {
-          freeList.push({
-            id: m.id,
-            name: m.name || m.id,
-            description: m.description,
-            context_length: m.context_length,
-            pricing: m.pricing,
-            isFree: true,
-          });
-        }
-      }
-    }
-
-    // Merge missing curated models
-    for (const curated of CURATED_FREE_MODELS) {
-      if (!freeList.some((m) => m.id === curated.id)) {
-        freeList.push(curated);
-      }
-    }
-
-    cachedModels = freeList;
-    lastModelsFetchTime = now;
-    return freeList;
-  } catch (err: any) {
-    logWarn(
-      "OpenRouter",
-      `Failed to fetch dynamic models: ${err?.message || err}. Using curated free models.`,
-    );
-    return CURATED_FREE_MODELS;
+  if (rawItems.length === 0) {
+    return [];
   }
+
+  const freeList: OpenRouterModel[] = [CURATED_FREE_MODELS[0]!];
+  const seenIds = new Set<string>([DEFAULT_OPENROUTER_MODEL]);
+
+  for (const m of rawItems) {
+    if (!m || typeof m !== "object") continue;
+
+    // Exclude non-text-output models (e.g., pure image generators)
+    if (m.has_text_output === false) continue;
+    if (
+      Array.isArray(m.output_modalities) &&
+      m.output_modalities.length > 0 &&
+      !m.output_modalities.includes("text")
+    ) {
+      continue;
+    }
+
+    const endpointSlug =
+      typeof m.endpoint?.model_variant_slug === "string"
+        ? m.endpoint.model_variant_slug.trim()
+        : "";
+    const directId = typeof m.id === "string" ? m.id.trim() : "";
+    const rawSlug = typeof m.slug === "string" ? m.slug.trim() : "";
+
+    const resolvedId =
+      endpointSlug ||
+      directId ||
+      (rawSlug ? (rawSlug.endsWith(":free") ? rawSlug : `${rawSlug}:free`) : "");
+
+    if (!resolvedId) continue;
+
+    const effectivePricing = m.endpoint?.pricing || m.pricing;
+    const promptPrice =
+      effectivePricing?.prompt !== undefined ? Number(effectivePricing.prompt) : null;
+    const completionPrice =
+      effectivePricing?.completion !== undefined ? Number(effectivePricing.completion) : null;
+
+    const isZeroPrice =
+      (promptPrice === 0 || promptPrice === null || Number.isNaN(promptPrice)) &&
+      (completionPrice === 0 || completionPrice === null || Number.isNaN(completionPrice));
+    const lowerId = resolvedId.toLowerCase();
+    const isFreeTag =
+      m.endpoint?.is_free === true ||
+      lowerId.endsWith(":free") ||
+      lowerId.includes("/free") ||
+      lowerId.includes(":free");
+
+    // In frontend cards mode (max_price=0), items are already free unless explicitly paid
+    const hasExplicitNonZeroPrice =
+      (promptPrice !== null && !Number.isNaN(promptPrice) && promptPrice > 0) ||
+      (completionPrice !== null && !Number.isNaN(completionPrice) && completionPrice > 0);
+
+    const shouldInclude = isFrontendCardsPayload
+      ? !hasExplicitNonZeroPrice
+      : !hasExplicitNonZeroPrice && (isZeroPrice || isFreeTag);
+
+    if (!shouldInclude) continue;
+
+    if (resolvedId === DEFAULT_OPENROUTER_MODEL) {
+      // Update display metadata if OpenRouter provided a richer card for default auto router
+      if (m.name || m.description || m.context_length) {
+        freeList[0] = {
+          id: DEFAULT_OPENROUTER_MODEL,
+          name: m.name || freeList[0]!.name,
+          description: m.description || freeList[0]!.description,
+          context_length: m.context_length,
+          pricing: effectivePricing as OpenRouterModel["pricing"],
+          isFree: true,
+        };
+      }
+      continue;
+    }
+
+    if (seenIds.has(resolvedId)) continue;
+    seenIds.add(resolvedId);
+
+    freeList.push({
+      id: resolvedId,
+      name: m.name || m.short_name || resolvedId,
+      description: m.description,
+      context_length: m.context_length,
+      pricing: effectivePricing as OpenRouterModel["pricing"],
+      isFree: true,
+    });
+  }
+
+  return freeList;
+}
+
+export interface FetchOpenRouterFreeModelsOptions {
+  forceRefresh?: boolean;
+}
+
+/**
+ * Fetches free models dynamically from OpenRouter (`frontend/v1/models/find?active=true&fmt=cards&max_price=0`),
+ * using the supplied API key when available and defaulting to `openrouter/auto:free`.
+ * Falls back to `/api/v1/models` and finally `CURATED_FREE_MODELS` if offline.
+ */
+export async function fetchOpenRouterFreeModels(
+  apiKey?: string,
+  options?: FetchOpenRouterFreeModelsOptions,
+): Promise<OpenRouterModel[]> {
+  const normalizedKey = (apiKey || "").trim();
+  const now = Date.now();
+  if (
+    !options?.forceRefresh &&
+    cachedModels &&
+    cachedModelsKey === normalizedKey &&
+    now - lastModelsFetchTime < MODELS_CACHE_TTL_MS
+  ) {
+    return cachedModels;
+  }
+
+  const headers = buildOpenRouterRequestHeaders(normalizedKey);
+  const endpoints = [OPENROUTER_FREE_MODELS_FIND_URL, OPENROUTER_MODELS_API_URL];
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(endpoint, { headers });
+      if (!res.ok) {
+        logWarn("OpenRouter", `Models fetch (${endpoint}) returned status ${res.status}`);
+        continue;
+      }
+      const data = await res.json();
+      const parsed = parseOpenRouterFreeModelsPayload(data);
+      if (parsed.length > 0) {
+        cachedModels = parsed;
+        cachedModelsKey = normalizedKey;
+        lastModelsFetchTime = now;
+        return parsed;
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      logWarn("OpenRouter", `Models fetch (${endpoint}) failed: ${message}`);
+    }
+  }
+
+  logWarn("OpenRouter", "All dynamic model endpoints unavailable; falling back to curated free models.");
+  return CURATED_FREE_MODELS;
 }
 
 export type PunctuationStyle = "conversational" | "formal" | "short_sentences";
@@ -251,7 +383,7 @@ export function parsePunctuationOutput(
     .filter((l) => l.length > 0);
 
   for (const line of lines) {
-    const match = line.match(/^(\d+)[\s:.\-\)]+(.+)$/);
+    const match = line.match(/^(\d+)[\s:.\-)]+(.+)$/);
     if (match && match[1] && match[2]) {
       const idx = parseInt(match[1], 10);
       result.set(idx, match[2].trim());
@@ -262,7 +394,7 @@ export function parsePunctuationOutput(
   if (result.size < expectedCount && lines.length >= expectedCount) {
     lines.forEach((l, idx) => {
       if (!result.has(idx)) {
-        const cleaned = l.replace(/^\d+[\s:.\-\)]+/, "").trim();
+        const cleaned = l.replace(/^\d+[\s:.\-)]+/, "").trim();
         result.set(idx, cleaned);
       }
     });
@@ -408,14 +540,19 @@ export async function punctuateSubtitlesWithOpenRouter({
           throw new Error("Empty response returned from OpenRouter model.");
         }
         batchSuccess = true;
-      } catch (err: any) {
-        if (signal?.aborted || err?.name === "AbortError" || err?.message?.includes("cancelled")) {
+      } catch (err: unknown) {
+        const errObj = err as { name?: string; message?: string } | null;
+        if (
+          signal?.aborted ||
+          errObj?.name === "AbortError" ||
+          errObj?.message?.includes("cancelled")
+        ) {
           throw new Error("AI punctuation was cancelled.");
         }
         if (attempt >= maxAttempts) {
           logError(
             "OpenRouter",
-            `Batch ${batchIdx + 1} failed after ${maxAttempts} attempts: ${err?.message || err}`,
+            `Batch ${batchIdx + 1} failed after ${maxAttempts} attempts: ${errObj?.message || String(err)}`,
           );
           // Fallback: keep original text with basic sentence capitalization if AI request fails
           inputLines.forEach((item) => {
@@ -551,10 +688,11 @@ export async function testOpenRouterConnection(
       model,
       latencyMs,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     return {
       success: false,
-      message: err?.message || String(err),
+      message,
       model,
       latencyMs: Date.now() - startTime,
     };

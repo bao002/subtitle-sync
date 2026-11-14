@@ -1,10 +1,14 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [ACTIVE]
-- **Active Task**: Task 414 (Prompt 204 Chapter 1 — Fix unintended auto-scroll when interacting with controls in Learning Goals stage)
-- **Active Step**: Reproduce unintended auto-scroll in live Chromium & audit `scrollIntoView` / focus / Learning Goals stage handlers across Advanced & Beginner modes.
-- **Upcoming**: Task 415 (Prompt 204 Chapter 2 — Fix enabling `menu-option-auto-scroll` triggering auto-scroll on Subtitles Table stage)
+- **Active Task**: Task 419 (Prompt 207 Chapter 4 — Game & OpenRouter sentence generation using target words to learn, on-demand next X=5 sentences)
+- **Active Step**: Inspect Game views (`WordBalloonLearningView.tsx`, `ListeningGamePanel.tsx`, `listeningGame.ts`), build `openRouterSentenceGenerator.ts` (`OPENROUTER_SENTENCE_BATCH_SIZE = 5`) + Storybook-first `OpenRouterSentenceGamePanel.tsx` & wire into Advanced/Beginner `WordBalloonLearningView`.
+- **Upcoming**: Task 414 & Task 415 (Prompt 204 auto-scroll fixes)
 - **Completed**:
+  - Task 418 (Prompt 207 Chapter 3): Fetched live OpenRouter free models (`frontend/v1/models/find`) with API key on init, defaulted to `openrouter/auto:free`, rendered model dropdown across Advanced, Beginner & Storybook (`test:openrouter-free-models` PASSED, `v2.1.121`)
+  - Task 417 (Prompt 207 Chapter 2): Built shared `OpenRouterSettingsPanel` + Storybook story/Workbench tab and mounted as 1st accordion above TTS Service (2nd accordion) in Advanced & Beginner modes (`test:openrouter-accordion` PASSED, `v2.1.120`)
+  - Task 416 (Prompt 207 Chapter 1): Moved TTS Service upper in Settings into its own dedicated accordion (2nd accordion slot) across Advanced & Beginner modes (`test:settings-tts-service-accordion` PASSED, `v2.1.119`)
+  - Hotfix (Prompt 206): Scoped `vite.config.ts` (`optimizeDeps.entries: ["index.html"]` & `server.watch.ignored` for non-app directories), updated `verify-dev-server-prewarming-hotfix.ts`, bumped to `v2.1.118`, restarted Vite dev server, verified HTTP 200 across all modules + live Chromium clean (`ERR_BTN: 0`)
   - Hotfix (Prompt 203): Fixed Fast Refresh non-component export (`LearningGoalsFiltersPanel.tsx`) & ESLint errors (`AiSubtitlePunctuationTab.tsx`, `NetworkRequestsInspector.tsx`), restarted Vite dev server, verified all 10 reported modules + 200 `src/` files HTTP 200 (`v2.1.117`)
   - Task 409 (Prompt 197 Chapter 4): Two-band Listening Game word card UI/UX layout, right-rail action alignment, & `max-h-[26rem]` list containers (`test:listening-word-cards-ui-ux` PASSED, `v2.1.116`)
   - Task 413 (Prompt 201 Chapter 4): Clicking "Both" triggers sequential listening to both words and their sentences (`test:listening-both-playback` PASSED, `v2.1.115`)

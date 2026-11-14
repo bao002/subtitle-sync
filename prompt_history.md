@@ -2631,3 +2631,31 @@ CSS 1: {
 go on
 ```
 
+---
+
+### Prompt 206: Hotfix — Dev Server Pre-warming Process Death & Vite Watch/Optimize Scoping
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: Pre-warming failed: dev server process died. > subtitle-sync@2.1.117 dev > vite --port 3000 --host 0.0.0.0 VITE v8.1.5  ready in 1611 ms ➜  Local:   http://localhost:3000/ ➜  Network: http://169.254.8.1:3000/ ➜  Network: http://169.254.9.1:3000/ ➜  Network: http://169.254.169.1:3000/
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 207: Settings Accordions (OpenRouter Key 1st, TTS Service 2nd), OpenRouter Free Models Dropdown, & Game On-Demand 5-Sentence Generation
+```
+settings:
+1. tts-service - mv upper and to its own accordion (2nd accordion)
+2. user should be able to set their own openrouter key. v upper and to its own accordion. (1st accordion)
+
+3. using the openrouter key:
+
+- fetch free models:https://openrouter.ai/api/frontend/v1/models/find?active=true&fmt=cards&max_price=0
+- default to openrouter/auto:free
+- show dropdownlist of models (fetch on relevant component init)
+
+4. game and the use of openrouter in order to generate sentences using the words which are target to learn. (ensure fetching on demand next X=5 sentences)
+```
+

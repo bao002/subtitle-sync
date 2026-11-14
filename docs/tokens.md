@@ -4,6 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 207 (Tasks 416–419 — Settings Accordions: OpenRouter 1st & TTS Service 2nd, OpenRouter Free Models Dropdown on Init, & Game OpenRouter X=5 Sentence Generation):
+  - Task 416 [COMPLETED & VERIFIED]: Chapter 1 — Moved TTS Service upper in Settings into its own dedicated accordion (2nd accordion slot) across Advanced (`settings-tts-service-accordion`) and Beginner (`beginner-settings-tts-service-accordion`), verified with `test:settings-tts-service-accordion`, `test:agents-all`, Chromium E2E, `compile_applet`, and `lint_applet` (`v2.1.119`).
+  - Task 417 [COMPLETED & VERIFIED]: Chapter 2 — Built shared `OpenRouterSettingsPanel` + Storybook story/Workbench tab and mounted it as 1st accordion directly above TTS Service (2nd accordion) across Advanced & Beginner modes (`test:openrouter-accordion`, `test:agents-all` 22/22, Chromium E2E, `compile_applet`, `lint_applet`, `v2.1.120`).
+  - Task 418 [COMPLETED & VERIFIED]: Chapter 3 — Updated `fetchOpenRouterFreeModels` (`https://openrouter.ai/api/frontend/v1/models/find?active=true&fmt=cards&max_price=0` with Bearer API key auth), pinned `openrouter/auto:free` default, wired init fetch + `<select data-testid="openrouter-free-models-dropdown">` in `OpenRouterSettingsPanel` across Advanced, Beginner & Storybook (`test:openrouter-free-models`, `test:agents-all` 22/22, live Chromium E2E, `compile_applet`, `lint_applet`, `v2.1.121`).
+  - Task 419 [ACTIVE]: Chapter 4 — Integrate OpenRouter into the Game (`WordBalloonLearningView`) to generate sentences using the target words to learn, ensuring on-demand fetching of the next `X=5` sentences.
+- Prompt 206 (Hotfix — Dev Server Pre-warming Process Death & Vite Watch/Optimize Scoping):
+  - Hotfix [COMPLETED & VERIFIED]: Scoped `vite.config.ts` (`optimizeDeps.entries: ["index.html"]`, `server.watch.ignored` for non-app directories), updated `scripts/verify-dev-server-prewarming-hotfix.ts`, bumped to `v2.1.118`, restarted Vite dev server, verified all modules HTTP 200, live Chromium (`ERR_BTN: 0`, `ERRORS: []`), `npx tsc --noEmit`, `compile_applet`, `lint_applet`, and resumed `Task 414`.
 - Prompt 205 (Resume Backlog — "go on"): Execute active Prompt 204 serial tasks (`Task 414` -> `Task 415`).
 - Prompt 204 (Tasks 414–415 — Fix Unintended Auto-Scroll in Learning Goals Stage & Fix Enabling Auto-Scroll Subtitles in Subtitles Table Stage):
   - Task 414 [ACTIVE]: Chapter 1 — Prevent interacting with controls in the Learning Goals stage (Stage 1 / Beginner Preferences) from triggering unintended auto-scroll (`scrollIntoView` / focus-scroll / container scroll jumps).

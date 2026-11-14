@@ -48,7 +48,15 @@ async function run() {
   const viteConfig = fs.readFileSync(viteConfigPath, "utf-8");
   assert(viteConfig.includes('port: 3000'), "vite.config.ts must specify port: 3000");
   assert(viteConfig.includes('host: "0.0.0.0"'), "vite.config.ts must specify host: 0.0.0.0");
-  console.log("✅ PASS: vite.config.ts explicitly specifies port 3000 and host 0.0.0.0");
+  assert(
+    viteConfig.includes('entries: ["index.html"]'),
+    'vite.config.ts must scope optimizeDeps.entries to ["index.html"]',
+  );
+  assert(
+    viteConfig.includes("ignored:") && viteConfig.includes("**/public/storybook/**"),
+    "vite.config.ts must configure server.watch.ignored for non-app directories",
+  );
+  console.log("✅ PASS: vite.config.ts explicitly specifies port 3000, host 0.0.0.0, entries, and watch.ignored");
 
   // 3. src/routes/index.tsx prettier checks
   const indexRoutePath = path.resolve(process.cwd(), "src/routes/index.tsx");

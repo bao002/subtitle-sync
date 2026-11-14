@@ -19,6 +19,7 @@ import {
   ChevronUp,
   ExternalLink,
   FileText,
+  Key,
   LayoutList,
   Link2,
   Loader2,
@@ -139,6 +140,8 @@ import {
   setOnDemandTranslationSentencesAhead,
   getOpenRouterApiKeySetting,
   setOpenRouterApiKeySetting,
+  getOpenRouterModelSetting,
+  setOpenRouterModelSetting,
   getStripSpeakerBracketsSetting,
   setStripSpeakerBracketsSetting,
   getRemoveCharsSetting,
@@ -295,6 +298,7 @@ import {
   DEFAULT_SIMPLE_PARSER_CONFIG,
 } from "@/utils/newSubtitlesParser";
 import { PerformanceModeSettingsPanel } from "@/components/shared/PerformanceModeSettingsPanel";
+import { OpenRouterSettingsPanel } from "@/components/OpenRouterSettingsPanel";
 import { useIsElementEnabled } from "@/utils/performanceModeManager";
 import { LearningGoalsFiltersPanel } from "@/components/shared/LearningGoalsFiltersPanel";
 import { BeginnerFlowContainer } from "@/components/beginner/BeginnerFlowContainer";
@@ -1581,6 +1585,12 @@ function Index() {
     setUseAlternativeTtsState(true);
     setUseAlternativeTts(true);
     setTimeout(() => {
+      const acc = document.querySelector(
+        '[data-testid="settings-tts-service-accordion"], [data-testid="beginner-settings-tts-service-accordion"]',
+      ) as HTMLDetailsElement | null;
+      if (acc) {
+        acc.open = true;
+      }
       const el = document.getElementById("tts-service-settings-panel");
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1588,8 +1598,39 @@ function Index() {
     }, 100);
   }, [workflowMode]);
 
+  const handleNavigateToOpenRouterSetup = useCallback(() => {
+    setShowWordBalloonLearningView(false);
+    if (workflowMode === "beginner") {
+      const prefTabBtn = document.querySelector(
+        '[data-testid="beginner-tab-preferences"]',
+      ) as HTMLButtonElement | null;
+      if (prefTabBtn) {
+        prefTabBtn.click();
+      }
+    } else {
+      setShowOtherSettingsAccordions(true);
+      setCurrentAccordionStage(4);
+      setOpenPanels((prev) => ({
+        ...prev,
+        playback: true,
+      }));
+    }
+    setTimeout(() => {
+      const acc = document.querySelector(
+        '[data-testid="settings-openrouter-accordion"], [data-testid="beginner-settings-openrouter-accordion"]',
+      ) as HTMLDetailsElement | null;
+      if (acc) {
+        acc.open = true;
+        acc.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 100);
+  }, [workflowMode]);
+
   const [openRouterKeyInput, setOpenRouterKeyInput] = useState<string>(() =>
     typeof window !== "undefined" ? getOpenRouterApiKeySetting() : "",
+  );
+  const [openRouterModel, setOpenRouterModel] = useState<string>(() =>
+    typeof window !== "undefined" ? getOpenRouterModelSetting() : "openrouter/auto:free",
   );
   const [showOpenRouterKey, setShowOpenRouterKey] = useState<boolean>(false);
   const [openRouterKeySaved, setOpenRouterKeySaved] = useState<boolean>(false);
@@ -8104,6 +8145,7 @@ function Index() {
                       }
                     }}
                     onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
+                    onOpenOpenRouterSettings={handleNavigateToOpenRouterSetup}
                     configuredRates={rates}
                     onSpeakText={handleSpeakTextFromAlternativeView}
                     onStopSpeaking={handleCancelAlternativeSpeech}
@@ -9083,6 +9125,7 @@ function Index() {
                                     }
                                   }}
                                   onOpenCanvasGame={() => setShowCanvasBalloonGame(true)}
+                                  onOpenOpenRouterSettings={handleNavigateToOpenRouterSetup}
                                   configuredRates={rates}
                                   onSpeakText={handleSpeakTextFromAlternativeView}
                                   onStopSpeaking={handleCancelAlternativeSpeech}
@@ -9774,7 +9817,248 @@ function Index() {
                             {/* Performance Mode: Fast (Default) vs. Slow Mode */}
                             <PerformanceModeSettingsPanel />
 
-                            {/* Sub-Accordion 1: General Playback & Audio Settings */}
+                            {/* OpenRouter Key & Models Accordion (1st accordion, moved upper into its own dedicated accordion) */}
+                            <details
+                              className="group rounded-xl border border-border bg-card/60 overflow-hidden shadow-xs"
+                              data-testid="settings-openrouter-accordion"
+                            >
+                              <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-foreground hover:bg-muted/40 transition">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Key className="h-4 w-4 text-primary" />
+                                  <span>OpenRouter AI Key &amp; Models</span>
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] ${
+                                      openRouterKeyInput.trim()
+                                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                                        : "bg-muted text-muted-foreground border-border"
+                                    }`}
+                                  >
+                                    {openRouterKeyInput.trim() ? "Key saved" : "Configure key"}
+                                  </Badge>
+                                  <Badge
+                                    variant="outline"
+                                    data-testid="openrouter-accordion-model-badge"
+                                    className="text-[10px] font-mono bg-primary/10 text-primary border-primary/30"
+                                  >
+                                    {openRouterModel}
+                                  </Badge>
+                                </div>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+                              </summary>
+                              <div
+                                className="p-3 pt-2 border-t border-border/40"
+                                data-testid="settings-openrouter-container"
+                              >
+                                <OpenRouterSettingsPanel
+                                  apiKey={openRouterKeyInput}
+                                  selectedModel={openRouterModel}
+                                  onSaveApiKey={(k) => {
+                                    setOpenRouterKeyInput(k);
+                                    setOpenRouterApiKeySetting(k);
+                                  }}
+                                  onClearApiKey={() => {
+                                    setOpenRouterKeyInput("");
+                                    setOpenRouterApiKeySetting("");
+                                  }}
+                                  onModelChange={(m) => {
+                                    setOpenRouterModel(m);
+                                    setOpenRouterModelSetting(m);
+                                  }}
+                                />
+                              </div>
+                            </details>
+
+                            {/* TTS Service Accordion (2nd accordion, moved upper into its own dedicated accordion) */}
+                            <details
+                              className="group rounded-xl border border-border bg-card/60 overflow-hidden shadow-xs"
+                              data-testid="settings-tts-service-accordion"
+                            >
+                              <summary className="flex items-center justify-between p-3 cursor-pointer list-none select-none font-semibold text-xs uppercase tracking-wider text-foreground hover:bg-muted/40 transition">
+                                <div className="flex items-center gap-2">
+                                  <Volume2 className="h-4 w-4 text-primary" />
+                                  <span>TTS Service (Alternative Speech &amp; Voices)</span>
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] ${
+                                      useAlternativeTtsState
+                                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                                        : "bg-muted text-muted-foreground border-border"
+                                    }`}
+                                  >
+                                    {useAlternativeTtsState ? "Enabled" : "Off by default"}
+                                  </Badge>
+                                </div>
+                                <ChevronDown className="h-4 w-4 text-muted-foreground group-open:rotate-180 transition-transform" />
+                              </summary>
+                              <div
+                                id="tts-service-settings-panel"
+                                data-testid="settings-tts-service-container"
+                                className="p-3 pt-0 border-t border-border/40 space-y-3"
+                              >
+                                {/* Alternative TTS Service (Lovable Speak API & Google Translate) */}
+                                <div
+                                  className="pt-2 space-y-2"
+                                  data-testid="alternative-tts-settings-card"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                                      <input
+                                        id="alternative-tts-toggle"
+                                        data-testid="alternative-tts-toggle"
+                                        type="checkbox"
+                                        checked={useAlternativeTtsState}
+                                        onChange={(e) => {
+                                          const checked = e.target.checked;
+                                          setUseAlternativeTtsState(checked);
+                                          setUseAlternativeTts(checked);
+                                        }}
+                                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
+                                      />
+                                      <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                                        <Volume2 className="w-3.5 h-3.5 text-primary" />
+                                        <span>
+                                          Alternative TTS Service (Lovable API &amp; Google
+                                          Translate)
+                                        </span>
+                                      </span>
+                                    </label>
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                                        Off by default
+                                      </span>
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setExpandedPrefsHelp((p) => ({ ...p, altTts: !p.altTts }))
+                                        }
+                                        className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
+                                        title="Toggle alternative TTS explanation"
+                                        aria-expanded={Boolean(expandedPrefsHelp.altTts)}
+                                      >
+                                        <HelpCircle className="w-3 h-3" />
+                                        <span>{expandedPrefsHelp.altTts ? "Hide" : "Info"}</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                  {expandedPrefsHelp.altTts && (
+                                    <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
+                                      Provides high-quality neural voice synthesis via Lovable Speak
+                                      API and OpenRouter cloud voices, with automatic fallback when
+                                      local device TTS lacks specific language voices.
+                                    </p>
+                                  )}
+
+                                  {useAlternativeTtsState && (
+                                    <div className="ml-6 pt-1">
+                                      {/* data-testid="test-alternative-tts-btn" rendered in TtsServiceSettingsPanel */}
+                                      <TtsServiceSettingsPanel
+                                        mode={alternativeTtsModeState}
+                                        onModeChange={(m) => {
+                                          setAlternativeTtsModeState(m);
+                                          setAlternativeTtsMode(m);
+                                        }}
+                                        engine={alternativeTtsEngineState}
+                                        onEngineChange={(e) => {
+                                          setAlternativeTtsEngineState(e);
+                                          setAlternativeTtsEngine(e);
+                                        }}
+                                        provider={lovableTtsProviderState}
+                                        onProviderChange={(p) => {
+                                          setLovableTtsProviderState(p);
+                                          setLovableTtsProvider(p);
+                                          const availableVoices = getVoicesForProvider(p);
+                                          if (
+                                            availableVoices.length > 0 &&
+                                            !availableVoices.includes(lovableTtsVoiceState)
+                                          ) {
+                                            const defaultVoice = getDefaultVoiceForProvider(p);
+                                            setLovableTtsVoiceState(defaultVoice);
+                                            setLovableTtsVoice(defaultVoice);
+                                          }
+                                        }}
+                                        voice={lovableTtsVoiceState}
+                                        onVoiceChange={(v) => {
+                                          setLovableTtsVoiceState(v);
+                                          setLovableTtsVoice(v);
+                                        }}
+                                        speechRate={
+                                          rates[baseLanguage || "en"] ??
+                                          getDefaultLanguageTtsRate(baseLanguage || "en")
+                                        }
+                                        onSpeechRateChange={(val) => {
+                                          const targetLang = baseLanguage || "en";
+                                          setRates((current) => ({
+                                            ...current,
+                                            [targetLang]: val,
+                                          }));
+                                          saveTtsRatePreference(targetLang, val);
+                                          if (videoId) {
+                                            saveVideoSettings(videoId, {
+                                              ttsRates: { [targetLang]: val },
+                                            });
+                                          }
+                                        }}
+                                        baseLanguage={baseLanguage || "en"}
+                                        currentKeyInput={openRouterKeyInput}
+                                        hasCustomKey={hasCustomOpenRouterApiKey()}
+                                        hasCustomSpeakToken={Boolean(getSpeakApiToken())}
+                                        hasServerKey={Boolean(getServerOpenRouterApiKey())}
+                                        onSaveKey={(k) => {
+                                          setOpenRouterKeyInput(k);
+                                          setLovableTtsApiKey(k);
+                                          setOpenRouterApiKeySetting(k);
+                                        }}
+                                        onClearKey={() => {
+                                          setOpenRouterKeyInput("");
+                                          setLovableTtsApiKey("");
+                                          setOpenRouterApiKeySetting("");
+                                        }}
+                                        onValidateService={() => handleValidateRemoteService()}
+                                        onTestAudio={async () => {
+                                          setIsTestingAlternativeTts(true);
+                                          const testRate =
+                                            rates[baseLanguage || "en"] ??
+                                            getDefaultLanguageTtsRate(baseLanguage || "en");
+                                          const sampleText = getSampleTextForLanguage(
+                                            baseLanguage || "en",
+                                          );
+                                          try {
+                                            await playAlternativeTtsAudio(
+                                              sampleText,
+                                              baseLanguage || "en",
+                                              testRate,
+                                              undefined,
+                                              alternativeTtsEngineState,
+                                              {
+                                                provider: lovableTtsProviderState,
+                                                speed: testRate,
+                                                isAnonymous: alternativeTtsAnonymousState,
+                                              },
+                                            );
+                                          } catch (err) {
+                                            console.warn("Test Alternative TTS error:", err);
+                                          } finally {
+                                            setIsTestingAlternativeTts(false);
+                                          }
+                                        }}
+                                        isValidating={isValidatingRemoteTts}
+                                        isTestingAudio={isTestingAlternativeTts}
+                                        validationResult={remoteValidationResult}
+                                        isAnonymous={alternativeTtsAnonymousState}
+                                        onAnonymousChange={(anon) => {
+                                          setAlternativeTtsAnonymousState(anon);
+                                          setAlternativeTtsAnonymousMode(anon);
+                                        }}
+                                        showDebugger={true}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </details>
+
+                            {/* General Playback & Audio Settings */}
                             <details
                               className="group rounded-xl border border-border bg-card/60 overflow-hidden shadow-xs"
                               data-testid="settings-playback-accordion"
@@ -10383,166 +10667,6 @@ function Index() {
                                       className="w-20 rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
                                     />
                                   </div>
-                                </div>
-
-                                {/* Alternative TTS Service (Lovable Speak API & Google Translate) */}
-                                <div
-                                  className="pt-2 border-t border-border/60 space-y-2"
-                                  data-testid="alternative-tts-settings-card"
-                                >
-                                  <div className="flex items-center justify-between gap-2">
-                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                      <input
-                                        id="alternative-tts-toggle"
-                                        data-testid="alternative-tts-toggle"
-                                        type="checkbox"
-                                        checked={useAlternativeTtsState}
-                                        onChange={(e) => {
-                                          const checked = e.target.checked;
-                                          setUseAlternativeTtsState(checked);
-                                          setUseAlternativeTts(checked);
-                                        }}
-                                        className="rounded border-input text-primary focus:ring-primary h-4 w-4 cursor-pointer"
-                                      />
-                                      <span className="font-medium text-xs text-foreground flex items-center gap-1.5">
-                                        <Volume2 className="w-3.5 h-3.5 text-primary" />
-                                        <span>
-                                          Alternative TTS Service (Lovable API &amp; Google
-                                          Translate)
-                                        </span>
-                                      </span>
-                                    </label>
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                                        Off by default
-                                      </span>
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setExpandedPrefsHelp((p) => ({ ...p, altTts: !p.altTts }))
-                                        }
-                                        className="text-[10px] text-primary hover:underline flex items-center gap-0.5 font-medium cursor-pointer"
-                                        title="Toggle alternative TTS explanation"
-                                        aria-expanded={Boolean(expandedPrefsHelp.altTts)}
-                                      >
-                                        <HelpCircle className="w-3 h-3" />
-                                        <span>{expandedPrefsHelp.altTts ? "Hide" : "Info"}</span>
-                                      </button>
-                                    </div>
-                                  </div>
-                                  {expandedPrefsHelp.altTts && (
-                                    <p className="text-[11px] text-muted-foreground ml-6 p-2 rounded bg-muted/30 border border-border/40 animate-in fade-in duration-150">
-                                      Provides high-quality neural voice synthesis via Lovable Speak
-                                      API and OpenRouter cloud voices, with automatic fallback when
-                                      local device TTS lacks specific language voices.
-                                    </p>
-                                  )}
-
-                                  {useAlternativeTtsState && (
-                                    <div className="ml-6 pt-1">
-                                      {/* data-testid="test-alternative-tts-btn" rendered in TtsServiceSettingsPanel */}
-                                      <TtsServiceSettingsPanel
-                                        mode={alternativeTtsModeState}
-                                        onModeChange={(m) => {
-                                          setAlternativeTtsModeState(m);
-                                          setAlternativeTtsMode(m);
-                                        }}
-                                        engine={alternativeTtsEngineState}
-                                        onEngineChange={(e) => {
-                                          setAlternativeTtsEngineState(e);
-                                          setAlternativeTtsEngine(e);
-                                        }}
-                                        provider={lovableTtsProviderState}
-                                        onProviderChange={(p) => {
-                                          setLovableTtsProviderState(p);
-                                          setLovableTtsProvider(p);
-                                          const availableVoices = getVoicesForProvider(p);
-                                          if (
-                                            availableVoices.length > 0 &&
-                                            !availableVoices.includes(lovableTtsVoiceState)
-                                          ) {
-                                            const defaultVoice = getDefaultVoiceForProvider(p);
-                                            setLovableTtsVoiceState(defaultVoice);
-                                            setLovableTtsVoice(defaultVoice);
-                                          }
-                                        }}
-                                        voice={lovableTtsVoiceState}
-                                        onVoiceChange={(v) => {
-                                          setLovableTtsVoiceState(v);
-                                          setLovableTtsVoice(v);
-                                        }}
-                                        speechRate={
-                                          rates[baseLanguage || "en"] ??
-                                          getDefaultLanguageTtsRate(baseLanguage || "en")
-                                        }
-                                        onSpeechRateChange={(val) => {
-                                          const targetLang = baseLanguage || "en";
-                                          setRates((current) => ({
-                                            ...current,
-                                            [targetLang]: val,
-                                          }));
-                                          saveTtsRatePreference(targetLang, val);
-                                          if (videoId) {
-                                            saveVideoSettings(videoId, {
-                                              ttsRates: { [targetLang]: val },
-                                            });
-                                          }
-                                        }}
-                                        baseLanguage={baseLanguage || "en"}
-                                        currentKeyInput={openRouterKeyInput}
-                                        hasCustomKey={hasCustomOpenRouterApiKey()}
-                                        hasCustomSpeakToken={Boolean(getSpeakApiToken())}
-                                        hasServerKey={Boolean(getServerOpenRouterApiKey())}
-                                        onSaveKey={(k) => {
-                                          setOpenRouterKeyInput(k);
-                                          setLovableTtsApiKey(k);
-                                          setOpenRouterApiKeySetting(k);
-                                        }}
-                                        onClearKey={() => {
-                                          setOpenRouterKeyInput("");
-                                          setLovableTtsApiKey("");
-                                          setOpenRouterApiKeySetting("");
-                                        }}
-                                        onValidateService={() => handleValidateRemoteService()}
-                                        onTestAudio={async () => {
-                                          setIsTestingAlternativeTts(true);
-                                          const testRate =
-                                            rates[baseLanguage || "en"] ??
-                                            getDefaultLanguageTtsRate(baseLanguage || "en");
-                                          const sampleText = getSampleTextForLanguage(
-                                            baseLanguage || "en",
-                                          );
-                                          try {
-                                            await playAlternativeTtsAudio(
-                                              sampleText,
-                                              baseLanguage || "en",
-                                              testRate,
-                                              undefined,
-                                              alternativeTtsEngineState,
-                                              {
-                                                provider: lovableTtsProviderState,
-                                                speed: testRate,
-                                                isAnonymous: alternativeTtsAnonymousState,
-                                              },
-                                            );
-                                          } catch (err) {
-                                            console.warn("Test Alternative TTS error:", err);
-                                          } finally {
-                                            setIsTestingAlternativeTts(false);
-                                          }
-                                        }}
-                                        isValidating={isValidatingRemoteTts}
-                                        isTestingAudio={isTestingAlternativeTts}
-                                        validationResult={remoteValidationResult}
-                                        isAnonymous={alternativeTtsAnonymousState}
-                                        onAnonymousChange={(anon) => {
-                                          setAlternativeTtsAnonymousState(anon);
-                                          setAlternativeTtsAnonymousMode(anon);
-                                        }}
-                                        showDebugger={true}
-                                      />
-                                    </div>
-                                  )}
                                 </div>
 
                                 {/* Favorite Languages (Settings & localStorage) and Video-Specific Selection */}

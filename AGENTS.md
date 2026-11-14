@@ -129,6 +129,16 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-go on
+settings:
+1. tts-service - mv upper and to its own accordion (2nd accordion)
+2. user should be able to set their own openrouter key. v upper and to its own accordion. (1st accordion)
+
+3. using the openrouter key:
+
+- fetch free models:https://openrouter.ai/api/frontend/v1/models/find?active=true&fmt=cards&max_price=0
+- default to openrouter/auto:free
+- show dropdownlist of models (fetch on relevant component init)
+
+4. game and the use of openrouter in order to generate sentences using the words which are target to learn. (ensure fetching on demand next X=5 sentences)
 ```
 
