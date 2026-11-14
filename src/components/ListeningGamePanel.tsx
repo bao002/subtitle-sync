@@ -1603,7 +1603,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
             <div
               ref={wordsListRef}
               data-testid="listening-words-list"
-              className="max-h-72 overflow-y-auto space-y-1.5 pr-1"
+              className="max-h-[26rem] overflow-y-auto space-y-2 pr-1"
             >
               {sortedWords.length === 0 ? (
                 <div
@@ -1654,17 +1654,21 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                       key={item.id}
                       data-testid={`listening-word-item-${idx}`}
                       data-word-item={item.word}
-                      className={`rounded-lg border p-2.5 text-xs transition-colors space-y-1.5 ${
+                      className={`rounded-lg border px-3 py-2.5 text-xs transition-colors space-y-2 ${
                         isActive
                           ? "border-indigo-500 bg-indigo-500/10"
                           : "border-border/60 bg-background/70 hover:bg-muted/40"
                       }`}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0 flex-1 flex items-center gap-2 flex-wrap">
+                      {/* Band 1: Word + On-Demand Translations + Listen Rail */}
+                      <div
+                        data-testid={`listening-word-band-${idx}`}
+                        className="flex items-start justify-between gap-2.5"
+                      >
+                        <div className="min-w-0 flex-1 flex items-baseline gap-x-2.5 gap-y-1 flex-wrap pt-0.5">
                           <span
                             dir={isBaseRtl ? "rtl" : "ltr"}
-                            className="font-bold text-sm text-foreground"
+                            className="font-bold text-sm text-foreground shrink-0 leading-snug"
                           >
                             {item.word}
                           </span>
@@ -1672,7 +1676,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                             <span
                               dir={isTargetRtl ? "rtl" : "ltr"}
                               data-testid={`listening-word-ondemand-translation-${idx}`}
-                              className="text-xs font-semibold text-indigo-600 dark:text-indigo-300"
+                              className="text-xs font-semibold text-indigo-600 dark:text-indigo-300 leading-snug break-words"
                               title={`On-demand word translation (${targetLanguageName})`}
                             >
                               → {onDemandWordTrans}
@@ -1701,7 +1705,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                                     key={extraLang}
                                     dir={RTL.has(extraLang) ? "rtl" : "ltr"}
                                     data-testid={`listening-word-extra-translation-${idx}-${extraLang}`}
-                                    className="text-[11px] font-medium text-sky-600 dark:text-sky-300"
+                                    className="text-[11px] font-medium text-sky-600 dark:text-sky-300 leading-snug break-words"
                                     title={`${languageOptionMap.get(extraLang)?.name || extraLang} translation`}
                                   >
                                     · {extraLang}: {extraTrans}
@@ -1724,7 +1728,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                           variant={isWordActive ? "default" : "outline"}
                           data-testid={`listening-play-word-${idx}`}
                           onClick={() => handlePlayWord(item)}
-                          className="h-7 px-2 text-[11px] gap-1 shrink-0 whitespace-nowrap"
+                          className="h-7 min-w-[5.25rem] justify-center px-2.5 text-[11px] gap-1 shrink-0 whitespace-nowrap"
                           title={
                             withTranslations
                               ? "Listen to word + on-demand translation"
@@ -1738,13 +1742,17 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                         </Button>
                       </div>
 
+                      {/* Band 2: Derived Original Sentence + Translation + Sentence Rail */}
                       {item.sourceSentence && (
-                        <div className="flex items-start justify-between gap-2 border-t border-border/40 pt-1.5">
-                          <div className="min-w-0 flex-1 space-y-0.5">
+                        <div
+                          data-testid={`listening-word-sentence-band-${idx}`}
+                          className="flex items-start justify-between gap-2.5 border-t border-border/40 pt-2"
+                        >
+                          <div className="min-w-0 flex-1 space-y-1">
                             <div className="flex items-start gap-1.5">
                               <span
                                 data-testid={`listening-word-sentence-wordcount-${idx}`}
-                                className="mt-0.5 shrink-0 rounded bg-muted px-1 py-0 text-[9px] font-mono text-muted-foreground"
+                                className="mt-0.5 shrink-0 rounded bg-muted px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground leading-none"
                                 title={`Sentence length: ${item.sourceSentenceWordCount} words`}
                               >
                                 {item.sourceSentenceWordCount}w
@@ -1752,16 +1760,16 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                               <p
                                 dir={isBaseRtl ? "rtl" : "ltr"}
                                 data-testid={`listening-word-source-sentence-${idx}`}
-                                className="min-w-0 flex-1 text-[11px] leading-snug text-foreground/90 break-words"
+                                className="min-w-0 flex-1 text-[11px] leading-relaxed text-foreground/90 break-words"
                               >
                                 {sentenceParts.map((part, partIdx) =>
-                                part.isMatch ? (
-                                  <mark
-                                    key={partIdx}
-                                    className="rounded-xs bg-sky-500/15 px-0.5 font-semibold text-sky-700 dark:text-sky-300"
-                                  >
-                                    {part.text}
-                                  </mark>
+                                  part.isMatch ? (
+                                    <mark
+                                      key={partIdx}
+                                      className="rounded-xs bg-sky-500/15 px-0.5 font-semibold text-sky-700 dark:text-sky-300"
+                                    >
+                                      {part.text}
+                                    </mark>
                                   ) : (
                                     <React.Fragment key={partIdx}>{part.text}</React.Fragment>
                                   ),
@@ -1772,7 +1780,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                               <p
                                 dir={isTargetRtl ? "rtl" : "ltr"}
                                 data-testid={`listening-word-translation-${idx}`}
-                                className="text-[11px] leading-snug text-muted-foreground break-words"
+                                className="text-[11px] leading-relaxed text-muted-foreground break-words pl-7"
                               >
                                 {item.sourceTranslation}
                               </p>
@@ -1785,7 +1793,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                             variant={isSentenceActive ? "default" : "outline"}
                             data-testid={`listening-play-word-sentence-${idx}`}
                             onClick={() => handlePlayWordSentence(item)}
-                            className="h-6 px-2 text-[10px] gap-1 shrink-0 whitespace-nowrap"
+                            className="h-7 min-w-[5.25rem] justify-center px-2.5 text-[10px] gap-1 shrink-0 whitespace-nowrap"
                             title={
                               withTranslations && item.sourceTranslation
                                 ? "Play original sentence + translation"
@@ -1901,7 +1909,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
 
             <div
               data-testid="listening-sentences-list"
-              className="max-h-72 overflow-y-auto space-y-1.5 pr-1"
+              className="max-h-[26rem] overflow-y-auto space-y-2 pr-1"
             >
               {filteredSentences.length === 0 ? (
                 <div

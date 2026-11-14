@@ -2581,3 +2581,10 @@ error 2: 12:39:01 AM [vite] (client) Pre-transform error: Failed to load url /sr
 3. allow to set tts-play speed to override the configured one
 4. clicking on "both" doesnt trigger listening to both words and their sentences.
 ```
+
+---
+
+### Prompt 202: Go On — Complete Task 413 Verification/Archival & Execute Task 409
+```
+go on. it said "feat(listening-game): implement features for prompt 201"
+```

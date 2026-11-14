@@ -4,12 +4,7 @@ This file is strictly the active backlog containing pending, active, and upcomin
 
 ## Active Tasks
 
-- [ ] **Task 413: Chapter 4 (Prompt 201) — Listening Game: Clicking "Both" Triggers Listening to Both Words and Their Sentences**
-  - Subtask 413.1 [ACTIVE]: Update `Both` / `Both Lists` control (`listening-list-both-tab` and/or `listening-play-all-both-btn`) in `ListeningGamePanel.tsx` so clicking "Both" triggers sequential listening to both words and their derived/filtered sentences (respecting active language list/order, word sort, and speed override), toggling cleanly to Stop when active.
-  - Subtask 413.2: Verify clicking "Both" triggers sequential words + sentences TTS playback via dedicated test (`scripts/verify-listening-both-playback.ts`), bump version (`v2.1.115`), compile, lint, and archive to `docs/done.md`.
-
-- [ ] **Task 409: Chapter 4 (Prompt 197) — UI/UX Space Optimization on Listening Game Word Cards**
-  - Subtask 409.1: Structure word card into a clean two-band layout (Word + on-demand translation + Word Listen button on top; compact derived sentence + translation + Sentence Play button below without truncation) and adjust container height (`max-h-[26rem]`) for comfortable scanning, running full verification + archival.
+_No active tasks remaining. Pending deferred items are listed below under Later Tasks._
 
 ## Later Tasks
 

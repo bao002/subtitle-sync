@@ -4,11 +4,12 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 202 (Continue Backlog — "go on"): Completed & verified remaining active tasks (`Task 413` `v2.1.115` & `Task 409` `v2.1.116`); all active backlog tasks now completed and archived in `docs/done.md`.
 - Prompt 201 (Tasks 410–413 — Listening Game: Configurable Languages & Order, Word Sorting, TTS Speed Override, & Both Lists Playback):
   - Task 410 [COMPLETED & VERIFIED]: Chapter 1 — Allow setting the list of languages to listen to & their playback order (`listeningGame.ts`, `ListeningGamePanel.tsx`, `WordBalloonLearningView.tsx`, `src/routes/index.tsx`, Storybook), verified via `test:listening-languages-order`.
   - Task 411 [COMPLETED & VERIFIED]: Chapter 2 — Allow sorting the list of words by alphabet, word size, or sentence length (word count) with asc/desc direction (`test:listening-word-sorting` PASSED).
   - Task 412 [COMPLETED & VERIFIED]: Chapter 3 — Allow setting a TTS-play speed override to override the configured per-language rate (`test:listening-tts-speed-override` PASSED).
-  - Task 413 [ACTIVE]: Chapter 4 — Fix clicking "Both" so it triggers listening to both words and their sentences sequentially.
+  - Task 413 [COMPLETED & VERIFIED]: Chapter 4 — Fixed clicking "Both" (`listening-list-both-tab` & `listening-play-all-both-btn`) so it triggers listening to both words and their derived/filtered sentences sequentially (`test:listening-both-playback` PASSED, `v2.1.115`).
 - Prompt 200 (Hotfix — Vite Startup Pre-Transform Stale Module Cache & Clean Dev Server Verification):
   - Hotfix [COMPLETED & VERIFIED]: Confirmed zero references to `componentOptimizationService` across all 200 `src/` modules (`Checked 200 files in src/. Bad: 0`), verified zero TypeScript/runtime/FloatingErrorButton errors in live headless Chromium, and restarted the Vite dev server to clear the container-boot pre-transform log error recorded before workspace file sync completed.
 - Prompt 199 (Continue Backlog — "go on"): Execute active Prompt 197 chapters serially (`Task 407` -> `Task 408` -> `Task 409`).
@@ -18,7 +19,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
   - Task 406 [COMPLETED & VERIFIED]: Chapter 1 — Removed `{item.letterCount} letters` badge from Listening Game word cards (`ListeningGamePanel.tsx`).
   - Task 407 [COMPLETED & VERIFIED]: Chapter 2 — Fixed Listening trigger dropping the base word before speaking its translation (`cancelSpeech` / `window.speechSynthesis.cancel()` async race in `src/routes/index.tsx`, `src/lib/alternative-tts.ts`, and `ListeningGamePanel.tsx`, verified via `test:listening-word-base-before-translation` + Chromium E2E).
   - Task 408 [COMPLETED & VERIFIED]: Chapter 3 — Displayed the original sentence from which each word is derived (`item.sourceSentence`, highlighting derived word) and allowed playing that sentence and its translation (`handlePlayWordSentence`), verified via `test:listening-word-derived-sentence`.
-  - Task 409 [PENDING]: Chapter 4 — Refine Listening Game word card UI/UX layout to properly use horizontal & vertical space without truncation or clutter.
+  - Task 409 [COMPLETED & VERIFIED]: Chapter 4 — Structured word cards into an aligned two-band layout (`listening-word-band-*` + `listening-word-sentence-band-*`) with `max-h-[26rem]` list containers and zero truncation (`test:listening-word-cards-ui-ux` PASSED, `v2.1.116`).
 - Prompt 196 (Task 405 — Listening Game Words List On-Demand Translation & Default Play):
   - Task 405 [COMPLETED & VERIFIED]: Added normalized sync cache & concurrent deduplication in `zeroKnowledgeWordManager.ts`, scrollable `IntersectionObserver` + concurrency-capped on-demand word translation fetching and inline rendering (`listening-word-ondemand-translation-*`) across all word cards (including scrolled items like #73) in `ListeningGamePanel.tsx`, and default parallel resolution + playback of the on-demand word translation on `Listen` / `Listen All` play requests (`speakWordEntry`), verified in unit/source & live Chromium E2E (`test:listening-word-ondemand-translation`), `v2.1.113`.
 - Prompt 195 (Hotfix + Task 404 — Fix App Errors, HMR/FloatingErrorButton State & Game View Words List TTS-Play):

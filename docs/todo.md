@@ -1,10 +1,12 @@
 # Active Subtask Mirror (`docs/todo.md`)
 
-- **Status**: [ACTIVE]
-- **Active Task**: Task 413 (Prompt 201 Chapter 4 — Listening Game: Clicking "Both" Triggers Listening to Both Words and Their Sentences)
-- **Active Step**: Subtask 413.1 — Update `listening-list-both-tab` & add `handlePlayAllBoth` + `listening-play-all-both-btn` in `ListeningGamePanel.tsx` so clicking "Both" triggers sequential playback of words + their sentences
-- **Upcoming**: Task 409 (UI/UX space optimization)
+- **Status**: [IDLE]
+- **Active Task**: None
+- **Active Step**: All active tasks completed (`docs/tasks.md` active backlog is empty; see `docs/tasks.md` `## Later Tasks` / `docs/later.md` if continuing with deferred items).
+- **Upcoming**: None
 - **Completed**:
+  - Task 409 (Prompt 197 Chapter 4): Two-band Listening Game word card UI/UX layout, right-rail action alignment, & `max-h-[26rem]` list containers (`test:listening-word-cards-ui-ux` PASSED, `v2.1.116`)
+  - Task 413 (Prompt 201 Chapter 4): Clicking "Both" triggers sequential listening to both words and their sentences (`test:listening-both-playback` PASSED, `v2.1.115`)
   - Task 412 (Prompt 201 Chapter 3): TTS-play speed override control (`test:listening-tts-speed-override` PASSED)
   - Task 411 (Prompt 201 Chapter 2): Word sorting by alphabet, word size, or sentence length in words (`test:listening-word-sorting` PASSED)
   - Task 410 (Prompt 201 Chapter 1): Configurable list of listening languages & playback order (`test:listening-languages-order` PASSED)

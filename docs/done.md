@@ -1,5 +1,23 @@
 # Done tasks
 
+### Task 409 (Prompt 197, Chapter 4): Listening Game — UI/UX Space Optimization on Word Cards (`v2.1.116`)
+
+- **Prompt**: `4. make good ui/ux decision to properly use the space`
+- **Changes**:
+  - Updated `src/components/ListeningGamePanel.tsx`: structured each word card (`listening-word-item-*`) into two clear bands (`listening-word-band-*` for word + primary on-demand translation + multi-language translations + right-rail `Listen` button; `listening-word-sentence-band-*` for non-truncated derived original sentence with inline `<mark>` word highlight + `Xw` word-count pill + sentence translation + equal-width right-rail `Sentence` button), and expanded both `listening-words-list` and `listening-sentences-list` height from `max-h-72` to `max-h-[26rem]` for comfortable scanning without re-introducing `{item.letterCount} letters`.
+  - Added dedicated verification suite `scripts/verify-listening-word-cards-ui-ux.ts` (`"test:listening-word-cards-ui-ux"` in `package.json`, documented in `docs/files.md`), bumped version to `v2.1.116` (`code: 20216`), and synced `android-shell/app/build.gradle.kts`.
+- **Verification**: `npm run sync-version`, `npx tsc --noEmit`, `npx eslint src/components/ListeningGamePanel.tsx scripts/verify-listening-word-cards-ui-ux.ts`, `npm run test:listening-word-cards-ui-ux` (source invariants + live Chromium bounding-box alignment, zero horizontal overflow, `max-h-[26rem]` height), `npm run test:listening-word-derived-sentence`, `npm run test:listening-word-ondemand-translation`, `npm run test:listening-both-playback`, `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md`, `compile_applet`, and `lint_applet` (git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Task 413 (Prompt 201, Chapter 4): Listening Game — Clicking "Both" Triggers Listening to Both Words and Their Sentences (`v2.1.115`)
+
+- **Prompt**: `4. clicking on "both" doesnt trigger listening to both words and their sentences.`
+- **Changes**:
+  - Updated `src/components/ListeningGamePanel.tsx`: extended `isPlayingAll` and `playingProgress.list` to support `"both"`; added `handlePlayAllBoth` to iterate sequentially through `sortedWords` (playing each word via `speakWordEntry(item, runId)` followed by its derived sentence + translation via `speakSingleEntry(item.sourceSentence, item.sourceTranslation, ...)`), with clean fallback to `filteredSentences` when `sortedWords` is empty and clean cancellation via `stopSequentialPlayback(true)`.
+  - Wired both `listening-list-both-tab` (`"Both Lists"`) and dedicated `listening-play-all-both-btn` (`"Listen Both"` / `"Stop Both"`) to synchronously call `unlockTtsAudioPlayback()`, `setActiveListFilter("both")`, and `void handlePlayAllBoth()`.
+  - Updated `scripts/verify-listening-word-derived-sentence.ts` to normalize whitespace cleanly and keep `<p data-testid="listening-word-source-sentence-*">` exact alongside sibling word-count badges.
+  - Added dedicated verification suite `scripts/verify-listening-both-playback.ts` (`"test:listening-both-playback"` in `package.json`, documented in `docs/files.md`), bumped version to `v2.1.115` (`code: 20215`), and synced `android-shell/app/build.gradle.kts`.
+- **Verification**: `npx tsc --noEmit`, `npx eslint src/components/ListeningGamePanel.tsx src/utils/listeningGame.ts src/components/ListeningGamePanel.stories.tsx`, `npm run test:listening-game-mode`, `npm run test:listening-word-derived-sentence`, `npm run test:listening-word-base-before-translation`, `npm run test:listening-word-ondemand-translation`, `npm run test:listening-words-tts-playback`, `npm run test:listening-languages-order`, `npm run test:listening-word-sorting`, `npm run test:listening-tts-speed-override`, `npm run test:listening-both-playback`, `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md`, and `npm run check-version` (git commit/push skipped — no `.git` directory): **PASSED**.
+
 ### Task 412 (Prompt 201, Chapter 3): Listening Game — TTS-Play Speed Override Control (`v2.1.114`)
 
 - **Prompt**: `3. allow to set tts-play speed to override the configured one`

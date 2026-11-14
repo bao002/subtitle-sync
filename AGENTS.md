@@ -129,8 +129,5 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-1.  allow to set the list of languages to listen to & their order.
-2. allow to sort the list of words by order of alphabet or by size of word or by length of sentence in terms of number of words.
-3. allow to set tts-play speed to override the configured one
-4. clicking on "both" doesnt trigger listening to both words and their sentences.
+go on. it said "feat(listening-game): implement features for prompt 201"
 ```
