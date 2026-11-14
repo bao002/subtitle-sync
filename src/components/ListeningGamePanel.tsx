@@ -1,11 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowUpDown,
+  Check,
+  Gauge,
   Headphones,
   Languages,
   ListChecks,
   Minus,
   Play,
   Plus,
+  RotateCcw,
   Square,
   Type,
   Volume2,
@@ -21,13 +29,36 @@ import {
   getWordTranslationCacheKey,
 } from "@/utils/zeroKnowledgeWordManager";
 import {
+  buildListeningLanguageOptions,
+  clampListeningTtsRate,
   extractListeningSentences,
   extractListeningWords,
+  LISTENING_RATE_PRESETS,
+  loadListeningLanguagesConfig,
+  loadListeningTtsRateOverride,
+  loadListeningWordSortConfig,
+  MAX_LISTENING_TTS_RATE,
+  MIN_LISTENING_TTS_RATE,
+  moveListeningLanguage,
+  reconcileListeningLanguagesConfig,
+  saveListeningLanguagesConfig,
+  saveListeningTtsRateOverride,
+  saveListeningWordSortConfig,
+  sortListeningWords,
   splitSentenceHighlightParts,
+  toggleListeningLanguageEnabled,
   type ListeningGameSentenceItem,
   type ListeningGameWordItem,
+  type ListeningLanguageOption,
+  type ListeningLanguagesConfig,
+  type ListeningSortDirection,
+  type ListeningWordSortBy,
   type SubtitleRowLike,
 } from "@/utils/listeningGame";
+
+export interface ListeningSpeakOptions {
+  rateOverride?: number;
+}
 
 export interface ListeningGamePanelProps {
   rows: SubtitleRowLike[];
@@ -37,7 +68,13 @@ export interface ListeningGamePanelProps {
   baseLanguageName: string;
   targetLanguage: string;
   targetLanguageName: string;
-  onSpeakText?: (text: string, langCode: string) => void | Promise<void>;
+  availableLanguages?: ListeningLanguageOption[];
+  configuredRates?: Record<string, number>;
+  onSpeakText?: (
+    text: string,
+    langCode: string,
+    options?: ListeningSpeakOptions,
+  ) => void | Promise<void>;
   onStopSpeaking?: () => void;
   initialWithTranslations?: boolean;
   onWithTranslationsChange?: (withTranslations: boolean) => void;
@@ -54,6 +91,8 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
   baseLanguageName,
   targetLanguage,
   targetLanguageName,
+  availableLanguages = [],
+  configuredRates,
   onSpeakText,
   onStopSpeaking,
   initialWithTranslations = true,
@@ -66,10 +105,22 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
   const [minLetters, setMinLetters] = useState<number>(Math.max(1, initialMinLetters));
   const [maxWords, setMaxWords] = useState<number>(Math.max(1, initialMaxWords));
   const [activeListFilter, setActiveListFilter] = useState<"both" | "words" | "sentences">("both");
+  const [wordSortBy, setWordSortBy] = useState<ListeningWordSortBy>(
+    () => loadListeningWordSortConfig()?.sortBy ?? "default",
+  );
+  const [wordSortDirection, setWordSortDirection] = useState<ListeningSortDirection>(
+    () => loadListeningWordSortConfig()?.direction ?? "asc",
+  );
+  const [ttsRateOverride, setTtsRateOverride] = useState<number | null>(() =>
+    loadListeningTtsRateOverride(),
+  );
+  const [lastCustomRate, setLastCustomRate] = useState<number>(
+    () => loadListeningTtsRateOverride() ?? 1.0,
+  );
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
-  const [isPlayingAll, setIsPlayingAll] = useState<"words" | "sentences" | null>(null);
+  const [isPlayingAll, setIsPlayingAll] = useState<"words" | "sentences" | "both" | null>(null);
   const [playingProgress, setPlayingProgress] = useState<{
-    list: "words" | "sentences";
+    list: "words" | "sentences" | "both";
     current: number;
     total: number;
   } | null>(null);
@@ -89,6 +140,77 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
   const activeWorkersRef = useRef<number>(0);
   const isMountedRef = useRef<boolean>(true);
 
+  const hasCustomizedLanguagesRef = useRef<boolean>(false);
+
+  const languageOptions = useMemo(
+    () =>
+      buildListeningLanguageOptions({
+        baseLanguage,
+        baseLanguageName,
+        targetLanguage,
+        targetLanguageName,
+        availableLanguages,
+        rows,
+      }),
+    [baseLanguage, baseLanguageName, targetLanguage, targetLanguageName, availableLanguages, rows],
+  );
+
+  const languageOptionMap = useMemo(
+    () => new Map(languageOptions.map((opt) => [opt.code, opt])),
+    [languageOptions],
+  );
+
+  const [listeningLangConfig, setListeningLangConfig] = useState<ListeningLanguagesConfig>(() =>
+    reconcileListeningLanguagesConfig(
+      languageOptions,
+      baseLanguage,
+      targetLanguage,
+      loadListeningLanguagesConfig(),
+    ),
+  );
+
+  useEffect(() => {
+    const saved = loadListeningLanguagesConfig();
+    if (saved) {
+      hasCustomizedLanguagesRef.current = true;
+    }
+    setListeningLangConfig((prev) =>
+      reconcileListeningLanguagesConfig(
+        languageOptions,
+        baseLanguage,
+        targetLanguage,
+        hasCustomizedLanguagesRef.current ? prev : saved,
+      ),
+    );
+  }, [languageOptions, baseLanguage, targetLanguage]);
+
+  const orderedEnabledLanguages = useMemo(
+    () =>
+      listeningLangConfig.orderedLanguages.filter((code) =>
+        listeningLangConfig.enabledLanguages.includes(code),
+      ),
+    [listeningLangConfig],
+  );
+
+  const effectivePlaybackLanguages = useMemo(() => {
+    if (!withTranslations) {
+      return baseLanguage ? [baseLanguage] : [];
+    }
+    return orderedEnabledLanguages.length > 0
+      ? orderedEnabledLanguages
+      : baseLanguage
+        ? [baseLanguage]
+        : [];
+  }, [withTranslations, orderedEnabledLanguages, baseLanguage]);
+
+  const enabledNonBaseLanguages = useMemo(
+    () =>
+      effectivePlaybackLanguages.filter(
+        (code) => normalizeLanguage(code) !== normalizeLanguage(baseLanguage),
+      ),
+    [effectivePlaybackLanguages, baseLanguage],
+  );
+
   const isBaseRtl = RTL.has(baseLanguage);
   const isTargetRtl = RTL.has(targetLanguage);
   const hasDifferentTargetLang = Boolean(
@@ -104,6 +226,109 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     },
     [onWithTranslationsChange],
   );
+
+  const updateListeningLangConfig = useCallback((next: ListeningLanguagesConfig) => {
+    hasCustomizedLanguagesRef.current = true;
+    setListeningLangConfig(next);
+    saveListeningLanguagesConfig(next);
+  }, []);
+
+  const handleToggleListeningLanguage = useCallback(
+    (code: string) => {
+      const nextEnabled = toggleListeningLanguageEnabled(
+        listeningLangConfig.enabledLanguages,
+        code,
+        listeningLangConfig.orderedLanguages,
+      );
+      const nextConfig: ListeningLanguagesConfig = {
+        orderedLanguages: listeningLangConfig.orderedLanguages,
+        enabledLanguages: nextEnabled,
+      };
+      updateListeningLangConfig(nextConfig);
+      if (
+        !withTranslations &&
+        nextEnabled.includes(code) &&
+        normalizeLanguage(code) !== normalizeLanguage(baseLanguage)
+      ) {
+        handleToggleWithTranslations(true);
+      }
+    },
+    [
+      listeningLangConfig,
+      updateListeningLangConfig,
+      withTranslations,
+      baseLanguage,
+      handleToggleWithTranslations,
+    ],
+  );
+
+  const handleMoveListeningLanguage = useCallback(
+    (code: string, direction: "up" | "down") => {
+      const nextOrder = moveListeningLanguage(
+        listeningLangConfig.orderedLanguages,
+        code,
+        direction,
+      );
+      const nextEnabledSet = new Set(listeningLangConfig.enabledLanguages);
+      const nextConfig: ListeningLanguagesConfig = {
+        orderedLanguages: nextOrder,
+        enabledLanguages: nextOrder.filter((c) => nextEnabledSet.has(c)),
+      };
+      updateListeningLangConfig(nextConfig);
+    },
+    [listeningLangConfig, updateListeningLangConfig],
+  );
+
+  const handleResetListeningLanguages = useCallback(() => {
+    hasCustomizedLanguagesRef.current = false;
+    const defaultConfig = reconcileListeningLanguagesConfig(
+      languageOptions,
+      baseLanguage,
+      targetLanguage,
+      null,
+    );
+    setListeningLangConfig(defaultConfig);
+    saveListeningLanguagesConfig(defaultConfig);
+  }, [languageOptions, baseLanguage, targetLanguage]);
+
+  const handleWordSortByChange = useCallback(
+    (nextSortBy: ListeningWordSortBy) => {
+      setWordSortBy(nextSortBy);
+      saveListeningWordSortConfig({ sortBy: nextSortBy, direction: wordSortDirection });
+    },
+    [wordSortDirection],
+  );
+
+  const handleToggleWordSortDirection = useCallback(() => {
+    const nextDir: ListeningSortDirection = wordSortDirection === "asc" ? "desc" : "asc";
+    setWordSortDirection(nextDir);
+    saveListeningWordSortConfig({ sortBy: wordSortBy, direction: nextDir });
+  }, [wordSortBy, wordSortDirection]);
+
+  const configuredBaseRate = useMemo(() => {
+    const raw = configuredRates?.[baseLanguage];
+    return typeof raw === "number" && Number.isFinite(raw) ? clampListeningTtsRate(raw) : 1.0;
+  }, [configuredRates, baseLanguage]);
+
+  const applyTtsRateOverride = useCallback((nextRate: number | null) => {
+    if (nextRate === null) {
+      setTtsRateOverride(null);
+      saveListeningTtsRateOverride(null);
+      return;
+    }
+    const clamped = clampListeningTtsRate(nextRate);
+    setLastCustomRate(clamped);
+    setTtsRateOverride(clamped);
+    saveListeningTtsRateOverride(clamped);
+  }, []);
+
+  const handleToggleRateOverride = useCallback(() => {
+    if (ttsRateOverride !== null) {
+      applyTtsRateOverride(null);
+    } else {
+      applyTtsRateOverride(lastCustomRate || configuredBaseRate || 1.0);
+    }
+  }, [ttsRateOverride, applyTtsRateOverride, lastCustomRate, configuredBaseRate]);
 
   const allAvailableWords = useMemo(
     () =>
@@ -139,6 +364,11 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         fallbackTranslation: targetTranslation,
       }),
     [rows, baseLanguage, targetLanguage, minLetters, currentSentence, targetTranslation],
+  );
+
+  const sortedWords = useMemo(
+    () => sortListeningWords(filteredWords, wordSortBy, wordSortDirection, baseLanguage),
+    [filteredWords, wordSortBy, wordSortDirection, baseLanguage],
   );
 
   const filteredSentences = useMemo(
@@ -254,13 +484,13 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
   }, []);
 
   const enqueueWordTranslation = useCallback(
-    (word: string) => {
-      if (!hasDifferentTargetLang || !word.trim()) return;
-      const key = getWordTranslationCacheKey(word, baseLanguage, targetLanguage);
+    (word: string, toLang: string = targetLanguage) => {
+      if (!toLang || !word.trim()) return;
+      if (normalizeLanguage(baseLanguage) === normalizeLanguage(toLang)) return;
+      const key = getWordTranslationCacheKey(word, baseLanguage, toLang);
       if (!key) return;
       const cached =
-        wordTranslationsRef.current[key] ||
-        getCachedWordTranslation(word, baseLanguage, targetLanguage);
+        wordTranslationsRef.current[key] || getCachedWordTranslation(word, baseLanguage, toLang);
       if (cached) {
         if (!wordTranslationsRef.current[key] && isMountedRef.current) {
           setWordTranslations((prev) => (prev[key] ? prev : { ...prev, [key]: cached }));
@@ -273,21 +503,21 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         key,
         word,
         fromLang: baseLanguage,
-        toLang: targetLanguage,
+        toLang,
       });
       pumpTranslationQueue();
     },
-    [baseLanguage, targetLanguage, hasDifferentTargetLang, pumpTranslationQueue],
+    [baseLanguage, targetLanguage, pumpTranslationQueue],
   );
 
   const resolveWordTranslationNow = useCallback(
-    async (word: string): Promise<string> => {
-      if (!hasDifferentTargetLang || !word.trim()) return "";
-      const key = getWordTranslationCacheKey(word, baseLanguage, targetLanguage);
+    async (word: string, toLang: string = targetLanguage): Promise<string> => {
+      if (!toLang || !word.trim()) return "";
+      if (normalizeLanguage(baseLanguage) === normalizeLanguage(toLang)) return word.trim();
+      const key = getWordTranslationCacheKey(word, baseLanguage, toLang);
       if (!key) return "";
       const existing =
-        wordTranslationsRef.current[key] ||
-        getCachedWordTranslation(word, baseLanguage, targetLanguage);
+        wordTranslationsRef.current[key] || getCachedWordTranslation(word, baseLanguage, toLang);
       if (existing) {
         if (!wordTranslationsRef.current[key] && isMountedRef.current) {
           setWordTranslations((prev) => (prev[key] ? prev : { ...prev, [key]: existing }));
@@ -298,7 +528,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         setLoadingWordKeys((prev) => (prev[key] ? prev : { ...prev, [key]: true }));
       }
       try {
-        const translated = await getWordTranslation(word, baseLanguage, targetLanguage);
+        const translated = await getWordTranslation(word, baseLanguage, toLang);
         if (translated && isMountedRef.current) {
           setWordTranslations((prev) =>
             prev[key] === translated ? prev : { ...prev, [key]: translated },
@@ -316,38 +546,51 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         }
       }
     },
-    [baseLanguage, targetLanguage, hasDifferentTargetLang],
+    [baseLanguage, targetLanguage],
   );
 
   // Hydrate cached word translations synchronously and enqueue initial visible batch
   useEffect(() => {
     translationQueueRef.current = [];
     queuedKeysRef.current.clear();
-    if (!hasDifferentTargetLang || filteredWords.length === 0) return;
+    if (sortedWords.length === 0) return;
+
+    const targetLangsToWarm = withTranslations
+      ? Array.from(
+          new Set([
+            ...(hasDifferentTargetLang ? [targetLanguage] : []),
+            ...enabledNonBaseLanguages,
+          ]),
+        )
+      : [];
+    if (targetLangsToWarm.length === 0) return;
 
     const hydrated: Record<string, string> = {};
-    for (const item of filteredWords) {
-      const key = getWordTranslationCacheKey(item.word, baseLanguage, targetLanguage);
-      if (!key) continue;
-      const cached = getCachedWordTranslation(item.word, baseLanguage, targetLanguage);
-      if (cached) {
-        hydrated[key] = cached;
+    for (const item of sortedWords) {
+      for (const toLang of targetLangsToWarm) {
+        const key = getWordTranslationCacheKey(item.word, baseLanguage, toLang);
+        if (!key) continue;
+        const cached = getCachedWordTranslation(item.word, baseLanguage, toLang);
+        if (cached) {
+          hydrated[key] = cached;
+        }
       }
     }
     if (Object.keys(hydrated).length > 0) {
       setWordTranslations((prev) => ({ ...hydrated, ...prev }));
     }
 
-    if (withTranslations) {
-      for (const item of filteredWords.slice(0, 14)) {
-        enqueueWordTranslation(item.word);
+    for (const item of sortedWords.slice(0, 14)) {
+      for (const toLang of targetLangsToWarm) {
+        enqueueWordTranslation(item.word, toLang);
       }
     }
   }, [
-    filteredWords,
+    sortedWords,
     baseLanguage,
     targetLanguage,
     hasDifferentTargetLang,
+    enabledNonBaseLanguages,
     withTranslations,
     enqueueWordTranslation,
   ]);
@@ -355,11 +598,19 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
   // Observe visible word cards as the user scrolls inside listening-words-list (e.g. down to item #73)
   useEffect(() => {
     const container = wordsListRef.current;
+    const targetLangsToWarm = withTranslations
+      ? Array.from(
+          new Set([
+            ...(hasDifferentTargetLang ? [targetLanguage] : []),
+            ...enabledNonBaseLanguages,
+          ]),
+        )
+      : [];
     if (
       !container ||
       !withTranslations ||
-      !hasDifferentTargetLang ||
-      filteredWords.length === 0 ||
+      targetLangsToWarm.length === 0 ||
+      sortedWords.length === 0 ||
       typeof IntersectionObserver === "undefined"
     ) {
       return;
@@ -371,7 +622,9 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
           if (!entry.isIntersecting) continue;
           const wordText = entry.target.getAttribute("data-word-item");
           if (wordText) {
-            enqueueWordTranslation(wordText);
+            for (const toLang of targetLangsToWarm) {
+              enqueueWordTranslation(wordText, toLang);
+            }
           }
           observer.unobserve(entry.target);
         }
@@ -390,52 +643,84 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
       observer.disconnect();
     };
   }, [
-    filteredWords,
+    sortedWords,
     withTranslations,
     hasDifferentTargetLang,
+    targetLanguage,
+    enabledNonBaseLanguages,
     activeListFilter,
     enqueueWordTranslation,
   ]);
 
   const speakSingleEntry = useCallback(
-    async (baseText: string, translationText: string, itemId: string, runId?: number) => {
+    async (
+      baseText: string,
+      translationText: string,
+      itemId: string,
+      runId?: number,
+      translationsByLang?: Record<string, string>,
+    ) => {
       setActiveItemId(itemId);
       if (!onSpeakText) return;
 
       const trimmedBase = baseText.trim();
       const trimmedTrans = translationText.trim();
 
-      if (trimmedBase) {
-        try {
-          await Promise.resolve(onSpeakText(trimmedBase, baseLanguage));
-        } catch (err) {
-          console.warn("ListeningGamePanel base speech error:", err);
+      let spokeCount = 0;
+      for (const langCode of effectivePlaybackLanguages) {
+        if (runId !== undefined && playbackRunIdRef.current !== runId) {
+          return;
         }
-      }
+        const isBaseLang = normalizeLanguage(langCode) === normalizeLanguage(baseLanguage);
+        let textToSpeak = "";
 
-      if (runId !== undefined && playbackRunIdRef.current !== runId) {
-        return;
-      }
+        if (isBaseLang) {
+          textToSpeak = trimmedBase;
+        } else {
+          const directMatch =
+            translationsByLang?.[langCode] ||
+            translationsByLang?.[normalizeLanguage(langCode)] ||
+            (normalizeLanguage(langCode) === normalizeLanguage(targetLanguage) ? trimmedTrans : "");
+          textToSpeak = directMatch ? directMatch.trim() : "";
+          if (!textToSpeak && trimmedBase) {
+            textToSpeak = (await resolveWordTranslationNow(trimmedBase, langCode)).trim();
+          }
+          if (!textToSpeak || textToSpeak.toLowerCase() === trimmedBase.toLowerCase()) {
+            continue;
+          }
+        }
 
-      if (
-        withTranslations &&
-        trimmedTrans &&
-        trimmedTrans.toLowerCase() !== trimmedBase.toLowerCase()
-      ) {
-        if (trimmedBase) {
+        if (!textToSpeak) continue;
+
+        if (spokeCount > 0) {
           await new Promise((resolve) => setTimeout(resolve, 60));
           if (runId !== undefined && playbackRunIdRef.current !== runId) {
             return;
           }
         }
+
         try {
-          await Promise.resolve(onSpeakText(trimmedTrans, targetLanguage));
+          await Promise.resolve(
+            onSpeakText(
+              textToSpeak,
+              langCode,
+              ttsRateOverride !== null ? { rateOverride: ttsRateOverride } : undefined,
+            ),
+          );
+          spokeCount += 1;
         } catch (err) {
-          console.warn("ListeningGamePanel translation speech error:", err);
+          console.warn("ListeningGamePanel speech error:", err);
         }
       }
     },
-    [onSpeakText, baseLanguage, targetLanguage, withTranslations],
+    [
+      onSpeakText,
+      effectivePlaybackLanguages,
+      baseLanguage,
+      targetLanguage,
+      ttsRateOverride,
+      resolveWordTranslationNow,
+    ],
   );
 
   const speakWordEntry = useCallback(
@@ -444,50 +729,71 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
       if (!onSpeakText) return;
 
       const trimmedBase = item.word.trim();
-      const translationPromise =
-        withTranslations && hasDifferentTargetLang
-          ? resolveWordTranslationNow(trimmedBase)
-          : Promise.resolve("");
-
-      if (trimmedBase) {
-        try {
-          await Promise.resolve(onSpeakText(trimmedBase, baseLanguage));
-        } catch (err) {
-          console.warn("ListeningGamePanel word base speech error:", err);
+      const translationPromises = new Map<string, Promise<string>>();
+      if (withTranslations && trimmedBase) {
+        for (const langCode of effectivePlaybackLanguages) {
+          if (normalizeLanguage(langCode) !== normalizeLanguage(baseLanguage)) {
+            translationPromises.set(langCode, resolveWordTranslationNow(trimmedBase, langCode));
+          }
         }
       }
 
-      if (runId !== undefined && playbackRunIdRef.current !== runId) {
-        return;
-      }
-
-      if (withTranslations) {
-        const onDemandWordTrans = (await translationPromise).trim();
+      let spokeCount = 0;
+      for (const langCode of effectivePlaybackLanguages) {
         if (runId !== undefined && playbackRunIdRef.current !== runId) {
           return;
         }
-        const spokenTranslation = onDemandWordTrans || item.sourceTranslation.trim();
-        if (spokenTranslation && spokenTranslation.toLowerCase() !== trimmedBase.toLowerCase()) {
-          if (trimmedBase) {
-            await new Promise((resolve) => setTimeout(resolve, 60));
-            if (runId !== undefined && playbackRunIdRef.current !== runId) {
-              return;
-            }
+        const isBaseLang = normalizeLanguage(langCode) === normalizeLanguage(baseLanguage);
+        let textToSpeak = "";
+
+        if (isBaseLang) {
+          textToSpeak = trimmedBase;
+        } else {
+          const promise = translationPromises.get(langCode);
+          const onDemandWordTrans = promise ? (await promise).trim() : "";
+          if (runId !== undefined && playbackRunIdRef.current !== runId) {
+            return;
           }
-          try {
-            await Promise.resolve(onSpeakText(spokenTranslation, targetLanguage));
-          } catch (err) {
-            console.warn("ListeningGamePanel word translation speech error:", err);
+          const fallbackTargetTrans =
+            normalizeLanguage(langCode) === normalizeLanguage(targetLanguage)
+              ? item.sourceTranslation.trim()
+              : "";
+          textToSpeak = onDemandWordTrans || fallbackTargetTrans;
+          if (!textToSpeak || textToSpeak.toLowerCase() === trimmedBase.toLowerCase()) {
+            continue;
           }
+        }
+
+        if (!textToSpeak) continue;
+
+        if (spokeCount > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 60));
+          if (runId !== undefined && playbackRunIdRef.current !== runId) {
+            return;
+          }
+        }
+
+        try {
+          await Promise.resolve(
+            onSpeakText(
+              textToSpeak,
+              langCode,
+              ttsRateOverride !== null ? { rateOverride: ttsRateOverride } : undefined,
+            ),
+          );
+          spokeCount += 1;
+        } catch (err) {
+          console.warn("ListeningGamePanel word speech error:", err);
         }
       }
     },
     [
       onSpeakText,
+      effectivePlaybackLanguages,
       baseLanguage,
       targetLanguage,
       withTranslations,
-      hasDifferentTargetLang,
+      ttsRateOverride,
       resolveWordTranslationNow,
     ],
   );
@@ -534,7 +840,13 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         if (playbackRunIdRef.current !== runId) return;
       }
       const sentenceItemId = `${item.id}-sentence`;
-      await speakSingleEntry(item.sourceSentence, item.sourceTranslation, sentenceItemId, runId);
+      await speakSingleEntry(
+        item.sourceSentence,
+        item.sourceTranslation,
+        sentenceItemId,
+        runId,
+        item.translationsByLang,
+      );
       if (isMountedRef.current && playbackRunIdRef.current === runId) {
         setActiveItemId((prev) => (prev === sentenceItemId ? null : prev));
       }
@@ -552,7 +864,13 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
         await new Promise((resolve) => setTimeout(resolve, 150));
         if (playbackRunIdRef.current !== runId) return;
       }
-      await speakSingleEntry(item.sentence, item.translation, item.id, runId);
+      await speakSingleEntry(
+        item.sentence,
+        item.translation,
+        item.id,
+        runId,
+        item.translationsByLang,
+      );
       if (isMountedRef.current && playbackRunIdRef.current === runId) {
         setActiveItemId((prev) => (prev === item.id ? null : prev));
       }
@@ -565,7 +883,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
       stopSequentialPlayback(true);
       return;
     }
-    if (filteredWords.length === 0) return;
+    if (sortedWords.length === 0) return;
 
     unlockTtsAudioPlayback();
 
@@ -577,20 +895,22 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     const runId = playbackRunIdRef.current + 1;
     playbackRunIdRef.current = runId;
     setIsPlayingAll("words");
-    setPlayingProgress({ list: "words", current: 1, total: filteredWords.length });
+    setPlayingProgress({ list: "words", current: 1, total: sortedWords.length });
 
     if (wasAlreadySpeaking) {
       await new Promise((resolve) => setTimeout(resolve, 150));
       if (playbackRunIdRef.current !== runId) return;
     }
 
-    for (let idx = 0; idx < filteredWords.length; idx++) {
+    for (let idx = 0; idx < sortedWords.length; idx++) {
       if (playbackRunIdRef.current !== runId) break;
-      const item = filteredWords[idx];
-      if (withTranslations && filteredWords[idx + 1]) {
-        enqueueWordTranslation(filteredWords[idx + 1].word);
+      const item = sortedWords[idx];
+      if (withTranslations && sortedWords[idx + 1]) {
+        for (const toLang of enabledNonBaseLanguages) {
+          enqueueWordTranslation(sortedWords[idx + 1].word, toLang);
+        }
       }
-      setPlayingProgress({ list: "words", current: idx + 1, total: filteredWords.length });
+      setPlayingProgress({ list: "words", current: idx + 1, total: sortedWords.length });
       await speakWordEntry(item, runId);
       if (playbackRunIdRef.current !== runId) break;
       await new Promise((resolve) => setTimeout(resolve, withTranslations ? 550 : 350));
@@ -602,12 +922,13 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
       setActiveItemId(null);
     }
   }, [
-    filteredWords,
+    sortedWords,
     isPlayingAll,
     isAnyPlaybackActive,
     onStopSpeaking,
     speakWordEntry,
     enqueueWordTranslation,
+    enabledNonBaseLanguages,
     stopSequentialPlayback,
     withTranslations,
   ]);
@@ -640,7 +961,13 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
       if (playbackRunIdRef.current !== runId) break;
       const item = filteredSentences[idx];
       setPlayingProgress({ list: "sentences", current: idx + 1, total: filteredSentences.length });
-      await speakSingleEntry(item.sentence, item.translation, item.id, runId);
+      await speakSingleEntry(
+        item.sentence,
+        item.translation,
+        item.id,
+        runId,
+        item.translationsByLang,
+      );
       if (playbackRunIdRef.current !== runId) break;
       await new Promise((resolve) => setTimeout(resolve, withTranslations ? 650 : 400));
     }
@@ -658,6 +985,97 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
     speakSingleEntry,
     stopSequentialPlayback,
     withTranslations,
+  ]);
+
+  const handlePlayAllBoth = useCallback(async () => {
+    if (isPlayingAll === "both") {
+      stopSequentialPlayback(true);
+      return;
+    }
+    const hasWords = sortedWords.length > 0;
+    const hasSentences = filteredSentences.length > 0;
+    if (!hasWords && !hasSentences) return;
+
+    unlockTtsAudioPlayback();
+
+    const wasAlreadySpeaking = isAnyPlaybackActive();
+    if (wasAlreadySpeaking) {
+      onStopSpeaking?.();
+    }
+
+    const runId = playbackRunIdRef.current + 1;
+    playbackRunIdRef.current = runId;
+    setIsPlayingAll("both");
+    const total = hasWords ? sortedWords.length : filteredSentences.length;
+    setPlayingProgress({ list: "both", current: 1, total });
+
+    if (wasAlreadySpeaking) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      if (playbackRunIdRef.current !== runId) return;
+    }
+
+    if (hasWords) {
+      for (let idx = 0; idx < sortedWords.length; idx++) {
+        if (playbackRunIdRef.current !== runId) break;
+        const item = sortedWords[idx];
+        if (withTranslations && sortedWords[idx + 1]) {
+          for (const toLang of enabledNonBaseLanguages) {
+            enqueueWordTranslation(sortedWords[idx + 1].word, toLang);
+          }
+        }
+        setPlayingProgress({ list: "both", current: idx + 1, total: sortedWords.length });
+        await speakWordEntry(item, runId);
+        if (playbackRunIdRef.current !== runId) break;
+
+        if (item.sourceSentence.trim()) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
+          if (playbackRunIdRef.current !== runId) break;
+          await speakSingleEntry(
+            item.sourceSentence,
+            item.sourceTranslation,
+            `${item.id}-sentence`,
+            runId,
+            item.translationsByLang,
+          );
+          if (playbackRunIdRef.current !== runId) break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, withTranslations ? 550 : 350));
+      }
+    } else {
+      for (let idx = 0; idx < filteredSentences.length; idx++) {
+        if (playbackRunIdRef.current !== runId) break;
+        const item = filteredSentences[idx];
+        setPlayingProgress({ list: "both", current: idx + 1, total: filteredSentences.length });
+        await speakSingleEntry(
+          item.sentence,
+          item.translation,
+          item.id,
+          runId,
+          item.translationsByLang,
+        );
+        if (playbackRunIdRef.current !== runId) break;
+        await new Promise((resolve) => setTimeout(resolve, withTranslations ? 650 : 400));
+      }
+    }
+
+    if (playbackRunIdRef.current === runId) {
+      setIsPlayingAll(null);
+      setPlayingProgress(null);
+      setActiveItemId(null);
+    }
+  }, [
+    isPlayingAll,
+    sortedWords,
+    filteredSentences,
+    isAnyPlaybackActive,
+    onStopSpeaking,
+    withTranslations,
+    enabledNonBaseLanguages,
+    enqueueWordTranslation,
+    speakWordEntry,
+    speakSingleEntry,
+    stopSequentialPlayback,
   ]);
 
   return (
@@ -707,51 +1125,314 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
           </div>
         </div>
 
-        <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 text-[11px]">
-          <button
+        <div className="flex flex-wrap items-center gap-1.5">
+          <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 text-[11px]">
+            <button
+              type="button"
+              data-testid="listening-list-both-tab"
+              aria-pressed={activeListFilter === "both"}
+              onClick={() => {
+                unlockTtsAudioPlayback();
+                setActiveListFilter("both");
+                void handlePlayAllBoth();
+              }}
+              title={
+                isPlayingAll === "both"
+                  ? "Stop listening to both words and sentences"
+                  : "Show both lists and listen to both words and their sentences"
+              }
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded font-semibold cursor-pointer ${
+                activeListFilter === "both"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {isPlayingAll === "both" ? (
+                <Square className="h-3 w-3" />
+              ) : (
+                <Play className="h-3 w-3" />
+              )}
+              <span>Both Lists</span>
+            </button>
+            <button
+              type="button"
+              data-testid="listening-list-words-tab"
+              onClick={() => setActiveListFilter("words")}
+              className={`px-2 py-1 rounded font-semibold cursor-pointer ${
+                activeListFilter === "words"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              1. Words ({filteredWords.length})
+            </button>
+            <button
+              type="button"
+              data-testid="listening-list-sentences-tab"
+              onClick={() => setActiveListFilter("sentences")}
+              className={`px-2 py-1 rounded font-semibold cursor-pointer ${
+                activeListFilter === "sentences"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              2. Sentences ({filteredSentences.length})
+            </button>
+          </div>
+
+          <Button
             type="button"
-            data-testid="listening-list-both-tab"
-            onClick={() => setActiveListFilter("both")}
-            className={`px-2 py-1 rounded font-semibold cursor-pointer ${
-              activeListFilter === "both"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            size="sm"
+            variant={isPlayingAll === "both" ? "destructive" : "outline"}
+            data-testid="listening-play-all-both-btn"
+            disabled={sortedWords.length === 0 && filteredSentences.length === 0}
+            onClick={() => {
+              unlockTtsAudioPlayback();
+              setActiveListFilter("both");
+              void handlePlayAllBoth();
+            }}
+            className="h-7 px-2 text-[11px] gap-1"
+            title="Listen to both words and their sentences"
           >
-            Both Lists
-          </button>
-          <button
-            type="button"
-            data-testid="listening-list-words-tab"
-            onClick={() => setActiveListFilter("words")}
-            className={`px-2 py-1 rounded font-semibold cursor-pointer ${
-              activeListFilter === "words"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            1. Words ({filteredWords.length})
-          </button>
-          <button
-            type="button"
-            data-testid="listening-list-sentences-tab"
-            onClick={() => setActiveListFilter("sentences")}
-            className={`px-2 py-1 rounded font-semibold cursor-pointer ${
-              activeListFilter === "sentences"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            2. Sentences ({filteredSentences.length})
-          </button>
+            {isPlayingAll === "both" ? (
+              <>
+                <Square className="h-3 w-3" />
+                <span>
+                  Stop Both
+                  {playingProgress?.list === "both"
+                    ? ` (${playingProgress.current}/${playingProgress.total})`
+                    : ""}
+                </span>
+              </>
+            ) : (
+              <>
+                <Play className="h-3 w-3" />
+                <span>Listen Both</span>
+              </>
+            )}
+          </Button>
         </div>
+      </div>
+
+      {/* Listening Languages & Playback Order */}
+      {languageOptions.length > 0 && (
+        <div
+          data-testid="listening-languages-order-panel"
+          className="rounded-xl border border-border/80 bg-card/50 p-2.5 space-y-2"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-foreground">
+              <Languages className="h-3.5 w-3.5 text-indigo-500" />
+              <span>Listen Languages &amp; Order:</span>
+              <span
+                data-testid="listening-languages-active-sequence"
+                className="font-mono text-[10px] text-indigo-600 dark:text-indigo-300"
+              >
+                {effectivePlaybackLanguages
+                  .map(
+                    (code, i) => `${i + 1}. ${languageOptionMap.get(code)?.name || code} (${code})`,
+                  )
+                  .join(" → ")}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              data-testid="listening-lang-reset-btn"
+              onClick={handleResetListeningLanguages}
+              className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer"
+              title="Reset listening languages and order to default"
+            >
+              <RotateCcw className="h-2.5 w-2.5" />
+              <span>Reset</span>
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {listeningLangConfig.orderedLanguages.map((code, idx) => {
+              const opt = languageOptionMap.get(code);
+              const isEnabled = listeningLangConfig.enabledLanguages.includes(code);
+              const enabledPos = orderedEnabledLanguages.indexOf(code);
+              return (
+                <div
+                  key={code}
+                  data-testid={`listening-lang-chip-${code}`}
+                  className={`inline-flex items-center rounded-lg border text-[11px] transition-colors ${
+                    isEnabled
+                      ? "border-indigo-500/50 bg-indigo-500/10 text-foreground"
+                      : "border-border/60 bg-background/50 text-muted-foreground opacity-75"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    data-testid={`listening-lang-move-up-${code}`}
+                    aria-label={`Move ${opt?.name || code} earlier`}
+                    disabled={idx === 0}
+                    onClick={() => handleMoveListeningLanguage(code, "up")}
+                    className="px-1.5 py-1 hover:bg-muted/60 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer rounded-l-lg"
+                    title="Move earlier in listening order"
+                  >
+                    <ArrowLeft className="h-3 w-3" />
+                  </button>
+
+                  <button
+                    type="button"
+                    data-testid={`listening-lang-toggle-${code}`}
+                    aria-pressed={isEnabled}
+                    onClick={() => handleToggleListeningLanguage(code)}
+                    className="inline-flex items-center gap-1 px-1.5 py-1 font-medium cursor-pointer"
+                    title={
+                      isEnabled
+                        ? "Click to exclude from listening"
+                        : "Click to include in listening"
+                    }
+                  >
+                    <span
+                      className={`inline-flex h-3.5 w-3.5 items-center justify-center rounded-xs border text-[9px] font-bold ${
+                        isEnabled
+                          ? "border-indigo-500 bg-indigo-600 text-white"
+                          : "border-muted-foreground/50 bg-transparent text-transparent"
+                      }`}
+                    >
+                      {enabledPos >= 0 ? enabledPos + 1 : <Check className="h-2.5 w-2.5" />}
+                    </span>
+                    <span>{opt?.name || code}</span>
+                    <span className="font-mono text-[10px] opacity-70">({code})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    data-testid={`listening-lang-move-down-${code}`}
+                    aria-label={`Move ${opt?.name || code} later`}
+                    disabled={idx === listeningLangConfig.orderedLanguages.length - 1}
+                    onClick={() => handleMoveListeningLanguage(code, "down")}
+                    className="px-1.5 py-1 hover:bg-muted/60 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer rounded-r-lg"
+                    title="Move later in listening order"
+                  >
+                    <ArrowRight className="h-3 w-3" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* TTS-Play Speed Override Bar */}
+      <div
+        data-testid="listening-speed-override-control"
+        className="rounded-xl border border-border/80 bg-card/50 p-2.5 flex flex-wrap items-center justify-between gap-2 text-[11px]"
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            data-testid="listening-speed-override-toggle"
+            aria-pressed={ttsRateOverride !== null}
+            onClick={handleToggleRateOverride}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 font-semibold transition-colors cursor-pointer ${
+              ttsRateOverride !== null
+                ? "border-indigo-500 bg-indigo-600 text-white"
+                : "border-border bg-background text-foreground hover:bg-muted/60"
+            }`}
+            title={
+              ttsRateOverride !== null
+                ? "Overriding configured per-language TTS speed (click to use configured)"
+                : "Using configured per-language TTS speed (click to override)"
+            }
+          >
+            <Gauge className="h-3.5 w-3.5" />
+            <span>
+              {ttsRateOverride !== null
+                ? `TTS Speed Override (${ttsRateOverride.toFixed(2).replace(/\.?0+$/, "")}x)`
+                : `TTS Speed: Configured (${configuredBaseRate}x)`}
+            </span>
+          </button>
+
+          <div className="inline-flex items-center border border-border rounded-md bg-background">
+            <button
+              type="button"
+              data-testid="listening-speed-dec-btn"
+              aria-label="Decrease TTS speed override"
+              onClick={() =>
+                applyTtsRateOverride((ttsRateOverride ?? configuredBaseRate ?? 1.0) - 0.25)
+              }
+              className="p-1 text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              <Minus className="h-3 w-3" />
+            </button>
+            <input
+              type="number"
+              data-testid="listening-speed-input"
+              aria-label="TTS speed override"
+              min={MIN_LISTENING_TTS_RATE}
+              max={MAX_LISTENING_TTS_RATE}
+              step={0.05}
+              value={ttsRateOverride ?? configuredBaseRate}
+              onChange={(e) => {
+                const parsed = parseFloat(e.target.value);
+                if (!Number.isNaN(parsed)) {
+                  applyTtsRateOverride(parsed);
+                }
+              }}
+              className="w-14 text-center text-xs font-mono font-bold bg-transparent text-foreground focus:outline-hidden"
+            />
+            <button
+              type="button"
+              data-testid="listening-speed-inc-btn"
+              aria-label="Increase TTS speed override"
+              onClick={() =>
+                applyTtsRateOverride((ttsRateOverride ?? configuredBaseRate ?? 1.0) + 0.25)
+              }
+              className="p-1 text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              <Plus className="h-3 w-3" />
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1">
+            {LISTENING_RATE_PRESETS.map((preset) => {
+              const isSelected =
+                ttsRateOverride !== null && Math.abs(ttsRateOverride - preset) < 0.01;
+              return (
+                <button
+                  key={preset}
+                  type="button"
+                  data-testid={`listening-speed-preset-${preset}`}
+                  onClick={() => applyTtsRateOverride(preset)}
+                  className={`rounded border px-1.5 py-0.5 text-[10px] font-mono font-semibold cursor-pointer ${
+                    isSelected
+                      ? "border-indigo-500 bg-indigo-500/15 text-indigo-600 dark:text-indigo-300"
+                      : "border-border bg-background text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {preset}x
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {ttsRateOverride !== null && (
+          <button
+            type="button"
+            data-testid="listening-speed-reset-btn"
+            onClick={() => applyTtsRateOverride(null)}
+            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer"
+            title="Revert to configured per-language TTS speed"
+          >
+            <RotateCcw className="h-2.5 w-2.5" />
+            <span>Use Configured</span>
+          </button>
+        )}
       </div>
 
       {/* Mode Banner */}
       <div className="text-[11px] text-muted-foreground px-1 flex flex-wrap items-center justify-between gap-2">
         <span>
           {withTranslations
-            ? `Playing ${baseLanguageName} followed by ${targetLanguageName} translations.`
+            ? `Playing in order: ${effectivePlaybackLanguages
+                .map((code) => languageOptionMap.get(code)?.name || code.toUpperCase())
+                .join(" → ")}.`
             : `Audio-only immersion in ${baseLanguageName} (translations hidden and skipped).`}
         </span>
         {isPlayingAll && (
@@ -798,7 +1479,56 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-1.5 py-0.5 text-[11px]">
+                  <ArrowUpDown className="h-3 w-3 text-muted-foreground shrink-0" />
+                  <select
+                    data-testid="listening-words-sort-select"
+                    aria-label="Sort words by"
+                    value={wordSortBy}
+                    onChange={(e) => handleWordSortByChange(e.target.value as ListeningWordSortBy)}
+                    className="bg-transparent text-[11px] font-medium text-foreground focus:outline-hidden cursor-pointer"
+                    title="Sort words list"
+                  >
+                    <option value="default" className="bg-popover text-popover-foreground">
+                      Default order
+                    </option>
+                    <option value="alphabet" className="bg-popover text-popover-foreground">
+                      Alphabet (A–Z)
+                    </option>
+                    <option value="word_size" className="bg-popover text-popover-foreground">
+                      Word size (letters)
+                    </option>
+                    <option value="sentence_length" className="bg-popover text-popover-foreground">
+                      Sentence length (words)
+                    </option>
+                  </select>
+                  <button
+                    type="button"
+                    data-testid="listening-words-sort-direction-btn"
+                    onClick={handleToggleWordSortDirection}
+                    aria-label={wordSortDirection === "asc" ? "Sort ascending" : "Sort descending"}
+                    title={
+                      wordSortDirection === "asc"
+                        ? "Ascending (click to reverse)"
+                        : "Descending (click to reverse)"
+                    }
+                    className="inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-mono font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer"
+                  >
+                    {wordSortDirection === "asc" ? (
+                      <>
+                        <ArrowUp className="h-3 w-3" />
+                        <span>Asc</span>
+                      </>
+                    ) : (
+                      <>
+                        <ArrowDown className="h-3 w-3" />
+                        <span>Desc</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
                 <label
                   htmlFor="listening-min-letters-input"
                   className="text-[11px] font-medium text-muted-foreground"
@@ -846,7 +1576,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                   size="sm"
                   variant={isPlayingAll === "words" ? "destructive" : "outline"}
                   data-testid="listening-play-all-words-btn"
-                  disabled={filteredWords.length === 0}
+                  disabled={sortedWords.length === 0}
                   onClick={() => void handlePlayAllWords()}
                   className="h-7 px-2 text-[11px] gap-1"
                 >
@@ -875,7 +1605,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
               data-testid="listening-words-list"
               className="max-h-72 overflow-y-auto space-y-1.5 pr-1"
             >
-              {filteredWords.length === 0 ? (
+              {sortedWords.length === 0 ? (
                 <div
                   data-testid="listening-words-empty"
                   className="text-xs text-muted-foreground py-6 text-center space-y-2"
@@ -898,7 +1628,7 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                   )}
                 </div>
               ) : (
-                filteredWords.map((item, idx) => {
+                sortedWords.map((item, idx) => {
                   const sentenceItemId = `${item.id}-sentence`;
                   const isWordActive = activeItemId === item.id;
                   const isSentenceActive = activeItemId === sentenceItemId;
@@ -948,6 +1678,36 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                               → {onDemandWordTrans}
                             </span>
                           )}
+                          {withTranslations &&
+                            enabledNonBaseLanguages
+                              .filter(
+                                (langCode) =>
+                                  normalizeLanguage(langCode) !== normalizeLanguage(targetLanguage),
+                              )
+                              .map((extraLang) => {
+                                const extraKey = getWordTranslationCacheKey(
+                                  item.word,
+                                  baseLanguage,
+                                  extraLang,
+                                );
+                                const extraTrans = extraKey
+                                  ? wordTranslations[extraKey] ||
+                                    getCachedWordTranslation(item.word, baseLanguage, extraLang) ||
+                                    ""
+                                  : "";
+                                if (!extraTrans) return null;
+                                return (
+                                  <span
+                                    key={extraLang}
+                                    dir={RTL.has(extraLang) ? "rtl" : "ltr"}
+                                    data-testid={`listening-word-extra-translation-${idx}-${extraLang}`}
+                                    className="text-[11px] font-medium text-sky-600 dark:text-sky-300"
+                                    title={`${languageOptionMap.get(extraLang)?.name || extraLang} translation`}
+                                  >
+                                    · {extraLang}: {extraTrans}
+                                  </span>
+                                );
+                              })}
                           {withTranslations && isTranslatingWord && (
                             <span
                               data-testid={`listening-word-translating-${idx}`}
@@ -981,12 +1741,20 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                       {item.sourceSentence && (
                         <div className="flex items-start justify-between gap-2 border-t border-border/40 pt-1.5">
                           <div className="min-w-0 flex-1 space-y-0.5">
-                            <p
-                              dir={isBaseRtl ? "rtl" : "ltr"}
-                              data-testid={`listening-word-source-sentence-${idx}`}
-                              className="text-[11px] leading-snug text-foreground/90 break-words"
-                            >
-                              {sentenceParts.map((part, partIdx) =>
+                            <div className="flex items-start gap-1.5">
+                              <span
+                                data-testid={`listening-word-sentence-wordcount-${idx}`}
+                                className="mt-0.5 shrink-0 rounded bg-muted px-1 py-0 text-[9px] font-mono text-muted-foreground"
+                                title={`Sentence length: ${item.sourceSentenceWordCount} words`}
+                              >
+                                {item.sourceSentenceWordCount}w
+                              </span>
+                              <p
+                                dir={isBaseRtl ? "rtl" : "ltr"}
+                                data-testid={`listening-word-source-sentence-${idx}`}
+                                className="min-w-0 flex-1 text-[11px] leading-snug text-foreground/90 break-words"
+                              >
+                                {sentenceParts.map((part, partIdx) =>
                                 part.isMatch ? (
                                   <mark
                                     key={partIdx}
@@ -994,11 +1762,12 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                                   >
                                     {part.text}
                                   </mark>
-                                ) : (
-                                  <React.Fragment key={partIdx}>{part.text}</React.Fragment>
-                                ),
-                              )}
-                            </p>
+                                  ) : (
+                                    <React.Fragment key={partIdx}>{part.text}</React.Fragment>
+                                  ),
+                                )}
+                              </p>
+                            </div>
                             {withTranslations && item.sourceTranslation && (
                               <p
                                 dir={isTargetRtl ? "rtl" : "ltr"}
@@ -1194,6 +1963,32 @@ export const ListeningGamePanel: React.FC<ListeningGamePanelProps> = ({
                             {item.translation}
                           </p>
                         )}
+                        {withTranslations &&
+                          enabledNonBaseLanguages
+                            .filter(
+                              (langCode) =>
+                                normalizeLanguage(langCode) !== normalizeLanguage(targetLanguage),
+                            )
+                            .map((extraLang) => {
+                              const extraText =
+                                item.translationsByLang?.[extraLang] ||
+                                item.translationsByLang?.[normalizeLanguage(extraLang)] ||
+                                "";
+                              if (!extraText) return null;
+                              return (
+                                <p
+                                  key={extraLang}
+                                  dir={RTL.has(extraLang) ? "rtl" : "ltr"}
+                                  data-testid={`listening-sentence-extra-translation-${idx}-${extraLang}`}
+                                  className="text-[11px] text-sky-600 dark:text-sky-300 pl-7"
+                                >
+                                  <span className="font-mono text-[10px] uppercase opacity-75 mr-1">
+                                    {extraLang}:
+                                  </span>
+                                  {extraText}
+                                </p>
+                              );
+                            })}
                       </div>
 
                       <Button

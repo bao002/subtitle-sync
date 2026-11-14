@@ -1,5 +1,42 @@
 # Done tasks
 
+### Task 412 (Prompt 201, Chapter 3): Listening Game — TTS-Play Speed Override Control (`v2.1.114`)
+
+- **Prompt**: `3. allow to set tts-play speed to override the configured one`
+- **Changes**:
+  - Updated `src/utils/listeningGame.ts`: added `MIN_LISTENING_TTS_RATE`, `MAX_LISTENING_TTS_RATE`, `LISTENING_RATE_PRESETS`, `clampListeningTtsRate`, `resolveEffectiveListeningTtsRate`, and `localStorage` persistence (`yt_listening_game_rate_override_v1` via `loadListeningTtsRateOverride` / `saveListeningTtsRateOverride`).
+  - Updated `src/components/ListeningGamePanel.tsx`: added `ListeningSpeakOptions` (`rateOverride?: number`), `configuredRates` prop, interactive `listening-speed-override-control` bar (`listening-speed-override-toggle`, `-`/`+` steppers, numeric input `listening-speed-input`, quick presets `0.75x`–`2x`, and `Use Configured` reset button `listening-speed-reset-btn`), and forwarded `{ rateOverride: ttsRateOverride }` when active into `speakSingleEntry` and `speakWordEntry`.
+  - Updated `src/components/WordBalloonLearningView.tsx`, `src/routes/index.tsx` (`handleSpeakTextFromAlternativeView` honoring `options?.rateOverride` and passing `configuredRates={rates}` in both Beginner and Advanced modes), `src/components/ListeningGamePanel.stories.tsx`, and `src/storybook/StorybookWorkbench.tsx`.
+  - Added dedicated verification suite `scripts/verify-listening-tts-speed-override.ts` (`"test:listening-tts-speed-override"` in `package.json`, documented in `docs/files.md`).
+- **Verification**: `npx tsc --noEmit`, `npx eslint src/utils/listeningGame.ts src/components/ListeningGamePanel.tsx`, `compile_applet`, `lint_applet`, and `npm run test:listening-tts-speed-override` (unit checks + live Chromium E2E confirming configured `0.8x` vs active `1.75x` override across `SpeechSynthesisUtterance.rate` with zero errors; git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Task 411 (Prompt 201, Chapter 2): Listening Game — Sort Words by Alphabet, Word Size, or Sentence Length (`v2.1.114`)
+
+- **Prompt**: `2. allow to sort the list of words by order of alphabet or by size of word or by length of sentence in terms of number of words.`
+- **Changes**:
+  - Updated `src/utils/listeningGame.ts`: added `sourceSentenceWordCount` to `ListeningGameWordItem` (populated via `countSentenceWords(baseText)`), exported `ListeningWordSortBy` (`"default" | "alphabet" | "word_size" | "sentence_length"`), `ListeningSortDirection` (`"asc" | "desc"`), pure `sortListeningWords` helper with locale-aware alphabetical ordering, and `localStorage` persistence (`yt_listening_game_word_sort_v1`).
+  - Updated `src/components/ListeningGamePanel.tsx`: wired `wordSortBy` and `wordSortDirection` state, `sortedWords` memo (applied consistently to rendering, on-demand translation lookahead, and `Listen All` words playback), compact sort `<select data-testid="listening-words-sort-select">` and Asc/Desc direction toggle `<button data-testid="listening-words-sort-direction-btn">`, plus compact `${item.sourceSentenceWordCount}w` badge inside the derived sentence block.
+  - Added dedicated verification suite `scripts/verify-listening-word-sorting.ts` (`"test:listening-word-sorting"` in `package.json`, documented in `docs/files.md`).
+- **Verification**: `npx tsc --noEmit`, `npx eslint src/utils/listeningGame.ts src/components/ListeningGamePanel.tsx`, `compile_applet`, `lint_applet`, and `npm run test:listening-word-sorting` (unit tests + live Chromium E2E verifying alphabet, word size, and sentence length sorting in Asc/Desc with zero errors; git commit/push skipped — no `.git` directory): **PASSED**.
+
+### Task 410 (Prompt 201, Chapter 1): Listening Game — Configurable List of Languages to Listen To & Their Order (`v2.1.114`)
+
+- **Prompt**: `1. allow to set the list of languages to listen to & their order.`
+- **Changes**:
+  - Updated `src/utils/listeningGame.ts`: added `ListeningLanguageOption`, `ListeningLanguagesConfig`, `translationsByLang` alignment across `extractListeningWords` and `extractListeningSentences`, plus `buildListeningLanguageOptions`, `reconcileListeningLanguagesConfig`, `moveListeningLanguage`, `toggleListeningLanguageEnabled`, and `localStorage` persistence (`yt_listening_game_languages_v1`).
+  - Updated `src/components/ListeningGamePanel.tsx`: added `availableLanguages` prop, interactive `listening-languages-order-panel` with per-language include/exclude toggles, `ArrowLeft`/`ArrowRight` order controls, sequence preview, and reset action; generalized word/sentence on-demand translation warming, card badges, and sequential playback (`speakWordEntry`, `speakSingleEntry`) to follow `effectivePlaybackLanguages` in exact user-configured order.
+  - Updated `src/components/WordBalloonLearningView.tsx`, `src/routes/index.tsx` (`availableAlternativeTtsLanguages` including `tracks` & `favoriteLanguages`), `src/components/ListeningGamePanel.stories.tsx`, and `src/storybook/StorybookWorkbench.tsx` for Beginner/Advanced/Storybook parity.
+  - Added dedicated verification suite `scripts/verify-listening-languages-order.ts` (`"test:listening-languages-order"` in `package.json`, cataloged in `docs/files.md`).
+- **Verification**: `npx tsc --noEmit`, `npx eslint src/components/ListeningGamePanel.tsx src/utils/listeningGame.ts`, `compile_applet`, `lint_applet`, `npm run test:listening-game-mode`, and `npm run test:listening-languages-order` (unit tests + live Chromium E2E verifying 3-language toggle, reorder, sequential TTS order, and reset with zero errors): **PASSED**.
+
+### Task 408 (Prompt 197, Chapter 3): Show Derived Original Sentence & Play Sentence + Translation on Listening Game Word Cards (`v2.1.114`)
+
+- **Prompt**: `3. show also the original sentence from which the word is derived and allow to play that sentence and its translation.`
+- **Changes**:
+  - Updated `src/utils/listeningGame.ts` (`splitSentenceHighlightParts`) and `src/components/ListeningGamePanel.tsx` to render `item.sourceSentence` with inline `<mark>` highlighting of the derived word, display `item.sourceTranslation` when `With Translations` is active, and wire `listening-play-word-sentence-${idx}` (`handlePlayWordSentence`) to speak the derived sentence followed by its translation.
+  - Added dedicated verification script `scripts/verify-listening-word-derived-sentence.ts` (`"test:listening-word-derived-sentence"` in `package.json`).
+- **Verification**: `npm run test:listening-word-derived-sentence` (unit checks + live Chromium E2E verifying highlighted `<mark>`, `With Translations` 2-utterance playback, and `Without Translations` base-only playback): **PASSED**.
+
 ### Hotfix: Clear Vite Startup Pre-Transform Stale Error & Verify All Client Modules (Prompt 200, `v2.1.114`)
 
 - **Prompt**:

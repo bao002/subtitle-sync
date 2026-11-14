@@ -55,7 +55,17 @@ const StoryWrapper: React.FC<Partial<ListeningGamePanelProps>> = (props) => {
         baseLanguageName="English"
         targetLanguage="es"
         targetLanguageName="Spanish"
-        onSpeakText={(text, lang) => setLastSpoken(`[${lang}] ${text}`)}
+        availableLanguages={[
+          { code: "en", name: "English" },
+          { code: "es", name: "Spanish" },
+          { code: "he", name: "Hebrew" },
+        ]}
+        configuredRates={{ en: 1.0, es: 0.9, he: 0.85 }}
+        onSpeakText={(text, lang, options) =>
+          setLastSpoken(
+            `[${lang}${options?.rateOverride ? ` @ ${options.rateOverride}x` : ""}] ${text}`,
+          )
+        }
         {...props}
       />
       {lastSpoken && (
@@ -72,5 +82,7 @@ export const WithTranslations: Story = {
 };
 
 export const WithoutTranslations: Story = {
-  render: () => <StoryWrapper initialWithTranslations={false} initialMinLetters={5} initialMaxWords={5} />,
+  render: () => (
+    <StoryWrapper initialWithTranslations={false} initialMinLetters={5} initialMaxWords={5} />
+  ),
 };

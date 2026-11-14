@@ -1,10 +1,14 @@
 # Current Subtask (`current-sub-task.md`)
 
 - **Status**: [ACTIVE]
-- **Active Task**: Task 408 (Prompt 197 Chapter 3 — Show Derived Original Sentence & Allow Playing Sentence + Translation on Word Cards)
-- **Active Step**: Subtask 408.1 — Display `item.sourceSentence` (highlighting derived word) + `item.sourceTranslation` & add Play Sentence trigger in `ListeningGamePanel.tsx`
+- **Active Task**: Task 413 (Prompt 201 Chapter 4 — Listening Game: Clicking "Both" Triggers Listening to Both Words and Their Sentences)
+- **Active Step**: Subtask 413.1 — Update `listening-list-both-tab` & add `handlePlayAllBoth` + `listening-play-all-both-btn` in `ListeningGamePanel.tsx` so clicking "Both" triggers sequential playback of words + their sentences
 - **Upcoming**: Task 409 (UI/UX space optimization)
 - **Completed**:
+  - Task 412 (Prompt 201 Chapter 3): TTS-play speed override control (`test:listening-tts-speed-override` PASSED)
+  - Task 411 (Prompt 201 Chapter 2): Word sorting by alphabet, word size, or sentence length in words (`test:listening-word-sorting` PASSED)
+  - Task 410 (Prompt 201 Chapter 1): Configurable list of listening languages & playback order (`test:listening-languages-order` PASSED)
+  - Task 408 (Prompt 197 Chapter 3): Display `item.sourceSentence` (highlighting derived word) + `item.sourceTranslation` & Play Sentence trigger (`v2.1.114`)
   - Hotfix (Prompt 200): Cleared container-boot Vite pre-transform race (`componentOptimizationService.ts` in `BottomLogViewer.tsx` before file sync completed), verified 200/200 `src/` modules HTTP 200 + live Chromium clean + restarted Vite dev server (`v2.1.114`)
   - Task 407 (Prompt 197 Chapter 2): Fixed Listening trigger dropping base word on async `cancel()` -> `speak()` race (`v2.1.114`)
   - Hotfix (Prompt 198): Verified zero stale `componentOptimizationService` imports across Vite client modules, fixed `onDemandTranslationManager.ts` browser CORS/rate-limit flood (`clients5.google.com` browser-first + endpoint cooldown + capped lookahead concurrency), & restarted dev server (`v2.1.114`)

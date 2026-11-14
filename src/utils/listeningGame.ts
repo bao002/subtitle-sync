@@ -4,13 +4,34 @@ export interface SubtitleRowLike {
   translation?: string;
 }
 
+export interface ListeningLanguageOption {
+  code: string;
+  name: string;
+}
+
+export interface ListeningLanguagesConfig {
+  orderedLanguages: string[];
+  enabledLanguages: string[];
+}
+
+export type ListeningWordSortBy = "default" | "alphabet" | "word_size" | "sentence_length";
+
+export type ListeningSortDirection = "asc" | "desc";
+
+export interface ListeningWordSortConfig {
+  sortBy: ListeningWordSortBy;
+  direction: ListeningSortDirection;
+}
+
 export interface ListeningGameWordItem {
   id: string;
   word: string;
   normalized: string;
   letterCount: number;
   sourceSentence: string;
+  sourceSentenceWordCount: number;
   sourceTranslation: string;
+  translationsByLang?: Record<string, string>;
   rowIndex: number;
 }
 
@@ -18,6 +39,7 @@ export interface ListeningGameSentenceItem {
   id: string;
   sentence: string;
   translation: string;
+  translationsByLang?: Record<string, string>;
   wordCount: number;
   rowIndex: number;
 }
@@ -152,6 +174,22 @@ export function extractListeningWords(
     );
     if (!baseText) return;
 
+    const translationsByLang: Record<string, string> = {};
+    if (row.texts) {
+      for (const [code, val] of Object.entries(row.texts)) {
+        if (typeof val === "string" && val.trim()) {
+          translationsByLang[code] = val.trim();
+        }
+      }
+    }
+    if (options.baseLanguage && baseText) {
+      translationsByLang[options.baseLanguage] = baseText;
+    }
+    if (options.targetLanguage && translationText) {
+      translationsByLang[options.targetLanguage] = translationText;
+    }
+
+    const sourceSentenceWordCount = countSentenceWords(baseText);
     const rawTokens = baseText.split(/\s+/);
     for (const token of rawTokens) {
       const clean = sanitizeListeningWord(token);
@@ -168,13 +206,140 @@ export function extractListeningWords(
         normalized,
         letterCount,
         sourceSentence: baseText,
+        sourceSentenceWordCount,
         sourceTranslation: translationText,
+        translationsByLang,
         rowIndex,
       });
     }
   });
 
   return items;
+}
+
+const LISTENING_WORD_SORT_STORAGE_KEY = "yt_listening_game_word_sort_v1";
+
+export function sortListeningWords(
+  words: ListeningGameWordItem[],
+  sortBy: ListeningWordSortBy,
+  direction: ListeningSortDirection = "asc",
+  locale?: string,
+): ListeningGameWordItem[] {
+  if (words.length <= 1) return [...words];
+  if (sortBy === "default") {
+    return direction === "desc" ? [...words].reverse() : [...words];
+  }
+
+  const dir = direction === "desc" ? -1 : 1;
+  const compareLocale = locale?.trim() || undefined;
+
+  return [...words].sort((a, b) => {
+    if (sortBy === "alphabet") {
+      const alphaCmp = a.word.localeCompare(b.word, compareLocale, { sensitivity: "base" });
+      if (alphaCmp !== 0) return alphaCmp * dir;
+      return a.rowIndex - b.rowIndex;
+    }
+
+    if (sortBy === "word_size") {
+      const sizeCmp = a.letterCount - b.letterCount;
+      if (sizeCmp !== 0) return sizeCmp * dir;
+      return a.word.localeCompare(b.word, compareLocale, { sensitivity: "base" });
+    }
+
+    if (sortBy === "sentence_length") {
+      const sentCmp = a.sourceSentenceWordCount - b.sourceSentenceWordCount;
+      if (sentCmp !== 0) return sentCmp * dir;
+      const sizeCmp = a.letterCount - b.letterCount;
+      if (sizeCmp !== 0) return sizeCmp;
+      return a.word.localeCompare(b.word, compareLocale, { sensitivity: "base" });
+    }
+
+    return 0;
+  });
+}
+
+export function loadListeningWordSortConfig(): ListeningWordSortConfig | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(LISTENING_WORD_SORT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ListeningWordSortConfig>;
+    if (!parsed || typeof parsed !== "object") return null;
+    const validSortBy: ListeningWordSortBy[] = [
+      "default",
+      "alphabet",
+      "word_size",
+      "sentence_length",
+    ];
+    const sortBy = parsed.sortBy && validSortBy.includes(parsed.sortBy) ? parsed.sortBy : "default";
+    const direction: ListeningSortDirection = parsed.direction === "desc" ? "desc" : "asc";
+    return { sortBy, direction };
+  } catch {
+    return null;
+  }
+}
+
+export function saveListeningWordSortConfig(config: ListeningWordSortConfig): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LISTENING_WORD_SORT_STORAGE_KEY, JSON.stringify(config));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export const MIN_LISTENING_TTS_RATE = 0.25;
+export const MAX_LISTENING_TTS_RATE = 2.5;
+export const LISTENING_RATE_PRESETS = [0.75, 1.0, 1.25, 1.5, 2.0] as const;
+const LISTENING_RATE_OVERRIDE_STORAGE_KEY = "yt_listening_game_rate_override_v1";
+
+export function clampListeningTtsRate(rate: number): number {
+  if (!Number.isFinite(rate)) return 1.0;
+  const clamped = Math.max(MIN_LISTENING_TTS_RATE, Math.min(MAX_LISTENING_TTS_RATE, rate));
+  return Math.round(clamped * 100) / 100;
+}
+
+export function resolveEffectiveListeningTtsRate(
+  langCode: string,
+  configuredRates?: Record<string, number>,
+  rateOverride?: number | null,
+): number {
+  if (typeof rateOverride === "number" && Number.isFinite(rateOverride)) {
+    return clampListeningTtsRate(rateOverride);
+  }
+  const configured = configuredRates?.[langCode];
+  return typeof configured === "number" && Number.isFinite(configured)
+    ? clampListeningTtsRate(configured)
+    : 1.0;
+}
+
+export function loadListeningTtsRateOverride(): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(LISTENING_RATE_OVERRIDE_STORAGE_KEY);
+    if (!raw || raw === "null") return null;
+    const parsed = Number(raw);
+    if (!Number.isFinite(parsed)) return null;
+    return clampListeningTtsRate(parsed);
+  } catch {
+    return null;
+  }
+}
+
+export function saveListeningTtsRateOverride(rate: number | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (rate === null || !Number.isFinite(rate)) {
+      window.localStorage.removeItem(LISTENING_RATE_OVERRIDE_STORAGE_KEY);
+    } else {
+      window.localStorage.setItem(
+        LISTENING_RATE_OVERRIDE_STORAGE_KEY,
+        String(clampListeningTtsRate(rate)),
+      );
+    }
+  } catch {
+    // ignore storage errors
+  }
 }
 
 export interface ExtractListeningSentencesOptions {
@@ -218,6 +383,15 @@ export function extractListeningSentences(
       ? splitTextIntoPunctuationSentences(translationText)
       : [];
 
+    const splitByLang: Record<string, string[]> = {};
+    if (row.texts) {
+      for (const [code, val] of Object.entries(row.texts)) {
+        if (typeof val === "string" && val.trim()) {
+          splitByLang[code] = splitTextIntoPunctuationSentences(val.trim());
+        }
+      }
+    }
+
     baseSentences.forEach((sentence, sIdx) => {
       const wordCount = countSentenceWords(sentence);
       if (wordCount <= 0 || wordCount > safeMaxWords) return;
@@ -231,10 +405,28 @@ export function extractListeningSentences(
           ? transSentences[sIdx] || translationText
           : translationText;
 
+      const translationsByLang: Record<string, string> = {};
+      if (row.texts) {
+        for (const [code, val] of Object.entries(row.texts)) {
+          const trimmed = typeof val === "string" ? val.trim() : "";
+          if (!trimmed) continue;
+          const langSplits = splitByLang[code] || [];
+          translationsByLang[code] =
+            langSplits.length === baseSentences.length ? langSplits[sIdx] || trimmed : trimmed;
+        }
+      }
+      if (options.baseLanguage) {
+        translationsByLang[options.baseLanguage] = sentence;
+      }
+      if (options.targetLanguage && pairedTranslation) {
+        translationsByLang[options.targetLanguage] = pairedTranslation;
+      }
+
       items.push({
         id: `sentence-${rowIndex}-${sIdx}`,
         sentence,
         translation: pairedTranslation,
+        translationsByLang,
         wordCount,
         rowIndex,
       });
@@ -242,6 +434,195 @@ export function extractListeningSentences(
   });
 
   return items;
+}
+
+const LISTENING_LANGUAGES_STORAGE_KEY = "yt_listening_game_languages_v1";
+
+function canonicalLangKey(code: string): string {
+  const lower = code.trim().toLowerCase();
+  if (lower === "iw") return "he";
+  if (lower === "ji") return "yi";
+  if (lower === "in") return "id";
+  return lower;
+}
+
+export function buildListeningLanguageOptions(params: {
+  baseLanguage: string;
+  baseLanguageName?: string;
+  targetLanguage?: string;
+  targetLanguageName?: string;
+  availableLanguages?: ListeningLanguageOption[];
+  rows?: SubtitleRowLike[];
+}): ListeningLanguageOption[] {
+  const seen = new Set<string>();
+  const options: ListeningLanguageOption[] = [];
+  const nameMap = new Map<string, string>();
+
+  if (params.baseLanguage && params.baseLanguageName) {
+    nameMap.set(canonicalLangKey(params.baseLanguage), params.baseLanguageName);
+  }
+  if (params.targetLanguage && params.targetLanguageName) {
+    nameMap.set(canonicalLangKey(params.targetLanguage), params.targetLanguageName);
+  }
+  for (const lang of params.availableLanguages || []) {
+    if (lang.code && lang.name) {
+      nameMap.set(canonicalLangKey(lang.code), lang.name);
+    }
+  }
+
+  const addCode = (rawCode?: string) => {
+    const code = rawCode?.trim();
+    if (!code) return;
+    const key = canonicalLangKey(code);
+    if (!key || seen.has(key)) return;
+    seen.add(key);
+    options.push({
+      code,
+      name: nameMap.get(key) || code.toUpperCase(),
+    });
+  };
+
+  addCode(params.baseLanguage);
+  addCode(params.targetLanguage);
+  for (const lang of params.availableLanguages || []) {
+    addCode(lang.code);
+  }
+  for (const row of params.rows || []) {
+    if (row.texts) {
+      for (const code of Object.keys(row.texts)) {
+        addCode(code);
+      }
+    }
+  }
+
+  return options;
+}
+
+export function getDefaultListeningLanguageOrder(
+  baseLanguage: string,
+  targetLanguage?: string,
+): string[] {
+  const result: string[] = [];
+  if (baseLanguage.trim()) result.push(baseLanguage.trim());
+  if (
+    targetLanguage?.trim() &&
+    canonicalLangKey(targetLanguage) !== canonicalLangKey(baseLanguage)
+  ) {
+    result.push(targetLanguage.trim());
+  }
+  return result;
+}
+
+export function reconcileListeningLanguagesConfig(
+  options: ListeningLanguageOption[],
+  baseLanguage: string,
+  targetLanguage: string,
+  saved?: Partial<ListeningLanguagesConfig> | null,
+): ListeningLanguagesConfig {
+  const optionCodes = options.map((o) => o.code);
+  const codeByCanonical = new Map<string, string>();
+  for (const code of optionCodes) {
+    codeByCanonical.set(canonicalLangKey(code), code);
+  }
+
+  const orderedLanguages: string[] = [];
+  const seenOrder = new Set<string>();
+  for (const raw of saved?.orderedLanguages || []) {
+    const matched = codeByCanonical.get(canonicalLangKey(raw));
+    if (matched && !seenOrder.has(matched)) {
+      seenOrder.add(matched);
+      orderedLanguages.push(matched);
+    }
+  }
+  for (const code of optionCodes) {
+    if (!seenOrder.has(code)) {
+      seenOrder.add(code);
+      orderedLanguages.push(code);
+    }
+  }
+
+  const enabledSet = new Set<string>();
+  for (const raw of saved?.enabledLanguages || []) {
+    const matched = codeByCanonical.get(canonicalLangKey(raw));
+    if (matched) {
+      enabledSet.add(matched);
+    }
+  }
+
+  let enabledLanguages = orderedLanguages.filter((code) => enabledSet.has(code));
+  if (enabledLanguages.length === 0) {
+    const defaults = getDefaultListeningLanguageOrder(baseLanguage, targetLanguage)
+      .map((c) => codeByCanonical.get(canonicalLangKey(c)))
+      .filter((c): c is string => Boolean(c));
+    enabledLanguages = defaults.length > 0 ? defaults : orderedLanguages.slice(0, 1);
+  }
+
+  return { orderedLanguages, enabledLanguages };
+}
+
+export function moveListeningLanguage(
+  orderedLanguages: string[],
+  code: string,
+  direction: "up" | "down",
+): string[] {
+  const idx = orderedLanguages.indexOf(code);
+  if (idx < 0) return orderedLanguages;
+  const targetIdx = direction === "up" ? idx - 1 : idx + 1;
+  if (targetIdx < 0 || targetIdx >= orderedLanguages.length) return orderedLanguages;
+  const next = [...orderedLanguages];
+  [next[idx], next[targetIdx]] = [next[targetIdx], next[idx]];
+  return next;
+}
+
+export function toggleListeningLanguageEnabled(
+  enabledLanguages: string[],
+  code: string,
+  orderedLanguages: string[],
+): string[] {
+  const isCurrentlyEnabled = enabledLanguages.includes(code);
+  if (isCurrentlyEnabled && enabledLanguages.length <= 1) {
+    return enabledLanguages;
+  }
+  const nextSet = new Set(enabledLanguages);
+  if (isCurrentlyEnabled) {
+    nextSet.delete(code);
+  } else {
+    nextSet.add(code);
+  }
+  return orderedLanguages.filter((c) => nextSet.has(c));
+}
+
+export function loadListeningLanguagesConfig(): ListeningLanguagesConfig | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(LISTENING_LANGUAGES_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<ListeningLanguagesConfig>;
+    if (!parsed || typeof parsed !== "object") return null;
+    const orderedLanguages = Array.isArray(parsed.orderedLanguages)
+      ? parsed.orderedLanguages.filter(
+          (c): c is string => typeof c === "string" && c.trim().length > 0,
+        )
+      : [];
+    const enabledLanguages = Array.isArray(parsed.enabledLanguages)
+      ? parsed.enabledLanguages.filter(
+          (c): c is string => typeof c === "string" && c.trim().length > 0,
+        )
+      : [];
+    if (orderedLanguages.length === 0 && enabledLanguages.length === 0) return null;
+    return { orderedLanguages, enabledLanguages };
+  } catch {
+    return null;
+  }
+}
+
+export function saveListeningLanguagesConfig(config: ListeningLanguagesConfig): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LISTENING_LANGUAGES_STORAGE_KEY, JSON.stringify(config));
+  } catch {
+    // ignore storage errors
+  }
 }
 
 export interface SentenceHighlightPart {

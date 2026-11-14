@@ -48,12 +48,15 @@ function runUnitAndSourceChecks() {
   console.log("✔ splitSentenceHighlightParts unit checks passed.");
 
   // 2. Source invariants in ListeningGamePanel.tsx
-  const panelSrc = fs.readFileSync(path.resolve("src/components/ListeningGamePanel.tsx"), "utf-8");
+  const panelSrc = fs
+    .readFileSync(path.resolve("src/components/ListeningGamePanel.tsx"), "utf-8")
+    .replace(/\s+/g, " ");
   assert.ok(
     panelSrc.includes("splitSentenceHighlightParts") &&
       panelSrc.includes("data-testid={`listening-word-source-sentence-${idx}`}") &&
       panelSrc.includes("data-testid={`listening-play-word-sentence-${idx}`}") &&
       panelSrc.includes("handlePlayWordSentence") &&
+      panelSrc.includes("speakSingleEntry( item.sourceSentence, item.sourceTranslation") ||
       panelSrc.includes("speakSingleEntry(item.sourceSentence, item.sourceTranslation"),
     "ListeningGamePanel must render highlighted item.sourceSentence and wire Play Sentence (+ translation)",
   );
