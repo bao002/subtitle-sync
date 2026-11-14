@@ -129,13 +129,6 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-1. fix: interacting with controls in  the "learning goals stage" triggers auto-scroll!
-2. enabling this item (auto-scroll subtitles) doesnt trigger auto-scroll on the subtitles table stage!
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)
-CSS 1: {
-
-}
-[AIS_METADATA_SECTION_END]
+go on
 ```
+

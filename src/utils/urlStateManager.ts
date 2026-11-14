@@ -566,7 +566,11 @@ export function syncAppStateToUrl(state: {
       const queryString = params.toString();
       const newUrl =
         window.location.pathname + (queryString ? `?${queryString}` : "") + window.location.hash;
-      window.history.replaceState(null, "", newUrl);
+      const currentUrl =
+        window.location.pathname + (window.location.search || "") + (window.location.hash || "");
+      if (newUrl !== currentUrl) {
+        window.history.replaceState(window.history.state ?? null, "", newUrl);
+      }
     } catch {}
   }, 150);
 }

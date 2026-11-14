@@ -47,7 +47,7 @@ export const getRouter = () => {
     routeTree,
     basepath,
     context: { queryClient },
-    scrollRestoration: true,
+    scrollRestoration: false,
     defaultPreloadStaleTime: 0,
   });
 

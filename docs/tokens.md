@@ -4,6 +4,7 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 205 (Resume Backlog — "go on"): Execute active Prompt 204 serial tasks (`Task 414` -> `Task 415`).
 - Prompt 204 (Tasks 414–415 — Fix Unintended Auto-Scroll in Learning Goals Stage & Fix Enabling Auto-Scroll Subtitles in Subtitles Table Stage):
   - Task 414 [ACTIVE]: Chapter 1 — Prevent interacting with controls in the Learning Goals stage (Stage 1 / Beginner Preferences) from triggering unintended auto-scroll (`scrollIntoView` / focus-scroll / container scroll jumps).
   - Task 415 [PENDING]: Chapter 2 — Fix enabling Auto-Scroll Subtitles (`menu-option-auto-scroll`) so it reliably triggers auto-scroll on the Subtitles Table stage across both Advanced and Beginner modes.
