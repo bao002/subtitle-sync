@@ -159,8 +159,11 @@ export function AiSubtitlePunctuationTab({
     try {
       const res = await testOpenRouterConnection(apiKey, selectedModel);
       setTestStatus(res);
-    } catch (err: any) {
-      setTestStatus({ success: false, message: err?.message || String(err) });
+    } catch (err: unknown) {
+      setTestStatus({
+        success: false,
+        message: err instanceof Error ? err.message : String(err),
+      });
     } finally {
       setIsTestingKey(false);
     }
@@ -261,11 +264,12 @@ export function AiSubtitlePunctuationTab({
       if (autoApply) {
         onApplyPunctuatedTrack(res.punctuatedJson3, false);
       }
-    } catch (err: any) {
-      if (err?.message?.includes("cancelled")) {
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+      if (errMessage.includes("cancelled")) {
         setProgressMessage("Processing cancelled.");
       } else {
-        setErrorNotice(err?.message || "Failed to process subtitles with OpenRouter AI.");
+        setErrorNotice(errMessage || "Failed to process subtitles with OpenRouter AI.");
       }
     } finally {
       setIsProcessing(false);

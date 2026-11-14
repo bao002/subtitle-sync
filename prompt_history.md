@@ -2588,3 +2588,38 @@ error 2: 12:39:01 AM [vite] (client) Pre-transform error: Failed to load url /sr
 ```
 go on. it said "feat(listening-game): implement features for prompt 201"
 ```
+
+
+---
+### Prompt 203: Hotfix — Vite HMR Reload Errors Across 10 Modules & Fast-Refresh / ESLint Cleanup
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: [vite] Failed to reload /src/styles.css. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 1: [vite] Failed to reload /src/components/ListeningGamePanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 2: [vite] Failed to reload /src/components/WordBalloonLearningView.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 3: [vite] Failed to reload /src/storybook/StorybookWorkbench.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 4: [vite] Failed to reload /src/routes/index.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 5: [vite] Failed to reload /src/components/LanguageBoxesSelector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 6: [vite] Failed to reload /src/components/TtsServiceSettingsPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 7: [vite] Failed to reload /src/components/AiSubtitlePunctuationTab.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 8: [vite] Failed to reload /src/components/NetworkRequestsInspector.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+error 9: [vite] Failed to reload /src/components/shared/LearningGoalsFiltersPanel.tsx. This could be due to syntax errors or importing non-existent modules. (see errors above)
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 204: Fix Unintended Auto-Scroll on Learning Goals Stage & Fix Enabling Auto-Scroll Subtitles on Subtitles Table Stage
+```
+1. fix: interacting with controls in  the "learning goals stage" triggers auto-scroll!
+2. enabling this item (auto-scroll subtitles) doesnt trigger auto-scroll on the subtitles table stage!
+Apply style changes to the selected element(s).
+[AIS_METADATA_SECTION_START]
+CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(6) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)
+CSS 1: {
+
+}
+[AIS_METADATA_SECTION_END]
+```
