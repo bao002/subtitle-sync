@@ -1,5 +1,22 @@
 # Done tasks
 
+### Hotfix: Fix Vite HMR Reload Errors Across 10 Modules & Fast-Refresh / ESLint Cleanup (Prompt 203, `v2.1.117`)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0..9: [vite] Failed to reload /src/styles.css, ListeningGamePanel.tsx, WordBalloonLearningView.tsx, StorybookWorkbench.tsx, src/routes/index.tsx, LanguageBoxesSelector.tsx, TtsServiceSettingsPanel.tsx, AiSubtitlePunctuationTab.tsx, NetworkRequestsInspector.tsx, LearningGoalsFiltersPanel.tsx
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Root Cause & Changes**:
+  - Audited all 10 reported modules plus all 200 `.ts`/`.tsx`/`.css` files under `src/`: zero syntax errors, zero missing imports, and unified React pre-bundle hash (`?v=d6167254`).
+  - Removed non-component export `export const MAX_WORDS_OPTIONS` in `src/components/shared/LearningGoalsFiltersPanel.tsx` to eliminate the `react-refresh/only-export-components` Fast Refresh HMR warning.
+  - Fixed ESLint errors in reported modules: replaced `catch (err: any)` with `catch (err: unknown)` in `src/components/AiSubtitlePunctuationTab.tsx`, and replaced `!Boolean(r.error)` with `!r.error` (`no-extra-boolean-cast`) in `src/components/NetworkRequestsInspector.tsx`.
+  - Bumped version to `v2.1.117` (`code: 20217` via `npm run sync-version`), restarted Vite dev server (`restart_dev_server`) to clear stale HMR/pre-transform state, and verified all 10 reported modules transform cleanly with HTTP 200.
+- **Verification**: `npx tsc --noEmit`, `npx eslint --rule 'prettier/prettier: off'` on all 9 TSX modules (0 errors, 0 warnings), HTTP 200 dev server transform probes on all 10 reported modules + all 200 `src/` files, `npm run test:vite-reload-modules`, `npm run test:client-pretransform-health`, `npm run test:react-instance-and-vite-reload-hotfix`, `npm run test:agents-all`, `npm run test:no-duplicate-md`, `npm run check-version`, `compile_applet`, and `lint_applet` (git commit/push skipped — no `.git` directory): **PASSED**.
+
 ### Task 409 (Prompt 197, Chapter 4): Listening Game — UI/UX Space Optimization on Word Cards (`v2.1.116`)
 
 - **Prompt**: `4. make good ui/ux decision to properly use the space`

@@ -1,10 +1,11 @@
 # Current Subtask (`current-sub-task.md`)
 
-- **Status**: [IDLE]
-- **Active Task**: None
-- **Active Step**: All active tasks completed (`docs/tasks.md` active backlog is empty; see `docs/tasks.md` `## Later Tasks` / `docs/later.md` if continuing with deferred items).
-- **Upcoming**: None
+- **Status**: [ACTIVE]
+- **Active Task**: Task 414 (Prompt 204 Chapter 1 — Fix unintended auto-scroll when interacting with controls in Learning Goals stage)
+- **Active Step**: Reproduce unintended auto-scroll in live Chromium & audit `scrollIntoView` / focus / Learning Goals stage handlers across Advanced & Beginner modes.
+- **Upcoming**: Task 415 (Prompt 204 Chapter 2 — Fix enabling `menu-option-auto-scroll` triggering auto-scroll on Subtitles Table stage)
 - **Completed**:
+  - Hotfix (Prompt 203): Fixed Fast Refresh non-component export (`LearningGoalsFiltersPanel.tsx`) & ESLint errors (`AiSubtitlePunctuationTab.tsx`, `NetworkRequestsInspector.tsx`), restarted Vite dev server, verified all 10 reported modules + 200 `src/` files HTTP 200 (`v2.1.117`)
   - Task 409 (Prompt 197 Chapter 4): Two-band Listening Game word card UI/UX layout, right-rail action alignment, & `max-h-[26rem]` list containers (`test:listening-word-cards-ui-ux` PASSED, `v2.1.116`)
   - Task 413 (Prompt 201 Chapter 4): Clicking "Both" triggers sequential listening to both words and their sentences (`test:listening-both-playback` PASSED, `v2.1.115`)
   - Task 412 (Prompt 201 Chapter 3): TTS-play speed override control (`test:listening-tts-speed-override` PASSED)

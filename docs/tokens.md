@@ -4,6 +4,11 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 204 (Tasks 414–415 — Fix Unintended Auto-Scroll in Learning Goals Stage & Fix Enabling Auto-Scroll Subtitles in Subtitles Table Stage):
+  - Task 414 [ACTIVE]: Chapter 1 — Prevent interacting with controls in the Learning Goals stage (Stage 1 / Beginner Preferences) from triggering unintended auto-scroll (`scrollIntoView` / focus-scroll / container scroll jumps).
+  - Task 415 [PENDING]: Chapter 2 — Fix enabling Auto-Scroll Subtitles (`menu-option-auto-scroll`) so it reliably triggers auto-scroll on the Subtitles Table stage across both Advanced and Beginner modes.
+- Prompt 203 (Hotfix — Vite HMR Reload Errors Across 10 Modules & Fast-Refresh / ESLint Cleanup):
+  - Hotfix [COMPLETED & VERIFIED]: Audited all 10 reported modules + 200 `src/` files, removed non-component Fast Refresh export (`MAX_WORDS_OPTIONS` in `LearningGoalsFiltersPanel.tsx`), fixed ESLint errors (`no-explicit-any` in `AiSubtitlePunctuationTab.tsx`, `no-extra-boolean-cast` in `NetworkRequestsInspector.tsx`), bumped to `v2.1.117`, restarted Vite dev server, and verified HTTP 200 transforms, `npx tsc --noEmit`, `eslint`, `test:vite-reload-modules`, `test:client-pretransform-health`, `test:react-instance-and-vite-reload-hotfix`, `compile_applet`, and `lint_applet`.
 - Prompt 202 (Continue Backlog — "go on"): Completed & verified remaining active tasks (`Task 413` `v2.1.115` & `Task 409` `v2.1.116`); all active backlog tasks now completed and archived in `docs/done.md`.
 - Prompt 201 (Tasks 410–413 — Listening Game: Configurable Languages & Order, Word Sorting, TTS Speed Override, & Both Lists Playback):
   - Task 410 [COMPLETED & VERIFIED]: Chapter 1 — Allow setting the list of languages to listen to & their playback order (`listeningGame.ts`, `ListeningGamePanel.tsx`, `WordBalloonLearningView.tsx`, `src/routes/index.tsx`, Storybook), verified via `test:listening-languages-order`.

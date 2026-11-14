@@ -147,7 +147,7 @@ export const NetworkRequestsInspector: React.FC<Props> = ({
           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-950 text-blue-300 border border-blue-800">
             {
               requests.filter(
-                (r) => !hideFailed || (!Boolean(r.error) && (r.isPending || isSuccessfulFetch(r))),
+                (r) => !hideFailed || (!r.error && (r.isPending || isSuccessfulFetch(r))),
               ).length
             }{" "}
             shown
