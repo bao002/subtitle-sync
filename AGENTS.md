@@ -129,15 +129,5 @@ The application processes and presents subtitles through a strict sequential pip
 
 ## Last raw prompt
 ```
-1. X letters - rm it
-2. trigger listening doesnt play the word, only its translation
-3. show also the original sentence from which the word is derived and allow to play that sentence and its translation.
-4. make good ui/ux decision to properly use the space
-Apply style changes to the selected element(s).
-[AIS_METADATA_SECTION_START]
-CSS selector 1: div#root:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(3) > details:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1) > div#word-balloon-learning-view:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > section:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(7)
-CSS 1: {
-
-}
-[AIS_METADATA_SECTION_END]
+go on
 ```

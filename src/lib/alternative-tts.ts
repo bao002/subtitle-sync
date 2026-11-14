@@ -2490,14 +2490,33 @@ async function playSingleAlternativeTtsAudio(
       }
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         try {
-          window.speechSynthesis.cancel();
-          const u = new SpeechSynthesisUtterance(text);
-          u.lang = normalizeLanguageCode(lang);
-          u.rate = Math.max(0.3, Math.min(1.5, rate || 0.5));
-          u.volume = effectiveVolume;
-          u.onend = () => cleanup(true);
-          u.onerror = () => cleanup(false);
-          window.speechSynthesis.speak(u);
+          const synth = window.speechSynthesis;
+          const hadActive = Boolean(synth?.speaking || synth?.pending);
+          if (hadActive) {
+            synth.cancel();
+          }
+          const speakFallback = () => {
+            if (generation !== undefined && generation !== audioQueueGeneration) {
+              cleanup(false);
+              return;
+            }
+            try {
+              const u = new SpeechSynthesisUtterance(text);
+              u.lang = normalizeLanguageCode(lang);
+              u.rate = Math.max(0.3, Math.min(1.5, rate || 0.5));
+              u.volume = effectiveVolume;
+              u.onend = () => cleanup(true);
+              u.onerror = () => cleanup(false);
+              synth.speak(u);
+            } catch {
+              cleanup(false);
+            }
+          };
+          if (hadActive) {
+            setTimeout(speakFallback, 150);
+          } else {
+            speakFallback();
+          }
           return;
         } catch {
           // ignore
@@ -2646,14 +2665,30 @@ export async function executeTtsFallbackSequence(
               Math.max(12000, (text.length / 3) * (1000 / effectiveRate) + 6000),
             );
             try {
-              window.speechSynthesis.cancel();
-              const u = new SpeechSynthesisUtterance(text);
-              u.lang = normalizeLanguageCode(lang);
-              u.rate = effectiveRate;
-              u.volume = volume;
-              u.onend = () => finish(true);
-              u.onerror = () => finish(false);
-              window.speechSynthesis.speak(u);
+              const synth = window.speechSynthesis;
+              const hadActive = Boolean(synth?.speaking || synth?.pending);
+              if (hadActive) {
+                synth.cancel();
+              }
+              const speakNative = () => {
+                if (settled) return;
+                try {
+                  const u = new SpeechSynthesisUtterance(text);
+                  u.lang = normalizeLanguageCode(lang);
+                  u.rate = effectiveRate;
+                  u.volume = volume;
+                  u.onend = () => finish(true);
+                  u.onerror = () => finish(false);
+                  synth.speak(u);
+                } catch {
+                  finish(false);
+                }
+              };
+              if (hadActive) {
+                setTimeout(speakNative, 150);
+              } else {
+                speakNative();
+              }
             } catch {
               finish(false);
             }

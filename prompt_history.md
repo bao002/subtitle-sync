@@ -2537,3 +2537,24 @@ CSS 1: {
 }
 [AIS_METADATA_SECTION_END]
 ```
+
+---
+
+### Prompt 198: Hotfix — Fix Vite Pre-transform Errors & Browser On-Demand Translation CORS Flood
+```
+Fix the errors in the app
+[AIS_METADATA_SECTION_START]
+fix_it_trigger: manual
+error 0: 11:58:19 PM [vite] (client) Pre-transform error: Failed to resolve import "@/utils/componentOptimizationService" from "src/components/BottomLogViewer.tsx". Does the file exist?
+error 1: 11:58:19 PM [vite] (client) Pre-transform error: Failed to resolve import "@/utils/componentOptimizationService" from "src/components/AlternativeVideoPlayerView.tsx". Does the file exist?
+error 2: 11:58:19 PM [vite] (client) Pre-transform error: Failed to resolve import "@/utils/componentOptimizationService" from "src/components/CanvasBalloonGame.tsx". Does the file exist?
+error 3: 11:58:20 PM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+[AIS_METADATA_SECTION_END]
+```
+
+---
+
+### Prompt 199: Go On (Continue Prompt 197 Tasks 407–409 Serially)
+```
+go on
+```

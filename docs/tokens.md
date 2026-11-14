@@ -4,10 +4,13 @@ This document establishes the lightweight, high-efficiency operational protocol 
 
 ---
 
+- Prompt 199 (Continue Backlog — "go on"): Execute active Prompt 197 chapters serially (`Task 407` -> `Task 408` -> `Task 409`).
+- Prompt 198 (Hotfix — Fix Vite Pre-transform Cache & On-Demand Translation CORS Console Error Flood):
+  - Hotfix [COMPLETED & VERIFIED]: Verified zero stale `componentOptimizationService` imports across `BottomLogViewer.tsx`, `AlternativeVideoPlayerView.tsx`, and `CanvasBalloonGame.tsx`; fixed `translate.googleapis.com` 302 `/sorry/index` CORS `console.error` flood in `onDemandTranslationManager.ts` (browser-first `clients5.google.com` CORS-enabled endpoint, typed `extractTranslatedText`, 5m cooldown circuit-breaker, concurrency-capped lookahead); restarted Vite dev server and bumped to `v2.1.114`.
 - Prompt 197 (Tasks 406–409 — Listening Game Word Cards: Remove "X letters", Fix Word TTS Playback, Show & Play Derived Sentence + Translation, UI/UX Space Optimization):
   - Task 406 [COMPLETED & VERIFIED]: Chapter 1 — Removed `{item.letterCount} letters` badge from Listening Game word cards (`ListeningGamePanel.tsx`).
-  - Task 407 [ACTIVE]: Chapter 2 — Fix Listening trigger dropping the base word before speaking its translation (`cancelSpeech` / `window.speechSynthesis.cancel()` async race in `src/routes/index.tsx` + `ListeningGamePanel.tsx`).
-  - Task 408 [PENDING]: Chapter 3 — Display the original sentence from which each word is derived (`item.sourceSentence`, highlighting derived word) and allow playing that sentence and its translation (`handlePlayWordSentence`).
+  - Task 407 [COMPLETED & VERIFIED]: Chapter 2 — Fixed Listening trigger dropping the base word before speaking its translation (`cancelSpeech` / `window.speechSynthesis.cancel()` async race in `src/routes/index.tsx`, `src/lib/alternative-tts.ts`, and `ListeningGamePanel.tsx`, verified via `test:listening-word-base-before-translation` + Chromium E2E).
+  - Task 408 [ACTIVE]: Chapter 3 — Display the original sentence from which each word is derived (`item.sourceSentence`, highlighting derived word) and allow playing that sentence and its translation (`handlePlayWordSentence`).
   - Task 409 [PENDING]: Chapter 4 — Refine Listening Game word card UI/UX layout to properly use horizontal & vertical space without truncation or clutter.
 - Prompt 196 (Task 405 — Listening Game Words List On-Demand Translation & Default Play):
   - Task 405 [COMPLETED & VERIFIED]: Added normalized sync cache & concurrent deduplication in `zeroKnowledgeWordManager.ts`, scrollable `IntersectionObserver` + concurrency-capped on-demand word translation fetching and inline rendering (`listening-word-ondemand-translation-*`) across all word cards (including scrolled items like #73) in `ListeningGamePanel.tsx`, and default parallel resolution + playback of the on-demand word translation on `Listen` / `Listen All` play requests (`speakWordEntry`), verified in unit/source & live Chromium E2E (`test:listening-word-ondemand-translation`), `v2.1.113`.

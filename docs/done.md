@@ -1,5 +1,36 @@
 # Done tasks
 
+### Task 407 (Prompt 197, Chapter 2): Fix Trigger Listening Dropping Base Word & Playing Only Translation (`v2.1.114`)
+
+- **Prompt**: `2. trigger listening doesnt play the word, only its translation`
+- **Changes**:
+  - Updated `src/routes/index.tsx` (`cancelSpeech` & `executeSingleSpeech`): made Web Speech cancellation conditional (`hadActiveUtterance || speaking || pending`), raised post-cancel cooldown (`lastSpeechSynthesisCancelAt`) from `90ms` to `160ms`, extracted `createSpeechUtterance()` with `hasStarted` tracking (`onstart` / `onboundary`) and `cancelRaceRetried` single retry on asynchronous pre-start `canceled`/`interrupted` races when `!isCancelled()`, added silent pre-start `onend` fallback to TTS3, and guarded `_activeUtterance` clearing & error cleanup `cancel()` checks.
+  - Updated `src/lib/alternative-tts.ts` (`fallbackToWebSpeech` & `executeTtsFallbackSequence`): replaced unconditional `speechSynthesis.cancel()` calls with conditional `speaking || pending` cancellation and `150ms` yield before `speak(u)`.
+  - Updated `src/components/ListeningGamePanel.tsx`: added `isAnyPlaybackActive()` checking `isAlternativeTtsPlaying()` and native `speechSynthesis.speaking || pending`, yielded `150ms` only when interrupting active speech in `handlePlayWord`, `handlePlaySentence`, `handlePlayAllWords`, and `handlePlayAllSentences`, and added `60ms` inter-utterance breathing room before speaking translations.
+  - Added dedicated verification script `scripts/verify-listening-word-base-before-translation.ts` (`"test:listening-word-base-before-translation"` in `package.json`, documented in `docs/files.md`).
+- **Verification**:
+  - `npm run test:listening-word-base-before-translation` (source invariants + cancel-race unit simulation + live Playwright Chromium E2E testing both Idle Listen & Interrupted Listen under Chrome `cancel()->speak()` race conditions), `npm run test:speech-interrupted-graceful-handling`, `npm run test:listening-words-tts-playback`, `npm run test:listening-word-ondemand-translation`, `compile_applet`, & `lint_applet`: **PASSED**.
+
+### Hotfix: Fix Vite Pre-transform Stale Module Errors & Browser On-Demand Translation CORS Flood (Prompt 198, `v2.1.114`)
+
+- **Prompt**:
+  ```
+  Fix the errors in the app
+  [AIS_METADATA_SECTION_START]
+  fix_it_trigger: manual
+  error 0: 11:58:19 PM [vite] (client) Pre-transform error: Failed to resolve import "@/utils/componentOptimizationService" from "src/components/BottomLogViewer.tsx". Does the file exist?
+  error 1: 11:58:19 PM [vite] (client) Pre-transform error: Failed to resolve import "@/utils/componentOptimizationService" from "src/components/AlternativeVideoPlayerView.tsx". Does the file exist?
+  error 2: 11:58:19 PM [vite] (client) Pre-transform error: Failed to resolve import "@/utils/componentOptimizationService" from "src/components/CanvasBalloonGame.tsx". Does the file exist?
+  error 3: 11:58:20 PM [vite] (client) hmr update /src/styles.css, /src/components/FloatingErrorButton.tsx
+  [AIS_METADATA_SECTION_END]
+  ```
+- **Changes**:
+  - Audited `src/components/BottomLogViewer.tsx`, `src/components/AlternativeVideoPlayerView.tsx`, `src/components/CanvasBalloonGame.tsx`, `src/components/FloatingErrorButton.tsx`, and `public/` confirming zero remaining references to `@/utils/componentOptimizationService` (already removed in Prompt 176); verified all Vite module transforms return HTTP 200 and restarted the Vite dev server to clear stale HMR/transform logs.
+  - Fixed live browser runtime error discovered during Chromium verification (`src/utils/onDemandTranslationManager.ts`): `translate.googleapis.com/translate_a/single` redirected (`302 -> google.com/sorry/index`) without CORS headers, causing CORS `console.error` + `net::ERR_FAILED` floods during word/sentence on-demand translation. Prioritized CORS-enabled `clients5.google.com/translate_a/t` (`Access-Control-Allow-Origin: *`) in browser runtimes (preserving `gtx`-first in Node tests), extracted response parsing into typed `extractTranslatedText(data: unknown)` across all schemas, added 5-minute browser endpoint cooldown circuit-breakers on `403`/`429`/`5xx`/network errors, and capped `translateSentencesAhead` concurrent fetches to `MAX_CONCURRENT_LOOKAHEAD = 2`.
+  - Bumped version to `v2.1.114` (`code: 20214`) via `npm run sync-version`.
+- **Verification**:
+  - `tsx scripts/verify-vite-reload-and-modules-hotfix.ts`, `tsx scripts/verify-client-pretransform-health.ts`, `npx tsc --noEmit`, `npx eslint src/utils/onDemandTranslationManager.ts`, `npm run test:on-demand-translation`, `npm run test:application-stages-pipeline`, `npm run test:listening-words-tts-playback` (zero Chromium console/page/floating errors), `npm run test:listening-word-ondemand-translation`, `npm run check-version`, `npm run test:agents-all` (22/22), `npm run test:no-duplicate-md`, `compile_applet`, & `lint_applet`: **PASSED**. (Note: `.git` repository directory is not present in workspace so `git commit` / `git push` are skipped in this environment.)
+
 ### Task 406 (Prompt 197, Chapter 1): Remove "X letters" Badge from Listening Game Word Cards (`v2.1.113`)
 
 - **Prompt**: `1. X letters - rm it`

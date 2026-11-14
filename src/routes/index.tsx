@@ -910,38 +910,95 @@ function executeSingleSpeech(
         if (window.speechSynthesis.paused) {
           window.speechSynthesis.resume();
         }
-        const u = new SpeechSynthesisUtterance(text);
-        u.rate = normalizedRate;
-        u.volume = normalizedVolume;
+        const createSpeechUtterance = () => {
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.rate = normalizedRate;
+          utterance.volume = normalizedVolume;
 
-        const v =
-          chosenVoice ??
-          voices.find(
-            (x) =>
-              (x.voiceURI === voiceURI || x.name === voiceURI) && matchesLanguageCode(x.lang, lang),
-          ) ??
-          voices.find((x) => matchesLanguageCode(x.lang, lang));
+          const matchedVoice =
+            chosenVoice ??
+            voices.find(
+              (x) =>
+                (x.voiceURI === voiceURI || x.name === voiceURI) &&
+                matchesLanguageCode(x.lang, lang),
+            ) ??
+            voices.find((x) => matchesLanguageCode(x.lang, lang));
 
-        if (v && matchesLanguageCode(v.lang, lang)) {
-          u.voice = v;
-          u.lang = v.lang || lang;
-        } else {
-          u.lang = lang;
-        }
+          if (matchedVoice && matchesLanguageCode(matchedVoice.lang, lang)) {
+            utterance.voice = matchedVoice;
+            utterance.lang = matchedVoice.lang || lang;
+          } else {
+            utterance.lang = lang;
+          }
 
-        u.onboundary = (event) => {
-          if (event.name !== "word") return;
-          const remainder = text.slice(event.charIndex);
-          const wordLength = event.charLength || remainder.match(/^\S+/)?.[0].length || 1;
-          safeProgress({
-            lang: lang.slice(0, 2),
-            row,
-            start: event.charIndex,
-            end: event.charIndex + wordLength,
-          });
+          utterance.onstart = () => {
+            hasStarted = true;
+          };
+          utterance.onboundary = (event) => {
+            hasStarted = true;
+            if (event.name !== "word") return;
+            const remainder = text.slice(event.charIndex);
+            const wordLength = event.charLength || remainder.match(/^\S+/)?.[0].length || 1;
+            safeProgress({
+              lang: lang.slice(0, 2),
+              row,
+              start: event.charIndex,
+              end: event.charIndex + wordLength,
+            });
+          };
+          utterance.onend = () => {
+            if (!hasStarted && !matchedVoice && canFallbackToTts3 && !isCancelled()) {
+              void done(true, "native-ended-without-starting");
+              return;
+            }
+            void done(false);
+          };
+          utterance.onerror = (event) => {
+            // When playback is paused or speech is cancelled intentionally (e.g. window.speechSynthesis.cancel()),
+            // the browser standardly fires onerror with 'interrupted' or 'canceled'.
+            // Treat intentional interruption as normal completion without logging an error or triggering alternative fallback.
+            if (event.error === "interrupted" || event.error === "canceled") {
+              if (!isCancelled() && !hasStarted && !cancelRaceRetried) {
+                cancelRaceRetried = true;
+                setTimeout(() => {
+                  if (resolved || isCancelled()) {
+                    void done(false);
+                    return;
+                  }
+                  try {
+                    if (window.speechSynthesis.paused) {
+                      window.speechSynthesis.resume();
+                    }
+                    const retryUtterance = createSpeechUtterance();
+                    activeUtteranceRef = retryUtterance;
+                    (
+                      window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }
+                    )._activeUtterance = retryUtterance;
+                    window.speechSynthesis.speak(retryUtterance);
+                  } catch {
+                    void done(true, event.error);
+                  }
+                }, 160);
+                return;
+              }
+              if (!isCancelled() && !hasStarted && canFallbackToTts3) {
+                void done(true, event.error);
+                return;
+              }
+              void done(false);
+              return;
+            }
+            void done(true, event.error);
+          };
+
+          return utterance;
         };
+
+        let hasStarted = false;
+        let cancelRaceRetried = false;
         let resolved = false;
         let safetyTimer: ReturnType<typeof setTimeout> | null = null;
+        let activeUtteranceRef: SpeechSynthesisUtterance | null = null;
         const done = async (isError?: boolean, errorDetail?: string) => {
           if (resolved) return;
           resolved = true;
@@ -950,11 +1007,18 @@ function executeSingleSpeech(
             safetyTimer = null;
           }
           if (typeof window !== "undefined") {
-            (
-              window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }
-            )._activeUtterance = null;
-            if (isError && "speechSynthesis" in window) {
+            const win = window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null };
+            if (!activeUtteranceRef || win._activeUtterance === activeUtteranceRef) {
+              win._activeUtterance = null;
+            }
+            if (
+              isError &&
+              !isCancelled() &&
+              "speechSynthesis" in window &&
+              (window.speechSynthesis.speaking || window.speechSynthesis.pending)
+            ) {
               try {
+                lastSpeechSynthesisCancelAt = Date.now();
                 window.speechSynthesis.cancel();
               } catch {
                 // ignore cancel error
@@ -982,32 +1046,23 @@ function executeSingleSpeech(
           res();
         };
 
-        u.onend = () => done(false);
-        u.onerror = (event) => {
-          // When playback is paused or speech is cancelled intentionally (e.g. window.speechSynthesis.cancel()),
-          // the browser standardly fires onerror with 'interrupted' or 'canceled'.
-          // Treat intentional interruption as normal completion without logging an error or triggering alternative fallback.
-          if (event.error === "interrupted" || event.error === "canceled") {
-            void done(false);
-            return;
-          }
-          void done(true, event.error);
-        };
         const timeoutMs = Math.max(
           16000,
           (text.length / 3) * (1000 / (normalizedRate || 0.5)) + 8000,
         );
         safetyTimer = setTimeout(() => done(false), timeoutMs);
         const elapsedSinceCancel = Date.now() - lastSpeechSynthesisCancelAt;
-        if (elapsedSinceCancel < 90) {
+        if (elapsedSinceCancel < 160) {
           await new Promise<void>((waitResolve) =>
-            setTimeout(waitResolve, 90 - elapsedSinceCancel),
+            setTimeout(waitResolve, 160 - elapsedSinceCancel),
           );
           if (isCancelled()) {
             safeProgress(null);
             return res();
           }
         }
+        const u = createSpeechUtterance();
+        activeUtteranceRef = u;
         if (typeof window !== "undefined") {
           (
             window as Window & { _activeUtterance?: SpeechSynthesisUtterance | null }

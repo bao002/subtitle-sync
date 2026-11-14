@@ -24,6 +24,106 @@ export interface TranslateOptions {
   toLang: string;
 }
 
+const ENDPOINT_COOLDOWN_MS = 5 * 60 * 1000;
+const MAX_CONCURRENT_LOOKAHEAD = 2;
+
+let gtxBlockedUntil = 0;
+let clients5BlockedUntil = 0;
+
+function extractTranslatedText(data: unknown): string {
+  if (typeof data === "string") {
+    return data.trim();
+  }
+  if (data && typeof data === "object" && !Array.isArray(data)) {
+    const obj = data as { translatedText?: unknown };
+    if (typeof obj.translatedText === "string" && obj.translatedText.trim()) {
+      return obj.translatedText.trim();
+    }
+    return "";
+  }
+  if (!Array.isArray(data) || data.length === 0) {
+    return "";
+  }
+
+  // Shape 1 (clients5): ["Hola"]
+  if (typeof data[0] === "string") {
+    return data[0].trim();
+  }
+
+  // Shape 2 (gtx): [[["Hola", "Hello", ...], ...]] or Shape 3 (clients5 sl=auto): [["Hola", "en"]]
+  if (Array.isArray(data[0])) {
+    const firstLevel = data[0] as unknown[];
+    if (typeof firstLevel[0] === "string") {
+      return firstLevel[0].trim();
+    }
+    const joined = firstLevel
+      .map((part) => (Array.isArray(part) && typeof part[0] === "string" ? part[0] : ""))
+      .join("")
+      .trim();
+    if (joined) {
+      return joined;
+    }
+  }
+
+  return "";
+}
+
+async function fetchClients5(
+  cleanText: string,
+  normalizedFromLang: string,
+  normalizedToLang: string,
+): Promise<string> {
+  const isBrowser = typeof window !== "undefined";
+  if (isBrowser && Date.now() < clients5BlockedUntil) {
+    return "";
+  }
+  const fallbackUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=${normalizedFromLang}&tl=${normalizedToLang}&q=${encodeURIComponent(cleanText)}`;
+  try {
+    const res = await fetch(fallbackUrl);
+    if (!res.ok) {
+      if (isBrowser && (res.status === 403 || res.status === 429 || res.status >= 500)) {
+        clients5BlockedUntil = Date.now() + ENDPOINT_COOLDOWN_MS;
+      }
+      return "";
+    }
+    const data: unknown = await res.json();
+    return extractTranslatedText(data);
+  } catch {
+    if (isBrowser) {
+      clients5BlockedUntil = Date.now() + ENDPOINT_COOLDOWN_MS;
+    }
+    return "";
+  }
+}
+
+async function fetchGtx(
+  cleanText: string,
+  normalizedFromLang: string,
+  normalizedToLang: string,
+): Promise<string> {
+  const isBrowser = typeof window !== "undefined";
+  if (isBrowser && Date.now() < gtxBlockedUntil) {
+    return "";
+  }
+  const requestUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${normalizedFromLang}&tl=${normalizedToLang}&dt=t&q=${encodeURIComponent(cleanText)}`;
+  try {
+    const res = await fetch(requestUrl);
+    if (!res.ok) {
+      if (isBrowser && (res.status === 403 || res.status === 429 || res.status >= 500)) {
+        gtxBlockedUntil = Date.now() + ENDPOINT_COOLDOWN_MS;
+      }
+      return "";
+    }
+    const data: unknown = await res.json();
+    return extractTranslatedText(data);
+  } catch {
+    if (isBrowser) {
+      gtxBlockedUntil = Date.now() + ENDPOINT_COOLDOWN_MS;
+    }
+    return "";
+  }
+}
+
 export const translateWithGoogle = async ({
   text,
   fromLang,
@@ -41,46 +141,21 @@ export const translateWithGoogle = async ({
 
   const normalizedFromLang = normalizeLanguage(fromLang);
   const normalizedToLang = normalizeLanguage(toLang);
-  const requestUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${normalizedFromLang}&tl=${normalizedToLang}&dt=t&q=${encodeURIComponent(cleanText)}`;
+  const isBrowser = typeof window !== "undefined";
 
-  try {
-    const res = await fetch(requestUrl);
-    if (res.ok) {
-      const data = await res.json();
-      let translated = "";
-      if (typeof data?.translatedText === "string" && data.translatedText) {
-        translated = data.translatedText;
-      } else if (Array.isArray(data?.[0])) {
-        translated = data[0]
-          .map((part: any) => (Array.isArray(part) && typeof part[0] === "string" ? part[0] : ""))
-          .join("");
-      } else {
-        translated = data?.[0]?.[0]?.[0] || "";
-      }
+  // In browser runtimes, prefer clients5 (CORS-enabled) before gtx (which redirects to /sorry/index without CORS headers under rate limits).
+  const attempts = isBrowser ? [fetchClients5, fetchGtx] : [fetchGtx, fetchClients5];
 
-      if (translated && translated.trim().length > 0) {
-        return translated;
-      }
+  for (const attempt of attempts) {
+    const translated = await attempt(cleanText, normalizedFromLang, normalizedToLang);
+    if (translated) {
+      return translated;
     }
-  } catch (_primaryErr) {
-    // Attempt fallback mirror endpoint
   }
 
-  // Secondary fallback mirror
-  try {
-    const fallbackUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=${normalizedFromLang}&tl=${normalizedToLang}&q=${encodeURIComponent(cleanText)}`;
-    const res = await fetch(fallbackUrl);
-    if (res.ok) {
-      const data = await res.json();
-      if (typeof data === "string" && data.trim()) return data.trim();
-      if (Array.isArray(data) && typeof data[0] === "string" && data[0].trim()) return data[0].trim();
-      if (Array.isArray(data?.[0]) && typeof data[0][0] === "string" && data[0][0].trim()) return data[0][0].trim();
-    }
-  } catch (_e) {
-    // Ignore fallback failure
-  }
-
-  throw new Error(`On-demand translation failed for ${normalizedFromLang} -> ${normalizedToLang}`);
+  throw new Error(
+    `No translated text returned: on-demand translation failed for ${normalizedFromLang} -> ${normalizedToLang}`,
+  );
 };
 
 /**
@@ -193,7 +268,7 @@ export async function translateSentencesAhead({
   const validStart = Math.max(0, startIndex);
   const endIndex = Math.min(sentences.length - 1, validStart + sentencesAhead);
 
-  const translationPromises: Promise<void>[] = [];
+  const pendingJobs: Array<{ idx: number; text: string; cacheKey: string }> = [];
 
   for (let idx = validStart; idx <= endIndex; idx++) {
     // If a sentence will NOT act as TTS input, do not translate it on demand!
@@ -221,10 +296,24 @@ export async function translateSentencesAhead({
       continue;
     }
 
-    // 3. Check in-flight or trigger Google Translate
     const cacheKey = getCacheKey(fromLang, toLang, text);
-    let promise = inFlightRequests.get(cacheKey);
+    pendingJobs.push({ idx, text, cacheKey });
+  }
 
+  if (pendingJobs.length === 0) {
+    return sentenceMap;
+  }
+
+  const runJob = async ({
+    idx,
+    text,
+    cacheKey,
+  }: {
+    idx: number;
+    text: string;
+    cacheKey: string;
+  }) => {
+    let promise = inFlightRequests.get(cacheKey);
     if (!promise) {
       promise = translateWithGoogle({ text, fromLang, toLang })
         .then((translated) => {
@@ -258,10 +347,25 @@ export async function translateSentencesAhead({
       });
     }
 
-    translationPromises.push(promise.then(() => {}).catch(() => {}));
-  }
+    try {
+      await promise;
+    } catch {
+      // Logged in catch handler above
+    }
+  };
 
-  await Promise.all(translationPromises);
+  let cursor = 0;
+  const workerCount = Math.min(MAX_CONCURRENT_LOOKAHEAD, pendingJobs.length);
+  await Promise.all(
+    Array.from({ length: workerCount }, async () => {
+      while (cursor < pendingJobs.length) {
+        const job = pendingJobs[cursor++];
+        if (!job) break;
+        await runJob(job);
+      }
+    }),
+  );
+
   return sentenceMap;
 }
 
